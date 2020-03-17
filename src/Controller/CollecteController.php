@@ -361,7 +361,7 @@ class CollecteController extends AbstractController
 
                     $em->persist($collecteReference);
                 }
-                $this->refArticleDataService->editRefArticle($refArticle, $data);
+                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA
                 $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');

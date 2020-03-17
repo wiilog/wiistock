@@ -470,6 +470,10 @@ class ReferenceArticleController extends AbstractController
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode());
 
+
+            if ($refArticle->getIsUrgent()) {
+                $refArticle->setUserThatTriggeredEmergency($this->getUser());
+            }
             if ($data['limitSecurity']) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
@@ -746,7 +750,7 @@ class ReferenceArticleController extends AbstractController
                 ]);
             }
             if ($refArticle) {
-                $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
+                $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             } else {
                 $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
             }
@@ -900,7 +904,7 @@ class ReferenceArticleController extends AbstractController
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
-					$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
+					$json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
 					if ($json === 'article') {
 						$this->articleDataService->editArticle($data);
 						$json = true;

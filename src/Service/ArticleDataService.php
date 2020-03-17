@@ -72,9 +72,9 @@ class ArticleDataService
      */
     private $articleFournisseurRepository;
 
-	/**
-	 * @var ChampLibreRepository
-	 */
+    /**
+     * @var ChampLibreRepository
+     */
     private $champLibreRepository;
 
     /**
@@ -154,14 +154,14 @@ class ArticleDataService
 
     private $em;
 
-	/**
-	 * @var ReceptionReferenceArticleRepository
-	 */
+    /**
+     * @var ReceptionReferenceArticleRepository
+     */
     private $receptionReferenceArticleRepository;
 
-	/**
-	 * @var MailerService
-	 */
+    /**
+     * @var MailerService
+     */
     private $mailerService;
 
     /**
@@ -169,12 +169,12 @@ class ArticleDataService
      */
     private $filtreSupRepository;
 
-	/**
-	 * @var InventoryCategoryRepository
-	 */
-	private $inventoryCategoryRepository;
+    /**
+     * @var InventoryCategoryRepository
+     */
+    private $inventoryCategoryRepository;
 
-	public function __construct(FiltreSupRepository $filtreSupRepository,
+    public function __construct(FiltreSupRepository $filtreSupRepository,
                                 ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
                                 MailerService $mailerService,
                                 ParametreRoleRepository $parametreRoleRepository,
@@ -196,7 +196,7 @@ class ArticleDataService
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
-								InventoryCategoryRepository $inventoryCategoryRepository)
+                                InventoryCategoryRepository $inventoryCategoryRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -223,18 +223,18 @@ class ArticleDataService
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
     }
 
-	/**
-	 * @param ReferenceArticle $refArticle
-	 * @param string $demande
-	 * @param bool $modifieRefArticle
-	 * @param bool $byRef
-	 * @return bool|string
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 * @throws NonUniqueResultException
-	 * @throws DBALException
-	 */
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param string $demande
+     * @param bool $modifieRefArticle
+     * @param bool $byRef
+     * @return bool|string
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     * @throws NonUniqueResultException
+     * @throws DBALException
+     */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
         if ($demande === 'livraison') {
@@ -282,16 +282,16 @@ class ArticleDataService
                 ];
             }
             $quantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
-			if ($byRef && $demande == 'demande') {
-				$json = $this->templating->render('demande/choiceContent.html.twig', [
-					'maximum' => $quantity
-				]);
-			} else {
-				$json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
-					'articles' => $articles,
-					'maximum' => $quantity
-				]);
-			}
+            if ($byRef && $demande == 'demande') {
+                $json = $this->templating->render('demande/choiceContent.html.twig', [
+                    'maximum' => $quantity
+                ]);
+            } else {
+                $json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
+                    'articles' => $articles,
+                    'maximum' => $quantity
+                ]);
+            }
 
 
         } else {
@@ -329,16 +329,16 @@ class ArticleDataService
         return $data;
     }
 
-	/**
-	 * @param $refArticle
-	 * @return array
-	 *
-	 * @throws DBALException
-	 * @throws NonUniqueResultException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
+    /**
+     * @param $refArticle
+     * @return array
+     *
+     * @throws DBALException
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
     public function getLivraisonArticlesByRefArticle($refArticle)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -366,16 +366,16 @@ class ArticleDataService
             $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
-            	$data = [
-            	    'selection' => $this->templating->render('demande/choiceContent.html.twig', [
+                $data = [
+                    'selection' => $this->templating->render('demande/choiceContent.html.twig', [
                         'maximum' => $availableQuantity
                     ])];
-			} else {
-            	$data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
-					'articles' => $articles,
-					'maximum' => $availableQuantity,
-				])];
-			}
+            } else {
+                $data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+                    'articles' => $articles,
+                    'maximum' => $availableQuantity,
+                ])];
+            }
         } else {
             $data = false; //TODO gérer erreur retour
         }
@@ -416,7 +416,7 @@ class ArticleDataService
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
 
-		$champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+        $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
@@ -448,7 +448,7 @@ class ArticleDataService
             'article' => $article,
             'statut' => $statut,
             'isADemand' => $isADemand,
-			'invCategory' => $refArticle->getCategory()
+            'invCategory' => $refArticle->getCategory()
         ]);
     }
 
@@ -502,16 +502,16 @@ class ArticleDataService
         }
     }
 
-	/**
-	 * @param array $data
-	 * @param Demande $demande
-	 * @param Reception $reception
-	 * @return Article
-	 * @throws NonUniqueResultException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
+    /**
+     * @param array $data
+     * @param Demande $demande
+     * @param Reception $reception
+     * @return Article
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
     public function newArticle($data, $demande = null, $reception = null)
     {
         $entityManager = $this->em;
@@ -525,9 +525,9 @@ class ArticleDataService
 
         $highestCpt = 0;
         foreach ($references as $reference) {
-        	$cpt = (int)substr($reference, -5, 5);
-        	if ($cpt > $highestCpt) $highestCpt = $cpt;
-		}
+            $cpt = (int)substr($reference, -5, 5);
+            if ($cpt > $highestCpt) $highestCpt = $cpt;
+        }
 
         $i = $highestCpt + 1;
         $cpt = sprintf('%05u', $i);
@@ -536,18 +536,18 @@ class ArticleDataService
         $price = isset($data['prix']) ? max(0, $data['prix']) : null;
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
         if (isset($data['emplacement'])) {
-			$location = $this->emplacementRepository->find($data['emplacement']);
-		} else {
-        	$location = $this->emplacementRepository->findOneByLabel(Emplacement::LABEL_A_DETERMINER);
-        	if (!$location) {
-        		$location = new Emplacement();
-        		$location
-					->setLabel(Emplacement::LABEL_A_DETERMINER);
-        		$entityManager->persist($location);
-			}
-        	$location->setIsActive(true);
-        	$entityManager->flush();
-		}
+            $location = $this->emplacementRepository->find($data['emplacement']);
+        } else {
+            $location = $this->emplacementRepository->findOneByLabel(Emplacement::LABEL_A_DETERMINER);
+            if (!$location) {
+                $location = new Emplacement();
+                $location
+                    ->setLabel(Emplacement::LABEL_A_DETERMINER);
+                $entityManager->persist($location);
+            }
+            $location->setIsActive(true);
+            $entityManager->flush();
+        }
 
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
@@ -560,55 +560,72 @@ class ArticleDataService
             ->setEmplacement($location)
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
-			->setBarCode($this->generateBarCode());
+            ->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
 
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->addArticle($toInsert)
-                        ->setChampLibre($this->champLibreRepository->find($champ));
-                    $entityManager->persist($valeurChampLibre);
+                $valeurChampLibre = new ValeurChampLibre();
+                $valeurChampLibre
+                    ->addArticle($toInsert)
+                    ->setChampLibre($this->champLibreRepository->find($champ));
+                $entityManager->persist($valeurChampLibre);
                 $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
                 $entityManager->flush();
             }
         }
 
         // optionnel : ajout dans une demande
-		if ($demande) {
-			$demande->addArticle($toInsert);
-		}
+        if ($demande) {
+            $demande->addArticle($toInsert);
+        }
 
-		// optionnel : ajout dans une réception
-		if ($reception) {
-			$noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
-			$rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
-			$toInsert->setReceptionReferenceArticle($rra);
-			$entityManager->flush();
-			$mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
-                'article' => $toInsert,
-                'title' => 'Votre article urgent a bien été réceptionné.',
-            ]);
-			// gestion des urgences
-			if ($refArticle->getIsUrgent()) {
-				// on envoie un mail aux demandeurs
-				$this->mailerService->sendMail(
-					'FOLLOW GT // Article urgent réceptionné', $mailContent,
-					$demande ? $demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : '' : ''
-				);
-				// on retire l'urgence
-				$refArticle->setIsUrgent(false);
-			}
-		}
+        // optionnel : ajout dans une réception
+        if ($reception) {
+            $noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
+            $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
+            $toInsert->setReceptionReferenceArticle($rra);
+            $entityManager->flush();
+            // gestion des urgences
+            if ($refArticle->getIsUrgent()) {
+                $mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
+                    'article' => $toInsert,
+                    'title' => 'Votre article urgent a bien été réceptionné.',
+                ]);
+                $destinataires = '';
+                if ($refArticle->getUserThatTriggeredEmergency()) {
+                    if ($demande && $demande->getUtilisateur()) {
+                        $destinataires = [
+                            $refArticle->getUserThatTriggeredEmergency()->getEmail(),
+                            $demande->getUtilisateur()->getEmail()
+                        ];
+                    } else {
+                        $destinataires = $refArticle->getUserThatTriggeredEmergency()->getEmail();
+                    }
+                } else {
+                    if ($demande && $demande->getUtilisateur()) {
+                        $destinataires = $demande->getUtilisateur()->getEmail();
+                    }
+                }
+                dump($destinataires);
+                // on envoie un mail aux demandeurs
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                    $destinataires
+                );
+                // on retire l'urgence
+                $refArticle->setIsUrgent(false);
+                $refArticle->setUserThatTriggeredEmergency(null);
+            }
+        }
         $entityManager->flush();
         return $toInsert;
     }
 
     public function getDataForDatatable($params = null, $user)
     {
-		$data = $this->getArticleDataByParams($params, $user);
+        $data = $this->getArticleDataByParams($params, $user);
         return $data;
     }
 
@@ -617,19 +634,19 @@ class ArticleDataService
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-			$data = $this->getArticleDataByParams(null, $user);
+            $data = $this->getArticleDataByParams(null, $user);
         }
         return $data;
     }
 
-	/**
-	 * @param ReceptionReferenceArticle $ligne
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 * @throws DBALException
-	 */
+    /**
+     * @param ReceptionReferenceArticle $ligne
+     * @return array
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     * @throws DBALException
+     */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();
@@ -640,29 +657,29 @@ class ArticleDataService
         return ['data' => $rows];
     }
 
-	/**
-	 * @param null $params
-	 * @param Utilisateur $user
-	 * @return array
-	 * @throws DBALException
-	 * @throws ORMException
-	 * @throws OptimisticLockException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
+    /**
+     * @param null $params
+     * @param Utilisateur $user
+     * @return array
+     * @throws DBALException
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
     public function getArticleDataByParams($params = null, $user)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARTICLE, $user);
+        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARTICLE, $user);
 
-		// l'utilisateur qui n'a pas le droit de modifier le stock ne doit pas voir les articles inactifs
-		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-			$filters = [[
-				'field' => FiltreSup::FIELD_STATUT,
-				'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
-			]];
-		}
-		$queryResult = $this->articleRepository->findByParamsAndFilters($params, $filters, $user);
+        // l'utilisateur qui n'a pas le droit de modifier le stock ne doit pas voir les articles inactifs
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+            $filters = [[
+                'field' => FiltreSup::FIELD_STATUT,
+                'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+            ]];
+        }
+        $queryResult = $this->articleRepository->findByParamsAndFilters($params, $filters, $user);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
@@ -701,68 +718,69 @@ class ArticleDataService
         }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-			$status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
-		} else {
-        	$status = '';
-		}
+            $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
+        } else {
+            $status = '';
+        }
 
-		$criteriaFactory = Criteria::create();
-		$exprFactory = Criteria::expr();
-		$mouvementsFiltered = $article
-			->getMouvements()
-			->matching(
-				$criteriaFactory
-					->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
-					->orderBy(['date' => Criteria::DESC])
-			);
+        $criteriaFactory = Criteria::create();
+        $exprFactory = Criteria::expr();
+        $mouvementsFiltered = $article
+            ->getMouvements()
+            ->matching(
+                $criteriaFactory
+                    ->andWhere($exprFactory->eq('type', MouvementStock::TYPE_ENTREE))
+                    ->orderBy(['date' => Criteria::DESC])
+            );
 
-		/** @var MouvementStock $mouvementEntree */
-		$mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
+        /** @var MouvementStock $mouvementEntree */
+        $mouvementEntree = $mouvementsFiltered->count() > 0 ? $mouvementsFiltered->first() : null;
 
-		$row = [
-			'id' => $article->getId() ?? 'Non défini',
-			'Référence' => $article->getReference() ?? 'Non défini',
-			'Statut' => $status,
-			'Libellé' => $article->getLabel() ?? 'Non défini',
-			'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y/m/d H:i:s') : '',
-			'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+        $row = [
+            'id' => $article->getId() ?? 'Non défini',
+            'Référence' => $article->getReference() ?? 'Non défini',
+            'Statut' => $status,
+            'Libellé' => $article->getLabel() ?? 'Non défini',
+            'Date et heure' => ($mouvementEntree && $mouvementEntree->getDate()) ? $mouvementEntree->getDate()->format('Y/m/d H:i:s') : '',
+            'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
             'Quantité' => $article->getQuantite() ?? 0,
-			'Type' => $article->getType() ? $article->getType()->getLabel() : '',
-			'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
-			'Commentaire' => $article->getCommentaire() ?? '',
-			'Prix unitaire' => $article->getPrixUnitaire(),
-			'Code barre' => $article->getBarCode() ?? 'Non défini',
-			"Dernier inventaire" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
-			'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-				'url' => $url,
-				'articleId' => $article->getId(),
-				'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
-			]),
-		];
+            'Type' => $article->getType() ? $article->getType()->getLabel() : '',
+            'Emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' Non défini',
+            'Commentaire' => $article->getCommentaire() ?? '',
+            'Prix unitaire' => $article->getPrixUnitaire(),
+            'Code barre' => $article->getBarCode() ?? 'Non défini',
+            "Dernier inventaire" => $article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '',
+            'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                'url' => $url,
+                'articleId' => $article->getId(),
+                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
+            ]),
+        ];
 
         $rows = array_merge($rowCL, $row);
         return $rows;
     }
 
-	/**
-	 * @return string
-	 * @throws NonUniqueResultException
-	 */
-	public function generateBarCode()
-	{
-		$now = new \DateTime('now');
-		$dateCode = $now->format('ym');
+    /**
+     * @return string
+     * @throws NonUniqueResultException
+     */
+    public function generateBarCode()
+    {
+        $now = new \DateTime('now');
+        $dateCode = $now->format('ym');
 
-		$highestBarCode = $this->articleRepository->getHighestBarCodeByDateCode($dateCode);
-		$highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
+        $highestBarCode = $this->articleRepository->getHighestBarCodeByDateCode($dateCode);
+        $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
 
-		$newCounter =  sprintf('%08u', $highestCounter+1);
-		$newBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
+        $newCounter = sprintf('%08u', $highestCounter + 1);
+        $newBarcode = Article::BARCODE_PREFIX . $dateCode . $newCounter;
 
-		return $newBarcode;
-	}
+        return $newBarcode;
+    }
 
-    public function getBarcodeConfig(Article $article, bool $wantBL = false): array {
+    public function getBarcodeConfig(Article $article, bool $wantBL = false): array
+    {
         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
         $wantedIndex = 0;
         foreach ($articles as $key => $articleWithCL) {
