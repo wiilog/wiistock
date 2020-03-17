@@ -372,7 +372,7 @@ class LitigeRepository extends ServiceEntityRepository
                                 ->addOrderBy('provider', $order);
                         } else if ($column === 'numCommandeBl') {
                             $qb
-                                ->addOrderBy('a.numeroCommandeList', $order);
+                                ->addOrderBy('numCommandeBl', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);
