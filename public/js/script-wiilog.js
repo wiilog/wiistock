@@ -500,25 +500,71 @@ function initFilterDateToday() {
 /**
  *
  * @param $select
- * @param {{}|{route: string, param: {}|undefined}} ajaxOption
+ * @param {{}|{route: string, param: {}|undefined, success?: function(result, term)}} ajaxOptions
  * @param lengthMin
  * @param placeholder
+ * @param {boolean} autoSelect
  */
-function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOption = {}) {
+function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {}, {autoSelect, $nextField} = {}) {
     $select.each(function () {
         const $item = $(this);
         let isMultiple = $item.attr('multiple') === 'multiple';
-        const ajaxOptions = ajaxOption && ajaxOption.route
+
+        const select2AjaxOptions = ajaxOptions && ajaxOptions.route
             ? {
                 ajax: {
-                    url: Routing.generate(ajaxOption.route, ajaxOption.param || {}, true),
+                    url: Routing.generate(ajaxOptions.route, ajaxOptions.param || {}, true),
                     dataType: 'json',
                     delay: 250,
+                    ...(
+                        autoSelect
+                            ? {
+                                processResults: (data, {term}) => {
+                                    const {results = []} = (data || {});
+
+                                    if (results
+                                        && results.length > 0
+                                        && results[0].text === term) {
+
+                                        const option = new Option(results[0].text, results[0].id, true, true);
+                                        const oldVal = $item.val();
+                                        const newVal = (
+                                            !isMultiple
+                                                ? option
+                                                : [
+                                                    ...(oldVal || []),
+                                                    ...[option]
+                                                ]
+                                        );
+
+                                        setTimeout(() => {
+                                            $item
+                                                .append(newVal)
+                                                .trigger('change');
+
+                                            $item.select2('close');
+                                            if ($nextField) {
+
+                                                if (!$nextField.data('select2')) {
+                                                    $nextField.select2('open');
+                                                }
+                                                else {
+                                                    $nextField.trigger('focus');
+                                                }
+                                            }
+                                        });
+                                    }
+                                    return data;
+                                }
+                            }
+                            : {}
+                    )
                 }
             }
             : {};
+
         $item.select2({
-            ...ajaxOptions,
+            ...select2AjaxOptions,
             language: {
                 inputTooShort: function () {
                     let s = lengthMin > 1 ? 's' : '';
@@ -562,8 +608,8 @@ function initDisplaySelect2Multiple(select, inputValues) {
     }
 }
 
-function ajaxAutoCompleteEmplacementInit(select) {
-    initSelect2(select, '', 1, {route: 'get_emplacement'});
+function ajaxAutoCompleteEmplacementInit(select, autoSelectOptions) {
+    initSelect2(select, '', 1, {route: 'get_emplacement'}, autoSelectOptions);
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
