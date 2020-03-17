@@ -137,8 +137,13 @@ function getCompareStock(submit) {
             $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
             tableArticle.ajax.reload();
         } else {
-            $('#restantQuantite').html(data.stock);
-            $('#negativStock').click();
+            if (data.message) {
+                alertErrorMsg(data.message)
+            }
+            else {
+                $('#restantQuantite').html(data.stock);
+                $('#negativStock').click();
+            }
         }
     }, 'json');
 }

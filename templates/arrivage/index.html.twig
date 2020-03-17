@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ 'arrivage.arrivages'|trans|capitalize }}{% endblock %}
+{% block title %}{{ 'arrivage.arrivages'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
@@ -15,7 +15,7 @@
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
-    <h1 title="arrivages">{{ 'arrivage.arrivages'|trans|capitalize }}</h1>
+    <h1 title="arrivages">{{ 'arrivage.arrivages'|trans }}</h1>
 
     <div class="row">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
@@ -23,7 +23,7 @@
                data-backdrop="static" data-keyboard="false"
                onclick="initNewArrivageEditor('#modalNewArrivage')">
                 <span class="fa fa-plus mr-2"></span>
-                <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans|capitalize }}</span>
+                <span title="nouvel arrivage">{{ 'arrivage.nouvel arrivage'|trans }}</span>
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -51,9 +51,9 @@
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
 
-    <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans|capitalize }}">
-    <input hidden id="acheteursTranslation" value="{{ "arrivage.acheteurs"|trans|capitalize }}">
-    <input hidden id="destinataireTranslation" value="{{ "arrivage.destinataire"|trans|capitalize }}">
+    <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans }}">
+    <input hidden id="acheteursTranslation" value="{{ "arrivage.acheteurs"|trans }}">
+    <input hidden id="destinataireTranslation" value="{{ "arrivage.destinataire"|trans }}">
 {% endblock %}
 
 {% block javascripts %}

@@ -330,6 +330,8 @@ class LitigeRepository extends ServiceEntityRepository
 						t.label LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						r.numeroReception LIKE :value OR
+						r.reference LIKE :value OR
+                        rra.commande LIKE :value OR
 						ach.username LIKE :value OR
 						ach.email LIKE :value OR
 						buyers.email LIKE :value OR

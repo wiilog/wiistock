@@ -1,4 +1,4 @@
-{% extends 'mails/template.html.twig' %}
+{% extends 'mails/mjml/template.html.twig' %}
 
 {% block content %}
     <p>Bonjour,</p>
@@ -7,7 +7,7 @@
     <p>Votre commande {{ isUrgentArrival ? 'urgente ' }}est arrivée : </p>
     <br/>
 
-    <p>{{ "arrivage.n° d'arrivage"|trans|capitalize }} : {{ arrival.numeroArrivage }}</p>
+    <p>{{ "arrivage.n° d'arrivage"|trans }} : {{ arrival.numeroArrivage }}</p>
 
     {% set numeroCommandeList = (
         (emergencies|length > 0 and emergencies[0].commande)

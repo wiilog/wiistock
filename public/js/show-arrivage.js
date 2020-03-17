@@ -176,7 +176,6 @@ let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
 
-let quillEdit;
 let originalText = '';
 
 function editRowArrivage(button) {
@@ -189,9 +188,11 @@ function editRowArrivage(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        quillEdit = initEditor('.editor-container-edit');
+        const quillEdit = initEditor('.editor-container-edit');
+        if (quillEdit) {
+            originalText = quillEdit.getText();
+        }
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
-        originalText = quillEdit.getText();
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
         initFreeSelect2($('.select2-free'));
