@@ -358,12 +358,14 @@ class ArticleRepository extends ServiceEntityRepository
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
+			LEFT JOIN a.demande d
+			LEFT JOIN d.statut s
 			WHERE a.statut = :statut
 			  AND ra = :refArticle
 			  AND a.quantite IS NOT NULL
 			  AND a.quantite > 0
-			  AND(a.preparation IS NULL OR a.preparation = :prepa)
-			  AND(a.demande IS NULL OR a.demande = :dem)
+			  AND (a.preparation IS NULL OR a.preparation = :prepa)
+			  AND (a.demande IS NULL OR a.demande = :dem OR s.nom = :draft)
 			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
@@ -371,6 +373,7 @@ class ArticleRepository extends ServiceEntityRepository
             'statut' => $statut,
             'prepa' => $preparation,
             'dem' => $demande,
+			'draft' => Demande::STATUT_BROUILLON
 		]);
 
 		return $query->execute();

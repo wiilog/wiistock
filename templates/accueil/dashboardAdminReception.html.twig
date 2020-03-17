@@ -5,8 +5,8 @@
 </div>
 <div class="row mt-2">
     <div class="col-12">
-        <div class="row">
-            <div class="col-8 dashboard-box-wrapper third-height">
+        <div class="row mb-4">
+            <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
                     <p class="title">
                         Entrées à effectuer
@@ -16,10 +16,8 @@
                     </p>
                     {% if not isDashboardExt %}
                         <div class="points">
-    {#                        {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}#}
-                            <i
-                                class="fa fa-question has-tooltip"
-                                title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1)
+                            <i class="fa fa-question has-tooltip"
+                               title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1)
                                 présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 1."></i>
                         </div>
                     {% endif %}
@@ -28,107 +26,121 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4 align-self-start">
-                <div class="ml-1 mr-1">
+            <div class="col-3 d-flex flex-column justify-content-between">
+                <div class="mr-1">
                     <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box text-center justify-content-around">
+                        <div class="dashboard-box justify-content-between pb-2">
                             {% if not isDashboardExt %}
                                 <div class="points">
                                     <i class="fa fa-question has-tooltip"
                                        title="Nombre {{ 'arrivage.de colis'|trans }} présents
-                                        sur l'emplacement paramétré sur le graphe 1 ayant l'encours le plus ancien.">
+                                        sur l'emplacement paramétré sur le graphe 1 ayant
+                                        l'encours de nature paramétrée pour le graphe 1 le plus ancien.">
                                     </i>
                                 </div>
                             {% endif %}
                             <p class="text-center">
-                                Nombres de lignes restant à traiter
+                                Nombre de lignes restant à traiter
                             </p>
-                            <p class="big-font">
-                                <strong id="totalForChart1" class="figure"></strong>
-                            </p>
+                            <div class="d-flex align-items-center justify-content-center ellipsis"
+                                 style="height: inherit;">
+                                <p class="big-font">
+                                    <strong id="totalForChart1" class="figure"></strong>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="ml-1 mr-1">
+                <div class="mr-1">
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center justify-content-around">
                             {% if not isDashboardExt %}
                                 <div class="points">
                                     <i class="fa fa-question has-tooltip"
                                        title="Emplacement paramétré sur le graphe 1
-                                        ayant l'encours le plus ancien.">
+                                        ayant l'encours de nature pour le graphe 1 paramétrée le plus ancien.">
                                     </i>
                                 </div>
                             {% endif %}
                             <p>
                                 Prochain emplacement à traiter
                             </p>
-                            <p class="medium-font figure" id="empForChart1">
-                            </p>
+                            <div class="d-flex align-items-center justify-content-center"
+                                 style="height: inherit;">
+                                <p class="medium-font figure" id="empForChart1">
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-12">
-        <div class="row">
-            <div class="col-8 dashboard-box-wrapper third-height">
-                <div class="dashboard-box">
-                    <p class="title">
-                        Entrées à effectuer
-                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-                            Méca
-                        {% endif %}
-                    </p>
-                    {% if not isDashboardExt %}
-                        <div class="points">
-                            <i
+</div>
+<div class="col-12 mb-4 p-0">
+    <div class="row">
+        <div class="col-9 dashboard-box-wrapper third-height">
+            <div class="dashboard-box">
+                <p class="title">
+                    Entrées à effectuer
+                    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                        Méca
+                    {% endif %}
+                </p>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i
                                 class="fa fa-question has-tooltip"
                                 title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
                                 présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2."></i>
-                        </div>
-                    {% endif %}
-                    <div class="h-100">
-                        <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
                     </div>
+                {% endif %}
+                <div class="h-100">
+                    <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
                 </div>
             </div>
-            <div class="col-4 align-self-start">
-                <div class="ml-1 mr-1">
-                    <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box text-center">
-                            {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Nombre {{ 'arrivage.de colis'|trans }} présents
-                                        sur l'emplacement paramétré sur le graphe 2 ayant l'encours le plus ancien.">
-                                    </i>
-                                </div>
-                            {% endif %}
-                            <p>
-                                Nombres de lignes restant à traiter
-                            </p>
+        </div>
+        <div class="col-3 d-flex flex-column justify-content-between">
+            <div class="mr-1">
+                <div class="dashboard-box-wrapper side-panels">
+                    <div class="dashboard-box">
+                        {% if not isDashboardExt %}
+                            <div class="points">
+                                <i class="fa fa-question has-tooltip"
+                                   title="Nombre {{ 'arrivage.de colis'|trans }} présents
+                                        sur l'emplacement paramétré sur le graphe 2 ayant l'encours
+                                        de nature paramétrée pour le graphe 2 le plus ancien.">
+                                </i>
+                            </div>
+                        {% endif %}
+                        <p class="p-0 text-center">
+                            Nombre de lignes restant à traiter
+                        </p>
+                        <div class="d-flex align-items-center justify-content-center ellipsis"
+                             style="height: inherit;">
                             <p class="big-font">
                                 <strong id="totalForChart2" class="figure"></strong>
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="ml-1 mr-1">
-                    <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box text-center">
-                            {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Emplacement paramétré sur le graphe 2
-                                        ayant l'encours le plus ancien.">
-                                    </i>
-                                </div>
-                            {% endif %}
-                            <p>
-                                Prochain emplacement à traiter
-                            </p>
+            </div>
+            <div class="mr-1">
+                <div class="dashboard-box-wrapper side-panels">
+                    <div class="dashboard-box text-center">
+                        {% if not isDashboardExt %}
+                            <div class="points">
+                                <i class="fa fa-question has-tooltip"
+                                   title="Emplacement paramétré sur le graphe 2
+                                        ayant l'encours de nature paramétrée pour le graphe 2 le plus ancien.">
+                                </i>
+                            </div>
+                        {% endif %}
+                        <p>
+                            Prochain emplacement à traiter
+                        </p>
+                        <div class="d-flex align-items-center justify-content-center"
+                             style="height: inherit;">
                             <p class="medium-font figure" id="empForChart2">
                             </p>
                         </div>
@@ -138,47 +150,61 @@
         </div>
     </div>
 </div>
-<div class="row justify-content-center">
-    <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height">
-            <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
-                    Urgences restant à recevoir
-                </p>
-                <p class="big-font figure red counter"></p>
+<div class="col-12 mb-4 p-0">
+    <div class="row">
+        <div class="col mr-1">
+            <div class="dashboard-box-wrapper fourth-height">
+                <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
+                    <p class="p-0">
+                        Urgences restant à recevoir
+                    </p>
+                    <div class="d-flex align-items-center justify-content-center"
+                         style="height: inherit;">
+                        <p class="big-font figure red counter"></p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height">
-            <div id="encours-urgence-box" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
-                    Urgences restant à traiter<br>
-                    <span class="location-label"></span>
-                </p>
-                <p class="big-font figure counter"></p>
+        <div class="col mr-1">
+            <div class="dashboard-box-wrapper fourth-height">
+                <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
+                    <p class="p-0">
+                        Urgences restant à traiter<br>
+                        <span class="location-label"></span>
+                    </p>
+                    <div class="d-flex align-items-center justify-content-center"
+                         style="height: inherit;">
+                        <p class="big-font figure counter"></p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height">
-            <div id="encours-litige-box" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
-                    Lignes en litiges<br>
-                    <span class="location-label"></span>
-                </p>
-                <p class="big-font figure counter"></p>
+        <div class="col mr-1">
+            <div class="dashboard-box-wrapper fourth-height">
+                <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
+                    <p class="p-0">
+                        Lignes en litiges<br>
+                        <span class="location-label"></span>
+                    </p>
+                    <div class="d-flex align-items-center justify-content-center"
+                         style="height: inherit;">
+                        <p class="big-font figure counter"></p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-3">
-        <div class="dashboard-box-wrapper fourth-height">
-            <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
-                    Colis en attente de dédouanement<br>
-                   <span class="location-label"></span>
-                </p>
-                <p class="big-font figure counter"></p>
+        <div class="col mr-1">
+            <div class="dashboard-box-wrapper fourth-height">
+                <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
+                    <p class="p-0">
+                        Colis en attente de dédouanement<br>
+                        <span class="location-label"></span>
+                    </p>
+                    <div class="d-flex align-items-center justify-content-center"
+                         style="height: inherit;">
+                        <p class="big-font figure counter"></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

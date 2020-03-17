@@ -14,8 +14,8 @@ use Symfony\Component\HttpFoundation\FileBag;
 
 class AttachmentService
 {
-
     private const ATTACHMENT_DIRECTORY = '../public/uploads/attachements/';
+    const LOGO_FOR_LABEL = 'logo_for_label';
 
 	/**
 	 * @var EntityManagerInterface
@@ -76,14 +76,15 @@ class AttachmentService
 
     /**
      * @param UploadedFile $file
+     * @param string $wantedName
      * @return array [originalName (string) => filename (string)]
      */
-	public function saveFile(UploadedFile $file): array {
+	public function saveFile(UploadedFile $file, string $wantedName = null): array {
         if (!file_exists(self::ATTACHMENT_DIRECTORY)) {
             mkdir(self::ATTACHMENT_DIRECTORY, 0777);
         }
 
-        $filename = uniqid() . '.' . $file->getClientOriginalExtension() ?? '';
+        $filename = ($wantedName ?? uniqid()) . '.' . $file->getClientOriginalExtension() ?? '';
         $file->move(self::ATTACHMENT_DIRECTORY, $filename);
         return [$file->getClientOriginalName() => $filename];
     }

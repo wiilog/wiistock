@@ -141,8 +141,13 @@ function getCompareStock(submit) {
                 }
             });
         } else {
-            $('#restantQuantite').html(data.stock);
-            $('#negativStock').click();
+            if (data.message) {
+                alertErrorMsg(data.message)
+            }
+            else {
+                $('#restantQuantite').html(data.stock);
+                $('#negativStock').click();
+            }
         }
     }, 'json');
 }

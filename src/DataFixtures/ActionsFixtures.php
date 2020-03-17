@@ -116,11 +116,19 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::EDIT,
 				Action::DELETE,
 				Action::DISPLAY_IMPORT
-			]
+			],
+            Menu::NOMADE => [
+                Action::MODULE_ACCESS_STOCK,
+                Action::MODULE_ACCESS_TRACA,
+                Action::MODULE_ACCESS_MANUT
+            ]
 		];
 
     	$selectedByDefault = [
-    		Menu::QUALI . Action::TREAT_LITIGE
+    		Menu::QUALI . Action::TREAT_LITIGE,
+    		Menu::NOMADE . Action::MODULE_ACCESS_STOCK,
+    		Menu::NOMADE . Action::MODULE_ACCESS_TRACA,
+    		Menu::NOMADE . Action::MODULE_ACCESS_MANUT
 		];
 
 		foreach ($menus as $menuCode => $actionLabels) {

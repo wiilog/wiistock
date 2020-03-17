@@ -192,12 +192,21 @@ class DemandeController extends AbstractController
             // pour réf gérées par articles
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
-                $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
-                if ($article->getQuantiteAPrelever() > $treshHold) {
-                    $response['stock'] = $treshHold;
+                $statutArticle = $article->getStatut();
+                if (isset($statutArticle) && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
+                    $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                     return new JsonResponse($response);
+                }
+                else {
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $totalQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
+                    $treshHold = ($article->getQuantite() > $totalQuantity)
+                        ? $totalQuantity
+                        : $article->getQuantite();
+                    if ($article->getQuantiteAPrelever() > $treshHold) {
+                        $response['stock'] = $treshHold;
+                        return new JsonResponse($response);
+                    }
                 }
             }
 
@@ -238,9 +247,6 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
-     */
     public function finish(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {

@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{ 'arrivage.arrivage'|trans|capitalize }}{% endblock %}
+{% block title %}{{ 'arrivage.arrivage'|trans }}{% endblock %}
 {% block page_content %}
 
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}

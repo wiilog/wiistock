@@ -41,8 +41,7 @@ Class PDFGeneratorService
      * @param array $barcodeConfigs Array of ['code' => string, 'labels' => array]. labels optional
      * @return string
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+	 * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -77,8 +76,13 @@ Class PDFGeneratorService
             ];
         }, $barcodeConfigs);
 
+        $logo = ($barcodeConfig['logo'] && file_exists(getcwd() . "/uploads/attachements/" . $barcodeConfig['logo'])
+                ? $barcodeConfig['logo']
+                : null);
+
         return $this->PDFGenerator->getOutputFromHtml(
             $this->templating->render('prints/barcode-template.html.twig', [
+                'logo' => $logo,
                 'title' => $title,
                 'height' => $height,
                 'width' => $width,

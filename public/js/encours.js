@@ -2,46 +2,52 @@ $(function () {
     initSelect2($('#emplacement'), 'Emplacements');
     initSelect2($('#natures'), 'Natures');
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_ENCOURS);
-    $.post(path, params, function (data) {
-        displayFiltersSup(data);
-    }, 'json');
-
     $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
         if (data === false) {
             alertErrorMsg('Veuillez définir les horaires travaillés dans Paramétrage/Paramétrage global.', true);
         }
-        initDatatables();
-    });
 
+        // filtres enregistrés en base pour chaque utilisateur
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_ENCOURS);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+            loadPage();
+        }, 'json');
+    });
 });
 
-function initDatatables() {
+function loadPage() {
     let idLocationsToDisplay = $('#emplacement').val();
-    let noFilter = idLocationsToDisplay.length === 0;
+    let noFilter = (idLocationsToDisplay.length === 0);
 
-    $('.encours-table').each(function () {
-        let that = $(this);
-        if (idLocationsToDisplay.indexOf(that.attr('id')) < 0 && !noFilter) {
-            that.closest('.block-encours').hide();
-        } else {
-            initOrReloadOneDatatable(that);
+    $('.block-encours').each(function () {
+        const $blockEncours = $(this);
+        const $tableEncours = $blockEncours.find('.encours-table');
+
+        if (noFilter
+            || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
+            $blockEncours.removeClass('d-none');
+            loadEncoursDatatable($tableEncours);
         }
+        else {
+            $blockEncours.addClass('d-none');
+        }
+
     });
 }
 
-function initOrReloadOneDatatable(that) {
-    let tableSelector = '#' + that.attr('id');
-    let tableAlreadyInit = $.fn.DataTable.isDataTable(tableSelector);
+function loadEncoursDatatable($table) {
+    const tableId = $table.attr('id');
+    let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);
 
     if (tableAlreadyInit) {
-        $(tableSelector).DataTable().ajax.reload();
-    } else {
+        $table.DataTable().ajax.reload();
+    }
+    else {
         let routeForApi = Routing.generate('en_cours_api', true);
 
-        that.DataTable({
+        $table.DataTable({
             processing: true,
             responsive: true,
             "language": {
@@ -50,7 +56,7 @@ function initOrReloadOneDatatable(that) {
             ajax: {
                 "url": routeForApi,
                 "type": "POST",
-                "data": {id: that.attr('id')}
+                "data": {id: tableId}
             },
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
@@ -64,21 +70,4 @@ function initOrReloadOneDatatable(that) {
             "order": [[2, "desc"]]
         });
     }
-}
-
-function reloadDatatables() {
-    let idLocationsToDisplay = $('#emplacement').val();
-    let noFilter = idLocationsToDisplay.length === 0;
-
-    $('.encours-table').each(function () {
-        let that = $(this);
-        let blockEncours = that.closest('.block-encours');
-
-        if (idLocationsToDisplay.indexOf(that.attr('id')) < 0 && !noFilter) {
-            blockEncours.hide();
-        } else {
-            blockEncours.show();
-            initOrReloadOneDatatable(that);
-        }
-    });
 }
