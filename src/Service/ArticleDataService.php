@@ -608,7 +608,6 @@ class ArticleDataService
                         $destinataires = $demande->getUtilisateur()->getEmail();
                     }
                 }
-                dump($destinataires);
                 // on envoie un mail aux demandeurs
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Article urgent réceptionné', $mailContent,
