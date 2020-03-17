@@ -8,7 +8,7 @@
         <div class="row mb-4">
             <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
-                    <p class="title">
+                    <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                         Entrées à effectuer
                         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                             Composant
@@ -39,7 +39,7 @@
                                     </i>
                                 </div>
                             {% endif %}
-                            <p class="text-center">
+                            <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                                 Nombre de lignes restant à traiter
                             </p>
                             <div class="d-flex align-items-center justify-content-center ellipsis"
@@ -62,7 +62,7 @@
                                     </i>
                                 </div>
                             {% endif %}
-                            <p>
+                            <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                                 Prochain emplacement à traiter
                             </p>
                             <div class="d-flex align-items-center justify-content-center"
@@ -81,7 +81,7 @@
     <div class="row">
         <div class="col-9 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
-                <p class="title">
+                <p class="title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                     Entrées à effectuer
                     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                         Méca
@@ -113,7 +113,7 @@
                                 </i>
                             </div>
                         {% endif %}
-                        <p class="p-0 text-center">
+                        <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                             Nombre de lignes restant à traiter
                         </p>
                         <div class="d-flex align-items-center justify-content-center ellipsis"
@@ -136,7 +136,7 @@
                                 </i>
                             </div>
                         {% endif %}
-                        <p>
+                        <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                             Prochain emplacement à traiter
                         </p>
                         <div class="d-flex align-items-center justify-content-center"
@@ -155,7 +155,7 @@
         <div class="col mr-1">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
-                    <p class="p-0">
+                    <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                         Urgences restant à recevoir
                     </p>
                     <div class="d-flex align-items-center justify-content-center"
@@ -168,7 +168,7 @@
         <div class="col mr-1">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
-                    <p class="p-0">
+                    <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                         Urgences restant à traiter<br>
                         <span class="location-label"></span>
                     </p>
@@ -182,7 +182,7 @@
         <div class="col mr-1">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
-                    <p class="p-0">
+                    <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                         Lignes en litiges<br>
                         <span class="location-label"></span>
                     </p>
@@ -196,7 +196,7 @@
         <div class="col mr-1">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
-                    <p class="p-0">
+                    <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                         Colis en attente de dédouanement<br>
                         <span class="location-label"></span>
                     </p>

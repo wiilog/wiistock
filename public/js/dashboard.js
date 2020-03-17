@@ -206,7 +206,7 @@ function drawSimpleChart($canvas, path, chart = null) {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
                     chart = newChart($canvas);
-                }
+            }
 
                 updateSimpleChartData(
                     chart,
