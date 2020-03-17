@@ -758,7 +758,8 @@ class DemandeController extends AbstractController
 				'code(s) préparation(s)',
 				'code(s) livraison(s)',
 				'référence article',
-				'libellé article',
+                'libellé article',
+                'code barre article',
 				'quantité disponible',
 				'quantité à prélever'
 			];
@@ -795,7 +796,8 @@ class DemandeController extends AbstractController
 
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
 					$demandeData[] = $availableQuantity;
 					$demandeData[] = $ligneArticle->getQuantite();
 
@@ -831,6 +833,7 @@ class DemandeController extends AbstractController
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
 					$demandeData[] = $article->getLabel();
+                    $demandeData[] = $article->getBarCode();
 					$demandeData[] = $article->getQuantite();
 					$demandeData[] = $article->getQuantiteAPrelever();
 
