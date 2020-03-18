@@ -186,11 +186,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                 $('.zone-entete').html(data.entete)
             }
             if (table) {
-                table.ajax.reload(function (json) {
-                    if (data !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                }, false);
+                table.ajax.reload(null, false);
             }
 
             if (clear) {
@@ -678,7 +674,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-free');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {
@@ -1402,5 +1398,17 @@ function initOnTheFlyCopies($elems) {
         $(this).keyup(function() {
             $(this).closest('.form-group').find('.copiedOnTheFly').val($(this).val());
         })
+    });
+}
+
+function initFreeSelect2($selects) {
+    $selects.each(function () {
+        const $self = $(this);
+        $self.select2({
+            tags: true,
+            "language": {
+                "noResults": function () { return 'Ajoutez des éléments'; }
+            },
+        });
     });
 }
