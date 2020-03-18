@@ -85,7 +85,7 @@ class ImportController extends AbstractController
 		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
 			return $this->redirectToRoute('access_denied');
 		}
-//TODO CG test format fichier
+
 		$post = $request->request;
 		$em = $this->getDoctrine()->getManager();
 		$statusRepository = $em->getRepository(Statut::class);
@@ -101,7 +101,6 @@ class ImportController extends AbstractController
 		$em->flush();
 
 		// vérif qu'un et un seul fichier a été chargé
-        //TODO CG test format
         $nbFiles = count($request->files);
         if ($nbFiles !== 1) {
             $response = [
@@ -109,62 +108,72 @@ class ImportController extends AbstractController
                 'msg' => 'Veuillez charger un ' . ($nbFiles > 1 ? 'seul ' : '') . 'fichier.'
             ];
         } else {
-            $attachements = $attachmentService->addAttachements($request->files, $import);
-            $data = $importService->readFile($attachements[0]);
+            // vérif format du fichier csv
+            $file = $request->files->all()['file0'];
+            if ($file->getClientOriginalExtension() !== 'csv') {
+                $response = [
+                    'success' => false,
+                    'msg' => 'Veuillez charger un fichier au format .csv.'
+                ];
 
-            $entity = $import->getEntity();
-            $entityCodeToClass = [
-                Import::ENTITY_ART => Article::class,
-                Import::ENTITY_REF => ReferenceArticle::class,
-                Import::ENTITY_FOU => Fournisseur::class,
-                Import::ENTITY_ART_FOU => ArticleFournisseur::class
-            ];
-            $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
+            } else {
+                $attachements = $attachmentService->addAttachements($request->files, $import);
+                $data = $importService->readFile($attachements[0]);
 
-            $fieldsToHide = ['id', 'barCode', 'conform', 'commentaire', 'quantiteAPrelever', 'quantitePrelevee',
-                'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
-                'quantiteReservee'];
-            $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
+                $entity = $import->getEntity();
+                $entityCodeToClass = [
+                    Import::ENTITY_ART => Article::class,
+                    Import::ENTITY_REF => ReferenceArticle::class,
+                    Import::ENTITY_FOU => Fournisseur::class,
+                    Import::ENTITY_ART_FOU => ArticleFournisseur::class
+                ];
+                $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
-            switch ($entity) {
-                case Import::ENTITY_ART:
-                    $categoryCL = CategorieCL::ARTICLE;
-                    $fieldsToAdd = ['type', 'référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
-                    $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                    break;
-                case Import::ENTITY_REF:
-                    $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                    $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire'];
-                    $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                    break;
-                case Import::ENTITY_ART_FOU:
-                    $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
-                    $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-            }
+                $fieldsToHide = ['id', 'barCode', 'conform', 'commentaire', 'quantiteAPrelever', 'quantitePrelevee',
+                    'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
+                    'quantiteReservee'];
+                $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
 
-            $fields = [];
-            foreach ($fieldNames as $fieldName) {
-                $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
-            }
-
-            if (isset($categoryCL)) {
-                $champsLibres = $em->getRepository(ChampLibre::class)->getLabelAndIdByCategory($categoryCL);
-
-                foreach ($champsLibres as $champLibre) {
-                    $fields[$champLibre['id']] = $champLibre['value'];
+                switch ($entity) {
+                    case Import::ENTITY_ART:
+                        $categoryCL = CategorieCL::ARTICLE;
+                        $fieldsToAdd = ['type', 'référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+                        $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                        break;
+                    case Import::ENTITY_REF:
+                        $categoryCL = CategorieCL::REFERENCE_ARTICLE;
+                        $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire'];
+                        $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                        break;
+                    case Import::ENTITY_ART_FOU:
+                        $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
+                        $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                 }
+
+                $fields = [];
+                foreach ($fieldNames as $fieldName) {
+                    $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
+                }
+
+                if (isset($categoryCL)) {
+                    $champsLibres = $em->getRepository(ChampLibre::class)->getLabelAndIdByCategory($categoryCL);
+
+                    foreach ($champsLibres as $champLibre) {
+                        $fields[$champLibre['id']] = $champLibre['value'];
+                    }
+                }
+
+                asort($fields);
+
+                $response = [
+                    'success' => true,
+                    'importId' => $import->getId(),
+                    'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
+                        'data' => $data ?? [],
+                        'fields' => $fields ?? []
+                    ])
+                ];
             }
-
-            asort($fields);
-
-            $response = [
-                'success' => true,
-                'importId' => $import->getId(),
-                'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
-                    'data' => $data ?? [],
-                    'fields' => $fields ?? []
-                ])
-            ];
         }
 
 		return new JsonResponse($response);

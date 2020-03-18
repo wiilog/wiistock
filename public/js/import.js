@@ -55,7 +55,6 @@ function displayFirstModal() {
 }
 
 function displaySecondModal(data) {
-    //TODO CG vérification 1 seul fichier + format csv
     if (data.success) {
         $modalNewImport.find('.modal-body').html(data.html);
         $modalNewImport.find('[name="importId"]').val(data.importId);
@@ -63,8 +62,9 @@ function displaySecondModal(data) {
 
         let urlNewImportSecond = Routing.generate('import_links', true);
         InitialiserModal($modalNewImport, $submitNewImport, urlNewImportSecond, null, displayConfirmationModal, false);
+    } else {
+        $modalNewImport.find('.error-msg').html(data.msg);
     }
-    displayError($modalNewImport, data.msg, data.success);
 }
 
 function displayConfirmationModal(data) {
