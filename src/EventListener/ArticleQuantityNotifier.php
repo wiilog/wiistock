@@ -6,7 +6,6 @@ namespace App\EventListener;
 
 use App\Entity\Article;
 use App\Service\RefArticleDataService;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -19,8 +18,7 @@ class ArticleQuantityNotifier
     private $entityManager;
 
     public function __construct(RefArticleDataService $refArticleDataService,
-                                EntityManagerInterface $entityManager)
-    {
+                                EntityManagerInterface $entityManager) {
         $this->refArticleService = $refArticleDataService;
         $this->entityManager = $entityManager;
     }
@@ -51,18 +49,17 @@ class ArticleQuantityNotifier
 
     /**
      * @param Article $article
-     * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function treatAlertAndUpdateRefArticleQuantities(Article $article) {
         $articleFournisseur = $article->getArticleFournisseur();
         if (isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
 			$this->refArticleService->treatAlert($referenceArticle);
-			$this->refArticleService->recalculateAndUpdateStockQuantityForRef($referenceArticle);
-			$referenceArticle
-                ->setQuantiteDisponible(($referenceArticle->getQuantiteStock() ?? 0) - ($referenceArticle->getQuantiteReservee() ?? 0));
+            $this->refArticleService->updateRefArticleQuantities($referenceArticle);
+
             $this->entityManager->flush();
         }
     }

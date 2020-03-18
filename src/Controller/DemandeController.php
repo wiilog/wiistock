@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieCL;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
@@ -14,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Article;
-
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
@@ -32,22 +30,21 @@ use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
-
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
-
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
 
 /**
  * @Route("/demande")
@@ -239,6 +236,10 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function finish(Request $request): Response
     {
@@ -272,6 +273,7 @@ class DemandeController extends AbstractController
                 $preparation->addArticle($article);
             }
             $lignesArticles = $demande->getLigneArticle();
+            $refArticleToUpdateQuantities = [];
             foreach ($lignesArticles as $ligneArticle) {
                 $referenceArticle = $ligneArticle->getReference();
                 $lignesArticlePreparation = new LigneArticlePreparation();
@@ -282,10 +284,19 @@ class DemandeController extends AbstractController
                     ->setReference($referenceArticle)
                     ->setPreparation($preparation);
                 $em->persist($lignesArticlePreparation);
-                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
+                if ($referenceArticle->getQuantiteReservee() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
+                }
+                else {
+                    $refArticleToUpdateQuantities[] = $referenceArticle;
+                }
                 $preparation->addLigneArticlePreparation($lignesArticlePreparation);
             }
             $em->flush();
+
+            foreach ($refArticleToUpdateQuantities as $refArticle) {
+                $this->refArticleDataService->updateRefArticleQuantities($refArticle);
+            }
 
             //renvoi de l'en-tête avec modification
             $data = [

@@ -244,7 +244,7 @@ class ReferenceArticle
 
     public function getQuantiteReservee(): ?int
     {
-        return $this->quantiteReservee;
+        return $this->quantiteReservee ?? 0;
     }
 
     public function setQuantiteReservee(?int $quantiteReservee): self
@@ -254,9 +254,9 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getQuantiteStock(): ?int
+    public function getQuantiteStock(): int
     {
-        return $this->quantiteStock;
+        return $this->quantiteStock ?? 0;
     }
 
     public function setQuantiteStock(?int $quantiteStock): self

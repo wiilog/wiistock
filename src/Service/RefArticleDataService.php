@@ -614,12 +614,37 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle) {
+        $this->updateStockQuantity($referenceArticle);
+        $this->updateReservedQuantity($referenceArticle);
+        $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
      * @return void
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function recalculateAndUpdateStockQuantityForRef(ReferenceArticle $referenceArticle): void {
-        $referenceArticle->setQuantiteStock($this->referenceArticleRepository->getStockQuantityForRef($referenceArticle));
+    private function updateStockQuantity(ReferenceArticle $referenceArticle): void {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $referenceArticle->setQuantiteStock($this->referenceArticleRepository->getStockQuantity($referenceArticle));
+        }
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function updateReservedQuantity(ReferenceArticle $referenceArticle): void {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $referenceArticle->setQuantiteReservee($this->referenceArticleRepository->getReservedQuantity($referenceArticle));
+        }
     }
 
     /**
@@ -630,16 +655,17 @@ class RefArticleDataService
 	{
 	    $calculedAvailableQuantity = $refArticle->getQuantiteDisponible();
 		$limitToCompare = empty($refArticle->getLimitWarning())
-			? empty($refArticle->getLimitSecurity())
+			? (empty($refArticle->getLimitSecurity())
 				? 0
-				: $refArticle->getLimitSecurity()
+				: $refArticle->getLimitSecurity())
 			: $refArticle->getLimitWarning();
 		$status = $refArticle->getStatut();
 		$limitToCompare = intval($limitToCompare);
 		if ($limitToCompare > 0) {
-			if (!isset($status) ||
-				($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
-				($refArticle->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $limitToCompare))) {
+			if (!isset($status)
+                || ($status->getNom() === ReferenceArticle::STATUT_INACTIF)
+                || ($refArticle->getDateEmergencyTriggered()
+                    && ($calculedAvailableQuantity > $limitToCompare))) {
 				$refArticle->setDateEmergencyTriggered(null);
 			} else if (!$refArticle->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $limitToCompare) {
 				$refArticle->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));

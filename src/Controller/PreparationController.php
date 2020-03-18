@@ -145,6 +145,7 @@ class PreparationController extends AbstractController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NoResultException
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
@@ -183,6 +184,8 @@ class PreparationController extends AbstractController
         }
 
         $entityManager->flush();
+
+        $preparationsManager->updateRefArticlesQuantities($preparation);
 
         return $this->redirectToRoute('livraison_show', [
             'id' => $livraison->getId(),
@@ -402,8 +405,14 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
+     * @param Preparation $preparation
+     * @param RefArticleDataService $refArticleDataService
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function delete(Preparation $preparation): Response
+    public function delete(Preparation $preparation,
+                           RefArticleDataService $refArticleDataService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
@@ -426,14 +435,26 @@ class PreparationController extends AbstractController
             }
         }
 
+        $refToUpdate = [];
+
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
-            $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $ligneArticlePreparation->getQuantite());
+            if ($refArticle->getQuantiteReservee() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $ligneArticlePreparation->getQuantite());
+            }
+            else {
+                $refToUpdate[] = $refArticle;
+            }
             $em->remove($ligneArticlePreparation);
         }
 
         $em->remove($preparation);
         $em->flush();
+
+        foreach ($refToUpdate as $reference) {
+            $refArticleDataService->updateRefArticleQuantities($reference);
+        }
+
         return $this->redirectToRoute('preparation_index');
     }
 

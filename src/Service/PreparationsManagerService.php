@@ -20,6 +20,7 @@ use App\Repository\PreparationRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ObjectRepository;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
@@ -42,6 +43,7 @@ class PreparationsManagerService
 
     private $entityManager;
     private $articleDataService;
+    private $refArticleDataService;
 
     /**
      * @var array
@@ -85,6 +87,7 @@ class PreparationsManagerService
                                 RouterInterface $router,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
+                                RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager)
     {
         $this->demandeRepository = $demandeRepository;
@@ -95,6 +98,7 @@ class PreparationsManagerService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->articleDataService = $articleDataService;
+        $this->refArticleDataService = $refArticleDataService;
         $this->refMouvementsToRemove = [];
     }
 
@@ -213,32 +217,33 @@ class PreparationsManagerService
      * @return Preparation
      * @throws Exception
      */
-    private function persistPreparationFromOldOne(
-        Preparation $preparation,
-        Demande $demande,
-        ObjectRepository $statutRepository,
-        ObjectRepository $articleRepository,
-        array $listOfArticleSplitted): Preparation
-    {
+    private function persistPreparationFromOldOne(Preparation $preparation,
+                                                  Demande $demande,
+                                                  ObjectRepository $statutRepository,
+                                                  ObjectRepository $articleRepository,
+                                                  array $listOfArticleSplitted): Preparation {
         $newPreparation = new Preparation();
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $newPreparation
             ->setNumero('P-' . $date->format('YmdHis'))
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
+
         $demande->addPreparation($newPreparation);
         foreach ($listOfArticleSplitted as $articleId) {
+            /** @var Article $articleToKeep */
             $articleToKeep = $articleRepository->find($articleId);
             $newPreparation->addArticle($articleToKeep);
             $demande->addArticle($articleToKeep);
         }
+
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
             if ($ligneArticlePreparation->getQuantite() !== $ligneArticlePreparation->getQuantitePrelevee()) {
                 $newLigneArticle = new LigneArticlePreparation();
                 $selectedQuantityForPreviousLigne = $ligneArticlePreparation->getQuantitePrelevee() ?? 0;
-                $newQuantity = $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE
-                    ? $ligneArticlePreparation->getQuantite() - $selectedQuantityForPreviousLigne
+                $newQuantity = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+                    ? ($ligneArticlePreparation->getQuantite() - $selectedQuantityForPreviousLigne)
                     : $ligneArticlePreparation->getQuantite();
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $ligneArticlePreparation->setQuantite($ligneArticlePreparation->getQuantitePrelevee() ?? 0);
@@ -248,18 +253,12 @@ class PreparationsManagerService
                     ->setReference($refArticle)
                     ->setQuantite($newQuantity);
                 $this->entityManager->persist($newLigneArticle);
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $quantityPickedWithArticles = array_reduce($preparation->getArticles()->filter(function (Article $article) use ($refArticle) {
-                        return $article->getArticleFournisseur()->getReferenceArticle() === $refArticle;
-                    })->toArray(), function (int $carry, Article $article) {
-                        return $carry + $article->getQuantitePrelevee();
-                    }, 0);
-                    $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $quantityPickedWithArticles);
-                }
             }
         }
+
         $this->entityManager->persist($newPreparation);
         $this->entityManager->flush();
+
         return $newPreparation;
     }
 
@@ -547,6 +546,22 @@ class PreparationsManagerService
             'recordsFiltered' => $queryResult['count'],
             'recordsTotal' => $queryResult['total'],
         ];
+    }
+
+    /**
+     * @param Preparation $preparation
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function updateRefArticlesQuantities(Preparation $preparation) {
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+            $refArticle = $ligneArticle->getReference();
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $this->refArticleDataService->updateRefArticleQuantities($refArticle);
+            }
+        }
+
+        $this->entityManager->flush();
     }
 
     /**

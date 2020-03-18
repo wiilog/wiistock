@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -110,7 +111,13 @@ class LivraisonsManagerService
 
             foreach ($ligneArticles as $ligneArticle) {
                 $refArticle = $ligneArticle->getReference();
-                $refArticle->setQuantiteStock(($refArticle->getQuantiteStock() ?? 0) - $ligneArticle->getQuantitePrelevee());
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $quantitePicked = $ligneArticle->getQuantitePrelevee();
+                    $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $quantitePicked);
+                    $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) - $quantitePicked);
+                    $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
+                    $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+                }
             }
 
             // quantités gérées à l'article

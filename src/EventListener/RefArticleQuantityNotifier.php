@@ -45,8 +45,10 @@ class RefArticleQuantityNotifier
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $this->refArticleService->treatAlert($referenceArticle);
         }
+
         $referenceArticle
             ->setQuantiteDisponible(($referenceArticle->getQuantiteStock() ?? 0) - ($referenceArticle->getQuantiteReservee() ?? 0));
+
         $this->entityManager->flush();
     }
 }

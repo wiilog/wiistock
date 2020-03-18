@@ -9,6 +9,7 @@ use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
+use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
@@ -985,23 +986,61 @@ class ReferenceArticleRepository extends ServiceEntityRepository
      * @throws NonUniqueResultException
      * @throws NoResultException
      */
-    public function getStockQuantityForRef(ReferenceArticle $referenceArticle): int
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT SUM(a.quantite)
+    public function getStockQuantity(ReferenceArticle $referenceArticle): int {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $em = $this->getEntityManager();
+            $query = $em->createQuery(
+            /** @lang DQL */
+                "SELECT SUM(a.quantite)
 			FROM App\Entity\ReferenceArticle ra
 			JOIN ra.articlesFournisseur af
 			JOIN af.articles a
 			JOIN a.statut s
-			WHERE s.nom = :activ AND ra = :refArt
+			WHERE s.nom = :activeStatus
+			  AND ra = :refArt
 			")
-            ->setParameters([
-                'refArt' => $referenceArticle->getId(),
-                'activ' => Article::STATUT_ACTIF
-            ]);
-        return $query->getSingleScalarResult() ?? 0;
+                ->setParameters([
+                    'refArt' => $referenceArticle->getId(),
+                    'activeStatus' => Article::STATUT_ACTIF
+                ]);
+            $stockQuantity = ($query->getSingleScalarResult() ?? 0);
+        }
+        else {
+            $stockQuantity = $referenceArticle->getQuantiteStock();
+        }
+        return $stockQuantity;
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function getReservedQuantity(ReferenceArticle $referenceArticle): int {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $em = $this->getEntityManager();
+            $query = $em
+                ->createQuery("
+                    SELECT SUM(ligneArticles.quantite)
+                    FROM App\Entity\ReferenceArticle ra
+                    JOIN ra.ligneArticlePreparations ligneArticles
+                    JOIN ligneArticles.preparation preparation
+                    JOIN preparation.statut preparationStatus
+                    WHERE (preparationStatus.nom = :preparationStatusToTreat OR preparationStatus.nom = :preparationStatusCurrent)
+                      AND ra = :refArt
+                ")
+                ->setParameters([
+                    'refArt' => $referenceArticle->getId(),
+                    'preparationStatusToTreat' => Preparation::STATUT_A_TRAITER,
+                    'preparationStatusCurrent' => Preparation::STATUT_EN_COURS_DE_PREPARATION
+                ]);
+            $reservedQuantity = ($query->getSingleScalarResult() ?? 0);
+        }
+        else {
+            $reservedQuantity = $referenceArticle->getQuantiteReservee();
+        }
+        return $reservedQuantity;
     }
 
     public function countAlert()
