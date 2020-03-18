@@ -78,10 +78,18 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $champsLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $typeForClLabel = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_STANDARD);
-        $clsForLabels = $champsLibreRepository->findByType($typeForClLabel);
+        $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
+
+        $clsForLabels = $champsLibreRepository->findBy([
+            'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE),
+            'typage' => [
+                ChampLibre::TYPE_TEXT,
+                ChampLibre::TYPE_NUMBER,
+                ChampLibre::TYPE_DATETIME,
+                ChampLibre::TYPE_DATE,
+            ]
+        ]);
 
         $dimensions = $dimensionsEtiquettesRepository->findOneDimension();
         $mailerServer = $mailerServerRepository->findOneMailerServer();
