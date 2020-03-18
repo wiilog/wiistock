@@ -288,7 +288,8 @@ function initModalCondit(tableFromArticle) {
 }
 
 function initNewArticleEditor(modal) {
-    ajaxAutoRefArticleInit($('.ajax-autocomplete'));
+    let $select2refs = $('#reference');
+    ajaxAutoRefArticleInit($select2refs, null);
 
     if (!editorNewArticleAlreadyDone) {
         initEditorInModal(modal);
@@ -296,6 +297,9 @@ function initNewArticleEditor(modal) {
     }
     clearAddRefModal();
     clearModal(modal);
+    setTimeout(() => {
+        openSelect2($select2refs);
+    }, 400);
 }
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
