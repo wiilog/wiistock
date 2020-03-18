@@ -44,6 +44,7 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -399,6 +400,13 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws DBALException
      */
     public function new(Request $request): Response
     {
@@ -518,39 +526,7 @@ class ReferenceArticleController extends AbstractController
                     $em->flush();
                 }
             }
-
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-            $category = CategoryType::ARTICLE;
-            $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $rowCL = [];
-            foreach ($champsLibres as $champLibre) {
-                $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre['id']);
-
-                $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-            }
-            $rowDD = [
-                "id" => $refArticle->getId(),
-                "Libellé" => $refArticle->getLibelle(),
-                "Référence" => $refArticle->getReference(),
-                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                "Quantité" => $refArticle->getQuantiteStock(),
-                "Emplacement" => $emplacement,
-                "Statut" => $refArticle->getStatut(),
-                "Commentaire" => $refArticle->getCommentaire(),
-                "Code barre" => $refArticle->getBarCode() ?? '',
-                "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
-                "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
-                "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
-                'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId(),
-					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
-                ]),
-            ];
-            $rows = array_merge($rowCL, $rowDD);
-            $response['new'] = $rows;
-            $response['success'] = true;
-            return new JsonResponse(['success' => true, 'new' => $rows]);
+            return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
         }
         throw new NotFoundHttpException("404");
     }

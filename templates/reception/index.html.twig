@@ -18,7 +18,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) %}
             <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary"
                onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans|capitalize }}</span>
+                <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -40,7 +40,7 @@
     </div>
     {% include "reception/modalNewReception.html.twig" %}
 
-    <input hidden id="noReception" value="{{ "réception.n° de réception"|trans|capitalize }}">
+    <input hidden id="noReception" value="{{ "réception.n° de réception"|trans }}">
 
 {% endblock %}
 

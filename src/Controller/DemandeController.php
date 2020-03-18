@@ -37,7 +37,6 @@ use App\Service\DemandeLivraisonService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -189,12 +188,22 @@ class DemandeController extends AbstractController
             // pour réf gérées par articles
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $refArticle->getQuantiteDisponible();
-                $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
-                if ($article->getQuantiteAPrelever() > $treshHold) {
-                    $response['stock'] = $treshHold;
+                $statutArticle = $article->getStatut();
+                if (isset($statutArticle)
+                    && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
+                    $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                     return new JsonResponse($response);
+                }
+                else {
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $totalQuantity = $refArticle->getQuantiteDisponible();
+                    $treshHold = ($article->getQuantite() > $totalQuantity)
+                        ? $totalQuantity
+                        : $article->getQuantite();
+                    if ($article->getQuantiteAPrelever() > $treshHold) {
+                        $response['stock'] = $treshHold;
+                        return new JsonResponse($response);
+                    }
                 }
             }
 
@@ -220,8 +229,10 @@ class DemandeController extends AbstractController
                         return new JsonResponse($response);
                     }
                 } else {
-                    $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF);
-                    $totalQuantity -= $ligne->getReference()->getQuantiteReservee();
+                    $totalQuantity = (
+                        $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
+                        - $ligne->getReference()->getQuantiteReservee()
+                    );
                     if ($ligne->getQuantite() > $totalQuantity) {
                         $response['stock'] = $totalQuantity;
                         return new JsonResponse($response);
@@ -235,11 +246,9 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
-     * @throws NoResultException
      */
     public function finish(Request $request): Response
     {

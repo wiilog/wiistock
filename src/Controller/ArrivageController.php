@@ -57,7 +57,6 @@ use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;

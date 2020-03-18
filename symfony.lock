@@ -1,4 +1,13 @@
 {
+    "assoconnect/mjml-bundle": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "74656f4762a2cc83f03f78c50142b3c9285fb18c"
+        }
+    },
     "chrisandchris/barcode-bundle": {
         "version": "v2.0.0"
     },
@@ -113,6 +122,15 @@
             "ref": "258300d52be6ad59b32a888d5ddafbf9638540ff"
         }
     },
+    "guzzlehttp/guzzle": {
+        "version": "6.5.2"
+    },
+    "guzzlehttp/promises": {
+        "version": "v1.3.1"
+    },
+    "guzzlehttp/psr7": {
+        "version": "1.6.1"
+    },
     "jdorn/sql-formatter": {
         "version": "v1.2.17"
     },
@@ -191,11 +209,17 @@
     "psr/container": {
         "version": "1.0.0"
     },
+    "psr/http-message": {
+        "version": "1.0.1"
+    },
     "psr/link": {
         "version": "1.0.0"
     },
     "psr/log": {
         "version": "1.0.2"
+    },
+    "ralouphie/getallheaders": {
+        "version": "3.0.3"
     },
     "sensio/framework-extra-bundle": {
         "version": "5.2",

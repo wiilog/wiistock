@@ -1,12 +1,12 @@
 <div class="row">
-    <p class="col-12 white">
+    <p class="col-12 white mb-1">
         Dashboard | RÉCEPTION QUAI
     </p>
 </div>
-<div class="row mt-2">
+<div class="row">
     <div class="col-10 row">
-        <div class="col-7 dashboard-box-wrapper third-height">
-            <div class="dashboard-box">
+        <div class="col-7 mb-2 dashboard-box-wrapper third-height">
+            <div class="dashboard-box d-flex justify-content-start">
                 <p class="title">
                     Arrivages quotidiens<br>
                 </p>
@@ -14,7 +14,7 @@
                     <div class="points">
                         <i
                             class="fa fa-question has-tooltip"
-                            title="{{ 'arrivage.arrivages'|trans|capitalize }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour."></i>
+                            title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour."></i>
                     </div>
                 {% endif %}
                 <div style="height: 70% !important;">
@@ -25,7 +25,7 @@
             </div>
         </div>
         <div class="col-5 dashboard-box-wrapper third-height">
-            <div class="dashboard-box">
+            <div class="dashboard-box d-flex justify-content-start">
                 <p class="title">
                     Arrivages hebdomadaires<br>
                 </p>
@@ -33,7 +33,7 @@
                     <div class="points">
                         <i
                             class="fa fa-question has-tooltip"
-                            title="{{ 'arrivage.arrivages'|trans|capitalize }} et nombre de colis réceptionnés par semaine."></i>
+                            title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
                     </div>
                 {% endif %}
                 <div style="height: 70% !important;">
@@ -43,51 +43,66 @@
                 </div>
             </div>
         </div>
-        <div class="col-3 dashboard-box-wrapper fourth-height">
-            <div id="encours-dock-box" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
+        <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
+            <div id="encours-dock-box" class="dashboard-box text-center justify-content-between">
+                <p>
                     Colis restant à traiter<br>
                     <span class="location-label"></span>
                 </p>
-                <p class="big-font figure counter pt-3"></p>
+                <div  class="d-flex align-items-center justify-content-center"
+                      style="height: inherit;">
+                    <p class="big-font figure counter pt-3"></p>
+                </div>
             </div>
         </div>
-        <div class="col-3 dashboard-box-wrapper fourth-height">
-            <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-around ">
-                <p class="p-0">
+        <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
+            <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-between">
+                <p>
                     Colis en attente dédouanement<br>
                     <span class="location-label"></span>
                 </p>
+                <div class="d-flex align-items-center justify-content-center"
+                      style="height: inherit;">
                 <p class="big-font figure counter"></p>
+                </div>
             </div>
         </div>
-        <div class="col-3 dashboard-box-wrapper fourth-height">
-            <div id="encours-cleared-box" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
+        <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
+            <div id="encours-cleared-box" class="dashboard-box text-center justify-content-between">
+                <p>
                     Colis dédouanés et dispo<br>
                     <span class="location-label"></span>
                 </p>
+                <div class="d-flex align-items-center justify-content-center"
+                      style="height: inherit;">
                 <p class="big-font figure counter"></p>
+                </div>
             </div>
         </div>
-        <div class="col-3 dashboard-box-wrapper fourth-height">
-            <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
+        <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
+            <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
+                <p>
                     Urgences restant à recevoir
                 </p>
+                <div  class="d-flex align-items-center justify-content-center"
+                      style="height: inherit;">
                 <p class="big-font figure red counter pt-3"></p>
+                </div>
             </div>
         </div>
-        <div class="col-3 dashboard-box-wrapper fourth-height align-self-start">
-            <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-around">
-                <p class="p-0">
+        <div class="col-3 mt-2 dashboard-box-wrapper fourth-height align-self-start">
+            <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
+                <p>
                     Colis à déposer en Drop Zones<br>
                     <span class="location-label"></span>
                 </p>
+                <div  class="d-flex align-items-center justify-content-center"
+                      style="height: inherit;">
                 <p class="big-font figure counter"></p>
+                </div>
             </div>
         </div>
-        <div class="col-9 dashboard-box-wrapper third-height">
+        <div class="col-9 mt-2 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
                 <p class="title">
                     Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
@@ -96,7 +111,7 @@
                     <div class="points">
                         <i
                             class="fa fa-question has-tooltip"
-                            title="{{ 'arrivage.colis'|trans|capitalize }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
+                            title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
                     </div>
                 {% endif %}
                 <div class="h-100">
