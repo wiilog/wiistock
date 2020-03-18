@@ -226,11 +226,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     }
 
                     if (table) {
-                        table.ajax.reload(function (json) {
-                            if (data !== undefined) {
-                                $('#myInput').val(json.lastInput);
-                            }
-                        }, false);
+                        table.ajax.reload(null, false);
                     }
 
                     // mise à jour des données d'en-tête après modification

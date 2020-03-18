@@ -135,11 +135,7 @@ function getCompareStock(submit) {
             $('.zone-entete').html(data.entete);
             $('#tableArticle_id').DataTable().ajax.reload();
             $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
-            tableArticle.ajax.reload(function (json) {
-                if (data !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
+            tableArticle.ajax.reload();
         } else {
             if (data.message) {
                 alertErrorMsg(data.message)

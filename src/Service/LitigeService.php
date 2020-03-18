@@ -112,6 +112,13 @@ class LitigeService
 
 		$references = $this->litigeRepository->getReferencesByLitigeId($litigeId);
 
+		$isNumeroBLJson = !empty($litige['arrivageId']);
+		$numerosBL = isset($litige['numCommandeBl'])
+            ? ($isNumeroBLJson
+                ? implode(', ', json_decode($litige['numCommandeBl'], true))
+                : $litige['numCommandeBl'])
+            : '';
+
 		$row = [
 			'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [
 				'litigeId' => $litige['id'],
@@ -127,7 +134,7 @@ class LitigeService
 			]),
             'references' => $references,
 			'command' => $commands,
-			'numCommandeBl' => $litige['numCommandeBl'] ?? '',
+			'numCommandeBl' => $numerosBL,
 			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
 			'provider' => $litige['provider'] ?? '',
 			'lastHistoric' => $lastHistoricStr,

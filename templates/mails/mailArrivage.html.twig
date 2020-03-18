@@ -1,0 +1,48 @@
+{% extends 'mails/mjml/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <br/>
+
+    <p>Votre commande {{ isUrgentArrival ? 'urgente ' }}est arrivée : </p>
+    <br/>
+
+    <p>{{ "arrivage.n° d'arrivage"|trans }} : {{ arrival.numeroArrivage }}</p>
+
+    {% set numeroCommandeList = (
+        (emergencies|length > 0 and emergencies[0].commande)
+            ? [emergencies[0].commande]
+            : arrival.numeroCommandeList
+    ) %}
+    {% if numeroCommandeList|length > 0 %}
+        <p>N° commande{{ numeroCommandeList|length > 1 ? 's' }} : {{ numeroCommandeList|join(', ') }}</p>
+    {% endif %}
+
+    {% set emergenciesLength = (emergencies|length) %}
+    {% if emergenciesLength > 0 %}
+        <p>Poste{{ emergenciesLength > 1 ? 's' }} : {{ emergencies|map((emergency) => emergency.postNb)|join(', ') }}</p>
+    {% endif %}
+
+    {% if arrival.fournisseur %}
+        <p>Intitulé fournisseur : {{ arrival.fournisseur.nom }}</p>
+    {% endif %}
+
+    {% if arrival.noTracking %}
+        <p>N° tracking transporteur : {{ arrival.noTracking }}</p>
+    {% endif %}
+
+    <p>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrival.date|date('d/m/Y H:i') }}</p>
+    <br/>
+
+    {% if isUrgentArrival %}
+        {% if arrival.duty %}
+            <p style="font-weight: bold">La réception de cette commande sera effectuée après dédouanement.</p>
+        {% else %}
+            <p>La réception de cette commande sera effectuée sous deux heures.</p>
+        {% endif %}
+    {% else %}
+        <p>Votre colis sera livré en dropzone en milieu d'après-midi.</p>
+    {% endif %}
+    <br/>
+    <br/>
+{% endblock %}

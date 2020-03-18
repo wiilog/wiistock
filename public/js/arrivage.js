@@ -53,7 +53,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
         {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroBL', 'name': 'numeroBL', 'title': 'N° commande / BL'},
+        {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
         {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
         {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
         {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
@@ -62,6 +62,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        {"data": 'urgent', 'name': 'urgent', 'title': 'urgent', visible: false},
     ],
     columnDefs: [
         {
@@ -115,7 +116,7 @@ let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
 let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, (params) => arrivalCallback(true, params), redirectAfterArrival === 1);
+initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, null, (params) => arrivalCallback(true, params, tableArrivage), redirectAfterArrival === 1, false);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -136,4 +137,5 @@ function initNewArrivageEditor(modal) {
     initSelect2($modal.find('.ajax-autocomplete-chauffeur'));
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
+    initFreeSelect2($('.select2-free'));
 }
