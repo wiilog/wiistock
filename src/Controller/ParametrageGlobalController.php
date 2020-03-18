@@ -82,13 +82,7 @@ class ParametrageGlobalController extends AbstractController
         $translationRepository = $entityManager->getRepository(Translation::class);
 
         $clsForLabels = $champsLibreRepository->findBy([
-            'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE),
-            'typage' => [
-                ChampLibre::TYPE_TEXT,
-                ChampLibre::TYPE_NUMBER,
-                ChampLibre::TYPE_DATETIME,
-                ChampLibre::TYPE_DATE,
-            ]
+            'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE)
         ]);
 
         $dimensions = $dimensionsEtiquettesRepository->findOneDimension();

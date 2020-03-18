@@ -30,6 +30,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
+use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
@@ -60,6 +61,7 @@ class ArticleDataService
 
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
+	private $typeCLOnLabel;
 
 	public function __construct(MailerService $mailerService,
                                 SpecificService $specificService,
@@ -408,7 +410,7 @@ class ArticleDataService
 
         $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
@@ -652,7 +654,7 @@ class ArticleDataService
 	{
         $articleRepository = $this->entityManager->getRepository(Article::class);
 
-		$now = new \DateTime('now');
+		$now = new DateTime('now');
 		$dateCode = $now->format('ym');
 
 		$highestBarCode = $articleRepository->getHighestBarCodeByDateCode($dateCode);
@@ -672,10 +674,21 @@ class ArticleDataService
 
         $articles = $articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
 
-        if (!isset($this->wantCLOnLabel) || !isset($this->clWantedOnLabel)) {
+        if (!isset($this->wantCLOnLabel)
+            && !isset($this->clWantedOnLabel)
+            && !isset($this->typeCLOnLabel)) {
             $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+            $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+            $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
             $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
             $this->wantCLOnLabel = (bool) $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            if (isset($this->clWantedOnLabel)) {
+                $champLibre = $champLibreRepository->findOneBy([
+                    'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE),
+                    'label' => $this->clWantedOnLabel
+                ]);
+                $this->typeCLOnLabel = isset($champLibre) ? $champLibre->getTypage() : null;
+            }
         }
 
         $wantedIndex = 0;
@@ -692,15 +705,19 @@ class ArticleDataService
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
         $labelArticle = $article->getLabel();
-        $blLabel = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
+        $champLibre = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
             ? $articleArray['bl']
             : '');
+        $champLibreValue = (!empty($this->typeCLOnLabel))
+            ? $this->getCLValue($champLibre, $this->typeCLOnLabel)
+            : null;
+        dump($champLibre, $champLibreValue);
 
         $labels = [
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            !empty($blLabel) ? ($this->clWantedOnLabel  . ' : ' . $blLabel) : ''
+            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($this->clWantedOnLabel  . ' : ' . $champLibreValue) : ''
         ];
         return [
             'code' => $article->getBarCode(),
@@ -708,5 +725,27 @@ class ArticleDataService
                 return !empty($label);
             })
         ];
+    }
+
+    private function getCLValue($cl, $typage) {
+        $res = null;
+        switch ($typage) {
+            case ChampLibre::TYPE_BOOL:
+                $res = !empty($cl) ? 'Oui' : 'Non';
+                break;
+            case ChampLibre::TYPE_DATE:
+                $res = !empty($cl) ? (new DateTime($cl))->format('d/m/Y') : null;
+                break;
+            case ChampLibre::TYPE_DATETIME:
+                $res = !empty($cl) ? (new DateTime($cl))->format('d/m/Y H:i') : null;
+                break;
+            case ChampLibre::TYPE_LIST_MULTIPLE:
+                $res = !empty($cl) ? implode(', ', explode(';', $cl)) : null;
+                break;
+            default:
+                $res = $cl;
+                break;
+        }
+        return $res;
     }
 }
