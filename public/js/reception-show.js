@@ -296,6 +296,10 @@ function initNewArticleEditor(modal) {
     }
     clearAddRefModal();
     clearModal(modal);
+
+    const $commandField = $(modal).find('#commande');
+    const numCommand = $('#numCommandeReception').val();
+    $commandField.val(numCommand);
 }
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
