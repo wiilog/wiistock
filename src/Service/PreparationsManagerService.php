@@ -559,6 +559,13 @@ class PreparationsManagerService
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $this->refArticleDataService->updateRefArticleQuantities($refArticle);
             }
+            else if($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $quantitePicked = $ligneArticle->getQuantitePrelevee();
+                $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $quantitePicked);
+                $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) - $quantitePicked);
+                $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
+                $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+            }
         }
 
         $this->entityManager->flush();

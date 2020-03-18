@@ -37,6 +37,7 @@ use App\Service\DemandeLivraisonService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -173,11 +174,13 @@ class DemandeController extends AbstractController
         $this->demandeLivraisonService = $demandeLivraisonService;
     }
 
-	/**
-	 * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
-	 * @throws NonUniqueResultException
-	 * @throws DBALException
-	 */
+    /**
+     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function compareStock(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -249,6 +252,7 @@ class DemandeController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function finish(Request $request): Response
     {
@@ -293,7 +297,7 @@ class DemandeController extends AbstractController
                     ->setReference($referenceArticle)
                     ->setPreparation($preparation);
                 $em->persist($lignesArticlePreparation);
-                if ($referenceArticle->getQuantiteReservee() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
                 }
                 else {
@@ -306,6 +310,8 @@ class DemandeController extends AbstractController
             foreach ($refArticleToUpdateQuantities as $refArticle) {
                 $this->refArticleDataService->updateRefArticleQuantities($refArticle);
             }
+
+            $em->flush();
 
             //renvoi de l'en-tête avec modification
             $data = [

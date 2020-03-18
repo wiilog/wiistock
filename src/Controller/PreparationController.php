@@ -302,7 +302,6 @@ class PreparationController extends AbstractController
      * @param Request $request
      * @param $prepaId
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function apiLignePreparation(Request $request, $prepaId): Response
     {
@@ -321,7 +320,6 @@ class PreparationController extends AbstractController
                 foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
                     $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                    $qtt = $articleRef->getQuantiteStock() - $articleRef->getQuantiteReservee();
                     if ($ligneArticle->getQuantitePrelevee() > 0 ||
                         ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                         $qttForCurrentLine = $ligneArticle->getQuantite() ?? null;
@@ -329,7 +327,7 @@ class PreparationController extends AbstractController
                             "Référence" => $articleRef ? $articleRef->getReference() : ' ',
                             "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
                             "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
-                            "Quantité" => $qtt,
+                            "Quantité" => $articleRef->getQuantiteStock(),
                             "Quantité à prélever" => $qttForCurrentLine,
                             "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
@@ -337,7 +335,6 @@ class PreparationController extends AbstractController
                                 'isRef' => true,
                                 'artOrRefId' => $articleRef->getId(),
                                 'isRefByArt' => $isRefByArt,
-                                'quantity' => $qtt,
                                 'id' => $ligneArticle->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
                                 'active' => !empty($ligneArticle->getQuantitePrelevee())

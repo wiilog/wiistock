@@ -105,21 +105,6 @@ class LivraisonsManagerService
                 CategorieStatut::DEM_LIVRAISON, $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
-            // quantités gérées à la référence
-            $preparation = $livraison->getPreparation();
-            $ligneArticles = $preparation->getLigneArticlePreparations();
-
-            foreach ($ligneArticles as $ligneArticle) {
-                $refArticle = $ligneArticle->getReference();
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $quantitePicked = $ligneArticle->getQuantitePrelevee();
-                    $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $quantitePicked);
-                    $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) - $quantitePicked);
-                    $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
-                    $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
-                }
-            }
-
             // quantités gérées à l'article
             $articles = $preparation->getArticles();
 
