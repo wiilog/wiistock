@@ -600,7 +600,8 @@ class ArticleDataService
 				);
 				// on retire l'urgence
 				$refArticle->setIsUrgent(false);
-			}
+                $refArticle->setEmergencyComment('');
+            }
 		}
         $entityManager->flush();
         return $toInsert;

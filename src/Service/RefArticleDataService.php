@@ -365,6 +365,9 @@ class RefArticleDataService
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+            if ($data['emergency-comment-input']) {
+                $refArticle->setEmergencyComment($data['emergency-comment-input']);
+            }
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
@@ -435,6 +438,7 @@ class RefArticleDataService
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité disponible" => $availableQuantity,
 			"Quantité stock" => $quantityStock ?? 0,
+            'Commentaire d\'urgence' => $refArticle->getEmergencyComment(),
 			"Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => $refArticle->getCommentaire() ?? '',
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",

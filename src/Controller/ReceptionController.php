@@ -543,6 +543,7 @@ class ReceptionController extends AbstractController
                     "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
                     "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
+                    "Comment" => ($ligneArticle->getEmergencyComment() ?? ''),
                     'Actions' => $this->renderView(
                         'reception/datatableLigneRefArticleRow.html.twig',
                         [
@@ -754,6 +755,7 @@ class ReceptionController extends AbstractController
                 if ($refArticle->getIsUrgent()) {
                     $reception->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
+                    $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
                 $em->flush();
 				$json = [
