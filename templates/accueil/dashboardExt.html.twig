@@ -7,16 +7,17 @@
 {% block body %}
 <div class="wrapper pl-0">
     <div class="container-fluid">
+        <input type="hidden" id="isDashboardExt" value="1"/>
         {% if page == 'quai' %}
             {% include 'accueil/dashboardDockReception.html.twig'  with { 'isDashboardExt': 1 }%}
         {% elseif page == 'admin' %}
             {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
         {% endif %}
-            <div class="row">
-                <div class="col-12 little-font text-right fixed-bottom z-index-back">
-                    Actualisé le <span class="refreshDate">{{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</span>
-                </div>
+        <div class="row">
+            <div class="col-12 little-font text-right fixed-bottom z-index-back">
+                Actualisé le <span class="refreshDate">{{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</span>
             </div>
+        </div>
     </div>
 </div>
 {% endblock %}

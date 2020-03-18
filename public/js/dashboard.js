@@ -11,10 +11,7 @@ let chartFirstForAdmin;
 let chartSecondForAdmin;
 
 $(function () {
-    // config chart js
-    Chart.defaults.global.defaultFontFamily = 'Myriad';
-    Chart.defaults.global.responsive = true;
-    Chart.defaults.global.maintainAspectRatio = false;
+
     //// charts monitoring réception arrivage
     drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
         chartArrivalUm = chart;
@@ -143,6 +140,7 @@ function updateSimpleChartData(
 
 
         const $legendContainer = $(chart.canvas).parent().siblings('.custom-chart-legend');
+        const subClasses = isDashboardExt() ? 'chart-legend-label-bigger' : '';
         $legendContainer.html($('<ul/>', {
             class: 'd-flex justify-content-center align-items-center',
             html: legendConfig.map(({label, color}) => (
@@ -150,7 +148,7 @@ function updateSimpleChartData(
                     class: 'd-flex justify-content-center align-items-center',
                     html: [
                         $('<span/>', {class: 'chart-legend-color', style: `background-color: ${color}`}),
-                        $('<span/>', {class: 'chart-legend-label', text: label})
+                        $('<span/>', {class: `chart-legend-label ${subClasses}`, text: label,})
                     ]
                 })
             ))
@@ -206,7 +204,7 @@ function drawSimpleChart($canvas, path, chart = null) {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
                     chart = newChart($canvas);
-            }
+                }
 
                 updateSimpleChartData(
                     chart,
@@ -305,7 +303,11 @@ function goToFilteredDemande(type, filter) {
 }
 
 function newChart($canvasId, showLegend = false, redForLastData = false) {
+    // config chart js
+    Chart.defaults.global.defaultFontFamily = 'Myriad';
+    Chart.defaults.global.maintainAspectRatio = false;
     if ($canvasId.length) {
+        const fontSize = isDashboardExt() ? 20 : 12;
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
@@ -323,18 +325,25 @@ function newChart($canvasId, showLegend = false, redForLastData = false) {
                     labels: {
                         filter: function(item) {
                             return Boolean(item && item.text);
-                        }
+                        },
+                        fontSize
                     }
                 },
                 scales: {
                     yAxes: [{
                         ticks: {
+                            fontSize,
                             beginAtZero: true,
                             callback: (value) => {
                                 if (Math.floor(value) === value) {
                                     return value;
                                 }
                             }
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            fontSize
                         }
                     }]
                 },
@@ -483,4 +492,8 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
             }
         }
     });
+}
+function isDashboardExt() {
+    const $isDashboardExt = $('#isDashboardExt');
+    return ($isDashboardExt.length > 0 ? ($isDashboardExt.val() === "1") : false);
 }
