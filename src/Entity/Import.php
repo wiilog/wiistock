@@ -28,8 +28,8 @@ class Import
         ],
         self::ENTITY_ART => [
             'référence article de référence',
-            'label'
-            //TODO CG emplacement ?
+            'label',
+            'emplacement'
         ],
         self::ENTITY_FOU => [
             'codeReference',
@@ -39,7 +39,7 @@ class Import
             'reference',
             'libelle',
             'type',
-            //TODO CG emplacement ?
+            'emplacement'
         ]
     ];
 
