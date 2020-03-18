@@ -164,7 +164,7 @@ class ImportController extends AbstractController
                     }
                 }
 
-                asort($fields);
+                natcasesort($fields);
 
                 $response = [
                     'success' => true,
