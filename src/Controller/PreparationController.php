@@ -9,7 +9,6 @@ use App\Entity\CategoryType;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\EmplacementRepository;
@@ -685,27 +684,23 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/{preparation}/etiquettes", name="preparation_bar_codes_print", options={"expose"=true})
+     *
      * @param Preparation $preparation
      * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
      * @param ArticleDataService $articleDataService
      * @param PDFGeneratorService $PDFGeneratorService
+     *
      * @return Response
+     *
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function getBarCodes(Preparation $preparation,
                                 RefArticleDataService $refArticleDataService,
-                                EntityManagerInterface $entityManager,
                                 ArticleDataService $articleDataService,
                                 PDFGeneratorService $PDFGeneratorService): Response {
-
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-
         $articles = $preparation->getArticles()->toArray();
         $lignesArticle = $preparation->getLigneArticlePreparations()->toArray();
         $referenceArticles = [];
@@ -719,8 +714,8 @@ class PreparationController extends AbstractController
         }
         $barcodeConfigs = array_merge(
             array_map(
-                function (Article $article) use ($articleDataService, $wantBL, $parametrageGlobalRepository) {
-                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue(), $parametrageGlobalRepository);
+                function (Article $article) use ($articleDataService) {
+                    return $articleDataService->getBarcodeConfig($article);
                 },
                 $articles
             ),

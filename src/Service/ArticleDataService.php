@@ -12,7 +12,6 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -27,7 +26,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
-
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampLibreRepository;
@@ -35,7 +33,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\InventoryCategoryRepository;
-use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -44,18 +41,15 @@ use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
-
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\EntityManagerInterface;
-
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -154,7 +148,7 @@ class ArticleDataService
      */
     private $parametreRoleRepository;
 
-    private $em;
+    private $entityManager;
 
 	/**
 	 * @var ReceptionReferenceArticleRepository
@@ -176,6 +170,9 @@ class ArticleDataService
 	 */
 	private $inventoryCategoryRepository;
 
+	private $wantCLOnLabel;
+	private $clWantedOnLabel;
+
 	public function __construct(FiltreSupRepository $filtreSupRepository,
                                 ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
                                 MailerService $mailerService,
@@ -191,7 +188,7 @@ class ArticleDataService
                                 ArticleFournisseurRepository $articleFournisseurRepository,
                                 TypeRepository $typeRepository,
                                 StatutRepository $statutRepository,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ChampLibreRepository $champLibreRepository,
@@ -211,7 +208,7 @@ class ArticleDataService
         $this->typeRepository = $typeRepository;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->userService = $userService;
         $this->router = $router;
@@ -362,8 +359,8 @@ class ArticleDataService
                     ->setValue($param->getDefaultValue())
                     ->setRole($role)
                     ->setParametre($param);
-                $this->em->persist($paramQuantite);
-                $this->em->flush();
+                $this->entityManager->persist($paramQuantite);
+                $this->entityManager->flush();
             }
             $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
@@ -460,7 +457,7 @@ class ArticleDataService
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
-        $entityManager = $this->em;
+        $entityManager = $this->entityManager;
         $price = max(0, $data['prix']);
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
@@ -516,7 +513,7 @@ class ArticleDataService
 	 */
     public function newArticle($data, $demande = null, $reception = null)
     {
-        $entityManager = $this->em;
+        $entityManager = $this->entityManager;
         $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -766,17 +763,21 @@ class ArticleDataService
 
     /**
      * @param Article $article
-     * @param bool $wantBL
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @return array
      * @throws NonUniqueResultException
      */
-    public function getBarcodeConfig(Article $article, bool $wantBL = false, ParametrageGlobalRepository $parametrageGlobalRepository): array {
+    public function getBarcodeConfig(Article $article): array {
         $articles = $this->articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
-        $champLibreWanted = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
+
+        if (!isset($this->wantCLOnLabel) || !isset($this->clWantedOnLabel)) {
+            $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+            $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
+            $this->wantCLOnLabel = (bool) $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+        }
+
         $wantedIndex = 0;
         foreach ($articles as $key => $articleWithCL) {
-            if ($articleWithCL['cl'] === $champLibreWanted) {
+            if ($articleWithCL['cl'] === $this->clWantedOnLabel) {
                 $wantedIndex = $key;
                 break;
             }
@@ -788,7 +789,7 @@ class ArticleDataService
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
         $labelArticle = $article->getLabel();
-        $blLabel = (($wantBL && ($articleArray['cl'] === $champLibreWanted))
+        $blLabel = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
             ? $articleArray['bl']
             : '');
 
@@ -796,7 +797,7 @@ class ArticleDataService
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            !empty($blLabel) ? ($champLibreWanted  . ' : ' . $blLabel) : ''
+            !empty($blLabel) ? ($this->clWantedOnLabel  . ' : ' . $blLabel) : ''
         ];
         return [
             'code' => $article->getBarCode(),
