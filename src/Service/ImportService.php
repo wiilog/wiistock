@@ -181,46 +181,96 @@ class ImportService
                     //TODO CG alimenter fichier log avec vérif champs (fixes et libres) au bon format
 					switch ($import->getEntity()) {
 						case Import::ENTITY_FOU:
-                            $data['code'] = !is_null($colCodeReference) ? $row[$colCodeReference] : '';
-                            $data['nom'] = !is_null($colNom) ? $row[$colNom] : null;
+						    if (!is_null($colCodeReference)) {
+                                $data['code'] = $row[$colCodeReference];
+                            }
+						    if (!is_null($colNom)) {
+                                $data['nom'] = $row[$colNom];
+                            }
 
 							$this->importFournisseurEntity($data);
 							break;
 
 						case Import::ENTITY_ART_FOU:
-							$data['reference'] = !is_null($colReference) ? $row[$colReference] : null;
-							$data['label'] = !is_null($colReference) ? $row[$colLabel] : null;
-                            $data['referenceReference'] = (!is_null($colRef) && $row[$colRef] != '') ? $row[$colRef] : null;
-                            $data['fournisseurReference'] = (!is_null($colFournisseur) && $row[$colFournisseur] != '') ? $row[$colFournisseur] : null;
+						    if (!is_null($colReference)) {
+							    $data['reference'] = $row[$colReference];
+                            }
+						    if (!is_null($colLabel)) {
+							    $data['label'] = $row[$colLabel];
+                            }
+						    if (!is_null($colRef)) {
+							    $data['referenceReference'] = $row[$colRef];
+                            }
+						    if (!is_null($colFournisseur)) {
+							    $data['fournisseurReference'] = $row[$colFournisseur];
+                            }
 
 							$this->importArticleFournisseurEntity($data);
 							break;
 
 						case Import::ENTITY_REF:
-							$data['libelle'] = !is_null($colLibelle) ? $row[$colLibelle] : '';
-							$data['reference'] = !is_null($colReference) ? $row[$colReference] : '';
-							$data['quantiteStock'] = !is_null($colQuantiteStock) ? $row[$colQuantiteStock] : 0;
-							$data['prixUnitaire'] = !is_null($colPrixUnitaire) ? $row[$colPrixUnitaire] : null;
-							$data['limitSecurity'] = !is_null($colLimitSecurity) ? $row[$colLimitSecurity] : null;
-							$data['limitWarning'] = !is_null($colLimitWarning) ? $row[$colLimitWarning] : null;
-							$data['typeQuantite'] = !is_null($colTypeQuantite) ? $row[$colTypeQuantite] : ReferenceArticle::TYPE_QUANTITE_REFERENCE;
-							$data['typeLabel'] = (!is_null($colType) && $row[$colType] != '') ? $row[$colType] : Type::LABEL_STANDARD;
-							$data['emplacement'] = (!is_null($colEmplacement) && $row[$colEmplacement] != '') ? $row[$colEmplacement] : null;
-							$data['catInv'] = (!is_null($colCatInventaire) && $row[$colCatInventaire] != '') ? $row[$colCatInventaire] : null;
+						    if (!is_null($colLibelle)) {
+						        $data['libelle'] = $row[$colLibelle];
+                            }
+						    if (!is_null($colReference)) {
+						        $data['reference'] = $row[$colReference];
+                            }
+						    if (!is_null($colQuantiteStock)) {
+						        $data['quantiteStock'] = $row[$colQuantiteStock];
+                            }
+						    if (!is_null($colPrixUnitaire)) {
+						        $data['prixUnitaire'] = $row[$colPrixUnitaire];
+                            }
+						    if (!is_null($colLimitSecurity)) {
+						        $data['limitSecurity'] = $row[$colLimitSecurity];
+                            }
+						    if (!is_null($colLimitWarning)) {
+						        $data['limitWarning'] = $row[$colLimitWarning];
+                            }
+						    if (!is_null($colTypeQuantite)) {
+						        $data['typeQuantite'] = $row[$colTypeQuantite];
+                            }
+						    if (!is_null($colType)) {
+						        $data['typeLabel'] = $row[$colType];
+                            }
+						    if (!is_null($colEmplacement)) {
+						        $data['emplacement'] = $row[$colEmplacement];
+                            }
+						    if (!is_null($colCatInventaire)) {
+						        $data['catInv'] = $row[$colCatInventaire];
+                            }
 
 							$this->importReferenceEntity($data, $colChampsLibres, $row);
 							break;
 
 						case Import::ENTITY_ART:
-							$data['label'] = !is_null($colLabel) ? $row[$colLabel] : null;
-							$data['quantite'] = !is_null($colQuantite) ? $row[$colQuantite] : null;
-							$data['prixUnitaire'] = !is_null($colPrixUnitaire) ? $row[$colPrixUnitaire] : null;
-							$data['reference'] = !is_null($colReference) ? $row[$colReference] : null;
-							$data['typeLabel'] = (!is_null($colType) && $row[$colType] != '') ? $row[$colType] : Type::LABEL_STANDARD;
-							$data['articleFournisseurReference'] = (!is_null($colArtFou) && $row[$colArtFou] != '') ? $row[$colArtFou] : null;
-							$data['referenceReference'] = (!is_null($colRef) && $row[$colRef] != '') ? $row[$colRef] : null;
-							$data['fournisseurReference'] = (!is_null($colFournisseur) && $row[$colFournisseur] != '') ? $row[$colFournisseur] : null;
-                            $data['emplacement'] = (!is_null($colEmplacement) && $row[$colEmplacement] != '') ? $row[$colEmplacement] : null;
+						    if (!is_null($colLabel)) {
+							    $data['label'] = $row[$colLabel];
+                            }
+						    if (!is_null($colQuantite)) {
+							    $data['quantite'] = $row[$colQuantite];
+                            }
+						    if (!is_null($colPrixUnitaire)) {
+							    $data['prixUnitaire'] = $row[$colPrixUnitaire];
+                            }
+						    if (!is_null($colReference)) {
+							    $data['reference'] = $row[$colReference];
+                            }
+                            if (!is_null($colType)) {
+                                $data['typeLabel'] = $row[$colType];
+                            }
+                            if (!is_null($colArtFou)) {
+                                $data['articleFournisseurReference'] = $row[$colArtFou];
+                            }
+                            if (!is_null($colArtFou)) {
+                                $data['referenceReference'] = $row[$colRef];
+                            }
+                            if (!is_null($colFournisseur)) {
+                                $data['fournisseurReference'] = $row[$colFournisseur];
+                            }
+                            if (!is_null($colEmplacement)) {
+                                $data['emplacement'] = $row[$colEmplacement];
+                            }
 
 							$this->importArticleEntity($data, $colChampsLibres, $row);
 							break;
@@ -236,55 +286,57 @@ class ImportService
      */
     private function importFournisseurEntity(array $data): void
     {
-        // test unicité code
-        $codeAlreadyExist = $this->em->getRepository(Fournisseur::class)->countByCode($data['code']);
-        if ($codeAlreadyExist) {
-            //TODO CG alimente fichier log
-        } else {
+        $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['code']);
+
+        if (!$fournisseur) {
             $fournisseur = new Fournisseur();
-            $fournisseur
-                ->setCodeReference($data['code'])
-                ->setNom($data['nom']);
             $this->em->persist($fournisseur);
+        }
+        if (isset($data['code'])) {
+            $fournisseur->setCodeReference($data['code']);
+        }
+        if (isset($data['nom'])) {
+            $fournisseur->setNom($data['nom']);
         }
     }
 
     /**
      * @param array $data
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     private function importArticleFournisseurEntity(array $data): void
     {
-        // test unicité code
-        $codeAlreadyExist = $this->em->getRepository(ArticleFournisseur::class)->countByReference($data['reference']);
-        if ($codeAlreadyExist) {
-            //TODO CG alimente fichier log
-        } else {
+        $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['reference']]);
+
+        if (!$articleFournisseur) {
             $articleFournisseur = new ArticleFournisseur();
-            $articleFournisseur
-                ->setReference($data['reference'])
-                ->setLabel($data['label']);
             $this->em->persist($articleFournisseur);
+        }
 
-            if ($data['referenceReference']) {
-                $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+        if (isset($data['reference'])) {
+            $articleFournisseur->setReference($data['reference']);
+        }
+        if (isset($data['label'])) {
+            $articleFournisseur->setLabel($data['label']);
+        }
 
-                if (empty($refArticle)) {
-                    // TODO CG alimente fichier log
-                } else {
-                    $articleFournisseur->setReferenceArticle($refArticle);
-                }
+        if (!empty($data['referenceReference'])) {
+            $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+
+            if (empty($refArticle)) {
+                // TODO CG alimente fichier log
+            } else {
+                $articleFournisseur->setReferenceArticle($refArticle);
             }
+        }
 
-            if ($data['fournisseurReference']) {
-                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+        if (!empty($data['fournisseurReference'])) {
+            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
 
-                if (empty($fournisseur)) {
-                    // TODO CG alimente fichier log
-                } else {
-                    $articleFournisseur->setFournisseur($fournisseur);
-                }
+            if (empty($fournisseur)) {
+                // TODO CG alimente fichier log
+            } else {
+                $articleFournisseur->setFournisseur($fournisseur);
             }
         }
     }
@@ -297,42 +349,60 @@ class ImportService
      */
     private function importReferenceEntity(array $data, array $colChampsLibres, array $row): void
     {
-        // test unicité référence
-        $referenceAlreadyExist = $this->em->getRepository(ReferenceArticle::class)->countByReference($data['reference']);
-        if ($referenceAlreadyExist) {
-            //TODO CG alimente fichier log
-        } else {
+        $newEntity = false;
+        $refArt = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['reference']);
+
+        if (!$refArt) {
             $refArt = new ReferenceArticle();
-            $refArt
-                ->setLibelle($data['libelle'])
-                ->setReference($data['reference'])
-                ->setQuantiteStock($data['quantiteStock'])
-                ->setStatut($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF))
-                ->setPrixUnitaire($data['prixUnitaire'])
-                ->setIsUrgent(false)
-                ->setLimitSecurity($data['limitSecurity'])
-                ->setLimitWarning($data['limitWarning'])
-                ->setTypeQuantite($data['typeQuantite'])
-                ->setBarCode($this->refArticleDataService->generateBarCode());
             $this->em->persist($refArt);
+            $newEntity = true;
+        }
 
-            // liaison type
-            if ($data['typeLabel']) {
-                $type = $this->em->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel']);
-                if (empty($type)) {
-                    $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
-                    $type = new Type();
-                    $type
-                        ->setLabel($data['typeLabel'])
-                        ->setCategory($categoryType);
-                    $this->em->persist($type);
-                    $this->em->flush();
-                }
-                $refArt->setType($type);
-            }
+        if (isset($data['libelle'])) {
+            $refArt->setLibelle($data['libelle']);
+        }
+        if (isset($data['reference'])) {
+            $refArt->setReference($data['reference']);
+        }
+        if (isset($data['quantiteStock']) || $newEntity) {
+            $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
+        }
+        if (isset($data['prixUnitaire'])) {
+            $refArt->setPrixUnitaire($data['prixUnitaire']);
+        }
+        if (isset($data['limitSecurity'])) {
+            $refArt->setLimitSecurity($data['limitSecurity']);
+        }
+        if (isset($data['limitWarning'])) {
+            $refArt->setLimitWarning($data['limitWarning']);
+        }
+        if (isset($data['typeQuantite']) || $newEntity) {
+            $refArt->setTypeQuantite($data['typeQuantite'] ?? ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+        }
 
-            // liaison emplacement
-            if ($data['emplacement']) {
+        $refArt
+            ->setStatut($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF))
+            ->setIsUrgent(false)
+            ->setBarCode($this->refArticleDataService->generateBarCode());
+
+        // liaison type
+        $type = $this->em->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
+        if (empty($type)) {
+            $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
+            $type = new Type();
+            $type
+                ->setLabel($data['typeLabel'])
+                ->setCategory($categoryType);
+            $this->em->persist($type);
+            $this->em->flush();
+        }
+        $refArt->setType($type);
+
+        // liaison emplacement
+        if (!empty(['emplacement'])) {
+            if (empty($data['emplacement'])) {
+                $emplacement = null;
+            } else {
                 $emplacement = $this->em->getRepository(Emplacement::class)->findOneByLabel($data['emplacement']);
                 if (empty($emplacement)) {
                     $emplacement = new Emplacement();
@@ -343,29 +413,29 @@ class ImportService
                     $this->em->persist($emplacement);
                     $this->em->flush();
                 }
-                $refArt->setEmplacement($emplacement);
             }
+            $refArt->setEmplacement($emplacement);
+        }
 
-            // liaison catégorie inventaire
-            if ($data['catInv']) {
-                $catInv = $this->em->getRepository(InventoryCategory::class)->findOneBy(['label' => $data['catInv']]);
-                if (empty($catInv)) {
-                    // TODO CG alimente fichier log
-                } else {
-                    $refArt->setCategory($catInv);
-                }
+        // liaison catégorie inventaire
+        if (!empty($data['catInv'])) {
+            $catInv = $this->em->getRepository(InventoryCategory::class)->findOneBy(['label' => $data['catInv']]);
+            if (empty($catInv)) {
+                // TODO CG alimente fichier log
+            } else {
+                $refArt->setCategory($catInv);
             }
+        }
 
-            // champs libres
-            foreach ($colChampsLibres as $clId => $col) {
-                $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
-                $valeurCL = new ValeurChampLibre();
-                $valeurCL
-                    ->setChampLibre($champLibre)
-                    ->setValeur($row[$col])
-                    ->addArticleReference($refArt);
-                $this->em->persist($valeurCL);
-            }
+        // champs libres
+        foreach ($colChampsLibres as $clId => $col) {
+            $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
+            $valeurCL = new ValeurChampLibre();
+            $valeurCL
+                ->setChampLibre($champLibre)
+                ->setValeur($row[$col])
+                ->addArticleReference($refArt);
+            $this->em->persist($valeurCL);
         }
     }
 
@@ -378,100 +448,107 @@ class ImportService
      */
     private function importArticleEntity(array $data, array $colChampsLibres, array $row): void
     {
-        // test unicité référence
-        $referenceAlreadyExist = $this->em->getRepository(Article::class)->countByReference($data['reference']);
-        if ($referenceAlreadyExist) {
+        // liaison article fournisseur
+        $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+        if (empty($refArticle)) {
+            //TODO CG alimente fichier log
+        } else if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             //TODO CG alimente fichier log
         } else {
-            // liaison article fournisseur
-            $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
-            if (empty($refArticle)) {
-                //TODO CG alimente fichier log
-            } else if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                //TODO CG alimente fichier log
-            } else {
-                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+            if (empty($fournisseur)) {
+                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference(Fournisseur::REF_A_DEFINIR);
                 if (empty($fournisseur)) {
-                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference(Fournisseur::REF_A_DEFINIR);
-                    if (empty($fournisseur)) {
-                        $fournisseur = new Fournisseur();
-                        $fournisseur
-                            ->setNom(Fournisseur::REF_A_DEFINIR)
-                            ->setCodeReference(Fournisseur::REF_A_DEFINIR);
-                        $this->em->persist($fournisseur);
-                        $this->em->flush();
-                    }
-                }
-
-                $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy([
-                    'reference' => $data['articleFournisseurReference'],
-                    'referenceArticle' => $refArticle,
-                    'fournisseur' => $fournisseur
-                ]);
-
-                if (empty($articleFournisseur)) {
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom())
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($fournisseur)
-                        ->setReference($refArticle->getReference() . ' / ' . $fournisseur->getCodeReference());
-                    $this->em->persist($articleFournisseur);
+                    $fournisseur = new Fournisseur();
+                    $fournisseur
+                        ->setNom(Fournisseur::REF_A_DEFINIR)
+                        ->setCodeReference(Fournisseur::REF_A_DEFINIR);
+                    $this->em->persist($fournisseur);
                     $this->em->flush();
                 }
+            }
 
+            $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy([
+                'reference' => $data['articleFournisseurReference'],
+                'referenceArticle' => $refArticle,
+                'fournisseur' => $fournisseur
+            ]);
+
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom())
+                    ->setReferenceArticle($refArticle)
+                    ->setFournisseur($fournisseur)
+                    ->setReference($refArticle->getReference() . ' / ' . $fournisseur->getCodeReference());
+                $this->em->persist($articleFournisseur);
+                $this->em->flush();
+            }
+
+            $newEntity = false;
+            $article = $this->em->getRepository(Article::class)->countByReference($data['reference']);
+            if (!$article) {
                 $article = new Article();
-                $article
-                    ->setLabel($data['label'])
-                    ->setQuantite($data['quantite'])
-                    ->setPrixUnitaire($data['prixUnitaire'])
-                    ->setReference($data['reference'])
-                    ->setStatut($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
-                    ->setBarCode($this->articleDataService->generateBarCode())
-                    ->setArticleFournisseur($articleFournisseur)
-                    ->setConform(true);
                 $this->em->persist($article);
+                $newEntity = true;
+            }
 
-                // liaison type
-                if ($data['typeLabel']) {
-                    $type = $this->em->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel']);
-                    if (empty($type)) {
-                        $type = new Type();
-                        $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
-                        $type
-                            ->setLabel($data['typeLabel'])
-                            ->setCategory($categoryType);
-                        $this->em->persist($type);
-                        $this->em->flush();
-                    }
-                    $article->setType($type);
-                }
+            if (isset($data['label'])) {
+                $article->setLabel($data['label']);
+            }
+            if (isset($data['quantite']) || $newEntity) {
+                $article->setQuantite($data['quantite'] ?? 0);
+            }
+            if (isset($data['prixUnitaire'])) {
+                $article->setPrixUnitaire($data['prixUnitaire']);
+            }
+            if (isset($data['reference'])) {
+                $article->setReference($data['reference']);
+            }
 
-                // liaison emplacement
-                if ($data['emplacement']) {
-                    $emplacement = $this->em->getRepository(Emplacement::class)->findOneByLabel($data['emplacement']);
-                    if (empty($emplacement)) {
-                        $emplacement = new Emplacement();
-                        $emplacement
-                            ->setLabel($data['emplacement'])
-                            ->setIsActive(true)
-                            ->setIsDeliveryPoint(false);
-                        $this->em->persist($emplacement);
-                        $this->em->flush();
-                    }
-                    $article->setEmplacement($emplacement);
-                }
+            $article
+                ->setStatut($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
+                ->setBarCode($this->articleDataService->generateBarCode())
+                ->setArticleFournisseur($articleFournisseur)
+                ->setConform(true);
 
-                // champs libres
-                foreach ($colChampsLibres as $clId => $col) {
-                    $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
-                    $valeurCL = new ValeurChampLibre();
-                    $valeurCL
-                        ->setChampLibre($champLibre)
-                        ->setValeur($row[$col])
-                        ->addArticle($article);
-                    $this->em->persist($valeurCL);
+            // liaison type
+            $type = $this->em->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
+            if (empty($type)) {
+                $type = new Type();
+                $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
+                $type
+                    ->setLabel($data['typeLabel'])
+                    ->setCategory($categoryType);
+                $this->em->persist($type);
+                $this->em->flush();
+            }
+            $article->setType($type);
+
+            // liaison emplacement
+            if (!empty(['emplacement'])) {
+                $emplacement = $this->em->getRepository(Emplacement::class)->findOneByLabel($data['emplacement']);
+                if (empty($emplacement)) {
+                    $emplacement = new Emplacement();
+                    $emplacement
+                        ->setLabel($data['emplacement'])
+                        ->setIsActive(true)
+                        ->setIsDeliveryPoint(false);
+                    $this->em->persist($emplacement);
+                    $this->em->flush();
                 }
+                $article->setEmplacement($emplacement);
+            }
+
+            // champs libres
+            foreach ($colChampsLibres as $clId => $col) {
+                $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
+                $valeurCL = new ValeurChampLibre();
+                $valeurCL
+                    ->setChampLibre($champLibre)
+                    ->setValeur($row[$col])
+                    ->addArticle($article);
+                $this->em->persist($valeurCL);
             }
         }
     }
