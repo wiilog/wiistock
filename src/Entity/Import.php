@@ -21,6 +21,28 @@ class Import
 	const ENTITY_FOU = 'FOU';
 	const ENTITY_ART_FOU = 'ART_FOU';
 
+	const FIELDS_NEEDED = [
+        self::ENTITY_ART_FOU => [
+            'référence article de référence',
+            'référence fournisseur'
+        ],
+        self::ENTITY_ART => [
+            'référence article de référence',
+            'label'
+            //TODO CG emplacement ?
+        ],
+        self::ENTITY_FOU => [
+            'codeReference',
+            'nom'
+        ],
+        self::ENTITY_REF => [
+            'reference',
+            'libelle',
+            'type',
+            //TODO CG emplacement ?
+        ]
+    ];
+
 	const FIELDS_ENTITY = [
 		'reference' => 'référence',
 		'quantite' => 'quantité',

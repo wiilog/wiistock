@@ -12,10 +12,11 @@
             <tr>
                 <td>{{ data.headers[i] }}</td>
                 <td>{{ data.firstRow[i] }}</td>
-                <td><select class="form-control data" name="{{ i }}">
+                <td><select class="form-control data no-clear" name="{{ i }}">
                         <option></option>
                         {% for fieldValue, fieldName in fields %}
-                            <option value="{{ fieldValue }}">{{ fieldName|capitalize }}</option>
+                            {% set needed = fieldName in fieldsNeeded ? '*'%}
+                            <option value="{{ fieldValue }}">{{ fieldName|capitalize }}{{ needed }}</option>
                         {% endfor %}
                     </select>
                 </td>

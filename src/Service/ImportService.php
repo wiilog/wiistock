@@ -228,8 +228,6 @@ class ImportService
 			}
 			$this->em->flush();
 		}
-
-
 	}
 
     /**

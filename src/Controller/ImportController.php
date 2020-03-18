@@ -148,6 +148,7 @@ class ImportController extends AbstractController
                     case Import::ENTITY_ART_FOU:
                         $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
                         $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                        break;
                 }
 
                 $fields = [];
@@ -170,7 +171,8 @@ class ImportController extends AbstractController
                     'importId' => $import->getId(),
                     'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
                         'data' => $data ?? [],
-                        'fields' => $fields ?? []
+                        'fields' => $fields ?? [],
+                        'fieldsNeeded' => Import::FIELDS_NEEDED[$entity]
                     ])
                 ];
             }
@@ -184,6 +186,7 @@ class ImportController extends AbstractController
 	 */
 	public function defineLinks(Request $request): Response
 	{
+	    $success = true;
 		$importRepository = $this->getDoctrine()->getRepository(Import::class);
 		$data = json_decode($request->getContent(), true);
 
@@ -192,12 +195,24 @@ class ImportController extends AbstractController
 
 		$import = $importRepository->find($importId);
 
-		$import->setColumnToField($data);
-		$this->getDoctrine()->getManager()->flush();
+		// vérif champs obligatoires sélectionnés
+        $fieldsNeeded = Import::FIELDS_NEEDED[$import->getEntity()];
+        foreach ($fieldsNeeded as $fieldNeeded) {
+            if (!in_array($fieldNeeded, $data)) {
+                $success = false;
+                $msg = 'Veuillez sélectionner tous les champs obligatoires (*).';
+            }
+        }
+
+        if ($success) {
+            $import->setColumnToField($data);
+            $this->getDoctrine()->getManager()->flush();
+        }
 
 		return new JsonResponse([
-			'success' => true,
-			'html' => $this->renderView('import/modalNewImportConfirm.html.twig')
+			'success' => $success,
+			'html' => $success ? $this->renderView('import/modalNewImportConfirm.html.twig') : '',
+            'msg' => $msg ?? ''
 		]);
 	}
 

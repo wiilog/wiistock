@@ -44,6 +44,7 @@ let $modalNewImport = $("#modalNewImport");
 let $submitNewImport = $("#submitNewImport");
 
 function displayFirstModal() {
+    clearModal($modalNewImport);
     $submitNewImport.off();
     let urlNewImportFirst = Routing.generate('import_new', true);
     initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
@@ -74,6 +75,8 @@ function displayConfirmationModal(data) {
 
         let urlNewImportConfirm = Routing.generate('import_confirm', true);
         InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport, launchImport);
+    } else {
+        $modalNewImport.find('.error-msg').html(data.msg);
     }
 }
 
