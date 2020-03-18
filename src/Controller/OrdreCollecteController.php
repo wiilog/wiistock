@@ -219,7 +219,9 @@ class OrdreCollecteController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function new(Collecte $demandeCollecte, UserService $userService, EntityManagerInterface $entityManager): Response
+    public function new(Collecte $demandeCollecte,
+                        UserService $userService,
+                        EntityManagerInterface $entityManager): Response
     {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
@@ -235,7 +237,6 @@ class OrdreCollecteController extends AbstractController
             ->setNumero('C-' . $date->format('YmdHis'))
             ->setStatut($statut)
             ->setDemandeCollecte($demandeCollecte);
-        $entityManager = $this->getDoctrine()->getManager();
         foreach ($demandeCollecte->getArticles() as $article) {
             $ordreCollecte->addArticle($article);
         }
@@ -267,13 +268,16 @@ class OrdreCollecteController extends AbstractController
     /**
      * @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"} )
      * @param Request $request
+     * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiEditArticle(Request $request, EntityManagerInterface $entityManager): Response
+    public function apiEditArticle(Request $request,
+                                   UserService $userService,
+                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
+            if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
@@ -299,8 +303,9 @@ class OrdreCollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function editArticle(Request $request, UserService $userService, EntityManagerInterface $entityManager): Response
-    {
+    public function editArticle(Request $request,
+                                UserService $userService,
+                                EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -309,7 +314,7 @@ class OrdreCollecteController extends AbstractController
             $ligneArticle = $ordreCollecteReferenceRepository->find($data['ligneArticle']);
             if (isset($data['quantite'])) $ligneArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
 
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -326,7 +331,10 @@ class OrdreCollecteController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function delete(OrdreCollecte $ordreCollecte, Request $request, UserService $userService, EntityManagerInterface $entityManager): Response
+    public function delete(OrdreCollecte $ordreCollecte,
+                           Request $request,
+                           UserService $userService,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
@@ -337,7 +345,6 @@ class OrdreCollecteController extends AbstractController
                 $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
                 $collecte = $ordreCollecte->getDemandeCollecte();
                 $isOnlyOrdreCollecte = $collecte->getOrdresCollecte()->count() === 1;
-                $entityManager = $this->getDoctrine()->getManager();
 
                 $statusName = $isOnlyOrdreCollecte ? Collecte::STATUT_BROUILLON : Collecte::STATUT_COLLECTE;
                 $collecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, $statusName));
