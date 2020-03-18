@@ -507,8 +507,8 @@ function initFilterDateToday() {
  */
 function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {}, {autoSelect, $nextField} = {}) {
     $select.each(function () {
-        const $item = $(this);
-        let isMultiple = $item.attr('multiple') === 'multiple';
+        const $self = $(this);
+        let isMultiple = $self.attr('multiple') === 'multiple';
 
         const select2AjaxOptions = ajaxOptions && ajaxOptions.route
             ? {
@@ -527,22 +527,22 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
                                         && results[0].text === term) {
 
                                         const option = new Option(results[0].text, results[0].id, true, true);
-                                        const oldVal = $item.val();
+                                        const oldVal = $self.val();
                                         const newVal = (
                                             !isMultiple
                                                 ? option
                                                 : [
                                                     ...(oldVal || []),
-                                                    ...[option]
+                                                    option
                                                 ]
                                         );
 
                                         setTimeout(() => {
-                                            $item
+                                            $self
                                                 .append(newVal)
                                                 .trigger('change');
 
-                                            $item.select2('close');
+                                            $self.select2('close');
                                             if ($nextField) {
 
                                                 if (!$nextField.data('select2')) {
@@ -563,7 +563,7 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
             }
             : {};
 
-        $item.select2({
+        $self.select2({
             ...select2AjaxOptions,
             language: {
                 inputTooShort: function () {
@@ -583,6 +583,9 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
                 text: placeholder,
             },
             allowClear: !isMultiple
+        });
+        $self.siblings('.select2-container').find('.select2-selection').on('focus', function() {
+            $(this).closest(".select2-container").siblings('select:enabled').select2('open');
         });
     });
 }
@@ -1455,6 +1458,9 @@ function initFreeSelect2($selects) {
             "language": {
                 "noResults": function () { return 'Ajoutez des éléments'; }
             },
+        });
+        $self.next('.select2-container').find('.select2-selection').on('focus', () => {
+            $(this).closest(".select2-container").siblings('select:enabled').select2('open');
         });
     });
 }

@@ -112,7 +112,6 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 function initNewModal($modal) {
     if (!editorNewMvtTracaAlreadyDone) {
-        console.log('#' + $modal.attr('id') + ' .editor-container-new');
         initEditor('#' + $modal.attr('id') + ' .editor-container-new');
         editorNewMvtTracaAlreadyDone = true;
     }
@@ -127,7 +126,6 @@ function initNewModal($modal) {
         const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-prise"]');
         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-depose"]');
         const $colis = $moreMassMvtContainer.find('.select2-free[name="colis"]');
-
         ajaxAutoCompleteEmplacementInit($emplacementPrise, {autoSelect: true, $nextField: $colis});
         initFreeSelect2($colis);
         ajaxAutoCompleteEmplacementInit($emplacementDepose, {autoSelect: true});
