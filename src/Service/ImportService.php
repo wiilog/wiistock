@@ -177,7 +177,8 @@ class ImportService
 				} else {
 					$row = array_map('utf8_encode', $data);
                     $data = [];
-
+                    //TODO CG alimenter fichier log avec vérif champs obligatoires non vides
+                    //TODO CG alimenter fichier log avec vérif champs (fixes et libres) au bon format
 					switch ($import->getEntity()) {
 						case Import::ENTITY_FOU:
                             $data['code'] = !is_null($colCodeReference) ? $row[$colCodeReference] : '';
@@ -206,7 +207,7 @@ class ImportService
 							$data['typeLabel'] = (!is_null($colType) && $row[$colType] != '') ? $row[$colType] : Type::LABEL_STANDARD;
 							$data['emplacement'] = (!is_null($colEmplacement) && $row[$colEmplacement] != '') ? $row[$colEmplacement] : null;
 							$data['catInv'] = (!is_null($colCatInventaire) && $row[$colCatInventaire] != '') ? $row[$colCatInventaire] : null;
-                            //TODO CG alimenter fichier log avec vérif champs obligatoires non vides
+
 							$this->importReferenceEntity($data, $colChampsLibres, $row);
 							break;
 
