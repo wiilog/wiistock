@@ -289,7 +289,7 @@ function initModalCondit(tableFromArticle) {
 
 function initNewArticleEditor(modal) {
     let $select2refs = $('#reference');
-    ajaxAutoRefArticleInit($select2refs, null);
+    ajaxAutoRefArticleInit($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
         initEditorInModal(modal);
