@@ -780,7 +780,7 @@ class DemandeController extends AbstractController
 				'code(s) livraison(s)',
 				'référence article',
                 'libellé article',
-                'code barre article',
+                'code-barre article',
 				'quantité disponible',
 				'quantité à prélever'
 			];
