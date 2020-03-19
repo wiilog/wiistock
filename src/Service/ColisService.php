@@ -62,7 +62,6 @@ Class ColisService
      * @param Arrivage $arrivage
      * @param array $colisByNatures
      * @return Colis[]
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function persistMultiColis(Arrivage $arrivage,
