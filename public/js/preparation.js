@@ -102,7 +102,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité'},
+        {"data": 'Quantité', 'title': 'Quantité en stock'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],

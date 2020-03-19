@@ -9,7 +9,6 @@ use App\Entity\CategoryType;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\EmplacementRepository;
@@ -145,6 +144,7 @@ class PreparationController extends AbstractController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NoResultException
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
@@ -183,6 +183,8 @@ class PreparationController extends AbstractController
         }
 
         $entityManager->flush();
+
+        $preparationsManager->updateRefArticlesQuantities($preparation);
 
         return $this->redirectToRoute('livraison_show', [
             'id' => $livraison->getId(),
@@ -299,7 +301,6 @@ class PreparationController extends AbstractController
      * @param Request $request
      * @param $prepaId
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function apiLignePreparation(Request $request, $prepaId): Response
     {
@@ -318,40 +319,21 @@ class PreparationController extends AbstractController
                 foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                     $articleRef = $ligneArticle->getReference();
                     $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                    $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
-                    $qtt = $isRefByArt ?
-                        $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
-                        $articleRef->getQuantiteStock();
-                    $ligneArticleFromDemande = $this->ligneArticleRepository->findOneByRefArticleAndDemande($articleRef, $demande);
                     if ($ligneArticle->getQuantitePrelevee() > 0 ||
                         ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                         $qttForCurrentLine = $ligneArticle->getQuantite() ?? null;
-                        $qttForDemandLine = $ligneArticleFromDemande && $ligneArticleFromDemande->getQuantite() ? $ligneArticleFromDemande->getQuantite() : null;
-                        $qttAlreadyPicked = array_reduce($demande->getPreparations()->toArray(), function (int $carry, Preparation $preparationReduced) use ($preparation) {
-                            // return counted quantites picked for previous preparations
-                            return ($preparation->getId() > $preparationReduced->getId())
-                                ? $carry + array_reduce(
-                                    $preparationReduced->getLigneArticlePreparations()->toArray(),
-                                    function (int $carryInPrepa, LigneArticlePreparation $ligneArticlePreparation) {
-                                        return $carryInPrepa + $ligneArticlePreparation->getQuantitePrelevee() ?? 0;
-                                    }, 0
-                                )
-                                : $carry;
-                        }, 0);
-                        $qttToDisplay = $qttForDemandLine ? ($qttForDemandLine - $qttAlreadyPicked) : ($qttForCurrentLine ?? ' ');
                         $rows[] = [
                             "Référence" => $articleRef ? $articleRef->getReference() : ' ',
                             "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
                             "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
-                            "Quantité" => $qtt,
-                            "Quantité à prélever" => $qttToDisplay,
+                            "Quantité" => $articleRef->getQuantiteStock(),
+                            "Quantité à prélever" => $qttForCurrentLine,
                             "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $articleRef->getBarCode(),
                                 'isRef' => true,
                                 'artOrRefId' => $articleRef->getId(),
                                 'isRefByArt' => $isRefByArt,
-                                'quantity' => $qtt,
                                 'id' => $ligneArticle->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
                                 'active' => !empty($ligneArticle->getQuantitePrelevee())
@@ -419,8 +401,14 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
+     * @param Preparation $preparation
+     * @param RefArticleDataService $refArticleDataService
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function delete(Preparation $preparation): Response
+    public function delete(Preparation $preparation,
+                           RefArticleDataService $refArticleDataService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
@@ -443,12 +431,26 @@ class PreparationController extends AbstractController
             }
         }
 
+        $refToUpdate = [];
+
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
+            $refArticle = $ligneArticlePreparation->getReference();
+            if ($refArticle->getQuantiteReservee() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $ligneArticlePreparation->getQuantite());
+            }
+            else {
+                $refToUpdate[] = $refArticle;
+            }
             $em->remove($ligneArticlePreparation);
         }
 
         $em->remove($preparation);
         $em->flush();
+
+        foreach ($refToUpdate as $reference) {
+            $refArticleDataService->updateRefArticleQuantities($reference);
+        }
+
         return $this->redirectToRoute('preparation_index');
     }
 
@@ -499,7 +501,7 @@ class PreparationController extends AbstractController
                 foreach ($data['articles'] as $idArticle => $quantite) {
                     $article = $this->articleRepository->find($idArticle);
                     $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle);
-            }
+                }
                 $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle);
                 $em->flush();
                 $resp = true;
@@ -685,14 +687,15 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/{preparation}/etiquettes", name="preparation_bar_codes_print", options={"expose"=true})
+     *
      * @param Preparation $preparation
      * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
      * @param ArticleDataService $articleDataService
      * @param PDFGeneratorService $PDFGeneratorService
+     *
      * @return Response
+     *
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -701,7 +704,8 @@ class PreparationController extends AbstractController
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
                                 ArticleDataService $articleDataService,
-                                PDFGeneratorService $PDFGeneratorService): Response {
+                                PDFGeneratorService $PDFGeneratorService): Response
+    {
 
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
@@ -713,14 +717,14 @@ class PreparationController extends AbstractController
         /** @var LigneArticlePreparation $ligne */
         foreach ($lignesArticle as $ligne) {
             $reference = $ligne->getReference();
-            if($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticles[] = $reference;
             }
         }
         $barcodeConfigs = array_merge(
             array_map(
-                function (Article $article) use ($articleDataService, $wantBL) {
-                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                function (Article $article) use ($articleDataService) {
+                    return $articleDataService->getBarcodeConfig($article);
                 },
                 $articles
             ),
@@ -744,8 +748,7 @@ class PreparationController extends AbstractController
                 $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
                 $fileName
             );
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
