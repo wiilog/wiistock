@@ -451,21 +451,28 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     const figureColor = '#666666';
     const rectColor = '#FFFFFF';
 
+    const yAdjust = 23;
+
     chartInstance.data.datasets.forEach(function (dataset, index) {
         if (chartInstance.isDatasetVisible(index)) {
-            let containsNegativValues = dataset.data.reduce((carry, current) => {
-                return current < 0 ? (carry + 1) : carry;
-            }, 0) > 0;
+            let containsNegativValues = dataset.data.some((current) => (current < 0));
             for (let i = 0; i < dataset.data.length; i++) {
                 for (let key in dataset._meta) {
-                    const isNegativ = (parseInt(dataset.data[i]) < 0);
-                    if (parseInt(dataset.data[i]) !== 0) {
+                    const value = parseInt(dataset.data[i]);
+                    const isNegativ = (value < 0);
+                    if (value !== 0) {
                         let {x, y, base} = dataset._meta[key].data[i]._model;
                         const figure = dataset.data[i];
                         const {width} = ctx.measureText(figure);
                         const rectWidth = width + (figurePaddingHorizontal * 2);
                         const rectHeight = fontSize + (figurePaddingVertical * 2);
-                        y = isNegativ ? (base - rectHeight) : (containsNegativValues ? (base + (rectHeight/2)) : (y - 23));
+
+                        y = isNegativ
+                            ? (base - rectHeight)
+                            : (containsNegativValues
+                                ? (base + (rectHeight / 2))
+                                : (y - yAdjust));
+
                         const rectX = x - (width / 2) - figurePaddingHorizontal;
                         const rectY = y - figurePaddingVertical;
 
