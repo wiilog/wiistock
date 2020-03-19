@@ -100,15 +100,13 @@
         <div class="form-group col-4">
             <div class="radio-btn">
                 <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
-                <div {% if editable %}onclick="updateQuantityDisplay($(this))"{% endif %}>
-                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active' }} {{ disabled }}"
-                          data-toggle="type_quantite" data-title="reference"
-                          {% if editable %}onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))" {% endif %}>Par
-                        référence</span><span
-                        class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active' }}  {{ disabled }}"
-                        data-toggle="type_quantite" data-title="article"
-                        {% if editable %}onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))" {% endif %}>Par
-                        article</span>
+                <div class="btn-group">
+                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}} disabled cursor-default"
+                          data-title="reference">Par référence</span>
+                    <span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}} disabled cursor-default"
+                          data-toggle="type_quantite" data-title="article">
+                        Par article
+                    </span>
                 </div>
 
                 <input type="hidden" name="type_quantite" class="data type_quantite" value="{{ articleRef.typeQuantite }}">

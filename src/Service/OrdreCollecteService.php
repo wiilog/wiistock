@@ -43,7 +43,7 @@ class OrdreCollecteService
 	 */
     private $entityManager;
 	/**
-	 * @var \Twig_Environment
+	 * @var Twig_Environment
 	 */
 	private $templating;
 	/**

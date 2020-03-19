@@ -1,5 +1,5 @@
 
-let editorNewMvtTracaAlreadyDone = false;
+let quillNew;
 
 $('.select2').select2();
 
@@ -113,9 +113,8 @@ let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
 function initNewModal($modal) {
-    if (!editorNewMvtTracaAlreadyDone) {
-        initEditor('#' + $modal.attr('id') + ' .editor-container-new');
-        editorNewMvtTracaAlreadyDone = true;
+    if (!quillNew) {
+        quillNew = initEditor('#' + $modal.attr('id') + ' .editor-container-new');
     }
 
     const $operatorSelect = $modal.find('.ajax-autocomplete-user');
@@ -169,7 +168,7 @@ function switchMvtCreationType($input) {
             $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
             $modal.find('.new-mvt-common-body').removeClass('d-none');
             $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
-            ajaxAutoCompleteEmplacementInit($modal.find('.ajax-autocompleteEmplacement'), {autoSelect: true});
+            ajaxAutoCompleteEmplacementInit($modal.find('.ajax-autocompleteEmplacement'));
             initFreeSelect2($('.select2-free'));
         }
     });

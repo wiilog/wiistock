@@ -15,7 +15,7 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
-
+use Twig\Environment as Twig_Environment;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryCategoryRepository;
@@ -159,7 +159,7 @@ class ReferenceArticleController extends AbstractController
     private $categorieCLRepository;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -210,7 +210,7 @@ class ReferenceArticleController extends AbstractController
                                 ParametreRoleRepository $parametreRoleRepository,
                                 ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
-                                \Twig_Environment $templating,
+                                Twig_Environment $templating,
                                 EmplacementRepository $emplacementRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,

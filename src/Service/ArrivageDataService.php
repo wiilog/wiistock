@@ -258,7 +258,7 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function processEmergenciesOnArrival(Arrivage $arrival, bool $diferForSED = false): array {
+    public function processEmergenciesOnArrival(Arrivage $arrival): array {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
 
