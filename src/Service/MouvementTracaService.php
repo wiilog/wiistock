@@ -133,13 +133,16 @@ class MouvementTracaService
         }
         $articleRepository = $this->em->getRepository(Article::class);
         $refArticleRepository = $this->em->getRepository(ReferenceArticle::class);
-        $articleOrRef = null;
+
         $articleOrRef = $articleRepository->findOneBy([
             'barCode' => $mouvement->getColis()
         ]);
-        $articleOrRef = $articleOrRef ?? $refArticleRepository->findOneBy([
+        if (!$articleOrRef) {
+            $articleOrRef = $refArticleRepository->findOneBy([
                 'barCode' => $mouvement->getColis()
             ]);
+        }
+
         $row = [
             'id' => $mouvement->getId(),
             'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
