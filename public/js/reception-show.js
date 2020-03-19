@@ -288,7 +288,8 @@ function initModalCondit(tableFromArticle) {
 }
 
 function initNewArticleEditor(modal) {
-    ajaxAutoRefArticleInit($('.ajax-autocomplete'));
+    let $select2refs = $('#reference');
+    ajaxAutoRefArticleInit($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
         initEditorInModal(modal);
@@ -300,6 +301,10 @@ function initNewArticleEditor(modal) {
     const $commandField = $(modal).find('#commande');
     const numCommand = $('#numCommandeReception').val();
     $commandField.val(numCommand);
+
+    setTimeout(() => {
+        openSelect2($select2refs);
+    }, 400);
 }
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
