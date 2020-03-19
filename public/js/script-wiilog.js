@@ -563,6 +563,18 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
             }
             : {};
 
+        const getSelect2Selection = () => (
+            $self
+                .siblings('.select2-container')
+                .find('.select2-selection')
+        );
+
+        let $select2Selection = getSelect2Selection();
+
+        if ($select2Selection.length > 0) {
+            $select2Selection.off('focus');
+        }
+
         $self.select2({
             ...select2AjaxOptions,
             language: {
@@ -584,8 +596,11 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
             },
             allowClear: !isMultiple
         });
-        $self.siblings('.select2-container').find('.select2-selection').on('focus', function() {
-            $(this).closest(".select2-container").siblings('select:enabled').select2('open');
+
+        // on recupère le select2 après l'initialisation de select2
+        $select2Selection = getSelect2Selection();
+        $select2Selection.on('focus', function() {
+            $self.select2('open');
         });
     });
 }
