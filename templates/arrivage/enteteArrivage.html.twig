@@ -38,81 +38,81 @@
 
 <div class="row">
     {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Fournisseur :</strong> <span>{{ arrivage.fournisseur ? arrivage.fournisseur.nom : "" }}</span></p>
-    </div>
+        <div class="col-4">
+            <p><strong>Fournisseur :</strong> <span>{{ arrivage.fournisseur ? arrivage.fournisseur.nom : "" }}</span></p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Transporteur :</strong> {{ arrivage.transporteur ? arrivage.transporteur.label : "" }}</p>
-    </div>
+        <div class="col-4">
+            <p><strong>Transporteur :</strong> {{ arrivage.transporteur ? arrivage.transporteur.label : "" }}</p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Chauffeur :</strong> <span>{{ arrivage.chauffeur ? arrivage.chauffeur.nom : "" }}</span></p>
-    </div>
+        <div class="col-4">
+            <p><strong>Chauffeur :</strong> <span>{{ arrivage.chauffeur ? arrivage.chauffeur.nom : "" }}</span></p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('noTracking', 'displayed') %}
-    <div class="col-4">
-        <p><strong>N°tracking transporteur :</strong> <span>{{ arrivage.notracking }}</span></p>
-    </div>
+        <div class="col-4">
+            <p><strong>N° tracking transporteur :</strong> <span>{{ arrivage.notracking }}</span></p>
+        </div>
     {% endif %}
-    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
-    <div class="col-4">
-        <p><strong>N°commande / BL :</strong> <span>{{ arrivage.numerobl ? arrivage.numerobl : "" }}</span></p>
-    </div>
+    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
+        <div class="col-4">
+            <p><strong>N° commandes / BL :</strong> <span>{{ (arrivage.numeroCommandeList|join(', ')) }}</span></p>
+        </div>
     {% endif %}
     <div class="col-4">
         <p><strong>Statut :</strong> <span>{{ arrivage.statut }}</span></p>
     </div>
     {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
-    <div class="col-4">
-        <p title="destinataire">
-            <strong>{{ 'arrivage.destinataire'|trans }} :</strong>
-            {{ arrivage.destinataire ? arrivage.destinataire.username : '' }}
-        </p>
-    </div>
+        <div class="col-4">
+            <p title="destinataire">
+                <strong>{{ 'arrivage.destinataire'|trans }} :</strong>
+                {{ arrivage.destinataire ? arrivage.destinataire.username : '' }}
+            </p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayed') %}
-    <div class="col-4">
-        <p title="acheteurs">
-            <strong>{{ 'arrivage.acheteurs'|trans }} :</strong>
-            {{ arrivage.acheteurs|join(', ') }}
-        </p>
-    </div>
+        <div class="col-4">
+            <p title="acheteurs">
+                <strong>{{ 'arrivage.acheteurs'|trans }} :</strong>
+                {{ arrivage.acheteurs|join(', ') }}
+            </p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
-    <div class="col-4">
-        <p title="douane">
-            <strong>{{ 'arrivage.douane'|trans }} :</strong>
-            {{ arrivage.duty ? 'oui' : 'non' }}
-        </p>
-    </div>
+        <div class="col-4">
+            <p title="douane">
+                <strong>{{ 'arrivage.douane'|trans }} :</strong>
+                {{ arrivage.duty ? 'oui' : 'non' }}
+            </p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
-    <div class="col-4">
-        <p title="congelé">
-            <strong>{{ 'arrivage.congelé'|trans }} :</strong>
-            {{ arrivage.frozen ? 'oui' : 'non' }}
-        </p>
-    </div>
+        <div class="col-4">
+            <p title="congelé">
+                <strong>{{ 'arrivage.congelé'|trans }} :</strong>
+                {{ arrivage.frozen ? 'oui' : 'non' }}
+            </p>
+        </div>
     {% endif %}
 
     {% for champLibre in champsLibres %}
-    <div class="col-4">
-        {% set value = null %}
-        {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-            {% set value = (champLibre.valeurChampLibre is not null and champLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
-        {% elseif champLibre.typage == 'list multiple' and champLibre.valeurChampLibre is not null%}
-            {% set value = champLibre.valeurChampLibre.valeur | replace({';' : ','}) %}
-        {% elseif champLibre.valeurChampLibre is not null %}
-            {% set value = champLibre.valeurChampLibre.valeur %}
-        {% endif %}
-        {% if value is not null %}
-            <p><strong>{{ champLibre.label }} :</strong> {{ value }}</p>
-        {% endif %}
-    </div>
-{% endfor %}
+        <div class="col-4">
+            {% set value = null %}
+            {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
+                {% set value = (champLibre.valeurChampLibre is not null and champLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
+            {% elseif champLibre.typage == 'list multiple' and champLibre.valeurChampLibre is not null%}
+                {% set value = champLibre.valeurChampLibre.valeur | replace({';' : ','}) %}
+            {% elseif champLibre.valeurChampLibre is not null %}
+                {% set value = champLibre.valeurChampLibre.valeur %}
+            {% endif %}
+            {% if value is not null %}
+                <p><strong>{{ champLibre.label }} :</strong> {{ value }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
 </div>
 
 

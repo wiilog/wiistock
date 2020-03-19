@@ -253,7 +253,8 @@ class LitigeController extends AbstractController
                     : null;
                 $litigeData[] = $arrivage ? $arrivage->getNumeroArrivage() : '';
 
-                $litigeData[] = $arrivage ? $arrivage->getNumeroBL() : ''; // N° de commande
+                $numeroCommandeList = $arrivage ? $arrivage->getNumeroCommandeList() : [];
+                $litigeData[] = implode(' / ', $numeroCommandeList); // N° de commandes
 
 				$fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
 				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');

@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -103,15 +104,6 @@ class LivraisonsManagerService
             $statutLivre = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON, $demandeIsPartial ? Demande::STATUT_LIVRE_INCOMPLETE : Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
-
-            // quantités gérées à la référence
-            $preparation = $livraison->getPreparation();
-            $ligneArticles = $preparation->getLigneArticlePreparations();
-
-            foreach ($ligneArticles as $ligneArticle) {
-                $refArticle = $ligneArticle->getReference();
-                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantitePrelevee());
-            }
 
             // quantités gérées à l'article
             $articles = $preparation->getArticles();

@@ -8,7 +8,7 @@
 <div class="wrapper pl-0">
     <div class="container-fluid">
         {% if page == 'quai' %}
-            {% include 'accueil/dashboardDockReception.html.twig'  with { 'isDashboardExt': 1 }%}
+            {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
         {% elseif page == 'admin' %}
             {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
         {% endif %}
