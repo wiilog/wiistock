@@ -717,7 +717,7 @@ class ArticleDataService
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($this->clWantedOnLabel  . ' : ' . $champLibreValue) : ''
+            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : ''
         ];
         return [
             'code' => $article->getBarCode(),
