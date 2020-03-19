@@ -396,7 +396,7 @@ class MouvementTracaController extends AbstractController
                         : '');
                 $mouvementData[] =
                     $mouvement->getArrivage()
-                        ? $mouvement->getArrivage()->getNumeroBL()
+                        ? $mouvement->getArrivage()->getNumeroCommandeList()
                         : ($mouvement->getReception()
                         ? $mouvement->getReception()->getReference()
                         : '');
