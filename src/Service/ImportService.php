@@ -465,134 +465,6 @@ class ImportService
             $newEntity = true;
         }
 
-        // liaison article fournisseur
-        if (!empty($data['articleFournisseurReference'])) {
-            $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['articleFournisseurReference']]);
-
-            // vérif que l'article fournisseur correspond au couple référence article / fournisseur
-            if (!empty($data['fournisseurReference'])) {
-                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
-                if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
-                    //TODO fichier log
-                    return;
-                }
-            }
-            if (!empty($data['referenceReference'])) {
-                $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
-                if ($articleFournisseur->getReferenceArticle()->getId() !== $refArticle->getId()) {
-                    //TODO fichier log
-                    return;
-                }
-            }
-            $article->setArticleFournisseur($articleFournisseur);
-
-        } else {
-
-            //TODO CG
-//            if ($newEntity) {
-//
-//            }
-//            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference'] ?? '');
-//
-//            if (empty($fournisseur) && $newEntity) {
-//                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference(Fournisseur::REF_A_DEFINIR);
-//                if (empty($fournisseur)) {
-//                    $fournisseur = new Fournisseur();
-//                    $fournisseur
-//                        ->setNom(Fournisseur::REF_A_DEFINIR)
-//                        ->setCodeReference(Fournisseur::REF_A_DEFINIR);
-//                    $this->em->persist($fournisseur);
-//                    $this->em->flush();
-//                }
-//            }
-//            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
-//
-//            if (empty($fournisseur)) {
-//                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference(Fournisseur::REF_A_DEFINIR);
-//                if (empty($fournisseur)) {
-//                    $fournisseur = new Fournisseur();
-//                    $fournisseur
-//                        ->setNom(Fournisseur::REF_A_DEFINIR)
-//                        ->setCodeReference(Fournisseur::REF_A_DEFINIR);
-//                    $this->em->persist($fournisseur);
-//                    $this->em->flush();
-//                }
-//            }
-
-//            $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy([
-//                'reference' => $data['articleFournisseurReference'],
-//                'referenceArticle' => $refArticle,
-//                'fournisseur' => $fournisseur
-//            ]);
-//        }
-
-
-//        if ($data['fournisseurReference']) {
-//            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
-//
-//            if (empty($fournisseur)) {
-//                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference(Fournisseur::REF_A_DEFINIR);
-//                if (empty($fournisseur)) {
-//                    $fournisseur = new Fournisseur();
-//                    $fournisseur
-//                        ->setNom(Fournisseur::REF_A_DEFINIR)
-//                        ->setCodeReference(Fournisseur::REF_A_DEFINIR);
-//                    $this->em->persist($fournisseur);
-//                    $this->em->flush();
-//                }
-//            }
-//        } else {
-//
-//        }
-//
-//
-//
-//        if (!isset($data['referenceReference'])) {
-//            if ($newEntity) {
-//                //TODO fichier log
-//            }
-//        } else {
-//            $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference'] ?? '');
-//            if (empty($refArticle) && $newEntity) {
-//                //TODO fichier log
-//            } else if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-//                //TODO fichier log
-//            } else {
-//                $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference'] ?? '');
-//
-//                if (empty($fournisseur) && $newEntity) {
-//                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference(Fournisseur::REF_A_DEFINIR);
-//                    if (empty($fournisseur)) {
-//                        $fournisseur = new Fournisseur();
-//                        $fournisseur
-//                            ->setNom(Fournisseur::REF_A_DEFINIR)
-//                            ->setCodeReference(Fournisseur::REF_A_DEFINIR);
-//                        $this->em->persist($fournisseur);
-//                        $this->em->flush();
-//                    }
-//                }
-//
-//                $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy([
-//                    'reference' => $data['articleFournisseurReference'],
-//                    'referenceArticle' => $refArticle,
-//                    'fournisseur' => $fournisseur
-//                ]);
-//
-//                if (empty($articleFournisseur)) {
-//                    $articleFournisseur = new ArticleFournisseur();
-//                    $articleFournisseur
-//                        ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom())
-//                        ->setReferenceArticle($refArticle)
-//                        ->setFournisseur($fournisseur)
-//                        ->setReference($refArticle->getReference() . ' / ' . $fournisseur->getCodeReference());
-//                    $this->em->persist($articleFournisseur);
-//                    $this->em->flush();
-//                }
-//
-//                $article->setArticleFournisseur($articleFournisseur);
-//            }
-        }
-
         if (isset($data['label'])) {
             $article->setLabel($data['label']);
         }
@@ -612,6 +484,87 @@ class ImportService
                 ->setBarCode($this->articleDataService->generateBarCode())
                 ->setConform(true);
         }
+
+        // liaison article fournisseur
+        if (!empty($data['articleFournisseurReference'])) {
+            $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['articleFournisseurReference']]);
+
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = new ArticleFournisseur();
+                $this->em->persist($articleFournisseur);
+
+                if (!empty($data['referenceReference'])) {
+                    $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+                    if (empty($refArticle)) {
+                        //TODO fichier log
+                        return;
+                    }
+                } else {
+                    //TODO fichier log
+                    return;
+                }
+
+                if (!empty($data['fournisseurReference'])) {
+                    $fournisseur = $this->checkAndCreateFournisseur($data['fournisseurReference']);
+                } else {
+                    $fournisseur = $this->checkAndCreateFournisseur(Fournisseur::REF_A_DEFINIR);
+                }
+
+                $articleFournisseur
+                    ->setFournisseur($fournisseur)
+                    ->setReference($data['articleFournisseurReference'])
+                    ->setReferenceArticle($refArticle)
+                    ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+
+            } else {
+                // vérif que l'article fournisseur correspond au couple référence article / fournisseur
+                if (!empty($data['fournisseurReference'])) {
+                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+                    if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
+                        //TODO fichier log
+                        return;
+                    }
+                }
+                if (!empty($data['referenceReference'])) {
+                    $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+                    if ($articleFournisseur->getReferenceArticle()->getId() !== $refArticle->getId()) {
+                        //TODO fichier log
+                        return;
+                    }
+                }
+            }
+
+        // cas où l'article fournisseur n'est pas renseigné
+        } else {
+
+            if (!empty($data['referenceReference'])) {
+                $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+                if (empty($refArticle)) {
+                    //TODO fichier log
+                    return;
+                }
+            } else {
+                //TODO fichier log
+                return;
+            }
+
+            if (!empty($data['fournisseurReference'])) {
+                $fournisseur = $this->checkAndCreateFournisseur($data['fournisseurReference']);
+            } else {
+                $fournisseur = $this->checkAndCreateFournisseur(Fournisseur::REF_A_DEFINIR);
+            }
+
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur
+                ->setFournisseur($fournisseur)
+                ->setReference($refArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
+                ->setReferenceArticle($refArticle)
+                ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+            $this->em->persist($articleFournisseur);
+        }
+
+        $article->setArticleFournisseur($articleFournisseur);
+
 
         // liaison type
         $type = $this->em->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
@@ -666,6 +619,26 @@ class ImportService
             $this->em->persist($mvtStock);
             $this->em->flush();
         }
+    }
+
+    /**
+     * @param string $ref
+     * @return Fournisseur
+     * @throws NonUniqueResultException
+     */
+    private function checkAndCreateFournisseur($ref)
+    {
+        $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($ref);
+        if (empty($fournisseur)) {
+            $fournisseur = new Fournisseur();
+            $fournisseur
+                ->setCodeReference($ref)
+                ->setNom($ref);
+            $this->em->persist($fournisseur);
+            $this->em->flush();
+        }
+
+        return $fournisseur;
     }
 }
 
