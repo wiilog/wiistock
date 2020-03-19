@@ -483,8 +483,6 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 
                         const rectX = x - (width / 2) - figurePaddingHorizontal;
                         const rectY = y - figurePaddingVertical;
-                        const rectWidth = width + (figurePaddingHorizontal * 2);
-                        const rectHeight = fontSize + (figurePaddingVertical * 2);
 
                         // context only for rect
                         ctx.shadowBlur = 2;
