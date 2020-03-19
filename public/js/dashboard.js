@@ -32,7 +32,7 @@ $(function () {
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
         chartColis = chart;
     });
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics').then((chart) => {
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', null, true, true).then((chart) => {
         chartMonetaryFiability = chart;
     });
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
@@ -88,7 +88,7 @@ function updateCharts() {
     drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival);
     drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival);
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability);
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, true, true);
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
     drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
 }
@@ -198,14 +198,14 @@ function updateMultipleChartData(chart, chartData, chartColors) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path, chart = null) {
+function drawSimpleChart($canvas, path, chart = null, canHaveNegativValues = false, showLegend = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
-                    chart = newChart($canvas);
+                    chart = newChart($canvas, showLegend, false, canHaveNegativValues);
                 }
 
                 updateSimpleChartData(
@@ -304,7 +304,7 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, showLegend = false, redForLastData = false) {
+function newChart($canvasId, showLegend = false, redForLastData = false, canHaveNegativValues = false) {
     if ($canvasId.length) {
         const chart = new Chart($canvasId, {
             type: 'bar',
@@ -312,7 +312,8 @@ function newChart($canvasId, showLegend = false, redForLastData = false) {
             options: {
                 layout: {
                     padding: {
-                        top: 30
+                        top: 30,
+                        bottom: canHaveNegativValues ? 30 : 0
                     }
                 },
                 tooltips: false,
@@ -452,17 +453,21 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 
     chartInstance.data.datasets.forEach(function (dataset, index) {
         if (chartInstance.isDatasetVisible(index)) {
+            let containsNegativValues = dataset.data.reduce((carry, current) => {
+                return current < 0 ? (carry + 1) : carry;
+            }, 0) > 0;
             for (let i = 0; i < dataset.data.length; i++) {
                 for (let key in dataset._meta) {
-                    if (parseInt(dataset.data[i]) > 0) {
-                        let {x, y} = dataset._meta[key].data[i]._model;
-                        y -= 23;
+                    const isNegativ = (parseInt(dataset.data[i]) < 0);
+                    if (parseInt(dataset.data[i]) !== 0) {
+                        let {x, y, base} = dataset._meta[key].data[i]._model;
                         const figure = dataset.data[i];
                         const {width} = ctx.measureText(figure);
-                        const rectX = x - (width / 2) - figurePaddingHorizontal;
-                        const rectY = y - figurePaddingVertical;
                         const rectWidth = width + (figurePaddingHorizontal * 2);
                         const rectHeight = fontSize + (figurePaddingVertical * 2);
+                        y = isNegativ ? (base - rectHeight) : (containsNegativValues ? (base + (rectHeight/2)) : (y - 23));
+                        const rectX = x - (width / 2) - figurePaddingHorizontal;
+                        const rectY = y - figurePaddingVertical;
 
                         // context only for rect
                         ctx.shadowBlur = 2;
