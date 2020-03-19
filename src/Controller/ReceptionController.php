@@ -1397,7 +1397,7 @@ class ReceptionController extends AbstractController
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+                $referenceArticle->setQuantiteStock(($referenceArticle->getQuantiteStock() ?? 0) + $receptionRA->getQuantite());
 
                 $mouvementStock = new MouvementStock();
                 $mouvementStock
@@ -1576,11 +1576,10 @@ class ReceptionController extends AbstractController
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
-        $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
         $barcodeConfigs = array_reduce(
             $listReceptionReferenceArticle,
-            function (array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $wantBL): array {
+            function (array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
 
                 if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1592,8 +1591,8 @@ class ReceptionController extends AbstractController
                         array_push(
                             $carry,
                             ...array_map(
-                                function (Article $article) use ($articleDataService, $wantBL) {
-                                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                                function (Article $article) use ($articleDataService) {
+                                    return $articleDataService->getBarcodeConfig($article);
                                 },
                                 $articlesReception
                             )
@@ -1752,8 +1751,8 @@ class ReceptionController extends AbstractController
                 $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
                 $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                 $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
-                $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y h:i') : '',
+                $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
+                $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
                 strip_tags($reception->getCommentaire()),
                 $receptionReferenceArticle->getQuantiteAR(),
                 $receptionReferenceArticle->getQuantite(),
@@ -1772,8 +1771,8 @@ class ReceptionController extends AbstractController
                     $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
                     $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                     $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                    $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
-                    $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y h:i') : '',
+                    $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
+                    $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
                     strip_tags($reception->getCommentaire()),
                     $receptionReferenceArticle->getQuantiteAR(),
                     $receptionReferenceArticle->getQuantite(),

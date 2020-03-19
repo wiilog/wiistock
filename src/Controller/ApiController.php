@@ -439,7 +439,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                                             // we update quantity if it's reference article from collecte
                                             if (isset($collecteOrder) && ($article instanceof ReferenceArticle)) {
-                                                $article->setQuantiteStock($article->getQuantiteStock() + $mouvementStockPrise->getQuantity());
+                                                $article->setQuantiteStock(($article->getQuantiteStock() ?? 0) + $mouvementStockPrise->getQuantity());
                                             }
                                         }
                                     }
@@ -668,6 +668,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
 
                             $entityManager->flush();
+
+                            $preparationsManager->updateRefArticlesQuantities($preparation);
                         });
 
                         $resData['success'][] = [

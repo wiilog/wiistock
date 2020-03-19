@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
 
 use App\Service\SpecificService;
@@ -34,22 +35,23 @@ class PatchCollinsFixtures extends Fixture implements FixtureGroupInterface
 			$typeRepository = $manager->getRepository(Type::class);
 			$champLibreRepository = $manager->getRepository(ChampLibre::class);
 			$categorieCLRepository = $manager->getRepository(CategorieCL::class);
-
-			$type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_STANDARD);
+			$parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
+            $champLibreWanted = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_STANDARD);
 			$categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
 
-			$cl = $champLibreRepository->findOneByCategoryCLAndLabel(CategorieCL::ARTICLE, ChampLibre::SPECIC_COLLINS_BL);
+			$cl = $champLibreRepository->findOneByCategoryCLAndLabel(CategorieCL::ARTICLE, $champLibreWanted);
 			if (empty($cl)) {
 				$cl = new ChampLibre();
 				$cl
-					->setLabel(ChampLibre::SPECIC_COLLINS_BL)
+					->setLabel($champLibreWanted)
 					->setType($type)
 					->setCategorieCL($categorieCL)
 					->setTypage(ChampLibre::TYPE_TEXT);
 				$manager->persist($cl);
 				$manager->flush();
 
-				dump('création du champ libre ' . ChampLibre::SPECIC_COLLINS_BL);
+				dump('création du champ libre ' . $champLibreWanted);
 			}
 		}
     }

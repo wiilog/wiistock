@@ -7,7 +7,7 @@
     <div class="col-10 row">
         <div class="col-7 mb-2 dashboard-box-wrapper third-height">
             <div class="dashboard-box d-flex justify-content-start">
-                <p class="title">
+                <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                     Arrivages quotidiens<br>
                 </p>
                 {% if not isDashboardExt %}
@@ -26,7 +26,7 @@
         </div>
         <div class="col-5 dashboard-box-wrapper third-height">
             <div class="dashboard-box d-flex justify-content-start">
-                <p class="title">
+                <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                     Arrivages hebdomadaires<br>
                 </p>
                 {% if not isDashboardExt %}
@@ -45,7 +45,7 @@
         </div>
         <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
             <div id="encours-dock-box" class="dashboard-box text-center justify-content-between">
-                <p>
+                <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis restant à traiter<br>
                     <span class="location-label"></span>
                 </p>
@@ -57,7 +57,7 @@
         </div>
         <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
             <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-between">
-                <p>
+                <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis en attente dédouanement<br>
                     <span class="location-label"></span>
                 </p>
@@ -69,7 +69,7 @@
         </div>
         <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
             <div id="encours-cleared-box" class="dashboard-box text-center justify-content-between">
-                <p>
+                <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis dédouanés et dispo<br>
                     <span class="location-label"></span>
                 </p>
@@ -81,7 +81,7 @@
         </div>
         <div class="col-3 mt-1 dashboard-box-wrapper fourth-height">
             <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
-                <p>
+                <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Urgences restant à recevoir
                 </p>
                 <div  class="d-flex align-items-center justify-content-center"
@@ -92,7 +92,7 @@
         </div>
         <div class="col-3 mt-2 dashboard-box-wrapper fourth-height align-self-start">
             <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
-                <p>
+                <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis à déposer en Drop Zones<br>
                     <span class="location-label"></span>
                 </p>
@@ -104,7 +104,7 @@
         </div>
         <div class="col-9 mt-2 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
-                <p class="title">
+                <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                     Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
                 </p>
                 {% if not isDashboardExt %}
@@ -122,7 +122,7 @@
     </div>
 
     <div class="col-2">
-        <div class="dashboard-box-wrapper">
+        <div class="dashboard-box-wrapper text-center justify-content-between medium-font">
             <div class="dashboard-box">
                 <p class="title">
                     Suivi des transporteurs<br>
