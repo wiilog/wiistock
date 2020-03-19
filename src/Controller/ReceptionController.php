@@ -1395,7 +1395,7 @@ class ReceptionController extends AbstractController
 		foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
 			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+                $referenceArticle->setQuantiteStock(($referenceArticle->getQuantiteStock() ?? 0) + $receptionRA->getQuantite());
 
                 $mouvementStock = new MouvementStock();
                 $mouvementStock
@@ -1749,8 +1749,8 @@ class ReceptionController extends AbstractController
                 $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
                 $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                 $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
-                $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y h:i') : '',
+                $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
+                $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
                 strip_tags($reception->getCommentaire()),
                 $receptionReferenceArticle->getQuantiteAR(),
                 $receptionReferenceArticle->getQuantite(),
@@ -1769,8 +1769,8 @@ class ReceptionController extends AbstractController
                     $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
                     $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
                     $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                    $reception->getDate() ? $reception->getDate()->format('d/m/Y h:i') : '',
-                    $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y h:i') : '',
+                    $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
+                    $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
                     strip_tags($reception->getCommentaire()),
                     $receptionReferenceArticle->getQuantiteAR(),
                     $receptionReferenceArticle->getQuantite(),
