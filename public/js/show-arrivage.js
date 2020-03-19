@@ -3,13 +3,24 @@ $('.select2').select2();
 $(function () {
     //fill l'input acheteurs (modalNewLititge)
     let modal = $('#modalNewLitige');
+
     let inputAcheteurs = $('#acheteursLitigeHidden').val();
     let acheteurs = inputAcheteurs.split(',');
-    acheteurs.forEach(value => {
+    let $acheteursLitige = modal.find('#acheteursLitige');
+    acheteurs.forEach((value) => {
         let option = new Option(value, value, false, false);
-        modal.find('#acheteursLitige').append(option);
+        $acheteursLitige.append(option);
     });
-    $('#acheteursLitige').val(acheteurs).select2();
+    $acheteursLitige.val(acheteurs).select2();
+
+    let numeroCommandeListVal = $('#numeroCommandeListLitigeHidden').val();
+    let numeroCommandeList = numeroCommandeListVal.split(',');
+    let $numeroCommandSelect = modal.find('#numeroCommandeListLitige');
+    numeroCommandeList.forEach((value) => {
+        let option = new Option(value, value, false, false);
+        $numeroCommandSelect.append(option);
+    });
+    $numeroCommandSelect.val(numeroCommandeList).select2();
 
     // ouvre la modale d'ajout de colis
     let addColis = $('#addColis').val();
@@ -184,6 +195,7 @@ function editRowArrivage(button) {
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
+        initFreeSelect2($('.select2-free'));
     }, 'json');
 
     modal.find(submit).attr('value', id);
