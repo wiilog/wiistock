@@ -186,11 +186,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                 $('.zone-entete').html(data.entete)
             }
             if (table) {
-                table.ajax.reload(function (json) {
-                    if (data !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                }, false);
+                table.ajax.reload(null, false);
             }
 
             if (clear) {
@@ -575,8 +571,15 @@ function ajaxAutoCompleteTransporteurInit(select) {
 }
 
 function ajaxAutoRefArticleInit(select, typeQuantity = null) {
-    initSelect2(select, '', 1, {route: 'get_ref_articles', param: {activeOnly: 1, typeQuantity}});
-};
+    initSelect2(select, '', 1, {
+        route: 'get_ref_articles',
+        param:
+            {
+                activeOnly: 1,
+                typeQuantity
+            }
+    });
+}
 
 function ajaxAutoArticlesInit(select) {
     initSelect2(select, '', 1, {route: 'get_articles', param: {activeOnly: 1}});
@@ -678,7 +681,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-free');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {
@@ -781,7 +784,7 @@ function saveFilters(page, tableSelector, callback) {
         ...(Object.keys(valFunction).reduce((acc, key) => {
             const $fields = $('.filters-container').find(`.${key}`);
             const values = {};
-            $fields.each(function() {
+            $fields.each(function () {
                 const $elem = $(this);
                 values[$elem.attr('name')] = valFunction[key]($elem);
             });
@@ -1102,7 +1105,8 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
     };
     if (minDate) {
         options.minDate = moment().hours(0).minutes(0).seconds(0);
-    } if (defaultHours !== null && defaultMinutes !== null) {
+    }
+    if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
     }
     $(dateInput).datetimepicker(options);
@@ -1261,8 +1265,7 @@ function renderMillisecondsToDelayDatatable(milliseconds, type) {
             ((minutes === 0 && hours < 1)
                 ? '< 1 min'
                 : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
-    }
-    else {
+    } else {
         res = milliseconds;
     }
 
@@ -1320,9 +1323,8 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
     if (title) {
         $modalHeader.removeClass('d-none');
-        $modalTitle .text(title);
-    }
-    else {
+        $modalTitle.text(title);
+    } else {
         $modalHeader.addClass('d-none');
         $modalTitle.empty();
     }
@@ -1364,8 +1366,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
             })
         );
         $modalFooter.html($wrapper);
-    }
-    else {
+    } else {
         $modalFooter.addClass('d-none');
         $modalFooter.empty();
     }
@@ -1383,7 +1384,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 }
 
 function initTooltips($elements) {
-    $elements.each(function() {
+    $elements.each(function () {
         $(this).tooltip();
     });
 }
@@ -1398,9 +1399,26 @@ function managePrintButtonTooltip(active, $button) {
 }
 
 function initOnTheFlyCopies($elems) {
-    $elems.each(function() {
-        $(this).keyup(function() {
+    $elems.each(function () {
+        $(this).keyup(function () {
             $(this).closest('.form-group').find('.copiedOnTheFly').val($(this).val());
         })
     });
+}
+
+function initFreeSelect2($selects) {
+    $selects.each(function () {
+        const $self = $(this);
+        $self.select2({
+            tags: true,
+            "language": {
+                "noResults": function () { return 'Ajoutez des éléments'; }
+            },
+        });
+    });
+}
+
+
+function openSelect2($select2) {
+    $select2.select2('open');
 }

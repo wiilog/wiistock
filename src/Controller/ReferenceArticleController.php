@@ -483,7 +483,10 @@ class ReferenceArticleController extends AbstractController
             if ($statut) $refArticle->setStatut($statut);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
+            } else {
+                $refArticle->setQuantiteStock(0);
             }
+            $refArticle->setQuantiteReservee(0);
             foreach ($data['frl'] as $frl) {
                 $fournisseurId = explode(';', $frl)[0];
                 $ref = explode(';', $frl)[1];
@@ -1303,7 +1306,9 @@ class ReferenceArticleController extends AbstractController
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
         $refs = $queryResult['data'];
-
+        $refs = array_map(function($refArticle) {
+            return is_array($refArticle) ? $refArticle[0] : $refArticle;
+        }, $refs);
         $barcodeConfigs = array_map(
             function (ReferenceArticle $reference) use ($refArticleDataService) {
                 return $refArticleDataService->getBarcodeConfig($reference);

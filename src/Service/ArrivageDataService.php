@@ -23,26 +23,26 @@ class ArrivageDataService
     private $router;
     private $userService;
     private $security;
-    private $em;
     private $mailerService;
     private $entityManager;
+    private $specificService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
                                 MailerService $mailerService,
+                                SpecificService $specificService,
                                 Twig_Environment $templating,
                                 EntityManagerInterface $entityManager,
                                 Security $security)
     {
 
         $this->templating = $templating;
-        $this->em = $em;
         $this->router = $router;
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->security = $security;
         $this->mailerService = $mailerService;
+        $this->specificService = $specificService;
     }
 
 	/**
@@ -105,7 +105,7 @@ class ArrivageDataService
             'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
             'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
             'NoTracking' => $arrivage->getNoTracking() ?? '',
-            'NumeroBL' => $arrivage->getNumeroBL() ?? '',
+            'NumeroCommandeList' => implode(',', $arrivage->getNumeroCommandeList()),
             'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
 			'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
 			'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',
@@ -119,72 +119,181 @@ class ArrivageDataService
                 'arrivage/datatableArrivageRow.html.twig',
                 ['url' => $url, 'arrivage' => $arrivage]
             ),
+            'urgent' => $arrivage->getIsUrgent()
         ];
 
         return $row;
     }
 
     /**
-     * @param Arrivage $arrivage
+     * @param Arrivage $arrival
      * @param Urgence[] $emergencies
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function addBuyersToArrivage(Arrivage $arrivage, array $emergencies): void
-    {
-        foreach ($emergencies as $emergency) {
-            $emergencyBuyer = $emergency->getBuyer();
-            if (isset($emergencyBuyer) &&
-                !$arrivage->getAcheteurs()->contains($emergencyBuyer)) {
-                $arrivage->addAcheteur($emergencyBuyer);
-            }
-        }
-    }
+    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
 
-    public function sendArrivageEmail(Arrivage $arrivage, array $emergencies = []): void
-    {
-        $posts = array_reduce(
-            $emergencies,
-            function (array $carry, Urgence $emergency) {
-                if ($emergency->getPostNb()) {
-                    $carry[] = $emergency->getPostNb();
-                }
-                return $carry;
-            },
-            []
-        );
+        $isUrgentArrival = !empty($emergencies);
+
+        if ($isUrgentArrival) {
+            $senders = array_reduce(
+                $emergencies,
+                function (array $carry, Urgence $emergency) {
+                    $email = $emergency->getBuyer()->getEmail();
+                    if (!in_array($email, $carry)) {
+                        $carry[] = $email;
+                    }
+                    return $carry;
+                },
+                []
+            );
+        }
+        else {
+            $senders = $arrival
+                ->getInitialAcheteurs()
+                ->map(function (Utilisateur $acheteur) {
+                    return $acheteur->getEmail();
+                })
+                ->toArray();
+        }
+        dump($senders);
 
         $this->mailerService->sendMail(
-            ('FOLLOW GT // Arrivage') . (count($emergencies) > 0 ? ' urgent' : ''),
+            'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
             $this->templating->render(
-                'mails/mailArrivage' . (count($emergencies) > 0 ? 'Urgent' : 'Regular') . '.html.twig',
+                'mails/mailArrivage.html.twig',
                 [
-                    'title' => 'Arrivage ' . (count($emergencies) > 0 ? 'urgent ' : '') . 'reçu',
-                    'arrivage' => $arrivage,
-                    'posts' => $posts
+                    'title' => 'Arrivage ' . ($isUrgentArrival ? 'urgent ' : '') . 'reçu',
+                    'arrival' => $arrival,
+                    'emergencies' => $emergencies,
+                    'isUrgentArrival' => $isUrgentArrival
                 ]
             ),
-            array_map(
-                function (Utilisateur $buyer) {
-                    return $buyer->getEmail();
-                },
-                $arrivage->getAcheteurs()->toArray()
-            )
+            $senders
         );
     }
 
     /**
      * @param Arrivage $arrivage
      * @param Urgence[] $emergencies
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void
-    {
+    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
             foreach ($emergencies as $emergency) {
-                $emergency->setLastArrival($arrivage);
-            }
-            $this->addBuyersToArrivage($arrivage, $emergencies);
+            	$emergency->setLastArrival($arrivage);
+			}
             $this->entityManager->flush();
-            $this->sendArrivageEmail($arrivage, $emergencies);
+			$this->sendArrivalEmails($arrivage, $emergencies);
+		}
+    }
+
+    /**
+     * @param Arrivage $arrivage
+     * @param bool $askQuestion
+     * @param Urgence[] $urgences
+     * @return array
+     */
+    public function createArrivalAlertConfig(Arrivage $arrivage,
+                                             bool $askQuestion,
+                                             array $urgences = []): array {
+        $isArrivalUrgent = count($urgences);
+
+        if ($askQuestion && $isArrivalUrgent) {
+            $numeroCommande = $urgences[0]->getCommande();
+
+            $posts = array_map(
+                function (Urgence $urgence) {
+                    return $urgence->getPostNb();
+                },
+                $urgences
+            );
+
+            $nbPosts = count($posts);
+
+            if ($nbPosts == 0) {
+                $msgSedUrgent = "L'arrivage est-il urgent sur la commande $numeroCommande ?";
+            } else {
+                if ($nbPosts == 1) {
+                    $msgSedUrgent = "
+                        Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
+					    L'avez-vous reçu dans cet arrivage ?
+					";
+                } else {
+                    $postsStr = implode(', ', $posts);
+                    $msgSedUrgent = "
+                        Les postes <span class=\"bold\">$postsStr</span> sont urgents sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
+					    Les avez-vous reçus dans cet arrivage ?
+                    ";
+                }
+            }
         }
+        else {
+            $numeroCommande = null;
+        }
+
+        return [
+            'autoHide' => (!$askQuestion && !$isArrivalUrgent),
+            'message' => ($isArrivalUrgent
+                ? (!$askQuestion
+                    ? 'Arrivage URGENT enregistré avec succès.'
+                    : ($msgSedUrgent ?? ''))
+                : 'Arrivage enregistré avec succès.'),
+            'iconType' => $isArrivalUrgent ? 'warning' : 'success',
+            'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
+            'emergencyAlert' => $isArrivalUrgent,
+            'numeroCommande' => $numeroCommande,
+            'arrivalId' => $arrivage->getId()
+        ];
+    }
+
+    /**
+     * @param Arrivage $arrival
+     * @return array List of alertConfig to display to the client
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function processEmergenciesOnArrival(Arrivage $arrival, bool $diferForSED = false): array {
+        $numeroCommandeList = $arrival->getNumeroCommandeList();
+        $alertConfigs = [];
+
+        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+
+        if (!empty($numeroCommandeList)) {
+            $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
+
+            foreach ($numeroCommandeList as $numeroCommande) {
+                $urgencesMatching = $urgenceRepository->findUrgencesMatching(
+                    $arrival->getDate(),
+                    $arrival->getFournisseur(),
+                    $numeroCommande,
+                    $isSEDCurrentClient
+                );
+
+                if (!empty($urgencesMatching)) {
+                    if (!$isSEDCurrentClient) {
+                        $this->setArrivalUrgent($arrival, $urgencesMatching);
+                    }
+                    else {
+                        $alertConfigs[] = $this->createArrivalAlertConfig(
+                            $arrival,
+                            $isSEDCurrentClient,
+                            $urgencesMatching
+                        );
+                    }
+                }
+            }
+        }
+
+        if (empty($alertConfigs) || !$isSEDCurrentClient) {
+            $alertConfigs[] = $this->createArrivalAlertConfig($arrival, $isSEDCurrentClient);
+        }
+
+        return $alertConfigs;
     }
 }
