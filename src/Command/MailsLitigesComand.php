@@ -33,7 +33,7 @@ class MailsLitigesComand extends Command
     private $mailerService;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
