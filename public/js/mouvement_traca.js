@@ -41,6 +41,8 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
+        {"data": "reference", 'name': 'reference', 'title': 'Référence', orderable: false},
+        {"data": "label", 'name': 'label', 'title': 'Libellé', orderable: false},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
