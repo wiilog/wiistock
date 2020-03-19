@@ -357,6 +357,7 @@ class RefArticleDataService
                     $entityManager->persist($articleFournisseur);
                 }
             }
+
             if (isset($data['categorie'])) $refArticle->setCategory($category);
             if (isset($data['urgence'])) $refArticle->setIsUrgent($data['urgence']);
             if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
@@ -374,7 +375,7 @@ class RefArticleDataService
                 $type = $this->typeRepository->find(intval($data['type']));
                 if ($type) $refArticle->setType($type);
             }
-            if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
+
             $entityManager->flush();
             //modification ou création des champsLibres
             $champsLibresKey = array_keys($data);
