@@ -137,7 +137,7 @@ class ImportController extends AbstractController
                 switch ($entity) {
                     case Import::ENTITY_ART:
                         $categoryCL = CategorieCL::ARTICLE;
-                        $fieldsToAdd = ['type', 'référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+                        $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
                         $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                         break;
                     case Import::ENTITY_REF:
