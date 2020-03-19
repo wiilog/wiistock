@@ -465,8 +465,7 @@ class MouvementTracaController extends AbstractController
                         : 'newSingleMvtTraca.html.twig');
             }
             return new JsonResponse([
-                'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []),
-                'safran' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED),
+                'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, [])
             ]);
         }
         throw new NotFoundHttpException('404');
