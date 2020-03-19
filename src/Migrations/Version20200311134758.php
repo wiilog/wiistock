@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Article;
-use App\Entity\Demande;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
