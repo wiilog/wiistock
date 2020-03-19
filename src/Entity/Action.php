@@ -74,6 +74,11 @@ class Action
 	const DISPLAY_CF = 'afficher champs fixes';
 	const DISPLAY_IMPORT = 'afficher import et mise à jour';
 
+	// menu nomade
+    const MODULE_ACCESS_STOCK = 'Accès Stock';
+    const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
+    const MODULE_ACCESS_MANUT = 'Accès Demande';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

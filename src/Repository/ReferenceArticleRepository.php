@@ -42,7 +42,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'Statut' => 'status',
         'Code barre' => 'barCode',
         'Date d\'alerte' => 'dateEmergencyTriggered',
-        'typeQuantite' => 'typeQuantite'
+        'typeQuantite' => 'typeQuantite',
+		'Dernier inventaire' => 'dateLastInventory'
     ];
 
     public function __construct(ManagerRegistry $registry)

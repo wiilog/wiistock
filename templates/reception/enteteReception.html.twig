@@ -1,9 +1,10 @@
+<input type="hidden" id="numCommandeReception" value="{{ reception.reference }}"/>
 <div class='col-4'>
     <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
 </div>
 {% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
     <div class="col-4">
-        <p><strong title="n° de réception">{{ 'réception.n° de réception'|trans|capitalize }} :</strong> {{ reception.numeroReception }}</p>
+        <p><strong title="n° de réception">{{ 'réception.n° de réception'|trans }} :</strong> {{ reception.numeroReception }}</p>
     </div>
 {% endif %}
 {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}

@@ -256,10 +256,9 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
                 }
 
                 const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
-                    previous[currentKeys] = (data.data[currentKeys].count || 0);
+                    previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
                     return previous;
                 }, {});
-
                 updateSimpleChartData(chart, chartData);
                 resolve(chart);
             });
@@ -414,7 +413,7 @@ function refreshCounter($counterCountainer, data) {
     if (typeof data === 'object') {
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
-        $counterCountainer.find('.location-label').text(label);
+        $counterCountainer.find('.location-label').text('(' + label + ')');
     }
     else {
         counter = data;

@@ -44,6 +44,7 @@ use App\Service\ArticleDataService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -361,6 +362,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Prix unitaire',
 					"class" => (in_array('Prix unitaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Dernier inventaire',
+					"data" => 'Dernier inventaire',
+					'name' => 'Dernier inventaire',
+					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -393,6 +400,13 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws DBALException
      */
     public function new(Request $request): Response
     {
@@ -509,39 +523,7 @@ class ReferenceArticleController extends AbstractController
                     $em->flush();
                 }
             }
-
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-            $category = CategoryType::ARTICLE;
-            $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            $rowCL = [];
-            foreach ($champsLibres as $champLibre) {
-                $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre['id']);
-
-                $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-            }
-            $rowDD = [
-                "id" => $refArticle->getId(),
-                "Libellé" => $refArticle->getLibelle(),
-                "Référence" => $refArticle->getReference(),
-                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                "Quantité" => $refArticle->getQuantiteStock(),
-                "Emplacement" => $emplacement,
-                "Statut" => $refArticle->getStatut(),
-                "Commentaire" => $refArticle->getCommentaire(),
-                "Code barre" => $refArticle->getBarCode() ?? '',
-                "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "",
-                "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "",
-                "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
-                'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId(),
-					'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
-                ]),
-            ];
-            $rows = array_merge($rowCL, $rowDD);
-            $response['new'] = $rows;
-            $response['success'] = true;
-            return new JsonResponse(['success' => true, 'new' => $rows]);
+            return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -636,6 +618,11 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Prix unitaire',
             'id' => 0,
             'typage' => 'number'
+        ];
+        $champF[] = [
+            'label' => 'Dernier inventaire',
+            'id' => 0,
+            'typage' => 'date'
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
@@ -1118,15 +1105,14 @@ class ReferenceArticleController extends AbstractController
             //reponse Vue + data
 
             if ($refArticle) {
-                $view =  $this->templating->render('reference_article/modalShowRefArticleContent.html.twig', [
+                $view =  $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
                     'articleRef' => $refArticle,
-                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                    'statut' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : null,
                     'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                     'typeChampsLibres' => $typeChampLibre,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
                     'totalQuantity' => $data['totalQuantity'],
                     'articles' => $articlesFournisseur,
-
                 ]);
 
                 $json = $view;
@@ -1191,7 +1177,8 @@ class ReferenceArticleController extends AbstractController
                 'seuil alerte',
                 'prix unitaire',
                 'code barre',
-				'catégorie inventaire'
+				'catégorie inventaire',
+				'date dernier inventaire'
             ];
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
@@ -1236,6 +1223,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
