@@ -1,7 +1,7 @@
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '2.10.1'
+    web_version: '2.10.2'
     nomade_versions: '>=2.9.1'
     nomade_apk: 'http://wiilog.fr/dl/wiistock/app-2-9-1.apk'
     client: '%env(APP_CLIENT)%'
