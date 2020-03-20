@@ -2,10 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Fournisseur;
 use App\Entity\Urgence;
-
 use DateTime;
 use DateTimeZone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -34,29 +32,37 @@ class UrgenceRepository extends ServiceEntityRepository
         parent::__construct($registry, Urgence::class);
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @param bool $excludeTriggered
-	 * @return Urgence[]
-	 */
-    public function findUrgencesMatching(Arrivage $arrivage, $excludeTriggered = false): array {
-        $queryBuilder = $this->createQueryBuilder('u')
-            ->where(':date BETWEEN u.dateStart AND u.dateEnd')
-            ->andWhere('u.commande LIKE :commande')
-            ->andWhere('u.provider IS NULL OR u.provider = :provider')
-            ->setParameters([
-                'date' => $arrivage->getDate(),
-                'commande' => $arrivage->getNumeroBL(),
-                'provider' => $arrivage->getFournisseur()
-            ]);
+    /**
+     * @param DateTime $arrivalDate
+     * @param Fournisseur $arrivalProvider
+     * @param string $numeroCommande
+     * @param bool $excludeTriggered
+     * @return Urgence[]
+     */
+    public function findUrgencesMatching(DateTime $arrivalDate,
+                                         ?Fournisseur $arrivalProvider,
+                                         ?string $numeroCommande,
+                                         $excludeTriggered = false): array {
+        $res = [];
+        if (!empty($arrivalProvider)
+            && !empty($numeroCommande)) {
+            $queryBuilder = $this->createQueryBuilder('u')
+                ->where(':date BETWEEN u.dateStart AND u.dateEnd')
+                ->andWhere('u.commande = :numeroCommande')
+                ->andWhere('u.provider IS NULL OR u.provider = :provider')
+                ->setParameter('date', $arrivalDate)
+                ->setParameter('provider', $arrivalProvider)
+                ->setParameter('numeroCommande', $numeroCommande);
 
-        if ($excludeTriggered) {
-            $queryBuilder->andWhere('u.lastArrival IS NULL');
+            if ($excludeTriggered) {
+                $queryBuilder->andWhere('u.lastArrival IS NULL');
+            }
+            $res = $queryBuilder
+                ->getQuery()
+                ->getResult();
         }
 
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+        return $res;
     }
 
     /**

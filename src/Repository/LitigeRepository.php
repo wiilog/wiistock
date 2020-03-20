@@ -256,7 +256,7 @@ class LitigeRepository extends ServiceEntityRepository
 			->addSelect('r.id as receptionId')
 			->leftJoin('r.fournisseur', 'rFourn')
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
-			->addSelect('(CASE WHEN a.numeroBL IS NOT NULL THEN a.numeroBL ELSE r.reference END) as numCommandeBl');
+			->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl');
 
 		$countTotal = count($qb->getQuery()->getResult());
 
@@ -339,7 +339,8 @@ class LitigeRepository extends ServiceEntityRepository
 						lh.comment LIKE :value OR
 						aFourn.nom LIKE :value OR
 						rFourn.nom LIKE :value OR
-						ra.reference LIKE :value
+						ra.reference LIKE :value OR
+						a.numeroCommandeList LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -373,7 +374,7 @@ class LitigeRepository extends ServiceEntityRepository
                                 ->addOrderBy('provider', $order);
                         } else if ($column === 'numCommandeBl') {
                             $qb
-                                ->addOrderBy('r.reference', $order);
+                                ->addOrderBy('numCommandeBl', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);

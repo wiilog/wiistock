@@ -7,12 +7,10 @@ use App\Entity\ChampLibre;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Article;
-use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Utilisateur;
-
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\ParametrageGlobalRepository;
@@ -27,23 +25,20 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
-
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
-
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -953,11 +948,11 @@ class ArticleController extends AbstractController
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param ArticleDataService $articleDataService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -966,12 +961,10 @@ class ArticleController extends AbstractController
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $listArticles = explode(',', $request->query->get('listArticles') ?? '');
-        $wantBL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-
         $barcodeConfigs = array_slice(
             array_map(
-                function (Article $article) use ($articleDataService, $wantBL) {
-                    return $articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue());
+                function (Article $article) use ($articleDataService) {
+                    return $articleDataService->getBarcodeConfig($article);
                 },
                 $this->articleRepository->findByIds($listArticles)
             ),
@@ -990,21 +983,17 @@ class ArticleController extends AbstractController
      * @Route("/{article}/etiquette", name="article_single_bar_code_print", options={"expose"=true})
      * @param Article $article
      * @param ArticleDataService $articleDataService
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function getSingleArticleBarCode(Article $article,
                                             ArticleDataService $articleDataService,
-                                            ParametrageGlobalRepository $parametrageGlobalRepository,
                                             PDFGeneratorService $PDFGeneratorService): Response {
-        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-        $barcodeConfigs = [$articleDataService->getBarcodeConfig($article, $wantBL && $wantBL->getValue())];
+        $barcodeConfigs = [$articleDataService->getBarcodeConfig($article)];
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
 
         return new PdfResponse(

@@ -57,6 +57,7 @@ class ParametrageGlobal
         "value" => true,
         "label" => 'Code 128'
     ];
+    const CL_USED_IN_LABELS = 'CL USED IN LABELS';
 
     // export csv
 	const USES_UTF8 = 'utilise utf8';
