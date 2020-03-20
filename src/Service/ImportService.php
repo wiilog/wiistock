@@ -299,13 +299,16 @@ class ImportService
                 $csvErrors[] = array_merge($row, [$exception->getMessage()]);
             }
         }
+
         $createdLogFile = $this->buildErrorFile($csvErrors);
+
         $pieceJointeForLogFile = new PieceJointe();
         $pieceJointeForLogFile
             ->setOriginalName($createdLogFile)
             ->setFileName($createdLogFile);
         $this->em->persist($pieceJointeForLogFile);
         $import->setLogFile($pieceJointeForLogFile);
+
         $this->em->flush();
     }
 
@@ -340,7 +343,7 @@ class ImportService
                 $this->throwError($message);
             } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
                 $message =
-                    'La valeure renseignée pour le champ ' . $column . ' dans la colonne '
+                    'La valeur renseignée pour le champ ' . $column . ' dans la colonne '
                     . $headers[$originalDataToCheck['value']]
                     . ' ne peut être vide. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
@@ -397,7 +400,7 @@ class ImportService
             $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
 
             if (empty($refArticle)) {
-                $message = "La valeure renseignée pour la référence de
+                $message = "La valeur renseignée pour la référence de
                 l'article de référence ne correspond à aucune référence connue.
                 Erreur à la ligne " . $rowIndex;
                 $this->throwError($message);
@@ -410,7 +413,7 @@ class ImportService
             $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
 
             if (empty($fournisseur)) {
-                $message = "La valeure renseignée pour le code de référence
+                $message = "La valeur renseignée pour le code 
                 du fournisseur ne correspond à aucun fournisseur connu.
                 Erreur à la ligne " . $rowIndex;
                 $this->throwError($message);
@@ -462,7 +465,7 @@ class ImportService
         }
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {
-                $message = 'Le prix unitaire ne peux être autre chose qu\'un nombre. '
+                $message = 'Le prix unitaire doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
             }
@@ -470,7 +473,7 @@ class ImportService
         }
         if (isset($data['limitSecurity'])) {
             if (!is_numeric($data['limitSecurity'])) {
-                $message = 'La limite de sécurité ne peux être autre chose qu\'un nombre. '
+                $message = 'Le seuil de sécurité doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
             }
@@ -478,7 +481,7 @@ class ImportService
         }
         if (isset($data['limitWarning'])) {
             if (!is_numeric($data['limitWarning'])) {
-                $message = 'La limite de d\'alerte ne peux être autre chose qu\'un nombre. '
+                $message = 'Le seuil d\'alerte doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
             }
@@ -511,7 +514,7 @@ class ImportService
         if (!empty($data['catInv'])) {
             $catInv = $this->em->getRepository(InventoryCategory::class)->findOneBy(['label' => $data['catInv']]);
             if (empty($catInv)) {
-                $message = "La valeure renseignée pour la catégorie d'inventaire ne correspond
+                $message = "La valeur renseignée pour la catégorie d'inventaire ne correspond
                 à aucune catégorie connue.
                 Erreur à la ligne " . $rowIndex;
                 $this->throwError($message);
@@ -522,7 +525,7 @@ class ImportService
         $this->em->persist($refArt);
         if (isset($data['quantiteStock']) || $newEntity) {
             if (!is_numeric($data['quantiteStock'])) {
-                $message = 'La quantité ne peux être autre chose qu\'un nombre. '
+                $message = 'La quantité doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
             }
@@ -560,7 +563,7 @@ class ImportService
         if (!empty($data['referenceReference'])) {
             $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
             if (empty($refArticle)) {
-                $message = "La valeure renseignée pour la référence de
+                $message = "La valeur renseignée pour la référence de
                                     l'article de référence ne correspond à aucune référence connue.
                                     Erreur à la ligne " . $rowIndex;
                 $this->throwError($message);
@@ -585,7 +588,7 @@ class ImportService
         }
         if (isset($data['quantite']) || $newEntity) {
             if (!is_numeric($data['quantite'])) {
-                $message = 'La quantité ne peux être autre chose qu\'un nombre. '
+                $message = 'La quantité doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
             }
@@ -593,7 +596,7 @@ class ImportService
         }
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {
-                $message = 'La quantité ne peux être autre chose qu\'un nombre. '
+                $message = 'La quantité doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
             }
@@ -613,7 +616,7 @@ class ImportService
 
             if (empty($articleFournisseur)) {
                 if (!$refArticle) {
-                    $message = "Vous avez renseignez une référence d'article fournisseur qui ne correspond à aucun article fournisseur connu.
+                    $message = "Vous avez renseigné une référence d'article fournisseur qui ne correspond à aucun article fournisseur connu.
                     Dans ce cas, veuillez fournir une référence d'article de référence connue.
                                     Erreur à la ligne " . $rowIndex;
                     $this->throwError($message);
@@ -659,9 +662,9 @@ class ImportService
             // cas où l'article fournisseur n'est pas renseigné
         } else {
             if (!$refArticle) {
-                $message = "Vous n'avez pas renseigner de référence d'article fournisseur.
+                $message = "Vous n'avez pas renseigné de référence d'article fournisseur.
                     Dans ce cas, veuillez fournir une référence d'article de référence connue.
-                                    Erreur à la ligne " . $rowIndex;
+                    Erreur à la ligne " . $rowIndex;
                 $this->throwError($message);
             }
             if (!empty($data['fournisseurReference'])) {
@@ -748,7 +751,7 @@ class ImportService
     private function checkEmplacement(array $data, int $rowIndex, $articleOrRef): void
     {
         if (empty($data['emplacement'])) {
-            $message = 'La valeure saisie pour emplacement ne peut être vide. '
+            $message = 'La valeur saisie pour l\'emplacement ne peut être vide. '
                 . 'L\'erreur est survenue à la ligne ' . $rowIndex;
             $this->throwError($message);
         } else {
