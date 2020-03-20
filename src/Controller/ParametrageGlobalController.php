@@ -22,6 +22,7 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
+use App\Service\StatutService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,13 +55,17 @@ class ParametrageGlobalController extends AbstractController
      * @param UserService $userService
      * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
+     * @param StatutService $statutService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
+
     public function index(UserService $userService,
 						  GlobalParamService $globalParamService,
-						  EntityManagerInterface $entityManager): Response {
+						  EntityManagerInterface $entityManager,
+                          StatutService $statutService): Response {
+
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -129,6 +134,8 @@ class ParametrageGlobalController extends AbstractController
 					'redirect' => $redirect ? $redirect->getValue() : true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                    'defaultStatusArrivageId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE),
+                    'listStatusArrivage' => $statutService->findAllStatusArrivage(),
                     'location' => $emplacementArrivage,
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
@@ -786,6 +793,39 @@ class ParametrageGlobalController extends AbstractController
 		$em->flush();
 
 		return new JsonResponse(true);
+    }
+
+    /**
+     * @Route(
+     *     "/statut-arrivage",
+     *     name="edit_status_arrivage",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editStatusArrivage(Request $request): Response
+    {
+        $post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
+
+        if (empty($parametrageGlobal)) {
+            $parametrageGlobal = new ParametrageGlobal();
+            $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
+            $em->persist($parametrageGlobal);
+        }
+        $value = $post->get('value');
+        $trimmedValue = trim($value);
+        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+        dump($parametrageGlobal);
+        $em->flush();
+
+        return new JsonResponse(true);
     }
 
 	/**

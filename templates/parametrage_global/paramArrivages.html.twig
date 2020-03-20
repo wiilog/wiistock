@@ -41,11 +41,11 @@
     </div>
     <div class="row mt-2">
         <div class="form-group w-450px col-4">
-            <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>
-            <select class="form-control d-block" id="receptionStatusLitige" onchange="editStatusLitigeArrivage($(this))">
+            <label for="arrivageStatus" class="d-block">Statut arrivage par défaut</label>
+            <select class="form-control d-block" id="arrivageStatus" onchange="editStatusArrivage($(this))">
                 <option></option>
-                {% for status in listStatusLitige %}
-                    {% set selected = (status.id == defaultStatusLitigeId) ? 'selected' %}
+                {% for status in listStatusArrivage %}
+                    {% set selected = (status.id == defaultStatusArrivageId) ? 'selected' %}
                     <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
                 {% endfor %}
             </select>
@@ -61,6 +61,18 @@
                    id="locationArrivageDestValue"
                    data-id="{{ location ? location.id : null }}"
                    data-text="{{ location ? location.label : null }}"/>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="form-group w-450px col-4">
+            <label for="arrivageStatusLitige" class="d-block">Statut litige par défaut</label>
+            <select class="form-control d-block" id="arrivageStatusLitige" onchange="editStatusLitigeArrivage($(this))">
+                <option></option>
+                {% for status in listStatusLitige %}
+                    {% set selected = (status.id == defaultStatusLitigeId) ? 'selected' %}
+                    <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 </div>

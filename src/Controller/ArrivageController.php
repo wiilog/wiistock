@@ -46,6 +46,7 @@ use App\Service\DashboardService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\StatutService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;
@@ -57,7 +58,6 @@ use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -218,11 +218,12 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
-     * @param SpecificService $specificService
+     * @param StatutService $statutService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager, SpecificService $specificService)
+    public function index(EntityManagerInterface $entityManager,
+                          StatutService $statutService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
@@ -236,17 +237,13 @@ class ArrivageController extends AbstractController
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+        $paramGlobalDefaultStatusArrivageId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
 
-        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
-            $status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
-        } else {
-            $status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
-        }
+        $status = $statutService->findAllStatusArrivage();
 
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
@@ -260,7 +257,8 @@ class ArrivageController extends AbstractController
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage(),
-            'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS)
+            'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
+            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId
         ]);
     }
 
@@ -447,20 +445,19 @@ class ArrivageController extends AbstractController
      * @param ChampLibreRepository $champLibreRepository
      * @param ValeurChampLibreRepository $valeurChampLibreRepository
      * @param SpecificService $specificService
+     * @param StatutService $statutService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             ChampLibreRepository $champLibreRepository,
                             ValeurChampLibreRepository $valeurChampLibreRepository,
-                            SpecificService $specificService
-    ): Response
-    {
+                            StatutService $statutService): Response {
+
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $statutRepository = $this->getDoctrine()->getRepository(Statut::class);
 
             $arrivage = $this->arrivageRepository->find($data['id']);
 
@@ -486,11 +483,7 @@ class ArrivageController extends AbstractController
                 ];
             }
 
-            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
-                $status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
-            } else {
-                $status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
-            }
+            $status = $statutService->findAllStatusArrivage();
 
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
