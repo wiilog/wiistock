@@ -163,13 +163,13 @@ class MouvementStockService
 
     /**
      * @param Utilisateur $user
-     * @param Emplacement $locationFrom
+     * @param Emplacement|null $locationFrom
      * @param int $quantity
      * @param Article|ReferenceArticle $article
      * @param string $type
      * @return MouvementStock
      */
-    public function createMouvementStock(Utilisateur $user, Emplacement $locationFrom, int $quantity, $article, string $type): MouvementStock {
+    public function createMouvementStock(Utilisateur $user, ?Emplacement $locationFrom, int $quantity, $article, string $type): MouvementStock {
         $newMouvement = new MouvementStock();
         $newMouvement
             ->setUser($user)

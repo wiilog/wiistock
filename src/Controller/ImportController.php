@@ -133,11 +133,10 @@ class ImportController extends AbstractController
                     'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
                     'quantiteReservee'];
                 $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
-
                 switch ($entity) {
                     case Import::ENTITY_ART:
                         $categoryCL = CategorieCL::ARTICLE;
-                        $fieldsToAdd = ['type', 'référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+                        $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
                         $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                         break;
                     case Import::ENTITY_REF:
@@ -165,7 +164,6 @@ class ImportController extends AbstractController
                 }
 
                 natcasesort($fields);
-
                 $response = [
                     'success' => true,
                     'importId' => $import->getId(),

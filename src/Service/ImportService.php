@@ -18,7 +18,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
+use App\Exceptions\ImportException;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,10 +51,10 @@ class ImportService
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
-								ArticleDataService $articleDataService,
-								RefArticleDataService $refArticleDataService,
+                                ArticleDataService $articleDataService,
+                                RefArticleDataService $refArticleDataService,
                                 MouvementStockService $mouvementStockService
-	)
+    )
     {
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -63,33 +65,33 @@ class ImportService
         $this->mouvementStockService = $mouvementStockService;
     }
 
-	/**
-	 * @param null $params
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param null $params
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function getDataForDatatable($params = null)
     {
-		$importRepository = $this->em->getRepository(Import::class);
-		$filtreSupRepository = $this->em->getRepository(FiltreSup::class);
+        $importRepository = $this->em->getRepository(Import::class);
+        $filtreSupRepository = $this->em->getRepository(FiltreSup::class);
 
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_IMPORT, $this->user);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_IMPORT, $this->user);
 
-		$queryResult = $importRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $importRepository->findByParamsAndFilters($params, $filters);
 
-		$imports = $queryResult['data'];
+        $imports = $queryResult['data'];
 
-		$rows = [];
-		foreach ($imports as $import) {
-			$rows[] = $this->dataRowImport($import);
-		}
-		return [
-			'data' => $rows,
-			'recordsFiltered' => $queryResult['count'],
-			'recordsTotal' => $queryResult['total'],
-		];
+        $rows = [];
+        foreach ($imports as $import) {
+            $rows[] = $this->dataRowImport($import);
+        }
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+        ];
     }
 
     /**
@@ -118,210 +120,297 @@ class ImportService
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
                 'importId' => $importId,
+                'fournisseurId' => $importId,
                 'canCancel' => $import->getStatus() == $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED)
             ]),
         ];
         return $row;
     }
 
-	/**
-	 * @param PieceJointe $attachment
-	 * @return array
-	 */
+    /**
+     * @param PieceJointe $attachment
+     * @return array
+     */
     public function readFile($attachment)
-	{
-		$path = "../public/uploads/attachements/" . $attachment->getFileName();
-		$file = fopen($path, "r");
+    {
+        $path = "../public/uploads/attachements/" . $attachment->getFileName();
+        $file = fopen($path, "r");
 
-		$headers = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
-		$firstRow = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
+        $headers = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
+        $firstRow = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
 
-		return ['headers' => $headers, 'firstRow' => $firstRow];
-	}
-
-	public function loadData($importId)
-	{
-		$import = $this->em->getRepository(Import::class)->find($importId);
-
-		if ($import) {
-			$csvFile = $import->getCsvFile();
-
-			$path = "../public/uploads/attachements/" . $csvFile->getFileName();
-			$file = fopen($path, "r");
-
-			$columnsToFields = $import->getColumnToField();
-			$corresp = array_flip($columnsToFields);
-
-			// colonnes fournisseurs
-			$colCodeReference = isset($corresp['codeReference']) ? $corresp['codeReference'] : null;
-			$colNom = isset($corresp['nom']) ? $corresp['nom'] : null;
-			// colonnes références
-			$colLibelle = isset($corresp['libelle']) ? $corresp['libelle'] : null;
-			$colQuantiteStock = isset($corresp['quantiteStock']) ? $corresp['quantiteStock'] : null;
-			$colLimitSecurity = isset($corresp['limitSecurity']) ? $corresp['limitSecurity'] : null;
-			$colLimitWarning = isset($corresp['limitWarning']) ? $corresp['limitWarning'] : null;
-			$colTypeQuantite = isset($corresp['typeQuantite']) ? $corresp['typeQuantite'] : null;
-			// colonnes articles
-			$colLabel = isset($corresp['label']) ? $corresp['label'] : null;
-			$colQuantite = isset($corresp['quantite']) ? $corresp['quantite'] : null;
-			$colPrixUnitaire = isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null;
-			$colReference = isset($corresp['reference']) ? $corresp['reference'] : null;
-			// colonnes champs libres
-			$colChampsLibres = array_filter($corresp, function($elem) { return is_int($elem); }, ARRAY_FILTER_USE_KEY);
-			// liens clés étrangères
-			$colType = isset($corresp['type']) ? $corresp['type'] : null;
-			$colArtFou = isset($corresp['référence article fournisseur']) ? $corresp['référence article fournisseur'] : null;
-			$colRef = isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null;
-			$colFournisseur = isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null;
-			$colEmplacement = isset($corresp['emplacement']) ? $corresp['emplacement'] : null;
-			$colCatInventaire = isset($corresp['catégorie d\'inventaire']) ? $corresp['catégorie d\'inventaire'] : null;
-
-			$firstRow = true;
-
-			while (($data = fgetcsv($file, 1000, ';')) !== false) {
-				if ($firstRow) {
-					$firstRow = false;
-				} else {
-					$row = array_map('utf8_encode', $data);
-                    $data = [];
-                    //TODO fichier log avec vérif champs obligatoires non vides
-                    //TODO fichier log avec vérif champs (fixes et libres) au bon format
-					switch ($import->getEntity()) {
-						case Import::ENTITY_FOU:
-						    if (!is_null($colCodeReference)) {
-                                $data['code'] = $row[$colCodeReference];
-                            }
-						    if (!is_null($colNom)) {
-                                $data['nom'] = $row[$colNom];
-                            }
-
-							$this->importFournisseurEntity($data);
-							break;
-
-						case Import::ENTITY_ART_FOU:
-						    if (!is_null($colReference)) {
-							    $data['reference'] = $row[$colReference];
-                            }
-						    if (!is_null($colLabel)) {
-							    $data['label'] = $row[$colLabel];
-                            }
-						    if (!is_null($colRef)) {
-							    $data['referenceReference'] = $row[$colRef];
-                            }
-						    if (!is_null($colFournisseur)) {
-							    $data['fournisseurReference'] = $row[$colFournisseur];
-                            }
-
-							$this->importArticleFournisseurEntity($data);
-							break;
-
-						case Import::ENTITY_REF:
-						    if (!is_null($colLibelle)) {
-						        $data['libelle'] = $row[$colLibelle];
-                            }
-						    if (!is_null($colReference)) {
-						        $data['reference'] = $row[$colReference];
-                            }
-						    if (!is_null($colQuantiteStock)) {
-						        $data['quantiteStock'] = $row[$colQuantiteStock];
-                            }
-						    if (!is_null($colPrixUnitaire)) {
-						        $data['prixUnitaire'] = $row[$colPrixUnitaire];
-                            }
-						    if (!is_null($colLimitSecurity)) {
-						        $data['limitSecurity'] = $row[$colLimitSecurity];
-                            }
-						    if (!is_null($colLimitWarning)) {
-						        $data['limitWarning'] = $row[$colLimitWarning];
-                            }
-						    if (!is_null($colTypeQuantite)) {
-						        $data['typeQuantite'] = $row[$colTypeQuantite];
-                            }
-						    if (!is_null($colType)) {
-						        $data['typeLabel'] = $row[$colType];
-                            }
-						    if (!is_null($colEmplacement)) {
-						        $data['emplacement'] = $row[$colEmplacement];
-                            }
-						    if (!is_null($colCatInventaire)) {
-						        $data['catInv'] = $row[$colCatInventaire];
-                            }
-
-							$this->importReferenceEntity($data, $colChampsLibres, $row);
-							break;
-
-						case Import::ENTITY_ART:
-						    if (!is_null($colLabel)) {
-							    $data['label'] = $row[$colLabel];
-                            }
-						    if (!is_null($colQuantite)) {
-							    $data['quantite'] = $row[$colQuantite];
-                            }
-						    if (!is_null($colPrixUnitaire)) {
-							    $data['prixUnitaire'] = $row[$colPrixUnitaire];
-                            }
-						    if (!is_null($colReference)) {
-							    $data['reference'] = $row[$colReference];
-                            }
-                            if (!is_null($colType)) {
-                                $data['typeLabel'] = $row[$colType];
-                            }
-                            if (!is_null($colArtFou)) {
-                                $data['articleFournisseurReference'] = $row[$colArtFou];
-                            }
-                            if (!is_null($colRef)) {
-                                $data['referenceReference'] = $row[$colRef];
-                            }
-                            if (!is_null($colFournisseur)) {
-                                $data['fournisseurReference'] = $row[$colFournisseur];
-                            }
-                            if (!is_null($colEmplacement)) {
-                                $data['emplacement'] = $row[$colEmplacement];
-                            }
-
-							$this->importArticleEntity($data, $colChampsLibres, $row);
-							break;
-					}
-				}
-			}
-			$this->em->flush();
-		}
-	}
+        return ['headers' => $headers, 'firstRow' => $firstRow];
+    }
 
     /**
-     * @param array $data
+     * @param $importId
+     * @throws NonUniqueResultException
      */
-    private function importFournisseurEntity(array $data): void
+    public function loadData($importId)
     {
-        $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['code']);
+        $import = $this->em->getRepository(Import::class)->find($importId);
 
-        if (!$fournisseur) {
-            $fournisseur = new Fournisseur();
-            $this->em->persist($fournisseur);
+        if ($import) {
+            $csvFile = $import->getCsvFile();
+
+            $path = "../public/uploads/attachements/" . $csvFile->getFileName();
+            $file = fopen($path, "r");
+
+            $columnsToFields = $import->getColumnToField();
+            $corresp = array_flip($columnsToFields);
+
+            // colonnes fournisseurs
+            // colonnes références
+            $colLibelle = isset($corresp['libelle']) ? $corresp['libelle'] : null;
+            $colQuantiteStock = isset($corresp['quantiteStock']) ? $corresp['quantiteStock'] : null;
+            $colLimitSecurity = isset($corresp['limitSecurity']) ? $corresp['limitSecurity'] : null;
+            $colLimitWarning = isset($corresp['limitWarning']) ? $corresp['limitWarning'] : null;
+            $colTypeQuantite = isset($corresp['typeQuantite']) ? $corresp['typeQuantite'] : null;
+            // colonnes articles
+            $colLabel = isset($corresp['label']) ? $corresp['label'] : null;
+            $colQuantite = isset($corresp['quantite']) ? $corresp['quantite'] : null;
+            $colPrixUnitaire = isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null;
+            $colReference = isset($corresp['reference']) ? $corresp['reference'] : null;
+            // colonnes champs libres
+            $colChampsLibres = array_filter($corresp, function ($elem) {
+                return is_int($elem);
+            }, ARRAY_FILTER_USE_KEY);
+            // liens foreign keys
+            $colType = isset($corresp['type']) ? $corresp['type'] : null;
+            $colArtFou = isset($corresp['référence article fournisseur']) ? $corresp['référence article fournisseur'] : null;
+            $colRef = isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null;
+            $colFournisseur = isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null;
+            $colEmplacement = isset($corresp['emplacement']) ? $corresp['emplacement'] : null;
+            $colCatInventaire = isset($corresp['catégorie d\'inventaire']) ? $corresp['catégorie d\'inventaire'] : null;
+            $dataToCheckForFou = [
+                'codeReference' => [
+                    'needed' => $this->fieldIsNeeded('codeReference', Import::ENTITY_FOU),
+                    'value' => isset($corresp['codeReference']) ? $corresp['codeReference'] : null
+                ],
+                'nom' => [
+                    'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
+                    'value' => isset($corresp['nom']) ? $corresp['nom'] : null
+                ],
+            ];
+            $dataToCheckForArtFou = [
+                'reference' => [
+                    'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART_FOU),
+                    'value' => $colReference
+                ],
+                'label' => [
+                    'needed' => $this->fieldIsNeeded('label', Import::ENTITY_ART_FOU),
+                    'value' => $colLabel
+                ],
+                'referenceReference' => [
+                    'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART_FOU),
+                    'value' => $colRef
+                ],
+                'fournisseurReference' => [
+                    'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART_FOU),
+                    'value' => $colFournisseur
+                ],
+            ];
+            $dataToCheckForRef = [
+                'libelle' => [
+                    'needed' => $this->fieldIsNeeded('libelle', Import::ENTITY_REF),
+                    'value' => $colLibelle,
+                ],
+                'reference' => [
+                    'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_REF),
+                    'value' => $colReference,
+                ],
+                'quantiteStock' => [
+                    'needed' => $this->fieldIsNeeded('quantiteStock', Import::ENTITY_REF),
+                    'value' => $colQuantiteStock,
+                ],
+                'prixUnitaire' => [
+                    'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_REF),
+                    'value' => $colPrixUnitaire,
+                ],
+                'limitSecurity' => [
+                    'needed' => $this->fieldIsNeeded('limitSecurity', Import::ENTITY_REF),
+                    'value' => $colLimitSecurity,
+                ],
+                'limitWarning' => [
+                    'needed' => $this->fieldIsNeeded('limitWarning', Import::ENTITY_REF),
+                    'value' => $colLimitWarning,
+                ],
+                'typeQuantite' => [
+                    'needed' => $this->fieldIsNeeded('typeQuantite', Import::ENTITY_REF),
+                    'value' => $colTypeQuantite,
+                ],
+                'typeLabel' => [
+                    'needed' => $this->fieldIsNeeded('typeLabel', Import::ENTITY_REF),
+                    'value' => $colType,
+                ],
+                'emplacement' => [
+                    'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_REF),
+                    'value' => $colEmplacement,
+                ],
+                'catInv' => [
+                    'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_REF),
+                    'value' => $colCatInventaire,
+                ],
+            ];
+            $dataToCheckForArt = [
+                'label' => [
+                    'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_ART),
+                    'value' => $colLabel,
+                ],
+                'quantite' => [
+                    'needed' => $this->fieldIsNeeded('quantite', Import::ENTITY_ART),
+                    'value' => $colQuantite,
+                ],
+                'prixUnitaire' => [
+                    'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_ART),
+                    'value' => $colPrixUnitaire,
+                ],
+                'reference' => [
+                    'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART),
+                    'value' => $colReference,
+                ],
+                'articleFournisseurReference' => [
+                    'needed' => $this->fieldIsNeeded('articleFournisseurReference', Import::ENTITY_ART),
+                    'value' => $colArtFou,
+                ],
+                'referenceReference' => [
+                    'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART),
+                    'value' => $colRef,
+                ],
+                'fournisseurReference' => [
+                    'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART),
+                    'value' => $colFournisseur,
+                ],
+                'emplacement' => [
+                    'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
+                    'value' => $colEmplacement,
+                ],
+            ];
+            $firstRow = true;
+            $headers = [];
+            $rowIndex = 0;
+            $csvErrors = [];
+            while (($data = fgetcsv($file, 1000, ';')) !== false) {
+                $rowIndex++;
+                $row = array_map('utf8_encode', $data);
+                try {
+                    if ($firstRow) {
+                        $firstRow = false;
+                        $headers = $row;
+                        $csvErrors[] = array_merge($headers, ['Erreur']);
+                    } else {
+                        switch ($import->getEntity()) {
+                            case Import::ENTITY_FOU:
+                                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForFou, $row, $headers, $rowIndex);
+                                $this->importFournisseurEntity($verifiedData);
+                                break;
+                            case Import::ENTITY_ART_FOU:
+                                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForArtFou, $row, $headers, $rowIndex);
+                                $this->importArticleFournisseurEntity($verifiedData, $rowIndex);
+                                break;
+                            case Import::ENTITY_REF:
+                                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForRef, $row, $headers, $rowIndex);
+                                $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                                break;
+                            case Import::ENTITY_ART:
+                                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForArt, $row, $headers, $rowIndex);
+                                $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                                break;
+                        }
+                    }
+                } catch (ImportException $exception) {
+                    $csvErrors[] = array_merge($row, [$exception->getMessage()]);
+                }
+            }
+            $createdLogFile = $this->buildErrorFile($csvErrors);
+            $pieceJointeForLogFile = new PieceJointe();
+            $pieceJointeForLogFile
+                ->setOriginalName($createdLogFile)
+                ->setFileName($createdLogFile)
+                ->setImportLog($import);
+            $this->em->persist($pieceJointeForLogFile);
+            $this->em->flush();
         }
-        if (isset($data['code'])) {
-            $fournisseur->setCodeReference($data['code']);
+    }
+
+    private function buildErrorFile(array $csvErrors)
+    {
+        $logCsvFilePath = "../public/uploads/attachements/" . uniqid() . '.csv';
+        $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
+        foreach ($csvErrors as $csvError) {
+            fputcsv($logCsvFilePathOpened, $csvError, ';');
         }
-        if (isset($data['nom'])) {
-            $fournisseur->setNom($data['nom']);
+        fclose($logCsvFilePathOpened);
+        return $logCsvFilePath;
+    }
+
+    /**
+     * @param array $originalDatasToCheck
+     * @param array $row
+     * @param array $headers
+     * @param int $rowIndex
+     * @return array
+     * @throws ImportException
+     */
+    private function checkFieldsAndFillArrayBeforeImporting(array $originalDatasToCheck, array $row, array $headers, int $rowIndex): array
+    {
+        $data = [];
+        foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
+            if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
+                $message = 'La colonne ' . $column
+                    . ' est manquante. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
+                $message =
+                    'La valeure renseignée pour le champ ' . $column . ' dans la colonne '
+                    . $headers[$originalDataToCheck['value']]
+                    . ' ne peut être vide. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            } else if (!is_null($originalDataToCheck['value']) && !empty($row[$originalDataToCheck['value']])) {
+                $data[$column] = $row[$originalDataToCheck['value']];
+            }
         }
+        return $data;
     }
 
     /**
      * @param array $data
      * @throws NonUniqueResultException
      */
-    private function importArticleFournisseurEntity(array $data): void
+    private function importFournisseurEntity(array $data): void
     {
-        $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['reference']]);
-
-        if (!$articleFournisseur) {
-            $articleFournisseur = new ArticleFournisseur();
-            $this->em->persist($articleFournisseur);
+        $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['codeReference']);
+        if (!$fournisseur) {
+            $fournisseur = new Fournisseur();
+            $this->em->persist($fournisseur);
         }
+        if (isset($data['codeReference'])) {
+            $fournisseur->setCodeReference($data['codeReference']);
+        }
+        if (isset($data['nom'])) {
+            $fournisseur->setNom($data['nom']);
+        }
+        $this->em->flush();
+    }
 
+    /**
+     * @param array $data
+     * @param int $rowIndex
+     * @throws NonUniqueResultException
+     * @throws ImportException
+     */
+    private function importArticleFournisseurEntity(array $data, int $rowIndex): void
+    {
         if (isset($data['reference'])) {
+            $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['reference']]);
+            if (!$articleFournisseur) {
+                $articleFournisseur = new ArticleFournisseur();
+            }
             $articleFournisseur->setReference($data['reference']);
+        } else {
+            $articleFournisseur = new ArticleFournisseur();
         }
         if (isset($data['label'])) {
             $articleFournisseur->setLabel($data['label']);
@@ -331,7 +420,10 @@ class ImportService
             $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
 
             if (empty($refArticle)) {
-                // TODO fichier log
+                $message = "La valeure renseignée pour la référence de
+                l'article de référence ne correspond à aucune référence connue.
+                Erreur à la ligne " . $rowIndex;
+                $this->throwError($message);
             } else {
                 $articleFournisseur->setReferenceArticle($refArticle);
             }
@@ -341,27 +433,43 @@ class ImportService
             $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
 
             if (empty($fournisseur)) {
-                // TODO fichier log
+                $message = "La valeure renseignée pour le code de référence
+                du fournisseur ne correspond à aucun fournisseur connu.
+                Erreur à la ligne " . $rowIndex;
+                $this->throwError($message);
             } else {
                 $articleFournisseur->setFournisseur($fournisseur);
             }
         }
+        $this->em->persist($articleFournisseur);
+        $this->em->flush();
+    }
+
+    /**
+     * @param $message
+     * @throws ImportException
+     */
+    public function throwError($message)
+    {
+        throw new ImportException($message);
     }
 
     /**
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param int $rowIndex
      * @throws NonUniqueResultException
+     * @throws ImportException
+     * @throws Exception
      */
-    private function importReferenceEntity(array $data, array $colChampsLibres, array $row): void
+    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): void
     {
         $newEntity = false;
         $refArt = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['reference']);
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
-            $this->em->persist($refArt);
             $newEntity = true;
         }
 
@@ -374,21 +482,28 @@ class ImportService
         if (isset($data['typeQuantite']) || $newEntity) {
             $refArt->setTypeQuantite($data['typeQuantite'] ?? ReferenceArticle::TYPE_QUANTITE_REFERENCE);
         }
-        if (isset($data['quantiteStock']) || $newEntity) {
-            if ($refArt->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                if (!$newEntity) {
-                    $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
-                }
-                $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
-            }
-        }
         if (isset($data['prixUnitaire'])) {
+            if (!is_numeric($data['prixUnitaire'])) {
+                $message = 'Le prix unitaire ne peux être autre chose qu\'un nombre. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            }
             $refArt->setPrixUnitaire($data['prixUnitaire']);
         }
         if (isset($data['limitSecurity'])) {
+            if (!is_numeric($data['limitSecurity'])) {
+                $message = 'La limite de sécurité ne peux être autre chose qu\'un nombre. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            }
             $refArt->setLimitSecurity($data['limitSecurity']);
         }
         if (isset($data['limitWarning'])) {
+            if (!is_numeric($data['limitWarning'])) {
+                $message = 'La limite de d\'alerte ne peux être autre chose qu\'un nombre. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            }
             $refArt->setLimitWarning($data['limitWarning']);
         }
 
@@ -408,39 +523,39 @@ class ImportService
                 ->setLabel($data['typeLabel'])
                 ->setCategory($categoryType);
             $this->em->persist($type);
-            $this->em->flush();
         }
         $refArt->setType($type);
-
+        $this->em->flush();
         // liaison emplacement
-        if (!empty(['emplacement'])) {
-            if (empty($data['emplacement'])) {
-                $emplacement = null;
-            } else {
-                $emplacement = $this->em->getRepository(Emplacement::class)->findOneByLabel($data['emplacement']);
-                if (empty($emplacement)) {
-                    $emplacement = new Emplacement();
-                    $emplacement
-                        ->setLabel($data['emplacement'])
-                        ->setIsActive(true)
-                        ->setIsDeliveryPoint(false);
-                    $this->em->persist($emplacement);
-                    $this->em->flush();
-                }
-            }
-            $refArt->setEmplacement($emplacement);
-        }
+        $this->checkEmplacement($data, $rowIndex, $refArt);
+        $this->em->flush();
 
         // liaison catégorie inventaire
         if (!empty($data['catInv'])) {
             $catInv = $this->em->getRepository(InventoryCategory::class)->findOneBy(['label' => $data['catInv']]);
             if (empty($catInv)) {
-                // TODO fichier log
+                $message = "La valeure renseignée pour la catégorie d'inventaire ne correspond
+                à aucune catégorie connue.
+                Erreur à la ligne " . $rowIndex;
+                $this->throwError($message);
             } else {
                 $refArt->setCategory($catInv);
             }
         }
-
+        $this->em->persist($refArt);
+        if (isset($data['quantiteStock']) || $newEntity) {
+            if (!is_numeric($data['quantiteStock'])) {
+                $message = 'La quantité ne peux être autre chose qu\'un nombre. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            }
+            if ($refArt->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if (!$newEntity) {
+                    $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
+                }
+                $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
+            }
+        }
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
@@ -451,35 +566,61 @@ class ImportService
                 ->addArticleReference($refArt);
             $this->em->persist($valeurCL);
         }
+        $this->em->flush();
     }
 
     /**
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param int $rowIndex
      * @throws NonUniqueResultException
+     * @throws ImportException
      */
-    private function importArticleEntity(array $data, array $colChampsLibres, array $row): void
+    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): void
     {
+        $refArticle = null;
+        if (!empty($data['referenceReference'])) {
+            $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
+            if (empty($refArticle)) {
+                $message = "La valeure renseignée pour la référence de
+                                    l'article de référence ne correspond à aucune référence connue.
+                                    Erreur à la ligne " . $rowIndex;
+                $this->throwError($message);
+            }
+        }
         $newEntity = false;
-        $article = $this->em->getRepository(Article::class)->findOneByReference($data['reference']);
-        if (!$article) {
+        if (isset($data['reference'])) {
+            $article = $this->em->getRepository(Article::class)->findOneByReference($data['reference']);
+            if (!$article) {
+                $article = new Article();
+                $newEntity = true;
+            }
+            $article->setReference($data['reference']);
+        } else {
             $article = new Article();
-            $this->em->persist($article);
             $newEntity = true;
         }
+
 
         if (isset($data['label'])) {
             $article->setLabel($data['label']);
         }
         if (isset($data['quantite']) || $newEntity) {
+            if (!is_numeric($data['quantite'])) {
+                $message = 'La quantité ne peux être autre chose qu\'un nombre. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            }
             $article->setQuantite($data['quantite'] ?? 0);
         }
         if (isset($data['prixUnitaire'])) {
+            if (!is_numeric($data['prixUnitaire'])) {
+                $message = 'La quantité ne peux être autre chose qu\'un nombre. '
+                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $this->throwError($message);
+            }
             $article->setPrixUnitaire($data['prixUnitaire']);
-        }
-        if (isset($data['reference'])) {
-            $article->setReference($data['reference']);
         }
 
         if ($newEntity) {
@@ -494,24 +635,19 @@ class ImportService
             $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['articleFournisseurReference']]);
 
             if (empty($articleFournisseur)) {
+                if (!$refArticle) {
+                    $message = "Vous avez renseignez une référence d'article fournisseur qui ne correspond à aucun article fournisseur connu.
+                    Dans ce cas, veuillez fournir une référence d'article de référence connue.
+                                    Erreur à la ligne " . $rowIndex;
+                    $this->throwError($message);
+                }
                 $articleFournisseur = new ArticleFournisseur();
                 $this->em->persist($articleFournisseur);
 
-                if (!empty($data['referenceReference'])) {
-                    $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
-                    if (empty($refArticle)) {
-                        //TODO fichier log
-                        return;
-                    }
-                } else {
-                    //TODO fichier log
-                    return;
-                }
-
                 if (!empty($data['fournisseurReference'])) {
-                    $fournisseur = $this->checkAndCreateFournisseur($data['fournisseurReference']);
+                    $fournisseur = $this->checkAndCreateProvider($data['fournisseurReference']);
                 } else {
-                    $fournisseur = $this->checkAndCreateFournisseur(Fournisseur::REF_A_DEFINIR);
+                    $fournisseur = $this->checkAndCreateProvider(Fournisseur::REF_A_DEFINIR);
                 }
 
                 $articleFournisseur
@@ -524,38 +660,37 @@ class ImportService
                 // vérif que l'article fournisseur correspond au couple référence article / fournisseur
                 if (!empty($data['fournisseurReference'])) {
                     $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
-                    if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
-                        //TODO fichier log
-                        return;
+                    if (!empty($fournisseur)) {
+                        if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
+                            $message = "Veuillez renseigner une référence de fournisseur correspondant à celle de l'article fournisseur renseigné.
+                                    Erreur à la ligne " . $rowIndex;
+                            $this->throwError($message);
+                        }
+                    } else {
+                        $message = "Veuillez renseigner une référence de fournisseur connue.
+                                    Erreur à la ligne " . $rowIndex;
+                        $this->throwError($message);
                     }
                 }
-                if (!empty($data['referenceReference'])) {
-                    $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
-                    if ($articleFournisseur->getReferenceArticle()->getId() !== $refArticle->getId()) {
-                        //TODO fichier log
-                        return;
-                    }
+                if ($refArticle && $articleFournisseur->getReferenceArticle()->getId() !== $refArticle->getId()) {
+                    $message = "Veuillez renseigner une référence d'article fournisseur correspondant à la référence d'article fournie.
+                                    Erreur à la ligne " . $rowIndex;
+                    $this->throwError($message);
                 }
             }
 
-        // cas où l'article fournisseur n'est pas renseigné
+            // cas où l'article fournisseur n'est pas renseigné
         } else {
-
-            if (!empty($data['referenceReference'])) {
-                $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
-                if (empty($refArticle)) {
-                    //TODO fichier log
-                    return;
-                }
-            } else {
-                //TODO fichier log
-                return;
+            if (!$refArticle) {
+                $message = "Vous n'avez pas renseigner de référence d'article fournisseur.
+                    Dans ce cas, veuillez fournir une référence d'article de référence connue.
+                                    Erreur à la ligne " . $rowIndex;
+                $this->throwError($message);
             }
-
             if (!empty($data['fournisseurReference'])) {
-                $fournisseur = $this->checkAndCreateFournisseur($data['fournisseurReference']);
+                $fournisseur = $this->checkAndCreateProvider($data['fournisseurReference']);
             } else {
-                $fournisseur = $this->checkAndCreateFournisseur(Fournisseur::REF_A_DEFINIR);
+                $fournisseur = $this->checkAndCreateProvider(Fournisseur::REF_A_DEFINIR);
             }
 
             $articleFournisseur = new ArticleFournisseur();
@@ -566,38 +701,13 @@ class ImportService
                 ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
             $this->em->persist($articleFournisseur);
         }
-
         $article->setArticleFournisseur($articleFournisseur);
-
-
-        // liaison type
-        $type = $this->em->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
-        if (empty($type)) {
-            $type = new Type();
-            $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
-            $type
-                ->setLabel($data['typeLabel'])
-                ->setCategory($categoryType);
-            $this->em->persist($type);
-            $this->em->flush();
-        }
-        $article->setType($type);
+        $article->setType($articleFournisseur->getReferenceArticle()->getType());
 
         // liaison emplacement
-        if (!empty(['emplacement'])) {
-            $emplacement = $this->em->getRepository(Emplacement::class)->findOneByLabel($data['emplacement']);
-            if (empty($emplacement)) {
-                $emplacement = new Emplacement();
-                $emplacement
-                    ->setLabel($data['emplacement'])
-                    ->setIsActive(true)
-                    ->setIsDeliveryPoint(false);
-                $this->em->persist($emplacement);
-                $this->em->flush();
-            }
-            $article->setEmplacement($emplacement);
-        }
-
+        $this->checkEmplacement($data, $rowIndex, $article);
+        $this->em->flush();
+        $this->em->persist($article);
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
@@ -608,6 +718,7 @@ class ImportService
                 ->addArticle($article);
             $this->em->persist($valeurCL);
         }
+        $this->em->flush();
     }
 
     /**
@@ -621,7 +732,6 @@ class ImportService
             $typeMvt = $diffQuantity > 0 ? MouvementStock::TYPE_INVENTAIRE_ENTREE : MouvementStock::TYPE_INVENTAIRE_SORTIE;
             $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, null, abs($diffQuantity), $refArt, $typeMvt);
             $this->em->persist($mvtStock);
-            $this->em->flush();
         }
     }
 
@@ -630,20 +740,56 @@ class ImportService
      * @return Fournisseur
      * @throws NonUniqueResultException
      */
-    private function checkAndCreateFournisseur($ref)
+    private function checkAndCreateProvider($ref)
     {
-        $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($ref);
-        if (empty($fournisseur)) {
-            $fournisseur = new Fournisseur();
-            $fournisseur
+        $provider = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($ref);
+        if (empty($provider)) {
+            $provider = new Fournisseur();
+            $provider
                 ->setCodeReference($ref)
                 ->setNom($ref);
-            $this->em->persist($fournisseur);
-            $this->em->flush();
+            $this->em->persist($provider);
         }
 
-        return $fournisseur;
+        return $provider;
     }
+
+    private function fieldIsNeeded(string $field, string $entity): bool
+    {
+        return (
+            in_array(Import::FIELDS_ENTITY[$field], Import::FIELDS_NEEDED[$entity]) ||
+            in_array($field, Import::FIELDS_NEEDED[Import::ENTITY_FOU])
+        );
+    }
+
+    /**
+     * @param array $data
+     * @param int $rowIndex
+     * @param Article|ReferenceArticle $articleOrRef
+     * @throws ImportException
+     * @throws NonUniqueResultException
+     */
+    private function checkEmplacement(array $data, int $rowIndex, $articleOrRef): void
+    {
+        if (empty($data['emplacement'])) {
+            $message = 'La valeure saisie pour emplacement ne peut être vide. '
+                . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+            $this->throwError($message);
+        } else {
+            $emplacement = $this->em->getRepository(Emplacement::class)->findOneByLabel($data['emplacement']);
+            if (empty($emplacement)) {
+                $emplacement = new Emplacement();
+                $emplacement
+                    ->setLabel($data['emplacement'])
+                    ->setIsActive(true)
+                    ->setIsDeliveryPoint(false);
+                $this->em->persist($emplacement);
+            }
+            $articleOrRef->setEmplacement($emplacement);
+        }
+    }
+
+
 }
 
 

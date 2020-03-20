@@ -44,18 +44,24 @@ class Import
     ];
 
 	const FIELDS_ENTITY = [
-		'reference' => 'référence',
-		'quantite' => 'quantité',
-		'label' => 'libellé',
-		'libelle' => 'libellé',
-		'articleFournisseur' => 'article fournisseur',
-		'prixUnitaire' => 'prix unitaire',
-		'limitSecurity' => 'seuil de sécurité',
-		'limitWarning' => "seuil d'alerte",
-		'quantiteStock' => 'quantité en stock',
-		'typeQuantite' => 'type quantité (article ou référence)',
-		'codeReference' => 'code',
-		'nom' => 'libellé'
+        'reference' => 'référence',
+        'quantite' => 'quantité',
+        'label' => 'libellé',
+        'libelle' => 'libellé',
+        'articleFournisseur' => 'article fournisseur',
+        'prixUnitaire' => 'prix unitaire',
+        'limitSecurity' => 'seuil de sécurité',
+        'limitWarning' => "seuil d'alerte",
+        'quantiteStock' => 'quantité en stock',
+        'typeQuantite' => 'type quantité (article ou référence)',
+        'codeReference' => 'code',
+        'nom' => 'libellé',
+        'referenceReference' => 'référence article de référence',
+        'fournisseurReference' => 'référence fournisseur',
+        'emplacement' => 'emplacement',
+        'catInv' => 'catégorie inventaire',
+        'articleFournisseurReference' => 'articleFournisseurReference',
+		'typeLabel' => 'type'
 	];
 
     /**

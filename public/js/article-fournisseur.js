@@ -13,10 +13,10 @@ let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions'},
-        {"data": 'Fournisseur'},
-        {"data": 'Référence'},
-        {"data": 'Article de référence'},
+        {"data": 'Actions', title: 'Actions'},
+        {"data": 'Fournisseur', title: 'Fournisseur'},
+        {"data": 'Référence', title: 'Référence'},
+        {"data": 'Article de référence', title: 'Article de référence'},
     ],
     columnDefs: [
         {"orderable": false, "targets": 0}
