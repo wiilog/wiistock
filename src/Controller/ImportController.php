@@ -264,4 +264,26 @@ class ImportController extends AbstractController
 
 		return new JsonResponse();
 	}
+
+    /**
+     * @Route("/annuler-import", name="import_cancel", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+	public function cancelImport(Request $request)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $statusRepository = $em->getRepository(Statut::class);
+
+        $importId = (int)$request->request->get('importId');
+
+        $import = $em->getRepository(Import::class)->find($importId);
+        if ($import->getStatus() == Import::STATUS_PLANNED) {
+            $import->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED));
+            $em->flush();
+        }
+
+        return new JsonResponse();
+    }
 }

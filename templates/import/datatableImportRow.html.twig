@@ -1,6 +1,14 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action">
-        </div>
+    <div class="btn btn-col-action has-tooltip" title="dupliquer l'import">
+        <i class='fas fa-sync-alt'></i>
     </div>
+    <div class="btn btn-col-action has-tooltip" title="voir le fichier de traces">
+        <i class='fas fa-search-plus'></i>
+    </div>
+    {% if canCancel %}
+        <div class="btn btn-col-action has-tooltip" title="annuler l'import"
+            onclick="openConfirmCancelModal({{ importId }})">
+            <i class='fas fa-times'></i>
+        </div>
+    {% endif %}
 </div>

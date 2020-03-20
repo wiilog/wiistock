@@ -37,6 +37,7 @@ let tableImport = $('#tableImport').DataTable({
     order: [[1, "desc"]],
     drawCallback: function() {
         overrideSearch($('#tableImport_filter input'), tableImport);
+        initTooltips($('.has-tooltip'));
     }
 });
 
@@ -83,4 +84,15 @@ function displayConfirmationModal(data) {
 function launchImport(data) {
     alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
     $.post(Routing.generate('import_launch'), {importId: data.importId});
+}
+
+function openConfirmCancelModal(importId) {
+    let $submitCancelImport = $('#submitCancelImport');
+    $submitCancelImport.off();
+    $submitCancelImport.on('click', function() {
+        $.post(Routing.generate('import_cancel'), {importId: importId}, function() {
+            tableImport.ajax.reload();
+        });
+    });
+    $('#modalConfirmCancel').modal('show');
 }

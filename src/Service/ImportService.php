@@ -92,31 +92,35 @@ class ImportService
 		];
     }
 
-	/**
-	 * @param Import $import
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param Import $import
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws NonUniqueResultException
+     */
     public function dataRowImport($import)
     {
+        $statutRepository = $this->em->getRepository(Statut::class);
+
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
         $row = [
-               'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
-               'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
-               'label' => $import->getLabel(),
-               'newEntries' => $import->getNewEntries() ?? '',
-               'updatedEntries' => $import->getUpdatedEntries(),
-               'nbErrors' => $import->getNbErrors(),
-               'status' => $import->getStatus() ? $import->getStatus()->getNom() : '',
-               'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
-               'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
-                             'url' => $url,
-                             'fournisseurId' => $importId
-                    ]),
-                    ];
+            'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
+            'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
+            'label' => $import->getLabel(),
+            'newEntries' => $import->getNewEntries() ?? '',
+            'updatedEntries' => $import->getUpdatedEntries(),
+            'nbErrors' => $import->getNbErrors(),
+            'status' => $import->getStatus() ? $import->getStatus()->getNom() : '',
+            'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
+            'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
+                'url' => $url,
+                'importId' => $importId,
+                'canCancel' => $import->getStatus() == $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED)
+            ]),
+        ];
         return $row;
     }
 

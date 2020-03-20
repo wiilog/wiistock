@@ -42,6 +42,12 @@ function initTableArticle() {
                     ...column,
                     class: undefined
                 })),
+                columnDefs: [
+                    {
+                        orderable: false,
+                        targets: 0
+                    }
+                ],
                 "drawCallback": function (settings) {
                     resizeTable();
                 },
