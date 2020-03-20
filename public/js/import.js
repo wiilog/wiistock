@@ -45,7 +45,10 @@ let $modalNewImport = $("#modalNewImport");
 let $submitNewImport = $("#submitNewImport");
 
 function displayFirstModal(importId = null) {
+    let $inputImportId = $modalNewImport.find('[name="importId"]');
+
     clearModal($modalNewImport);
+    $inputImportId.val('');
     $submitNewImport.off();
     let urlNewImportFirst = Routing.generate('import_new', true);
     initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
@@ -53,7 +56,7 @@ function displayFirstModal(importId = null) {
     $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function(resp) {
         $modalNewImport.find('.modal-body').html(resp);
         if (importId) {
-            $modalNewImport.find('[name="importId"]').val(importId);
+            $inputImportId.val(importId);
         }
         $modalNewImport.modal('show');
     });
@@ -86,7 +89,9 @@ function displayConfirmationModal(data) {
 
 function launchImport(data) {
     alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
-    $.post(Routing.generate('import_launch'), {importId: data.importId});
+    $.post(Routing.generate('import_launch'), {importId: data.importId}, () => {
+        tableImport.ajax.reload();
+    });
 }
 
 function openConfirmCancelModal(importId) {
@@ -98,4 +103,14 @@ function openConfirmCancelModal(importId) {
         });
     });
     $('#modalConfirmCancel').modal('show');
+}
+
+function deleteImport($btn) {
+    let importId = $btn.parent().find('[name="importId"]').val();
+
+    if (importId) {
+        $.post(Routing.generate('import_delete'), {importId: importId}, () => {
+            tableImport.ajax.reload();
+        });
+    }
 }

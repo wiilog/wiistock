@@ -16,6 +16,7 @@ use App\Entity\Statut;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;
+use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -238,7 +239,9 @@ class ImportController extends AbstractController
 		$import = $importRepository->find($data['importId']);
 
 		if ($import) {
-			$import->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_IN_PROGRESS));
+			$import
+                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_IN_PROGRESS))
+			    ->setStartDate(new DateTime('now'));
 			$doctrine->getManager()->flush();
 			$resp = true;
 		} else {
@@ -271,7 +274,16 @@ class ImportController extends AbstractController
 	public function launchImport(Request $request, ImportService $importService)
 	{
 		$importId = $request->request->get('importId');
-		$importService->loadData($importId);
+		$em = $this->getDoctrine()->getManager();
+        $import = $em->getRepository(Import::class)->find($importId);
+
+        if ($import) {
+            $importService->loadData($import);
+            $import
+                ->setStatus($em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
+                ->setEndDate(new DateTime('now'));
+            $em->flush();
+        }
 
 		return new JsonResponse();
 	}
@@ -297,4 +309,23 @@ class ImportController extends AbstractController
 
         return new JsonResponse();
     }
+    /**
+     * @Route("/supprimer-import", name="import_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @return JsonResponse
+     */
+	public function deleteImport(Request $request)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $importId = (int)$request->request->get('importId');
+        $import = $em->getRepository(Import::class)->find($importId);
+
+        if ($import) {
+            $em->remove($import);
+            $em->flush();
+        }
+
+        return new JsonResponse();
+    }
+
 }
