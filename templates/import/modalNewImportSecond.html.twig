@@ -16,7 +16,8 @@
                         <option></option>
                         {% for fieldValue, fieldName in fields %}
                             {% set needed = fieldValue in fieldsNeeded ? '*'%}
-                            <option value="{{ fieldValue }}">{{ fieldName|capitalize }}{{ needed }}</option>
+                            {% set selected = (columnsToFields[i] is defined and fieldValue == columnsToFields[i]) ? 'selected' %}
+                            <option value="{{ fieldValue }}" {{ selected }}>{{ fieldName|capitalize }}{{ needed }}</option>
                         {% endfor %}
                     </select>
                 </td>

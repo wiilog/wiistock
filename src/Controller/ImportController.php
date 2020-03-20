@@ -164,13 +164,20 @@ class ImportController extends AbstractController
                 }
 
                 natcasesort($fields);
+
+                if ($post->get('importId')){
+                    $copiedImport = $this->getDoctrine()->getRepository(Import::class)->find($post->get('importId'));
+                    $columnsToFields = $copiedImport->getColumnToField();
+                }
+
                 $response = [
                     'success' => true,
                     'importId' => $import->getId(),
                     'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
                         'data' => $data ?? [],
                         'fields' => $fields ?? [],
-                        'fieldsNeeded' => Import::FIELDS_NEEDED[$entity]
+                        'fieldsNeeded' => Import::FIELDS_NEEDED[$entity],
+                        'columnsToFields' => $columnsToFields ?? null
                     ])
                 ];
             }
@@ -241,20 +248,26 @@ class ImportController extends AbstractController
 		return new JsonResponse(['success' => $resp, 'importId' => $data['importId']]);
 	}
 
-	/**
-	 * @Route("/modale-une", name="get_first_modal_content", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 */
-	public function getFirstModalContent()
+    /**
+     * @Route("/modale-une", name="get_first_modal_content", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @return JsonResponse
+     */
+	public function getFirstModalContent(Request $request)
 	{
-		return new JsonResponse($this->renderView('import/modalNewImportFirst.html.twig'));
+	    $importId = $request->get('importId');
+	    $import = $importId ? $this->getDoctrine()->getRepository(Import::class)->find($importId) : null;
+
+		return new JsonResponse($this->renderView('import/modalNewImportFirst.html.twig', ['import' => $import]));
 	}
 
-	/**
-	 * @Route("/lancer-import", name="import_launch", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @param ImportService $importService
-	 * @return JsonResponse
-	 */
+    /**
+     * @Route("/lancer-import", name="import_launch", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ImportService $importService
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
 	public function launchImport(Request $request, ImportService $importService)
 	{
 		$importId = $request->request->get('importId');

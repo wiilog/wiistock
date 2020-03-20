@@ -1,16 +1,16 @@
 <div class="row">
     <div class="form-group col-8">
         <label>Nom de l'import</label>
-        <input type="text" class="form-control data needed" name="label">
+        <input type="text" class="form-control data needed" name="label" value="{{ import ? import.label }}">
     </div>
     <div class="form-group col-4">
         <label>Type de données à importer</label>
         <select class="form-control data needed" name="entity">
             <option></option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}">Articles</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}">Références</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_FOU') }}">Fournisseurs</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART_FOU') }}">Articles fournisseurs</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART') ? 'selected'}}>Articles</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_REF') ? 'selected'}}>Références</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_FOU') ? 'selected'}}>Fournisseurs</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART_FOU') ? 'selected'}}>Articles fournisseurs</option>
         </select>
     </div>
 </div>

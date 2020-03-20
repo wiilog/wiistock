@@ -25,16 +25,16 @@ let tableImport = $('#tableImport').DataTable({
     },
     columns: [
         { "data": 'actions', 'title': 'Actions', orderable: false },
+        { "data": 'status', 'title': 'Statut' },
         { "data": 'startDate', 'title': 'Date début' },
         { "data": 'endDate', 'title': 'Date fin' },
         { "data": 'label', 'title': 'Nom import' },
         { "data": 'newEntries', 'title': 'Nvx enreg.' },
         { "data": 'updatedEntries', 'title': 'Mises à jour' },
         { "data": 'nbErrors', 'title': "Nombre d'erreurs" },
-        { "data": 'status', 'title': 'Statut' },
         { "data": 'user', 'title': 'Utilisateur' },
     ],
-    order: [[1, "desc"]],
+    order: [[2, "desc"]],
     drawCallback: function() {
         overrideSearch($('#tableImport_filter input'), tableImport);
         initTooltips($('.has-tooltip'));
@@ -44,16 +44,19 @@ let tableImport = $('#tableImport').DataTable({
 let $modalNewImport = $("#modalNewImport");
 let $submitNewImport = $("#submitNewImport");
 
-function displayFirstModal() {
+function displayFirstModal(importId = null) {
     clearModal($modalNewImport);
     $submitNewImport.off();
     let urlNewImportFirst = Routing.generate('import_new', true);
     initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
 
-    $.get(Routing.generate('get_first_modal_content'), function(resp) {
+    $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function(resp) {
         $modalNewImport.find('.modal-body').html(resp);
+        if (importId) {
+            $modalNewImport.find('[name="importId"]').val(importId);
+        }
         $modalNewImport.modal('show');
-    })
+    });
 }
 
 function displaySecondModal(data) {
