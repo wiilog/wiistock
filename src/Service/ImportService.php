@@ -159,110 +159,8 @@ class ImportService
         $corresp = array_flip($columnsToFields);
         $colChampsLibres = array_filter($corresp, function ($elem) {return is_int($elem);}, ARRAY_FILTER_USE_KEY);
 
-        $dataToCheckForFou = [
-            'codeReference' => [
-                'needed' => $this->fieldIsNeeded('codeReference', Import::ENTITY_FOU),
-                'value' => isset($corresp['codeReference']) ? $corresp['codeReference'] : null
-            ],
-            'nom' => [
-                'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
-                'value' => isset($corresp['nom']) ? $corresp['nom'] : null
-            ],
-        ];
-        $dataToCheckForArtFou = [
-            'reference' => [
-                'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART_FOU),
-                'value' => isset($corresp['reference']) ? $corresp['reference'] : null
-            ],
-            'label' => [
-                'needed' => $this->fieldIsNeeded('label', Import::ENTITY_ART_FOU),
-                'value' => isset($corresp['label']) ? $corresp['label'] : null
-            ],
-            'referenceReference' => [
-                'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART_FOU),
-                'value' => isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null
-            ],
-            'fournisseurReference' => [
-                'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART_FOU),
-                'value' => isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null
-            ],
-        ];
-        $dataToCheckForRef = [
-            'libelle' => [
-                'needed' => $this->fieldIsNeeded('libelle', Import::ENTITY_REF),
-                'value' => isset($corresp['libelle']) ? $corresp['libelle'] : null,
-            ],
-            'reference' => [
-                'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_REF),
-                'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
-            ],
-            'quantiteStock' => [
-                'needed' => $this->fieldIsNeeded('quantiteStock', Import::ENTITY_REF),
-                'value' => isset($corresp['quantiteStock']) ? $corresp['quantiteStock'] : null,
-            ],
-            'prixUnitaire' => [
-                'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_REF),
-                'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
-            ],
-            'limitSecurity' => [
-                'needed' => $this->fieldIsNeeded('limitSecurity', Import::ENTITY_REF),
-                'value' => isset($corresp['limitSecurity']) ? $corresp['limitSecurity'] : null,
-            ],
-            'limitWarning' => [
-                'needed' => $this->fieldIsNeeded('limitWarning', Import::ENTITY_REF),
-                'value' => isset($corresp['limitWarning']) ? $corresp['limitWarning'] : null,
-            ],
-            'typeQuantite' => [
-                'needed' => $this->fieldIsNeeded('typeQuantite', Import::ENTITY_REF),
-                'value' => isset($corresp['typeQuantite']) ? $corresp['typeQuantite'] : null,
-            ],
-            'typeLabel' => [
-                'needed' => $this->fieldIsNeeded('typeLabel', Import::ENTITY_REF),
-                'value' => isset($corresp['type']) ? $corresp['type'] : null,
-            ],
-            'emplacement' => [
-                'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_REF),
-                'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
-            ],
-            'catInv' => [
-                'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_REF),
-                'value' => isset($corresp['catégorie d\'inventaire']) ? $corresp['catégorie d\'inventaire'] : null,
-            ],
-        ];
-        $dataToCheckForArt = [
-            'label' => [
-                'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_ART),
-                'value' => isset($corresp['label']) ? $corresp['label'] : null,
-            ],
-            'quantite' => [
-                'needed' => $this->fieldIsNeeded('quantite', Import::ENTITY_ART),
-                'value' => isset($corresp['quantite']) ? $corresp['quantite'] : null,
-            ],
-            'prixUnitaire' => [
-                'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_ART),
-                'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
-            ],
-            'reference' => [
-                'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART),
-                'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
-            ],
-            'articleFournisseurReference' => [
-                'needed' => $this->fieldIsNeeded('articleFournisseurReference', Import::ENTITY_ART),
-                'value' => isset($corresp['référence article fournisseur']) ? $corresp['référence article fournisseur'] : null,
-            ],
-            'referenceReference' => [
-                'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART),
-                'value' => isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null,
-            ],
-            'fournisseurReference' => [
-                'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART),
-                'value' => isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null,
-            ],
-            'emplacement' => [
-                'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
-                'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
-            ],
-        ];
+        $dataToCheck = $this->getDataToCheck($import->getEntity(), $corresp);
+
         $firstRow = true;
         $headers = [];
         $rowIndex = 0;
@@ -276,21 +174,19 @@ class ImportService
                     $headers = $row;
                     $csvErrors[] = array_merge($headers, ['Erreur']);
                 } else {
+                    $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers, $rowIndex);
+
                     switch ($import->getEntity()) {
                         case Import::ENTITY_FOU:
-                            $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForFou, $row, $headers, $rowIndex);
                             $this->importFournisseurEntity($verifiedData);
                             break;
                         case Import::ENTITY_ART_FOU:
-                            $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForArtFou, $row, $headers, $rowIndex);
                             $this->importArticleFournisseurEntity($verifiedData, $rowIndex);
                             break;
                         case Import::ENTITY_REF:
-                            $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForRef, $row, $headers, $rowIndex);
                             $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                         case Import::ENTITY_ART:
-                            $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheckForArt, $row, $headers, $rowIndex);
                             $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                     }
@@ -310,6 +206,133 @@ class ImportService
         $import->setLogFile($pieceJointeForLogFile);
 
         $this->em->flush();
+    }
+
+    /**
+     * @param string $entity
+     * @param array $corresp
+     * @return array
+     */
+    private function getDataToCheck($entity, $corresp)
+    {
+        switch ($entity) {
+            case Import::ENTITY_FOU:
+                $dataToCheck = [
+                    'codeReference' => [
+                        'needed' => $this->fieldIsNeeded('codeReference', Import::ENTITY_FOU),
+                        'value' => isset($corresp['codeReference']) ? $corresp['codeReference'] : null
+                    ],
+                    'nom' => [
+                        'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
+                        'value' => isset($corresp['nom']) ? $corresp['nom'] : null
+                    ],
+                ];
+                break;
+            case Import::ENTITY_ART_FOU:
+                $dataToCheck = [
+                    'reference' => [
+                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART_FOU),
+                        'value' => isset($corresp['reference']) ? $corresp['reference'] : null
+                    ],
+                    'label' => [
+                        'needed' => $this->fieldIsNeeded('label', Import::ENTITY_ART_FOU),
+                        'value' => isset($corresp['label']) ? $corresp['label'] : null
+                    ],
+                    'referenceReference' => [
+                        'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART_FOU),
+                        'value' => isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null
+                    ],
+                    'fournisseurReference' => [
+                        'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART_FOU),
+                        'value' => isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null
+                    ],
+                ];
+                break;
+            case Import::ENTITY_REF:
+                $dataToCheck = [
+                    'libelle' => [
+                        'needed' => $this->fieldIsNeeded('libelle', Import::ENTITY_REF),
+                        'value' => isset($corresp['libelle']) ? $corresp['libelle'] : null,
+                    ],
+                    'reference' => [
+                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_REF),
+                        'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
+                    ],
+                    'quantiteStock' => [
+                        'needed' => $this->fieldIsNeeded('quantiteStock', Import::ENTITY_REF),
+                        'value' => isset($corresp['quantiteStock']) ? $corresp['quantiteStock'] : null,
+                    ],
+                    'prixUnitaire' => [
+                        'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_REF),
+                        'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
+                    ],
+                    'limitSecurity' => [
+                        'needed' => $this->fieldIsNeeded('limitSecurity', Import::ENTITY_REF),
+                        'value' => isset($corresp['limitSecurity']) ? $corresp['limitSecurity'] : null,
+                    ],
+                    'limitWarning' => [
+                        'needed' => $this->fieldIsNeeded('limitWarning', Import::ENTITY_REF),
+                        'value' => isset($corresp['limitWarning']) ? $corresp['limitWarning'] : null,
+                    ],
+                    'typeQuantite' => [
+                        'needed' => $this->fieldIsNeeded('typeQuantite', Import::ENTITY_REF),
+                        'value' => isset($corresp['typeQuantite']) ? $corresp['typeQuantite'] : null,
+                    ],
+                    'typeLabel' => [
+                        'needed' => $this->fieldIsNeeded('typeLabel', Import::ENTITY_REF),
+                        'value' => isset($corresp['type']) ? $corresp['type'] : null,
+                    ],
+                    'emplacement' => [
+                        'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_REF),
+                        'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
+                    ],
+                    'catInv' => [
+                        'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_REF),
+                        'value' => isset($corresp['catégorie d\'inventaire']) ? $corresp['catégorie d\'inventaire'] : null,
+                    ],
+                ];
+                break;
+            case Import::ENTITY_ART:
+                $dataToCheck = [
+                    'label' => [
+                        'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_ART),
+                        'value' => isset($corresp['label']) ? $corresp['label'] : null,
+                    ],
+                    'quantite' => [
+                        'needed' => $this->fieldIsNeeded('quantite', Import::ENTITY_ART),
+                        'value' => isset($corresp['quantite']) ? $corresp['quantite'] : null,
+                    ],
+                    'prixUnitaire' => [
+                        'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_ART),
+                        'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
+                    ],
+                    'reference' => [
+                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART),
+                        'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
+                    ],
+                    'articleFournisseurReference' => [
+                        'needed' => $this->fieldIsNeeded('articleFournisseurReference', Import::ENTITY_ART),
+                        'value' => isset($corresp['référence article fournisseur']) ? $corresp['référence article fournisseur'] : null,
+                    ],
+                    'referenceReference' => [
+                        'needed' => $this->fieldIsNeeded('referenceReference', Import::ENTITY_ART),
+                        'value' => isset($corresp['référence article de référence']) ? $corresp['référence article de référence'] : null,
+                    ],
+                    'fournisseurReference' => [
+                        'needed' => $this->fieldIsNeeded('fournisseurReference', Import::ENTITY_ART),
+                        'value' => isset($corresp['référence fournisseur']) ? $corresp['référence fournisseur'] : null,
+                    ],
+                    'emplacement' => [
+                        'needed' => $this->fieldIsNeeded('emplacement', Import::ENTITY_ART),
+                        'value' => isset($corresp['emplacement']) ? $corresp['emplacement'] : null,
+                    ],
+                ];
+                break;
+            default:
+                $dataToCheck = [];
+        }
+
+        return $dataToCheck;
     }
 
     private function buildErrorFile(array $csvErrors)
