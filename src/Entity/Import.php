@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -9,10 +10,59 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Import
 {
+	const STATUS_DRAFT = 'brouillon';
 	const STATUS_CANCELLED = 'annulé';
 	const STATUS_IN_PROGRESS = 'en cours';
 	const STATUS_FINISHED = 'terminé';
 	const STATUS_PLANNED = 'planifié';
+
+	const ENTITY_ART = 'ART';
+	const ENTITY_REF= 'REF';
+	const ENTITY_FOU = 'FOU';
+	const ENTITY_ART_FOU = 'ART_FOU';
+
+	const FIELDS_NEEDED = [
+        self::ENTITY_ART_FOU => [
+            'référence article de référence',
+            'référence fournisseur'
+        ],
+        self::ENTITY_ART => [
+            'référence article de référence',
+            'label',
+            'emplacement'
+        ],
+        self::ENTITY_FOU => [
+            'codeReference',
+            'nom'
+        ],
+        self::ENTITY_REF => [
+            'reference',
+            'libelle',
+            'type',
+            'emplacement'
+        ]
+    ];
+
+	const FIELDS_ENTITY = [
+        'reference' => 'référence',
+        'quantite' => 'quantité',
+        'label' => 'libellé',
+        'libelle' => 'libellé',
+        'articleFournisseur' => 'article fournisseur',
+        'prixUnitaire' => 'prix unitaire',
+        'limitSecurity' => 'seuil de sécurité',
+        'limitWarning' => "seuil d'alerte",
+        'quantiteStock' => 'quantité en stock',
+        'typeQuantite' => 'type quantité (article ou référence)',
+        'codeReference' => 'code',
+        'nom' => 'libellé',
+        'referenceReference' => 'référence article de référence',
+        'fournisseurReference' => 'référence fournisseur',
+        'emplacement' => 'emplacement',
+        'catInv' => 'catégorie inventaire',
+        'articleFournisseurReference' => 'articleFournisseurReference',
+		'typeLabel' => 'type'
+	];
 
     /**
      * @ORM\Id()
@@ -32,7 +82,7 @@ class Import
     private $entity;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importCsv")
      */
     private $csvFile;
 
@@ -62,17 +112,17 @@ class Import
     private $nbErrors;
 
 	/**
-	 * @ORM\Column(type="datetime")
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
     private $startDate;
 
 	/**
-	 * @ORM\Column(type="datetime")
+	 * @ORM\Column(type="datetime", nullable=true)
 	 */
     private $endDate;
 
 	/**
-	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", cascade={"persist", "remove"})
+	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importLog")
 	 */
     private $logFile;
 
@@ -80,6 +130,9 @@ class Import
 	 * @ORM\Column(type="json", nullable=true)
 	 */
     private $columnToField;
+
+    public function __construct()
+    {}
 
 
     public function getId(): ?int
@@ -228,6 +281,13 @@ class Import
     {
         $this->logFile = $logFile;
 
+        // set (or unset) the owning side of the relation if necessary
+        $newImportLog = null === $logFile ? null : $this;
+        if ($logFile->getImportLog() !== $newImportLog) {
+            $logFile->setImportLog($newImportLog);
+        }
+
         return $this;
     }
+
 }

@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Fournisseur
 {
+    const REF_A_DEFINIR = 'A DEFINIR';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

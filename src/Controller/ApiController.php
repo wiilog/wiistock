@@ -450,10 +450,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $mouvementTraca->setCommentaire($mvt['comment']);
                             }
 
-                            $signatureFile = $request->files->get("signature_$index");
-                            if (!empty($signatureFile)) {
-                                $attachmentService->addAttachements([$signatureFile], null, null, $mouvementTraca);
-                            }
+                                $signatureFile = $request->files->get("signature_$index");
+                                if (!empty($signatureFile)) {
+                                    $attachmentService->addAttachements([$signatureFile], $mouvementTraca);
+                                }
 
                             $entityManager->persist($mouvementTraca);
                             $numberOfRowsInserted++;

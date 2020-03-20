@@ -206,7 +206,7 @@ class MouvementTracaController extends AbstractController
                     );
                 }
                 foreach ($createdMouvements as $mouvement) {
-                    $this->attachmentService->addAttachements($fileNames, null, null, $mouvement);
+                    $this->attachmentService->addAttachements($fileNames, $mouvement);
                 }
             }
 
@@ -303,7 +303,7 @@ class MouvementTracaController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, null, null, $mvt);
+			$this->attachmentService->addAttachements($request->files, $mvt);
             $em->flush();
 
             return new JsonResponse();

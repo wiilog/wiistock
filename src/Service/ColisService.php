@@ -42,7 +42,7 @@ Class ColisService
             ->setCode($code)
             ->setNature($nature);
 
-        $arrivage->addColis($colis);
+        $arrivage->addColi($colis);
 
         $this->entityManager->persist($colis);
         return $colis;
