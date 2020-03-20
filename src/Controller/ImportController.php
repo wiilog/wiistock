@@ -133,7 +133,6 @@ class ImportController extends AbstractController
                     'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
                     'quantiteReservee'];
                 $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
-
                 switch ($entity) {
                     case Import::ENTITY_ART:
                         $categoryCL = CategorieCL::ARTICLE;
@@ -165,7 +164,6 @@ class ImportController extends AbstractController
                 }
 
                 natcasesort($fields);
-
                 $response = [
                     'success' => true,
                     'importId' => $import->getId(),
