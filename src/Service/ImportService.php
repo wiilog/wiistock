@@ -523,7 +523,6 @@ class ImportService
         $this->em->flush();
         // liaison emplacement
         $this->checkEmplacement($data, $rowIndex, $refArt);
-        $this->em->flush();
 
         // liaison catégorie inventaire
         if (!empty($data['catInv'])) {
@@ -701,7 +700,6 @@ class ImportService
 
         // liaison emplacement
         $this->checkEmplacement($data, $rowIndex, $article);
-        $this->em->flush();
         $this->em->persist($article);
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
@@ -781,6 +779,7 @@ class ImportService
                 $this->em->persist($emplacement);
             }
             $articleOrRef->setEmplacement($emplacement);
+            $this->em->flush();
         }
     }
 
