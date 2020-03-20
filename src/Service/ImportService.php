@@ -71,6 +71,7 @@ class ImportService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NonUniqueResultException
      */
     public function getDataForDatatable($params = null)
     {
@@ -121,7 +122,8 @@ class ImportService
                 'url' => $url,
                 'importId' => $importId,
                 'fournisseurId' => $importId,
-                'canCancel' => $import->getStatus() == $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED)
+                'canCancel' => $import->getStatus() == $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED),
+                'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null
             ]),
         ];
         return $row;
@@ -326,9 +328,9 @@ class ImportService
             $pieceJointeForLogFile = new PieceJointe();
             $pieceJointeForLogFile
                 ->setOriginalName($createdLogFile)
-                ->setFileName($createdLogFile)
-                ->setImportLog($import);
+                ->setFileName($createdLogFile);
             $this->em->persist($pieceJointeForLogFile);
+            $import->setLogFile($pieceJointeForLogFile);
             $this->em->flush();
         }
     }

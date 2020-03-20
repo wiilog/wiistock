@@ -3,9 +3,11 @@
          onclick="displayFirstModal({{ importId }})">
         <i class='fas fa-sync-alt'></i>
     </div>
-    <div class="btn btn-col-action has-tooltip" title="voir le fichier de traces">
-        <i class='fas fa-search-plus'></i>
-    </div>
+    {% if logFile is not null %}
+        <a href="/uploads/attachements/{{ logFile }}" class="btn btn-col-action has-tooltip" title="voir le fichier de traces">
+            <i class='fas fa-search-plus'></i>
+        </a>
+    {% endif %}
     {% if canCancel %}
         <div class="btn btn-col-action has-tooltip" title="annuler l'import"
             onclick="openConfirmCancelModal({{ importId }})">
