@@ -489,8 +489,8 @@ class ImportService
         if (isset($data['reference'])) {
             $refArt->setReference($data['reference']);
         }
-        // interdiction de modifier le type quantité d'une réf existante
         if ($newEntity) {
+            // interdiction de modifier le type quantité d'une réf existante
             $refArt->setTypeQuantite($data['typeQuantite'] ?? ReferenceArticle::TYPE_QUANTITE_REFERENCE);
         }
         if (isset($data['prixUnitaire'])) {
@@ -537,6 +537,7 @@ class ImportService
         }
         $refArt->setType($type);
         $this->em->flush();
+
         // liaison emplacement
         $this->checkEmplacement($data, $rowIndex, $refArt);
 
@@ -553,8 +554,10 @@ class ImportService
             }
         }
         $this->em->persist($refArt);
+
+        // quantité
         if (isset($data['quantiteStock']) || $newEntity) {
-            if (!is_numeric($data['quantiteStock'])) {
+            if (isset($data['quantiteStock']) && !is_numeric($data['quantiteStock'])) {
                 $message = 'La quantité doit être un nombre. '
                     . 'L\'erreur est survenue à la ligne ' . $rowIndex;
                 $this->throwError($message);
@@ -566,6 +569,7 @@ class ImportService
                 $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
             }
         }
+
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
