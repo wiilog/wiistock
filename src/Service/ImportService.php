@@ -330,13 +330,14 @@ class ImportService
 
     private function buildErrorFile(array $csvErrors)
     {
-        $logCsvFilePath = "../public/uploads/attachements/" . uniqid() . '.csv';
+        $fileName = uniqid() . '.csv';
+        $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
         $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
         foreach ($csvErrors as $csvError) {
             fputcsv($logCsvFilePathOpened, $csvError, ';');
         }
         fclose($logCsvFilePathOpened);
-        return $logCsvFilePath;
+        return $fileName;
     }
 
     /**
