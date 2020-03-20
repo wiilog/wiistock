@@ -20,7 +20,7 @@ use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -147,6 +147,7 @@ class ImportService
     /**
      * @param Import $import
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function loadData(Import $import)
     {
@@ -161,17 +162,26 @@ class ImportService
 
         $dataToCheck = $this->getDataToCheck($import->getEntity(), $corresp);
 
-        $firstRow = true;
         $headers = [];
         $rowIndex = 0;
         $csvErrors = [];
         $updatedRef = [];
-        while (($data = fgetcsv($file, 1000, ';')) !== false) {
-            $rowIndex++;
-            $row = array_map('utf8_encode', $data);
+
+        $rows = [];
+        while (($data = fgetcsv($file, 1000, ";")) !== false) {
+            $rows[] = array_map('utf8_encode', $data);
+        }
+
+        // si + de 500 ligne -> planification
+        if (count($rows) > 500) {
+            $import->setStatus($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
+            $this->em->flush();
+            return;
+        }
+
+        foreach ($rows as $row) {
             try {
-                if ($firstRow) {
-                    $firstRow = false;
+                if ($rowIndex == 0) {
                     $headers = $row;
                     $csvErrors[] = array_merge($headers, ['Erreur']);
                 } else {
@@ -195,6 +205,8 @@ class ImportService
             } catch (ImportException $exception) {
                 $csvErrors[] = array_merge($row, [$exception->getMessage()]);
             }
+
+            $rowIndex++;
         }
 
         // mise à jour des quantités sur références
