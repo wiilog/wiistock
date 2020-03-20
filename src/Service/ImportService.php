@@ -165,6 +165,7 @@ class ImportService
         $headers = [];
         $rowIndex = 0;
         $csvErrors = [];
+        $updatedRef = [];
         while (($data = fgetcsv($file, 1000, ';')) !== false) {
             $rowIndex++;
             $row = array_map('utf8_encode', $data);
@@ -184,7 +185,7 @@ class ImportService
                             $this->importArticleFournisseurEntity($verifiedData, $rowIndex);
                             break;
                         case Import::ENTITY_REF:
-                            $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $updatedRef[] = $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                         case Import::ENTITY_ART:
                             $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
@@ -194,6 +195,12 @@ class ImportService
             } catch (ImportException $exception) {
                 $csvErrors[] = array_merge($row, [$exception->getMessage()]);
             }
+        }
+
+        // mise à jour des quantités sur références
+        //TODO optimiser avec une seule requête
+        foreach ($updatedRef as $ref) {
+           $this->refArticleDataService->updateRefArticleQuantities($ref);
         }
 
         $createdLogFile = $this->buildErrorFile($csvErrors);
@@ -462,11 +469,11 @@ class ImportService
      * @param array $colChampsLibres
      * @param array $row
      * @param int $rowIndex
-     * @throws NonUniqueResultException
+     * @return ReferenceArticle
      * @throws ImportException
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
-    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): void
+    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): ReferenceArticle
     {
         $newEntity = false;
         $refArt = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['reference']);
@@ -570,6 +577,8 @@ class ImportService
             $this->em->persist($valeurCL);
         }
         $this->em->flush();
+
+        return $refArt;
     }
 
     /**
