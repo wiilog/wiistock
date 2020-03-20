@@ -32,7 +32,7 @@ $(function () {
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
         chartColis = chart;
     });
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics').then((chart) => {
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', null, true, true).then((chart) => {
         chartMonetaryFiability = chart;
     });
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
@@ -88,7 +88,7 @@ function updateCharts() {
     drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival);
     drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival);
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability);
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, true, true);
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
     drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
 }
@@ -143,6 +143,7 @@ function updateSimpleChartData(
 
 
         const $legendContainer = $(chart.canvas).parent().siblings('.custom-chart-legend');
+        const subClasses = isDashboardExt() ? 'chart-legend-label-bigger' : '';
         $legendContainer.html($('<ul/>', {
             class: 'd-flex justify-content-center align-items-center',
             html: legendConfig.map(({label, color}) => (
@@ -150,7 +151,7 @@ function updateSimpleChartData(
                     class: 'd-flex justify-content-center align-items-center',
                     html: [
                         $('<span/>', {class: 'chart-legend-color', style: `background-color: ${color}`}),
-                        $('<span/>', {class: 'chart-legend-label', text: label})
+                        $('<span/>', {class: `chart-legend-label ${subClasses}`, text: label,})
                     ]
                 })
             ))
@@ -198,14 +199,14 @@ function updateMultipleChartData(chart, chartData, chartColors) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path, chart = null) {
+function drawSimpleChart($canvas, path, chart = null, canHaveNegativValues = false, showLegend = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
-                    chart = newChart($canvas);
+                    chart = newChart($canvas, showLegend, false, canHaveNegativValues);
                 }
 
                 updateSimpleChartData(
@@ -304,15 +305,17 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, showLegend = false, redForLastData = false) {
+function newChart($canvasId, showLegend = false, redForLastData = false, canHaveNegativValues = false) {
     if ($canvasId.length) {
+        const fontSize = isDashboardExt() ? 20 : 12;
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
             options: {
                 layout: {
                     padding: {
-                        top: 30
+                        top: 30,
+                        bottom: canHaveNegativValues ? 30 : 0
                     }
                 },
                 tooltips: false,
@@ -329,12 +332,18 @@ function newChart($canvasId, showLegend = false, redForLastData = false) {
                 scales: {
                     yAxes: [{
                         ticks: {
+                            fontSize,
                             beginAtZero: true,
                             callback: (value) => {
                                 if (Math.floor(value) === value) {
                                     return value;
                                 }
                             }
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            fontSize
                         }
                     }]
                 },
@@ -450,19 +459,30 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     const figureColor = '#666666';
     const rectColor = '#FFFFFF';
 
+    const yAdjust = 23;
+
     chartInstance.data.datasets.forEach(function (dataset, index) {
         if (chartInstance.isDatasetVisible(index)) {
+            let containsNegativValues = dataset.data.some((current) => (current < 0));
             for (let i = 0; i < dataset.data.length; i++) {
                 for (let key in dataset._meta) {
-                    if (parseInt(dataset.data[i]) > 0) {
-                        let {x, y} = dataset._meta[key].data[i]._model;
-                        y -= 23;
+                    const value = parseInt(dataset.data[i]);
+                    const isNegativ = (value < 0);
+                    if (value !== 0) {
+                        let {x, y, base} = dataset._meta[key].data[i]._model;
                         const figure = dataset.data[i];
                         const {width} = ctx.measureText(figure);
-                        const rectX = x - (width / 2) - figurePaddingHorizontal;
-                        const rectY = y - figurePaddingVertical;
                         const rectWidth = width + (figurePaddingHorizontal * 2);
                         const rectHeight = fontSize + (figurePaddingVertical * 2);
+
+                        y = isNegativ
+                            ? (base - rectHeight)
+                            : (containsNegativValues
+                                ? (base + (rectHeight / 2))
+                                : (y - yAdjust));
+
+                        const rectX = x - (width / 2) - figurePaddingHorizontal;
+                        const rectY = y - figurePaddingVertical;
 
                         // context only for rect
                         ctx.shadowBlur = 2;
@@ -483,4 +503,8 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
             }
         }
     });
+}
+function isDashboardExt() {
+    const $isDashboardExt = $('#isDashboardExt');
+    return ($isDashboardExt.length > 0 ? ($isDashboardExt.val() === "1") : false);
 }

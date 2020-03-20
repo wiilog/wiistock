@@ -7,6 +7,8 @@ namespace App\EventListener;
 use App\Entity\Article;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 
 class ArticleQuantityNotifier
@@ -16,8 +18,7 @@ class ArticleQuantityNotifier
     private $entityManager;
 
     public function __construct(RefArticleDataService $refArticleDataService,
-                                EntityManagerInterface $entityManager)
-    {
+                                EntityManagerInterface $entityManager) {
         $this->refArticleService = $refArticleDataService;
         $this->entityManager = $entityManager;
     }
@@ -27,7 +28,7 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postUpdate(Article $article) {
-            $this->treatAlert($article);
+        $this->treatAlertAndUpdateRefArticleQuantities($article);
     }
 
     /**
@@ -35,7 +36,7 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postPersist(Article $article) {
-            $this->treatAlert($article);
+        $this->treatAlertAndUpdateRefArticleQuantities($article);
     }
 
     /**
@@ -43,17 +44,23 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postRemove(Article $article) {
-            $this->treatAlert($article);
+        $this->treatAlertAndUpdateRefArticleQuantities($article);
     }
 
-    private function treatAlert(Article $article) {
+    /**
+     * @param Article $article
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    private function treatAlertAndUpdateRefArticleQuantities(Article $article) {
         $articleFournisseur = $article->getArticleFournisseur();
         if (isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
-			if ($referenceArticle) {
-			    $this->refArticleService->treatAlert($referenceArticle);
-                $this->entityManager->flush();
-            }
+			$this->refArticleService->treatAlert($referenceArticle);
+            $this->refArticleService->updateRefArticleQuantities($referenceArticle);
+
+            $this->entityManager->flush();
         }
     }
 }

@@ -43,7 +43,7 @@ class OrdreCollecteService
 	 */
     private $entityManager;
 	/**
-	 * @var \Twig_Environment
+	 * @var Twig_Environment
 	 */
 	private $templating;
 	/**
@@ -270,7 +270,7 @@ class OrdreCollecteService
 				$refArticle = $collecteReference->getReferenceArticle();
 
                 if (!$fromNomade) {
-                    $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $collecteReference->getQuantite());
+                    $refArticle->setQuantiteStock(($refArticle->getQuantiteStock() ?? 0) + $collecteReference->getQuantite());
                 }
 
                 $this->persistMouvementsFromStock(
