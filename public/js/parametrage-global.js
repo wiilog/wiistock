@@ -250,6 +250,21 @@ function editStatusLitigeArrivage($select) {
     });
 }
 
+function editStatusArrivage($select) {
+    let path = Routing.generate('edit_status_arrivage',true);
+    const param = {
+        value: $select.val()
+    };
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("Le statut de l'arrivage par défaut a bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.");
+        }
+    });
+}
+
 function editFont() {
     let path = Routing.generate('edit_font', true);
     let param = {
@@ -286,7 +301,7 @@ function editReceptionStatus() {
         let name = $(this).attr('name');
         let val = $(this).val();
         param[name] = val;
-    })
+    });
 
     $.post(path, param, (resp) => {
         if (resp) {
