@@ -113,11 +113,10 @@ Class GlobalParamService
 		$process->run();
 	}
 
-	/**
-	 * @return array
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @return array
+     * @throws NonUniqueResultException
+     */
 	public function getDashboardLocations() {
 
 		$paramLabels = [

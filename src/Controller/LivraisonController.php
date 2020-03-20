@@ -12,18 +12,16 @@ use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\DemandeRepository;
-
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
-
+use App\Service\PreparationsManagerService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -50,8 +48,7 @@ class LivraisonController extends AbstractController
     public function index(DemandeRepository $demandeRepository,
                           UserService $userService,
                           EntityManagerInterface $entityManager,
-                          string $demandId = null): Response
-    {
+                          string $demandId = null): Response {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -223,13 +220,16 @@ class LivraisonController extends AbstractController
      * @Route("/supprimer/{id}", name="livraison_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param PreparationsManagerService $preparationsManager
      * @param UserService $userService
      * @return Response
+     * @throws NoResultException
      * @throws NonUniqueResultException
      */
 
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
+                           PreparationsManagerService $preparationsManager,
                            UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -249,11 +249,15 @@ class LivraisonController extends AbstractController
             foreach ($preparation->getArticles() as $article) {
                 $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF));
             }
+            $preparation->setLivraison(null);
             $entityManager->remove($livraison);
             $entityManager->flush();
+
+            $preparationsManager->updateRefArticlesQuantities($preparation, false);
+
             $data = [
                 'redirect' => $this->generateUrl('preparation_show', [
-                    'id' => $livraison->getPreparation()->getId()
+                    'id' => $preparation->getId()
                 ]),
             ];
 

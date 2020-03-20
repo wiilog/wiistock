@@ -15,7 +15,7 @@ class SpecificService
 	const CLIENT_SAFRAN_CS = 'safran-cs';
 	const CLIENT_SAFRAN_ED = 'safran-ed';
 
-	const ECS_ARG_LOCATION = 'ECS ARG';
+	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS SG';
 
 	public function isCurrentClientNameFunction(string $clientName)
 	{

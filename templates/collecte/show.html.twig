@@ -28,11 +28,18 @@
                 {% endif %}
             {% else %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
-                    <div class="col text-right">
-                        <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
-                           class="btn btn-primary btn-action">
-                            Aller vers les ordres de collecte
-                        </a>
+                    <div class=" text-right">
+                        {% if collecte.ordresCollecte|length > 1 %}
+                            <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
+                               class="btn btn-primary btn-action">
+                                Aller vers les ordres de collecte
+                            </a>
+                        {% else %}
+                            <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte[0].id }) }}"
+                               class="btn btn-primary btn-action ml-auto">
+                                Aller vers l'ordre de collecte
+                            </a>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endif %}

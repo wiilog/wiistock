@@ -76,9 +76,9 @@ function checkAndDeleteRowEmplacement(icon) {
 
 function displayErrorEmplacement($modal, response) {
     if (!response.success) {
-        modal.find('.error-msg').html(response.message);
+        $modal.find('.error-msg').html(response.message);
     } else {
-        modal.find('.close').click();
+        $modal.find('.close').click();
     }
 }
 
