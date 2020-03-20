@@ -3,11 +3,13 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
@@ -129,6 +131,18 @@ class MouvementTracaService
             $fromLabel = null;
             $originFrom = '-';
         }
+        $articleRepository = $this->em->getRepository(Article::class);
+        $refArticleRepository = $this->em->getRepository(ReferenceArticle::class);
+
+        $articleOrRef = $articleRepository->findOneBy([
+            'barCode' => $mouvement->getColis()
+        ]);
+        if (!$articleOrRef) {
+            $articleOrRef = $refArticleRepository->findOneBy([
+                'barCode' => $mouvement->getColis()
+            ]);
+        }
+
         $row = [
             'id' => $mouvement->getId(),
             'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
@@ -140,6 +154,16 @@ class MouvementTracaService
                 'entityId' => $fromEntityId
             ]),
             'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
+            'reference' => $articleOrRef
+                ? ($articleOrRef instanceof ReferenceArticle
+                    ? $articleOrRef->getReference()
+                    : $articleOrRef->getArticleFournisseur()->getReferenceArticle()->getReference())
+                : '',
+            'label' => $articleOrRef
+                ? ($articleOrRef instanceof ReferenceArticle
+                    ? $articleOrRef->getLibelle()
+                    : $articleOrRef->getLabel())
+                : '',
             'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
             'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
             'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
@@ -200,8 +224,7 @@ class MouvementTracaService
         if (isset($from)) {
             if ($from instanceof Arrivage) {
                 $mouvementTraca->setArrivage($from);
-            }
-            else if ($from instanceof Reception) {
+            } else if ($from instanceof Reception) {
                 $mouvementTraca->setReception($from);
             }
         }

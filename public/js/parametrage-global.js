@@ -117,8 +117,9 @@ function ajaxDims() {
         processData: false,
         cache: false,
         dataType: 'json',
-        success: () => {
+        success: (response) => {
             alertSuccessMsg('La configuration des étiquettes a bien été mise à jour.');
+            $('.blChosen').text("\"" + response['param-cl-etiquette'] + "\"");
         }
     });
 }

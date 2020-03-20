@@ -28,7 +28,6 @@ class ChampLibre
             'label' => 'Date',
         ],
         [
-
             'value' => ChampLibre::TYPE_DATETIME,
             'label' => 'Date et heure',
         ],

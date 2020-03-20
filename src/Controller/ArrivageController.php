@@ -62,6 +62,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
@@ -297,18 +298,19 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param AttachmentService $attachmentService
      * @param UserService $userService
-     * @param SpecificService $specificService
      * @param ArrivageDataService $arrivageDataService
      * @param ColisService $colisService
      * @return Response
+     * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         AttachmentService $attachmentService,
                         UserService $userService,
-                        SpecificService $specificService,
                         ArrivageDataService $arrivageDataService,
                         ColisService $colisService): Response
     {
@@ -319,7 +321,6 @@ class ArrivageController extends AbstractController
 
             $data = $request->request->all();
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-            $urgenceRepository = $entityManager->getRepository(Urgence::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -327,7 +328,6 @@ class ArrivageController extends AbstractController
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
-            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
@@ -342,7 +342,7 @@ class ArrivageController extends AbstractController
 				->setDuty($data['duty'] == 'true')
 				->setFrozen($data['frozen'] == 'true')
                 ->setCommentaire($data['commentaire'] ?? null);
-            $entityManager->persist($arrivage);
+
             if (!empty($data['fournisseur'])) {
                 $arrivage->setFournisseur($fournisseurRepository->find($data['fournisseur']));
             }
@@ -355,29 +355,25 @@ class ArrivageController extends AbstractController
             if (!empty($data['noTracking'])) {
                 $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
             }
+            $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
+            if (!empty($numeroCommandeList)) {
+                $arrivage->setNumeroCommandeList($numeroCommandeList);
+            }
+            if (!empty($data['destinataire'])) {
+                $arrivage->setDestinataire($userRepository->find($data['destinataire']));
+            }
             if (!empty($data['acheteurs'])) {
                 $acheteursId = explode(',', $data['acheteurs']);
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
-            $noBL = $data['noBL'] ?? '';
-            $urgencesMatching = [];
-            if (!empty($data['noBL'])) {
-                $arrivage->setNumeroBL(substr($noBL, 0, 64));
-                $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
-                if (!empty($urgencesMatching) && !$isSEDCurrentClient) {
-                    $arrivageDataService->setArrivalUrgent($arrivage, $urgencesMatching);
-                }
-            }
-            if (!empty($data['destinataire'])) {
-                $arrivage->setDestinataire($userRepository->find($data['destinataire']));
-            }
-            if (empty($urgencesMatching) && $arrivage->getAcheteurs()->count() > 0 && $sendMail) {
-                $arrivageDataService->sendArrivageEmail($arrivage);
-            }
+
             $entityManager->persist($arrivage);
+            $entityManager->flush();
+
             $attachmentService->addAttachements($request->files, $arrivage);
+
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -396,14 +392,7 @@ class ArrivageController extends AbstractController
                 ]);
             }
             $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
-            $printColis = null;
-            $printArrivage = null;
-            if (isset($data['printColis']) && $data['printColis'] === 'true') {
-                $printColis = true;
-            }
-            if (isset($data['printArrivage']) && $data['printArrivage'] === 'true') {
-                $printArrivage = true;
-            }
+
 
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champs) {
@@ -417,22 +406,29 @@ class ArrivageController extends AbstractController
                     $arrivage->addValeurChampLibre($valeurChampLibre);
                 }
             }
+
+            $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+            if ($sendMail) {
+                $arrivageDataService->sendArrivalEmails($arrivage);
+            }
+
             $entityManager->flush();
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
             $statutConformeId = $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
+
             $data = [
                 "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
                     ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                     : null,
-                'printColis' => $printColis,
-                'printArrivage' => $printArrivage,
+                'printColis' => (isset($data['printColis']) && $data['printColis'] === 'true'),
+                'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
                 'champsLibresBlock' => $this->renderView('arrivage/champsLibresArrivage.html.twig', [
                     'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
                 ]),
                 'statutConformeId' => $statutConformeId,
-                'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $urgencesMatching ?? [])
+                'alertConfigs' => $alertConfigs
             ];
             return new JsonResponse($data);
         }
@@ -452,8 +448,10 @@ class ArrivageController extends AbstractController
     public function editApi(Request $request,
                             ChampLibreRepository $champLibreRepository,
                             ValeurChampLibreRepository $valeurChampLibreRepository,
-                            StatutService $statutService): Response {
-
+                            SpecificService $specificService,
+                            StatutService $statutService
+    ): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
@@ -515,84 +513,50 @@ class ArrivageController extends AbstractController
      *     methods="PATCH",
      *     condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')"
      * )
+     *
      * @param Arrivage $arrival
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
+     *
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function patchUrgentArrival(Arrivage $arrival,
+                                       Request $request,
                                        ArrivageDataService $arrivageDataService,
-                                       EntityManagerInterface $entityManager): Response
-    {
-        $success = false;
-        if (!$arrival->getIsUrgent()) {
-            if ($arrival->getNumeroBL()) {
-                $urgenceRepository = $entityManager->getRepository(Urgence::class);
-                $urgencesMatching = $urgenceRepository->findUrgencesMatching($arrival, true);
-                if (!empty($urgencesMatching)) {
-                    $success = true;
-                    $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
-                    $entityManager->flush();
-                }
-            }
+                                       EntityManagerInterface $entityManager): Response {
+        $urgenceRepository = $entityManager->getRepository(Urgence::class);
+        $numeroCommande = $request->request->get('numeroCommande');
+
+        $urgencesMatching = !empty($numeroCommande)
+            ? $urgenceRepository->findUrgencesMatching(
+                $arrival->getDate(),
+                $arrival->getFournisseur(),
+                $numeroCommande,
+                true
+            )
+            : [];
+
+        $success = !empty($urgencesMatching);
+
+        if ($success) {
+            $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
         }
 
-        $response = $this->getResponseReloadArrivage($arrival->getId());
+        $entityManager->flush();
 
-        $response['success'] = $success;
-        $response['alertConfig'] = $success ? $this->createArrivalAlertConfig($arrival, false, $urgencesMatching ?? []) : null;
+        $response = [
+            'success' => $success,
+            'alertConfigs' => $success
+                ? [$arrivageDataService->createArrivalAlertConfig($arrival, false, $urgencesMatching)]
+                : null
+        ];
 
         return new JsonResponse($response);
     }
-
-    /**
-     * @param Arrivage $arrivage
-     * @param bool $isSEDCurrentClient
-     * @param array $urgences
-     * @return array
-     */
-    private function createArrivalAlertConfig(Arrivage $arrivage,
-                                              bool $isSEDCurrentClient,
-                                              array $urgences): array
-    {
-        $posts = array_map(
-            function (Urgence $urgence) {
-                return $urgence->getPostNb();
-            },
-            $urgences
-        );
-        $isArrivalUrgent = count($urgences);
-
-        if ($isSEDCurrentClient && $isArrivalUrgent) {
-            $nbPosts = count($posts);
-            if ($nbPosts == 0) {
-                $msgSedUrgent = "L'arrivage est-il urgent sur la commande " . $arrivage->getNumeroBL() . " ?";
-            } else {
-                if ($nbPosts == 1) {
-                    $msgSedUrgent = "Le poste <span class='bold'>" . $posts[0] . '</span> est urgent sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> .
-					<br>L'avez-vous reçu dans cet arrivage ?";
-                } else {
-                    $msgSedUrgent = "Les postes <span class='bold'>" . implode(', ', $posts) . '</span> sont urgents sur la commande <span class="bold">' . $arrivage->getNumeroBL() . "</span> .
-					<br>Les avez-vous reçus dans cet arrivage ?";
-                }
-            }
-        }
-
-        return [
-            'autoHide' => !$isSEDCurrentClient && !$isArrivalUrgent,
-            'message' => (!$isSEDCurrentClient
-                ? ($isArrivalUrgent
-                    ? 'Arrivage URGENT enregistré avec succès.'
-                    : 'Arrivage enregistré avec succès.')
-                : ($isArrivalUrgent
-                    ? ($msgSedUrgent ?? '')
-                    : 'Arrivage enregistré avec succès.')),
-            'iconType' => $isArrivalUrgent ? 'warning' : 'success',
-            'modalType' => ($isSEDCurrentClient && $isArrivalUrgent) ? 'yes-no-question' : 'info',
-            'arrivalId' => $arrivage->getId()
-        ];
-    }
-
 
     /**
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST")
@@ -601,7 +565,8 @@ class ArrivageController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         ArrivageDataService $arrivageDataService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
@@ -619,12 +584,12 @@ class ArrivageController extends AbstractController
             $statutId = $post->get('statut');
             $chauffeurId = $post->get('chauffeur');
 
-            $oldNumeroBL = $arrivage->getNumeroBL();
+            $numeroCommadeListStr = $post->get('numeroCommandeList');
 
             $arrivage
                 ->setCommentaire($post->get('commentaire'))
                 ->setNoTracking(substr($post->get('noTracking'), 0, 64))
-                ->setNumeroBL(substr($post->get('noBL'), 0, 64))
+                ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
                 ->setFournisseur($fournisseurId ? $this->fournisseurRepository->find($fournisseurId) : null)
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
                 ->setChauffeur($chauffeurId ? $this->chauffeurRepository->find($chauffeurId) : null)
@@ -661,19 +626,6 @@ class ArrivageController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $arrivage);
-
-            if ($arrivage->getNumeroBL() &&
-                ($oldNumeroBL !== $arrivage->getNumeroBL())) {
-                $urgencesMatching = $this->urgenceRepository->findUrgencesMatching($arrivage, $isSEDCurrentClient);
-                $arrivage->clearUrgences();
-                if (!empty($urgencesMatching)) {
-                    if (!$isSEDCurrentClient) {
-                        $this->arrivageDataService->setArrivalUrgent($arrivage, $urgencesMatching);
-                    }
-                } else {
-                    $arrivage->setIsUrgent(false);
-                }
-            }
 
             $em->flush();
 
@@ -723,7 +675,9 @@ class ArrivageController extends AbstractController
                     'fieldsParam' => $fieldsParam,
                     'champsLibres' => $champsLibres
                 ]),
-                'alertConfig' => $this->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, $urgencesMatching ?? [])
+                'alertConfigs' => [
+                    $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, [])
+                ]
             ];
             return new JsonResponse($response);
         }
@@ -947,6 +901,7 @@ class ArrivageController extends AbstractController
             $data = [];
             $data[] = $headers;
 
+            /** @var Arrivage $arrivage */
             foreach ($arrivages as $arrivage) {
                 $arrivageData = [];
 
@@ -956,7 +911,9 @@ class ArrivageController extends AbstractController
                 $arrivageData[] = $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : ' ';
                 $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
                 $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
-                $arrivageData[] = $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '';
+
+                $numeroCommmandeList = $arrivage->getNumeroCommandeList();
+                $arrivageData[] = !empty($numeroCommmandeList) ? implode(' / ', $numeroCommmandeList) : '';
 
                 $acheteurs = $arrivage->getAcheteurs();
                 $acheteurData = [];
@@ -1145,7 +1102,6 @@ class ArrivageController extends AbstractController
             }
 
             $arrivage = $this->arrivageRepository->find($data['arrivageId']);
-
 
             $natures = array_reduce(
                 array_keys($data),
@@ -1428,7 +1384,6 @@ class ArrivageController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-//*
 
     /**
      * @Route(
@@ -1454,8 +1409,7 @@ class ArrivageController extends AbstractController
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
                                                PDFGeneratorService $PDFGeneratorService,
-                                               Colis $colis = null): Response
-    {
+                                               Colis $colis = null): Response {
         $barcodeConfigs = [];
 
         if (!isset($colis)) {
@@ -1471,12 +1425,17 @@ class ArrivageController extends AbstractController
                     'code' => $arrivage->getNumeroArrivage()
                 ];
             }
-        } else {
+        }
+        else {
             if (!$colis->getArrivage() || $colis->getArrivage()->getId() !== $arrivage->getId()) {
                 throw new NotFoundHttpException("404");
             }
 
             $barcodeConfigs[] = $this->getBarcodeColisConfig($colis, $arrivage->getAcheteurs());
+        }
+
+        if (empty($barcodeConfigs)) {
+            throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
         }
 
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
@@ -1506,10 +1465,8 @@ class ArrivageController extends AbstractController
      */
     public function printArrivageAlias(Arrivage $arrivage,
                                        Request $request,
-                                       PDFGeneratorService $PDFGeneratorService)
-    {
+                                       PDFGeneratorService $PDFGeneratorService) {
         return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
-
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage)
@@ -1530,8 +1487,8 @@ class ArrivageController extends AbstractController
             'labels' => [
                 ($buyersCounter === 1)
                     ? ($buyers->first()->getDropzone()
-                    ? $buyers->first()->getDropzone()->getLabel()
-                    : '')
+                        ? $buyers->first()->getDropzone()->getLabel()
+                        : '')
                     : ''
             ]
         ];

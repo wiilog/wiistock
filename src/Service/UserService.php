@@ -23,6 +23,7 @@ use App\Repository\ManutentionRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
+use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
@@ -229,11 +230,12 @@ class UserService
 		return $response;
 	}
 
-	/**
-	 * @param Utilisateur|int $user
-	 * @return bool
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param Utilisateur|int $user
+     * @return bool
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
 	public function isUsedByDemandsOrOrders($user)
 	{
 		$nbDemandesLivraison = $this->demandeRepository->countByUser($user);

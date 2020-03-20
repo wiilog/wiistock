@@ -157,14 +157,15 @@
                                    name="noTracking" maxlength="64">
                         </div>
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('numeroBL', 'displayed') %}
+                    {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
                         <div class="form-group col-4">
-                            <label for="noBL">
-                                N°&nbsp;commande&nbsp;/&nbsp;BL{{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? '*' : '' }}
+                            <label for="numeroCommandeList">
+                                N°&nbsp;commande&nbsp;/&nbsp;BL{{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? '*' : '' }}
                             </label>
-                            <input type="text" id="noBL"
-                                   class="form-control input-sm data {{ fieldsParam|isFieldRequired('numeroBL', 'mustToCreate') ? 'needed' : '' }}"
-                                   name="noBL" maxlength="64">
+                            <select id="numeroCommandeList"
+                                   class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? 'needed' : '' }}"
+                                   name="numeroCommandeList" multiple="multiple">
+                            </select>
                         </div>
                     {% endif %}
                     <div class="form-group col-4">

@@ -1,17 +1,19 @@
-<div class="form-group w-100">
-    <label class="mtb-auto mr-2">Emplacement de prise*</label>
-    <select name="emplacement-prise" class="form-control ajax-autocompleteEmplacement data needed">
-    </select>
-</div>
-<div class="form-group w-100">
-    <label for="colis" title="Colis">{{"mouvement de traçabilité.Colis"|trans}}*</label>
-    <select class="form-control data needed select2-colis select2-fit-content" id="colis" name="colis" multiple="multiple">
-    </select>
-</div>
-<div class="form-group w-100">
-    <label class="mtb-auto mr-2">Emplacement de dépose*</label>
-    <select name="emplacement-depose" class="form-control ajax-autocompleteEmplacement data needed">
-    </select>
-</div>
+<div class="form-mass-mvt-container">
+    <div class="form-group w-100">
+        <label class="mtb-auto mr-2">Emplacement de prise*</label>
+        <select name="emplacement-prise" class="form-control ajax-autocompleteEmplacement data needed">
+        </select>
+    </div>
+    <div class="form-group w-100">
+        <label for="colis" title="Colis">{{"mouvement de traçabilité.Colis"|trans}}*</label>
+        <select class="form-control data needed select2-free select2-free select2-fit-content" name="colis" multiple="multiple">
+        </select>
+    </div>
+    <div class="form-group w-100">
+        <label class="mtb-auto mr-2">Emplacement de dépose*</label>
+        <select name="emplacement-depose" class="form-control ajax-autocompleteEmplacement data needed">
+        </select>
+    </div>
 
-<input value="1" name="is-mass" class="data" hidden>
+    <input type="hidden" value="1" name="is-mass" class="data"/>
+</div>

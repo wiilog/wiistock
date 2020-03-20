@@ -155,6 +155,9 @@
             "./config/packages/knp_snappy.yaml"
         ]
     },
+    "laminas/laminas-zendframework-bridge": {
+        "version": "1.0.1"
+    },
     "lcobucci/jwt": {
         "version": "3.2.5"
     },
@@ -192,7 +195,7 @@
         "version": "2.1.1"
     },
     "php": {
-        "version": "7.4"
+        "version": "7.2"
     },
     "phpdocumentor/reflection-common": {
         "version": "1.0.1"

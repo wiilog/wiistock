@@ -186,11 +186,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                 $('.zone-entete').html(data.entete)
             }
             if (table) {
-                table.ajax.reload(function (json) {
-                    if (data !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                }, false);
+                table.ajax.reload(null, false);
             }
 
             if (clear) {
@@ -504,25 +500,83 @@ function initFilterDateToday() {
 /**
  *
  * @param $select
- * @param {{}|{route: string, param: {}|undefined}} ajaxOption
+ * @param {{}|{route: string, param: {}|undefined, success?: function(result, term)}} ajaxOptions
  * @param lengthMin
  * @param placeholder
+ * @param {boolean} autoSelect
  */
-function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOption = {}) {
+function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {}, {autoSelect, $nextField} = {}) {
     $select.each(function () {
-        const $item = $(this);
-        let isMultiple = $item.attr('multiple') === 'multiple';
-        const ajaxOptions = ajaxOption && ajaxOption.route
+        const $self = $(this);
+        let isMultiple = $self.attr('multiple') === 'multiple';
+
+        const select2AjaxOptions = ajaxOptions && ajaxOptions.route
             ? {
                 ajax: {
-                    url: Routing.generate(ajaxOption.route, ajaxOption.param || {}, true),
+                    url: Routing.generate(ajaxOptions.route, ajaxOptions.param || {}, true),
                     dataType: 'json',
                     delay: 250,
+                    ...(
+                        autoSelect
+                            ? {
+                                processResults: (data, {term}) => {
+                                    const {results = []} = (data || {});
+
+                                    if (results
+                                        && results.length > 0
+                                        && results[0].text === term) {
+
+                                        const option = new Option(results[0].text, results[0].id, true, true);
+                                        const oldVal = $self.val();
+                                        const newVal = (
+                                            !isMultiple
+                                                ? option
+                                                : [
+                                                    ...(oldVal || []),
+                                                    option
+                                                ]
+                                        );
+
+                                        setTimeout(() => {
+                                            $self
+                                                .append(newVal)
+                                                .trigger('change');
+
+                                            $self.select2('close');
+                                            if ($nextField) {
+
+                                                if (!$nextField.data('select2')) {
+                                                    $nextField.select2('open');
+                                                }
+                                                else {
+                                                    $nextField.trigger('focus');
+                                                }
+                                            }
+                                        });
+                                    }
+                                    return data;
+                                }
+                            }
+                            : {}
+                    )
                 }
             }
             : {};
-        $item.select2({
-            ...ajaxOptions,
+
+        const getSelect2Selection = () => (
+            $self
+                .siblings('.select2-container')
+                .find('.select2-selection')
+        );
+
+        let $select2Selection = getSelect2Selection();
+
+        if ($select2Selection.length > 0) {
+            $select2Selection.off('focus');
+        }
+
+        $self.select2({
+            ...select2AjaxOptions,
             language: {
                 inputTooShort: function () {
                     let s = lengthMin > 1 ? 's' : '';
@@ -541,6 +595,12 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOption = {}) 
                 text: placeholder,
             },
             allowClear: !isMultiple
+        });
+
+        // on recupère le select2 après l'initialisation de select2
+        $select2Selection = getSelect2Selection();
+        $select2Selection.on('focus', function() {
+            $self.select2('open');
         });
     });
 }
@@ -566,8 +626,8 @@ function initDisplaySelect2Multiple(select, inputValues) {
     }
 }
 
-function ajaxAutoCompleteEmplacementInit(select) {
-    initSelect2(select, '', 1, {route: 'get_emplacement'});
+function ajaxAutoCompleteEmplacementInit(select, autoSelectOptions) {
+    initSelect2(select, '', 1, {route: 'get_emplacement'}, autoSelectOptions);
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
@@ -682,7 +742,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-colis');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-free');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {
@@ -1406,6 +1466,22 @@ function initOnTheFlyCopies($elems) {
         })
     });
 }
+
+function initFreeSelect2($selects) {
+    $selects.each(function () {
+        const $self = $(this);
+        $self.select2({
+            tags: true,
+            "language": {
+                "noResults": function () { return 'Ajoutez des éléments'; }
+            },
+        });
+        $self.next('.select2-container').find('.select2-selection').on('focus', () => {
+            $(this).closest(".select2-container").siblings('select:enabled').select2('open');
+        });
+    });
+}
+
 
 function openSelect2($select2) {
     $select2.select2('open');
