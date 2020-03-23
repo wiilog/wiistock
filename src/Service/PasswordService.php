@@ -65,7 +65,6 @@ class PasswordService
         	$this->entityManager->flush();
             $logo = \Swift_Attachment::fromPath('img/gtlogistics.jpg')
                 ->setDisposition('inline');
-            dump($logo);
 			$this->mailerService->sendMail(
 				'FOLLOW GT // Mot de passe oublié',
 				$this->templating->render('mails/mjml/template.html.twig', [

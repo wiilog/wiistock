@@ -5,6 +5,7 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_IMPORT = 'import';
 const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
@@ -733,9 +734,6 @@ function clearModal(modal) {
             } else {
                 $(this).val("");
             }
-        }
-        if ($(this).attr('id') === 'statut') {
-            $(this).val($(this).parent().find('span.active').data('title'));
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');

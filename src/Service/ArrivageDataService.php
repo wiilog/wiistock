@@ -157,7 +157,6 @@ class ArrivageDataService
                 })
                 ->toArray();
         }
-        dump($senders);
 
         $this->mailerService->sendMail(
             'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),

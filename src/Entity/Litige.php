@@ -331,4 +331,22 @@ class Litige
         return $this;
     }
 
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
+        }
+
+        return $this;
+    }
+
 }

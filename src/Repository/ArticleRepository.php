@@ -842,11 +842,31 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->getOneOrNullResult();
 	}
 
-    /**
-     * @param string $reference
-     * @return Article|null
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param string $reference
+	 * @return int
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+    public function countByReference($reference)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+			FROM App\Entity\Article a
+			WHERE a.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param Demande $demande
+	 * @param Article $article
+	 * @return Article|null
+	 * @throws NonUniqueResultException
+	 */
     public function findOneByDemandeAndArticle(Demande $demande, Article $article)
     {
         $em = $this->getEntityManager();
@@ -869,11 +889,12 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    /**
-     * @param string $reference
-     * @return Article|null
-     * @throws NonUniqueResultException
-     */
+	/**
+	 * @param Demande $demande
+	 * @param Article $article
+	 * @return Article|null
+	 * @throws NonUniqueResultException
+	 */
     public function findOneByAndArticle(Demande $demande, Article $article)
     {
         $em = $this->getEntityManager();
