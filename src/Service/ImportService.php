@@ -167,7 +167,7 @@ class ImportService
         $headers = [];
         $rowIndex = 0;
         $csvErrors = [];
-        $updatedRef = [];
+        $refToUpdate = [];
 
         $rows = [];
         while (($data = fgetcsv($file, 1000, ';')) !== false) {
@@ -198,10 +198,10 @@ class ImportService
                             $this->importArticleFournisseurEntity($verifiedData, $rowIndex);
                             break;
                         case Import::ENTITY_REF:
-                            $updatedRef[] = $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                         case Import::ENTITY_ART:
-                            $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                     }
                 }
@@ -216,10 +216,10 @@ class ImportService
             $rowIndex++;
         }
 
-        // mise à jour des quantités sur références
-        //TODO optimiser avec une seule requête
-        foreach ($updatedRef as $ref) {
-           $this->refArticleDataService->updateRefArticleQuantities($ref);
+        // mise à jour des quantités sur références par article
+        $uniqueRefToUpdate = array_unique($refToUpdate);
+        foreach ($uniqueRefToUpdate as $ref) {
+            $this->refArticleDataService->updateRefArticleQuantities($ref);
         }
 
         $createdLogFile = $this->buildErrorFile($csvErrors);
@@ -488,11 +488,10 @@ class ImportService
      * @param array $colChampsLibres
      * @param array $row
      * @param int $rowIndex
-     * @return ReferenceArticle
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): ReferenceArticle
+    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex)
     {
         $newEntity = false;
         $refArt = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['reference']);
@@ -606,8 +605,6 @@ class ImportService
             $this->em->persist($valeurCL);
         }
         $this->em->flush();
-
-        return $refArt;
     }
 
     /**
@@ -615,10 +612,11 @@ class ImportService
      * @param array $colChampsLibres
      * @param array $row
      * @param int $rowIndex
+     * @return ReferenceArticle
      * @throws NonUniqueResultException
      * @throws ImportException
      */
-    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): void
+    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): ReferenceArticle
     {
         $refArticle = null;
         if (!empty($data['referenceReference'])) {
@@ -759,6 +757,8 @@ class ImportService
             $this->em->persist($valeurCL);
         }
         $this->em->flush();
+
+        return $refArticle;
     }
 
     /**
