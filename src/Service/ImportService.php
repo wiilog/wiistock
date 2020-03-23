@@ -169,11 +169,11 @@ class ImportService
         while (($data = fgetcsv($file, 1000, ';')) !== false) {
             $rowIndex++;
             $row = array_map('utf8_encode', $data);
+            $message = 'OK';
             try {
                 if ($firstRow) {
-                    $firstRow = false;
                     $headers = $row;
-                    $csvErrors[] = array_merge($headers, ['Erreur']);
+                    $csvErrors[] = array_merge($headers, ['Statut']);
                 } else {
                     $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers, $rowIndex);
 
@@ -193,7 +193,12 @@ class ImportService
                     }
                 }
             } catch (ImportException $exception) {
-                $csvErrors[] = array_merge($row, [$exception->getMessage()]);
+                $message = $exception->getMessage();
+            } finally {
+                if (!$firstRow) {
+                    $csvErrors[] = array_merge($row, [$message]);
+                }
+                $firstRow = false;
             }
         }
 
@@ -443,7 +448,7 @@ class ImportService
             $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
 
             if (empty($fournisseur)) {
-                $message = "La valeur renseignée pour le code 
+                $message = "La valeur renseignée pour le code
                 du fournisseur ne correspond à aucun fournisseur connu.
                 Erreur à la ligne " . $rowIndex;
                 $this->throwError($message);
