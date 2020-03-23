@@ -36,6 +36,7 @@ let tableManutention = $('#tableManutention_id').DataTable({
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
         { "data": 'Date souhaitée', 'name': 'Date souhaitée', 'title': 'Date souhaitée' },
+        { "data": 'Date de réalisation', 'name': 'Date de réalisation', 'title': 'Date de réalisation' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
 });

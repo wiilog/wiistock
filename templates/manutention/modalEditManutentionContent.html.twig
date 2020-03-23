@@ -25,7 +25,10 @@
     <input class="form-control data needed" type="datetime-local" value="{{manut.dateAttendue|date('Y-m-d\\TH:i')}}" name="date-attendue" id="date-attendue"
            min="{{ 'now' | date('Y-m-d') }}">
 </div>
-
+<div class="form-group">
+    <label for="date-attendue">Date de réalisation</label>
+    <input class="form-control" type="datetime-local" value="{{manut.dateEnd ? manut.dateEnd|date('Y-m-d\\TH:i')}}" name="date-real" id="date-real" disabled>
+</div>
 <div class="form-group col-12 w-100">
     <div class="input-group radio-btn">
         <label for="statut" class="mtb-auto mr-2">Statut*</label>

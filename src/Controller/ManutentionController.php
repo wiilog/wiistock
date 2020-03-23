@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\Constraints\Timezone;
 
 /**
  * @Route("/manutention")
@@ -194,6 +195,7 @@ class ManutentionController extends AbstractController
 
     /**
      * @Route("/modifier", name="manutention_edit", options={"expose"=true}, methods="GET|POST")
+     * @throws \Exception
      */
     public function edit(Request $request): Response
     {
@@ -204,8 +206,18 @@ class ManutentionController extends AbstractController
             $manutention = $this->manutentionRepository->find($data['id']);
             $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, $statutLabel);
+            if ($statut->getNom() === Manutention::STATUT_TRAITE && $statut !== $manutention->getStatut()) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Manutention effectuée',
+                    $this->renderView('mails/mailManutentionDone.html.twig', [
+                        'manut' => $manutention,
+                        'title' => 'Votre demande de manutention a bien été effectuée.',
+                    ]),
+                    $manutention->getDemandeur()->getEmail()
+                );
+                $manutention->setDateEnd(new DateTime('now', new \DateTimeZone('Europe/Paris')));
+            }
             $manutention->setStatut($statut);
-
             $manutention
                 ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
@@ -215,17 +227,6 @@ class ManutentionController extends AbstractController
 				->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
-
-            if ($statutLabel == Manutention::STATUT_TRAITE) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Manutention effectuée',
-                    $this->renderView('mails/mailManutentionDone.html.twig', [
-                    	'manut' => $manutention,
-						'title' => 'Votre demande de manutention a bien été effectuée.',
-					]),
-                    $manutention->getDemandeur()->getEmail()
-                );
-            }
 
             return new JsonResponse();
         }
@@ -280,6 +281,7 @@ class ManutentionController extends AbstractController
                 'chargement',
                 'déchargement',
                 'date attendue',
+                'date de réalisation',
                 'statut',
             ];
 
@@ -305,6 +307,7 @@ class ManutentionController extends AbstractController
                 $manutention->getSource(),
                 $manutention->getDestination(),
                 $manutention->getDateAttendue()->format('d/m/Y H:i'),
+                $manutention->getDateEnd() ? $manutention->getDateEnd()->format('d/m/Y H:i') : '',
                 $manutention->getStatut() ? $manutention->getStatut()->getNom() : '',
             ];
     }

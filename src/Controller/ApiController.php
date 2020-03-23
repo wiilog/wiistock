@@ -58,6 +58,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
+use Symfony\Component\Validator\Constraints\Timezone;
 use Throwable;
 
 
@@ -794,6 +795,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function validateManut(Request $request) {
         $apiKey = $request->request->get('apiKey');
@@ -810,6 +812,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
                 $manut->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
+                $manut->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
                 $em->flush();
                 if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
                     $this->mailerService->sendMail(

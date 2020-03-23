@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\FiltreSup;
+use App\Entity\Manutention;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
@@ -75,16 +76,16 @@ class ManutentionService
 
     public function getDataForDatatable($params = null, $statusFilter = null)
     {
-		if ($statusFilter) {
-			$filters = [
-				[
-					'field' => 'statut',
-					'value' => $statusFilter
-				]
-			];
-		} else {
-        	$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
-		}
+        if ($statusFilter) {
+            $filters = [
+                [
+                    'field' => 'statut',
+                    'value' => $statusFilter
+                ]
+            ];
+        } else {
+            $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
+        }
         $queryResult = $this->manutentionRepository->findByParamAndFilters($params, $filters);
 
         $manutArray = $queryResult['data'];
@@ -101,20 +102,21 @@ class ManutentionService
         ];
     }
 
-    public function dataRowManut($manutention)
+    public function dataRowManut(Manutention $manutention)
     {
         $row =
             [
-            'id' => ($manutention->getId() ? $manutention->getId() : 'Non défini'),
-            'Date demande' => ($manutention->getDate() ? $manutention->getDate()->format('d/m/Y') : null),
-            'Demandeur' => ($manutention->getDemandeur() ? $manutention->getDemandeur()->getUserName() : null),
-            'Libellé' => ($manutention->getlibelle() ? $manutention->getLibelle() : null),
-            'Date souhaitée' => ($manutention->getDateAttendue() ? $manutention->getDateAttendue()->format('d/m/Y H:i') : null),
-            'Statut' => ($manutention->getStatut()->getNom() ? $manutention->getStatut()->getNom() : null),
-            'Actions' => $this->templating->render('manutention/datatableManutentionRow.html.twig', [
-                'manut' => $manutention
-            ]),
-        ];
+                'id' => ($manutention->getId() ? $manutention->getId() : 'Non défini'),
+                'Date demande' => ($manutention->getDate() ? $manutention->getDate()->format('d/m/Y') : null),
+                'Demandeur' => ($manutention->getDemandeur() ? $manutention->getDemandeur()->getUserName() : null),
+                'Libellé' => ($manutention->getlibelle() ? $manutention->getLibelle() : null),
+                'Date souhaitée' => ($manutention->getDateAttendue() ? $manutention->getDateAttendue()->format('d/m/Y H:i') : null),
+                'Date de réalisation' => ($manutention->getDateEnd() ? $manutention->getDateEnd()->format('d/m/Y H:i') : null),
+                'Statut' => ($manutention->getStatut()->getNom() ? $manutention->getStatut()->getNom() : null),
+                'Actions' => $this->templating->render('manutention/datatableManutentionRow.html.twig', [
+                    'manut' => $manutention
+                ]),
+            ];
         return $row;
     }
 }
