@@ -177,6 +177,11 @@ class ReferenceArticle
      */
     private $ligneArticlePreparations;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $emergencyComment;
+
 
     public function __construct()
     {
@@ -801,6 +806,18 @@ class ReferenceArticle
                 $ligneArticlePreparation->setReference(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmergencyComment(): ?string
+    {
+        return $this->emergencyComment;
+    }
+
+    public function setEmergencyComment(?string $emergencyComment): self
+    {
+        $this->emergencyComment = $emergencyComment;
 
         return $this;
     }
