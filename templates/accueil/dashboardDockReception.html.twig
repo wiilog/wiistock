@@ -5,7 +5,7 @@
 </div>
 <div class="row">
     <div class="col-10 row">
-        <div class="col-7 mb-2 dashboard-box-wrapper third-height">
+        <div class="col-6 mb-2 dashboard-box-wrapper third-height">
             <div class="dashboard-box d-flex justify-content-start">
                 <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                     Arrivages quotidiens<br>
@@ -13,8 +13,8 @@
                 {% if not isDashboardExt %}
                     <div class="points">
                         <i
-                            class="fa fa-question has-tooltip"
-                            title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour."></i>
+                                class="fa fa-question has-tooltip"
+                                title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour."></i>
                     </div>
                 {% endif %}
                 <div style="height: 70% !important;">
@@ -24,7 +24,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-5 dashboard-box-wrapper third-height">
+        <div class="col-6 dashboard-box-wrapper third-height">
             <div class="dashboard-box d-flex justify-content-start">
                 <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                     Arrivages hebdomadaires<br>
@@ -32,8 +32,8 @@
                 {% if not isDashboardExt %}
                     <div class="points">
                         <i
-                            class="fa fa-question has-tooltip"
-                            title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
+                                class="fa fa-question has-tooltip"
+                                title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
                     </div>
                 {% endif %}
                 <div style="height: 70% !important;">
@@ -47,10 +47,10 @@
             <div id="encours-dock-box" class="dashboard-box text-center justify-content-between">
                 <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis restant à traiter<br>
-                    <span class="location-label"></span>
+                    <span class="location-label ellipsis"></span>
                 </p>
-                <div  class="d-flex align-items-center justify-content-center"
-                      style="height: inherit;">
+                <div class="d-flex align-items-center justify-content-center"
+                     style="height: inherit;">
                     <p class="big-font figure counter pt-3"></p>
                 </div>
             </div>
@@ -59,11 +59,11 @@
             <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-between">
                 <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis en attente dédouanement<br>
-                    <span class="location-label"></span>
+                    <span class="location-label ellipsis"></span>
                 </p>
                 <div class="d-flex align-items-center justify-content-center"
-                      style="height: inherit;">
-                <p class="big-font figure counter"></p>
+                     style="height: inherit;">
+                    <p class="big-font figure counter"></p>
                 </div>
             </div>
         </div>
@@ -71,11 +71,11 @@
             <div id="encours-cleared-box" class="dashboard-box text-center justify-content-between">
                 <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis dédouanés et dispo<br>
-                    <span class="location-label"></span>
+                    <span class="location-label ellipsis"></span>
                 </p>
                 <div class="d-flex align-items-center justify-content-center"
-                      style="height: inherit;">
-                <p class="big-font figure counter"></p>
+                     style="height: inherit;">
+                    <p class="big-font figure counter"></p>
                 </div>
             </div>
         </div>
@@ -84,9 +84,9 @@
                 <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Urgences restant à recevoir
                 </p>
-                <div  class="d-flex align-items-center justify-content-center"
-                      style="height: inherit;">
-                <p class="big-font figure red counter pt-3"></p>
+                <div class="d-flex align-items-center justify-content-center"
+                     style="height: inherit;">
+                    <p class="big-font figure red counter pt-3"></p>
                 </div>
             </div>
         </div>
@@ -94,11 +94,11 @@
             <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
                 <p class="text-center {% if isDashboardExt %} dashBoardExtTitle medium-font{% endif %}">
                     Colis à déposer en Drop Zones<br>
-                    <span class="location-label"></span>
+                    <span class="location-label ellipsis"></span>
                 </p>
-                <div  class="d-flex align-items-center justify-content-center"
-                      style="height: inherit;">
-                <p class="big-font figure counter"></p>
+                <div class="d-flex align-items-center justify-content-center"
+                     style="height: inherit;">
+                    <p class="big-font figure counter"></p>
                 </div>
             </div>
         </div>
@@ -110,8 +110,8 @@
                 {% if not isDashboardExt %}
                     <div class="points">
                         <i
-                            class="fa fa-question has-tooltip"
-                            title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
+                                class="fa fa-question has-tooltip"
+                                title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
                     </div>
                 {% endif %}
                 <div class="h-100">
@@ -120,22 +120,19 @@
             </div>
         </div>
     </div>
-
-    <div class="col-2">
-        <div class="dashboard-box-wrapper text-center justify-content-between medium-font">
-            <div class="dashboard-box">
-                <p class="title">
-                    Suivi des transporteurs<br>
-                </p>
-                {% if not isDashboardExt %}
-                    <div class="points">
-                        <i
+    <div class="col-2 mt-1 dashboard-box-wrapper fourth-height">
+        <div class="dashboard-box text-center justify-content-between">
+            <p class="title">
+                Suivi des transporteurs<br>
+            </p>
+            {% if not isDashboardExt %}
+                <div class="points">
+                    <i
                             class="fa fa-question has-tooltip"
                             title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
-                    </div>
-                {% endif %}
-                <div class="little-font" id="statistics-arrival-carriers"></div>
-            </div>
+                </div>
+            {% endif %}
+            <div class="medium-font title" id="statistics-arrival-carriers"></div>
         </div>
     </div>
 </div>

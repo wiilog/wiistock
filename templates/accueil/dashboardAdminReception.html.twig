@@ -1,11 +1,12 @@
+
 <div class="row">
-    <p class="col-12 white">
+    <p class="col-12 white mb-1">
         Dashboard | RÉCEPTION ADMINISTRATIVE
     </p>
 </div>
-<div class="row mt-2">
+<div class="row">
     <div class="col-12">
-        <div class="row mb-4">
+        <div class="row">
             <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
                     <p class=" title {% if isDashboardExt %} medium-font {% endif %}">
@@ -77,7 +78,7 @@
         </div>
     </div>
 </div>
-<div class="col-12 mb-4 p-0">
+<div class="col-12 p-0">
     <div class="row">
         <div class="col-9 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
@@ -150,7 +151,7 @@
         </div>
     </div>
 </div>
-<div class="col-12 mb-4 p-0">
+<div class="col-12 p-0">
     <div class="row">
         <div class="col mr-1">
             <div class="dashboard-box-wrapper fourth-height">
@@ -170,7 +171,7 @@
                 <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
                     <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
                         Urgences restant à traiter<br>
-                        <span class="location-label"></span>
+                        <span class="location-label ellipsis"></span>
                     </p>
                     <div class="d-flex align-items-center justify-content-center"
                          style="height: inherit;">
@@ -184,7 +185,7 @@
                 <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
                     <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
                         Lignes en litiges<br>
-                        <span class="location-label"></span>
+                        <span class="location-label ellipsis"></span>
                     </p>
                     <div class="d-flex align-items-center justify-content-center"
                          style="height: inherit;">
@@ -198,7 +199,7 @@
                 <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
                     <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
                         Colis en attente de dédouanement<br>
-                        <span class="location-label"></span>
+                        <span class="location-label ellipsis"></span>
                     </p>
                     <div class="d-flex align-items-center justify-content-center"
                          style="height: inherit;">
