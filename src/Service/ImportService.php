@@ -183,11 +183,11 @@ class ImportService
 
         foreach ($rows as $row) {
             try {
+                $message = 'OK';
                 if ($rowIndex == 0) {
                     $headers = $row;
                     $csvErrors[] = array_merge($headers, ['Statut']);
                 } else {
-                    $message = 'OK';
                     $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers, $rowIndex);
 
                     switch ($import->getEntity()) {
@@ -558,7 +558,9 @@ class ImportService
         $this->em->flush();
 
         // liaison emplacement
-        $this->checkEmplacement($data, $rowIndex, $refArt);
+        if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $this->checkAndCreateEmplacement($data, $rowIndex, $refArt);
+        }
 
         // liaison catégorie inventaire
         if (!empty($data['catInv'])) {
@@ -740,7 +742,7 @@ class ImportService
         $article->setType($articleFournisseur->getReferenceArticle()->getType());
 
         // liaison emplacement
-        $this->checkEmplacement($data, $rowIndex, $article);
+        $this->checkAndCreateEmplacement($data, $rowIndex, $article);
         $this->em->persist($article);
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
@@ -803,7 +805,7 @@ class ImportService
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function checkEmplacement(array $data, int $rowIndex, $articleOrRef): void
+    private function checkAndCreateEmplacement(array $data, int $rowIndex, $articleOrRef): void
     {
         if (empty($data['emplacement'])) {
             $message = 'La valeur saisie pour l\'emplacement ne peut être vide. '
