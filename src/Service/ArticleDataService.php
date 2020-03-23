@@ -47,52 +47,28 @@ use Twig\Environment as Twig_Environment;
 
 class ArticleDataService
 {
-
-    private $referenceArticleRepository;
-    private $articleFournisseurRepository;
-    private $champLibreRepository;
-    private $typeRepository;
-    private $statutRepository;
-    private $valeurChampLibreRepository;
-    private $filtreRefRepository;
     private $templating;
     private $user;
     private $router;
     private $refArticleDataService;
     private $userService;
     private $specificService;
-    private $parametreRepository;
-    private $parametreRoleRepository;
-    private $em;
-    private $receptionReferenceArticleRepository;
     private $mailerService;
     private $entityManager;
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
 	private $typeCLOnLabel;
-    private $inventoryCategoryRepository;
-//TODO CG
-    public function __construct(FiltreSupRepository $filtreSupRepository,
-                                ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
+
+    public function __construct(
                                 MailerService $mailerService,
-                                ParametreRoleRepository $parametreRoleRepository,
-                                ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
                                 RouterInterface $router,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage,
-                                InventoryCategoryRepository $inventoryCategoryRepository)
+                                TokenStorageInterface $tokenStorage
     ) {
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
-        $this->champLibreRepository = $champLibreRepository;
-        $this->statutRepository = $statutRepository;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
-        $this->filtreRefRepository = $filtreRefRepository;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -502,7 +478,7 @@ class ArticleDataService
         // optionnel : ajout dans une réception
         if ($reception) {
             $noCommande = isset($data['noCommande']) ? $data['noCommande'] : null;
-            $rra = $this->receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
+            $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
             $toInsert->setReceptionReferenceArticle($rra);
             $entityManager->flush();
             // gestion des urgences
@@ -750,7 +726,6 @@ class ArticleDataService
         $champLibreValue = (!empty($this->typeCLOnLabel))
             ? $this->getCLValue($champLibre, $this->typeCLOnLabel)
             : null;
-        dump($champLibre, $champLibreValue);
 
         $labels = [
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
