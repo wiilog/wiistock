@@ -146,10 +146,11 @@ class ImportService
 
     /**
      * @param Import $import
-     * @throws NonUniqueResultException
+     * @param bool $force
      * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function loadData(Import $import)
+    public function loadData(Import $import, $force = false)
     {
         $csvFile = $import->getCsvFile();
 
@@ -173,7 +174,7 @@ class ImportService
         }
 
         // si + de 500 ligne -> planification
-        if (count($rows) > 500) {
+        if (!$force && count($rows) > 500) {
             $import->setStatus($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
             $this->em->flush();
             return;

@@ -18,6 +18,7 @@ use App\Service\ImportService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -270,6 +271,7 @@ class ImportController extends AbstractController
      * @param ImportService $importService
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
 	public function launchImport(Request $request, ImportService $importService)
 	{
