@@ -11,8 +11,10 @@ use App\Entity\MouvementTraca;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Repository\ArticleRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
@@ -24,6 +26,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
 class MouvementTracaService
 {
@@ -56,6 +59,16 @@ class MouvementTracaService
      */
     private $filtreSupRepository;
 
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
     private $em;
     private $statutRepository;
     private $attachmentService;
@@ -66,6 +79,8 @@ class MouvementTracaService
                                 RouterInterface $router,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
                                 FiltreSupRepository $filtreSupRepository,
                                 Security $security,
                                 AttachmentService $attachmentService)
@@ -79,6 +94,8 @@ class MouvementTracaService
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
+        $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -145,7 +162,7 @@ class MouvementTracaService
             'reference' => $mouvement->getReferenceArticle()
                 ? $mouvement->getReferenceArticle()->getReference()
                 : (
-                    $mouvement->getArticle()
+                $mouvement->getArticle()
                     ? $mouvement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
                     : ''
                 ),
@@ -213,6 +230,18 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
+        $refOrArticle = $this->referenceArticleRepository->findOneBy([
+            'barCode' => $colis
+        ]);
+        $refOrArticle = $refOrArticle ??
+            $this->articleRepository->findOneBy([
+                'barCode' => $colis
+            ]);
+        if ($refOrArticle instanceof ReferenceArticle) {
+            $mouvementTraca->setReferenceArticle($refOrArticle);
+        } else if ($refOrArticle instanceof Article) {
+            $mouvementTraca->setArticle($refOrArticle);
+        }
         if (isset($from)) {
             if ($from instanceof Arrivage) {
                 $mouvementTraca->setArrivage($from);

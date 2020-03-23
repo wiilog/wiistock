@@ -35,7 +35,9 @@ class MouvementTracaRepository extends ServiceEntityRepository
 		'date' => 'datetime',
 		'colis' => 'colis',
 		'location' => 'emplacement',
-		'type' => 'status',
+        'type' => 'status',
+        'reference' => 'reference',
+        'label' => 'label',
 		'operateur' => 'user',
 	];
 
@@ -379,12 +381,20 @@ class MouvementTracaRepository extends ServiceEntityRepository
                         ->leftJoin('m.emplacement', 'e2')
                         ->leftJoin('m.operateur', 'u2')
                         ->leftJoin('m.type', 's2')
-                        ->andWhere('
+                        ->leftJoin('m.referenceArticle', 'mra1')
+                        ->leftJoin('m.article', 'a1')
+                        ->leftJoin('a1.articleFournisseur', 'af1')
+                        ->leftJoin('af1.referenceArticle', 'afra1')
+                        ->andWhere('(
 						m.colis LIKE :value OR
 						e2.label LIKE :value OR
 						s2.nom LIKE :value OR
+						afra1.reference LIKE :value OR
+						a1.label LIKE :value OR
+						mra1.reference LIKE :value OR
+						mra1.libelle LIKE :value OR
 						u2.username LIKE :value
-						')
+						)')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -404,6 +414,20 @@ class MouvementTracaRepository extends ServiceEntityRepository
                         $qb
                             ->leftJoin('m.type', 's3')
                             ->orderBy('s3.nom', $order);
+                    } else if ($column === 'reference') {
+                        $qb
+                            ->leftJoin('m.referenceArticle', 'mra')
+                            ->leftJoin('m.article', 'a')
+                            ->leftJoin('a.articleFournisseur', 'af')
+                            ->leftJoin('af.referenceArticle', 'afra')
+                            ->orderBy('mra.reference', $order)
+                            ->addOrderBy('afra.reference', $order);
+                    } else if ($column === 'label') {
+                        $qb
+                            ->leftJoin('m.referenceArticle', 'mra')
+                            ->leftJoin('m.article', 'a')
+                            ->orderBy('mra.libelle', $order)
+                            ->addOrderBy('a.label', $order);
                     } else if ($column === 'user') {
                         $qb
                             ->leftJoin('m.operateur', 'u3')
