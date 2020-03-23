@@ -131,18 +131,6 @@ class MouvementTracaService
             $fromLabel = null;
             $originFrom = '-';
         }
-        $articleRepository = $this->em->getRepository(Article::class);
-        $refArticleRepository = $this->em->getRepository(ReferenceArticle::class);
-
-        $articleOrRef = $articleRepository->findOneBy([
-            'barCode' => $mouvement->getColis()
-        ]);
-        if (!$articleOrRef) {
-            $articleOrRef = $refArticleRepository->findOneBy([
-                'barCode' => $mouvement->getColis()
-            ]);
-        }
-
         $row = [
             'id' => $mouvement->getId(),
             'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
@@ -154,16 +142,20 @@ class MouvementTracaService
                 'entityId' => $fromEntityId
             ]),
             'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
-            'reference' => $articleOrRef
-                ? ($articleOrRef instanceof ReferenceArticle
-                    ? $articleOrRef->getReference()
-                    : $articleOrRef->getArticleFournisseur()->getReferenceArticle()->getReference())
-                : '',
-            'label' => $articleOrRef
-                ? ($articleOrRef instanceof ReferenceArticle
-                    ? $articleOrRef->getLibelle()
-                    : $articleOrRef->getLabel())
-                : '',
+            'reference' => $mouvement->getReferenceArticle()
+                ? $mouvement->getReferenceArticle()->getReference()
+                : (
+                    $mouvement->getArticle()
+                    ? $mouvement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : ''
+                ),
+            'label' => $mouvement->getReferenceArticle()
+                ? $mouvement->getReferenceArticle()->getLibelle()
+                : (
+                $mouvement->getArticle()
+                    ? $mouvement->getArticle()->getLabel()
+                    : ''
+                ),
             'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
             'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
             'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
