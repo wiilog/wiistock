@@ -21,12 +21,8 @@ class ImportRepository extends ServiceEntityRepository
 
 	public function findByParamsAndFilters($params, $filters)
 	{
-		$em = $this->getEntityManager();
-		$qb = $em->createQueryBuilder();
-
-		$qb
+		$qb = $this->createQueryBuilder('i')
 			->select('i')
-			->from('App\Entity\Import', 'i')
             ->join('i.status', 's')
             ->where('s.nom != :draft')
             ->setParameter('draft', Import::STATUS_DRAFT);
