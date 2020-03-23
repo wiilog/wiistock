@@ -488,14 +488,15 @@ class ArticleDataService
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ]);
                 $destinataires = '';
-                if ($refArticle->getUserThatTriggeredEmergency()) {
+                $userThatTriggeredEmergency = $refArticle->getUserThatTriggeredEmergency();
+                if ($userThatTriggeredEmergency) {
                     if ($demande && $demande->getUtilisateur()) {
                         $destinataires = [
-                            $refArticle->getUserThatTriggeredEmergency()->getEmail(),
+                            $userThatTriggeredEmergency->getEmail(),
                             $demande->getUtilisateur()->getEmail()
                         ];
                     } else {
-                        $destinataires = $refArticle->getUserThatTriggeredEmergency()->getEmail();
+                        $destinataires = $userThatTriggeredEmergency->getEmail();
                     }
                 } else {
                     if ($demande && $demande->getUtilisateur()) {
