@@ -43,23 +43,27 @@ class ImportController extends AbstractController
 		}
 
 		$statusRepository = $this->getDoctrine()->getRepository(Statut::class);
-		$statuts = $statusRepository->findByCategorieName(CategorieStatut::IMPORT);
+		$statuts = $statusRepository->findByCategoryNameAndStatusCodes(
+		    CategorieStatut::IMPORT,
+            [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+        );
 
 		return $this->render('import/index.html.twig', [
 			'statuts' => $statuts
 		]);
 	}
 
-	/**
-	 * @Route("/api", name="import_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @param ImportService $importDataService
-	 * @param UserService $userService
-	 * @return Response
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @Route("/api", name="import_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ImportService $importDataService
+     * @param UserService $userService
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws NonUniqueResultException
+     */
 	public function api(Request $request, ImportService $importDataService, UserService $userService): Response
 	{
 		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
@@ -133,7 +137,7 @@ class ImportController extends AbstractController
 
                 $fieldsToHide = ['id', 'barCode', 'conform', 'commentaire', 'quantiteAPrelever', 'quantitePrelevee',
                     'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
-                    'quantiteReservee'];
+                    'quantiteReservee', 'emergencyComment' ];
                 $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                 switch ($entity) {
                     case Import::ENTITY_ART:
