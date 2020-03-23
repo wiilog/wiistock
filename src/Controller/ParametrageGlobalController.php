@@ -129,11 +129,15 @@ class ParametrageGlobalController extends AbstractController
                 'dimensions_etiquettes' => $dimensions,
                 'paramReceptions' => [
                     'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
-                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
                     'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
                     'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
                     'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
+                ],
+                'paramLivraisons' => [
+                    'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
+                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
+                    'parametrageG' => $paramGlo ? $paramGlo->getValue() : false
                 ],
                 'paramArrivages' => [
                     'redirect' => $redirect ? $redirect->getValue() : true,

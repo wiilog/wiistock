@@ -86,6 +86,22 @@ Class GlobalParamService
 		return $resp ?? null;
 	}
 
+	public function getLivraisonDefaultLocation() {
+        $locationId = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+
+        if ($locationId) {
+            $location = $this->emplacementRepository->find($locationId);
+
+            if ($location) {
+                $resp = [
+                    'id' => $locationId,
+                    'text' => $location->getLabel()
+                ];
+            }
+        }
+        return $resp ?? null;
+    }
+
 	/**
 	 * @throws NonUniqueResultException
 	 */
