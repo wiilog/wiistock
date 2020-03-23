@@ -170,7 +170,10 @@
                     {% endif %}
                     <div class="form-group col-4">
                         <label for="chauffeur">Statut*</label>
-                        <select class="form-control input-sm data needed" id="statut" name="statut">
+                        <select class="needs-default form-control input-sm data needed"
+                                id="statut"
+                                name="statut"
+                                data-init="{{ defaultStatutArrivageId }}">
                             {% for statut in statuts %}
                                 <option value="{{ statut.id }}">{{ statut.nom|upper }}</option>
                             {% endfor %}
