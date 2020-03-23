@@ -95,6 +95,7 @@ function InitPageDataTable() {
                 {"data": 'A recevoir', 'title': 'A recevoir'},
                 {"data": 'Reçu', 'title': 'Reçu'},
                 {"data": 'Urgence', 'title': 'Urgence'},
+                {"data": 'Comment', 'title': 'Comment', visible: false},
             ],
             columnDefs: [
                 {"orderable": false, "targets": 0},
@@ -102,6 +103,10 @@ function InitPageDataTable() {
             ],
             rowCallback: function (row, data) {
                 $(row).addClass(data.Urgence ? 'table-danger' : '');
+                if (data.Comment && data.Urgence) {
+                    $(row).attr('title', data.Comment);
+                    initTooltips($(row));
+                }
             }
         }),
         tableLitigesReception: $('#tableReceptionLitiges').DataTable({
@@ -288,7 +293,8 @@ function initModalCondit(tableFromArticle) {
 }
 
 function initNewArticleEditor(modal) {
-    ajaxAutoRefArticleInit($('.ajax-autocomplete'));
+    let $select2refs = $('#reference');
+    ajaxAutoRefArticleInit($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
         initEditorInModal(modal);
@@ -296,6 +302,14 @@ function initNewArticleEditor(modal) {
     }
     clearAddRefModal();
     clearModal(modal);
+
+    const $commandField = $(modal).find('#commande');
+    const numCommand = $('#numCommandeReception').val();
+    $commandField.val(numCommand);
+
+    setTimeout(() => {
+        openSelect2($select2refs);
+    }, 400);
 }
 
 function openModalArticlesFromLigneArticle(ligneArticleId) {
@@ -309,8 +323,9 @@ function articleChanged(select) {
         let route = Routing.generate('is_urgent', true);
         let params = JSON.stringify(select.val());
         $.post(route, params, function (response) {
-            if (response) {
+            if (response.urgent) {
                 $('.emergency').removeClass('d-none');
+                $('.emergency-comment').text(response.comment);
             } else {
                 $('.emergency').addClass('d-none');
             }

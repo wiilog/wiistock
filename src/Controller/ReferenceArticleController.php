@@ -15,7 +15,7 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
-
+use Twig\Environment as Twig_Environment;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryCategoryRepository;
@@ -159,7 +159,7 @@ class ReferenceArticleController extends AbstractController
     private $categorieCLRepository;
 
     /**
-     * @var \Twig_Environment
+     * @var Twig_Environment
      */
     private $templating;
 
@@ -210,7 +210,7 @@ class ReferenceArticleController extends AbstractController
                                 ParametreRoleRepository $parametreRoleRepository,
                                 ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
-                                \Twig_Environment $templating,
+                                Twig_Environment $templating,
                                 EmplacementRepository $emplacementRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
@@ -344,6 +344,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Commentaire',
 					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Commentaire d\'urgence',
+                    "data" => 'Commentaire d\'urgence',
+                    'name' => 'Commentaire d\'urgence',
+                    "class" => (in_array('Commentaire d\'urgence', $columnsVisible) ? 'display' : 'hide'),
+                ],
 				[
 					"title" => 'Seuil d\'alerte',
 					"data" => 'Seuil d\'alerte',
@@ -480,6 +486,9 @@ class ReferenceArticleController extends AbstractController
             if ($data['limitWarning']) {
             	$refArticle->setLimitWarning($data['limitWarning']);
 			}
+            if ($data['emergency-comment-input']) {
+                $refArticle->setEmergencyComment($data['emergency-comment-input']);
+            }
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
             	if ($category) $refArticle->setCategory($category);
@@ -487,7 +496,10 @@ class ReferenceArticleController extends AbstractController
             if ($statut) $refArticle->setStatut($statut);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
+            } else {
+                $refArticle->setQuantiteStock(0);
             }
+            $refArticle->setQuantiteReservee(0);
             foreach ($data['frl'] as $frl) {
                 $fournisseurId = explode(';', $frl)[0];
                 $ref = explode(';', $frl)[1];
@@ -605,6 +617,11 @@ class ReferenceArticleController extends AbstractController
         ];
         $champF[] = [
             'label' => 'Commentaire',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Commentaire d\'urgence',
             'id' => 0,
             'typage' => 'text'
         ];
@@ -1064,7 +1081,10 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $referenceArticle = $this->referenceArticleRepository->find($id);
-            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
+            return new JsonResponse([
+                'urgent' => $referenceArticle->getIsUrgent() ?? false,
+                'comment' => $referenceArticle->getEmergencyComment()
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -1307,7 +1327,9 @@ class ReferenceArticleController extends AbstractController
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
         $refs = $queryResult['data'];
-
+        $refs = array_map(function($refArticle) {
+            return is_array($refArticle) ? $refArticle[0] : $refArticle;
+        }, $refs);
         $barcodeConfigs = array_map(
             function (ReferenceArticle $reference) use ($refArticleDataService) {
                 return $refArticleDataService->getBarcodeConfig($reference);

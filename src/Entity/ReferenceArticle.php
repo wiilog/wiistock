@@ -2,12 +2,9 @@
 
 namespace App\Entity;
 
-use DateTime;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Exception;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
@@ -182,6 +179,11 @@ class ReferenceArticle
     private $ligneArticlePreparations;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $emergencyComment;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="referencesEmergenciesTriggered")
      */
     private $userThatTriggeredEmergency;
@@ -249,7 +251,7 @@ class ReferenceArticle
 
     public function getQuantiteReservee(): ?int
     {
-        return $this->quantiteReservee;
+        return $this->quantiteReservee ?? 0;
     }
 
     public function setQuantiteReservee(?int $quantiteReservee): self
@@ -259,9 +261,9 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getQuantiteStock(): ?int
+    public function getQuantiteStock(): int
     {
-        return $this->quantiteStock;
+        return $this->quantiteStock ?? 0;
     }
 
     public function setQuantiteStock(?int $quantiteStock): self
@@ -771,23 +773,6 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getCalculatedStockQuantity(): int
-    {
-        $totalQuantity = 0;
-        if ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            foreach ($this->getArticlesFournisseur() as $articleFournisseur) {
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
-                        $totalQuantity += $article->getQuantite();
-                    }
-                }
-            }
-        }
-        return ($this->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
-            ? $this->getQuantiteStock()
-            : $totalQuantity;
-    }
-
     public function getDateEmergencyTriggered(): ?\DateTimeInterface
     {
         return $this->dateEmergencyTriggered;
@@ -827,6 +812,18 @@ class ReferenceArticle
                 $ligneArticlePreparation->setReference(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmergencyComment(): ?string
+    {
+        return $this->emergencyComment;
+    }
+
+    public function setEmergencyComment(?string $emergencyComment): self
+    {
+        $this->emergencyComment = $emergencyComment;
 
         return $this;
     }

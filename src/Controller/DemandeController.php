@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieCL;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
@@ -14,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Article;
-
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
@@ -32,22 +30,21 @@ use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
-
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
-
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
 
 /**
  * @Route("/demande")
@@ -177,11 +174,13 @@ class DemandeController extends AbstractController
         $this->demandeLivraisonService = $demandeLivraisonService;
     }
 
-	/**
-	 * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
-	 * @throws NonUniqueResultException
-	 * @throws DBALException
-	 */
+    /**
+     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function compareStock(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -193,13 +192,14 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 $statutArticle = $article->getStatut();
-                if (isset($statutArticle) && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
+                if (isset($statutArticle)
+                    && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                     $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                     return new JsonResponse($response);
                 }
                 else {
                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                    $totalQuantity = $this->refArticleDataService->getAvailableQuantityForRef($refArticle);
+                    $totalQuantity = $refArticle->getQuantiteDisponible();
                     $treshHold = ($article->getQuantite() > $totalQuantity)
                         ? $totalQuantity
                         : $article->getQuantite();
@@ -232,9 +232,10 @@ class DemandeController extends AbstractController
                         return new JsonResponse($response);
                     }
                 } else {
-                    $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                    $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF);
-                    $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedWithoutLigne($ligne->getReference(), $ligne, $statutDemande);
+                    $totalQuantity = (
+                        $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
+                        - $ligne->getReference()->getQuantiteReservee()
+                    );
                     if ($ligne->getQuantite() > $totalQuantity) {
                         $response['stock'] = $totalQuantity;
                         return new JsonResponse($response);
@@ -247,6 +248,12 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
     public function finish(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -279,17 +286,31 @@ class DemandeController extends AbstractController
                 $preparation->addArticle($article);
             }
             $lignesArticles = $demande->getLigneArticle();
+            $refArticleToUpdateQuantities = [];
             foreach ($lignesArticles as $ligneArticle) {
+                $referenceArticle = $ligneArticle->getReference();
                 $lignesArticlePreparation = new LigneArticlePreparation();
                 $lignesArticlePreparation
                     ->setToSplit($ligneArticle->getToSplit())
                     ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
                     ->setQuantite($ligneArticle->getQuantite())
-                    ->setReference($ligneArticle->getReference())
+                    ->setReference($referenceArticle)
                     ->setPreparation($preparation);
                 $em->persist($lignesArticlePreparation);
+                if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
+                }
+                else {
+                    $refArticleToUpdateQuantities[] = $referenceArticle;
+                }
                 $preparation->addLigneArticlePreparation($lignesArticlePreparation);
             }
+            $em->flush();
+
+            foreach ($refArticleToUpdateQuantities as $refArticle) {
+                $this->refArticleDataService->updateRefArticleQuantities($refArticle);
+            }
+
             $em->flush();
 
             //renvoi de l'en-tête avec modification
@@ -572,7 +593,7 @@ class DemandeController extends AbstractController
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
                 $articleRef = $ligneArticle->getReference();
-                $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
+                $availableQuantity = $articleRef->getQuantiteDisponible();
                 $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
@@ -758,7 +779,9 @@ class DemandeController extends AbstractController
 				'code(s) préparation(s)',
 				'code(s) livraison(s)',
 				'référence article',
-				'libellé article',
+                'libellé article',
+                'code-barre article',
+                'code-barre référence',
 				'quantité disponible',
 				'quantité à prélever'
 			];
@@ -791,11 +814,13 @@ class DemandeController extends AbstractController
 					$demandeData = [];
 					$articleRef = $ligneArticle->getReference();
 
-                    $availableQuantity = $this->refArticleDataService->getAvailableQuantityForRef($articleRef);
+                    $availableQuantity = $articleRef->getQuantiteDisponible();
 
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $demandeData[] = '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
 					$demandeData[] = $availableQuantity;
 					$demandeData[] = $ligneArticle->getQuantite();
 
@@ -831,6 +856,8 @@ class DemandeController extends AbstractController
                     array_push($demandeData, ...$infosDemand);
 					$demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
 					$demandeData[] = $article->getLabel();
+                    $demandeData[] = $article->getBarCode();
+                    $demandeData[] = '';
 					$demandeData[] = $article->getQuantite();
 					$demandeData[] = $article->getQuantiteAPrelever();
 

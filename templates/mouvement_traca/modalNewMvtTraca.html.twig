@@ -40,7 +40,11 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="more-body-new-mvt-traca col-12 form-group {{ not isSafran ? 'd-none' : '' }}"></div>
+                        <div class="more-body-new-mvt-traca col-12 form-group {{ not isSafran ? 'd-none' : '' }}">
+                            {% if isSafran %}
+                                {% include 'mouvement_traca/newMassMvtTraca.html.twig' %}
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="col-6">
                         <div class="form-group col-12 h-fit-content">

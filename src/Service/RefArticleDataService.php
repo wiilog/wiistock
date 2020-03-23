@@ -39,6 +39,7 @@ use App\Repository\EmplacementRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -209,9 +210,7 @@ class RefArticleDataService
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
-
         $refs = $queryResult['data'];
-
         $rows = [];
         foreach ($refs as $refArticle) {
             $rows[] = $this->dataRowRefArticle(is_array($refArticle) ? $refArticle[0] : $refArticle);
@@ -237,7 +236,7 @@ class RefArticleDataService
         } else {
             $valeurChampLibre = [];
         }
-        $totalQuantity = $this->getAvailableQuantityForRef($articleRef);
+        $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
                 function (array $carry, ArticleFournisseur $articleFournisseur) {
@@ -360,6 +359,7 @@ class RefArticleDataService
                     $entityManager->persist($articleFournisseur);
                 }
             }
+
             if (isset($data['categorie'])) $refArticle->setCategory($category);
             if (isset($data['urgence'])) {
                 if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
@@ -374,6 +374,9 @@ class RefArticleDataService
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+            if ($data['emergency-comment-input']) {
+                $refArticle->setEmergencyComment($data['emergency-comment-input']);
+            }
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
@@ -384,7 +387,7 @@ class RefArticleDataService
                 $type = $this->typeRepository->find(intval($data['type']));
                 if ($type) $refArticle->setType($type);
             }
-            if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
+
             $entityManager->flush();
             //modification ou création des champsLibres
             $champsLibresKey = array_keys($data);
@@ -433,8 +436,8 @@ class RefArticleDataService
             $rowCL[$row['label']] = $row['valeur'];
         }
 
-		$availableQuantity = $this->getAvailableQuantityForRef($refArticle);
-		$quantityStock = $refArticle->getCalculatedStockQuantity();
+        $availableQuantity = $refArticle->getQuantiteDisponible();
+		$quantityStock = $refArticle->getQuantiteStock();
 
         $rowCF = [
             "id" => $refArticle->getId(),
@@ -442,8 +445,9 @@ class RefArticleDataService
             "Référence" => $refArticle->getReference() ? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité disponible" => $availableQuantity,
+            "Quantité disponible" => $availableQuantity ?? 0,
 			"Quantité stock" => $quantityStock ?? 0,
+            'Commentaire d\'urgence' => $refArticle->getEmergencyComment(),
 			"Code barre" => $refArticle->getBarCode() ?? 'Non défini',
             "Commentaire" => $refArticle->getCommentaire() ?? '',
             "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
@@ -572,7 +576,7 @@ class RefArticleDataService
 	 */
     public function dataRowAlerteRef($referenceArticle)
     {
-        $quantity = $this->getAvailableQuantityForRef($referenceArticle);
+        $quantity = $referenceArticle->getQuantiteDisponible();
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
@@ -589,24 +593,6 @@ class RefArticleDataService
             ]),
         ];
         return $row;
-    }
-
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return array Field barcode and barcodeLabel
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function getBarcodeInformations(ReferenceArticle $referenceArticle): array
-    {
-        return [
-            'barcode' => $referenceArticle->getBarCode(),
-            'barcodeLabel' => $this->templating->render('reference_article/barcodeLabel.html.twig', [
-                'refRef' => $referenceArticle->getReference(),
-                'refLabel' => $referenceArticle->getLibelle(),
-            ])
-        ];
     }
 
     /**
@@ -628,38 +614,59 @@ class RefArticleDataService
     }
 
     /**
-     * @param ReferenceArticle|array $referenceArticle
-     * @return int
-     * @throws DBALException
+     * @param ReferenceArticle $referenceArticle
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function getAvailableQuantityForRef($referenceArticle): int
-    {
-        $referenceArticle = is_array($referenceArticle) ? $this->referenceArticleRepository->find($referenceArticle['id']) : $referenceArticle;
-        return
-            $referenceArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
-                ? $referenceArticle->getQuantiteStock() - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($referenceArticle)
-                : $this->referenceArticleRepository->getTotalAvailableQuantityArticlesByRefArticle($referenceArticle);
+    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle) {
+        $this->updateStockQuantity($referenceArticle);
+        $this->updateReservedQuantity($referenceArticle);
+        $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function updateStockQuantity(ReferenceArticle $referenceArticle): void {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $referenceArticle->setQuantiteStock($this->referenceArticleRepository->getStockQuantity($referenceArticle));
+        }
+    }
+
+    /**
+     * @param ReferenceArticle $referenceArticle
+     * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function updateReservedQuantity(ReferenceArticle $referenceArticle): void {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $referenceArticle->setQuantiteReservee($this->referenceArticleRepository->getReservedQuantity($referenceArticle));
+        }
     }
 
     /**
      * @param ReferenceArticle $refArticle
-     * @throws DBALException
      * @throws Exception
      */
 	public function treatAlert(ReferenceArticle $refArticle): void
 	{
-		$calculedAvailableQuantity = $this->getAvailableQuantityForRef($refArticle);
+	    $calculedAvailableQuantity = $refArticle->getQuantiteDisponible();
 		$limitToCompare = empty($refArticle->getLimitWarning())
-			? empty($refArticle->getLimitSecurity())
+			? (empty($refArticle->getLimitSecurity())
 				? 0
-				: $refArticle->getLimitSecurity()
+				: $refArticle->getLimitSecurity())
 			: $refArticle->getLimitWarning();
 		$status = $refArticle->getStatut();
 		$limitToCompare = intval($limitToCompare);
 		if ($limitToCompare > 0) {
-			if (!isset($status) ||
-				($status->getNom() === ReferenceArticle::STATUT_INACTIF) ||
-				($refArticle->getDateEmergencyTriggered() && ($calculedAvailableQuantity > $limitToCompare))) {
+			if (!isset($status)
+                || ($status->getNom() === ReferenceArticle::STATUT_INACTIF)
+                || ($refArticle->getDateEmergencyTriggered()
+                    && ($calculedAvailableQuantity > $limitToCompare))) {
 				$refArticle->setDateEmergencyTriggered(null);
 			} else if (!$refArticle->getDateEmergencyTriggered() && $calculedAvailableQuantity <= $limitToCompare) {
 				$refArticle->setDateEmergencyTriggered(new DateTime('now', new DateTimeZone("Europe/Paris")));

@@ -1,3 +1,4 @@
+<input type="hidden" id="numCommandeReception" value="{{ reception.reference }}"/>
 <div class='col-4'>
     <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
 </div>
@@ -48,7 +49,7 @@
     <div class="col-4">
         {% set value = null %}
             {% if typeChampLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                {% set value = (typeChampLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
+                {% set value = (typeChampLibre.valeurChampLibre and typeChampLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
             {% elseif typeChampLibre.typage == 'list multiple' and typeChampLibre.valeurChampLibre is not null%}
                 {% set value = typeChampLibre.valeurChampLibre.valeur | replace({';' : ','}) %}
             {% elseif typeChampLibre.valeurChampLibre is not null %}

@@ -5,18 +5,26 @@
     border-radius: 0
     margin: 0
     border: 1px solid $blueGT
+    &.disabled:hover
+      background-color: $blueGT
+      color: white
+      border: 1px solid $blueGT
     &:first-child
       border-bottom-left-radius: .25rem
       border-top-left-radius: .25rem
     &:last-child
       border-bottom-right-radius: .25rem
       border-top-right-radius: .25rem
-    &:hover
+    &:hover:not(.disabled)
       background-color: $blueGT
       color: white
   .not-active
     color: $blueGT
     background-color: white
+    &.disabled:hover
+      color: $blueGT
+      border: 1px solid $blueGT
+      background-color: white
   //.active
   //  &:hover
   //    background-color: white
