@@ -579,15 +579,19 @@ class ImportService
         // quantité
         if (isset($data['quantiteStock']) || $newEntity) {
             if (isset($data['quantiteStock']) && !is_numeric($data['quantiteStock'])) {
-                $message = 'La quantité doit être un nombre. '
-                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $message = 'La quantité doit être un nombre. ' . '(ligne ' . $rowIndex . ')';
                 $this->throwError($message);
             }
             if ($refArt->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if (!$newEntity) {
                     $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
                 }
+                if ($data['quantiteStock'] < $refArt->getQuantiteReservee()) {
+                    $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
+                    $this->throwError($message);
+                }
                 $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
+                $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
 
