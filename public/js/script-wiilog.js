@@ -735,9 +735,6 @@ function clearModal(modal) {
                 $(this).val("");
             }
         }
-        if ($(this).attr('id') === 'statut') {
-            $(this).val($(this).parent().find('span.active').data('title'));
-        }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
         $(this).next().find('.select2-selection').removeClass('is-invalid');

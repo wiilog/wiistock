@@ -3,9 +3,12 @@
 namespace App\DataFixtures;
 
 use App\Entity\ChampLibre;
+use App\Entity\Arrivage;
+use App\Entity\CategorieStatut;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
+use App\Entity\Statut;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ParametreRepository;
 
@@ -69,6 +72,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 				dump("création du paramètre " . $parameter['label']);
 			}
 		}
+        $statutRepository = $manager->getRepository(Statut::class);
+        $statutConformeArrival = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
+        $statutConformeArrivalId = isset ($statutConformeArrival) ? $statutConformeArrival->getId() : null;
 
 		$globalParameterLabels = [
 			ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
@@ -90,6 +96,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL => [
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true
+            ],
+            ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE => [
+                'default' => null,
+                SpecificService::CLIENT_SAFRAN_ED => $statutConformeArrivalId
             ],
             ParametrageGlobal::AUTO_PRINT_COLIS => [
                 'default' => true,
