@@ -14,13 +14,12 @@ class StatutService
     private $entityManager;
 
     public function __construct(SpecificService $specificService,
-                                EntityManagerInterface $entityManager)
-    {
+                                EntityManagerInterface $entityManager) {
         $this->specificService = $specificService;
         $this->entityManager = $entityManager;
     }
 
-    public function findAllStatusArrivage () {
+    public function findAllStatusArrivage() {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
             $status =  $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
