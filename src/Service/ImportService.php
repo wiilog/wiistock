@@ -110,6 +110,7 @@ class ImportService
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
         $row = [
+            'id' => $import->getId(),
             'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
             'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
             'label' => $import->getLabel(),

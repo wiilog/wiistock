@@ -25,6 +25,7 @@ let tableImport = $('#tableImport').DataTable({
     },
     columns: [
         { "data": 'actions', 'title': 'Actions', orderable: false },
+        { "data": 'id', visible: false },
         { "data": 'status', 'title': 'Statut' },
         { "data": 'startDate', 'title': 'Date début' },
         { "data": 'endDate', 'title': 'Date fin' },
@@ -34,7 +35,7 @@ let tableImport = $('#tableImport').DataTable({
         { "data": 'nbErrors', 'title': "Nombre d'erreurs" },
         { "data": 'user', 'title': 'Utilisateur' },
     ],
-    order: [[2, "desc"]],
+    order: [[1, "desc"]],
     drawCallback: function() {
         overrideSearch($('#tableImport_filter input'), tableImport);
         initTooltips($('.has-tooltip'));

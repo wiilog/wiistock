@@ -48,5 +48,12 @@ class ImportCommand extends Command
                 ->setEndDate(new DateTime('now'));
             $this->em->flush();
         }
+
+        // nettoyage des éventuels imports en brouillon
+        $drafts = $importRepository->findByStatusLabel(Import::STATUS_DRAFT);
+        foreach ($drafts as $draft) {
+            $this->em->remove($draft);
+            $this->em->flush();
+        }
     }
 }

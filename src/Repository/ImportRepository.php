@@ -26,7 +26,10 @@ class ImportRepository extends ServiceEntityRepository
 
 		$qb
 			->select('i')
-			->from('App\Entity\Import', 'i');
+			->from('App\Entity\Import', 'i')
+            ->join('i.status', 's')
+            ->where('s.nom != :draft')
+            ->setParameter('draft', Import::STATUS_DRAFT);
 
 		$countTotal = count($qb->getQuery()->getResult());
 
