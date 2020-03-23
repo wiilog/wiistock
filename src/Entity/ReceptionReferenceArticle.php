@@ -73,6 +73,11 @@ class ReceptionReferenceArticle
      */
     private $emergencyTriggered;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $emergencyComment;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -230,6 +235,18 @@ class ReceptionReferenceArticle
     public function setEmergencyTriggered(?bool $emergencyTriggered): self
     {
         $this->emergencyTriggered = $emergencyTriggered;
+
+        return $this;
+    }
+
+    public function getEmergencyComment(): ?string
+    {
+        return $this->emergencyComment;
+    }
+
+    public function setEmergencyComment(?string $emergencyComment): self
+    {
+        $this->emergencyComment = $emergencyComment;
 
         return $this;
     }

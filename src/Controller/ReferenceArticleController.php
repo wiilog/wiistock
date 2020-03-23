@@ -344,6 +344,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Commentaire',
 					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Commentaire d\'urgence',
+                    "data" => 'Commentaire d\'urgence',
+                    'name' => 'Commentaire d\'urgence',
+                    "class" => (in_array('Commentaire d\'urgence', $columnsVisible) ? 'display' : 'hide'),
+                ],
 				[
 					"title" => 'Seuil d\'alerte',
 					"data" => 'Seuil d\'alerte',
@@ -476,6 +482,9 @@ class ReferenceArticleController extends AbstractController
             if ($data['limitWarning']) {
             	$refArticle->setLimitWarning($data['limitWarning']);
 			}
+            if ($data['emergency-comment-input']) {
+                $refArticle->setEmergencyComment($data['emergency-comment-input']);
+            }
             if ($data['categorie']) {
             	$category = $this->inventoryCategoryRepository->find($data['categorie']);
             	if ($category) $refArticle->setCategory($category);
@@ -604,6 +613,11 @@ class ReferenceArticleController extends AbstractController
         ];
         $champF[] = [
             'label' => 'Commentaire',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
+            'label' => 'Commentaire d\'urgence',
             'id' => 0,
             'typage' => 'text'
         ];
@@ -1063,7 +1077,10 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $referenceArticle = $this->referenceArticleRepository->find($id);
-            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
+            return new JsonResponse([
+                'urgent' => $referenceArticle->getIsUrgent() ?? false,
+                'comment' => $referenceArticle->getEmergencyComment()
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
