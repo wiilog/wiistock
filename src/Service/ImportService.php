@@ -20,7 +20,7 @@ use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -146,9 +146,11 @@ class ImportService
 
     /**
      * @param Import $import
+     * @param bool $force
+     * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function loadData(Import $import)
+    public function loadData(Import $import, $force = false)
     {
         $csvFile = $import->getCsvFile();
 
@@ -161,20 +163,30 @@ class ImportService
 
         $dataToCheck = $this->getDataToCheck($import->getEntity(), $corresp);
 
-        $firstRow = true;
         $headers = [];
         $rowIndex = 0;
         $csvErrors = [];
         $updatedRef = [];
+
+        $rows = [];
         while (($data = fgetcsv($file, 1000, ';')) !== false) {
-            $rowIndex++;
-            $row = array_map('utf8_encode', $data);
-            $message = 'OK';
+            $rows[] = array_map('utf8_encode', $data);
+        }
+
+        // si + de 500 ligne -> planification
+        if (!$force && count($rows) > 500) {
+            $import->setStatus($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
+            $this->em->flush();
+            return;
+        }
+
+        foreach ($rows as $row) {
             try {
-                if ($firstRow) {
+                if ($rowIndex == 0) {
                     $headers = $row;
                     $csvErrors[] = array_merge($headers, ['Statut']);
                 } else {
+                    $message = 'OK';
                     $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers, $rowIndex);
 
                     switch ($import->getEntity()) {
@@ -195,11 +207,12 @@ class ImportService
             } catch (ImportException $exception) {
                 $message = $exception->getMessage();
             } finally {
-                if (!$firstRow) {
+                if ($rowIndex > 0) {
                     $csvErrors[] = array_merge($row, [$message]);
                 }
-                $firstRow = false;
             }
+
+            $rowIndex++;
         }
 
         // mise à jour des quantités sur références

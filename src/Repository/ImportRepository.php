@@ -116,4 +116,24 @@ class ImportRepository extends ServiceEntityRepository
 			'total' => $countTotal
 		];
 	}
+
+    /**
+     * @param string $statusLabel
+     * @return Import[]
+     */
+	public function findByStatusLabel($statusLabel)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('i')
+            ->from('App:Import', 'i')
+            ->leftJoin('i.status', 's')
+            ->where('s.nom', $statusLabel);
+
+        $query = $qb->getQuery();
+
+        return $query->execute();
+    }
 }
