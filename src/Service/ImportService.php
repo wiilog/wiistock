@@ -167,7 +167,7 @@ class ImportService
         $headers = [];
         $rowIndex = 0;
         $csvErrors = [];
-        $updatedRef = [];
+        $refToUpdate = [];
 
         $rows = [];
         while (($data = fgetcsv($file, 1000, ';')) !== false) {
@@ -183,11 +183,11 @@ class ImportService
 
         foreach ($rows as $row) {
             try {
+                $message = 'OK';
                 if ($rowIndex == 0) {
                     $headers = $row;
                     $csvErrors[] = array_merge($headers, ['Statut']);
                 } else {
-                    $message = 'OK';
                     $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers, $rowIndex);
 
                     switch ($import->getEntity()) {
@@ -198,10 +198,10 @@ class ImportService
                             $this->importArticleFournisseurEntity($verifiedData, $rowIndex);
                             break;
                         case Import::ENTITY_REF:
-                            $updatedRef[] = $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                         case Import::ENTITY_ART:
-                            $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                     }
                 }
@@ -216,10 +216,10 @@ class ImportService
             $rowIndex++;
         }
 
-        // mise à jour des quantités sur références
-        //TODO optimiser avec une seule requête
-        foreach ($updatedRef as $ref) {
-           $this->refArticleDataService->updateRefArticleQuantities($ref);
+        // mise à jour des quantités sur références par article
+        $uniqueRefToUpdate = array_unique($refToUpdate);
+        foreach ($uniqueRefToUpdate as $ref) {
+            $this->refArticleDataService->updateRefArticleQuantities($ref);
         }
 
         $createdLogFile = $this->buildErrorFile($csvErrors);
@@ -488,11 +488,10 @@ class ImportService
      * @param array $colChampsLibres
      * @param array $row
      * @param int $rowIndex
-     * @return ReferenceArticle
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): ReferenceArticle
+    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, int $rowIndex)
     {
         $newEntity = false;
         $refArt = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['reference']);
@@ -558,7 +557,9 @@ class ImportService
         $this->em->flush();
 
         // liaison emplacement
-        $this->checkEmplacement($data, $rowIndex, $refArt);
+        if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $this->checkAndCreateEmplacement($data, $rowIndex, $refArt);
+        }
 
         // liaison catégorie inventaire
         if (!empty($data['catInv'])) {
@@ -577,15 +578,19 @@ class ImportService
         // quantité
         if (isset($data['quantiteStock']) || $newEntity) {
             if (isset($data['quantiteStock']) && !is_numeric($data['quantiteStock'])) {
-                $message = 'La quantité doit être un nombre. '
-                    . 'L\'erreur est survenue à la ligne ' . $rowIndex;
+                $message = 'La quantité doit être un nombre. ' . '(ligne ' . $rowIndex . ')';
                 $this->throwError($message);
             }
             if ($refArt->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if (!$newEntity) {
                     $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
                 }
+                if ($data['quantiteStock'] < $refArt->getQuantiteReservee()) {
+                    $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
+                    $this->throwError($message);
+                }
                 $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
+                $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
 
@@ -600,8 +605,6 @@ class ImportService
             $this->em->persist($valeurCL);
         }
         $this->em->flush();
-
-        return $refArt;
     }
 
     /**
@@ -609,10 +612,11 @@ class ImportService
      * @param array $colChampsLibres
      * @param array $row
      * @param int $rowIndex
+     * @return ReferenceArticle
      * @throws NonUniqueResultException
      * @throws ImportException
      */
-    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): void
+    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): ReferenceArticle
     {
         $refArticle = null;
         if (!empty($data['referenceReference'])) {
@@ -740,7 +744,7 @@ class ImportService
         $article->setType($articleFournisseur->getReferenceArticle()->getType());
 
         // liaison emplacement
-        $this->checkEmplacement($data, $rowIndex, $article);
+        $this->checkAndCreateEmplacement($data, $rowIndex, $article);
         $this->em->persist($article);
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
@@ -753,6 +757,8 @@ class ImportService
             $this->em->persist($valeurCL);
         }
         $this->em->flush();
+
+        return $refArticle;
     }
 
     /**
@@ -803,7 +809,7 @@ class ImportService
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function checkEmplacement(array $data, int $rowIndex, $articleOrRef): void
+    private function checkAndCreateEmplacement(array $data, int $rowIndex, $articleOrRef): void
     {
         if (empty($data['emplacement'])) {
             $message = 'La valeur saisie pour l\'emplacement ne peut être vide. '
