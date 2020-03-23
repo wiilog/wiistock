@@ -636,7 +636,6 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @return Response
      *
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
 	public function getDailyCarriersStatistics(DashboardService $dashboardService): Response {

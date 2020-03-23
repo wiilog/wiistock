@@ -58,7 +58,10 @@ function displayFirstModal(importId = null) {
         if (importId) {
             $inputImportId.val(importId);
         }
-        $modalNewImport.modal('show');
+        $modalNewImport.modal({
+            backdrop: 'static',
+            show: true
+        });
     });
 }
 
@@ -106,7 +109,7 @@ function openConfirmCancelModal(importId) {
 }
 
 function deleteImport($btn) {
-    let importId = $btn.parent().find('[name="importId"]').val();
+    let importId = $btn.closest('.modal').find('[name="importId"]').val();
 
     if (importId) {
         $.post(Routing.generate('import_delete'), {importId: importId}, () => {
