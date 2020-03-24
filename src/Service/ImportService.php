@@ -36,6 +36,7 @@ use Twig\Error\SyntaxError;
 class ImportService
 {
     private const MAX_LINES_FLASH_IMPORT = 500;
+    private const MAX_ROWS_TO_FLUSH = 1000;
 
     /**
      * @var Twig_Environment
@@ -53,6 +54,7 @@ class ImportService
     private $refArticleDataService;
     private $mouvementStockService;
 
+    private $rowsToFlush;
 
 
     public function __construct(RouterInterface $router,
@@ -70,6 +72,8 @@ class ImportService
         $this->articleDataService = $articleDataService;
         $this->refArticleDataService = $refArticleDataService;
         $this->mouvementStockService = $mouvementStockService;
+
+        $this->rowsToFlush = 0;
     }
 
     /**
@@ -95,6 +99,7 @@ class ImportService
         foreach ($imports as $import) {
             $rows[] = $this->dataRowImport($import);
         }
+
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
@@ -204,6 +209,8 @@ class ImportService
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
                 $csvErrors[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                $this->rowsToFlush++;
+                $this->flush();
             }
 
             if (!$smallFile) {
@@ -211,6 +218,8 @@ class ImportService
                 while (($data = fgetcsv($file, 1000, ';')) !== false) {
                     $row = array_map('utf8_encode', $data);
                     $csvErrors[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                    $this->rowsToFlush++;
+                    $this->flush();
                 }
             }
 
@@ -218,6 +227,7 @@ class ImportService
             $uniqueRefToUpdate = array_unique($refToUpdate);
             foreach ($uniqueRefToUpdate as $ref) {
                 $this->refArticleDataService->updateRefArticleQuantities($ref);
+                $this->flush();
             }
 
             // création du fichier de log
@@ -225,7 +235,7 @@ class ImportService
             $import->setLogFile($pieceJointeForLogFile);
         }
 
-        $this->em->flush();
+        $this->flush();
 
         fclose($file);
     }
@@ -526,7 +536,6 @@ class ImportService
             }
         }
         $this->em->persist($articleFournisseur);
-        $this->em->flush();
     }
 
     /**
@@ -821,7 +830,6 @@ class ImportService
                 ->addArticle($article);
             $this->em->persist($valeurCL);
         }
-        $this->em->flush();
 
         return $refArticle;
     }
@@ -892,6 +900,14 @@ class ImportService
                 $this->em->persist($emplacement);
             }
             $articleOrRef->setEmplacement($emplacement);
+        }
+    }
+
+    private function flush($force = false) {
+        if ($force
+            || ($this->rowsToFlush >= self::MAX_ROWS_TO_FLUSH)) {
+            $this->em->flush();
+            $this->rowsToFlush = 0;
         }
     }
 }
