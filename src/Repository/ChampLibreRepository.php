@@ -173,6 +173,31 @@ class ChampLibreRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+    /**
+     * @param Type $type
+     * @param string $categorieCLLabel
+     * @param bool $creation
+     * @return ChampLibre[]
+     */
+	public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true)
+	{
+		$qb = $this->createQueryBuilder('c')
+            ->join('c.categorieCL', 'ccl')
+            ->where('c.type = :type AND ccl.label = :categorieCLLabel')
+            ->setParameters([
+                    'type' => $type,
+                    'categorieCLLabel' => $categorieCLLabel,
+            ]);
+
+		if ($creation) {
+            $qb->andWhere('c.requiredCreate = 1');
+        } else {
+            $qb->andWhere('c.requiredEdit = 1');
+        }
+
+		return $qb->getQuery()->getResult();
+	}
+
 	/**
 	 * @param int|Type $typeId
 	 * @return ChampLibre[]
