@@ -197,7 +197,9 @@ class ReferenceArticle
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
 
+        $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
+        $this->quantiteDisponible = 0;
     }
 
     public function getId()

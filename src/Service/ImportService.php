@@ -54,9 +54,8 @@ class ImportService
                                 TokenStorageInterface $tokenStorage,
                                 ArticleDataService $articleDataService,
                                 RefArticleDataService $refArticleDataService,
-                                MouvementStockService $mouvementStockService
-    )
-    {
+                                MouvementStockService $mouvementStockService) {
+
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
@@ -202,11 +201,7 @@ class ImportService
                             $this->importReferenceEntity($verifiedData, $colChampsLibres, $row);
                             break;
                         case Import::ENTITY_ART:
-                            $article = $this->importArticleEntity($verifiedData, $colChampsLibres, $row);
-                            $articleFournisseur = $article->getArticleFournisseur();
-                            if (isset($articleFournisseur) && $articleFournisseur->getReferenceArticle()) {
-                                $refToUpdate[] = $articleFournisseur->getReferenceArticle();
-                            }
+                            $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row);
                             break;
                     }
                 }
@@ -570,11 +565,12 @@ class ImportService
         $this->em->persist($refArt);
 
         // quantité
-        if (isset($data['quantiteStock']) || $newEntity) {
-            if (isset($data['quantiteStock']) && !is_numeric($data['quantiteStock'])) {
+        if (isset($data['quantiteStock'])) {
+            if (!is_numeric($data['quantiteStock'])) {
                 $message = 'La quantité doit être un nombre.';
                 $this->throwError($message);
             }
+
             if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if (!$newEntity) {
                     $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
@@ -583,7 +579,7 @@ class ImportService
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
                     $this->throwError($message);
                 }
-                $refArt->setQuantiteStock($data['quantiteStock'] ?? 0);
+                $refArt->setQuantiteStock($data['quantiteStock']);
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
@@ -763,7 +759,7 @@ class ImportService
         }
         $this->em->flush();
 
-        return $article;
+        return $refArticle;
     }
 
     /**
