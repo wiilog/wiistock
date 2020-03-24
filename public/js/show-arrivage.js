@@ -14,7 +14,9 @@ $(function () {
     $acheteursLitige.val(acheteurs).select2();
 
     let numeroCommandeListVal = $('#numeroCommandeListLitigeHidden').val();
-    let numeroCommandeList = numeroCommandeListVal.split(',');
+    let numeroCommandeList = numeroCommandeListVal
+        .split(',')
+        .filter((numeroCommande) => Boolean(numeroCommande));
     let $numeroCommandSelect = modal.find('#numeroCommandeListLitige');
     numeroCommandeList.forEach((value) => {
         let option = new Option(value, value, false, false);
