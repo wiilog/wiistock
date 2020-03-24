@@ -58,6 +58,10 @@ class ImportService
 
     private $rowsToFlush;
 
+    private $secondaryEntities = [
+        'locations' => [],
+        'provider' => []
+    ];
 
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $em,
@@ -903,18 +907,31 @@ class ImportService
      * @return Fournisseur
      * @throws NonUniqueResultException
      */
-    private function checkAndCreateProvider($ref)
-    {
-        $provider = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($ref);
-        if (empty($provider)) {
-            $provider = new Fournisseur();
-            $provider
-                ->setCodeReference($ref)
-                ->setNom($ref);
-            $this->em->persist($provider);
+    private function checkAndCreateProvider($ref) {
+        $alreadyPersistedProvider = $this->find($this->secondaryEntities['provider'], 'codeReference', $ref);
+
+        if (empty($alreadyPersistedProvider)) {
+            $isProviderAlreadyUsed = false;
+            $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
+            $alreadyPersistedProvider = $fournisseurRepository->findOneByCodeReference($ref);
+        }
+        else {
+            $isProviderAlreadyUsed = true;
         }
 
-        return $provider;
+        if (empty($alreadyPersistedProvider)) {
+            $alreadyPersistedProvider = new Fournisseur();
+            $alreadyPersistedProvider
+                ->setCodeReference($ref)
+                ->setNom($ref);
+            $this->em->persist($alreadyPersistedProvider);
+        }
+
+        if (!$isProviderAlreadyUsed) {
+            $this->secondaryEntities['provider'][] = $alreadyPersistedProvider;
+        }
+
+        return $alreadyPersistedProvider;
     }
 
     private function fieldIsNeeded(string $field, string $entity): bool
@@ -936,16 +953,30 @@ class ImportService
         }
         else {
             $emplacementRepository = $this->em->getRepository(Emplacement::class);
-            $emplacement = $emplacementRepository->findOneByLabel($data['emplacement']);
-            if (empty($emplacement)) {
-                $emplacement = new Emplacement();
-                $emplacement
+
+            $alreadyPersistedLocation = $this->find($this->secondaryEntities['locations'], 'label', $data['emplacement']);
+            if (empty($alreadyPersistedLocation)) {
+                $isLocationAlreadyUsed = false;
+                $alreadyPersistedLocation = $emplacementRepository->findOneByLabel($data['emplacement']);
+            }
+            else {
+                $isLocationAlreadyUsed = true;
+            }
+
+            if (empty($alreadyPersistedLocation)) {
+                $alreadyPersistedLocation = new Emplacement();
+                $alreadyPersistedLocation
                     ->setLabel($data['emplacement'])
                     ->setIsActive(true)
                     ->setIsDeliveryPoint(false);
-                $this->em->persist($emplacement);
+
+                $this->em->persist($alreadyPersistedLocation);
             }
-            $articleOrRef->setEmplacement($emplacement);
+            $articleOrRef->setEmplacement($alreadyPersistedLocation);
+
+            if (!$isLocationAlreadyUsed) {
+                $this->secondaryEntities['locations'][] = $alreadyPersistedLocation;
+            }
         }
     }
 
@@ -955,5 +986,20 @@ class ImportService
             $this->em->flush();
             $this->rowsToFlush = 0;
         }
+    }
+
+    private function find($array, $attribute, $value) {
+        $found = null;
+        foreach($array AS $key => $object) {
+            $getter = 'get' . ucfirst($attribute);
+            $currentValue = $object->{$getter}();
+
+            if ($currentValue === $value){
+                $found = $object;
+                break;
+            }
+        }
+
+        return $found;
     }
 }
