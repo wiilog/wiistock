@@ -201,7 +201,11 @@ class ImportService
                             $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
                             break;
                         case Import::ENTITY_ART:
-                            $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $article = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $rowIndex);
+                            $articleFournisseur = $article->getArticleFournisseur();
+                            if (isset($articleFournisseur) && $articleFournisseur->getReferenceArticle()) {
+                                $refToUpdate[] = $articleFournisseur->getReferenceArticle();
+                            }
                             break;
                     }
                 }
@@ -581,7 +585,7 @@ class ImportService
                 $message = 'La quantité doit être un nombre. ' . '(ligne ' . $rowIndex . ')';
                 $this->throwError($message);
             }
-            if ($refArt->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if (!$newEntity) {
                     $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
                 }
@@ -612,11 +616,11 @@ class ImportService
      * @param array $colChampsLibres
      * @param array $row
      * @param int $rowIndex
-     * @return ReferenceArticle
-     * @throws NonUniqueResultException
+     * @return Article
      * @throws ImportException
+     * @throws NonUniqueResultException
      */
-    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): ReferenceArticle
+    private function importArticleEntity(array $data, array $colChampsLibres, array $row, int $rowIndex): Article
     {
         $refArticle = null;
         if (!empty($data['referenceReference'])) {
@@ -758,7 +762,7 @@ class ImportService
         }
         $this->em->flush();
 
-        return $refArticle;
+        return $article;
     }
 
     /**

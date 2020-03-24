@@ -6,7 +6,7 @@
      ondrop="dropOnDiv(event, $(this))">
     {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
     <p>{{ text }} ou <span onclick="openFE($(this))" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
-        <input type="file" name="files[]" multiple class="d-none fileInput" onchange="uploadFE($(this))">
+        <input type="file" name="files[]" {{ unique is defined and unique ? 'multiple' }} class="d-none fileInput" onchange="uploadFE($(this))">
     </p>
 </div>
 

@@ -196,6 +196,8 @@ class ReferenceArticle
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
+
+        $this->quantiteReservee = 0;
     }
 
     public function getId()
