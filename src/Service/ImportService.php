@@ -54,8 +54,6 @@ class ImportService
     private $refArticleDataService;
     private $mouvementStockService;
 
-
-
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
@@ -468,6 +466,7 @@ class ImportService
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
             $fieldName = Import::FIELDS_ENTITY[$column] ?? $column;
+
             if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
                 $message = 'La colonne ' . $fieldName . ' est manquante.';
                 $this->throwError($message);
@@ -490,7 +489,13 @@ class ImportService
      */
     private function importFournisseurEntity(array $data): void
     {
+        if (!isset($data['codeReference'])) {
+            $message = "La valeur renseignée pour le code fournisseur ne correspond à aucune valeur connue.";
+            $this->throwError($message);
+        }
+
         $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['codeReference']);
+
         if (!$fournisseur) {
             $fournisseur = new Fournisseur();
             $this->em->persist($fournisseur);
@@ -528,8 +533,7 @@ class ImportService
             $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
 
             if (empty($refArticle)) {
-                $message = "La valeur renseignée pour la référence de
-                l'article de référence ne correspond à aucune référence connue.";
+                $message = "La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.";
                 $this->throwError($message);
             } else {
                 $articleFournisseur->setReferenceArticle($refArticle);
@@ -540,8 +544,7 @@ class ImportService
             $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
 
             if (empty($fournisseur)) {
-                $message = "La valeur renseignée pour le code
-                du fournisseur ne correspond à aucun fournisseur connu.";
+                $message = "La valeur renseignée pour le code du fournisseur ne correspond à aucun fournisseur connu.";
                 $this->throwError($message);
             } else {
                 $articleFournisseur->setFournisseur($fournisseur);
@@ -738,8 +741,7 @@ class ImportService
         if (!empty($data['referenceReference'])) {
             $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
             if (empty($refArticle)) {
-                $message = "La valeur renseignée pour la référence de
-                                    l'article de référence ne correspond à aucune référence connue.";
+                $message = "La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.";
                 $this->throwError($message);
             }
         }
@@ -755,7 +757,6 @@ class ImportService
             $article = new Article();
             $newEntity = true;
         }
-
 
         if (isset($data['label'])) {
             $article->setLabel($data['label']);
@@ -910,7 +911,7 @@ class ImportService
 
     private function fieldIsNeeded(string $field, string $entity): bool
     {
-        return in_array(Import::FIELDS_ENTITY[$field] ?? $field, Import::FIELDS_NEEDED[$entity]);
+        return in_array($field, Import::FIELDS_NEEDED[$entity]);
     }
 
     /**

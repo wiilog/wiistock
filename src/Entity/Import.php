@@ -37,7 +37,8 @@ class Import
         self::ENTITY_REF => [
             'reference',
             'libelle',
-            'type'
+            'type',
+            'emplacement'
         ]
     ];
 

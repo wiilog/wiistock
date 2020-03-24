@@ -80,15 +80,11 @@ function displaySecondModal(data) {
 }
 
 function displayConfirmationModal(data) {
-    if (data.success) {
-        $modalNewImport.find('.modal-body').html(data.html);
-        $submitNewImport.off();
+    $modalNewImport.find('.modal-body').html(data.html);
+    $submitNewImport.off();
 
-        let urlNewImportConfirm = Routing.generate('import_confirm', true);
-        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport, launchImport);
-    } else {
-        $modalNewImport.find('.error-msg').html(data.msg);
-    }
+    let urlNewImportConfirm = Routing.generate('import_confirm', true);
+    InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport, launchImport);
 }
 
 function launchImport(data) {
