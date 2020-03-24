@@ -171,7 +171,7 @@ class ImportService
         $dataToCheck = $this->getDataToCheck($import->getEntity(), $corresp);
 
         $headers = null;
-        $csvErrors = [];
+        $logRows = [];
         $refToUpdate = [];
 
         $rowCount = 0;
@@ -183,10 +183,10 @@ class ImportService
 
             if (empty($headers)) {
                 $headers = $row;
-                $csvErrors[] = array_merge($headers, ['Statut']);
+                $logRows[] = array_merge($headers, ['Import']);
             }
             else {
-                $rows[] = $row;
+                $firstRows[] = $row;
                 $rowCount++;
             }
         }
@@ -203,17 +203,16 @@ class ImportService
         else {
             // les premières lignes < MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
-                $csvErrors[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
             }
 
             if (!$smallFile) {
                 // on fait la suite du fichier
                 while (($data = fgetcsv($file, 1000, ';')) !== false) {
                     $row = array_map('utf8_encode', $data);
-                    $csvErrors[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
                 }
             }
-
             // mise à jour des quantités sur références par article
             $uniqueRefToUpdate = array_unique($refToUpdate);
             foreach ($uniqueRefToUpdate as $ref) {
@@ -221,7 +220,7 @@ class ImportService
             }
 
             // création du fichier de log
-            $pieceJointeForLogFile = $this->persistLogFilePieceJointe($csvErrors);
+            $pieceJointeForLogFile = $this->persistLogFilePieceJointe($logRows);
             $import->setLogFile($pieceJointeForLogFile);
             $this->em->flush();
         }
@@ -268,6 +267,7 @@ class ImportService
         finally {
             $newRow = array_merge($row, [$message]);
         }
+
         return $newRow;
     }
 
@@ -414,21 +414,21 @@ class ImportService
         return $dataToCheck;
     }
 
-    private function buildErrorFile(array $csvErrors)
+    private function buildErrorFile(array $logRows)
     {
         $fileName = uniqid() . '.csv';
         $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
         $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
-        foreach ($csvErrors as $csvError) {
-            fputcsv($logCsvFilePathOpened, $csvError, ';');
+        foreach ($logRows as $row) {
+            fputcsv($logCsvFilePathOpened, $row, ';');
         }
         fclose($logCsvFilePathOpened);
         return $fileName;
     }
 
-    private function persistLogFilePieceJointe(array $csvErrors)
+    private function persistLogFilePieceJointe(array $logRows)
     {
-        $createdLogFile = $this->buildErrorFile($csvErrors);
+        $createdLogFile = $this->buildErrorFile($logRows);
 
         $pieceJointeForLogFile = new PieceJointe();
         $pieceJointeForLogFile
