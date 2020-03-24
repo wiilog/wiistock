@@ -59,7 +59,9 @@ class Import
         'emplacement' => 'emplacement',
         'catInv' => 'catégorie inventaire',
         'articleFournisseurReference' => 'articleFournisseurReference',
-		'typeLabel' => 'type'
+		'typeLabel' => 'type',
+        'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
+        'emergencyComment' => 'commentaire urgence',
 	];
 
     /**
