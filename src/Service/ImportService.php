@@ -24,6 +24,7 @@ use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\ORMException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -120,7 +121,7 @@ class ImportService
             'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
             'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
             'label' => $import->getLabel(),
-            'newEntries' => $import->getNewEntries() ?? '',
+            'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
             'status' => $import->getStatus() ? $import->getStatus()->getNom() : '',
@@ -156,6 +157,7 @@ class ImportService
      * @param bool $force
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws ORMException
      */
     public function loadData(Import $import, $force = false)
     {
@@ -175,6 +177,7 @@ class ImportService
         $headers = null;
         $logRows = [];
         $refToUpdate = [];
+        $stats = ['news' => 0, 'updates' => 0, 'errors' => 0];
 
         $rowCount = 0;
         $firstRows = [];
@@ -205,14 +208,14 @@ class ImportService
         else {
             // les premières lignes < MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
-                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
             }
 
             if (!$smallFile) {
                 // on fait la suite du fichier
                 while (($data = fgetcsv($file, 1000, ';')) !== false) {
                     $row = array_map('utf8_encode', $data);
-                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
                 }
             }
             // mise à jour des quantités sur références par article
@@ -226,6 +229,9 @@ class ImportService
             $import->setLogFile($pieceJointeForLogFile);
 
             $import
+                ->setNewEntries($stats['news'])
+                ->setUpdatedEntries($stats['updates'])
+                ->setNbErrors($stats['errors'])
                 ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
                 ->setEndDate(new DateTime('now'));
 
@@ -240,32 +246,33 @@ class ImportService
      * @param $dataToCheck
      * @param $colChampsLibres
      * @param array $refToUpdate
+     * @param array $stats
      * @return array
-     * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\ORMException
+     * @throws ORMException
      */
     private function treatImportRow(array $row,
                                     Import $import,
                                     array $headers,
                                     $dataToCheck,
                                     $colChampsLibres,
-                                    array &$refToUpdate): array {
+                                    array &$refToUpdate,
+                                    array &$stats): array {
         $message = 'OK';
         try {
             $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
 
             switch ($import->getEntity()) {
                 case Import::ENTITY_FOU:
-                    $this->importFournisseurEntity($verifiedData);
+                    $this->importFournisseurEntity($verifiedData, $stats);
                     break;
                 case Import::ENTITY_ART_FOU:
-                    $this->importArticleFournisseurEntity($verifiedData);
+                    $this->importArticleFournisseurEntity($verifiedData, $stats);
                     break;
                 case Import::ENTITY_REF:
-                    $this->importReferenceEntity($verifiedData, $colChampsLibres, $row);
+                    $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $stats);
                     break;
                 case Import::ENTITY_ART:
-                    $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row);
+                    $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row,$stats);
                     break;
             }
         }
@@ -277,7 +284,8 @@ class ImportService
 
             $message = ($throwable instanceof ImportException)
                 ? $throwable->getMessage()
-                : 'Une erreur est survenue';
+                : 'Une erreur est survenue.';
+            $stats['errors']++;
         }
 
         return !empty($message)
@@ -485,10 +493,13 @@ class ImportService
 
     /**
      * @param array $data
+     * @param array $stats
+     * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importFournisseurEntity(array $data): void
+    private function importFournisseurEntity(array $data, array &$stats): void
     {
+        $newEntity = false;
         if (!isset($data['codeReference'])) {
             $message = "La valeur renseignée pour le code fournisseur ne correspond à aucune valeur connue.";
             $this->throwError($message);
@@ -499,6 +510,7 @@ class ImportService
         if (!$fournisseur) {
             $fournisseur = new Fournisseur();
             $this->em->persist($fournisseur);
+            $newEntity = true;
         }
         if (isset($data['codeReference'])) {
             $fournisseur->setCodeReference($data['codeReference']);
@@ -507,19 +519,25 @@ class ImportService
             $fournisseur->setNom($data['nom']);
         }
         $this->em->flush();
+
+        $this->updateStats($stats, $newEntity);
     }
 
     /**
      * @param array $data
-     * @throws NonUniqueResultException
+     * @param array $stats
      * @throws ImportException
+     * @throws NonUniqueResultException
      */
-    private function importArticleFournisseurEntity(array $data): void
+    private function importArticleFournisseurEntity(array $data, array &$stats): void
     {
+        $newEntity = false;
+
         if (isset($data['reference'])) {
             $articleFournisseur = $this->em->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $data['reference']]);
             if (!$articleFournisseur) {
                 $articleFournisseur = new ArticleFournisseur();
+                $newEntity = true;
             }
             $articleFournisseur->setReference($data['reference']);
         } else {
@@ -552,6 +570,8 @@ class ImportService
         }
         $this->em->persist($articleFournisseur);
         $this->em->flush();
+
+        $this->updateStats($stats, $newEntity);
     }
 
     /**
@@ -567,10 +587,11 @@ class ImportService
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param array $stats
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importReferenceEntity(array $data, array $colChampsLibres, array $row)
+    private function importReferenceEntity(array $data, array $colChampsLibres, array $row, array &$stats): void
     {
         $newEntity = false;
         $refArt = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['reference']);
@@ -725,17 +746,20 @@ class ImportService
             $this->em->persist($valeurCL);
         }
         $this->em->flush();
+
+        $this->updateStats($stats, $newEntity);
     }
 
     /**
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param array $stats
      * @return ReferenceArticle
-     * @throws NonUniqueResultException
      * @throws ImportException
+     * @throws NonUniqueResultException
      */
-    private function importArticleEntity(array $data, array $colChampsLibres, array $row): ReferenceArticle
+    private function importArticleEntity(array $data, array $colChampsLibres, array $row, array &$stats): ReferenceArticle
     {
         $refArticle = null;
         if (!empty($data['referenceReference'])) {
@@ -871,6 +895,8 @@ class ImportService
         }
         $this->em->flush();
 
+        $this->updateStats($stats, $newEntity);
+
         return $refArticle;
     }
 
@@ -940,6 +966,17 @@ class ImportService
         }
     }
 
+    /**
+     * @param array $stats
+     * @param boolean $newEntity
+     */
+    private function updateStats(&$stats, $newEntity) {
+        if ($newEntity) {
+            $stats['news']++;
+        } else {
+            $stats['updates']++;
+        }
+    }
 
 }
 
