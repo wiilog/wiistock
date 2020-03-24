@@ -162,6 +162,8 @@ class Article
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->litiges = new ArrayCollection();
+
+        $this->quantite = 0;
     }
 
     public function getId(): ?int
