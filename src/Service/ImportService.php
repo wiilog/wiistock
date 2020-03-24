@@ -21,12 +21,14 @@ use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Throwable;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -242,6 +244,7 @@ class ImportService
      * @param array $refToUpdate
      * @return array
      * @throws NonUniqueResultException
+     * @throws \Doctrine\ORM\ORMException
      */
     private function treatImportRow(array $row,
                                     Import $import,
@@ -268,14 +271,20 @@ class ImportService
                     break;
             }
         }
-        catch (ImportException $exception) {
-            $message = $exception->getMessage();
-        }
-        finally {
-            $newRow = array_merge($row, [$message]);
+        catch (Throwable $throwable) {
+            // On réinitialise l'entity manager car il a été fermé
+            if (!$this->em->isOpen()) {
+                $this->em = EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
+            }
+
+            $message = ($throwable instanceof ImportException)
+                ? $throwable->getMessage()
+                : 'Une erreur est survenue';
         }
 
-        return $newRow;
+        return !empty($message)
+            ? array_merge($row, [$message])
+            : $row;
     }
 
     /**
