@@ -32,6 +32,8 @@ use Twig\Error\SyntaxError;
 
 class ImportService
 {
+    private const MAX_LINES_FLASH_IMPORT = 500;
+
     /**
      * @var Twig_Environment
      */
@@ -47,6 +49,8 @@ class ImportService
     private $articleDataService;
     private $refArticleDataService;
     private $mouvementStockService;
+
+
 
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $em,
@@ -164,74 +168,105 @@ class ImportService
 
         $dataToCheck = $this->getDataToCheck($import->getEntity(), $corresp);
 
-        $headers = [];
-        $rowIndex = 0;
+        $headers = null;
         $csvErrors = [];
         $refToUpdate = [];
 
-        $rows = [];
-        while (($data = fgetcsv($file, 1000, ';')) !== false) {
-            $rows[] = array_map('utf8_encode', $data);
+        $rowCount = 0;
+        $firstRows = [];
+
+        while (($data = fgetcsv($file, 1000, ';')) !== false
+               && $rowCount <= self::MAX_LINES_FLASH_IMPORT) {
+            $row = array_map('utf8_encode', $data);
+
+            if (empty($headers)) {
+                $headers = $row;
+                $csvErrors[] = array_merge($headers, ['Statut']);
+            }
+            else {
+                $rows[] = $row;
+                $rowCount++;
+            }
         }
 
-        // si + de 500 ligne -> planification
-        if (!$force && count($rows) > 500) {
+        // le fichier fait moins de MAX_LINES_FLASH_IMPORT lignes
+        $smallFile = ($rowCount <= self::MAX_LINES_FLASH_IMPORT);
+
+        // si + de 500 ligne && !force -> planification
+        if (!$smallFile && !$force) {
             $import->setStatus($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
             $this->em->flush();
             return;
         }
+        else {
+            // les premières lignes < MAX_LINES_FLASH_IMPORT
+            foreach ($firstRows as $row) {
+                $csvErrors[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+            }
 
-        foreach ($rows as $row) {
-            try {
-                $message = 'OK';
-                if ($rowIndex == 0) {
-                    $headers = $row;
-                    $csvErrors[] = array_merge($headers, ['Statut']);
-                } else {
-                    $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
-
-                    switch ($import->getEntity()) {
-                        case Import::ENTITY_FOU:
-                            $this->importFournisseurEntity($verifiedData);
-                            break;
-                        case Import::ENTITY_ART_FOU:
-                            $this->importArticleFournisseurEntity($verifiedData);
-                            break;
-                        case Import::ENTITY_REF:
-                            $this->importReferenceEntity($verifiedData, $colChampsLibres, $row);
-                            break;
-                        case Import::ENTITY_ART:
-                            $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row);
-                            break;
-                    }
-                }
-            } catch (ImportException $exception) {
-                $message = $exception->getMessage();
-            } finally {
-                if ($rowIndex > 0) {
-                    $csvErrors[] = array_merge($row, [$message]);
+            if (!$smallFile) {
+                // on fait la suite du fichier
+                while (($data = fgetcsv($file, 1000, ';')) !== false) {
+                    $row = array_map('utf8_encode', $data);
+                    $csvErrors[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
                 }
             }
 
-            $rowIndex++;
+            // mise à jour des quantités sur références par article
+            $uniqueRefToUpdate = array_unique($refToUpdate);
+            foreach ($uniqueRefToUpdate as $ref) {
+                $this->refArticleDataService->updateRefArticleQuantities($ref);
+            }
+
+            // création du fichier de log
+            $pieceJointeForLogFile = $this->persistLogFilePieceJointe($csvErrors);
+            $import->setLogFile($pieceJointeForLogFile);
+            $this->em->flush();
         }
+    }
 
-        // mise à jour des quantités sur références par article
-        $uniqueRefToUpdate = array_unique($refToUpdate);
-        foreach ($uniqueRefToUpdate as $ref) {
-            $this->refArticleDataService->updateRefArticleQuantities($ref);
+    /**
+     * @param array $row
+     * @param Import $import
+     * @param array $headers
+     * @param $dataToCheck
+     * @param $colChampsLibres
+     * @param array $refToUpdate
+     * @return array
+     * @throws NonUniqueResultException
+     */
+    private function treatImportRow(array $row,
+                                    Import $import,
+                                    array $headers,
+                                    $dataToCheck,
+                                    $colChampsLibres,
+                                    array &$refToUpdate): array {
+        $message = 'OK';
+        try {
+            $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
+
+            switch ($import->getEntity()) {
+                case Import::ENTITY_FOU:
+                    $this->importFournisseurEntity($verifiedData);
+                    break;
+                case Import::ENTITY_ART_FOU:
+                    $this->importArticleFournisseurEntity($verifiedData);
+                    break;
+                case Import::ENTITY_REF:
+                    $this->importReferenceEntity($verifiedData, $colChampsLibres, $row);
+                    break;
+                case Import::ENTITY_ART:
+                    $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row);
+                    break;
+            }
         }
-
-        $createdLogFile = $this->buildErrorFile($csvErrors);
-
-        $pieceJointeForLogFile = new PieceJointe();
-        $pieceJointeForLogFile
-            ->setOriginalName($createdLogFile)
-            ->setFileName($createdLogFile);
-        $this->em->persist($pieceJointeForLogFile);
-        $import->setLogFile($pieceJointeForLogFile);
-
-        $this->em->flush();
+        catch (ImportException $exception) {
+            $message = $exception->getMessage();
+        }
+        finally {
+            $newRow = array_merge($row, [$message]);
+        }
+        return $newRow;
     }
 
     /**
@@ -371,6 +406,20 @@ class ImportService
         }
         fclose($logCsvFilePathOpened);
         return $fileName;
+    }
+
+    private function persistLogFilePieceJointe(array $csvErrors)
+    {
+        $createdLogFile = $this->buildErrorFile($csvErrors);
+
+        $pieceJointeForLogFile = new PieceJointe();
+        $pieceJointeForLogFile
+            ->setOriginalName($createdLogFile)
+            ->setFileName($createdLogFile);
+
+        $this->em->persist($pieceJointeForLogFile);
+
+        return $pieceJointeForLogFile;
     }
 
     /**
@@ -604,7 +653,6 @@ class ImportService
             $this->throwError($message);
         }
 
-
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $champLibreRepository->find($clId);
             $valeurCL = new ValeurChampLibre();
@@ -747,6 +795,7 @@ class ImportService
         // liaison emplacement
         $this->checkAndCreateEmplacement($data, $article);
         $this->em->persist($article);
+
         // champs libres
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
