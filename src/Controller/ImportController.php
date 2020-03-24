@@ -288,10 +288,6 @@ class ImportController extends AbstractController
 
         if ($import) {
             $importService->loadData($import);
-            $import
-                ->setStatus($em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
-                ->setEndDate(new DateTime('now'));
-            $em->flush();
         }
 
 		return new JsonResponse();

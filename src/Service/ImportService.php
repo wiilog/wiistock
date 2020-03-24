@@ -159,6 +159,8 @@ class ImportService
      */
     public function loadData(Import $import, $force = false)
     {
+        $statutRepository = $this->em->getRepository(Statut::class);
+
         $csvFile = $import->getCsvFile();
 
         $path = "../public/uploads/attachements/" . $csvFile->getFileName();
@@ -196,7 +198,7 @@ class ImportService
 
         // si + de 500 ligne && !force -> planification
         if (!$smallFile && !$force) {
-            $import->setStatus($this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
+            $import->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
             $this->em->flush();
             return;
         }
@@ -222,6 +224,11 @@ class ImportService
             // création du fichier de log
             $pieceJointeForLogFile = $this->persistLogFilePieceJointe($logRows);
             $import->setLogFile($pieceJointeForLogFile);
+
+            $import
+                ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
+                ->setEndDate(new DateTime('now'));
+
             $this->em->flush();
         }
     }
