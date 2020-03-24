@@ -729,8 +729,8 @@ class ImportService
         if (!empty($data['referenceReference'])) {
             $refArticle = $this->em->getRepository(ReferenceArticle::class)->findOneByReference($data['referenceReference']);
             if (empty($refArticle)) {
-                $message = "La valeur renseignée pour la référence de
-                                    l'article de référence ne correspond à aucune référence connue.";
+                $message = "La valeur renseignée pour la référence de l'article de référence 
+                ne correspond à aucune référence connue.";
                 $this->throwError($message);
             }
         }
@@ -746,7 +746,6 @@ class ImportService
             $article = new Article();
             $newEntity = true;
         }
-
 
         if (isset($data['label'])) {
             $article->setLabel($data['label']);
