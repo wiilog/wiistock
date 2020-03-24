@@ -680,12 +680,12 @@ class ImportService
             }
 
             if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                if (!$newEntity) {
-                    $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
-                }
                 if (isset($data['quantiteStock']) && $data['quantiteStock'] < $refArt->getQuantiteReservee()) {
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
                     $this->throwError($message);
+                }
+                if (!$newEntity) {
+                    $this->checkAndCreateMvtStock($refArt, $refArt->getQuantiteStock(), $data['quantiteStock']);
                 }
                 $refArt->setQuantiteStock($data['quantiteStock']);
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
@@ -760,12 +760,15 @@ class ImportService
         if (isset($data['label'])) {
             $article->setLabel($data['label']);
         }
-        if (isset($data['quantite']) || $newEntity) {
+        if (isset($data['quantite'])) {
             if (!is_numeric($data['quantite'])) {
                 $message = 'La quantité doit être un nombre.';
                 $this->throwError($message);
             }
-            $article->setQuantite($data['quantite'] ?? 0);
+            if (!$newEntity) {
+                $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite']);
+            }
+            $article->setQuantite($data['quantite']);
         }
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {
@@ -871,15 +874,17 @@ class ImportService
     }
 
     /**
+     * @param ReferenceArticle|Article $refOrArt
+     * @param int $formerQuantity
      * @param int $newQuantity
-     * @param ReferenceArticle $refArt
      */
-    private function checkAndCreateMvtStock(ReferenceArticle $refArt, int $newQuantity)
+    private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity)
     {
-        $diffQuantity = $newQuantity - $refArt->getQuantiteStock();
+        $diffQuantity = $newQuantity - $formerQuantity;
+
         if ($diffQuantity != 0) {
             $typeMvt = $diffQuantity > 0 ? MouvementStock::TYPE_INVENTAIRE_ENTREE : MouvementStock::TYPE_INVENTAIRE_SORTIE;
-            $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, null, abs($diffQuantity), $refArt, $typeMvt);
+            $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, null, abs($diffQuantity), $refOrArt, $typeMvt);
             $this->em->persist($mvtStock);
         }
     }
