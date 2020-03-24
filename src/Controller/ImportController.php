@@ -138,9 +138,9 @@ class ImportController extends AbstractController
                 ];
                 $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
-                $fieldsToHide = ['id', 'barCode', 'conform', 'commentaire', 'quantiteAPrelever', 'quantitePrelevee',
-                    'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
-                    'quantiteReservee', 'emergencyComment'];
+                $fieldsToHide = ['id', 'barCode', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
+                    'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
+                    'quantiteReservee'];
                 $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                 switch ($entity) {
                     case Import::ENTITY_ART:
@@ -150,7 +150,7 @@ class ImportController extends AbstractController
                         break;
                     case Import::ENTITY_REF:
                         $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                        $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire'];
+                        $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut'];
                         $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                         break;
                     case Import::ENTITY_ART_FOU:

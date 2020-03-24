@@ -20,8 +20,10 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
+use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -317,6 +319,22 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('catInv', Import::ENTITY_REF),
                         'value' => isset($corresp['catégorie d\'inventaire']) ? $corresp['catégorie d\'inventaire'] : null,
                     ],
+                    'commentaire' => [
+                        'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_REF),
+                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null,
+                    ],
+                    'emergencyComment' => [
+                        'needed' => $this->fieldIsNeeded('emergencyComment', Import::ENTITY_REF),
+                        'value' => isset($corresp['emergencyComment']) ? $corresp['emergencyComment'] : null,
+                    ],
+                    'dateLastInventory' => [
+                        'needed' => $this->fieldIsNeeded('dateLastInventory', Import::ENTITY_REF),
+                        'value' => isset($corresp['dateLastInventory']) ? $corresp['dateLastInventory'] : null,
+                    ],
+                    'status' => [
+                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_REF),
+                        'value' => isset($corresp['status']) ? $corresp['status'] : null,
+                    ],
                 ];
                 break;
             case Import::ENTITY_ART:
@@ -385,13 +403,13 @@ class ImportService
     {
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
+            $fieldName = Import::FIELDS_ENTITY[$column] ?? $column;
             if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
-                $message = 'La colonne ' . $column
-                    . ' est manquante.';
+                $message = 'La colonne ' . $fieldName . ' est manquante.';
                 $this->throwError($message);
             } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
                 $message =
-                    'La valeur renseignée pour le champ ' . $column . ' dans la colonne '
+                    'La valeur renseignée pour le champ ' . $fieldName . ' dans la colonne '
                     . $headers[$originalDataToCheck['value']]
                     . ' ne peut être vide.';
                 $this->throwError($message);
@@ -501,6 +519,20 @@ class ImportService
         if (isset($data['reference'])) {
             $refArt->setReference($data['reference']);
         }
+        if (isset($data['commentaire'])) {
+            $refArt->setCommentaire($data['commentaire']);
+        }
+        if (isset($data['emergencyComment'])) {
+            $refArt->setEmergencyComment($data['emergencyComment']);
+        }
+        if (isset($data['dateLastInventory'])) {
+            try {
+                $refArt->setDateLastInventory(new DateTime($data['dateLastInventory']));
+            } catch (Exception $e) {
+                $message = 'La date de dernier inventaire n\'est pas dans un format date.';
+                $this->throwError($message);
+            };
+        }
         if ($newEntity) {
             // interdiction de modifier le type quantité d'une réf existante
             $refArt->setTypeQuantite($data['typeQuantite'] ?? ReferenceArticle::TYPE_QUANTITE_REFERENCE);
@@ -552,6 +584,17 @@ class ImportService
             $this->checkAndCreateEmplacement($data, $refArt);
         }
 
+        // liaison statut
+        if (!empty($data['statut'])) {
+            $status = $this->em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $data['statut']);
+            if (empty($status)) {
+                $message = "La valeur renseignée pour le statut ne correspond à aucun statut connu.";
+                $this->throwError($message);
+            } else {
+                $refArt->setStatut($status);
+            }
+        }
+
         // liaison catégorie inventaire
         if (!empty($data['catInv'])) {
             $catInv = $this->em->getRepository(InventoryCategory::class)->findOneBy(['label' => $data['catInv']]);
@@ -575,7 +618,7 @@ class ImportService
                 if (!$newEntity) {
                     $this->checkAndCreateMvtStock($refArt, $data['quantiteStock']);
                 }
-                if ($data['quantiteStock'] < $refArt->getQuantiteReservee()) {
+                if (isset($data['quantiteStock']) && $data['quantiteStock'] < $refArt->getQuantiteReservee()) {
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
                     $this->throwError($message);
                 }
@@ -797,10 +840,7 @@ class ImportService
 
     private function fieldIsNeeded(string $field, string $entity): bool
     {
-        return (
-            in_array(Import::FIELDS_ENTITY[$field], Import::FIELDS_NEEDED[$entity]) ||
-            in_array($field, Import::FIELDS_NEEDED[Import::ENTITY_FOU])
-        );
+        return in_array(Import::FIELDS_ENTITY[$field] ?? $field, Import::FIELDS_NEEDED[$entity]);
     }
 
     /**
