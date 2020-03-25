@@ -60,7 +60,9 @@ class ImportService
 
     private $secondaryEntities = [
         'locations' => [],
-        'provider' => []
+        'providers' => [],
+        'articlesFournisseurs' => [],
+        'types' => []
     ];
 
     public function __construct(RouterInterface $router,
@@ -507,14 +509,23 @@ class ImportService
     private function importFournisseurEntity(array $data): void
     {
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-        $fournisseur = $fournisseurRepository->findOneByCodeReference($data['codeReference']);
-        if (!$fournisseur) {
-            $fournisseur = new Fournisseur();
-            $this->em->persist($fournisseur);
+
+
+        $fournisseur = $this->find($this->secondaryEntities['providers'], ['codeReference' => $data['codeReference']]);
+
+        if (empty($fournisseur)) {
+            $fournisseur = $fournisseurRepository->findOneByCodeReference($data['codeReference']);
+
+            if (empty($fournisseur)) {
+                $fournisseur = new Fournisseur();
+                $fournisseur->setCodeReference($data['codeReference']);
+
+                $this->em->persist($fournisseur);
+            }
+
+            $this->secondaryEntities['providers'][] = $fournisseur;
         }
-        if (isset($data['codeReference'])) {
-            $fournisseur->setCodeReference($data['codeReference']);
-        }
+
         if (isset($data['nom'])) {
             $fournisseur->setNom($data['nom']);
         }
@@ -528,15 +539,24 @@ class ImportService
     private function importArticleFournisseurEntity(array $data): void
     {
         if (isset($data['reference'])) {
-            $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
-            $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
-            if (!$articleFournisseur) {
-                $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['reference']]);
+
+            if (empty($articleFournisseur)) {
+                $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
+                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
+
+                if (!empty($articleFournisseur)) {
+                    $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+                }
             }
-            $articleFournisseur->setReference($data['reference']);
-        } else {
-            $articleFournisseur = new ArticleFournisseur();
         }
+
+        if (empty($articleFournisseur)) {
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur->setReference($data['reference']);
+            $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+        }
+
         if (isset($data['label'])) {
             $articleFournisseur->setLabel($data['label']);
         }
@@ -554,11 +574,10 @@ class ImportService
         }
 
         if (!empty($data['fournisseurReference'])) {
-            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+            $fournisseur = $this->findProvider($data['fournisseurReference']);
 
             if (empty($fournisseur)) {
-                $message = "La valeur renseignée pour le code
-                du fournisseur ne correspond à aucun fournisseur connu.";
+                $message = "La valeur renseignée pour le code du fournisseur ne correspond à aucun fournisseur connu.";
                 $this->throwError($message);
             } else {
                 $articleFournisseur->setFournisseur($fournisseur);
@@ -653,14 +672,22 @@ class ImportService
 
         // liaison type
         $typeRepository = $this->em->getRepository(Type::class);
-        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
+
+        $type = $this->find($this->secondaryEntities['types'], ['label' => $data['typeLabel'] ?? Type::LABEL_STANDARD]);
+
         if (empty($type)) {
-            $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
-            $type = new Type();
-            $type
-                ->setLabel($data['typeLabel'])
-                ->setCategory($categoryType);
-            $this->em->persist($type);
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
+            if (empty($type)) {
+                $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
+
+                $type = new Type();
+                $type
+                    ->setLabel($data['typeLabel'])
+                    ->setCategory($categoryType);
+                $this->em->persist($type);
+            }
+
+            $this->secondaryEntities['types'][] = $type;
         }
         $refArt->setType($type);
 
@@ -685,13 +712,13 @@ class ImportService
             $catInvRepository = $this->em->getRepository(InventoryCategory::class);
             $catInv = $catInvRepository->findOneBy(['label' => $data['catInv']]);
             if (empty($catInv)) {
-                $message = "La valeur renseignée pour la catégorie d'inventaire ne correspond
-                à aucune catégorie connue.";
+                $message = "La valeur renseignée pour la catégorie d'inventaire ne correspond à aucune catégorie connue.";
                 $this->throwError($message);
             } else {
                 $refArt->setCategory($catInv);
             }
         }
+
         $this->em->persist($refArt);
 
         // quantité
@@ -806,44 +833,55 @@ class ImportService
                 ->setConform(true);
         }
 
+        $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
+
         // liaison article fournisseur
         if (!empty($data['articleFournisseurReference'])) {
-            $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
-            $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['articleFournisseurReference']]);
+            // on essaye de récupérer l'article fournisseur avec le champ donné
+            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['articleFournisseurReference']]);
 
             if (empty($articleFournisseur)) {
-                if (!$refArticle) {
-                    $message = (
+                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['articleFournisseurReference']]);
+                if (!empty($articleFournisseur)) {
+                    $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+                }
+            }
+
+            // Si on a pas trouvé d'article fournisseur donc on le créé
+            if (empty($articleFournisseur)) {
+                if (empty($refArticle)) {
+                    $this->throwError(
                         "Vous avez renseigné une référence d'article fournisseur qui ne correspond à aucun article fournisseur connu. " .
                         "Dans ce cas, veuillez fournir une référence d'article de référence connue."
                     );
-                    $this->throwError($message);
                 }
-                $articleFournisseur = new ArticleFournisseur();
-                $this->em->persist($articleFournisseur);
-
                 $fournisseur = $this->checkAndCreateProvider(!empty($data['fournisseurReference']) ? $data['fournisseurReference'] : Fournisseur::REF_A_DEFINIR);
 
+                $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
                     ->setFournisseur($fournisseur)
                     ->setReference($data['articleFournisseurReference'])
                     ->setReferenceArticle($refArticle)
                     ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+                $this->em->persist($articleFournisseur);
 
-            } else {
+                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+            }
+            else {
+                // on a réussi à trouver un article fournisseur
                 // vérif que l'article fournisseur correspond au couple référence article / fournisseur
                 if (!empty($data['fournisseurReference'])) {
-                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+                    $fournisseur = $this->findProvider($data['fournisseurReference']);
+
                     if (!empty($fournisseur)) {
                         if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
-                            $message = "Veuillez renseigner une référence de fournisseur correspondant à celle de l'article fournisseur renseigné.";
-                            $this->throwError($message);
+                            $this->throwError("Veuillez renseigner une référence de fournisseur correspondant à celle de l'article fournisseur renseigné.");
                         }
                     } else {
-                        $message = "Veuillez renseigner une référence de fournisseur connue.";
-                        $this->throwError($message);
+                        $this->throwError("Veuillez renseigner une référence de fournisseur connue.");
                     }
                 }
+
                 if ($refArticle && $articleFournisseur->getReferenceArticle()->getId() !== $refArticle->getId()) {
                     $message = "Veuillez renseigner une référence d'article fournisseur correspondant à la référence d'article fournie.";
                     $this->throwError($message);
@@ -851,28 +889,38 @@ class ImportService
             }
 
             // cas où l'article fournisseur n'est pas renseigné
-        } else {
-            if (!$refArticle) {
-                $message = "Vous n'avez pas renseigné de référence d'article fournisseur.
-                    Dans ce cas, veuillez fournir une référence d'article de référence connue.";
-                $this->throwError($message);
+        }
+        else {
+            if (empty($refArticle)) {
+                $this->throwError("Vous n'avez pas renseigné de référence d'article fournisseur. Dans ce cas, veuillez fournir une référence d'article de référence connue.");
             }
 
             $fournisseur = $this->checkAndCreateProvider(!empty($data['fournisseurReference']) ? $data['fournisseurReference'] : Fournisseur::REF_A_DEFINIR);
 
-            $articleFournisseur = new ArticleFournisseur();
-            $articleFournisseur
-                ->setFournisseur($fournisseur)
-                ->setReference($refArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
-                ->setReferenceArticle($refArticle)
-                ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-            $this->em->persist($articleFournisseur);
+            $referenceArticleFournisseur = $refArticle->getReference() . ' / ' . $fournisseur->getCodeReference();
+            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $referenceArticleFournisseur]);
+
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $referenceArticleFournisseur]);
+                if (empty($articleFournisseur)) {
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setFournisseur($fournisseur)
+                        ->setReference($referenceArticleFournisseur)
+                        ->setReferenceArticle($refArticle)
+                        ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+                    $this->em->persist($articleFournisseur);
+                }
+                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+            }
         }
         $article->setArticleFournisseur($articleFournisseur);
         $article->setType($articleFournisseur->getReferenceArticle()->getType());
 
         // liaison emplacement
         $this->checkAndCreateEmplacement($data, $article);
+
+
         $this->em->persist($article);
 
         // champs libres
@@ -911,30 +959,23 @@ class ImportService
      * @throws NonUniqueResultException
      */
     private function checkAndCreateProvider($ref) {
-        $alreadyPersistedProvider = $this->find($this->secondaryEntities['provider'], 'codeReference', $ref);
+        $provider = $this->find($this->secondaryEntities['providers'], ['codeReference' => $ref]);
 
-        if (empty($alreadyPersistedProvider)) {
-            $isProviderAlreadyUsed = false;
+        if (empty($provider)) {
             $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-            $alreadyPersistedProvider = $fournisseurRepository->findOneByCodeReference($ref);
-        }
-        else {
-            $isProviderAlreadyUsed = true;
+            $provider = $fournisseurRepository->findOneByCodeReference($ref);
+
+            if (empty($provider)) {
+                $provider = new Fournisseur();
+                $provider
+                    ->setCodeReference($ref)
+                    ->setNom($ref);
+                $this->em->persist($provider);
+            }
+            $this->secondaryEntities['providers'][] = $provider;
         }
 
-        if (empty($alreadyPersistedProvider)) {
-            $alreadyPersistedProvider = new Fournisseur();
-            $alreadyPersistedProvider
-                ->setCodeReference($ref)
-                ->setNom($ref);
-            $this->em->persist($alreadyPersistedProvider);
-        }
-
-        if (!$isProviderAlreadyUsed) {
-            $this->secondaryEntities['provider'][] = $alreadyPersistedProvider;
-        }
-
-        return $alreadyPersistedProvider;
+        return $provider;
     }
 
     private function fieldIsNeeded(string $field, string $entity): bool
@@ -957,29 +998,22 @@ class ImportService
         else {
             $emplacementRepository = $this->em->getRepository(Emplacement::class);
 
-            $alreadyPersistedLocation = $this->find($this->secondaryEntities['locations'], 'label', $data['emplacement']);
-            if (empty($alreadyPersistedLocation)) {
-                $isLocationAlreadyUsed = false;
-                $alreadyPersistedLocation = $emplacementRepository->findOneByLabel($data['emplacement']);
-            }
-            else {
-                $isLocationAlreadyUsed = true;
+            $location = $this->find($this->secondaryEntities['locations'], ['label' => $data['emplacement']]);
+            if (empty($location)) {
+                $location = $emplacementRepository->findOneByLabel($data['emplacement']);
+                if (empty($location)) {
+                    $location = new Emplacement();
+                    $location
+                        ->setLabel($data['emplacement'])
+                        ->setIsActive(true)
+                        ->setIsDeliveryPoint(false);
+
+                    $this->em->persist($location);
+                }
+                $this->secondaryEntities['locations'][] = $location;
             }
 
-            if (empty($alreadyPersistedLocation)) {
-                $alreadyPersistedLocation = new Emplacement();
-                $alreadyPersistedLocation
-                    ->setLabel($data['emplacement'])
-                    ->setIsActive(true)
-                    ->setIsDeliveryPoint(false);
-
-                $this->em->persist($alreadyPersistedLocation);
-            }
-            $articleOrRef->setEmplacement($alreadyPersistedLocation);
-
-            if (!$isLocationAlreadyUsed) {
-                $this->secondaryEntities['locations'][] = $alreadyPersistedLocation;
-            }
+            $articleOrRef->setEmplacement($location);
         }
     }
 
@@ -991,18 +1025,48 @@ class ImportService
         }
     }
 
-    private function find($array, $attribute, $value) {
+    /**
+     * @param $array
+     * @param array $whereClauses assoc array [attribute => value][]
+     * @return mixed|null
+     */
+    private function find($array, array $whereClauses) {
         $found = null;
-        foreach($array AS $key => $object) {
-            $getter = 'get' . ucfirst($attribute);
-            $currentValue = $object->{$getter}();
 
-            if ($currentValue === $value){
+        foreach ($array as $object) {
+            $objectValid = true;
+            foreach ($whereClauses as $attribute => $value) {
+                $getter = 'get' . ucfirst($attribute);
+                $currentValue = $object->{$getter}();
+
+                if ($currentValue !== $value) {
+                    $objectValid = false;
+                    break;
+                }
+            }
+            if ($objectValid) {
                 $found = $object;
                 break;
             }
         }
 
         return $found;
+    }
+
+    /**
+     * @param $reference
+     * @return Fournisseur|mixed|null
+     * @throws NonUniqueResultException
+     */
+    private function findProvider($reference) {
+        $fournisseur = $this->find($this->secondaryEntities['providers'], ['reference' => $reference]);
+
+        if(empty($fournisseur)) {
+            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($reference);
+            if (!empty($fournisseur)) {
+                $this->secondaryEntities['providers'][] = $fournisseur;
+            }
+        }
+        return $fournisseur;
     }
 }
