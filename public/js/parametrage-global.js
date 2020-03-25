@@ -51,8 +51,7 @@ $(function () {
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
     initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
-    initDisplaySelect2Multiple('#locationDemandeLivraisonDest','#locationDemandeLivraisonDestValue');
-    initDisplaySelect2Multiple('#demandeLivraisonLocationDemandeLivraisonDest', '#demandeLivraisonLocationDemandeLivraisonDestValue');
+    initDisplaySelect2Multiple('#locationDemandeLivraison','#locationDemandeLivraisonValue');
     $('#locationArrivageDest').on('change', editArrivageDestination);
     // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
@@ -287,9 +286,9 @@ function editFont() {
 function editArrivageDestination() {
     $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
         if (resp) {
-            alertSuccessMsg("Mise à jour de la destination des arrivages bien effectuée.");
+            alertSuccessMsg("la destination des arrivages a bien été mise à jour.");
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la destination des arrivages.");
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des arrivages.");
         }
     });
 }
@@ -297,9 +296,9 @@ function editArrivageDestination() {
 function editDemandeLivraisonDestination($select) {
     $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
         if (resp) {
-            alertSuccessMsg("Mise à jour de la destination des demandes de livraison bien effectuée.");
+            alertSuccessMsg("La destination des demandes de livraison a bien été mise à jour.");
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la destination des demandes de livraison.");
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.");
         }
     });
 }

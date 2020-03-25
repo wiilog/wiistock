@@ -60,7 +60,6 @@ class ParametrageGlobalController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param StatutService $statutService
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
 
@@ -75,64 +74,22 @@ class ParametrageGlobalController extends AbstractController
 
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $champsLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
-
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE)
         ]);
+        $paramLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
 
-        $dimensions = $dimensionsEtiquettesRepository->findOneDimension();
-        $mailerServer = $mailerServerRepository->findOneMailerServer();
-        $paramGlo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-        $redirect = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-        $paramGloPrepa = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
-        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-        $paramCodeENC = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
-        $paramCodeETQ = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
-        $fontFamily = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
-        $redirectAfterMvt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
-
-        $carriersParams = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
-        $carriersIds = empty($carriersParams)
-            ? []
-            : explode(',', $carriersParams);
-
-        $carriers = array_reduce(
-            $carriersIds,
-            function (array $carry, $id) use ($transporteurRepository) {
-                $transporteur = $transporteurRepository->find($id);
-                if (isset($transporteur)) {
-                    $carry['id'][] = $transporteur->getId();
-                    $carry['text'][] = $transporteur->getLabel();
-                }
-                return $carry;
-            },
-            ['id' => [], 'text' => []]
-        );
-
-        $carriers['id'] = implode(',', $carriers['id']);
-        $carriers['text'] = implode(',', $carriers['text']);
-        $emplacementArrivageId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-        $emplacementArrivage = isset($emplacementArrivageId)
-            ? $emplacementRepository->find($emplacementArrivageId)
-            : null;
-        $logoParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
-        $logo = ($logoParam && file_exists(getcwd() . "/uploads/attachements/" . $logoParam)
-            ? $logoParam
-            : null);
         return $this->render('parametrage_global/index.html.twig',
             [
-                'logo' => $logo,
-                'dimensions_etiquettes' => $dimensions,
+                'logo' => ($paramLogo && file_exists(getcwd() . "/uploads/attachements/" . $paramLogo) ? $paramLogo : null),
+                'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneDimension(),
                 'paramReceptions' => [
-                    'parametrageG' => $paramGlo ? $paramGlo->getValue() : false,
                     'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
                     'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
                     'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
@@ -140,40 +97,40 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'paramLivraisons' => [
                     'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
-                    'parametrageGPrepa' => $paramGloPrepa ? $paramGloPrepa->getValue() : false,
-                    'parametrageG' => $paramGlo ? $paramGlo->getValue() : false
+                    'prepaAfterDl' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL),
+                    'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
                 ],
                 'paramArrivages' => [
-					'redirect' => $redirect ? $redirect->getValue() : true,
+					'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
 					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
 					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'defaultStatusArrivageId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE),
                     'listStatusArrivage' => $statutService->findAllStatusArrivage(),
-                    'location' => $emplacementArrivage,
+                    'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                 ],
-                'mailerServer' => $mailerServer,
-                'wantsBL' => $wantBL ? $wantBL->getValue() : false,
+                'mailerServer' => $mailerServerRepository->findOneMailerServer(),
+                'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
                 'blChosen' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS),
                 'cls' => $clsForLabels,
                 'paramTranslations' => [
                     'translations' => $translationRepository->findAll(),
                     'menusTranslations' => array_column($translationRepository->getMenus(), '1')
                 ],
-                'paramCodeENC' => $paramCodeENC ? $paramCodeENC->getValue() : true,
+                'paramCodeENC' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true,
                 'encodings' => [ParametrageGlobal::ENCODAGE_EUW, ParametrageGlobal::ENCODAGE_UTF8],
-                'paramCodeETQ' => $paramCodeETQ ? $paramCodeETQ->getValue() : true,
+                'paramCodeETQ' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128) ?? true,
                 'typesETQ' => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
-                'fontFamily' => $fontFamily ? $fontFamily->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY,
-                'redirectMvtTraca' => $redirectAfterMvt ? $redirectAfterMvt->getValue() : null,
+                'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
+                'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'paramDashboard' => [
                     'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
                     'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
                     'natures' => $natureRepository->findAll(),
                     'locations' => $globalParamService->getDashboardLocations(),
-                    'valueCarriers' => $carriers
+                    'valueCarriers' => $globalParamService->getDashboardCarrierDock()
                 ],
             ]);
     }
@@ -980,7 +937,11 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-destination-arrivage", name="set_arrivage_default_dest", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-destination-arrivage",
+     *     name="set_arrivage_default_dest",
+     *     options={"expose"=true},
+     *     methods="GET|POST",
+     *     condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @return Response
@@ -989,45 +950,45 @@ class ParametrageGlobalController extends AbstractController
     public function editArrivageDestination(Request $request,
                                             ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $value = json_decode($request->getContent(), true);
-            $trimmedValue = trim($value);
-            $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-            $em = $this->getDoctrine()->getManager();
-            if (!isset($parametrage)) {
-                $parametrage = new ParametrageGlobal();
-                $parametrage->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
-                $em->persist($parametrage);
-            }
-            $parametrage->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+        $value = json_decode($request->getContent(), true);
 
-            $em->flush();
-            return new JsonResponse(true);
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+            $em->persist($parametrage);
         }
-        throw new NotFoundHttpException("404");
+        $parametrage->setValue($value);
+
+        $em->flush();
+        return new JsonResponse(true);
     }
 
     /**
-     * @Route("/modifier-destination-demande-livraison", name="edit_demande_livraison_default_dest", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/modifier-destination-demande-livraison",
+     *     name="edit_demande_livraison_default_dest",
+     *     options={"expose"=true},
+     *     methods="GET|POST",
+     *     condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editDemandeLivraisonDestination(Request $request,
-                                            ParametrageGlobalRepository $parametrageGlobalRepository): Response    {
+                                                    ParametrageGlobalRepository $parametrageGlobalRepository): Response    {
 
         $value = json_decode($request->getContent(), true);
-        $trimmedValue = trim($value);
+
         $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
         $em = $this->getDoctrine()->getManager();
-        if (!isset($parametrage)) {
+        if (!$parametrage) {
             $parametrage = new ParametrageGlobal();
             $parametrage->setLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
             $em->persist($parametrage);
         }
-        $parametrage->setValue(!empty($trimmedValue) ? $trimmedValue : null);
-
+        $parametrage->setValue($value);
         $em->flush();
         return new JsonResponse(true);
     }

@@ -123,8 +123,6 @@ let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
-let $submitSearchDemandeLivraison = $('#submitSearchDemandeLivraison');
-
 function getCompareStock(submit) {
 
     let path = Routing.generate('compare_stock', true);
@@ -194,8 +192,9 @@ function initNewLivraisonEditor(modal) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDone = true;
     }
+    clearModal(modal);
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-    initDisplaySelect2Multiple('#demandeLivraisonLocationDemandeLivraisonDest', '#demandeLivraisonLocationDemandeLivraisonDestValue');
+    initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
 }
 
 function ajaxGetAndFillArticle(select) {
@@ -205,7 +204,7 @@ function ajaxGetAndFillArticle(select) {
         let params = JSON.stringify(refArticle);
         let selection = $('#selection');
         let editNewArticle = $('#editNewArticle');
-        let modalFooter = $('#modalNewArticle').find('div').find('div').find('.modal-footer');
+        let modalFooter = $('#modalNewArticle').find('.modal-footer');
 
         selection.html('');
         editNewArticle.html('');

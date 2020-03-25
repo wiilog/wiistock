@@ -467,6 +467,7 @@ class DemandeController extends AbstractController
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
      * @param string|null $reception
      * @param string|null $filter
+     * @param GlobalParamService $globalParamService
      * @return Response
      */
     public function index($reception = null,

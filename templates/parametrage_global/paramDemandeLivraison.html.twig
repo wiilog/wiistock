@@ -7,7 +7,7 @@
 <div class="collapse col-12" id="paramDemandeLivraison">
     <div class="row">
         <div class="col-12">
-            {% set checked = (parametrageG == 1) ? 'checked' : '' %}
+            {% set checked = (DLAfterRecep == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
                        onchange="updateToggledParam($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
@@ -19,7 +19,7 @@
     </div>
     <div class="row mt-2 mb-2">
         <div class="col-12">
-            {% set checked = (parametrageGPrepa == 1) ? 'checked' : '' %}
+            {% set checked = (prepaAfterDl == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
                        onchange="updateToggledParam($(this), '{{ path('active_desactive_create_prepa') }}')">
@@ -32,11 +32,11 @@
         <div class="form-group col-4">
             <div class="w-100">
                 <label for="livraisonLocation" class="d-block">Emplacement de livraison par défaut</label>
-                <select class="form-control ajax-autocomplete-location d-block" id="locationDemandeLivraisonDest"
+                <select class="form-control ajax-autocomplete-location d-block" id="locationDemandeLivraison"
                         onchange="editDemandeLivraisonDestination($(this))">
                 </select>
             </div>
-            <input hidden id="locationDemandeLivraisonDestValue" data-id="{{ livraisonLocation ? livraisonLocation.id }}" data-text="{{ livraisonLocation ? livraisonLocation.text }}">
+            <input hidden id="locationDemandeLivraisonValue" data-id="{{ livraisonLocation ? livraisonLocation.id }}" data-text="{{ livraisonLocation ? livraisonLocation.text }}">
         </div>
     </div>
 </div>

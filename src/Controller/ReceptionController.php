@@ -886,9 +886,13 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
+     * @param Reception $reception
+     * @param GlobalParamService $globalParamService
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function show(Reception $reception,
-                            GlobalParamService $globalParamService): Response
+                         GlobalParamService $globalParamService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
