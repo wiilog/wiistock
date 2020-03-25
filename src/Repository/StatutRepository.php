@@ -95,21 +95,18 @@ class StatutRepository extends ServiceEntityRepository
      */
     public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT s
-          FROM App\Entity\Statut s
-          JOIN s.categorie c
-          WHERE c.nom = :categorieName AND s.code = :statutCode
-          "
-        );
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder
+            ->join('s.categorie', 'c')
+            ->where('c.nom = :categorieName AND s.code = :statutCode')
+            ->setParameters([
+                'categorieName' => $categorieName,
+                'statutCode' => $statutCode
+            ]);
 
-        $query->setParameters([
-            'categorieName' => $categorieName,
-            'statutCode' => $statutCode
-        ]);
-
-        return $query->getOneOrNullResult();
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     /**

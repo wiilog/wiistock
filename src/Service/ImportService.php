@@ -26,7 +26,6 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
 use Exception;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,7 +38,6 @@ use Twig\Error\SyntaxError;
 class ImportService
 {
     private const MAX_LINES_FLASH_IMPORT = 500;
-    private const MAX_ROWS_TO_FLUSH = 1000;
 
     /**
      * @var Twig_Environment
@@ -57,15 +55,6 @@ class ImportService
     private $refArticleDataService;
     private $mouvementStockService;
 
-    private $rowsToFlush;
-
-    private $secondaryEntities = [
-        'locations' => [],
-        'providers' => [],
-        'articlesFournisseurs' => [],
-        'types' => []
-    ];
-
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
@@ -81,8 +70,6 @@ class ImportService
         $this->articleDataService = $articleDataService;
         $this->refArticleDataService = $refArticleDataService;
         $this->mouvementStockService = $mouvementStockService;
-
-        $this->rowsToFlush = 0;
     }
 
     /**
@@ -130,7 +117,7 @@ class ImportService
 
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
-        $row = [
+        return [
             'id' => $import->getId(),
             'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
             'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
@@ -148,7 +135,6 @@ class ImportService
                 'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null
             ]),
         ];
-        return $row;
     }
 
     /**
@@ -175,8 +161,6 @@ class ImportService
      */
     public function loadData(Import $import, $force = false)
     {
-        $statutRepository = $this->em->getRepository(Statut::class);
-
         $csvFile = $import->getCsvFile();
 
         $path = "../public/uploads/attachements/" . $csvFile->getFileName();
@@ -215,14 +199,15 @@ class ImportService
 
         // si + de 500 ligne && !force -> planification
         if (!$smallFile && !$force) {
-            $import->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
+            $statutRepository = $this->em->getRepository(Statut::class);
+            $statusPlanned = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED);
+            $import->setStatus($statusPlanned);
+            $this->em->flush();
         }
         else {
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
                 $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
-                $this->rowsToFlush++;
-                $this->flush();
             }
 
             if (!$smallFile) {
@@ -230,8 +215,6 @@ class ImportService
                 while (($data = fgetcsv($file, 1000, ';')) !== false) {
                     $row = array_map('utf8_encode', $data);
                     $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
-                    $this->rowsToFlush++;
-                    $this->flush();
                 }
             }
 
@@ -239,22 +222,30 @@ class ImportService
             $uniqueRefToUpdate = array_unique($refToUpdate);
             foreach ($uniqueRefToUpdate as $ref) {
                 $this->refArticleDataService->updateRefArticleQuantities($ref);
-                $this->flush();
             }
+
+            // flush update quantities
+            $this->em->flush();
 
             // création du fichier de log
             $pieceJointeForLogFile = $this->persistLogFilePieceJointe($logRows);
-            $import->setLogFile($pieceJointeForLogFile);
+
+            $statutRepository = $this->em->getRepository(Statut::class);
+            $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
+
+            // we reset local entities because entitymanager could be closed
+            $import = $this->em->find(Import::class, $import->getId());
+            $statusFinished = $this->em->find(Statut::class, $statusFinished->getId());
 
             $import
+                ->setLogFile($pieceJointeForLogFile)
                 ->setNewEntries($stats['news'])
                 ->setUpdatedEntries($stats['updates'])
                 ->setNbErrors($stats['errors'])
-                ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
+                ->setStatus($statusFinished)
                 ->setEndDate(new DateTime('now'));
+            $this->em->flush();
         }
-
-        $this->flush();
 
         fclose($file);
     }
@@ -524,30 +515,19 @@ class ImportService
     {
         $newEntity = false;
 
-        // TODO check
-//        if (!isset($data['codeReference'])) {
-//            $message = "La valeur renseignée pour le code fournisseur ne correspond à aucune valeur connue.";
-//            $this->throwError($message);
-//        }
-
+        if (empty($data['codeReference'])) {
+            $this->throwError("La colone de référence n'est pas valide.");
+        }
 
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-
-
-        $fournisseur = $this->find($this->secondaryEntities['providers'], ['codeReference' => $data['codeReference']]);
+        $fournisseur = $fournisseurRepository->findOneByCodeReference($data['codeReference']);
 
         if (empty($fournisseur)) {
-            $fournisseur = $fournisseurRepository->findOneByCodeReference($data['codeReference']);
+            $fournisseur = new Fournisseur();
+            $fournisseur->setCodeReference($data['codeReference']);
 
-            if (empty($fournisseur)) {
-                $fournisseur = new Fournisseur();
-                $fournisseur->setCodeReference($data['codeReference']);
-
-                $this->em->persist($fournisseur);
-                $newEntity = true;
-            }
-
-            $this->secondaryEntities['providers'][] = $fournisseur;
+            $this->em->persist($fournisseur);
+            $newEntity = true;
         }
 
         if (isset($data['nom'])) {
@@ -565,26 +545,19 @@ class ImportService
      */
     private function importArticleFournisseurEntity(array $data, array &$stats): void
     {
-        // TODO Check
         $newEntity = false;
 
         if (empty($data['reference'])) {
             $this->throwError('La colonne référence ne doit pas être vide');
         }
 
-        $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['reference']]);
+        $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
+        $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
 
         if (empty($articleFournisseur)) {
-            $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
-            $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
-
-            if (empty($articleFournisseur)) {
-                $newEntity = true;
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur->setReference($data['reference']);
-            }
-
-            $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+            $newEntity = true;
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur->setReference($data['reference']);
         }
 
         if (isset($data['label'])) {
@@ -603,7 +576,7 @@ class ImportService
         }
 
         if (!empty($data['fournisseurReference'])) {
-            $fournisseur = $this->findProvider($data['fournisseurReference']);
+            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
         }
 
         if (empty($fournisseur)) {
@@ -711,21 +684,15 @@ class ImportService
         // liaison type
         $typeRepository = $this->em->getRepository(Type::class);
 
-        $type = $this->find($this->secondaryEntities['types'], ['label' => $data['typeLabel'] ?? Type::LABEL_STANDARD]);
-
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
         if (empty($type)) {
-            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $data['typeLabel'] ?? Type::LABEL_STANDARD);
-            if (empty($type)) {
-                $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
+            $categoryType = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::ARTICLE]);
 
-                $type = new Type();
-                $type
-                    ->setLabel($data['typeLabel'])
-                    ->setCategory($categoryType);
-                $this->em->persist($type);
-            }
-
-            $this->secondaryEntities['types'][] = $type;
+            $type = new Type();
+            $type
+                ->setLabel($data['typeLabel'])
+                ->setCategory($categoryType);
+            $this->em->persist($type);
         }
         $refArt->setType($type);
 
@@ -927,20 +894,15 @@ class ImportService
      * @throws NonUniqueResultException
      */
     private function checkAndCreateProvider($ref) {
-        $provider = $this->find($this->secondaryEntities['providers'], ['codeReference' => $ref]);
+        $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
+        $provider = $fournisseurRepository->findOneByCodeReference($ref);
 
         if (empty($provider)) {
-            $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-            $provider = $fournisseurRepository->findOneByCodeReference($ref);
-
-            if (empty($provider)) {
-                $provider = new Fournisseur();
-                $provider
-                    ->setCodeReference($ref)
-                    ->setNom($ref);
-                $this->em->persist($provider);
-            }
-            $this->secondaryEntities['providers'][] = $provider;
+            $provider = new Fournisseur();
+            $provider
+                ->setCodeReference($ref)
+                ->setNom($ref);
+            $this->em->persist($provider);
         }
 
         return $provider;
@@ -965,20 +927,15 @@ class ImportService
         }
         else {
             $emplacementRepository = $this->em->getRepository(Emplacement::class);
-
-            $location = $this->find($this->secondaryEntities['locations'], ['label' => $data['emplacement']]);
+            $location = $emplacementRepository->findOneByLabel($data['emplacement']);
             if (empty($location)) {
-                $location = $emplacementRepository->findOneByLabel($data['emplacement']);
-                if (empty($location)) {
-                    $location = new Emplacement();
-                    $location
-                        ->setLabel($data['emplacement'])
-                        ->setIsActive(true)
-                        ->setIsDeliveryPoint(false);
+                $location = new Emplacement();
+                $location
+                    ->setLabel($data['emplacement'])
+                    ->setIsActive(true)
+                    ->setIsDeliveryPoint(false);
 
-                    $this->em->persist($location);
-                }
-                $this->secondaryEntities['locations'][] = $location;
+                $this->em->persist($location);
             }
 
             $articleOrRef->setEmplacement($location);
@@ -1000,14 +957,7 @@ class ImportService
         // liaison article fournisseur
         if (!empty($articleFournisseurReference)) {
             // on essaye de récupérer l'article fournisseur avec le champ donné
-            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $articleFournisseurReference]);
-
-            if (empty($articleFournisseur)) {
-                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $articleFournisseurReference]);
-                if (!empty($articleFournisseur)) {
-                    $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
-                }
-            }
+            $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $articleFournisseurReference]);
 
             // Si on a pas trouvé d'article fournisseur donc on le créé
             if (empty($articleFournisseur)) {
@@ -1027,13 +977,12 @@ class ImportService
                     ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
                 $this->em->persist($articleFournisseur);
 
-                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
             }
             else {
                 // on a réussi à trouver un article fournisseur
                 // vérif que l'article fournisseur correspond au couple référence article / fournisseur
                 if (!empty($fournisseurReference)) {
-                    $fournisseur = $this->findProvider($fournisseurReference);
+                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($fournisseurReference);
 
                     if (!empty($fournisseur)) {
                         if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
@@ -1057,84 +1006,22 @@ class ImportService
             }
 
             $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
-
-            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], [
+            $articleFournisseur = $articleFournisseurRepository->findOneBy([
                 'referenceArticle' => $referenceArticle,
                 'fournisseur' => $fournisseur
             ]);
-
             if (empty($articleFournisseur)) {
-                $articleFournisseur = $articleFournisseurRepository->findOneBy([
-                    'referenceArticle' => $referenceArticle,
-                    'fournisseur' => $fournisseur
-                ]);
-                if (empty($articleFournisseur)) {
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setFournisseur($fournisseur)
-                        ->setReference($referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
-                        ->setReferenceArticle($referenceArticle)
-                        ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-                    $this->em->persist($articleFournisseur);
-                }
-                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setFournisseur($fournisseur)
+                    ->setReference($referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
+                    ->setReferenceArticle($referenceArticle)
+                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+                $this->em->persist($articleFournisseur);
             }
         }
 
         return $articleFournisseur;
-    }
-
-    private function flush($force = false) {
-        if ($force
-            || ($this->rowsToFlush >= self::MAX_ROWS_TO_FLUSH)) {
-            $this->em->flush();
-            $this->rowsToFlush = 0;
-        }
-    }
-
-    /**
-     * @param $array
-     * @param array $whereClauses assoc array [attribute => value][]
-     * @return mixed|null
-     */
-    private function find($array, array $whereClauses) {
-        $found = null;
-
-        foreach ($array as $object) {
-            $objectValid = true;
-            foreach ($whereClauses as $attribute => $value) {
-                $getter = 'get' . ucfirst($attribute);
-                $currentValue = $object->{$getter}();
-
-                if ($currentValue !== $value) {
-                    $objectValid = false;
-                    break;
-                }
-            }
-            if ($objectValid) {
-                $found = $object;
-                break;
-            }
-        }
-
-        return $found;
-    }
-
-    /**
-     * @param $reference
-     * @return Fournisseur|mixed|null
-     * @throws NonUniqueResultException
-     */
-    private function findProvider($reference) {
-        $fournisseur = $this->find($this->secondaryEntities['providers'], ['reference' => $reference]);
-
-        if(empty($fournisseur)) {
-            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($reference);
-            if (!empty($fournisseur)) {
-                $this->secondaryEntities['providers'][] = $fournisseur;
-            }
-        }
-        return $fournisseur;
     }
 
     /**

@@ -124,6 +124,7 @@ class Import
     private $endDate;
 
 	/**
+     * @var PieceJointe
 	 * @ORM\OneToOne(targetEntity="App\Entity\PieceJointe", inversedBy="importLog")
 	 */
     private $logFile;
@@ -281,12 +282,14 @@ class Import
 
     public function setLogFile(?PieceJointe $logFile): self
     {
+        if (isset($this->logFile)) {
+            $this->logFile->setImportLog(null);
+        }
+
         $this->logFile = $logFile;
 
-        // set (or unset) the owning side of the relation if necessary
-        $newImportLog = null === $logFile ? null : $this;
-        if ($logFile->getImportLog() !== $newImportLog) {
-            $logFile->setImportLog($newImportLog);
+        if (isset($this->logFile)) {
+            $this->logFile->setImportLog($this);
         }
 
         return $this;
