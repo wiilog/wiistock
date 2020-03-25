@@ -27,6 +27,11 @@ class FournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, Fournisseur::class);
     }
 
+    /**
+     * @param $code
+     * @return Fournisseur|null
+     * @throws NonUniqueResultException
+     */
     public function findOneByCodeReference($code)
     {
         $entityManager = $this->getEntityManager();

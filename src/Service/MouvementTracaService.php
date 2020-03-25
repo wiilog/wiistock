@@ -232,7 +232,7 @@ class MouvementTracaService
         $this->em->persist($mouvementTraca);
 
         if (isset($fileBag)) {
-            $this->attachmentService->addAttachements($fileBag, null, null, $mouvementTraca);
+            $this->attachmentService->addAttachements($fileBag, $mouvementTraca);
         }
 
         return $mouvementTraca;

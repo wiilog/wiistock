@@ -1,11 +1,18 @@
 const FILE_MAX_SIZE = 2000000;
 
-function displayAttachements(files, dropFrame) {
+function displayAttachements(files, $dropFrame, isMultiple = true) {
 
     let errorMsg = [];
+
+    const $fileBag = $dropFrame.siblings('.file-bag');
+
+    if (!isMultiple) {
+        $fileBag.empty();
+    }
+
     $.each(files, function(index, file) {
-        let formatValid = checkFileFormat(file, dropFrame);
-        let sizeValid = checkSizeFormat(file, dropFrame);
+        let formatValid = checkFileFormat(file, $dropFrame);
+        let sizeValid = checkSizeFormat(file, $dropFrame);
 
         if (!formatValid) {
             errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
@@ -16,7 +23,7 @@ function displayAttachements(files, dropFrame) {
 
             let reader = new FileReader();
             reader.addEventListener('load', function () {
-                dropFrame.after(`
+                $fileBag.append(`
                     <p class="attachement" value="` + withoutExtension(fileName) + `">
                         <a target="_blank" href="` + reader.result + `">
                             <i class="fa fa-file mr-2"></i>` + fileName + `
@@ -29,11 +36,11 @@ function displayAttachements(files, dropFrame) {
     });
 
     if (errorMsg.length === 0) {
-        displayRight(dropFrame);
-        clearErrorMsg(dropFrame);
+        displayRight($dropFrame);
+        clearErrorMsg($dropFrame);
     } else {
-        displayWrong(dropFrame);
-        dropFrame.closest('.modal').find('.error-msg').html(errorMsg.join("<br>"));
+        displayWrong($dropFrame);
+        $dropFrame.closest('.modal').find('.error-msg').html(errorMsg.join("<br>"));
     }
 
 }
@@ -83,44 +90,44 @@ function dragLeaveDiv(event, div) {
 
 let droppedFiles = [];
 
-function dropOnDiv(event, div) {
+function openFileExplorer(span) {
+    span.closest('.modal').find('.fileInput').trigger('click');
+}
+
+function saveDroppedFiles(event, $div) {
     if (event.dataTransfer) {
         if (event.dataTransfer.files.length) {
             event.preventDefault();
             event.stopPropagation();
-            let array = Array.from(event.dataTransfer.files);
+            let files = Array.from(event.dataTransfer.files);
 
-            array.forEach(file => {
-                if (checkSizeFormat(file) && checkFileFormat(file)) {
-                    droppedFiles.push(file);
-                }
-            });
-
-            displayAttachements(event.dataTransfer.files, div);
+            const $inputFile = $div.find('.fileInput');
+            saveInputFiles($inputFile, files);
         }
-    } else {
-        displayWrong(div);
+    }
+    else {
+        displayWrong($div);
     }
     return false;
 }
 
-function openFE(span) {
-    span.closest('.modal').find('.fileInput').click();
-}
+function saveInputFiles($inputFile, files) {
+    let filesToSave = files || $inputFile[0].files;
+    const isMultiple = $inputFile.prop('multiple');
 
-function uploadFE(span) {
-    let files = span[0].files;
-
-    Array.from(files).forEach(file => {
-       if (checkSizeFormat(file) && checkFileFormat(file)) {
-           droppedFiles.push(file);
-       }
+    Array.from(filesToSave).forEach(file => {
+        if (checkSizeFormat(file) && checkFileFormat(file)) {
+            if (!isMultiple) {
+                droppedFiles = [];
+            }
+            droppedFiles.push(file);
+        }
     });
 
-    let dropFrame = span.closest('.dropFrame');
+    let dropFrame = $inputFile.closest('.dropFrame');
 
-    displayAttachements(files, dropFrame);
-    span[0].value = "";
+    displayAttachements(filesToSave, dropFrame, isMultiple);
+    $inputFile[0].value = '';
 }
 
 function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {

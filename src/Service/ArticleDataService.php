@@ -712,7 +712,6 @@ class ArticleDataService
         $champLibreValue = (!empty($this->typeCLOnLabel))
             ? $this->getCLValue($champLibre, $this->typeCLOnLabel)
             : null;
-        dump($champLibre, $champLibreValue);
 
         $labels = [
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',

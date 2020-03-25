@@ -1050,7 +1050,7 @@ class ArrivageController extends AbstractController
             $em->persist($litige);
             $em->flush();
 
-            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $this->attachmentService->addAttachements($request->files, $litige);
             $em->flush();
 
             $this->sendMailToAcheteurs($litige);
@@ -1289,7 +1289,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, null, $litige);
+            $this->attachmentService->addAttachements($request->files, $litige);
             $em->flush();
 
             $response = $this->getResponseReloadArrivage($request->query->get('reloadArrivage'));

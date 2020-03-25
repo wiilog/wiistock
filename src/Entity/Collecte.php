@@ -379,4 +379,12 @@ class Collecte
 
         return $this;
     }
+
+    /**
+     * @return Collection|OrdreCollecte[]
+     */
+    public function getOrdreCollecte(): Collection
+    {
+        return $this->ordreCollecte;
+    }
 }
