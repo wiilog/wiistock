@@ -442,7 +442,7 @@ class ImportService
         $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
         $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
         foreach ($logRows as $row) {
-            fputcsv($logCsvFilePathOpened, $row, ';');
+            fputcsv($logCsvFilePathOpened, array_map('utf8_decode', $row), ';');
         }
         fclose($logCsvFilePathOpened);
         return $fileName;
