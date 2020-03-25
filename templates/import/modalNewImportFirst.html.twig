@@ -7,10 +7,10 @@
         <label>Type de données à importer</label>
         <select class="form-control data needed" name="entity">
             <option></option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART') ? 'selected'}}>Articles</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_REF') ? 'selected'}}>Références</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_FOU') ? 'selected'}}>Fournisseurs</option>
-            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART_FOU') ? 'selected'}}>Articles fournisseurs</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART') ? 'selected' }}>Articles</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_REF') ? 'selected' }}>Références</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_FOU') ? 'selected' }}>Fournisseurs</option>
+            <option value="{{ constant('App\\Entity\\Import::ENTITY_ART_FOU') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART_FOU') ? 'selected' }}>Articles fournisseurs</option>
         </select>
     </div>
 </div>
@@ -18,11 +18,16 @@
 <div class="row">
     <div class="form-group col-12">
         <div>
-            {% include 'arrivage/attachements.html.twig' with {'isNew' : true, 'text': 'Faites glisser votre fichier csv'} %}
+            {% include 'arrivage/attachements.html.twig' with {
+                'isNew': true,
+                'text': 'Faites glisser votre fichier csv',
+                unique: true
+            } %}
         </div>
     </div>
 </div>
 
 <div class="row">
-    <p>Attention : Le délimiteur est le point virgule et l'encodage UTF-8.</p>
+    <p>
+        Attention : Le délimiteur est le point virgule et l'encodage UTF-8.</p>
 </div>

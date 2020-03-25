@@ -19,6 +19,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -138,9 +139,9 @@ class ImportController extends AbstractController
                 ];
                 $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
-                $fieldsToHide = ['id', 'barCode', 'conform', 'commentaire', 'quantiteAPrelever', 'quantitePrelevee',
-                    'dateLastInventory', 'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
-                    'quantiteReservee', 'emergencyComment'];
+                $fieldsToHide = ['id', 'barCode', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
+                    'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
+                    'quantiteReservee'];
                 $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                 switch ($entity) {
                     case Import::ENTITY_ART:
@@ -150,7 +151,7 @@ class ImportController extends AbstractController
                         break;
                     case Import::ENTITY_REF:
                         $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                        $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire'];
+                        $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut'];
                         $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                         break;
                     case Import::ENTITY_ART_FOU:
@@ -209,15 +210,6 @@ class ImportController extends AbstractController
 
 		$import = $importRepository->find($importId);
 
-		// vérif champs obligatoires sélectionnés
-        $fieldsNeeded = Import::FIELDS_NEEDED[$import->getEntity()];
-        foreach ($fieldsNeeded as $fieldNeeded) {
-            if (!in_array($fieldNeeded, $data)) {
-                $success = false;
-                $msg = 'Veuillez sélectionner tous les champs obligatoires (*).';
-            }
-        }
-
         if ($success) {
             $import->setColumnToField($data);
             $this->getDoctrine()->getManager()->flush();
@@ -225,8 +217,7 @@ class ImportController extends AbstractController
 
 		return new JsonResponse([
 			'success' => $success,
-			'html' => $success ? $this->renderView('import/modalNewImportConfirm.html.twig') : '',
-            'msg' => $msg ?? ''
+			'html' => $success ? $this->renderView('import/modalNewImportConfirm.html.twig') : ''
 		]);
 	}
 
@@ -279,6 +270,7 @@ class ImportController extends AbstractController
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws NoResultException
+     * @throws ORMException
      */
 	public function launchImport(Request $request, ImportService $importService)
 	{
@@ -288,10 +280,6 @@ class ImportController extends AbstractController
 
         if ($import) {
             $importService->loadData($import);
-            $import
-                ->setStatus($em->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
-                ->setEndDate(new DateTime('now'));
-            $em->flush();
         }
 
 		return new JsonResponse();
