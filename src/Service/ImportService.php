@@ -567,23 +567,22 @@ class ImportService
         // TODO Check
         $newEntity = false;
 
-        if (isset($data['reference'])) {
-            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['reference']]);
-
-            if (empty($articleFournisseur)) {
-                $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
-                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
-
-                if (!empty($articleFournisseur)) {
-                    $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
-                }
-            }
+        if (empty($data['reference'])) {
+            $this->throwError('La colonne référence ne doit pas être vide');
         }
 
+        $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['reference']]);
+
         if (empty($articleFournisseur)) {
-            $newEntity = true;
-            $articleFournisseur = new ArticleFournisseur();
-            $articleFournisseur->setReference($data['reference']);
+            $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
+            $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['reference']]);
+
+            if (empty($articleFournisseur)) {
+                $newEntity = true;
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur->setReference($data['reference']);
+            }
+
             $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
         }
 
@@ -594,25 +593,25 @@ class ImportService
         if (!empty($data['referenceReference'])) {
             $refArticleRepository = $this->em->getRepository(ReferenceArticle::class);
             $refArticle = $refArticleRepository->findOneByReference($data['referenceReference']);
+        }
 
-            if (empty($refArticle)) {
-                $message = "La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.";
-                $this->throwError($message);
-            } else {
-                $articleFournisseur->setReferenceArticle($refArticle);
-            }
+        if (empty($refArticle)) {
+            $this->throwError("La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.");
+        } else {
+            $articleFournisseur->setReferenceArticle($refArticle);
         }
 
         if (!empty($data['fournisseurReference'])) {
             $fournisseur = $this->findProvider($data['fournisseurReference']);
-
-            if (empty($fournisseur)) {
-                $message = "La valeur renseignée pour le code du fournisseur ne correspond à aucun fournisseur connu.";
-                $this->throwError($message);
-            } else {
-                $articleFournisseur->setFournisseur($fournisseur);
-            }
         }
+
+        if (empty($fournisseur)) {
+            $this->throwError("La valeur renseignée pour le code du fournisseur ne correspond à aucun fournisseur connu.");
+        }
+        else {
+            $articleFournisseur->setFournisseur($fournisseur);
+        }
+
         $this->em->persist($articleFournisseur);
         $this->updateStats($stats, $newEntity);
     }
@@ -869,87 +868,12 @@ class ImportService
                 ->setConform(true);
         }
 
-        $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
+        $articleFournisseur = $this->checkAndCreateArticleFournisseur(
+            $data['articleFournisseurReference'] ?? null,
+            $data['fournisseurReference'] ?? null,
+            $refArticle
+        );
 
-        // liaison article fournisseur
-        if (!empty($data['articleFournisseurReference'])) {
-            // on essaye de récupérer l'article fournisseur avec le champ donné
-            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['articleFournisseurReference']]);
-
-            if (empty($articleFournisseur)) {
-                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $data['articleFournisseurReference']]);
-                if (!empty($articleFournisseur)) {
-                    $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
-                }
-            }
-
-            // Si on a pas trouvé d'article fournisseur donc on le créé
-            if (empty($articleFournisseur)) {
-                if (empty($refArticle)) {
-                    $this->throwError(
-                        "Vous avez renseigné une référence d'article fournisseur qui ne correspond à aucun article fournisseur connu. " .
-                        "Dans ce cas, veuillez fournir une référence d'article de référence connue."
-                    );
-                }
-                $fournisseur = $this->checkAndCreateProvider(!empty($data['fournisseurReference']) ? $data['fournisseurReference'] : Fournisseur::REF_A_DEFINIR);
-
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setFournisseur($fournisseur)
-                    ->setReference($data['articleFournisseurReference'])
-                    ->setReferenceArticle($refArticle)
-                    ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-                $this->em->persist($articleFournisseur);
-
-                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
-            }
-            else {
-                // on a réussi à trouver un article fournisseur
-                // vérif que l'article fournisseur correspond au couple référence article / fournisseur
-                if (!empty($data['fournisseurReference'])) {
-                    $fournisseur = $this->findProvider($data['fournisseurReference']);
-
-                    if (!empty($fournisseur)) {
-                        if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
-                            $this->throwError("Veuillez renseigner une référence de fournisseur correspondant à celle de l'article fournisseur renseigné.");
-                        }
-                    } else {
-                        $this->throwError("Veuillez renseigner une référence de fournisseur connue.");
-                    }
-                }
-
-                if ($refArticle && $articleFournisseur->getReferenceArticle()->getId() !== $refArticle->getId()) {
-                    $message = "Veuillez renseigner une référence d'article fournisseur correspondant à la référence d'article fournie.";
-                    $this->throwError($message);
-                }
-            }
-
-            // cas où l'article fournisseur n'est pas renseigné
-        }
-        else {
-            if (empty($refArticle)) {
-                $this->throwError("Vous n'avez pas renseigné de référence d'article fournisseur. Dans ce cas, veuillez fournir une référence d'article de référence connue.");
-            }
-
-            $fournisseur = $this->checkAndCreateProvider(!empty($data['fournisseurReference']) ? $data['fournisseurReference'] : Fournisseur::REF_A_DEFINIR);
-
-            $referenceArticleFournisseur = $refArticle->getReference() . ' / ' . $fournisseur->getCodeReference();
-            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $referenceArticleFournisseur]);
-
-            if (empty($articleFournisseur)) {
-                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $referenceArticleFournisseur]);
-                if (empty($articleFournisseur)) {
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setFournisseur($fournisseur)
-                        ->setReference($referenceArticleFournisseur)
-                        ->setReferenceArticle($refArticle)
-                        ->setLabel($refArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-                    $this->em->persist($articleFournisseur);
-                }
-                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
-            }
-        }
         $article->setArticleFournisseur($articleFournisseur);
         $article->setType($articleFournisseur->getReferenceArticle()->getType());
 
@@ -1053,6 +977,105 @@ class ImportService
 
             $articleOrRef->setEmplacement($location);
         }
+    }
+
+    /**
+     * @param string|null $articleFournisseurReference
+     * @param string|null $fournisseurReference
+     * @param ReferenceArticle|null $referenceArticle
+     * @return ArticleFournisseur|null
+     * @throws ImportException
+     * @throws NonUniqueResultException
+     */
+    private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
+                                                      ?string $fournisseurReference,
+                                                      ?ReferenceArticle $referenceArticle): ?ArticleFournisseur {
+        $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
+        // liaison article fournisseur
+        if (!empty($articleFournisseurReference)) {
+            // on essaye de récupérer l'article fournisseur avec le champ donné
+            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $articleFournisseurReference]);
+
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = $articleFournisseurRepository->findOneBy(['reference' => $articleFournisseurReference]);
+                if (!empty($articleFournisseur)) {
+                    $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+                }
+            }
+
+            // Si on a pas trouvé d'article fournisseur donc on le créé
+            if (empty($articleFournisseur)) {
+                if (empty($referenceArticle)) {
+                    $this->throwError(
+                        "Vous avez renseigné une référence d'article fournisseur qui ne correspond à aucun article fournisseur connu. " .
+                        "Dans ce cas, veuillez fournir une référence d'article de référence connue."
+                    );
+                }
+                $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
+
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setFournisseur($fournisseur)
+                    ->setReference($articleFournisseurReference)
+                    ->setReferenceArticle($referenceArticle)
+                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+                $this->em->persist($articleFournisseur);
+
+                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+            }
+            else {
+                // on a réussi à trouver un article fournisseur
+                // vérif que l'article fournisseur correspond au couple référence article / fournisseur
+                if (!empty($fournisseurReference)) {
+                    $fournisseur = $this->findProvider($fournisseurReference);
+
+                    if (!empty($fournisseur)) {
+                        if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {
+                            $this->throwError("Veuillez renseigner une référence de fournisseur correspondant à celle de l'article fournisseur renseigné.");
+                        }
+                    } else {
+                        $this->throwError("Veuillez renseigner une référence de fournisseur connue.");
+                    }
+                }
+
+                if (!empty($referenceArticle)
+                    && ($articleFournisseur->getReferenceArticle()->getId() !== $referenceArticle->getId())) {
+                    $this->throwError("Veuillez renseigner une référence d'article fournisseur correspondant à la référence d'article fournie.");
+                }
+            }
+        }
+        // cas où la ref d'article fournisseur n'est pas renseigné
+        else {
+            if (empty($referenceArticle)) {
+                $this->throwError("Vous n'avez pas renseigné de référence d'article fournisseur. Dans ce cas, veuillez fournir une référence d'article de référence connue.");
+            }
+
+            $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
+
+            $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], [
+                'referenceArticle' => $referenceArticle,
+                'fournisseur' => $fournisseur
+            ]);
+
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = $articleFournisseurRepository->findOneBy([
+                    'referenceArticle' => $referenceArticle,
+                    'fournisseur' => $fournisseur
+                ]);
+                if (empty($articleFournisseur)) {
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setFournisseur($fournisseur)
+                        ->setReference($referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
+                        ->setReferenceArticle($referenceArticle)
+                        ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+                    $this->em->persist($articleFournisseur);
+                }
+                $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
+            }
+        }
+
+        return $articleFournisseur;
     }
 
     private function flush($force = false) {
