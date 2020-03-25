@@ -26,6 +26,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -668,8 +669,13 @@ class ImportService
             };
         }
         if ($newEntity) {
+            if (empty($data['typeQuantite'])
+                || !in_array($data['typeQuantite'], [ReferenceArticle::TYPE_QUANTITE_REFERENCE, ReferenceArticle::TYPE_QUANTITE_ARTICLE])) {
+                $this->throwError('Le type de gestion de la référence est invalide (autorisé : "article" ou "reference")');
+            }
+
             // interdiction de modifier le type quantité d'une réf existante
-            $refArt->setTypeQuantite($data['typeQuantite'] ?? ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+            $refArt->setTypeQuantite($data['typeQuantite']);
         }
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {

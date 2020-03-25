@@ -38,7 +38,8 @@ class Import
             'reference',
             'libelle',
             'type',
-            'emplacement'
+            'emplacement',
+            'typeQuantite'
         ]
     ];
 
