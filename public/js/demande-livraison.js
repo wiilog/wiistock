@@ -194,17 +194,18 @@ function initNewLivraisonEditor(modal) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
-};
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    initDisplaySelect2Multiple('#demandeLivraisonLocationDemandeLivraisonDest', '#demandeLivraisonLocationDemandeLivraisonDestValue');
+}
 
 function ajaxGetAndFillArticle(select) {
     if ($(select).val() !== null) {
-        let path = Routing.generate('demande_article_by_refArticle', true)
+        let path = Routing.generate('demande_article_by_refArticle', true);
         let refArticle = $(select).val();
         let params = JSON.stringify(refArticle);
         let selection = $('#selection');
         let editNewArticle = $('#editNewArticle');
-        let modalFooter = $('#modalNewArticle').find('div').find('div').find('.modal-footer')
+        let modalFooter = $('#modalNewArticle').find('div').find('div').find('.modal-footer');
 
         selection.html('');
         editNewArticle.html('');

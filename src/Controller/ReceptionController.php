@@ -887,7 +887,8 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      */
-    public function show(Reception $reception): Response
+    public function show(Reception $reception,
+                            GlobalParamService $globalParamService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
@@ -948,6 +949,7 @@ class ReceptionController extends AbstractController
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
+            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
 			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION),
 			'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 		]);

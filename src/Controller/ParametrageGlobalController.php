@@ -1006,4 +1006,29 @@ class ParametrageGlobalController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/modifier-destination-demande-livraison", name="edit_demande_livraison_default_dest", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editDemandeLivraisonDestination(Request $request,
+                                            ParametrageGlobalRepository $parametrageGlobalRepository): Response    {
+
+        $value = json_decode($request->getContent(), true);
+        $trimmedValue = trim($value);
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $em = $this->getDoctrine()->getManager();
+        if (!isset($parametrage)) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+            $em->persist($parametrage);
+        }
+        $parametrage->setValue(!empty($trimmedValue) ? $trimmedValue : null);
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
 }

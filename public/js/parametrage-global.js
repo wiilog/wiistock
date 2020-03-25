@@ -51,8 +51,9 @@ $(function () {
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
     initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
+    initDisplaySelect2Multiple('#locationDemandeLivraisonDest','#locationDemandeLivraisonDestValue');
+    initDisplaySelect2Multiple('#demandeLivraisonLocationDemandeLivraisonDest', '#demandeLivraisonLocationDemandeLivraisonDestValue');
     $('#locationArrivageDest').on('change', editArrivageDestination);
-
     // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });
@@ -288,7 +289,17 @@ function editArrivageDestination() {
         if (resp) {
             alertSuccessMsg("Mise à jour de la destination des arrivages bien effectuée.");
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la destination des arrivages.");
+        }
+    });
+}
+
+function editDemandeLivraisonDestination($select) {
+    $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
+        if (resp) {
+            alertSuccessMsg("Mise à jour de la destination des demandes de livraison bien effectuée.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la destination des demandes de livraison.");
         }
     });
 }
