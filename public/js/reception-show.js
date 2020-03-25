@@ -499,7 +499,9 @@ function initNewLigneReception() {
     initSelect2($('.select2-type'));
     initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route:  'get_user'});
     initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {route: 'get_ref_article_reception', param: {reception: $('#receptionId').val()}});
-
+    if ($('#locationDemandeLivraison').length > 0) {
+        initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+    }
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},

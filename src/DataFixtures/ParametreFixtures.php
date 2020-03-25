@@ -123,6 +123,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
 			ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC => [],
 			ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR => [],
+            ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],
 			ParametrageGlobal::DASHBOARD_NATURE_COLIS => [],
 			ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS => [],
 			ParametrageGlobal::DASHBOARD_LOCATION_DOCK => [],

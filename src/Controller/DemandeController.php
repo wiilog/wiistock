@@ -31,6 +31,7 @@ use App\Repository\PreparationRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
+use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
@@ -466,9 +467,12 @@ class DemandeController extends AbstractController
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
      * @param string|null $reception
      * @param string|null $filter
+     * @param GlobalParamService $globalParamService
      * @return Response
      */
-    public function index($reception = null, $filter = null): Response
+    public function index($reception = null,
+                          $filter = null,
+                          GlobalParamService $globalParamService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
@@ -494,7 +498,8 @@ class DemandeController extends AbstractController
             'typeChampsLibres' => $typeChampLibre,
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
             'filterStatus' => $filter,
-            'receptionFilter' => $reception
+            'receptionFilter' => $reception,
+            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation()
         ]);
     }
 
