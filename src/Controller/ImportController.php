@@ -210,15 +210,6 @@ class ImportController extends AbstractController
 
 		$import = $importRepository->find($importId);
 
-		// vérif champs obligatoires sélectionnés
-        $fieldsNeeded = Import::FIELDS_NEEDED[$import->getEntity()];
-        foreach ($fieldsNeeded as $fieldNeeded) {
-            if (!in_array($fieldNeeded, $data)) {
-                $success = false;
-                $msg = 'Veuillez sélectionner tous les champs obligatoires (*).';
-            }
-        }
-
         if ($success) {
             $import->setColumnToField($data);
             $this->getDoctrine()->getManager()->flush();
@@ -226,8 +217,7 @@ class ImportController extends AbstractController
 
 		return new JsonResponse([
 			'success' => $success,
-			'html' => $success ? $this->renderView('import/modalNewImportConfirm.html.twig') : '',
-            'msg' => $msg ?? ''
+			'html' => $success ? $this->renderView('import/modalNewImportConfirm.html.twig') : ''
 		]);
 	}
 

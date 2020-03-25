@@ -134,7 +134,7 @@ class ImportService
             'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
             'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
             'label' => $import->getLabel(),
-            'newEntries' => $import->getNewEntries() ?? '',
+            'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
             'status' => $import->getStatus() ? $import->getStatus()->getNom() : '',
@@ -190,6 +190,7 @@ class ImportService
         $headers = null;
         $logRows = [];
         $refToUpdate = [];
+        $stats = ['news' => 0, 'updates' => 0, 'errors' => 0];
 
         $rowCount = 0;
         $firstRows = [];
@@ -218,7 +219,7 @@ class ImportService
         else {
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
-                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
                 $this->rowsToFlush++;
                 $this->flush();
             }
@@ -227,7 +228,7 @@ class ImportService
                 // on fait la suite du fichier
                 while (($data = fgetcsv($file, 1000, ';')) !== false) {
                     $row = array_map('utf8_encode', $data);
-                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate);
+                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
                     $this->rowsToFlush++;
                     $this->flush();
                 }
@@ -245,6 +246,9 @@ class ImportService
             $import->setLogFile($pieceJointeForLogFile);
 
             $import
+                ->setNewEntries($stats['news'])
+                ->setUpdatedEntries($stats['updates'])
+                ->setNbErrors($stats['errors'])
                 ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
                 ->setEndDate(new DateTime('now'));
         }
@@ -261,6 +265,7 @@ class ImportService
      * @param $dataToCheck
      * @param $colChampsLibres
      * @param array $refToUpdate
+     * @param array $stats
      * @return array
      * @throws ORMException
      */
@@ -269,7 +274,8 @@ class ImportService
                                     array $headers,
                                     $dataToCheck,
                                     $colChampsLibres,
-                                    array &$refToUpdate): array {
+                                    array &$refToUpdate,
+                                    array &$stats): array {
         $message = 'OK';
         try {
             $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate) {
@@ -277,16 +283,16 @@ class ImportService
 
                 switch ($import->getEntity()) {
                     case Import::ENTITY_FOU:
-                        $this->importFournisseurEntity($verifiedData);
+                        $this->importFournisseurEntity($verifiedData, $stats);
                         break;
                     case Import::ENTITY_ART_FOU:
-                        $this->importArticleFournisseurEntity($verifiedData);
+                        $this->importArticleFournisseurEntity($verifiedData, $stats);
                         break;
                     case Import::ENTITY_REF:
-                        $this->importReferenceEntity($verifiedData, $colChampsLibres, $row);
+                        $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $stats);
                         break;
                     case Import::ENTITY_ART:
-                        $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row);
+                        $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $stats);
                         break;
                 }
             });
@@ -299,7 +305,9 @@ class ImportService
 
             $message = ($throwable instanceof ImportException)
                 ? $throwable->getMessage()
-                : 'Une erreur est survenue';
+                : 'Une erreur est survenue.';
+
+            $stats['errors']++;
         }
 
         return !empty($message)
@@ -456,7 +464,7 @@ class ImportService
         $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
         $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
         foreach ($logRows as $row) {
-            fputcsv($logCsvFilePathOpened, $row, ';');
+            fputcsv($logCsvFilePathOpened, array_map('utf8_decode', $row), ';');
         }
         fclose($logCsvFilePathOpened);
         return $fileName;
@@ -488,14 +496,17 @@ class ImportService
         $data = [];
         foreach ($originalDatasToCheck as $column => $originalDataToCheck) {
             $fieldName = Import::FIELDS_ENTITY[$column] ?? $column;
+
             if (is_null($originalDataToCheck['value']) && $originalDataToCheck['needed']) {
                 $message = "La colonne $fieldName est manquante.";
                 $this->throwError($message);
-            } else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
+            }
+            else if (empty($row[$originalDataToCheck['value']]) && $originalDataToCheck['needed']) {
                 $columnIndex = $headers[$originalDataToCheck['value']];
                 $message = "La valeur renseignée pour le champ $fieldName dans la colonne $columnIndex ne peut être vide.";
                 $this->throwError($message);
-            } else if (!is_null($originalDataToCheck['value']) && !empty($row[$originalDataToCheck['value']])) {
+            }
+            else if (!is_null($originalDataToCheck['value']) && !empty($row[$originalDataToCheck['value']])) {
                 $data[$column] = $row[$originalDataToCheck['value']];
             }
         }
@@ -504,10 +515,21 @@ class ImportService
 
     /**
      * @param array $data
+     * @param array $stats
+     * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importFournisseurEntity(array $data): void
+    private function importFournisseurEntity(array $data, array &$stats): void
     {
+        $newEntity = false;
+
+        // TODO check
+//        if (!isset($data['codeReference'])) {
+//            $message = "La valeur renseignée pour le code fournisseur ne correspond à aucune valeur connue.";
+//            $this->throwError($message);
+//        }
+
+
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
 
 
@@ -521,6 +543,7 @@ class ImportService
                 $fournisseur->setCodeReference($data['codeReference']);
 
                 $this->em->persist($fournisseur);
+                $newEntity = true;
             }
 
             $this->secondaryEntities['providers'][] = $fournisseur;
@@ -529,15 +552,21 @@ class ImportService
         if (isset($data['nom'])) {
             $fournisseur->setNom($data['nom']);
         }
+
+        $this->updateStats($stats, $newEntity);
     }
 
     /**
      * @param array $data
+     * @param array $stats
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importArticleFournisseurEntity(array $data): void
+    private function importArticleFournisseurEntity(array $data, array &$stats): void
     {
+        // TODO Check
+        $newEntity = false;
+
         if (isset($data['reference'])) {
             $articleFournisseur = $this->find($this->secondaryEntities['articlesFournisseurs'], ['reference' => $data['reference']]);
 
@@ -552,6 +581,7 @@ class ImportService
         }
 
         if (empty($articleFournisseur)) {
+            $newEntity = true;
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur->setReference($data['reference']);
             $this->secondaryEntities['articlesFournisseurs'][] = $articleFournisseur;
@@ -584,6 +614,7 @@ class ImportService
             }
         }
         $this->em->persist($articleFournisseur);
+        $this->updateStats($stats, $newEntity);
     }
 
     /**
@@ -599,12 +630,14 @@ class ImportService
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param array $stats
      * @throws ImportException
      * @throws NonUniqueResultException
      */
     private function importReferenceEntity(array $data,
                                            array $colChampsLibres,
-                                           array $row)
+                                           array $row,
+                                           array &$stats)
     {
         $newEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
@@ -769,19 +802,22 @@ class ImportService
                 ->addArticleReference($refArt);
             $this->em->persist($valeurCL);
         }
+        $this->updateStats($stats, $newEntity);
     }
 
     /**
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param array $stats
      * @return ReferenceArticle
-     * @throws NonUniqueResultException
      * @throws ImportException
+     * @throws NonUniqueResultException
      */
     private function importArticleEntity(array $data,
                                          array $colChampsLibres,
-                                         array $row): ReferenceArticle
+                                         array $row,
+                                         array &$stats): ReferenceArticle
     {
         $refArticle = null;
         if (!empty($data['referenceReference'])) {
@@ -934,6 +970,8 @@ class ImportService
             $this->em->persist($valeurCL);
         }
 
+        $this->updateStats($stats, $newEntity);
+
         return $refArticle;
     }
 
@@ -980,7 +1018,7 @@ class ImportService
 
     private function fieldIsNeeded(string $field, string $entity): bool
     {
-        return in_array(Import::FIELDS_ENTITY[$field] ?? $field, Import::FIELDS_NEEDED[$entity]);
+        return in_array($field, Import::FIELDS_NEEDED[$entity]);
     }
 
     /**
@@ -1068,5 +1106,17 @@ class ImportService
             }
         }
         return $fournisseur;
+    }
+
+    /**
+     * @param array $stats
+     * @param boolean $newEntity
+     */
+    private function updateStats(&$stats, $newEntity) {
+        if ($newEntity) {
+            $stats['news']++;
+        } else {
+            $stats['updates']++;
+        }
     }
 }
