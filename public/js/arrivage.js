@@ -62,7 +62,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'urgent', 'name': 'urgent', 'title': 'urgent', visible: false},
+        {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
     ],
     columnDefs: [
         {
