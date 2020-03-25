@@ -102,10 +102,13 @@ function InitPageDataTable() {
                 {"visible": false, "targets": 5}
             ],
             rowCallback: function (row, data) {
-                $(row).addClass(data.Urgence ? 'table-danger' : '');
-                if (data.Comment && data.Urgence) {
-                    $(row).attr('title', data.Comment);
-                    initTooltips($(row));
+                if (data.Urgence) {
+                    const $row = $(row);
+                    $row.addClass('table-danger');
+                    if (data.Comment) {
+                        $row.attr('title', data.Comment);
+                        initTooltips($row);
+                    }
                 }
             }
         }),

@@ -46,6 +46,7 @@ $(function () {
     refreshIndicatorsReceptionDock();
     refreshIndicatorsReceptionAdmin();
     updateCarriers();
+
     initTooltips($('.has-tooltip'));
 
     let reloadFrequency = 1000 * 60 * 15;
