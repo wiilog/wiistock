@@ -39,6 +39,7 @@ let tableImport = $('#tableImport').DataTable({
     drawCallback: function() {
         overrideSearch($('#tableImport_filter input'), tableImport);
         initTooltips($('.has-tooltip'));
+        initDoubleClick('.status-planifié');
     }
 });
 
@@ -88,7 +89,7 @@ function displayConfirmationModal(data) {
 }
 
 function launchImport(data) {
-    $.post(Routing.generate('import_launch'), {importId: data.importId}, (resp) => {
+    $.post(Routing.generate('import_launch'), {importId: data.importId, force: 1}, (resp) => {
         tableImport.ajax.reload();
         if (resp.success) {
             alertSuccessMsg(resp.msg);
@@ -145,4 +146,30 @@ function updateOptions($select) {
     if (selectValue != '') {
         $select.find('option[value=' + selectValue + ']').removeAttr('disabled');
     }
+}
+
+function initDoubleClick(elem) {
+    if ($(elem).length > 0) {
+        document.querySelector(elem).addEventListener('click', function (e) {
+            if (e.detail === 10) {
+                let $modal = $('#modalLaunchPlanifiedImport');
+                $modal.find('#importIdToLaunch').data('id', $(elem).data('id'));
+                $modal.modal('show');
+            }
+        });
+    }
+}
+
+function launchPlanifiedImport($btn) {
+    let params = { importId : $btn.data('id') };
+
+    $.post(Routing.generate('import_confirm'), JSON.stringify(params), (resp) => {
+        if (resp.success) {
+            alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
+            launchImport(params);
+        } else {
+            alertErrorMsg('Une erreur est survenue lors du lancement de votre import.');
+        }
+        tableImport.ajax.reload();
+    });
 }

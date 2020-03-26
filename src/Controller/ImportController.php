@@ -272,12 +272,13 @@ class ImportController extends AbstractController
 	public function launchImport(Request $request, ImportService $importService)
 	{
 		$importId = $request->request->get('importId');
+		$force = $request->request->get('force') ?? 0;
 		$em = $this->getDoctrine()->getManager();
         $import = $em->getRepository(Import::class)->find($importId);
 
         if ($import) {
             $success = true;
-            $isLaunched = $importService->loadData($import);
+            $isLaunched = $importService->loadData($import, $force);
             $msg = $isLaunched ?
                 'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.' :
                 'Votre import contient plus de ' . ImportService::MAX_LINES_FLASH_IMPORT . ' lignes. Il sera effectué cette nuit.';
@@ -291,6 +292,28 @@ class ImportController extends AbstractController
             'msg' => $msg
         ]);
 	}
+
+    /**
+     * @Route("/forcer-import", name="import_force", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ImportService $importService
+     * @return JsonResponse
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws ORMException
+     */
+	public function forceImport(Request $request, ImportService $importService)
+    {
+        $importId = $request->request->get('importId');
+        $em = $this->getDoctrine()->getManager();
+        $import = $em->getRepository(Import::class)->find($importId);
+
+        if ($import) {
+            $importService->loadData($import, true);
+        }
+
+        return new JsonResponse();
+    }
 
     /**
      * @Route("/annuler-import", name="import_cancel", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
