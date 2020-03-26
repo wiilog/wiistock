@@ -21,6 +21,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -95,12 +96,7 @@ class EmplacementController extends AbstractController
      */
     private $referenceArticleRepository;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, GlobalParamService $globalParamService, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository, FiltreSupRepository $filtreSupRepository)
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, GlobalParamService $globalParamService, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -112,7 +108,6 @@ class EmplacementController extends AbstractController
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->globalParamService = $globalParamService;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
@@ -134,13 +129,19 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/", name="emplacement_index", methods="GET")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
             return $this->redirectToRoute('access_denied');
         }
-        $filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
+
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
         $active = $filterStatus ? $filterStatus->getValue() : false;
 
 		return $this->render('emplacement/index.html.twig', [

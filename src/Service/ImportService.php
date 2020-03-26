@@ -38,7 +38,7 @@ use Twig\Error\SyntaxError;
 
 class ImportService
 {
-    private const MAX_LINES_FLASH_IMPORT = 500;
+    public const MAX_LINES_FLASH_IMPORT = 500;
 
     /**
      * @var Twig_Environment
@@ -121,6 +121,8 @@ class ImportService
 
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
+        $status = $import->getStatus() ? $import->getStatus()->getNom() : '';
+
         return [
             'id' => $import->getId(),
             'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
@@ -129,7 +131,7 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => $import->getStatus() ? $import->getStatus()->getNom() : '',
+            'status' => '<span class="status-' . $status . ' cursor-default" data-id="' . $importId . '">' . $status . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
@@ -159,11 +161,12 @@ class ImportService
     /**
      * @param Import $import
      * @param bool $force
+     * @return bool
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
      */
-    public function loadData(Import $import, $force = false)
+    public function loadData(Import $import, $force = false): bool
     {
         $csvFile = $import->getCsvFile();
 
@@ -203,12 +206,16 @@ class ImportService
 
         // si + de 500 ligne && !force -> planification
         if (!$smallFile && !$force) {
+            $importDone = false;
+
             $statutRepository = $this->em->getRepository(Statut::class);
             $statusPlanned = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED);
             $import->setStatus($statusPlanned);
             $this->em->flush();
         }
         else {
+            $importDone = true;
+
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
                 $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
@@ -252,6 +259,8 @@ class ImportService
         }
 
         fclose($file);
+
+        return $importDone;
     }
 
     /**
@@ -307,8 +316,9 @@ class ImportService
                 $file = $throwable->getFile();
                 $line = $throwable->getLine();
                 $logMessage = $throwable->getMessage();
+                $trace = $throwable->getTraceAsString();
                 $importId = $import->getId();
-                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file:$line");
+                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file:$line | $trace");
             }
 
             $stats['errors']++;

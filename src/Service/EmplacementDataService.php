@@ -12,7 +12,6 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
 use App\Repository\EmplacementRepository;
-use App\Repository\FiltreSupRepository;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -50,28 +49,21 @@ class EmplacementDataService
 
     private $security;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    private $em;
+    private $entityManager;
 
     public function __construct(UserService $userService,
                                 EmplacementRepository $emplacementRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FiltreSupRepository $filtreSupRepository,
                                 Security $security)
     {
 
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
         $this->userService = $userService;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
     }
 
@@ -92,7 +84,8 @@ class EmplacementDataService
     public function getEmplacementDataByParams($params = null)
     {
         $user = $this->security->getUser();
-		$filterStatus = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+		$filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
 		$active = $filterStatus ? $filterStatus->getValue() : false;
 
 

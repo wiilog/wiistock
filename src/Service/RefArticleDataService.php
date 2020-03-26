@@ -27,7 +27,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
@@ -84,10 +83,6 @@ class RefArticleDataService
     private $filtreRefRepository;
 
     /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-    /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
@@ -132,7 +127,7 @@ class RefArticleDataService
      */
     private $inventoryCategoryRepository;
 
-    private $em;
+    private $entityManager;
 
     /**
      * @var RouterInterface
@@ -148,7 +143,7 @@ class RefArticleDataService
                                 UserService $userService,
                                 ArticleFournisseurRepository $articleFournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ChampLibreRepository $champLibreRepository,
@@ -156,10 +151,8 @@ class RefArticleDataService
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
                                 InventoryCategoryRepository $inventoryCategoryRepository,
-                                FiltreSupRepository $filtreSupRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champLibreRepository = $champLibreRepository;
@@ -169,7 +162,7 @@ class RefArticleDataService
         $this->templating = $templating;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
         $this->ligneArticleRepository = $ligneArticleRepository;
@@ -251,7 +244,7 @@ class RefArticleDataService
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $typeRepository = $this->em->getRepository(Type::class);
+        $typeRepository = $this->entityManager->getRepository(Type::class);
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
         $categories = $this->inventoryCategoryRepository->findAll();
@@ -307,12 +300,12 @@ class RefArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
-        $statutRepository = $this->em->getRepository(Statut::class);
-        $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
-        $type = $this->em->find(Type::class, intval($data['type']));
+        $type = $this->entityManager->find(Type::class, intval($data['type']));
         $category = $this->inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         $emplacement = $this->emplacementRepository->find(intval($data['emplacement']));
@@ -325,7 +318,7 @@ class RefArticleDataService
 
         if ($requiredEdit) {
             //modification champsFixes
-            $entityManager = $this->em;
+            $entityManager = $this->entityManager;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['frl'])) {
                 foreach ($data['frl'] as $frl) {
@@ -360,7 +353,7 @@ class RefArticleDataService
                 if ($statut) $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
-                $type = $this->em->find(Type::class, intval($data['type']));
+                $type = $this->entityManager->find(Type::class, intval($data['type']));
                 if ($type) $refArticle->setType($type);
             }
 
@@ -460,7 +453,7 @@ class RefArticleDataService
                     ->setReference($referenceArticle)
                     ->setDemande($demande)
                     ->setQuantite(max($data["quantitie"], 0)); // protection contre quantités négatives
-                $this->em->persist($ligneArticle);
+                $this->entityManager->persist($ligneArticle);
             } else {
                 $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
@@ -477,7 +470,7 @@ class RefArticleDataService
                         ->setReference($referenceArticle)
                         ->setDemande($demande)
                         ->setToSplit(true);
-                    $this->em->persist($ligneArticle);
+                    $this->entityManager->persist($ligneArticle);
                 } else {
                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
                     $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
@@ -494,7 +487,7 @@ class RefArticleDataService
             $resp = false;
         }
 
-        $this->em->flush();
+        $this->entityManager->flush();
         return $resp;
     }
 
@@ -521,7 +514,8 @@ class RefArticleDataService
 
     public function getAlerteDataByParams($params, $user)
     {
-        $filtresAlerte = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
 
         $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
         $referenceArticles = $results['data'];
@@ -540,14 +534,13 @@ class RefArticleDataService
 	/**
 	 * @param ReferenceArticle $referenceArticle
 	 * @return array
-	 * @throws DBALException
-	 * @throws LoaderError
+     * @throws LoaderError
 	 * @throws RuntimeError
 	 * @throws SyntaxError
 	 */
     public function dataRowAlerteRef($referenceArticle)
     {
-        $quantity = $referenceArticle->getQuantiteDisponible();
+        $quantity = $referenceArticle['quantiteDisponible'];
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),

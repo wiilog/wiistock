@@ -14,7 +14,6 @@ use App\Entity\CategoryType;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -124,11 +123,6 @@ class ArticleController extends AbstractController
 
     private $CSVExportService;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
 	/**
 	 * @var ParametrageGlobalRepository
 	 */
@@ -148,7 +142,6 @@ class ArticleController extends AbstractController
                                 EmplacementRepository $emplacementRepository,
                                 CollecteRepository $collecteRepository,
                                 UserService $userService,
-                                FiltreSupRepository $filtreSupRepository,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
                                 CSVExportService $CSVExportService)
     {
@@ -168,20 +161,23 @@ class ArticleController extends AbstractController
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->CSVExportService = $CSVExportService;
-        $this->filtreSupRepository = $filtreSupRepository;
     }
 
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
             return $this->redirectToRoute('access_denied');
         }
-        /**
-         * @var Utilisateur $user
-         */
+
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        /** @var Utilisateur $user */
         $user = $this->getUser();
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
         $category = CategoryType::ARTICLE;
@@ -325,7 +321,7 @@ class ArticleController extends AbstractController
         $champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
-        $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
+        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
         return $this->render('article/index.html.twig', [
             'valeurChampLibre' => null,
             'champsSearch' => $champsSearch,
@@ -343,13 +339,16 @@ class ArticleController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function displayActifOrInactif(Request $request, EntityManagerInterface $entityManager) : Response
+    public function displayActifOrInactif(EntityManagerInterface $entityManager,
+                                          Request $request) : Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
 
             $user = $this->getUser();
 
-            $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $user);
+            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+            $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $user);
             $activeOnly = $data['activeOnly'];
 
             if ($activeOnly) {
@@ -360,13 +359,13 @@ class ArticleController extends AbstractController
 						->setField(FiltreSup::FIELD_STATUT)
 						->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT)
 						->setPage(FiltreSup::PAGE_ARTICLE);
-                    $entityManager->persist($filter);
+					$entityManager->persist($filter);
 				} else {
 					$filter->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT);
 				}
 			} else {
             	if (!empty($filter)) {
-                    $entityManager->remove($filter);
+            		$entityManager->remove($filter);
 				}
 			}
 

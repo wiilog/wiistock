@@ -15,7 +15,6 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\OrdreCollecteReferenceRepository;
@@ -75,11 +74,6 @@ class OrdreCollecteService
 	private $articleRepository;
 
 	/**
-	 * @var FiltreSupRepository
-	 */
-	private $filtreSupRepository;
-
-	/**
 	 * @var Utilisateur
 	 */
 	private $user;
@@ -95,7 +89,6 @@ class OrdreCollecteService
 
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
-    							FiltreSupRepository $filtreSupRepository,
     							OrdreCollecteRepository $ordreCollecteRepository,
     							ArticleRepository $articleRepository,
 								OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository,
@@ -117,7 +110,6 @@ class OrdreCollecteService
 		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
 		$this->articleRepository = $articleRepository;
 		$this->ordreCollecteRepository = $ordreCollecteRepository;
-		$this->filtreSupRepository = $filtreSupRepository;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
 		$this->mouvementTracaRepository = $mouvementTracaRepository;
@@ -339,13 +331,15 @@ class OrdreCollecteService
      */
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+
 		if ($demandeCollecteIdFilter) {
 			$filters = [
 				['field' => 'demandeCollecte',
 				'value' => $demandeCollecteIdFilter]
 			];
 		} else {
-			$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+			$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
 		}
 		$queryResult = $this->ordreCollecteRepository->findByParamsAndFilters($params, $filters);
 

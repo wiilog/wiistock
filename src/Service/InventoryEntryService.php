@@ -4,8 +4,6 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\InventoryEntry;
-use App\Repository\InventoryEntryRepository;
-use App\Repository\FiltreSupRepository;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,11 +18,6 @@ class InventoryEntryService
     private $templating;
 
     /**
-     * @var InventoryEntryRepository
-     */
-    private $inventoryEntryRepository;
-
-    /**
      * @var RouterInterface
      */
     private $router;
@@ -36,28 +29,19 @@ class InventoryEntryService
 
     private $security;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    private $em;
+    private $entityManager;
 
     public function __construct(UserService $userService,
-                                InventoryEntryRepository $inventoryEntryRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FiltreSupRepository $filtreSupRepository,
                                 Security $security)
     {
 
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->userService = $userService;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
     }
 
@@ -68,9 +52,11 @@ class InventoryEntryService
 	 */
     public function getDataForDatatable($params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_ENTRIES, $this->security->getUser());
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
 
-		$queryResult = $this->inventoryEntryRepository->findByParamsAndFilters($params, $filters);
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_ENTRIES, $this->security->getUser());
+		$queryResult = $inventoryEntryRepository->findByParamsAndFilters($params, $filters);
 
 		$invEntries = $queryResult['data'];
 

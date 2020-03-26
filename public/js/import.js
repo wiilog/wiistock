@@ -39,6 +39,7 @@ let tableImport = $('#tableImport').DataTable({
     drawCallback: function() {
         overrideSearch($('#tableImport_filter input'), tableImport);
         initTooltips($('.has-tooltip'));
+        initDoubleClick('.status-planifié');
     }
 });
 
@@ -88,9 +89,13 @@ function displayConfirmationModal(data) {
 }
 
 function launchImport(data) {
-    alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
-    $.post(Routing.generate('import_launch'), {importId: data.importId}, () => {
+    $.post(Routing.generate('import_launch'), {importId: data.importId, force: 1}, (resp) => {
         tableImport.ajax.reload();
+        if (resp.success) {
+            alertSuccessMsg(resp.msg);
+        } else {
+            alertErrorMsg(resp.msg);
+        }
     });
 }
 
@@ -118,6 +123,7 @@ function deleteImport($btn) {
 function updateOptions($select) {
     let $tbody = $select.closest('tbody');
     let $allSelects = $tbody.find('select');
+    let selectValue = $select.val();
     let selectedValues = [];
 
     $allSelects.each((index, element) => {
@@ -129,6 +135,41 @@ function updateOptions($select) {
     });
 
     if (selectedValues.length > 0) {
-        $tbody.find(selectedValues.join(',')).attr('disabled', 'disabled');
+        let $optionsToDisable = $tbody.find(selectedValues.join(','));
+        $optionsToDisable.each(function() {
+            if ($(this).closest('select').val() !== $(this).val()) {
+                $(this).attr('disabled', 'disabled');
+            }
+        });
     }
+
+    if (selectValue != '') {
+        $select.find('option[value=' + selectValue + ']').removeAttr('disabled');
+    }
+}
+
+function initDoubleClick(elem) {
+    if ($(elem).length > 0) {
+        document.querySelector(elem).addEventListener('click', function (e) {
+            if (e.detail === 10) {
+                let $modal = $('#modalLaunchPlanifiedImport');
+                $modal.find('#importIdToLaunch').data('id', $(elem).data('id'));
+                $modal.modal('show');
+            }
+        });
+    }
+}
+
+function launchPlanifiedImport($btn) {
+    let params = { importId : $btn.data('id') };
+
+    $.post(Routing.generate('import_confirm'), JSON.stringify(params), (resp) => {
+        if (resp.success) {
+            alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
+            launchImport(params);
+        } else {
+            alertErrorMsg('Une erreur est survenue lors du lancement de votre import.');
+        }
+        tableImport.ajax.reload();
+    });
 }

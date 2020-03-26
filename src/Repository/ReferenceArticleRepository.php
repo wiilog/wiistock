@@ -35,7 +35,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
-        'Quantité stock' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
@@ -1065,6 +1065,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.limitWarning,
                 ra.dateEmergencyTriggered,
                 ra.typeQuantite,
+                ra.quantiteDisponible,
                 t.label as type')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.dateEmergencyTriggered IS NOT NULL')
@@ -1082,6 +1083,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
      * @param ReferenceArticle $ref
      * @return int
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function countInventoryAnomaliesByRef($ref)
     {
