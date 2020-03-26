@@ -38,7 +38,7 @@ use Twig\Error\SyntaxError;
 
 class ImportService
 {
-    private const MAX_LINES_FLASH_IMPORT = 500;
+    public const MAX_LINES_FLASH_IMPORT = 500;
 
     /**
      * @var Twig_Environment
@@ -159,11 +159,12 @@ class ImportService
     /**
      * @param Import $import
      * @param bool $force
+     * @return bool
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
      */
-    public function loadData(Import $import, $force = false)
+    public function loadData(Import $import, $force = false): bool
     {
         $csvFile = $import->getCsvFile();
 
@@ -203,12 +204,16 @@ class ImportService
 
         // si + de 500 ligne && !force -> planification
         if (!$smallFile && !$force) {
+            $importDone = false;
+
             $statutRepository = $this->em->getRepository(Statut::class);
             $statusPlanned = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED);
             $import->setStatus($statusPlanned);
             $this->em->flush();
         }
         else {
+            $importDone = true;
+
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
                 $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
@@ -252,6 +257,8 @@ class ImportService
         }
 
         fclose($file);
+
+        return $importDone;
     }
 
     /**

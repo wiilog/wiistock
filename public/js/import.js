@@ -88,9 +88,13 @@ function displayConfirmationModal(data) {
 }
 
 function launchImport(data) {
-    alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
-    $.post(Routing.generate('import_launch'), {importId: data.importId}, () => {
+    $.post(Routing.generate('import_launch'), {importId: data.importId}, (resp) => {
         tableImport.ajax.reload();
+        if (resp.success) {
+            alertSuccessMsg(resp.msg);
+        } else {
+            alertErrorMsg(resp.msg);
+        }
     });
 }
 
@@ -118,6 +122,7 @@ function deleteImport($btn) {
 function updateOptions($select) {
     let $tbody = $select.closest('tbody');
     let $allSelects = $tbody.find('select');
+    let selectValue = $select.val();
     let selectedValues = [];
 
     $allSelects.each((index, element) => {
@@ -129,6 +134,15 @@ function updateOptions($select) {
     });
 
     if (selectedValues.length > 0) {
-        $tbody.find(selectedValues.join(',')).attr('disabled', 'disabled');
+        let $optionsToDisable = $tbody.find(selectedValues.join(','));
+        $optionsToDisable.each(function() {
+            if ($(this).closest('select').val() !== $(this).val()) {
+                $(this).attr('disabled', 'disabled');
+            }
+        });
+    }
+
+    if (selectValue != '') {
+        $select.find('option[value=' + selectValue + ']').removeAttr('disabled');
     }
 }
