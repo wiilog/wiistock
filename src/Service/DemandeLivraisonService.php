@@ -8,6 +8,7 @@ use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -70,11 +71,6 @@ class DemandeLivraisonService
     private $champLibreRepository;
 
     /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
@@ -101,7 +97,6 @@ class DemandeLivraisonService
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 EmplacementRepository $emplacementRepository,
-                                StatutRepository $statutRepository,
                                 TokenStorageInterface $tokenStorage,
                                 FiltreSupRepository $filtreSupRepository,
                                 RouterInterface $router,
@@ -116,7 +111,6 @@ class DemandeLivraisonService
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->statutRepository = $statutRepository;
         $this->templating = $templating;
         $this->em = $em;
         $this->router = $router;
@@ -177,6 +171,7 @@ class DemandeLivraisonService
     }
 
     public function newDemande($data) {
+        $statutRepository = $this->em->getRepository(Statut::class);
 
         $requiredCreate = true;
         $type = $this->em->find(Type::class, $data['type']);
@@ -195,7 +190,7 @@ class DemandeLivraisonService
         }
         $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $this->emplacementRepository->find($data['destination']);
 
         // génère le numéro
@@ -237,14 +232,14 @@ class DemandeLivraisonService
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
-            $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
+            $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $preparation = new Preparation();
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $preparation
                     ->setNumero('P-' . $date->format('YmdHis'))
                     ->setDate($date);
-                $statutP = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+                $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
                 $this->em->persist($preparation);
                 $demande->addPreparation($preparation);

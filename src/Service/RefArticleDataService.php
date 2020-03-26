@@ -15,6 +15,7 @@ use App\Entity\FiltreSup;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
@@ -62,11 +63,6 @@ class RefArticleDataService
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var FournisseurRepository
@@ -159,7 +155,6 @@ class RefArticleDataService
                                 ArticleFournisseurRepository $articleFournisseurRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
-                                StatutRepository $statutRepository,
                                 EntityManagerInterface $em,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
@@ -176,7 +171,6 @@ class RefArticleDataService
         $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champLibreRepository = $champLibreRepository;
-        $this->statutRepository = $statutRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -309,8 +303,7 @@ class RefArticleDataService
 	 * @return RedirectResponse
 	 * @throws DBALException
 	 * @throws LoaderError
-	 * @throws NonUniqueResultException
-	 * @throws RuntimeError
+     * @throws RuntimeError
 	 * @throws SyntaxError
 	 */
     public function editRefArticle($refArticle, $data)
@@ -318,6 +311,7 @@ class RefArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
+        $statutRepository = $this->em->getRepository(Statut::class);
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
@@ -365,7 +359,7 @@ class RefArticleDataService
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
-                $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
+                $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
                 if ($statut) $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {

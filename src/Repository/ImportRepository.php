@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Import;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method Import|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,13 +11,8 @@ use Doctrine\Common\Persistence\ManagerRegistry;
  * @method Import[]    findAll()
  * @method Import[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ImportRepository extends ServiceEntityRepository
+class ImportRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Import::class);
-    }
-
 	public function findByParamsAndFilters($params, $filters)
 	{
 		$qb = $this->createQueryBuilder('i')

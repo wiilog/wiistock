@@ -11,6 +11,7 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
@@ -46,10 +47,6 @@ class OrdreCollecteService
 	 * @var Twig_Environment
 	 */
 	private $templating;
-	/**
-	 * @var StatutRepository
-	 */
-	private $statutRepository;
 	/**
 	 * @var MailerServerRepository
 	 */
@@ -106,7 +103,6 @@ class OrdreCollecteService
 								MailerServerRepository $mailerServerRepository,
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
-                                StatutRepository $statutRepository,
                                 MouvementStockService $mouvementStockService,
                                 MouvementTracaRepository $mouvementTracaRepository,
                                 EntityManagerInterface $entityManager,
@@ -116,7 +112,6 @@ class OrdreCollecteService
 	    $this->mailerServerRepository = $mailerServerRepository;
 		$this->templating = $templating;
 		$this->entityManager = $entityManager;
-		$this->statutRepository = $statutRepository;
 		$this->mailerService = $mailerService;
 		$this->mouvementTracaService = $mouvementTracaService;
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
@@ -157,6 +152,7 @@ class OrdreCollecteService
                                    bool $fromNomade = false)
 	{
 		$em = $this->entityManager;
+        $statutRepository = $em->getRepository(Statut::class);
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
 		$dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
@@ -164,7 +160,7 @@ class OrdreCollecteService
 		$referenceToQuantity = [];
 		$artToQuantity = [];
 
-        $statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
+        $statutATraiter = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 		if ($statutATraiter->getId() !== $ordreCollecte->getStatut()->getId()) {
             throw new Exception(self::COLLECTE_ALREADY_BEGUN);
         }
@@ -244,21 +240,21 @@ class OrdreCollecteService
 				}
 			}
 
-			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
+			$demandeCollecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
 
 			$em->flush();
 		}
 		else {
 		// cas de collecte totale
 			$demandeCollecte
-				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
+				->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
 				->setValidationDate($dateNow);
 		}
 
 		// on modifie le statut de l'ordre de collecte
 		$ordreCollecte
 			->setUtilisateur($user)
-			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
+			->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
@@ -292,7 +288,7 @@ class OrdreCollecteService
                     $article->setEmplacement($depositLocation);
                 }
 
-                $statutArticle = $this->statutRepository->findOneByCategorieNameAndStatutCode(
+                $statutArticle = $statutRepository->findOneByCategorieNameAndStatutCode(
                     CategorieStatut::ARTICLE,
                     $fromNomade ? Article::STATUT_INACTIF : Article::STATUT_ACTIF
                 );

@@ -10,6 +10,7 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\FiltreSupRepository;
@@ -55,14 +56,11 @@ class MouvementTracaService
      * @var FiltreSupRepository
      */
     private $filtreSupRepository;
-
     private $em;
-    private $statutRepository;
     private $attachmentService;
 
     public function __construct(UserService $userService,
                                 MouvementTracaRepository $mouvementTracaRepository,
-                                StatutRepository $statutRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
@@ -75,7 +73,6 @@ class MouvementTracaService
         $this->router = $router;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->userService = $userService;
-        $this->statutRepository = $statutRepository;
         $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
@@ -184,7 +181,7 @@ class MouvementTracaService
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
      * @param array $options = ['commentaire' => string|null, 'mouvementStock' => MouvementStock|null, 'fileBag' => FileBag|null, from => Arrivage|Reception|null]
      * @return MouvementTraca
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function persistMouvementTraca(string $colis,
                                           ?Emplacement $location,
@@ -195,10 +192,11 @@ class MouvementTracaService
                                           $typeMouvementTraca,
                                           array $options = []): MouvementTraca
     {
+        $statutRepository = $this->em->getRepository(Statut::class);
 
         $type = is_string($typeMouvementTraca)
-            ? $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
-            : $this->statutRepository->find($typeMouvementTraca);
+            ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+            : $statutRepository->find($typeMouvementTraca);
 
         if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
