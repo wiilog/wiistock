@@ -22,8 +22,6 @@ use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-
-use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
@@ -61,11 +59,6 @@ class RefArticleDataService
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
 
     /**
      * @var ValeurChampLibreRepository
@@ -135,7 +128,6 @@ class RefArticleDataService
                                 LigneArticleRepository $ligneArticleRepository,
                                 RouterInterface $router,
                                 UserService $userService,
-                                ArticleFournisseurRepository $articleFournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $entityManager,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
@@ -153,7 +145,6 @@ class RefArticleDataService
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->entityManager = $entityManager;
         $this->userService = $userService;
@@ -224,19 +215,21 @@ class RefArticleDataService
         ];
     }
 
-	/**
-	 * @param ReferenceArticle $refArticle
-	 * @param bool $isADemand
-	 * @return string
-	 * @throws DBALException
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-    public function getViewEditRefArticle($refArticle, $isADemand = false)
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param ReferenceArticle $refArticle
+     * @param bool $isADemand
+     * @return string
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getViewEditRefArticle(EntityManagerInterface $entityManager, $refArticle, $isADemand = false)
     {
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+
         $data = $this->getDataEditForRefArticle($refArticle);
-        $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
+        $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 

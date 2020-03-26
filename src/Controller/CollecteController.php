@@ -26,7 +26,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
-use App\Repository\ArticleFournisseurRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\CollecteService;
@@ -54,11 +53,6 @@ use Twig\Error\SyntaxError;
  */
 class CollecteController extends AbstractController
 {
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
 
     /**
      * @var OrdreCollecteRepository
@@ -122,9 +116,8 @@ class CollecteController extends AbstractController
     private $collecteService;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -359,6 +352,7 @@ class CollecteController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
@@ -387,7 +381,7 @@ class CollecteController extends AbstractController
                     $entityManager->persist($fournisseurTemp);
                 }
                 $article = new Article();
-                $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
+                $index = $articleFournisseurRepository->countByRefArticle($refArticle);
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $ref = $date->format('YmdHis');
@@ -483,10 +477,11 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $json['content'] = $this->renderView('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
-                'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseurRepository->find($data['fournisseur']))
+                'references' => $articleFournisseurRepository->getByFournisseur($fournisseurRepository->find($data['fournisseur']))
             ]);
             return new JsonResponse($json);
         }

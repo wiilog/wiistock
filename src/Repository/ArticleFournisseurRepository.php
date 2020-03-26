@@ -4,10 +4,9 @@ namespace App\Repository;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\ReferenceArticle;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ArticleFournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,19 +14,13 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ArticleFournisseur[]    findAll()
  * @method ArticleFournisseur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArticleFournisseurRepository extends ServiceEntityRepository
+class ArticleFournisseurRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Fournisseur' => 'fournisseur',
         'Référence' => 'reference',
         'Article de référence' => 'art_ref',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ArticleFournisseur::class);
-    }
-
 
     public function findBySearch($value)
     {
