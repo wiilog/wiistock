@@ -79,6 +79,7 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
     public function load(ObjectManager $manager)
     {
         $statutRepository = $manager->getRepository(Statut::class);
+
         $path = "src/DataFixtures/Csv/csp.csv";
         $file = fopen($path, "r");
 
@@ -182,7 +183,7 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
             $article
                 ->setReference($row[0] . '-' . $i)
                 ->setLabel($row[1])
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF))
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF))
                 ->setType($typeCsp)
                 ->setConform(true)
                 ->setQuantite(intval($row[3]));

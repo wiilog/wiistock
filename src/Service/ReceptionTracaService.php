@@ -6,12 +6,13 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 
 use App\Entity\ReceptionTraca;
-use App\Repository\FiltreSupRepository;
-use App\Repository\ReceptionTracaRepository;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class ReceptionTracaService
 {
@@ -30,35 +31,21 @@ class ReceptionTracaService
      */
     private $userService;
 
-    /**
-     * @var ReceptionTracaRepository
-     */
-    private $receptionTracaRepository;
-
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
     private $security;
 
-    private $em;
+    private $entityManager;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                Security $security,
-                                ReceptionTracaRepository $receptionTracaRepository,
-                                FiltreSupRepository $filtreSupRepository)
+                                Security $security)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
         $this->userService = $userService;
         $this->security = $security;
-        $this->receptionTracaRepository = $receptionTracaRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
     }
 
     /**
@@ -68,9 +55,11 @@ class ReceptionTracaService
      */
     public function getDataForDatatable($params = null)
     {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RCPT_TRACA, $this->security->getUser());
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $receptionTracaRepository = $this->entityManager->getRepository(ReceptionTraca::class);
 
-        $queryResult = $this->receptionTracaRepository->findByParamsAndFilters($params, $filters);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RCPT_TRACA, $this->security->getUser());
+        $queryResult = $receptionTracaRepository->findByParamsAndFilters($params, $filters);
 
         $receptions = $queryResult['data'];
 
@@ -89,9 +78,9 @@ class ReceptionTracaService
     /**
      * @param ReceptionTraca $reception
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function dataRowReceptionTraca($reception)
     {

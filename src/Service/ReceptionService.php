@@ -7,10 +7,6 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
-use App\Repository\FiltreSupRepository;
-use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -32,55 +28,31 @@ class ReceptionService
     private $router;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
-     * @var ReceptionRepository
-     */
-    private $receptionRepository;
-
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    /**
      * @var Utilisateur
      */
     private $user;
 
-    private $em;
+    private $entityManager;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
-                                FiltreSupRepository $filtreSupRepository,
-                                EntityManagerInterface $em,
-                                Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ArticleRepository $articleRepository,
-                                ReceptionRepository $receptionRepository)
+                                EntityManagerInterface $entityManager,
+                                Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
-        $this->receptionRepository = $receptionRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
     public function getDataForDatatable($params = null)
     {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $this->user);
-        $queryResult = $this->receptionRepository->findByParamAndFilters($params, $filters);
+
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $receptionRepository = $this->entityManager->getRepository(Reception::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $this->user);
+        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters);
 
         $receptions = $queryResult['data'];
 
