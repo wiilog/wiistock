@@ -15,7 +15,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\DemandeRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\PreparationRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -71,17 +70,11 @@ class PreparationsManagerService
     private $security;
 
     /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
 
     public function __construct(DemandeRepository $demandeRepository,
-                                FiltreSupRepository $filtreSupRepository,
                                 Security $security,
                                 PreparationRepository $preparationRepository,
                                 RouterInterface $router,
@@ -91,7 +84,6 @@ class PreparationsManagerService
                                 EntityManagerInterface $entityManager)
     {
         $this->demandeRepository = $demandeRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
         $this->preparationRepository = $preparationRepository;
         $this->router = $router;
@@ -117,6 +109,7 @@ class PreparationsManagerService
     public function closePreparationMouvement(Preparation $preparation, DateTime $date, Emplacement $emplacement = null): void
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
+
         $mouvements = $mouvementRepository->findByPreparation($preparation);
 
         foreach ($mouvements as $mouvement) {
@@ -426,6 +419,7 @@ class PreparationsManagerService
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
+
         $articlesSplittedToKeep = [];
         // modification des articles de la demande
         $articles = $preparation->getArticles();
@@ -521,6 +515,8 @@ class PreparationsManagerService
      */
     public function getDataForDatatable($params = null, $filterDemande = null)
     {
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+
         if ($filterDemande) {
             $filters = [
                 [
@@ -528,8 +524,9 @@ class PreparationsManagerService
                     'value' => $filterDemande
                 ]
             ];
-        } else {
-            $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPA, $this->security->getUser());
+        }
+        else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPA, $this->security->getUser());
         }
 
         $queryResult = $this->preparationRepository->findByParamsAndFilters($params, $filters);

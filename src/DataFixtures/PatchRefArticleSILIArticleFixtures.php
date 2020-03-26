@@ -7,13 +7,13 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -21,27 +21,16 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -68,96 +57,97 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
      */
     private $articleFournisseurRepository;
 
-  /**
-   * @var ValeurChampLibreRepository
-   */
+    /**
+     * @var ValeurChampLibreRepository
+     */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-      $type = $this->typeRepository->findOneByLabel(Type::LABEL_SILI);
-      $articlesSili = $this->refArticleRepository->findBy(['type' => $type]);
+        $typeRepository = $manager->getRepository(Type::class);
+        $statutRepository = $manager->getRepository(Statut::class);
 
-      dump(count($articlesSili) . ' articles à créer.');
+        $type = $typeRepository->findOneByLabel(Type::LABEL_SILI);
+        $articlesSili = $this->refArticleRepository->findBy(['type' => $type]);
 
-      $i = 0;
-      foreach ($articlesSili as $refCEA) {
+        dump(count($articlesSili) . ' articles à créer.');
 
-        $article = new Article();
-        $manager->persist($article);
+        $i = 0;
+        foreach ($articlesSili as $refCEA) {
 
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('YmdHis');
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            $article = new Article();
+            $manager->persist($article);
 
-        $article
-          ->setStatut($statut)
-          ->setLabel($refCEA->getLibelle())
-          ->setQuantite($refCEA->getQuantiteStock())
-          ->setCommentaire($refCEA->getCommentaire())
-          ->setConform(true)
-          ->setReference($ref . '-1')
-          ->setType($refCEA->getType());
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $ref = $date->format('YmdHis');
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
-        // transfert du champ libre Adresse (SILI) vers le champ emplacement
-        $champLibreAdresse = $this->champLibreRepository->findBy(['label' => 'Adresse (SILI)']);
-        if (empty($champLibreAdresse)) {
-          dump('champ libre adresse SILI non retrouvé en base');
-          exit;
+            $article
+                ->setStatut($statut)
+                ->setLabel($refCEA->getLibelle())
+                ->setQuantite($refCEA->getQuantiteStock())
+                ->setCommentaire($refCEA->getCommentaire())
+                ->setConform(true)
+                ->setReference($ref . '-1')
+                ->setType($refCEA->getType());
+
+            // transfert du champ libre Adresse (SILI) vers le champ emplacement
+            $champLibreAdresse = $this->champLibreRepository->findBy(['label' => 'Adresse (SILI)']);
+            if (empty($champLibreAdresse)) {
+                dump('champ libre adresse SILI non retrouvé en base');
+                exit;
+            }
+
+            $valeurCL = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refCEA->getId(), $champLibreAdresse);
+            if (!empty($valeurCL)) {
+                $emplacement = $this->emplacementRepository->findOneBy(['label' => $valeurCL->getValeur()]);
+
+                if (empty($emplacement)) {
+                    $emplacement = new Emplacement();
+                    $emplacement->setLabel($valeurCL);
+                    $manager->persist($emplacement);
+                }
+                $article->setEmplacement($emplacement);
+            }
+
+            // article fournisseur
+            $fournisseur = $this->initFournisseur($manager);
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur
+                ->setLabel($refCEA->getLibelle())
+                ->setReference(time() . '-' . $i)// code aléatoire unique
+                ->setFournisseur($fournisseur)
+                ->setReferenceArticle($refCEA);
+            $manager->persist($articleFournisseur);
+
+            $article->setArticleFournisseur($articleFournisseur);
+
+            // on met à jour l'article de référence
+            $refCEA
+                ->setQuantiteStock(null)
+                ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                ->setEmplacement(null);
+
+            $i++;
+            dump($i . ' : article créé pour ref CEA ' . $refCEA->getReference());
+            $manager->flush();
         }
-
-        $valeurCL = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refCEA->getId(), $champLibreAdresse);
-        if (!empty($valeurCL)) {
-          $emplacement = $this->emplacementRepository->findOneBy(['label' => $valeurCL->getValeur()]);
-
-          if (empty($emplacement)) {
-            $emplacement = new Emplacement();
-            $emplacement->setLabel($valeurCL);
-            $manager->persist($emplacement);
-          }
-          $article->setEmplacement($emplacement);
-        }
-
-        // article fournisseur
-        $fournisseur = $this->initFournisseur($manager);
-        $articleFournisseur = new ArticleFournisseur();
-        $articleFournisseur
-          ->setLabel($refCEA->getLibelle())
-          ->setReference(time() . '-' . $i)// code aléatoire unique
-          ->setFournisseur($fournisseur)
-          ->setReferenceArticle($refCEA);
-        $manager->persist($articleFournisseur);
-
-        $article->setArticleFournisseur($articleFournisseur);
-
-        // on met à jour l'article de référence
-        $refCEA
-          ->setQuantiteStock(null)
-          ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-          ->setEmplacement(null);
-
-        $i++;
-        dump($i . ' : article créé pour ref CEA ' . $refCEA->getReference());
-        $manager->flush();
-      }
 
     }
 
-    public static function getGroups():array {
+    public static function getGroups(): array
+    {
         return ['SILIarticle'];
     }
 
@@ -167,9 +157,11 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
      */
     public function initFournisseur(ObjectManager $manager): Fournisseur
     {
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
         $fournisseurLabel = 'A DETERMINER';
         $fournisseurRef = 'A_DETERMINER';
-        $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+        $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
         // si le fournisseur n'existe pas, on le crée
         if (empty($fournisseur)) {

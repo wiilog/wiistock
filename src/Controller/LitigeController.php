@@ -13,16 +13,15 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
 
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\ColisRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
-use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\CSVExportService;
@@ -30,6 +29,7 @@ use App\Service\LitigeService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -49,14 +49,6 @@ class LitigeController extends AbstractController
 	 */
 	private $utilisateurRepository;
 	/**
-	 * @var StatutRepository
-	 */
-	private $statutRepository;
-	/**
-	 * @var FournisseurRepository
-	 */
-	private $fournisseurRepository;
-	/**
 	 * @var TransporteurRepository
 	 */
 	private $transporteurRepository;
@@ -64,10 +56,6 @@ class LitigeController extends AbstractController
 	 * @var ChauffeurRepository
 	 */
 	private $chauffeurRepository;
-	/**
-	 * @var TypeRepository
-	 */
-	private $typeRepository;
 	/**
 	 * @var LitigeRepository
 	 */
@@ -108,11 +96,8 @@ class LitigeController extends AbstractController
 	 * @param ArrivageRepository $arrivageRepository
 	 * @param LitigeRepository $litigeRepository
 	 * @param UtilisateurRepository $utilisateurRepository
-	 * @param StatutRepository $statutRepository
-	 * @param FournisseurRepository $fournisseurRepository
 	 * @param TransporteurRepository $transporteurRepository
 	 * @param ChauffeurRepository $chauffeurRepository
-	 * @param TypeRepository $typeRepository
 	 * @param LitigeHistoricRepository $litigeHistoricRepository
 	 */
 	public function __construct(LitigeService $litigeService,
@@ -122,19 +107,13 @@ class LitigeController extends AbstractController
                                 ArrivageRepository $arrivageRepository,
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
-                                StatutRepository $statutRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 TransporteurRepository $transporteurRepository,
                                 ChauffeurRepository $chauffeurRepository,
-                                TypeRepository $typeRepository,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
-		$this->statutRepository = $statutRepository;
-		$this->fournisseurRepository = $fournisseurRepository;
 		$this->transporteurRepository = $transporteurRepository;
 		$this->chauffeurRepository = $chauffeurRepository;
-		$this->typeRepository = $typeRepository;
 		$this->litigeRepository = $litigeRepository;
 		$this->arrivageRepository = $arrivageRepository;
 		$this->userService = $userService;
@@ -144,22 +123,28 @@ class LitigeController extends AbstractController
 		$this->litigeService = $litigeService;
 	}
 
-	/**
-	 * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
-	 * @param LitigeService $litigeService
-	 * @param SpecificService $specificService
-	 * @return Response
-	 */
-    public function index(LitigeService $litigeService, SpecificService $specificService)
+    /**
+     * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+     * @param LitigeService $litigeService
+     * @param EntityManagerInterface $entityManager
+     * @param SpecificService $specificService
+     * @return Response
+     */
+    public function index(LitigeService $litigeService,
+                          EntityManagerInterface $entityManager,
+                          SpecificService $specificService)
     {
         if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         return $this->render('litige/index.html.twig',[
-            'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
+            'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)
 		]);

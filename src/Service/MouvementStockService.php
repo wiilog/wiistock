@@ -7,12 +7,9 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 
+use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-use App\Repository\MouvementStockRepository;
-use App\Repository\FiltreSupRepository;
-
-use App\Repository\MouvementTracaRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -33,16 +30,6 @@ class MouvementStockService
     private $templating;
 
     /**
-     * @var MouvementStockRepository
-     */
-    private $mouvementStockRepository;
-
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
      * @var RouterInterface
      */
     private $router;
@@ -54,31 +41,20 @@ class MouvementStockService
 
     private $security;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    private $em;
+    private $entityManager;
 
     public function __construct(UserService $userService,
-                                MouvementStockRepository $mouvementStockRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FiltreSupRepository $filtreSupRepository,
-                                Security $security,
-								MouvementTracaRepository $mouvementTracaRepository)
+                                Security $security)
     {
 
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->userService = $userService;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
 	/**
@@ -88,9 +64,12 @@ class MouvementStockService
 	 */
     public function getDataForDatatable($params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $this->security->getUser());
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $mouvementStockRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-		$queryResult = $this->mouvementStockRepository->findByParamsAndFilters($params, $filters);
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $this->security->getUser());
+
+		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters);
 
 		$mouvements = $queryResult['data'];
 
@@ -117,6 +96,8 @@ class MouvementStockService
 	 */
     public function dataRowMouvement($mouvement)
     {
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+
 		$orderPath = $orderId = $from = null;
 		if ($mouvement->getPreparationOrder()) {
 			$from = 'préparation';
@@ -134,7 +115,7 @@ class MouvementStockService
 			$from = 'réception';
 			$orderPath = 'reception_show';
 			$orderId = $mouvement->getReceptionOrder()->getId();
-		} else if ($this->mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
+		} else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
 			$from = 'transfert de stock';
 		}
 

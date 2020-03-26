@@ -9,39 +9,21 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
     /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -59,13 +41,10 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $emplacementRepository;
 
 
-    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -234,7 +213,9 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
      */
     public function createCL(ObjectManager $manager, $field, $typeLabel, $categorieCLLabel)
     {
-        $type = $this->typeRepository->findOneBy(['label' => $typeLabel]);
+
+        $typeRepository = $manager->getRepository(Type::class);
+        $type = $typeRepository->findOneBy(['label' => $typeLabel]);
         $label = $field['label'] . ' (' . $type->getLabel() . ')';
 
         $cl = $this->champLibreRepository->findOneBy(['label' => $label]);

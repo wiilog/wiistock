@@ -6,13 +6,13 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -20,18 +20,11 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var ChampLibreRepository
@@ -42,11 +35,6 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -69,13 +57,10 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -84,6 +69,9 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
         $path = "src/DataFixtures/Csv/pdt.csv";
         $file = fopen($path, "r");
 
@@ -97,12 +85,14 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
         // à modifier pour faire imports successifs
         $rows = array_slice($rows, 0, 1000);
 
+        $typeRepository = $manager->getRepository(Type::class);
+
         $i = 1;
         foreach($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
+            $typePdt = $typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
 
             // si l'article de référence n'existe pas déjà, on le crée
             $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
@@ -111,7 +101,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
                     ->setType($typePdt)
-                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                     ->setReference($row[0])
                     ->setLibelle($row[1])
                     ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
@@ -131,7 +121,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
             if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                 $fournisseurRef = $fournisseurLabel;
             }
-            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {
@@ -189,7 +179,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
             $article
                 ->setReference($row[0] . '-' . $i)
                 ->setLabel($row[1])
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF))
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF))
                 ->setType($typePdt)
                 ->setConform(true)
                 ->setQuantite(intval($row[3]));
@@ -206,7 +196,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
             if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                 $fournisseurRef = $fournisseurLabel;
             }
-            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {

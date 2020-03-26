@@ -12,6 +12,7 @@ use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use App\Service\UserService;
 use App\Service\FournisseurDataService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,11 +61,10 @@ class FournisseurController extends AbstractController
     private $userService;
 
 
-    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
+    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService)
     {
         $this->arrivageRepository = $arrivageRepository;
         $this->fournisseurDataService = $fournisseurDataService;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->userService = $userService;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->receptionRepository = $receptionRepository;
@@ -89,27 +89,35 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
             return $this->redirectToRoute('access_denied');
         }
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
-        return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
+        return $this->render('fournisseur/index.html.twig', ['fournisseur' => $fournisseurRepository->findAll()]);
     }
 
     /**
      * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
 			// unicité du code fournisseur
-			$codeAlreadyUsed = intval($this->fournisseurRepository->countByCode($data['Code']));
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['Code']));
 
 			if ($codeAlreadyUsed) {
 				return new JsonResponse([
@@ -118,13 +126,12 @@ class FournisseurController extends AbstractController
 				]);
 			}
 
-            $em = $this->getDoctrine()->getManager();
             $fournisseur = new Fournisseur();
             $fournisseur
 				->setNom($data["Nom"])
 				->setCodeReference($data["Code"]);
-            $em->persist($fournisseur);
-            $em->flush();
+            $entityManager->persist($fournisseur);
+            $entityManager->flush();
 
 			return new JsonResponse(['success' => true, 'id' => $fournisseur->getId(), 'text' => $fournisseur->getNom()]);
         }

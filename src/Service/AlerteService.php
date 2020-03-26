@@ -6,7 +6,6 @@ use App\Entity\AlerteExpiry;
 
 use App\Repository\AlerteExpiryRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 
 class AlerteService
 {
@@ -16,20 +15,14 @@ class AlerteService
     private $alerteExpiryRepository;
 
 	/**
-	 * @var StatutRepository
-	 */
-    private $statutRepository;
-
-	/**
 	 * @var ReferenceArticleRepository
 	 */
     private $referenceArticleRepository;
 
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, AlerteExpiryRepository $alerteExpiryRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, AlerteExpiryRepository $alerteExpiryRepository)
     {
 		$this->alerteExpiryRepository = $alerteExpiryRepository;
-		$this->statutRepository = $statutRepository;
 		$this->referenceArticleRepository = $referenceArticleRepository;
     }
 

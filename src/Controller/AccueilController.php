@@ -12,6 +12,7 @@ use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Statut;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
@@ -27,7 +28,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\EmplacementRepository;
 use App\Repository\CollecteRepository;
-use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\AlerteExpiryRepository;
@@ -47,11 +47,6 @@ class AccueilController extends AbstractController
      * @var CollecteRepository
      */
     private $collecteRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -104,7 +99,6 @@ class AccueilController extends AbstractController
                                 AlerteExpiryRepository $alerteExpiryRepository,
                                 ManutentionRepository $manutentionRepository,
                                 DemandeRepository $demandeRepository,
-                                StatutRepository $statutRepository,
                                 CollecteRepository $collecteRepository,
                                 EmplacementRepository $emplacementRepository,
                                 MouvementStockRepository $mouvementStockRepository,
@@ -113,7 +107,6 @@ class AccueilController extends AbstractController
         $this->dashboardService = $dashboardService;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
         $this->alerteExpiryRepository = $alerteExpiryRepository;
@@ -125,13 +118,14 @@ class AccueilController extends AbstractController
 
     /**
      * @Route("/accueil", name="accueil", methods={"GET"})
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
-        $data = $this->getDashboardData();
+        $data = $this->getDashboardData($entityManager);
         return $this->render('accueil/index.html.twig', $data);
     }
 
@@ -145,25 +139,30 @@ class AccueilController extends AbstractController
      *         "token" = "%dashboardToken%"
      *     }
      * )
+     * @param EntityManagerInterface $entityManager
      * @param string $page
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function dashboardExt(string $page): Response
+    public function dashboardExt(EntityManagerInterface $entityManager,
+                                 string $page): Response
     {
-        $data = $this->getDashboardData();
+        $data = $this->getDashboardData($entityManager);
 		$data['page'] = $page;
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function getDashboardData()
+    private function getDashboardData(EntityManagerInterface $entityManager)
     {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         $nbAlerts = $this->refArticleRepository->countAlert();
 
         $types = [
@@ -198,16 +197,16 @@ class AccueilController extends AbstractController
         $totalArticleOfThisMonth = $totalEntryArticleOfThisMonth - $totalExitArticleOfThisMonth;
         $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
 
-        $statutCollecte = $this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
+        $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
 
-        $statutDemandeAT = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+        $statutDemandeAT = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
 
-        $listStatutDemandeP = $this->statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
+        $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $this->demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $statutManutAT = $this->statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
+        $statutManutAT = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
         $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
 
         return [
@@ -222,11 +221,11 @@ class AccueilController extends AbstractController
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
             'nbrFiabiliteReferenceOfThisMonth' => $nbrFiabiliteReferenceOfThisMonth,
             'status' => [
-                'DLtoTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
-                'DLincomplete' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
-                'DLprepared' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
-                'DCToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
-                'MToTreat' => $this->statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
+                'DLtoTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_A_TRAITER),
+                'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
+                'DLprepared' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
+                'DCToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
+                'MToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
             ],
             'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
             'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))

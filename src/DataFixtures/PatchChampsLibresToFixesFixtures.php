@@ -10,8 +10,6 @@ use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -22,26 +20,10 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
     /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -66,18 +48,12 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
     public function __construct(ArticleRepository $articleRepository,
                                 EmplacementRepository $emplacementRepository,
                                 UserPasswordEncoderInterface $encoder,
-                                TypeRepository $typeRepository,
                                 ChampLibreRepository $champsLibreRepository,
-                                FournisseurRepository $fournisseurRepository,
-                                StatutRepository $statutRepository,
                                 ReferenceArticleRepository $refArticleRepository,
                                 CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;

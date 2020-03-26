@@ -4,41 +4,29 @@ namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -56,30 +44,24 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
     private $emplacementRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+
         $path = "src/DataFixtures/Csv/sili.csv";
         $file = fopen($path, "r");
 
@@ -89,6 +71,7 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
         }
 
         $fournisseur = $this->initFournisseur($manager);
+        $typeRepository = $manager->getRepository(Type::class);
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
         $i = 1;
@@ -96,7 +79,7 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
+            $typeSili = $typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
 
             // si l'article de référence existe déjà on le dédoublonne
             $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
@@ -108,7 +91,7 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
                 ->setType($typeSili)
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                 ->setReference($row[0])
                 ->setQuantiteStock($row[3])
                 ->setLibelle($row[1])
@@ -167,7 +150,9 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
     {
         $fournisseurLabel = 'A DETERMINER';
         $fournisseurRef = 'A_DETERMINER';
-        $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
         // si le fournisseur n'existe pas, on le crée
         if (empty($fournisseur)) {

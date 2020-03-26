@@ -2,54 +2,43 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
 
     /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->categorieCLRepository = $categorieCLRepository;
     }
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+
         $path = "src/DataFixtures/Csv/sili-ext.csv";
         $file = fopen($path, "r");
 
@@ -60,12 +49,14 @@ class PatchRefArticleSILIExtFixtures extends Fixture implements FixtureGroupInte
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
+        $typeRepository = $manager->getRepository(Type::class);
+
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeSiliExt = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI_EXT]);
+            $typeSiliExt = $typeRepository->findOneBy(['label' => Type::LABEL_SILI_EXT]);
 
             // contruction référence
             $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
@@ -78,7 +69,7 @@ class PatchRefArticleSILIExtFixtures extends Fixture implements FixtureGroupInte
                 ->setLibelle($row[1])
                 ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
             $manager->flush();
 

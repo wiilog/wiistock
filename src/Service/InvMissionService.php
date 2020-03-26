@@ -6,14 +6,9 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
-
 use App\Entity\ReferenceArticle;
-use App\Repository\FiltreSupRepository;
-use App\Repository\InventoryEntryRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\ArticleRepository;
-use App\Repository\InventoryMissionRepository;
 
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,67 +25,21 @@ use Twig\Environment as Twig_Environment;
 
 class InvMissionService
 {
-    /**
-     * @var Twig_Environment
-     */
     private $templating;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
-     * @var InventoryMissionRepository
-     */
-    private $inventoryMissionRepository;
-
-	/**
-	 * @var FiltreSupRepository
-	 */
-    private $filtreSupRepository;
-
-	/**
-	 * @var InventoryEntryRepository
-	 */
-    private $inventoryEntryRepository;
-
-	/**
-	 * @var Security
-	 */
     private $security;
 
-    private $em;
+    private $entityManager;
 
     public function __construct(RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ArticleRepository $articleRepository,
-                                InventoryMissionRepository $inventoryMissionRepository,
-								InventoryEntryRepository $inventoryEntryRepository,
-								Security $security,
-								FiltreSupRepository $filtreSupRepository)
+								Security $security)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
-        $this->inventoryMissionRepository = $inventoryMissionRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
-        $this->inventoryEntryRepository = $inventoryEntryRepository;
     }
 
     /**
@@ -102,9 +51,11 @@ class InvMissionService
      */
     public function getDataForMissionsDatatable($params = null)
 	{
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_MISSIONS, $this->security->getUser());
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
-		$queryResult = $this->inventoryMissionRepository->findMissionsByParamsAndFilters($params, $filters);
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_MISSIONS, $this->security->getUser());
+		$queryResult = $inventoryMissionRepository->findMissionsByParamsAndFilters($params, $filters);
 
 		$missions = $queryResult['data'];
 
@@ -129,9 +80,14 @@ class InvMissionService
 	 */
 	public function dataRowMission($mission)
 	{
-		$nbArtInMission = $this->articleRepository->countByMission($mission);
-		$nbRefInMission = $this->referenceArticleRepository->countByMission($mission);
-		$nbEntriesInMission = $this->inventoryEntryRepository->countByMission($mission);
+        $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
+        $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
+		$nbArtInMission = $articleRepository->countByMission($mission);
+		$nbRefInMission = $referenceArticleRepository->countByMission($mission);
+		$nbEntriesInMission = $inventoryEntryRepository->countByMission($mission);
 
 		$rateBar = (($nbArtInMission + $nbRefInMission) != 0)
             ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
@@ -141,7 +97,7 @@ class InvMissionService
 			[
 				'StartDate' => $mission->getStartPrevDate() ? $mission->getStartPrevDate()->format('d/m/Y') : '',
 				'EndDate' => $mission->getEndPrevDate() ? $mission->getEndPrevDate()->format('d/m/Y') : '',
-				'Anomaly' => $this->inventoryMissionRepository->countAnomaliesByMission($mission) > 0,
+				'Anomaly' => $inventoryMissionRepository->countAnomaliesByMission($mission) > 0,
 				'Rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
 					'rateBar' => $rateBar
 				]),
@@ -154,10 +110,14 @@ class InvMissionService
 
     public function getDataForOneMissionDatatable($mission, $params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
 
-		$queryResultRef = $this->inventoryMissionRepository->findRefByMissionAndParamsAndFilters($mission, $params, $filters);
-        $queryResultArt = $this->inventoryMissionRepository->findArtByMissionAndParamsAndFilters($mission, $params, $filters);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
+
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
+
+		$queryResultRef = $inventoryMissionRepository->findRefByMissionAndParamsAndFilters($mission, $params, $filters);
+        $queryResultArt = $inventoryMissionRepository->findArtByMissionAndParamsAndFilters($mission, $params, $filters);
 
         $refArray = $queryResultRef['data'];
         $artArray = $queryResultArt['data'];
@@ -190,14 +150,16 @@ class InvMissionService
 	 */
     public function dataRowRefMission($ref, $mission)
     {
-        $refDate = $this->referenceArticleRepository->getEntryDateByMission($mission, $ref);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
+        $refDate = $referenceArticleRepository->getEntryDateByMission($mission, $ref);
 
         return $this->dataRowMissionArtRef(
             $ref->getEmplacement(),
             $ref->getReference(),
             $ref->getLibelle(),
             (!empty($refDate) && isset($refDate['date'])) ? $refDate['date'] : null,
-            $this->referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-')
+            $referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-')
         );
     }
 
@@ -209,13 +171,15 @@ class InvMissionService
 	 * @throws NonUniqueResultException
 	 */
     public function dataRowArtMission($art, $mission) {
-        $artDate = $this->articleRepository->getEntryDateByMission($mission, $art);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+
+        $artDate = $articleRepository->getEntryDateByMission($mission, $art);
         return $this->dataRowMissionArtRef(
             $art->getEmplacement(),
             $art->getReference(),
             $art->getlabel(),
             !empty($artDate) ? $artDate['date'] : null,
-            $this->articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-')
+            $articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-')
         );
     }
 

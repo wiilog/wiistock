@@ -4,12 +4,12 @@ namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -17,27 +17,16 @@ use Symfony\Component\Asset\Packages;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var FournisseurRepository
@@ -60,13 +49,10 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, Packages $assetsManager)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->assetsManager = $assetsManager;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -74,6 +60,10 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
+
         $path = "src/DataFixtures/Csv/mob.csv";
         $file = fopen($path, "r");
 
@@ -83,13 +73,13 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
         }
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
-
+        $typeRepository = $manager->getRepository(Type::class);
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeMob = $this->typeRepository->findOneBy(['label' => Type::LABEL_MOB]);
+            $typeMob = $typeRepository->findOneBy(['label' => Type::LABEL_MOB]);
             // contruction référence
             $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
 
@@ -101,7 +91,7 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
                 ->setLibelle($row[1])
                 ->setQuantiteStock(intval($row[3]))
                 ->setTypeQuantite('reference')
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
             $manager->flush();
 
@@ -113,7 +103,7 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+                $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
                 // si le fournisseur n'existe pas, on le crée
                 if (empty($fournisseur)) {

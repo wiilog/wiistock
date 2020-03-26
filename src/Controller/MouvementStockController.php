@@ -6,17 +6,19 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 
+use App\Entity\Statut;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\MouvementStockService;
 use App\Service\UserService;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -37,11 +39,6 @@ class MouvementStockController extends AbstractController
      * @var UserService
      */
     private $userService;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var UtilisateurRepository
@@ -68,7 +65,6 @@ class MouvementStockController extends AbstractController
 	 * @param MouvementStockService $mouvementStockService
 	 * @param EmplacementRepository $emplacementRepository
 	 * @param UtilisateurRepository $utilisateurRepository
-	 * @param StatutRepository $statutRepository
 	 * @param UserService $userService
 	 * @param MouvementStockRepository $mouvementStockRepository
 	 * @param MouvementTracaRepository $mouvementTracaRepository
@@ -78,14 +74,12 @@ class MouvementStockController extends AbstractController
     	MouvementStockService $mouvementStockService,
 		EmplacementRepository $emplacementRepository,
 		UtilisateurRepository $utilisateurRepository,
-		StatutRepository $statutRepository,
 		UserService $userService,
 		MouvementStockRepository $mouvementStockRepository,
 		MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->statutRepository = $statutRepository;
         $this->userService = $userService;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->mouvementStockService = $mouvementStockService;
@@ -94,15 +88,19 @@ class MouvementStockController extends AbstractController
 
     /**
      * @Route("/", name="mouvement_stock_index")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function index()
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         return $this->render('mouvement_stock/index.html.twig', [
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
+            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
             'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Fournisseur;
 use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
@@ -13,6 +14,8 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\ReferenceArticle;
@@ -32,9 +35,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ValeurChampLibreRepository;
-use App\Repository\TypeRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -55,11 +56,14 @@ use App\Service\UserService;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -74,10 +78,6 @@ use Twig\Error\SyntaxError;
  */
 class ReceptionController extends AbstractController
 {
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -110,11 +110,6 @@ class ReceptionController extends AbstractController
     private $articleRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
@@ -133,11 +128,6 @@ class ReceptionController extends AbstractController
      * @var ValeurChampLibreRepository
      */
     private $valeurChampLibreRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var GlobalParamService
@@ -199,11 +189,8 @@ class ReceptionController extends AbstractController
     public function __construct(
         ArticleDataService $articleDataService,
         GlobalParamService $globalParamService,
-        TypeRepository $typeRepository,
         ChampLibreRepository $champLibreRepository,
         ValeurChampLibreRepository $valeurChampsLibreRepository,
-        FournisseurRepository $fournisseurRepository,
-        StatutRepository $statutRepository,
         ReferenceArticleRepository $referenceArticleRepository,
         ReceptionRepository $receptionRepository,
         UtilisateurRepository $utilisateurRepository,
@@ -233,18 +220,15 @@ class ReceptionController extends AbstractController
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
-        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleRepository = $articleRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
-        $this->typeRepository = $typeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
@@ -256,19 +240,28 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function new(Request $request): Response
+    public function new(EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
+            $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
 
 			$statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
@@ -280,7 +273,7 @@ class ReceptionController extends AbstractController
             $numero = 'R' . $date->format('ymd') . $cpt;
 
             if (!empty($data['fournisseur'])) {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
                 $reception
                     ->setFournisseur($fournisseur);
             }
@@ -347,20 +340,29 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function edit(Request $request): Response
+    public function edit(EntityManagerInterface $entityManager,
+                         Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
             $reception = $this->receptionRepository->find($data['receptionId']);
 
-            $statut = $this->statutRepository->find(intval($data['statut']));
+            $statut = $statutRepository->find(intval($data['statut']));
             $reception->setStatut($statut);
 
-			$fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
+			$fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
             $reception->setFournisseur($fournisseur);
 
 			$utilisateur = !empty($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
@@ -409,7 +411,8 @@ class ReceptionController extends AbstractController
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
             $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+
+            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
             foreach ($listTypes as $type) {
                 $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
@@ -443,16 +446,24 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(EntityManagerInterface $entityManager,
+                            Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
             $reception = $this->receptionRepository->find($data['id']);
 
-            $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+            $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
             $typeChampLibre = [];
             foreach ($listType as $type) {
@@ -482,7 +493,7 @@ class ReceptionController extends AbstractController
             $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
-                'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
+                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre,
                 'fieldsParam' => $fieldsParam,
@@ -564,15 +575,21 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         //TODO à modifier si plusieurs types possibles pour une réception
-        $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
         $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
@@ -588,7 +605,7 @@ class ReceptionController extends AbstractController
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
-            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
+            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
 			'receptionLocation' => $this->globalParamService->getReceptionDefaultLocation()
         ]);
     }
@@ -622,32 +639,42 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function removeArticle(Request $request): Response
+    public function removeArticle(EntityManagerInterface $entityManager,
+                                  Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
             $ligneArticle = $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
 
             if (!$ligneArticle) return new JsonResponse(false);
 
             $reception = $ligneArticle->getReception();
-            $entityManager = $this->getDoctrine()->getManager();
+
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
             $nbArticleNotConform = $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
             $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+
+            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+
             foreach ($listTypes as $type) {
                 $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
 
@@ -681,16 +708,22 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function addArticle(Request $request): Response
+    public function addArticle(EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
             $refArticleId = (int)$contentData['referenceArticle'];
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
@@ -710,7 +743,7 @@ class ReceptionController extends AbstractController
             if ($refAlreadyExists->count() === 0) {
                 $anomalie = $contentData['anomalie'];
                 if ($anomalie) {
-                    $statutRecep = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
+                    $statutRecep = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
                     $reception->setStatut($statutRecep);
                 }
 
@@ -727,15 +760,14 @@ class ReceptionController extends AbstractController
                     $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
                 }
 
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($receptionReferenceArticle);
-                $em->flush();
+                $entityManager->persist($receptionReferenceArticle);
+                $entityManager->flush();
 
                 $type = $reception->getType();
                 $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
                 $champsLibres = [];
-                $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+                $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
                 foreach ($listTypes as $oneType) {
                     $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
@@ -757,7 +789,7 @@ class ReceptionController extends AbstractController
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
-                $em->flush();
+                $entityManager->flush();
 				$json = [
 					'entete' => $this->renderView('reception/enteteReception.html.twig', [
 						'reception' => $reception,
@@ -804,14 +836,23 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function editArticle(Request $request): Response
+    public function editArticle(EntityManagerInterface $entityManager,
+                                Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
             $receptionReferenceArticle = $this->receptionReferenceArticleRepository->find($data['article']);
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
@@ -839,21 +880,20 @@ class ReceptionController extends AbstractController
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-
+            $entityManager->flush();
 
             $nbArticleNotConform = $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+
             $reception->setStatut($statut);
-            $em->flush();
+            $entityManager->flush();
             $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $champsLibres = [];
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
             foreach ($listTypes as $oneType) {
                 $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
 
@@ -886,8 +926,15 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param GlobalParamService $globalParamService
+     * @param Reception $reception
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function show(Reception $reception): Response
+    public function show(EntityManagerInterface $entityManager,
+                         GlobalParamService $globalParamService,
+                         Reception $reception): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
@@ -902,7 +949,9 @@ class ReceptionController extends AbstractController
             $valeurChampLibreTab = [];
         }
 
-        $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
+
         $champsLibresReception = [];
         foreach ($listTypes as $type) {
             $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
@@ -921,8 +970,9 @@ class ReceptionController extends AbstractController
             }
         }
 
-        $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         $typeChampLibreDL = [];
+
         foreach ($listTypesDL as $typeDL) {
             $champsLibresDL = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
 
@@ -937,17 +987,17 @@ class ReceptionController extends AbstractController
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'type' => $this->typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION),
+            'type' => $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION),
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-//            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
-            'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-            'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
+            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
 			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION),
 			'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 		]);
@@ -1051,14 +1101,17 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST")
      */
-    public function editLitige(Request $request): Response
+    public function editLitige(EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $post = $request->request;
-            $em = $this->getDoctrine()->getManager();
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
             $litige = $this->litigeRepository->find($post->get('id'));
             $typeBefore = $litige->getType()->getId();
@@ -1069,8 +1122,8 @@ class ReceptionController extends AbstractController
             $statutAfter = (int)$post->get('statutLitige');
             $litige
                 ->setUpdateDate(new \DateTime('now'))
-                ->setType($this->typeRepository->find($post->get('typeLitige')))
-                ->setStatus($this->statutRepository->find($post->get('statutLitige')));
+                ->setType($typeRepository->find($post->get('typeLitige')))
+                ->setStatus($statutRepository->find($post->get('statutLitige')));
 
             if (!empty($colis = $post->get('colis'))) {
                 // on détache les colis existants...
@@ -1104,10 +1157,10 @@ class ReceptionController extends AbstractController
                     $litige->addBuyer($this->utilisateurRepository->find($buyerId));
                 }
             }
-            $em->flush();
+            $entityManager->flush();
 
             $comment = '';
-            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
+            $statutinstance = $statutRepository->find($post->get('statutLitige'));
             $commentStatut = $statutinstance->getComment();
             if ($typeBefore !== $typeAfter) {
                 $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
@@ -1134,8 +1187,8 @@ class ReceptionController extends AbstractController
                     ->setDate(new \DateTime('now'))
                     ->setUser($this->getUser())
                     ->setComment($comment);
-                $em->persist($histoLitige);
-                $em->flush();
+                $entityManager->persist($histoLitige);
+                $entityManager->flush();
             }
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
@@ -1148,7 +1201,7 @@ class ReceptionController extends AbstractController
             }
 
             $this->attachmentService->addAttachements($request->files, $litige);
-            $em->flush();
+            $entityManager->flush();
 
             $response = [];
             return new JsonResponse($response);
@@ -1158,8 +1211,13 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/creer-litige", name="litige_new_reception", options={"expose"=true}, methods={"POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws Exception
      */
-    public function newLitige(Request $request): Response
+    public function newLitige(EntityManagerInterface $entityManager,
+                              Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
@@ -1167,12 +1225,14 @@ class ReceptionController extends AbstractController
             }
 
             $post = $request->request;
-            $em = $this->getDoctrine()->getManager();
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
             $litige = new Litige();
             $litige
-                ->setStatus($this->statutRepository->find($post->get('statutLitige')))
-                ->setType($this->typeRepository->find($post->get('typeLitige')))
+                ->setStatus($statutRepository->find($post->get('statutLitige')))
+                ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new \DateTime('now'));
 
             if (!empty($colis = $post->get('colisLitige'))) {
@@ -1195,7 +1255,7 @@ class ReceptionController extends AbstractController
                     $litige->addBuyer($this->utilisateurRepository->find($buyer));
                 }
             }
-            $statutinstance = $this->statutRepository->find($post->get('statutLitige'));
+            $statutinstance = $statutRepository->find($post->get('statutLitige'));
             $commentStatut = $statutinstance->getComment();
 
             $trimCommentStatut = trim($commentStatut);
@@ -1209,14 +1269,14 @@ class ReceptionController extends AbstractController
                     ->setComment($commentaire)
                     ->setLitige($litige)
                     ->setUser($this->getUser());
-                $em->persist($histo);
+                $entityManager->persist($histo);
             }
 
-            $em->persist($litige);
-            $em->flush();
+            $entityManager->persist($litige);
+            $entityManager->flush();
 
             $this->attachmentService->addAttachements($request->files, $litige);
-            $em->flush();
+            $entityManager->flush();
             $this->sendMailToAcheteurs($litige);
             $response = [];
 
@@ -1228,11 +1288,17 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST")
      */
-    public function apiEditLitige(Request $request): Response
+    public function apiEditLitige(EntityManagerInterface $entityManager,
+                                  Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $litige = $this->litigeRepository->find($data['litigeId']);
+            $litige = $litigeRepository->find($data['litigeId']);
             $colisCode = [];
             $acheteursCode = [];
 
@@ -1245,12 +1311,13 @@ class ReceptionController extends AbstractController
             foreach ($litige->getBuyers() as $buyer) {
                 $acheteursCode[] = $buyer->getId();
             }
+
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
-                'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                'statusLitige' => $this->statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-                'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
-                'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
+                'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
+                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'acheteurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
@@ -1381,15 +1448,19 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @param Reception $reception
-	 * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param Reception $reception
+     * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
+     * @param MouvementTracaService $mouvementTracaService
+     * @throws NonUniqueResultException
+     */
     private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
     {
-    	$em = $this->getDoctrine()->getManager();
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
+    	$entityManager = $this->getDoctrine()->getManager();
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
 		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 		$receptionLocation = $reception->getLocation();
 		$currentUser = $this->getUser();
@@ -1408,7 +1479,7 @@ class ReceptionController extends AbstractController
 					->setType(MouvementStock::TYPE_ENTREE)
 					->setReceptionOrder($reception)
 					->setDate($now);
-				$em->persist($mouvementStock);
+				$entityManager->persist($mouvementStock);
 
                 $mouvementTracaService->persistMouvementTraca(
                     $referenceArticle->getBarCode(),
@@ -1436,7 +1507,7 @@ class ReceptionController extends AbstractController
 						->setType(MouvementStock::TYPE_ENTREE)
 						->setReceptionOrder($reception)
 						->setDate($now);
-					$em->persist($mouvementStock);
+					$entityManager->persist($mouvementStock);
 
                     $mouvementTracaService->persistMouvementTraca(
                         $article->getBarCode(),
@@ -1460,7 +1531,7 @@ class ReceptionController extends AbstractController
             ->setDateFinReception($now)
             ->setDateCommande($now);
 
-        $em->flush();
+        $entityManager->flush();
     }
 
 //    /**
@@ -1480,18 +1551,24 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse|RedirectResponse
      */
-    public function getArticleFournisseur(Request $request)
+    public function getArticleFournisseur(Request $request, EntityManagerInterface $entityManager)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
             $json = null;
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
+                $fournisseur = $fournisseurRepository->find($data['fournisseur']);
                 $articlesFournisseurs = $this->articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
                 if ($articlesFournisseurs !== null) {
                     $json = [
@@ -1511,14 +1588,19 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function checkIfQuantityArticle(Request $request): Response
+    public function checkIfQuantityArticle(Request $request,
+                                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE_REF_FROM_RECEP)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             $inventoryCategories = $this->inventoryCategoryRepository->findAll();
             $typeChampLibre = [];
             foreach ($types as $type) {
@@ -1531,7 +1613,7 @@ class ReceptionController extends AbstractController
             }
             return new JsonResponse($this->renderView('reception/modalNewRefArticle.html.twig', [
                 'typeChampsLibres' => $typeChampLibre,
-                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
+                'types' => $typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
                 'categories' => $inventoryCategories,
             ]));
         }
