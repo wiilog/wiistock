@@ -2,9 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Repository\ChampLibreRepository;
-use App\Repository\ValeurChampLibreRepository;
+use App\Entity\ChampLibre;
 
+use App\Entity\ValeurChampLibre;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -12,23 +12,6 @@ use Doctrine\Common\Persistence\ObjectManager;
 
 class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 {
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
-
-
-    public function __construct(ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository)
-    {
-        $this->champLibreRepository = $champLibreRepository;
-        $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
-    }
 
     public function load(ObjectManager $manager)
     {
@@ -48,7 +31,10 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 
 		array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-		$listElements = $this->champLibreRepository->getIdAndElementsWithMachine();
+        $champLibreRepository = $manager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $manager->getRepository(ValeurChampLibre::class);
+
+		$listElements = $champLibreRepository->getIdAndElementsWithMachine();
 
 		$newValues = $formerValues = [];
 		$formerToNew = [];
@@ -68,11 +54,11 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 						$item = $formerToNew[$item];
 					}
 				}
-				$champsLibre = $this->champLibreRepository->find($elements['id']);
+				$champsLibre = $champLibreRepository->find($elements['id']);
 				$champsLibre->setElements(array_unique($elements['elements']));
 
 				// remplace toutes les valeurs champs libre
-				$listValeurChampsLibres = $this->valeurChampLibreRepository->findByCL($elements['id']);
+				$listValeurChampsLibres = $valeurChampLibreRepository->findByCL($elements['id']);
 				foreach($listValeurChampsLibres as $valeurChampLibre){
 					if (isset($formerToNew[$valeurChampLibre->getValeur()])) {
 						$valeurChampLibre->setValeur($formerToNew[$valeurChampLibre->getValeur()]);
@@ -96,7 +82,9 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
 
 		array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-		$champMachine = $this->champLibreRepository->findOneByLabel('machine (PDT)%');
+        $champLibreRepository = $manager->getRepository(ChampLibre::class);
+
+		$champMachine = $champLibreRepository->findOneByLabel('machine (PDT)%');
 		$elements = $champMachine->getElements();
 		dump($elements);
 

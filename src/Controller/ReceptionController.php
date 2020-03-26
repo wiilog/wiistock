@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\LigneArticle;
@@ -105,19 +106,9 @@ class ReceptionController extends AbstractController
     private $articleRepository;
 
     /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
      * @var ReceptionReferenceArticleRepository
      */
     private $receptionReferenceArticleRepository;
-
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
 
     /**
      * @var GlobalParamService
@@ -179,8 +170,6 @@ class ReceptionController extends AbstractController
     public function __construct(
         ArticleDataService $articleDataService,
         GlobalParamService $globalParamService,
-        ChampLibreRepository $champLibreRepository,
-        ValeurChampLibreRepository $valeurChampsLibreRepository,
         ReferenceArticleRepository $referenceArticleRepository,
         ReceptionRepository $receptionRepository,
         UtilisateurRepository $utilisateurRepository,
@@ -213,8 +202,6 @@ class ReceptionController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
-        $this->champLibreRepository = $champLibreRepository;
-        $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
@@ -244,6 +231,7 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
@@ -308,7 +296,7 @@ class ReceptionController extends AbstractController
                     $valeurChampLibre
                         ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                         ->addReception($reception)
-                        ->setChampLibre($this->champLibreRepository->find($champs));
+                        ->setChampLibre($champLibreRepository->find($champs));
 
                     $em->persist($valeurChampLibre);
                     $em->flush();
@@ -348,6 +336,8 @@ class ReceptionController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $reception = $receptionRepository->find($data['receptionId']);
 
@@ -385,14 +375,14 @@ class ReceptionController extends AbstractController
             $champLibreKey = array_keys($data);
             foreach ($champLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $champLibre = $this->champLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $champLibre = $champLibreRepository->find($champ);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addReception($reception)
-                            ->setChampLibre($this->champLibreRepository->find($champ));
+                            ->setChampLibre($champLibreRepository->find($champ));
                         $em->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
@@ -401,16 +391,16 @@ class ReceptionController extends AbstractController
             }
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
             $champsLibres = [];
 
             $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
             foreach ($listTypes as $type) {
-                $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
+                $listChampLibreReception = $champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
@@ -452,6 +442,8 @@ class ReceptionController extends AbstractController
             }
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $reception = $this->receptionRepository->find($data['id']);
 
@@ -459,11 +451,11 @@ class ReceptionController extends AbstractController
 
             $typeChampLibre = [];
             foreach ($listType as $type) {
-                $champsLibresComplet = $this->champLibreRepository->findByType($type['id']);
+                $champsLibresComplet = $champLibreRepository->findByType($type['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampReception = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $valeurChampReception = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
@@ -579,6 +571,7 @@ class ReceptionController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
         $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
@@ -586,7 +579,7 @@ class ReceptionController extends AbstractController
 
         $typeChampLibre = [];
         foreach ($listType as $type) {
-            $champsLibres = $this->champLibreRepository->findByType($type['id']);
+            $champsLibres = $champLibreRepository->findByType($type['id']);
             $typeChampLibre[] = [
                 'typeLabel' => $type['label'],
                 'typeId' => $type['id'],
@@ -646,6 +639,8 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $ligneArticle = $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
 
@@ -661,17 +656,17 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $champsLibres = [];
 
             $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
             foreach ($listTypes as $type) {
-                $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
+                $listChampLibreReception = $champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
@@ -715,6 +710,8 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $refArticleId = (int)$contentData['referenceArticle'];
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
@@ -756,15 +753,15 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
 
                 $type = $reception->getType();
-                $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+                $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
                 $champsLibres = [];
                 $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
                 foreach ($listTypes as $oneType) {
-                    $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
+                    $listChampLibreReception = $champLibreRepository->findByType($oneType['id']);
 
                     foreach ($listChampLibreReception as $champLibre) {
-                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                        $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                         $champsLibres[] = [
                             'id' => $champLibre->getId(),
@@ -845,6 +842,8 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $receptionReferenceArticle = $this->receptionReferenceArticleRepository->find($data['article']);
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
@@ -883,15 +882,15 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $champsLibres = [];
             $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
             foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $this->champLibreRepository->findByType($oneType['id']);
+                $listChampLibreReception = $champLibreRepository->findByType($oneType['id']);
 
                 foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
@@ -934,23 +933,26 @@ class ReceptionController extends AbstractController
         }
 
 		$paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
-		$type = $reception->getType();
+        $type = $reception->getType();
         if ($type) {
-            $valeurChampLibreTab = $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
         } else {
             $valeurChampLibreTab = [];
         }
 
-        $typeRepository = $entityManager->getRepository(Type::class);
         $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
         $champsLibresReception = [];
         foreach ($listTypes as $type) {
-            $listChampLibreReception = $this->champLibreRepository->findByType($type['id']);
+            $listChampLibreReception = $champLibreRepository->findByType($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
-                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                 $champsLibresReception[] = [
                     'id' => $champLibre->getId(),
@@ -967,7 +969,7 @@ class ReceptionController extends AbstractController
         $typeChampLibreDL = [];
 
         foreach ($listTypesDL as $typeDL) {
-            $champsLibresDL = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
+            $champsLibresDL = $champLibreRepository->findByTypeAndCategorieCLLabel($typeDL, CategorieCL::DEMANDE_LIVRAISON);
 
             $typeChampLibreDL[] = [
                 'typeLabel' => $typeDL->getLabel(),
@@ -1060,6 +1062,7 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $reference = $request->query->get('reference');
             $commande = $request->query->get('commande');
@@ -1072,7 +1075,7 @@ class ReceptionController extends AbstractController
 
             $typeArticle = $refArticle->getType();
 
-            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $response = new Response();
             $response->setContent($this->renderView(
                 'reception/conditionnementArticleTemplate.html.twig',
@@ -1597,11 +1600,14 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
             $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+
             $inventoryCategories = $this->inventoryCategoryRepository->findAll();
             $typeChampLibre = [];
             foreach ($types as $type) {
-                $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
                 $typeChampLibre[] = [
                     'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),

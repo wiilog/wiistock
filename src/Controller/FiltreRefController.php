@@ -7,7 +7,6 @@ use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Type;
-use App\Repository\ChampLibreRepository;
 use App\Repository\FiltreRefRepository;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,10 +24,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class FiltreRefController extends AbstractController
 {
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
 
     /**
      * @var FiltreRefRepository
@@ -42,13 +37,11 @@ class FiltreRefController extends AbstractController
 
 	/**
 	 * FiltreRefController constructor.
-	 * @param ChampLibreRepository $champLibreRepository
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
     {
-        $this->champLibreRepository = $champLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
     }
@@ -56,10 +49,11 @@ class FiltreRefController extends AbstractController
     /**
      * @Route("/creer", name="filter_ref_new", options={"expose"=true})
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $this->getUser()->getId();
@@ -77,7 +71,7 @@ class FiltreRefController extends AbstractController
                     $field = $data['field'];
 
                     if (intval($field) != 0) {
-                        $champLibre = $this->champLibreRepository->find(intval($field));
+                        $champLibre = $champLibreRepository->find(intval($field));
                         $filter->setChampLibre($champLibre);
                     } else {
                         $filter->setChampFixe($data['field']);
@@ -95,8 +89,8 @@ class FiltreRefController extends AbstractController
                 $user = $this->getUser();
                 $filter->setUtilisateur($user);
 
-                $em->persist($filter);
-                $em->flush();
+                $entityManager->persist($filter);
+                $entityManager->flush();
 
                 $filterArray = [
                     'id' => $filter->getId(),

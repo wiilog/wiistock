@@ -4,11 +4,9 @@ namespace App\Repository;
 
 use App\Entity\ChampLibre;
 use App\Entity\Type;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ChampLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,12 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ChampLibre[]    findAll()
  * @method ChampLibre[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ChampLibreRepository extends ServiceEntityRepository
+class ChampLibreRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ChampLibre::class);
-    }
 
     public function getByTypeAndRequiredCreate($type)
     {

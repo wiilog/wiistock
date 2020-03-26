@@ -19,11 +19,6 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $encoder;
 
     /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
      * @var ReferenceArticleRepository
      */
     private $refArticleRepository;
@@ -34,9 +29,8 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $categorieCLRepository;
 
 
-    public function __construct(UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(UserPasswordEncoderInterface $encoder, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
-        $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -207,10 +201,12 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     {
 
         $typeRepository = $manager->getRepository(Type::class);
+        $champLibreRepository = $manager->getRepository(ChampLibre::class);
+
         $type = $typeRepository->findOneBy(['label' => $typeLabel]);
         $label = $field['label'] . ' (' . $type->getLabel() . ')';
 
-        $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
+        $cl = $champLibreRepository->findOneBy(['label' => $label]);
 
         if (empty($cl)) {
             $cl = new ChampLibre();

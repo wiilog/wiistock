@@ -11,9 +11,8 @@ use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\DBALException;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
 /**
@@ -22,12 +21,8 @@ use Doctrine\ORM\NonUniqueResultException;
  * @method ValeurChampLibre[]    findAll()
  * @method ValeurChampLibre[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ValeurChampLibreRepository extends ServiceEntityRepository
+class ValeurChampLibreRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ValeurChampLibre::class);
-    }
 
     public function getByRefArticleAndType($idArticle, $idType)
     {

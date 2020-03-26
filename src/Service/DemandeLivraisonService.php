@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -59,11 +60,6 @@ class DemandeLivraisonService
     private $utilisateurRepository;
 
     /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
      * @var PrefixeNomDemandeRepository
      */
     private $prefixeNomDemandeRepository;
@@ -80,8 +76,7 @@ class DemandeLivraisonService
 
     private $entityManager;
 
-    public function __construct(ChampLibreRepository $champLibreRepository,
-                                UtilisateurRepository $utilisateurRepository,
+    public function __construct(UtilisateurRepository $utilisateurRepository,
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 TokenStorageInterface $tokenStorage,
@@ -93,7 +88,6 @@ class DemandeLivraisonService
                                 DemandeRepository $demandeRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->champLibreRepository = $champLibreRepository;
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
@@ -159,11 +153,12 @@ class DemandeLivraisonService
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
 
-        $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+        $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
         $msgMissingCL = '';
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -210,7 +205,7 @@ class DemandeLivraisonService
                 $valeurChampLibre
                     ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                     ->addDemandesLivraison($demande)
-                    ->setChampLibre($this->champLibreRepository->find($champs));
+                    ->setChampLibre($champLibreRepository->find($champs));
 				$this->entityManager->persist($valeurChampLibre);
 				$this->entityManager->flush();
             }

@@ -4,6 +4,7 @@
 namespace App\DataFixtures;
 
 
+use App\Entity\ChampLibre;
 use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
@@ -18,11 +19,6 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -41,11 +37,9 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
 
     public function __construct(ArticleRepository $articleRepository,
                                 UserPasswordEncoderInterface $encoder,
-                                ChampLibreRepository $champsLibreRepository,
                                 ReferenceArticleRepository $refArticleRepository,
                                 CategorieCLRepository $categorieCLRepository)
     {
-        $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -54,6 +48,9 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
 
     public function load(ObjectManager $manager)
     {
+
+        $champLibreRepository = $manager->getRepository(ChampLibre::class);
+
         $allRefArticles = $this->refArticleRepository->findAll();
 
         $counter = 0;
@@ -87,9 +84,9 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
             $manager->flush();
         }
 
-        $this->champLibreRepository->deleteByLabel("'stock mini%'");
-        $this->champLibreRepository->deleteByLabel("'stock alerte%'");
-        $this->champLibreRepository->deleteByLabel("'prix unitaire%'");
+        $champLibreRepository->deleteByLabel("'stock mini%'");
+        $champLibreRepository->deleteByLabel("'stock alerte%'");
+        $champLibreRepository->deleteByLabel("'prix unitaire%'");
     }
 
     public static function getGroups():array {

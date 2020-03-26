@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Type;
 
 use App\Repository\CategoryTypeRepository;
@@ -46,26 +48,22 @@ class TypeController extends AbstractController
      */
     private $articleRepository;
 
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
 	/**
 	 * TypeController constructor.
 	 * @param ArticleRepository $articleRepository
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param CategoryTypeRepository $categoryTypeRepository
-	 * @param ChampLibreRepository $champLibreRepository
 	 * @param ReferenceArticleRepository $refArticleRepository
 	 */
-    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(ArticleRepository $articleRepository,
+                                FiltreRefRepository $filtreRefRepository,
+                                CategoryTypeRepository $categoryTypeRepository,
+                                ReferenceArticleRepository $refArticleRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
         $this->refArticleRepository = $refArticleRepository;
-        $this->champLibreRepository = $champLibreRepository;
     }
 
     /**
@@ -79,13 +77,15 @@ class TypeController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
 
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
             $isType = true;
             if (is_numeric($value['value'])) {
-                $cl = $this->champLibreRepository->find(intval($value['value']));
+                $cl = $champLibreRepository->find(intval($value['value']));
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $typeRepository = $entityManager->getRepository(Type::class);
                 $options = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             }
 
@@ -179,23 +179,26 @@ class TypeController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+
             $type = $typeRepository->find(intval($data['type']));
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
                 $this->refArticleRepository->setTypeIdNull($type);
-                $this->articleRepository->setTypeIdNull($type);
-                foreach ($this->champLibreRepository->findByType($type) as $cl) {
+                $articleRepository->setTypeIdNull($type);
+                foreach ($champLibreRepository->findByType($type) as $cl) {
                     $this->filtreRefRepository->deleteByChampLibre($cl);
                 }
-                $this->champLibreRepository->deleteByType($type);
+                $champLibreRepository->deleteByType($type);
                 $entityManager->flush();
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
                 $articlesRefExist = $this->refArticleRepository->countByType($type);
                 $articlesExist = $this->articleRepository->countByType($type);
-                $champsLibresExist = $this->champLibreRepository->countByType($type);
+                $champsLibresExist = $champLibreRepository->countByType($type);
                 $filters = 0;
-                foreach ($this->champLibreRepository->findByType($type) as $cl) {
+                foreach ($champLibreRepository->findByType($type) as $cl) {
                     $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {

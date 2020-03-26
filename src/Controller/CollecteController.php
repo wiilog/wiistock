@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
@@ -18,8 +19,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 
-use App\Repository\ChampLibreRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
@@ -100,23 +99,22 @@ class CollecteController extends AbstractController
      */
     private $articleDataService;
 
-	/**
-	 * @var ChampLibreRepository
-	 */
-    private $champLibreRepository;
-
-	/**
-	 * @var ValeurChampLibreRepository
-	 */
-    private $valeurChampLibreRepository;
-
     /**
      * @var CollecteService
      */
     private $collecteService;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
+    public function __construct(OrdreCollecteRepository $ordreCollecteRepository,
+                                RefArticleDataService $refArticleDataService,
+                                CollecteReferenceRepository $collecteReferenceRepository,
+                                ReferenceArticleRepository $referenceArticleRepository,
+                                ArticleRepository $articleRepository,
+                                CollecteRepository $collecteRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                UserService $userService,
+                                ArticleDataService $articleDataService,
+                                CollecteService $collecteService)
     {
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -127,8 +125,6 @@ class CollecteController extends AbstractController
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
-        $this->champLibreRepository = $champLibreRepository;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->collecteService = $collecteService;
     }
 
@@ -147,12 +143,13 @@ class CollecteController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
 
 		$typeChampLibre = [];
 		foreach ($types as $type) {
-			$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
+			$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
 
 			$typeChampLibre[] = [
 				'typeLabel' => $type->getLabel(),
@@ -170,18 +167,22 @@ class CollecteController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
-	 * @param Collecte $collecte
-	 * @return Response
-	 */
-    public function show(Collecte $collecte): Response
+    /**
+     * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Collecte $collecte
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function show(Collecte $collecte,
+                         EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
-		$valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeCollecte($collecte);
+        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+
+		$valeursChampLibre = $valeurChampLibreRepository->getByDemandeCollecte($collecte);
 
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $this->collecteReferenceRepository->findByCollecte($collecte),
@@ -285,6 +286,7 @@ class CollecteController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -316,7 +318,7 @@ class CollecteController extends AbstractController
 					$valeurChampLibre
                         ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
 						->addDemandesCollecte($collecte)
-						->setChampLibre($this->champLibreRepository->find($champs));
+						->setChampLibre($champLibreRepository->find($champs));
                     $entityManager->persist($valeurChampLibre);
                     $entityManager->flush();
 				}
@@ -353,6 +355,7 @@ class CollecteController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
@@ -405,7 +408,7 @@ class CollecteController extends AbstractController
                 $entityManager->persist($article);
                 $collecte->addArticle($article);
 
-				$champslibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
+				$champslibres = $champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
                 foreach($champslibres as $champLibre) {
                 	$valeurChampLibre = new ValeurChampLibre();
                 	$valeurChampLibre
@@ -519,6 +522,10 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -529,6 +536,8 @@ class CollecteController extends AbstractController
 			}
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $collecte = $this->collecteRepository->find($data['id']);
 			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
@@ -536,10 +545,10 @@ class CollecteController extends AbstractController
 			$typeChampLibre = [];
 
 			foreach ($listTypes as $type) {
-				$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
+				$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
 				$champsLibresArray = [];
 				foreach ($champsLibres as $champLibre) {
-					$valeurChampDC = $this->valeurChampLibreRepository->getValueByDemandeCollecteAndChampLibre($collecte, $champLibre);
+					$valeurChampDC = $valeurChampLibreRepository->getValueByDemandeCollecteAndChampLibre($collecte, $champLibre);
 					$champsLibresArray[] = [
 						'id' => $champLibre->getId(),
 						'label' => $champLibre->getLabel(),
@@ -585,11 +594,14 @@ class CollecteController extends AbstractController
             }
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
 			// vérification des champs Libres obligatoires
 			$requiredEdit = true;
 			$type = $typeRepository->find(intval($data['type']));
-			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+			$CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
 			foreach ($CLRequired as $CL) {
 				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
 					$requiredEdit = false;
@@ -597,7 +609,7 @@ class CollecteController extends AbstractController
 			}
 
 			if ($requiredEdit) {
-				$collecte = $this->collecteRepository->find($data['collecte']);
+				$collecte = $collecteRepository->find($data['collecte']);
 				$pointCollecte = $emplacementRepository->find($data['Pcollecte']);
 				$destination = ($data['destination'] == 0) ? false : true;
 
@@ -616,14 +628,14 @@ class CollecteController extends AbstractController
 
 				foreach ($champsLibresKey as $champ) {
 					if (gettype($champ) === 'integer') {
-						$valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeCollecteAndChampLibre($collecte, $champ);
+						$valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeCollecteAndChampLibre($collecte, $champ);
 
 						// si la valeur n'existe pas, on la crée
 						if (!$valeurChampLibre) {
 							$valeurChampLibre = new ValeurChampLibre();
 							$valeurChampLibre
 								->addDemandesCollecte($collecte)
-								->setChampLibre($this->champLibreRepository->find($champ));
+								->setChampLibre($champLibreRepository->find($champ));
 							$entityManager->persist($valeurChampLibre);
 						}
 						$valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
@@ -635,7 +647,7 @@ class CollecteController extends AbstractController
 					'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
 						'collecte' => $collecte,
 						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeCollecte($collecte)
+						'champsLibres' => $valeurChampLibreRepository->getByDemandeCollecte($collecte)
 					]),
 				];
 			} else {

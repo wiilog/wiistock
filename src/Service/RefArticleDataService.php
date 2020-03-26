@@ -11,9 +11,11 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -23,14 +25,12 @@ use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 use App\Repository\ArticleRepository;
-use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use DateTime;
 use DateTimeZone;
@@ -54,16 +54,6 @@ class RefArticleDataService
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
 
     /**
      * @var CategorieCLRepository
@@ -130,9 +120,7 @@ class RefArticleDataService
                                 UserService $userService,
                                 CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $entityManager,
-                                ValeurChampLibreRepository $valeurChampLibreRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
-                                ChampLibreRepository $champLibreRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
@@ -140,8 +128,6 @@ class RefArticleDataService
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->champLibreRepository = $champLibreRepository;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
@@ -189,8 +175,11 @@ class RefArticleDataService
     public function getDataEditForRefArticle($articleRef)
     {
         $type = $articleRef->getType();
+
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+
         if ($type) {
-            $valeurChampLibre = $this->valeurChampLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+            $valeurChampLibre = $valeurChampLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
         } else {
             $valeurChampLibre = [];
         }
@@ -224,23 +213,26 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getViewEditRefArticle(EntityManagerInterface $entityManager, $refArticle, $isADemand = false)
+    public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+        $typeRepository = $this->entityManager->getRepository(Type::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
 
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $typeRepository = $this->entityManager->getRepository(Type::class);
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
-        $categories = $this->inventoryCategoryRepository->findAll();
+        $categories = $inventoryCategoryRepository->findAll();
         $typeChampLibre = [];
         foreach ($types as $type) {
-            $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $champsLibres = [];
 
             foreach ($champsLibresComplet as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
+                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
@@ -291,6 +283,8 @@ class RefArticleDataService
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
@@ -298,7 +292,7 @@ class RefArticleDataService
         $category = $this->inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         $emplacement = $emplacementRepository->find(intval($data['emplacement']));
-        $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+        $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                 $requiredEdit = false;
@@ -351,14 +345,14 @@ class RefArticleDataService
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $champLibre = $this->champLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
+                    $champLibre = $champLibreRepository->find($champ);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addArticleReference($refArticle)
-                            ->setChampLibre($this->champLibreRepository->find($champ));
+                            ->setChampLibre($champLibreRepository->find($champ));
                         $entityManager->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
@@ -388,7 +382,8 @@ class RefArticleDataService
      */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $rows = $valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
         $rowCL = [];
         foreach ($rows as $row) {
             $rowCL[$row['label']] = $row['valeur'];
