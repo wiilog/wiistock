@@ -27,7 +27,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\EmplacementRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
@@ -42,16 +41,10 @@ use App\Repository\MouvementStockRepository;
  */
 class AccueilController extends AbstractController
 {
-
     /**
      * @var CollecteRepository
      */
     private $collecteRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var DemandeRepository
@@ -94,12 +87,10 @@ class AccueilController extends AbstractController
                                 ManutentionRepository $manutentionRepository,
                                 DemandeRepository $demandeRepository,
                                 CollecteRepository $collecteRepository,
-                                EmplacementRepository $emplacementRepository,
                                 MouvementStockRepository $mouvementStockRepository,
                                 FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
         $this->dashboardService = $dashboardService;
-        $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
@@ -156,6 +147,7 @@ class AccueilController extends AbstractController
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $nbAlerts = $referenceArticleRepository->countAlert();
 
@@ -209,7 +201,7 @@ class AccueilController extends AbstractController
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
             'nbDemandeManutentionAT' => $nbrDemandeManutentionAT,
-            'emplacements' => $this->emplacementRepository->findAll(),
+            'emplacements' => $emplacementRepository->findAll(),
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,

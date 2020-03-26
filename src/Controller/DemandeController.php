@@ -7,6 +7,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -15,6 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
@@ -23,7 +25,6 @@ use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\LigneArticleRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
@@ -57,11 +58,6 @@ class DemandeController extends AbstractController
      * @var LigneArticleRepository
      */
     private $ligneArticleRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var UtilisateurRepository
@@ -137,10 +133,9 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->articleRepository = $articleRepository;
@@ -385,10 +380,14 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
-            $type = $entityManager->find(Type::class, intval($data['type']));
+            $type = $typeRepository->find(intval($data['type']));
             $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -397,9 +396,9 @@ class DemandeController extends AbstractController
             }
 
             if ($requiredEdit) {
-                $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
-                $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-                $demande = $this->demandeRepository->find($data['demandeId']);
+                $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
+                $emplacement = $emplacementRepository->find(intval($data['destination']));
+                $demande = $demandeRepository->find($data['demandeId']);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
@@ -479,6 +478,7 @@ class DemandeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
@@ -496,7 +496,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->getIdAndNom(),
+            'emplacements' => $emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'filterStatus' => $filter,
@@ -559,6 +559,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
      * @param Demande $demande
      * @return Response
      */
@@ -569,6 +570,7 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -580,7 +582,7 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'emplacements' => $this->emplacementRepository->findAll(),
+            'emplacements' => $emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'champsLibres' => $valeursChampLibre
         ]);

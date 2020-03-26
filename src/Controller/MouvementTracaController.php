@@ -13,9 +13,7 @@ use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ColisRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
@@ -56,20 +54,9 @@ class MouvementTracaController extends AbstractController
     private $attachmentService;
 
     /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var ColisRepository
@@ -85,16 +72,14 @@ class MouvementTracaController extends AbstractController
      * ArrivageController constructor.
      * @param MouvementTracaService $mouvementTracaService
      * @param AttachmentService $attachmentService
-     * @param EmplacementRepository $emplacementRepository
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserService $userService
      * @param MouvementTracaRepository $mouvementTracaRepository
      */
 
-    public function __construct(MouvementTracaService $mouvementTracaService, ColisRepository $colisRepository, AttachmentService $attachmentService, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(MouvementTracaService $mouvementTracaService, ColisRepository $colisRepository, AttachmentService $attachmentService, UtilisateurRepository $utilisateurRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->colisRepository = $colisRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->mouvementRepository = $mouvementTracaRepository;
@@ -135,7 +120,7 @@ class MouvementTracaController extends AbstractController
      * @throws Exception
      */
     public function new(Request $request,
-                        UtilisateurRepository $utilisateurRepository): Response
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -143,7 +128,9 @@ class MouvementTracaController extends AbstractController
             }
 
             $post = $request->request;
-            $em = $this->getDoctrine()->getManager();
+
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $operator = $utilisateurRepository->find($post->get('operator'));
             $colisStr = $post->get('colis');
@@ -155,7 +142,7 @@ class MouvementTracaController extends AbstractController
             $createdMouvements = [];
 
             if (empty($post->get('is-mass'))) {
-                $emplacement = $this->emplacementRepository->find($post->get('emplacement'));
+                $emplacement = $emplacementRepository->find($post->get('emplacement'));
                 $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
                     $colisStr,
                     $emplacement,
@@ -169,8 +156,8 @@ class MouvementTracaController extends AbstractController
             } else {
                 $colisArray = explode(',', $colisStr);
                 foreach ($colisArray as $colis) {
-                    $emplacementPrise = $this->emplacementRepository->find($post->get('emplacement-prise'));
-                    $emplacementDepose = $this->emplacementRepository->find($post->get('emplacement-depose'));
+                    $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
+                    $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
 
                     $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
                         $colis,
@@ -208,7 +195,7 @@ class MouvementTracaController extends AbstractController
                 }
             }
 
-            $em->flush();
+            $entityManager->flush();
 
             $countCreatedMouvements = count($createdMouvements);
 

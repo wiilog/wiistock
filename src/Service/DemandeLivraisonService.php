@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
@@ -14,7 +15,6 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleRepository;
 use App\Repository\ChampLibreRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\DemandeRepository;
@@ -58,11 +58,6 @@ class DemandeLivraisonService
     private $champLibreRepository;
 
     /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
      * @var PrefixeNomDemandeRepository
      */
     private $prefixeNomDemandeRepository;
@@ -83,7 +78,6 @@ class DemandeLivraisonService
                                 UtilisateurRepository $utilisateurRepository,
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
-                                EmplacementRepository $emplacementRepository,
                                 TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
@@ -95,7 +89,6 @@ class DemandeLivraisonService
         $this->champLibreRepository = $champLibreRepository;
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
@@ -157,6 +150,7 @@ class DemandeLivraisonService
     public function newDemande($data) {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -176,7 +170,7 @@ class DemandeLivraisonService
         $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-        $destination = $this->emplacementRepository->find($data['destination']);
+        $destination = $emplacementRepository->find($data['destination']);
 
         // génère le numéro
         $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);

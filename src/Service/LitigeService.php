@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
-use App\Repository\LitigeRepository;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;

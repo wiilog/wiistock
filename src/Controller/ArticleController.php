@@ -18,6 +18,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\ChampLibreRepository;
@@ -58,11 +59,6 @@ class ArticleController extends AbstractController
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var CategorieCLRepository
@@ -119,7 +115,6 @@ class ArticleController extends AbstractController
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
                                 ArticleRepository $articleRepository,
-                                EmplacementRepository $emplacementRepository,
                                 CollecteRepository $collecteRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
@@ -129,6 +124,7 @@ class ArticleController extends AbstractController
         $this->globalParamService = $globalParamService;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;

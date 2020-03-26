@@ -6,11 +6,13 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Article;
@@ -21,6 +23,7 @@ use App\Repository\ValeurChampLibreRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
@@ -51,11 +54,6 @@ use Twig\Error\SyntaxError;
  */
 class CollecteController extends AbstractController
 {
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var OrdreCollecteRepository
@@ -114,10 +112,9 @@ class CollecteController extends AbstractController
     private $collecteService;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ArticleRepository $articleRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
         $this->ordreCollecteRepository = $ordreCollecteRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -281,6 +278,8 @@ class CollecteController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -291,12 +290,12 @@ class CollecteController extends AbstractController
             $type = $typeRepository->find($data['type']);
 
             $collecte
-                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
+                ->setDemandeur($utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
                 ->setDate($date)
                 ->setType($type)
                 ->setStatut($status)
-                ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
+                ->setPointCollecte($emplacementRepository->find($data['emplacement']))
                 ->setObjet(substr($data['Objet'], 0, 255))
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
@@ -525,6 +524,7 @@ class CollecteController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $collecte = $this->collecteRepository->find($data['id']);
 			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
@@ -554,7 +554,7 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'emplacements' => $this->emplacementRepository->findAll(),
+                'emplacements' => $emplacementRepository->findAll(),
                 'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
 				'typeChampsLibres' => $typeChampLibre
             ]);
@@ -580,6 +580,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
 			// vérification des champs Libres obligatoires
 			$requiredEdit = true;
@@ -593,7 +594,7 @@ class CollecteController extends AbstractController
 
 			if ($requiredEdit) {
 				$collecte = $this->collecteRepository->find($data['collecte']);
-				$pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
+				$pointCollecte = $emplacementRepository->find($data['Pcollecte']);
 				$destination = ($data['destination'] == 0) ? false : true;
 
 				$type = $typeRepository->find($data['type']);

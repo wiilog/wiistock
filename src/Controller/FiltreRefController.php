@@ -4,10 +4,10 @@ namespace App\Controller;
 
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Type;
 use App\Repository\ChampLibreRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,23 +41,16 @@ class FiltreRefController extends AbstractController
     private $refArticleDataService;
 
 	/**
-	 * @var EmplacementRepository
-	 */
-    private $emplacementRepository;
-
-	/**
 	 * FiltreRefController constructor.
-	 * @param EmplacementRepository $emplacementRepository
 	 * @param ChampLibreRepository $champLibreRepository
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(EmplacementRepository $emplacementRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
-        $this->emplacementRepository = $emplacementRepository;
     }
 
     /**
@@ -157,23 +150,26 @@ class FiltreRefController extends AbstractController
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
 			$value = $data['value'];
 			$multiple = false;
 			if ($value === 'Emplacement') {
-				$emplacements = $this->emplacementRepository->findAllSorted();
+				$emplacements = $emplacementRepository->findAllSorted();
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'Type') {
-                $typeRepository = $entityManager->getRepository(Type::class);
 				$types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE, 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();
 				}
 			} else {
-				$cl = $this->champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
+				$cl = $champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
 				$options = $cl->getElements();
 				$multiple = true;
 			}

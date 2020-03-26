@@ -3,11 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Emplacement|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Emplacement[]    findAll()
  * @method Emplacement[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class EmplacementRepository extends ServiceEntityRepository
+class EmplacementRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
@@ -25,11 +24,6 @@ class EmplacementRepository extends ServiceEntityRepository
         'Délai maximum' => 'dateMaxTime',
         'Actif / Inactif' => 'isActive',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Emplacement::class);
-    }
 
     public function getIdAndNom()
     {
