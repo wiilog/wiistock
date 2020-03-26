@@ -135,7 +135,6 @@ class RefArticleDataService
     }
 
     /**
-     * @param EntityManagerInterface $entityManager
      * @param null $params
      * @return array
      * @throws DBALException
@@ -143,9 +142,9 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getRefArticleDataByParams(EntityManagerInterface $entityManager, $params = null)
+    public function getRefArticleDataByParams($params = null)
     {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
@@ -200,7 +199,6 @@ class RefArticleDataService
     }
 
     /**
-     * @param EntityManagerInterface $entityManager
      * @param ReferenceArticle $refArticle
      * @param bool $isADemand
      * @return string
@@ -417,7 +415,11 @@ class RefArticleDataService
      * @param array $data
      * @param ReferenceArticle $referenceArticle
      * @return bool
+     * @throws DBALException
+     * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function addRefToDemand($data, $referenceArticle)
     {
@@ -471,14 +473,13 @@ class RefArticleDataService
     }
 
     /**
-     * @param EntityManagerInterface $entityManager
      * @param null $counter
      * @return string
      * @throws Exception
      */
-    public function generateBarCode(EntityManagerInterface $entityManager, $counter = null)
+    public function generateBarCode($counter = null)
     {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         $now = new \DateTime('now');
         $dateCode = $now->format('ym');
@@ -574,13 +575,12 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @param EntityManagerInterface $entityManager
      * @return void
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function updateStockQuantity(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager): void {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+    private function updateStockQuantity(ReferenceArticle $referenceArticle): void {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
@@ -589,13 +589,12 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @param EntityManagerInterface $entityManager
      * @return void
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function updateReservedQuantity(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager): void {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+    private function updateReservedQuantity(ReferenceArticle $referenceArticle): void {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));

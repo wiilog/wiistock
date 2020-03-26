@@ -23,7 +23,7 @@ class InventoryService
 	/**
 	 * @var EntityManagerInterface
 	 */
-	private $em;
+	private $entityManager;
 
 	/**
 	 * @var ArticleRepository
@@ -49,13 +49,13 @@ class InventoryService
     public function __construct(
     	InventoryEntryRepository $inventoryEntryRepository,
 		Security $security,
-		EntityManagerInterface $em,
+		EntityManagerInterface $entityManager,
 		ArticleRepository $articleRepository,
 		InventoryMissionRepository $inventoryMissionRepository
 	)
     {
 		$this->articleRepository = $articleRepository;
-		$this->em = $em;
+		$this->entityManager = $entityManager;
 		$this->user = $security->getUser();
 		$this->inventoryEntryRepository = $inventoryEntryRepository;
 		$this->inventoryMissionRepository = $inventoryMissionRepository;
@@ -68,13 +68,12 @@ class InventoryService
      * @param int $newQuantity
      * @param string $comment
      * @param Utilisateur $user
-     * @param EntityManagerInterface $entityManager
      * @return bool
      * @throws NonUniqueResultException
      */
-	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user, EntityManagerInterface $entityManager)
+	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
 	{
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 		$quantitiesAreEqual = true;
 
 		if ($isRef) {

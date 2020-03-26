@@ -11,26 +11,20 @@ use Doctrine\ORM\NonUniqueResultException;
 
 class AlerteService
 {
-	/**
-	 * @var AlerteExpiryRepository
-	 */
-    private $alerteExpiryRepository;
 
-
-    public function __construct(AlerteExpiryRepository $alerteExpiryRepository)
+    public function __construct(EntityManagerInterface $entityManager)
     {
-		$this->alerteExpiryRepository = $alerteExpiryRepository;
+		$this->entityManager = $entityManager;
     }
 
     /**
      * @param AlerteExpiry $alerte
-     * @param EntityManagerInterface $entityManager
      * @return bool
      * @throws NonUniqueResultException
      */
-    public function isAlerteExpiryActive($alerte, EntityManagerInterface $entityManager)
+    public function isAlerteExpiryActive($alerte)
 	{
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         $refArticle = $alerte->getRefArticle();
 
