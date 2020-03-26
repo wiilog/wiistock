@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 
 use App\Repository\ArticleFournisseurRepository;
@@ -14,7 +15,6 @@ use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\ValeurChampLibreRepository;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -29,10 +29,6 @@ class PatchAfterFileCEAFixtures extends Fixture
     private $encoder;
 
 
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
@@ -83,11 +79,10 @@ class PatchAfterFileCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
@@ -103,7 +98,8 @@ class PatchAfterFileCEAFixtures extends Fixture
     {
         $clCodeProjet = $this->champLibreRepository->findOneByLabel('code projet');
         $clDestinataire = $this->champLibreRepository->findOneByLabel('destinataire');
-        $siliTypeDemande = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, 'sili');
+        $typeRepository = $manager->getRepository(Type::class);
+        $siliTypeDemande = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, 'sili');
         $path = "src/DataFixtures/demandes.csv";
         $file = fopen($path, "r");
 

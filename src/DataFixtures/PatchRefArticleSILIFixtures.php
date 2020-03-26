@@ -18,18 +18,12 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
@@ -65,9 +59,8 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
      */
     private $articleFournisseurRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
@@ -89,6 +82,7 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
         }
 
         $fournisseur = $this->initFournisseur($manager);
+        $typeRepository = $manager->getRepository(Type::class);
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
         $i = 1;
@@ -96,7 +90,7 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
+            $typeSili = $typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
 
             // si l'article de référence existe déjà on le dédoublonne
             $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);

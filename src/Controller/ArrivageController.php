@@ -35,7 +35,6 @@ use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ValeurChampLibreRepository;
@@ -121,11 +120,6 @@ class ArrivageController extends AbstractController
     private $mailerService;
 
     /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
      * @var PieceJointeRepository
      */
     private $pieceJointeRepository;
@@ -189,7 +183,7 @@ class ArrivageController extends AbstractController
      */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, GlobalParamService $globalParamService, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, GlobalParamService $globalParamService, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->fieldsParamRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
@@ -203,7 +197,6 @@ class ArrivageController extends AbstractController
         $this->fournisseurRepository = $fournisseurRepository;
         $this->transporteurRepository = $transporteurRepository;
         $this->chauffeurRepository = $chauffeurRepository;
-        $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
         $this->champLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
@@ -440,7 +433,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param ChampLibreRepository $champLibreRepository
      * @param ValeurChampLibreRepository $valeurChampLibreRepository
-     * @param SpecificService $specificService
+     * @param EntityManagerInterface $entityManager
      * @param StatutService $statutService
      * @return Response
      * @throws NonUniqueResultException
@@ -448,7 +441,7 @@ class ArrivageController extends AbstractController
     public function editApi(Request $request,
                             ChampLibreRepository $champLibreRepository,
                             ValeurChampLibreRepository $valeurChampLibreRepository,
-                            SpecificService $specificService,
+                            EntityManagerInterface $entityManager,
                             StatutService $statutService
     ): Response
     {
@@ -484,6 +477,8 @@ class ArrivageController extends AbstractController
             $status = $statutService->findAllStatusArrivage();
 
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
+
+                $typeRepository = $entityManager->getRepository(Type::class);
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
@@ -491,7 +486,7 @@ class ArrivageController extends AbstractController
                     'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                    'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
                     'champsLibres' => $champsLibresArray

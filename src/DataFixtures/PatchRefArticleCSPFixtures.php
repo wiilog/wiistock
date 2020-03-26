@@ -22,18 +22,11 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var ChampLibreRepository
@@ -76,9 +69,8 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
     private $valeurCLRepository;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -105,12 +97,14 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
         // à modifier pour faire imports successifs
         $rows = array_slice($rows, 0, 1000);
 
+        $typeRepository = $manager->getRepository(Type::class);
+
         $i = 1;
         foreach($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeCsp = $this->typeRepository->findOneBy(['label' => Type::LABEL_CSP]);
+            $typeCsp = $typeRepository->findOneBy(['label' => Type::LABEL_CSP]);
 
             // si l'article de référence n'existe pas déjà, on le crée
             $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);

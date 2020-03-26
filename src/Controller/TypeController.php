@@ -8,7 +8,7 @@ use App\Entity\Type;
 use App\Repository\CategoryTypeRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\TypeRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,10 +25,6 @@ use App\Repository\ArticleRepository;
  */
 class TypeController extends AbstractController
 {
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var FiltreRefRepository
@@ -59,16 +55,14 @@ class TypeController extends AbstractController
 	 * TypeController constructor.
 	 * @param ArticleRepository $articleRepository
 	 * @param FiltreRefRepository $filtreRefRepository
-	 * @param TypeRepository $typeRepository
 	 * @param CategoryTypeRepository $categoryTypeRepository
 	 * @param ChampLibreRepository $champLibreRepository
 	 * @param ReferenceArticleRepository $refArticleRepository
 	 */
-    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->champLibreRepository = $champLibreRepository;
@@ -76,8 +70,12 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/", name="type_show_select", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function showSelectInput(Request $request)
+    public function showSelectInput(EntityManagerInterface $entityManager,
+                                    Request $request)
     {
         if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
 
@@ -87,7 +85,8 @@ class TypeController extends AbstractController
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $options = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+                $typeRepository = $entityManager->getRepository(Type::class);
+                $options = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
@@ -101,12 +100,18 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/api", name="type_api", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $types = $this->typeRepository->findAll();
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->findAll();
+
             $rows = [];
             foreach ($types as $type) {
                 $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);

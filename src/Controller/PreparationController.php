@@ -14,7 +14,6 @@ use App\Entity\ReferenceArticle;
 use App\Repository\EmplacementRepository;
 use App\Repository\LigneArticlePreparationRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
@@ -53,11 +52,6 @@ class PreparationController extends AbstractController
      * @var StatutRepository
      */
     private $statutRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var LigneArticleRepository
@@ -114,9 +108,8 @@ class PreparationController extends AbstractController
      */
     private $preparationsManagerService;
 
-    public function __construct(PreparationsManagerService $preparationsManagerService, TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(PreparationsManagerService $preparationsManagerService, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
-        $this->typeRepository = $typeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
@@ -256,24 +249,26 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/liste/{demandId}", name="preparation_index", methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
      * @param string|null $demandId
      * @return Response
      */
-    public function index(string $demandId = null): Response
+    public function index(EntityManagerInterface $entityManager,
+                          string $demandId = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $demandeLivraison = $demandId ? $this->demandeRepository->find($demandId) : null;
-
+        $typeRepository = $entityManager->getRepository(Type::class);
         return $this->render('preparation/index.html.twig', [
             'filterDemandId' => isset($demandeLivraison) ? $demandId : null,
             'filterDemandValue' => isset($demandeLivraison) ? $demandeLivraison->getNumero() : null,
             'filtersDisabled' => isset($demandeLivraison),
             'displayDemandFilter' => true,
             'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON)
+            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON)
         ]);
     }
 

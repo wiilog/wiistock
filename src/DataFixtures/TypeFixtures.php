@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\CategoryType;
 use App\Entity\Type;
 use App\Repository\CategoryTypeRepository;
-use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -15,21 +14,15 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
 	/**
 	 * @var CategoryTypeRepository
 	 */
     private $categoryTypeRepository;
 
 
-    public function __construct(CategoryTypeRepository $categoryTypeRepository, TypeRepository $typeRepository, UserPasswordEncoderInterface $encoder)
+    public function __construct(CategoryTypeRepository $categoryTypeRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
-        $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
     }
 
@@ -51,6 +44,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 			CategoryType::ARRIVAGE => [Type::LABEL_STANDARD],
 		];
 
+        $typeRepository = $manager->getRepository(Type::class);
     	foreach ($categoriesTypes as $categoryName => $typesNames) {
     		// création des catégories de types
 			$categorie = $this->categoryTypeRepository->findOneBy(['label' => $categoryName]);
@@ -63,12 +57,12 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 			}
 			$this->addReference('type-' . $categoryName, $categorie);
 
-			$categoryHasType = count($this->typeRepository->findByCategoryLabel($categoryName)) > 0;
+			$categoryHasType = count($typeRepository->findByCategoryLabel($categoryName)) > 0;
 
 			// création des types
     		foreach ($typesNames as $typeName) {
 				if (!$categoryHasType || ($typeName !== Type::LABEL_STANDARD && $typeName !== Type::LABEL_RECEPTION)) {
-                    $type = $this->typeRepository->findOneByCategoryLabelAndLabel($categoryName, $typeName);
+                    $type = $typeRepository->findOneByCategoryLabelAndLabel($categoryName, $typeName);
                     if (empty($type)) {
                         $type = new Type();
                         $type

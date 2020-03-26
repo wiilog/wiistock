@@ -11,7 +11,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -21,12 +20,6 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var ChampLibreRepository
@@ -66,14 +59,12 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
     public function __construct(ArticleRepository $articleRepository,
                                 EmplacementRepository $emplacementRepository,
                                 UserPasswordEncoderInterface $encoder,
-                                TypeRepository $typeRepository,
                                 ChampLibreRepository $champsLibreRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 StatutRepository $statutRepository,
                                 ReferenceArticleRepository $refArticleRepository,
                                 CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
