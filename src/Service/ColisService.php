@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -61,6 +62,7 @@ Class ColisService
     /**
      * @param Arrivage $arrivage
      * @param array $colisByNatures
+     * @param Utilisateur $user
      * @return Colis[]
      * @throws NonUniqueResultException
      */

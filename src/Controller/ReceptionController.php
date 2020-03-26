@@ -908,8 +908,14 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param GlobalParamService $globalParamService
+     * @param Reception $reception
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
+                         GlobalParamService $globalParamService,
                          Reception $reception): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
@@ -974,6 +980,7 @@ class ReceptionController extends AbstractController
             'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
+            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
 			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION),
 			'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 		]);

@@ -12,7 +12,7 @@
             <tr>
                 <td>{{ data.headers[i] }}</td>
                 <td>{{ data.firstRow[i] }}</td>
-                <td><select class="form-control data no-clear" name="{{ i }}">
+                <td><select class="form-control data no-clear" name="{{ i }}" onchange="updateOptions($(this))">
                         <option></option>
                         {% for fieldValue, fieldName in fields %}
                             {% set needed = fieldValue in fieldsNeeded ? '*'%}

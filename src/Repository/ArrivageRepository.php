@@ -34,6 +34,7 @@ class ArrivageRepository extends ServiceEntityRepository
         'Utilisateur' => 'utilisateur',
         'Duty' => 'duty',
         'Frozen' => 'frozen',
+        'Urgent' => 'isUrgent'
     ];
 
     public function __construct(ManagerRegistry $registry)
