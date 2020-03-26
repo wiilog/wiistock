@@ -2,10 +2,10 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -24,25 +24,21 @@ class PatchRefArticleSILIExtFixtures extends Fixture implements FixtureGroupInte
     private $champLibreRepository;
 
     /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->categorieCLRepository = $categorieCLRepository;
     }
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+
         $path = "src/DataFixtures/Csv/sili-ext.csv";
         $file = fopen($path, "r");
 
@@ -73,7 +69,7 @@ class PatchRefArticleSILIExtFixtures extends Fixture implements FixtureGroupInte
                 ->setLibelle($row[1])
                 ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
             $manager->flush();
 

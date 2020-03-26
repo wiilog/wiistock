@@ -4,9 +4,9 @@ namespace App\DataFixtures;
 
 use App\Entity\Article;
 
+use App\Entity\Statut;
 use App\Repository\CategorieStatutRepository;
 use App\Repository\FiltreRefRepository;
-use App\Repository\StatutRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -16,11 +16,6 @@ use Doctrine\Common\Persistence\ObjectManager;
 
 class PatchRenameStatutArt extends Fixture implements FixtureGroupInterface
 {
-	/**
-	 * @var StatutRepository
-	 */
-	private $statutRepository;
-
 	/**
 	 * @var CategorieStatutRepository
 	 */
@@ -32,17 +27,18 @@ class PatchRenameStatutArt extends Fixture implements FixtureGroupInterface
 	private $filtreRefRepository;
 
 
-	public function __construct(FiltreRefRepository $filtreRefRepository, CategorieStatutRepository $categorieStatutRepository, StatutRepository $statutRepository)
+	public function __construct(FiltreRefRepository $filtreRefRepository, CategorieStatutRepository $categorieStatutRepository)
 	{
-		$this->statutRepository = $statutRepository;
 		$this->categorieStatutRepository = $categorieStatutRepository;
 		$this->filtreRefRepository = $filtreRefRepository;
 	}
 
 	public function load(ObjectManager $manager)
 	{
-        $statutActifArts = $this->statutRepository->findOneByCategorieNameAndStatutCode('article', 'actif');
-        $statutInactifArts = $this->statutRepository->findOneByCategorieNameAndStatutCode('article', 'inactif');
+        $statutRepository = $manager->getRepository(Statut::class);
+
+        $statutActifArts = $statutRepository->findOneByCategorieNameAndStatutCode('article', 'actif');
+        $statutInactifArts = $statutRepository->findOneByCategorieNameAndStatutCode('article', 'inactif');
 
         if (!empty($statutActifArts)) {
             $statutActifArts->setNom(Article::STATUT_ACTIF);
