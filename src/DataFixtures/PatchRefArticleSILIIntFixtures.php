@@ -12,18 +12,12 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
@@ -39,9 +33,8 @@ class PatchRefArticleSILIIntFixtures extends Fixture implements FixtureGroupInte
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
@@ -59,13 +52,13 @@ class PatchRefArticleSILIIntFixtures extends Fixture implements FixtureGroupInte
         }
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
-
+        $typeRepository = $manager->getRepository(Type::class);
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeSiliInt = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI_INT]);
+            $typeSiliInt = $typeRepository->findOneBy(['label' => Type::LABEL_SILI_INT]);
 
             // contruction référence
             $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);

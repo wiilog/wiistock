@@ -9,6 +9,7 @@ use App\Entity\Collecte;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Article;
@@ -26,13 +27,13 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\TypeRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\CollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -51,11 +52,6 @@ class CollecteController extends AbstractController
      * @var StatutRepository
      */
     private $statutRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var ArticleFournisseurRepository
@@ -134,9 +130,8 @@ class CollecteController extends AbstractController
     private $collecteService;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
-        $this->typeRepository = $typeRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
@@ -155,18 +150,21 @@ class CollecteController extends AbstractController
         $this->collecteService = $collecteService;
     }
 
-	/**
-	 * @Route("/liste/{filter}", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
-	 * @param string|null $filter
-	 * @return Response
-	 */
-    public function index($filter = null): Response
+    /**
+     * @Route("/liste/{filter}", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param string|null $filter
+     * @return Response
+     */
+    public function index(EntityManagerInterface $entityManager,
+                          $filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
-		$types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+        $typeRepository = $entityManager->getRepository(Type::class);
+		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
 
 		$typeChampLibre = [];
 		foreach ($types as $type) {
@@ -183,7 +181,7 @@ class CollecteController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
 			'typeChampsLibres' => $typeChampLibre,
-			'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+			'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
 			'filterStatus' => $filter
         ]);
     }
@@ -284,8 +282,13 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
@@ -297,7 +300,7 @@ class CollecteController extends AbstractController
             $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
             $destination = ($data['destination'] == 0) ? false : true;
-            $type = $this->typeRepository->find($data['type']);
+            $type = $entityManager->find(Type::class, $data['type']);
             $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
@@ -503,7 +506,8 @@ class CollecteController extends AbstractController
     /**
      * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -512,7 +516,9 @@ class CollecteController extends AbstractController
 
             $collecte = $this->collecteRepository->find($data['id']);
 
-			$listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+            $typeRepository = $entityManager->getRepository(Type::class);
+			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+
 			$typeChampLibre = [];
 
 			foreach ($listTypes as $type) {

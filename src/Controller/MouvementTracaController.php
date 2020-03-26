@@ -14,7 +14,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
@@ -75,11 +74,6 @@ class MouvementTracaController extends AbstractController
     private $colisRepository;
 
     /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
      * @var MouvementTracaService
      */
     private $mouvementTracaService;
@@ -88,7 +82,6 @@ class MouvementTracaController extends AbstractController
      * ArrivageController constructor.
      * @param MouvementTracaService $mouvementTracaService
      * @param AttachmentService $attachmentService
-     * @param TypeRepository $typeRepository
      * @param EmplacementRepository $emplacementRepository
      * @param UtilisateurRepository $utilisateurRepository
      * @param StatutRepository $statutRepository
@@ -96,7 +89,7 @@ class MouvementTracaController extends AbstractController
      * @param MouvementTracaRepository $mouvementTracaRepository
      */
 
-    public function __construct(MouvementTracaService $mouvementTracaService, ColisRepository $colisRepository, AttachmentService $attachmentService, TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(MouvementTracaService $mouvementTracaService, ColisRepository $colisRepository, AttachmentService $attachmentService, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
         $this->colisRepository = $colisRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -104,7 +97,6 @@ class MouvementTracaController extends AbstractController
         $this->statutRepository = $statutRepository;
         $this->userService = $userService;
         $this->mouvementRepository = $mouvementTracaRepository;
-        $this->typeRepository = $typeRepository;
         $this->attachmentService = $attachmentService;
         $this->mouvementTracaService = $mouvementTracaService;
     }

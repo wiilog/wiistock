@@ -10,6 +10,7 @@ use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
@@ -75,11 +76,6 @@ class ArticleController extends AbstractController
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -155,7 +151,6 @@ class ArticleController extends AbstractController
                                 ChampLibreRepository $champLibreRepository,
                                 ValeurChampLibreRepository $valeurChampsLibreRepository,
                                 ArticleDataService $articleDataService,
-                                TypeRepository $typeRepository,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleFournisseurRepository $articleFournisseurRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
@@ -181,7 +176,6 @@ class ArticleController extends AbstractController
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
-        $this->typeRepository = $typeRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
@@ -794,8 +788,7 @@ class ArticleController extends AbstractController
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
-                    'valeurChampLibre' => null,
-//                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
+                    'valeurChampLibre' => null
                 ]);
             } else {
                 $json = false; //TODO gérer erreur retour
@@ -872,8 +865,16 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/exporter/{min}/{max}", name="article_export", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param $max
+     * @param $min
+     * @return Response
      */
-    public function exportAll(Request $request, $max, $min): Response
+    public function exportAll(Request $request,
+                              EntityManagerInterface $entityManager,
+                              $max,
+                              $min): Response
     {
         if ($request->isXmlHttpRequest()) {
             $data = [];
@@ -882,11 +883,15 @@ class ArticleController extends AbstractController
             foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
+
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
+
             $refs = $this->articleRepository->findAll();
             if ($max > count($refs)) $max = count($refs);
             for ($i = $min; $i < $max; $i++) {
-                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headersCL));
+                array_push($data['values'], $this->buildInfos($typeRepository, $refs[$i], $listTypes, $headersCL));
             }
             return new JsonResponse($data);
         }
@@ -910,12 +915,16 @@ class ArticleController extends AbstractController
     }
 
     /**
+     * @param TypeRepository $typeRepository
      * @param Article $article
      * @param array $listTypes
      * @param $headers
      * @return string
      */
-    public function buildInfos(Article $article, $listTypes, $headers)
+    public function buildInfos(TypeRepository $typeRepository,
+                               Article $article,
+                               $listTypes,
+                               $headers)
     {
         $refData[] = $this->CSVExportService->escapeCSV($article->getReference());
         $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
@@ -928,7 +937,7 @@ class ArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '');
         $champsLibres = [];
         foreach ($listTypes as $type) {
-            $typeArticle = $this->typeRepository->find($type['id']);
+            $typeArticle = $typeRepository->find($type['id']);
             $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);

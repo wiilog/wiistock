@@ -5,11 +5,12 @@ namespace App\Controller;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
+use App\Entity\Type;
 use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FiltreRefRepository;
-use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,29 +41,22 @@ class FiltreRefController extends AbstractController
     private $refArticleDataService;
 
 	/**
-	 * @var TypeRepository
-	 */
-    private $typeRepository;
-
-	/**
 	 * @var EmplacementRepository
 	 */
     private $emplacementRepository;
 
 	/**
 	 * FiltreRefController constructor.
-	 * @param TypeRepository $typeRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 * @param ChampLibreRepository $champLibreRepository
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(EmplacementRepository $emplacementRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
-        $this->typeRepository = $typeRepository;
         $this->emplacementRepository = $emplacementRepository;
     }
 
@@ -152,10 +146,14 @@ class FiltreRefController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
-	 */
-	public function displayFieldElements(Request $request)
+    /**
+     * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+	public function displayFieldElements(Request $request,
+                                         EntityManagerInterface $entityManager)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -168,7 +166,8 @@ class FiltreRefController extends AbstractController
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'Type') {
-				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE, 'asc');
+                $typeRepository = $entityManager->getRepository(Type::class);
+				$types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE, 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();

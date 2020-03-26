@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\CategoryType;
 use App\Entity\Type;
 
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
@@ -28,11 +27,6 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
@@ -83,11 +77,10 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
@@ -101,7 +94,8 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $siliType = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_SILI);
+        $typeRepository = $manager->getRepository(Type::class);
+        $siliType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_SILI);
         $clCodeProjet = $this->champLibreRepository->findOneByLabel('code projet');
         $clDestinataire = $this->champLibreRepository->findOneByLabel('destinataire');
         $toPut = 'demande' . ';' . 'numéro' . ';' . 'codeProjet' . ';' . 'destinataire' . PHP_EOL;

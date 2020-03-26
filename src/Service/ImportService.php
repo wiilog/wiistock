@@ -26,6 +26,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
 use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,8 +55,10 @@ class ImportService
     private $articleDataService;
     private $refArticleDataService;
     private $mouvementStockService;
+    private $logger;
 
     public function __construct(RouterInterface $router,
+                                LoggerInterface $logger,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
@@ -70,6 +73,7 @@ class ImportService
         $this->articleDataService = $articleDataService;
         $this->refArticleDataService = $refArticleDataService;
         $this->mouvementStockService = $mouvementStockService;
+        $this->logger = $logger;
     }
 
     /**
@@ -270,7 +274,7 @@ class ImportService
                                     array &$stats): array {
         $message = 'OK';
         try {
-            $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate) {
+            $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, $stats) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
 
                 switch ($import->getEntity()) {
@@ -295,9 +299,17 @@ class ImportService
                 $this->em = EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
             }
 
-            $message = ($throwable instanceof ImportException)
-                ? $throwable->getMessage()
-                : 'Une erreur est survenue.';
+            if ($throwable instanceof ImportException) {
+                $message = $throwable->getMessage();
+            }
+            else {
+                $message = 'Une erreur est survenue.';
+                $file = $throwable->getFile();
+                $line = $throwable->getLine();
+                $logMessage = $throwable->getMessage();
+                $importId = $import->getId();
+                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file:$line");
+            }
 
             $stats['errors']++;
         }

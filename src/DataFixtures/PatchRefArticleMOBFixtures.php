@@ -17,18 +17,12 @@ use Symfony\Component\Asset\Packages;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
@@ -60,9 +54,8 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
@@ -83,13 +76,13 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
         }
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
-
+        $typeRepository = $manager->getRepository(Type::class);
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeMob = $this->typeRepository->findOneBy(['label' => Type::LABEL_MOB]);
+            $typeMob = $typeRepository->findOneBy(['label' => Type::LABEL_MOB]);
             // contruction référence
             $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
 

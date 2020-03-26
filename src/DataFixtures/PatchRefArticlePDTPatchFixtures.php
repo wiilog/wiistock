@@ -14,18 +14,11 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ValeurChampLibre;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticlePDTPatchFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var ChampLibreRepository
@@ -63,9 +56,8 @@ class PatchRefArticlePDTPatchFixtures extends Fixture implements FixtureGroupInt
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;

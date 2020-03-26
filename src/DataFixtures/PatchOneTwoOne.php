@@ -4,7 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\ChampLibre;
 use App\Repository\ChampLibreRepository;
-use App\Repository\TypeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -26,18 +25,12 @@ class PatchOneTwoOne extends Fixture implements FixtureGroupInterface
 	 */
 	private $valeurChampLibreRepository;
 
-	/**
-	 * @var TypeRepository
-	 */
-	private $typeRepository;
 
-
-	public function __construct(TypeRepository $typeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, UserPasswordEncoderInterface $encoder)
+	public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, UserPasswordEncoderInterface $encoder)
 	{
 		$this->encoder = $encoder;
 		$this->champLibreRepository = $champLibreRepository;
 		$this->valeurChampLibreRepository = $valeurChampLibreRepository;
-		$this->typeRepository = $typeRepository;
 	}
 
 	public function load(ObjectManager $manager)

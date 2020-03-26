@@ -15,6 +15,7 @@ use App\Entity\FiltreSup;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
@@ -30,7 +31,6 @@ use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
@@ -62,11 +62,6 @@ class RefArticleDataService
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var StatutRepository
@@ -164,7 +159,6 @@ class RefArticleDataService
                                 ArticleFournisseurRepository $articleFournisseurRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
-                                TypeRepository $typeRepository,
                                 StatutRepository $statutRepository,
                                 EntityManagerInterface $em,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
@@ -185,7 +179,6 @@ class RefArticleDataService
         $this->statutRepository = $statutRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -269,7 +262,8 @@ class RefArticleDataService
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $typeRepository = $this->em->getRepository(Type::class);
+        $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
         $categories = $this->inventoryCategoryRepository->findAll();
         $typeChampLibre = [];
@@ -327,7 +321,7 @@ class RefArticleDataService
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
-        $type = $this->typeRepository->find(intval($data['type']));
+        $type = $this->em->find(Type::class, intval($data['type']));
         $category = $this->inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         $emplacement = $this->emplacementRepository->find(intval($data['emplacement']));
@@ -375,7 +369,7 @@ class RefArticleDataService
                 if ($statut) $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
-                $type = $this->typeRepository->find(intval($data['type']));
+                $type = $this->em->find(Type::class, intval($data['type']));
                 if ($type) $refArticle->setType($type);
             }
 

@@ -13,6 +13,7 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Article;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
@@ -24,7 +25,6 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
@@ -36,6 +36,7 @@ use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -107,11 +108,6 @@ class DemandeController extends AbstractController
     private $articleDataService;
 
     /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
@@ -150,7 +146,7 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
         $this->statutRepository = $statutRepository;
@@ -164,7 +160,6 @@ class DemandeController extends AbstractController
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->preparationRepository = $preparationRepository;
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
@@ -332,8 +327,13 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -342,7 +342,9 @@ class DemandeController extends AbstractController
 
             $demande = $this->demandeRepository->find($data['id']);
 
-            $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
             $typeChampLibre = [];
 
             foreach ($listTypes as $type) {
@@ -368,7 +370,7 @@ class DemandeController extends AbstractController
 
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
-                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+                'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
                 'typeChampsLibres' => $typeChampLibre
             ]);
 
@@ -379,8 +381,13 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -389,7 +396,7 @@ class DemandeController extends AbstractController
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
-            $type = $this->typeRepository->find(intval($data['type']));
+            $type = $entityManager->find(Type::class, intval($data['type']));
             $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -400,7 +407,6 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-                $type = $this->typeRepository->find(intval($data['type']));
                 $demande = $this->demandeRepository->find($data['demandeId']);
                 $demande
                     ->setUtilisateur($utilisateur)
@@ -464,17 +470,21 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
+     * @param EntityManagerInterface $entityManager
      * @param string|null $reception
      * @param string|null $filter
      * @return Response
      */
-    public function index($reception = null, $filter = null): Response
+    public function index(EntityManagerInterface $entityManager,
+                          $reception = null,
+                          $filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -492,7 +502,7 @@ class DemandeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+            'types' => $types,
             'filterStatus' => $filter,
             'receptionFilter' => $reception
         ]);
@@ -755,7 +765,8 @@ class DemandeController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-	public function getDemandesIntels(Request $request): Response
+	public function getDemandesIntels(EntityManagerInterface $entityManager,
+                                      Request $request): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			$dateMin = $data['dateMin'] . ' 00:00:00';
@@ -800,8 +811,10 @@ class DemandeController extends AbstractController
 
 			$data = [];
 			$data[] = $headers;
-			$listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-			$listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+			$listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+			$listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
 			$listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {

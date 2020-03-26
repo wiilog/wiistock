@@ -16,7 +16,6 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
-use App\Repository\TypeRepository;
 use App\Repository\ChampLibreRepository;
 
 class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterface
@@ -26,10 +25,6 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
      */
     private $encoder;
 
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
     /**
      * @var ChampLibreRepository
      */
@@ -56,9 +51,8 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
     {
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
@@ -78,14 +72,14 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
         }
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
-
+        $typeRepository = $manager->getRepository(Type::class);
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
             dump($i);
             $i++;
 
-            $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
+            $typeSlugcible = $typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
             $statutActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
             // champs fixes

@@ -8,6 +8,7 @@ use App\Entity\Demande;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleRepository;
@@ -20,7 +21,6 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
 use Twig\Environment as Twig_Environment;
 use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -70,11 +70,6 @@ class DemandeLivraisonService
     private $champLibreRepository;
 
     /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
      * @var StatutRepository
      */
     private $statutRepository;
@@ -101,8 +96,7 @@ class DemandeLivraisonService
 
     private $em;
 
-    public function __construct(TypeRepository $typeRepository,
-                                ChampLibreRepository $champLibreRepository,
+    public function __construct(ChampLibreRepository $champLibreRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
@@ -118,7 +112,6 @@ class DemandeLivraisonService
                                 DemandeRepository $demandeRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->typeRepository = $typeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
@@ -186,7 +179,7 @@ class DemandeLivraisonService
     public function newDemande($data) {
 
         $requiredCreate = true;
-        $type = $this->typeRepository->find($data['type']);
+        $type = $this->em->find(Type::class, $data['type']);
 
         $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
         $msgMissingCL = '';
@@ -204,7 +197,6 @@ class DemandeLivraisonService
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $this->emplacementRepository->find($data['destination']);
-        $type = $this->typeRepository->find($data['type']);
 
         // génère le numéro
         $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);

@@ -11,7 +11,6 @@ use App\Entity\Statut;
 use App\Repository\CategorieStatutRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 
 use App\Service\UserService;
 
@@ -39,11 +38,6 @@ class StatusController extends AbstractController
     private $referenceArticleRepository;
 
     /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
      * @var StatutRepository
      */
     private $statusRepository;
@@ -53,11 +47,10 @@ class StatusController extends AbstractController
 	 */
     private $categoryStatusRepository;
 
-    public function __construct(CategorieStatutRepository $categoryStatusRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository, TypeRepository $typeRepository, StatutRepository $statusRepository)
+    public function __construct(CategorieStatutRepository $categoryStatusRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statusRepository)
     {
         $this->userService = $userService;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->typeRepository = $typeRepository;
         $this->statusRepository = $statusRepository;
         $this->categoryStatusRepository = $categoryStatusRepository;
     }
