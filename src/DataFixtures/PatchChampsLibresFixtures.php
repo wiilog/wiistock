@@ -6,7 +6,6 @@ use App\Entity\CategorieCL;
 use App\Entity\ChampLibre;
 use App\Entity\Type;
 use App\Repository\CategorieCLRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -34,19 +33,13 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
      */
     private $categorieCLRepository;
 
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
-
-    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
-        $this->emplacementRepository = $emplacementRepository;
     }
 
     public function load(ObjectManager $manager)

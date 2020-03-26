@@ -39,13 +39,7 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
      */
     private $categorieCLRepository;
 
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
     public function __construct(ArticleRepository $articleRepository,
-                                EmplacementRepository $emplacementRepository,
                                 UserPasswordEncoderInterface $encoder,
                                 ChampLibreRepository $champsLibreRepository,
                                 ReferenceArticleRepository $refArticleRepository,
@@ -55,7 +49,6 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
         $this->encoder = $encoder;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
     }
 

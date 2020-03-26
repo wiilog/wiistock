@@ -7,36 +7,22 @@ use App\Entity\Emplacement;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-
-use App\Repository\EmplacementRepository;
-use App\Repository\ReferenceArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface
 {
 
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleReposotory;
-
     private $em;
 
-    public function __construct(EmplacementRepository $emplacementRepository, ReferenceArticleRepository $referenceArticleRepository, EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em)
     {
-        $this->emplacementRepository = $emplacementRepository;
-        $this->referenceArticleReposotory = $referenceArticleRepository;
         $this->em = $em;
     }
 
     public function load(ObjectManager $manager)
     {
-        $emplacementDef = $this->emplacementRepository->findOneByLabel('A définir');
+        $emplacementRepository = $manager->getRepository(Emplacement::class);
+        $emplacementDef = $emplacementRepository->findOneByLabel('A définir');
 
         if (!$emplacementDef) {
         	$emplacementDef = new Emplacement();
@@ -46,7 +32,7 @@ class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInte
 				->setIsActive(true);
 		}
         $manager->flush();
-		$emplacementDef = $this->emplacementRepository->findOneByLabel('A définir');
+		$emplacementDef = $emplacementRepository->findOneByLabel('A définir');
 
 		$query = $this->em->createQuery(
 		/** @lang DQL */

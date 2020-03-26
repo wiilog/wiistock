@@ -3,6 +3,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Emplacement;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -17,15 +18,9 @@ class PatchAddEmplacementToRefFixtures extends Fixture implements FixtureGroupIn
      */
      private $referenceArticleRepository;
 
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->emplacementRepository = $emplacementRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -45,9 +40,11 @@ class PatchAddEmplacementToRefFixtures extends Fixture implements FixtureGroupIn
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
+        $emplacementRepository = $manager->getRepository(Emplacement::class);
+
         foreach($rows as $row) {
             $ref = $this->referenceArticleRepository->findOneByReference($row[0]);
-            $emplacement = $this->emplacementRepository->findOneByLabel($row[2]);
+            $emplacement = $emplacementRepository->findOneByLabel($row[2]);
 
             if ($ref) {
             	if ($emplacement) {

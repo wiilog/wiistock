@@ -19,16 +19,10 @@ class PatchMissionInvFixtures extends Fixture implements FixtureGroupInterface
      */
     private $referenceArticleRepository;
 
-	/**
-	 * @var EmplacementRepository
-	 */
-    private $emplacementRepository;
 
-
-    public function __construct(EmplacementRepository $emplacementRepository, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository)
     {
     	$this->referenceArticleRepository = $referenceArticleRepository;
-    	$this->emplacementRepository = $emplacementRepository;
     }
 
     public function load(ObjectManager $manager)
