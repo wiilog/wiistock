@@ -3,11 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Repository\ArrivageRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use App\Service\UserService;
@@ -36,11 +36,6 @@ class FournisseurController extends AbstractController
     private $receptionRepository;
 
     /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
-
-    /**
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
@@ -61,12 +56,11 @@ class FournisseurController extends AbstractController
     private $userService;
 
 
-    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService)
+    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, UserService $userService)
     {
         $this->arrivageRepository = $arrivageRepository;
         $this->fournisseurDataService = $fournisseurDataService;
         $this->userService = $userService;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->receptionRepository = $receptionRepository;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
     }
@@ -208,15 +202,17 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @param int $fournisseurId
-	 * @return array
-	 */
-    private function isFournisseurUsed($fournisseurId)
+    /**
+     * @param int $fournisseurId
+     * @param EntityManagerInterface $entityManager
+     * @return array
+     */
+    private function isFournisseurUsed($fournisseurId, EntityManagerInterface $entityManager)
     {
     	$usedBy = [];
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
-    	$AF = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
+        $AF = $articleFournisseurRepository->countByFournisseur($fournisseurId);
     	if ($AF > 0) $usedBy[] = 'articles fournisseur';
 
     	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
@@ -227,9 +223,6 @@ class FournisseurController extends AbstractController
 
 		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);
 		if ($arrivages > 0) $usedBy[] = 'arrivages';
-
-        // $mouvements = $this->mouvementRepository->countByFournisseur($fournisseurId);
-//		if ($mouvements > 0) $usedBy[] = 'mouvements';
 
         return $usedBy;
     }

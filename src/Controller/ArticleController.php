@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\ArticleFournisseur;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -19,8 +20,6 @@ use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\ArticleFournisseurRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
@@ -87,11 +86,6 @@ class ArticleController extends AbstractController
     private $articleRepository;
 
     /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
-
-    /**
      * @var ReceptionRepository
      */
     private $receptionRepository;
@@ -135,7 +129,6 @@ class ArticleController extends AbstractController
                                 ValeurChampLibreRepository $valeurChampsLibreRepository,
                                 ArticleDataService $articleDataService,
                                 RefArticleDataService $refArticleDataService,
-                                ArticleFournisseurRepository $articleFournisseurRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ReceptionRepository $receptionRepository,
                                 ArticleRepository $articleRepository,
@@ -152,7 +145,6 @@ class ArticleController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -673,17 +665,19 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true})
+     * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
      */
-    public function getRefArticles(Request $request)
+    public function getRefArticles(Request $request, EntityManagerInterface $entityManager)
     {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $articleFournisseur = $this->articleFournisseurRepository->findBySearch($search);
-            return new JsonResponse(['results' => $articleFournisseur]);
-        }
-        throw new NotFoundHttpException("404");
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $articleFournisseur = $articleFournisseurRepository->findBySearch($search);
+
+        return new JsonResponse(['results' => $articleFournisseur]);
     }
 
     /**
@@ -778,12 +772,13 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $fournisseur = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
             $fournisseur = $fournisseurRepository->find($fournisseur);
 
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
-                    'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
+                    'references' => $articleFournisseurRepository->getByFournisseur($fournisseur),
                     'valeurChampLibre' => null
                 ]);
             } else {
@@ -796,12 +791,17 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/ajax_article_new_content", name="ajax_article_new_content", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function ajaxArticleNewContent(Request $request): Response
+    public function ajaxArticleNewContent(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            $articleFournisseur = $this->articleFournisseurRepository
+            $articleFournisseur = $articleFournisseurRepository
                 ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
 
             if (count($articleFournisseur) === 0) {
