@@ -9,6 +9,7 @@ use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -99,11 +100,6 @@ class ReferenceArticleController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ChampLibreRepository
@@ -217,7 +213,6 @@ class ReferenceArticleController extends AbstractController
                                 LivraisonRepository $livraisonRepository,
                                 DemandeRepository $demandeRepository,
                                 CollecteRepository $collecteRepository,
-                                StatutRepository $statutRepository,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ChampLibreRepository $champsLibreRepository,
@@ -234,7 +229,6 @@ class ReferenceArticleController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
-        $this->statutRepository = $statutRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
@@ -418,6 +412,9 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
 
@@ -429,7 +426,8 @@ class ReferenceArticleController extends AbstractController
 				]);
             }
             $requiredCreate = true;
-            $type = $entityManager->find(Type::class, $data['type']);
+
+            $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
                 $emplacement = $this->emplacementRepository->find($data['emplacement']);
@@ -450,8 +448,7 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
             switch($data['type_quantite']) {
                 case 'article':
@@ -514,11 +511,11 @@ class ReferenceArticleController extends AbstractController
                     ->setFournisseur($fournisseur)
                     ->setReference($ref)
                     ->setLabel($label);
-                $em->persist($articleFournisseur);
+                $entityManager->persist($articleFournisseur);
 
             }
-            $em->persist($refArticle);
-            $em->flush();
+            $entityManager->persist($refArticle);
+            $entityManager->flush();
             $champsLibresKey = array_keys($data);
 
             foreach ($champsLibresKey as $champs) {
@@ -528,8 +525,8 @@ class ReferenceArticleController extends AbstractController
                         ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                         ->addArticleReference($refArticle)
                         ->setChampLibre($this->champLibreRepository->find($champs));
-                    $em->persist($valeurChampLibre);
-                    $em->flush();
+                    $entityManager->persist($valeurChampLibre);
+                    $entityManager->flush();
                 }
             }
             return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
@@ -902,14 +899,21 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function plusDemande(Request $request): Response
+    public function plusDemande(EntityManagerInterface $entityManager,
+                                Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $json = true;
 
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
@@ -935,7 +939,7 @@ class ReferenceArticleController extends AbstractController
 						}
 						$newArticle = new Article();
 						$index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-						$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
+						$statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
 						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 						$ref = $date->format('YmdHis');
 						$articleFournisseur = new ArticleFournisseur();
@@ -987,15 +991,26 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/ajax-plus-demande-content", name="ajax_plus_demande_content", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function ajaxPlusDemandeContent(Request $request): Response
+    public function ajaxPlusDemandeContent(EntityManagerInterface $entityManager,
+                                           Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
             $refArticle = $this->referenceArticleRepository->find($data['id']);
             if ($refArticle) {
                 $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
-                $statutD = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+                $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1293,12 +1308,18 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/get-demande", name="demande", options={"expose"=true})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function getDemande(Request $request): Response
+    public function getDemande(EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+            $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
             $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
