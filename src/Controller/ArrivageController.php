@@ -189,7 +189,29 @@ class ArrivageController extends AbstractController
      */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, FieldsParamRepository $fieldsParamRepository, ArrivageDataService $arrivageDataService, DashboardService $dashboardService, UrgenceRepository $urgenceRepository, AttachmentService $attachmentService, NatureRepository $natureRepository, MouvementTracaRepository $mouvementTracaRepository, ColisRepository $colisRepository, PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, GlobalParamService $globalParamService, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository,
+                                FieldsParamRepository $fieldsParamRepository,
+                                ArrivageDataService $arrivageDataService,
+                                DashboardService $dashboardService,
+                                UrgenceRepository $urgenceRepository,
+                                AttachmentService $attachmentService,
+                                NatureRepository $natureRepository,
+                                MouvementTracaRepository $mouvementTracaRepository,
+                                ColisRepository $colisRepository,
+                                PieceJointeRepository $pieceJointeRepository,
+                                LitigeRepository $litigeRepository,
+                                ChampLibreRepository $champsLibreRepository,
+                                SpecificService $specificService,
+                                MailerService $mailerService,
+                                GlobalParamService $globalParamService,
+                                TypeRepository $typeRepository,
+                                ChauffeurRepository $chauffeurRepository,
+                                TransporteurRepository $transporteurRepository,
+                                FournisseurRepository $fournisseurRepository,
+                                StatutRepository $statutRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                UserService $userService,
+                                ArrivageRepository $arrivageRepository)
     {
         $this->fieldsParamRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
