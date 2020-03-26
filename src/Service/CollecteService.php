@@ -8,7 +8,6 @@ use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\ReferenceArticleRepository;
 

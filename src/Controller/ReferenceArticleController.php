@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -36,7 +37,6 @@ use App\Repository\LivraisonRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\EmplacementRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -70,10 +70,6 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
  */
 class ReferenceArticleController extends AbstractController
 {
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
     /**
      * @var ArticleRepository
      */
@@ -197,7 +193,6 @@ class ReferenceArticleController extends AbstractController
                                 ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
-                                EmplacementRepository $emplacementRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 LigneArticleRepository $ligneArticleRepository,
                                 ArticleRepository $articleRepository,
@@ -217,7 +212,6 @@ class ReferenceArticleController extends AbstractController
                                 MouvementStockRepository $mouvementStockRepository,
                                 CSVExportService $CSVExportService)
     {
-        $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champLibreRepository = $champsLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
@@ -406,6 +400,7 @@ class ReferenceArticleController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
@@ -422,7 +417,7 @@ class ReferenceArticleController extends AbstractController
             $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
-                $emplacement = $this->emplacementRepository->find($data['emplacement']);
+                $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             };
@@ -676,9 +671,11 @@ class ReferenceArticleController extends AbstractController
 		});
 
         $typeRepository = $entityManager->getRepository(Type::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
         $inventoryCategories = $this->inventoryCategoryRepository->findAll();
-        $emplacements = $this->emplacementRepository->findAll();
+        $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {

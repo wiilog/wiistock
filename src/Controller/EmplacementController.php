@@ -9,8 +9,6 @@ use App\Entity\Menu;
 
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
@@ -45,11 +43,6 @@ class EmplacementController extends AbstractController
      * @var EmplacementDataService
      */
     private $emplacementDataService;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var ArticleRepository
@@ -96,10 +89,9 @@ class EmplacementController extends AbstractController
      */
     private $referenceArticleRepository;
 
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, GlobalParamService $globalParamService, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, GlobalParamService $globalParamService, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
-        $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->demandeRepository = $demandeRepository;
@@ -190,15 +182,21 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $emplacement = $this->emplacementRepository->find($data['id']);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
+            $emplacement = $emplacementRepository->find($data['id']);
             $json = $this->renderView('emplacement/modalEditEmplacementContent.html.twig', [
                 'emplacement' => $emplacement,
             ]);
@@ -211,12 +209,15 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/edit", name="emplacement_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
             if ($errorResponse) {
@@ -229,7 +230,7 @@ class EmplacementController extends AbstractController
                 return $errorResponse;
             }
 
-            $emplacement = $this->emplacementRepository->find($data['id']);
+            $emplacement = $emplacementRepository->find($data['id']);
             $emplacement
                 ->setLabel($data["Label"])
                 ->setDescription($data["Description"])
@@ -306,18 +307,23 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $entityManager = $this->getDoctrine()->getManager();
             $response = [];
 
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
             if ($emplacementId = (int)$data['emplacement']) {
-                $emplacement = $this->emplacementRepository->find($emplacementId);
+                $emplacement = $emplacementRepository->find($emplacementId);
 
                 if ($emplacement) {
 					$usedEmplacement = $this->isEmplacementUsed($emplacementId);
@@ -339,14 +345,19 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/autocomplete", name="get_emplacement", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
      */
-    public function getRefArticles(Request $request)
+    public function getRefArticles(Request $request,
+                                   EntityManagerInterface $entityManager)
     {
     	if ($request->isXmlHttpRequest()) {
 
             $search = $request->query->get('term');
 
-            $emplacement = $this->emplacementRepository->getIdAndLabelActiveBySearch($search);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $emplacement = $emplacementRepository->getIdAndLabelActiveBySearch($search);
             return new JsonResponse(['results' => $emplacement]);
         }
         throw new NotFoundHttpException("404");
@@ -358,7 +369,6 @@ class EmplacementController extends AbstractController
      * @param PDFGeneratorService $PDFGeneratorService
      * @return PdfResponse
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError

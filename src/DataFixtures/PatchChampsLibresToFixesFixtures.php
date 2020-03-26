@@ -8,7 +8,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;

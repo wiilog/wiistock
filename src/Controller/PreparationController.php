@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -13,7 +14,6 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\EmplacementRepository;
 use App\Repository\LigneArticlePreparationRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\UtilisateurRepository;
@@ -127,7 +127,6 @@ class PreparationController extends AbstractController
      * @param $idPrepa
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param EmplacementRepository $emplacementRepository
      * @param PreparationsManagerService $preparationsManager
      * @return Response
      * @throws NonUniqueResultException
@@ -139,14 +138,16 @@ class PreparationController extends AbstractController
     public function finishPrepa($idPrepa,
                                 Request $request,
                                 EntityManagerInterface $entityManager,
-                                EmplacementRepository $emplacementRepository,
                                 PreparationsManagerService $preparationsManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $preparation = $this->preparationRepository->find($idPrepa);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
+
+        $preparation = $preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
         $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());

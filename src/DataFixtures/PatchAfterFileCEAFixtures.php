@@ -11,7 +11,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\ChampLibreRepository;

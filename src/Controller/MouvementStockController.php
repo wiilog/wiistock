@@ -4,18 +4,17 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 
+use App\Entity\MouvementStock;
 use App\Entity\Statut;
-use App\Repository\EmplacementRepository;
-use App\Repository\MouvementStockRepository;
-use App\Repository\MouvementTracaRepository;
-use App\Repository\UtilisateurRepository;
 
 use App\Service\MouvementStockService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -30,92 +29,47 @@ use DateTime;
  */
 class MouvementStockController extends AbstractController
 {
-    /**
-     * @var MouvementStockRepository
-     */
-    private $mouvementStockRepository;
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-	/**
-	 * @var MouvementStockService
-	 */
-    private $mouvementStockService;
-
-	/**
-	 * @var MouvementTracaRepository
-	 */
-    private $mouvementTracaRepository;
-
-	/**
-	 * ArrivageController constructor.
-	 * @param MouvementStockService $mouvementStockService
-	 * @param EmplacementRepository $emplacementRepository
-	 * @param UtilisateurRepository $utilisateurRepository
-	 * @param UserService $userService
-	 * @param MouvementStockRepository $mouvementStockRepository
-	 * @param MouvementTracaRepository $mouvementTracaRepository
-	 */
-
-    public function __construct(
-    	MouvementStockService $mouvementStockService,
-		EmplacementRepository $emplacementRepository,
-		UtilisateurRepository $utilisateurRepository,
-		UserService $userService,
-		MouvementStockRepository $mouvementStockRepository,
-		MouvementTracaRepository $mouvementTracaRepository)
-    {
-        $this->emplacementRepository = $emplacementRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
-        $this->userService = $userService;
-        $this->mouvementStockRepository = $mouvementStockRepository;
-        $this->mouvementStockService = $mouvementStockService;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
-    }
 
     /**
      * @Route("/", name="mouvement_stock_index")
+     * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager)
+    public function index(UserService $userService,
+                          EntityManagerInterface $entityManager)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         return $this->render('mouvement_stock/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
-            'emplacements' => $this->emplacementRepository->findAll(),
+            'emplacements' => $emplacementRepository->findAll(),
         ]);
     }
 
     /**
      * @Route("/api", name="mouvement_stock_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param UserService $userService
+     * @param MouvementStockService $mouvementStockService
+     * @return Response
+     * @throws Exception
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        UserService $userService,
+                        MouvementStockService $mouvementStockService): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
+            if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->mouvementStockService->getDataForDatatable($request->request);
+            $data = $mouvementStockService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }
@@ -124,17 +78,23 @@ class MouvementStockController extends AbstractController
 
     /**
      * @Route("/supprimer", name="mvt_stock_delete", options={"expose"=true},methods={"GET","POST"})
+     * @param Request $request
+     * @param UserService $userService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           UserService $userService,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $mouvement = $this->mouvementStockRepository->find($data['mvt']);
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+            $mouvement = $mouvementStockRepository->find($data['mvt']);
 
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+            if (!$userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($mouvement);
             $entityManager->flush();
             return new JsonResponse();
@@ -145,8 +105,13 @@ class MouvementStockController extends AbstractController
 
     /**
      * @Route("/mouvement-stock-infos", name="get_mouvements_stock_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws Exception
      */
-    public function getMouvementIntels(Request $request): Response
+    public function getMouvementIntels(Request $request,
+                                       EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
@@ -155,7 +120,9 @@ class MouvementStockController extends AbstractController
 			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
 			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-            $mouvements = $this->mouvementStockRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+
+            $mouvements = $mouvementStockRepository->findByDates($dateTimeMin, $dateTimeMax);
             foreach($mouvements as $mouvement) {
                 if ($dateTimeMin > $mouvement->getDate() || $dateTimeMax < $mouvement->getDate()) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);

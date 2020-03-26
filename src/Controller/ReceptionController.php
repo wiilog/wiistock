@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\LigneArticle;
 use App\Entity\Litige;
@@ -15,6 +16,7 @@ use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -30,8 +32,6 @@ use App\Repository\PieceJointeRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\ArticleRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ValeurChampLibreRepository;
@@ -78,11 +78,6 @@ use Twig\Error\SyntaxError;
  */
 class ReceptionController extends AbstractController
 {
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var UtilisateurRepository
@@ -194,7 +189,6 @@ class ReceptionController extends AbstractController
         ReferenceArticleRepository $referenceArticleRepository,
         ReceptionRepository $receptionRepository,
         UtilisateurRepository $utilisateurRepository,
-        EmplacementRepository $emplacementRepository,
         ArticleRepository $articleRepository,
         ArticleFournisseurRepository $articleFournisseurRepository,
         UserService $userService,
@@ -220,7 +214,6 @@ class ReceptionController extends AbstractController
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
-        $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -253,6 +246,8 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -279,7 +274,7 @@ class ReceptionController extends AbstractController
             }
 
 			if (!empty($data['location'])) {
-                $location = $this->emplacementRepository->find(intval($data['location']));
+                $location = $emplacementRepository->find(intval($data['location']));
                 $reception
                     ->setLocation($location);
             }
@@ -356,8 +351,12 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $receptionRepository = $entityManager->getRepository(Reception::class);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-            $reception = $this->receptionRepository->find($data['receptionId']);
+            $reception = $receptionRepository->find($data['receptionId']);
 
             $statut = $statutRepository->find(intval($data['statut']));
             $reception->setStatut($statut);
@@ -365,13 +364,13 @@ class ReceptionController extends AbstractController
 			$fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
             $reception->setFournisseur($fournisseur);
 
-			$utilisateur = !empty($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
+			$utilisateur = !empty($data['utilisateur']) ? $utilisateurRepository->find($data['utilisateur']) : null;
             $reception->setUtilisateur($utilisateur);
 
-			$transporteur = !empty($data['transporteur']) ? $this->transporteurRepository->find($data['transporteur']) : null;
+			$transporteur = !empty($data['transporteur']) ? $transporteurRepository->find($data['transporteur']) : null;
             $reception->setTransporteur($transporteur);
 
-            $location = !empty($data['location']) ? $this->emplacementRepository->find($data['location']) : null;
+            $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
             $reception->setLocation($location);
 
             $reception

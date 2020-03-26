@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\LigneArticle;
@@ -33,7 +34,6 @@ use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\EmplacementRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -81,11 +81,6 @@ class RefArticleDataService
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var ArticleRepository
@@ -138,7 +133,6 @@ class RefArticleDataService
     public function __construct(DemandeRepository $demandeRepository,
                                 ArticleRepository $articleRepository,
                                 LigneArticleRepository $ligneArticleRepository,
-                                EmplacementRepository $emplacementRepository,
                                 RouterInterface $router,
                                 UserService $userService,
                                 ArticleFournisseurRepository $articleFournisseurRepository,
@@ -153,7 +147,6 @@ class RefArticleDataService
                                 InventoryCategoryRepository $inventoryCategoryRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
-        $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
@@ -300,15 +293,18 @@ class RefArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
+
+        $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
-        $type = $this->entityManager->find(Type::class, intval($data['type']));
+        $type = $typeRepository->find(intval($data['type']));
         $category = $this->inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
-        $emplacement = $this->emplacementRepository->find(intval($data['emplacement']));
+        $emplacement = $emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -353,7 +349,7 @@ class RefArticleDataService
                 if ($statut) $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
-                $type = $this->entityManager->find(Type::class, intval($data['type']));
+                $type = $typeRepository->find(intval($data['type']));
                 if ($type) $refArticle->setType($type);
             }
 
