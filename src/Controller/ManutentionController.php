@@ -12,7 +12,6 @@ use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ManutentionRepository;
-use App\Repository\StatutRepository;
 
 use App\Service\MailerService;
 use App\Service\UserService;

@@ -30,7 +30,6 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\TypeRepository;
-use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;

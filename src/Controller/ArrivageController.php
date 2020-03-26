@@ -33,7 +33,6 @@ use App\Repository\FournisseurRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
-use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;

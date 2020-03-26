@@ -28,7 +28,6 @@ use App\Repository\MouvementTracaRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;

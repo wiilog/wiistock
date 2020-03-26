@@ -9,7 +9,6 @@ use App\Entity\Menu;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Repository\EmplacementRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 
