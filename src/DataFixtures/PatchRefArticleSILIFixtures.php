@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
@@ -11,7 +12,6 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -28,11 +28,6 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -59,11 +54,10 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
      */
     private $articleFournisseurRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -73,6 +67,8 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+
         $path = "src/DataFixtures/Csv/sili.csv";
         $file = fopen($path, "r");
 
@@ -102,7 +98,7 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
                 ->setType($typeSili)
-                ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                 ->setReference($row[0])
                 ->setQuantiteStock($row[3])
                 ->setLibelle($row[1])

@@ -19,7 +19,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Manutention;
 use App\Entity\Statut;
 use App\Repository\CategorieStatutRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -30,27 +29,23 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
 	/**
 	 * @var CategorieStatutRepository
 	 */
     private $categorieStatutRepository;
 
 
-    public function __construct(CategorieStatutRepository $categorieStatutRepository, StatutRepository $statutRepository, UserPasswordEncoderInterface $encoder)
+    public function __construct(CategorieStatutRepository $categorieStatutRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->categorieStatutRepository = $categorieStatutRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-    	$categoriesStatus = [
+        $statutRepository = $manager->getRepository(Statut::class);
+
+        $categoriesStatus = [
     		CategorieStatut::REFERENCE_ARTICLE => [
     			ReferenceArticle::STATUT_ACTIF,
 				ReferenceArticle::STATUT_INACTIF
@@ -133,7 +128,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
         // on supprime les anciens statut d'arrivage qui ne sont pas dans le tableau
         /** @var Statut[] $statutsASupprimer */
-        $statutsASupprimer = $this->statutRepository->createQueryBuilder('statut')
+        $statutsASupprimer = $statutRepository->createQueryBuilder('statut')
             ->distinct()
             ->innerJoin('statut.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieArrivage')
@@ -163,7 +158,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
 			// création des statuts
 			foreach ($statuses as $statusLabel) {
-				$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode($categoryName, $statusLabel);
+				$statut = $statutRepository->findOneByCategorieNameAndStatutCode($categoryName, $statusLabel);
 
 				if (empty($statut)) {
 					$statut = new Statut();

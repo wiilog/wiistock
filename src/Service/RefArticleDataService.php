@@ -31,7 +31,6 @@ use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;

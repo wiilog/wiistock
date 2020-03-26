@@ -9,7 +9,6 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -32,11 +31,6 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $fournisseurRepository;
 
     /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
      * @var ReferenceArticleRepository
      */
     private $refArticleRepository;
@@ -52,12 +46,11 @@ class PatchChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     private $emplacementRepository;
 
 
-    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;

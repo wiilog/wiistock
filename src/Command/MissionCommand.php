@@ -8,7 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\StatutRepository;
+use App\Entity\Statut;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -56,18 +56,12 @@ class MissionCommand extends Command
     private $inventoryMissionRepository;
 
 	/**
-	 * @var StatutRepository
-	 */
-    private $statutRepository;
-
-	/**
 	 * @var InventoryService
 	 */
     private $inventoryService;
 
 
     public function __construct(
-    	StatutRepository $statutRepository,
 		UtilisateurRepository $userRepository,
 		EntityManagerInterface $entityManager,
 		ArticleRepository $articleRepository,
@@ -84,7 +78,6 @@ class MissionCommand extends Command
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
-        $this->statutRepository = $statutRepository;
         $this->inventoryService = $inventoryService;
     }
 
@@ -96,6 +89,8 @@ class MissionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
+
         $now = new \DateTime('now');
         $frequencies = $this->inventoryFrequencyRepository->findUsedByCat();
 
@@ -132,7 +127,7 @@ class MissionCommand extends Command
 						}
 					}
 				} else {
-            		$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            		$statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             		$articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
 
             		foreach ($articles as $article) {

@@ -7,13 +7,13 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -37,11 +37,6 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -69,12 +64,11 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
     private $valeurCLRepository;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, SReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -84,6 +78,7 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
         $path = "src/DataFixtures/Csv/csp.csv";
         $file = fopen($path, "r");
 
@@ -113,7 +108,7 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
                     ->setType($typeCsp)
-                    ->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                     ->setReference($row[0])
                     ->setLibelle($row[1])
                     ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);

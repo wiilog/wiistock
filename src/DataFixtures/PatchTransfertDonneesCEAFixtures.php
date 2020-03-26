@@ -13,7 +13,6 @@ use App\Repository\DemandeRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\ValeurChampLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -31,11 +30,6 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -77,13 +71,12 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;

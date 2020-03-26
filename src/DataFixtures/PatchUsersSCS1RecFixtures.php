@@ -9,7 +9,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\RoleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -31,11 +30,6 @@ class PatchUsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -73,14 +67,13 @@ class PatchUsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
     private $roleRepository;
 
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;

@@ -4,11 +4,11 @@ namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -31,11 +31,6 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
     private $champLibreRepository;
 
     /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
@@ -51,11 +46,10 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -63,6 +57,8 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
 
     public function load(ObjectManager $manager)
     {
+        $statutRepository = $manager->getRepository(Statut::class);
+
         $path = "src/DataFixtures/Csv/slugcible.csv";
         $file = fopen($path, "r");
 
@@ -80,7 +76,7 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
             $i++;
 
             $typeSlugcible = $typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
-            $statutActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
+            $statutActif = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
             // champs fixes
             $referenceArticle = new ReferenceArticle();

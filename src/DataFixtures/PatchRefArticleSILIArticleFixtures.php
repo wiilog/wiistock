@@ -7,13 +7,13 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -31,11 +31,6 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -67,11 +62,10 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
      */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -83,6 +77,8 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
     public function load(ObjectManager $manager)
     {
         $typeRepository = $manager->getRepository(Type::class);
+        $statutRepository = $manager->getRepository(Statut::class);
+
         $type = $typeRepository->findOneByLabel(Type::LABEL_SILI);
         $articlesSili = $this->refArticleRepository->findBy(['type' => $type]);
 
@@ -96,7 +92,7 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $ref = $date->format('YmdHis');
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
 
             $article
                 ->setStatut($statut)

@@ -21,7 +21,6 @@ use App\Repository\ReceptionRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
 use Twig\Environment as Twig_Environment;
-use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
