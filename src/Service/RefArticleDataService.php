@@ -536,14 +536,13 @@ class RefArticleDataService
 	/**
 	 * @param ReferenceArticle $referenceArticle
 	 * @return array
-	 * @throws DBALException
-	 * @throws LoaderError
+     * @throws LoaderError
 	 * @throws RuntimeError
 	 * @throws SyntaxError
 	 */
     public function dataRowAlerteRef($referenceArticle)
     {
-        $quantity = $referenceArticle->getQuantiteDisponible();
+        $quantity = $referenceArticle['quantiteDisponible'];
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),

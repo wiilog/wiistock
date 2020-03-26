@@ -121,6 +121,8 @@ class ImportService
 
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
+        $status = $import->getStatus() ? $import->getStatus()->getNom() : '';
+
         return [
             'id' => $import->getId(),
             'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
@@ -129,7 +131,7 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => $import->getStatus() ? $import->getStatus()->getNom() : '',
+            'status' => '<span class="status-' . $status . ' cursor-default" data-id="' . $importId . '">' . $status . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
