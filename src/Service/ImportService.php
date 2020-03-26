@@ -37,7 +37,7 @@ use Twig\Error\SyntaxError;
 
 class ImportService
 {
-    private const MAX_LINES_FLASH_IMPORT = 500;
+    public const MAX_LINES_FLASH_IMPORT = 500;
 
     /**
      * @var Twig_Environment
@@ -155,6 +155,7 @@ class ImportService
     /**
      * @param Import $import
      * @param bool $force
+     * @return bool
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
@@ -203,7 +204,7 @@ class ImportService
         if (!$smallFile && !$force) {
             $import->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED));
             $this->em->flush();
-            return;
+            return false;
         }
         else {
             // les premières lignes < MAX_LINES_FLASH_IMPORT
@@ -236,6 +237,7 @@ class ImportService
                 ->setEndDate(new DateTime('now'));
 
             $this->em->flush();
+            return true;
         }
     }
 

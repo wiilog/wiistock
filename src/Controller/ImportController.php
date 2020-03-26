@@ -209,11 +209,8 @@ class ImportController extends AbstractController
 		unset($data['importId']);
 
 		$import = $importRepository->find($importId);
-
-        if ($success) {
-            $import->setColumnToField($data);
-            $this->getDoctrine()->getManager()->flush();
-        }
+        $import->setColumnToField($data);
+        $this->getDoctrine()->getManager()->flush();
 
 		return new JsonResponse([
 			'success' => $success,
@@ -279,10 +276,20 @@ class ImportController extends AbstractController
         $import = $em->getRepository(Import::class)->find($importId);
 
         if ($import) {
-            $importService->loadData($import);
+            $success = true;
+            $isLaunched = $importService->loadData($import);
+            $msg = $isLaunched ?
+                'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.' :
+                'Votre import contient plus de ' . ImportService::MAX_LINES_FLASH_IMPORT . ' lignes. Il sera effectué cette nuit.';
+        } else {
+            $success = false;
+            $msg = 'Une erreur est survenue lors de l\'import. Veuillez le renouveler.';
         }
 
-		return new JsonResponse();
+		return new JsonResponse([
+		    'success' => $success,
+            'msg' => $msg
+        ]);
 	}
 
     /**
