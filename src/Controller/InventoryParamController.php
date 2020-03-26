@@ -4,21 +4,18 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\ReferenceArticle;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\InventoryCategoryRepository;
-use App\Repository\ReferenceArticleRepository;
-
 use App\Service\UserService;
-
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-
 use App\Entity\Menu;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
@@ -48,18 +45,12 @@ class InventoryParamController extends AbstractController
      */
     private $inventoryFrequencyRepository;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
     /**
@@ -205,15 +196,19 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/verification", name="category_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function checkUserCanBeDeleted(Request $request): Response
+    public function checkUserCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $categoryId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $userIsUsed = $this->referenceArticleRepository->countByCategory($categoryId);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $userIsUsed = $referenceArticleRepository->countByCategory($categoryId);
 
             if (!$userIsUsed) {
                 $delete = true;
@@ -413,17 +408,18 @@ class InventoryParamController extends AbstractController
     }
 
 
-
-
-	/**
-	 * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
-	 */
-	public function updateCategory(Request $request): Response
+    /**
+     * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+	public function updateCategory(Request $request, EntityManagerInterface $entityManager): Response
 	{
 		if ($request->isXmlHttpRequest()) {
-			$em = $this->getDoctrine()->getManager();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-			$file = $request->files->get('file');
+            $file = $request->files->get('file');
 
 			$delimiters = array(
 				';' => 0,
@@ -462,12 +458,12 @@ class InventoryParamController extends AbstractController
 			foreach ($rows as $row)
 			{
 				$inventoryCategory = $this->inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
-				$refArticle = $this->referenceArticleRepository->findOneBy(['reference' => $row[0]]);
+				$refArticle = $referenceArticleRepository->findOneBy(['reference' => $row[0]]);
 				if (!empty($refArticle) && !empty($inventoryCategory))
 				{
 					$refArticle->setCategory($inventoryCategory);
-					$em->persist($refArticle);
-					$em->flush();
+                    $entityManager->persist($refArticle);
+                    $entityManager->flush();
 				}
 				else
 				{
@@ -483,7 +479,7 @@ class InventoryParamController extends AbstractController
 			}
 
 			if ($success) {
-				$em->flush();
+                $entityManager->flush();
 			} else {
 				fwrite($myFile, "\n\nVotre fichier .csv doit contenir 2 colonnes :\n" .
 					"- Une avec les références des articles de référence\n" .

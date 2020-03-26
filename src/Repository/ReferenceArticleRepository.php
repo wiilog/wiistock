@@ -10,14 +10,13 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +24,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ReferenceArticle[]    findAll()
  * @method ReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReferenceArticleRepository extends ServiceEntityRepository
+class ReferenceArticleRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Label' => 'libelle',
@@ -45,11 +44,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory'
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ReferenceArticle::class);
-    }
 
     public function getIdAndLibelle()
     {

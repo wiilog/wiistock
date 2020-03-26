@@ -35,7 +35,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ValeurChampLibreRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use App\Repository\TransporteurRepository;
@@ -87,11 +86,6 @@ class ReceptionController extends AbstractController
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var TransporteurRepository
@@ -185,7 +179,6 @@ class ReceptionController extends AbstractController
         GlobalParamService $globalParamService,
         ChampLibreRepository $champLibreRepository,
         ValeurChampLibreRepository $valeurChampsLibreRepository,
-        ReferenceArticleRepository $referenceArticleRepository,
         ReceptionRepository $receptionRepository,
         UtilisateurRepository $utilisateurRepository,
         EmplacementRepository $emplacementRepository,
@@ -217,7 +210,6 @@ class ReceptionController extends AbstractController
         $this->receptionRepository = $receptionRepository;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
@@ -715,9 +707,10 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticleId = (int)$contentData['referenceArticle'];
-            $refArticle = $this->referenceArticleRepository->find($refArticleId);
+            $refArticle = $referenceArticleRepository->find($refArticleId);
 
             $reception = $this->receptionRepository->find($contentData['reception']);
             $commande = $contentData['commande'];
@@ -845,9 +838,10 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $receptionReferenceArticle = $this->receptionReferenceArticleRepository->find($data['article']);
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
 			$quantite = $data['quantite'];
 
@@ -1026,11 +1020,14 @@ class ReceptionController extends AbstractController
      * @param Request $request
      * @param Reception $reception
      *
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
-    public function getRefTypeQtyArticle(Request $request, Reception $reception)
+    public function getRefTypeQtyArticle(Request $request, Reception $reception, EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
             $ref = array_map(
                 function ($item) {
                     return [
@@ -1040,7 +1037,7 @@ class ReceptionController extends AbstractController
                         'text' => "{$item['reference']} – {$item['commande']}"
                     ];
                 },
-                $this->referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId())
+                $referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId())
             );
 
             return new JsonResponse(['results' => $ref]);
@@ -1060,6 +1057,7 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $reference = $request->query->get('reference');
             $commande = $request->query->get('commande');
@@ -1068,7 +1066,7 @@ class ReceptionController extends AbstractController
             // TODO verif null
 
             /** @var ReferenceArticle $refArticle */
-            $refArticle = $this->referenceArticleRepository->findOneByReference($reference);
+            $refArticle = $referenceArticleRepository->findOneByReference($reference);
 
             $typeArticle = $refArticle->getType();
 
@@ -1530,21 +1528,6 @@ class ReceptionController extends AbstractController
         $entityManager->flush();
     }
 
-//    /**
-//     * @Route("/article-stock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
-//     */
-//    public function getArticleStock(Request $request)
-//    {
-//        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-//            return $this->redirectToRoute('access_denied');
-//        }
-//
-//        $id = $request->request->get('id');
-//        $quantiteStock = $this->referenceArticleRepository->getQuantiteStockById($id);
-//
-//        return new JsonResponse($quantiteStock);
-//    }
-
     /**
      * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
@@ -1560,9 +1543,10 @@ class ReceptionController extends AbstractController
 
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $json = null;
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $fournisseur = $fournisseurRepository->find($data['fournisseur']);

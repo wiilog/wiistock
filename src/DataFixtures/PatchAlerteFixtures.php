@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Repository\ReferenceArticleRepository;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -11,19 +11,11 @@ use Doctrine\Common\Persistence\ObjectManager;
 class PatchAlerteFixtures extends Fixture implements FixtureGroupInterface
 {
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository)
-    {
-        $this->referenceArticleRepository = $referenceArticleRepository;
-    }
-
     public function load(ObjectManager $manager)
     {
-        $refArts = $this->referenceArticleRepository->findAll();
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+
+        $refArts = $referenceArticleRepository->findAll();
         foreach ($refArts as $refArt)
         {
             $alerts = [

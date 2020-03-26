@@ -3,11 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\CategoryType;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
-
 use App\Repository\CategoryTypeRepository;
 use App\Repository\ChampLibreRepository;
-use App\Repository\ReferenceArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,11 +36,6 @@ class TypeController extends AbstractController
     private $categoryTypeRepository;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $refArticleRepository;
-
-    /**
      * @var ArticleRepository
      */
     private $articleRepository;
@@ -57,14 +51,12 @@ class TypeController extends AbstractController
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param CategoryTypeRepository $categoryTypeRepository
 	 * @param ChampLibreRepository $champLibreRepository
-	 * @param ReferenceArticleRepository $refArticleRepository
 	 */
-    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
-        $this->refArticleRepository = $refArticleRepository;
         $this->champLibreRepository = $champLibreRepository;
     }
 
@@ -178,11 +170,13 @@ class TypeController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+
             $type = $typeRepository->find(intval($data['type']));
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
-                $this->refArticleRepository->setTypeIdNull($type);
+                $referenceArticleRepository->setTypeIdNull($type);
                 $this->articleRepository->setTypeIdNull($type);
                 foreach ($this->champLibreRepository->findByType($type) as $cl) {
                     $this->filtreRefRepository->deleteByChampLibre($cl);
@@ -191,7 +185,7 @@ class TypeController extends AbstractController
                 $entityManager->flush();
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
-                $articlesRefExist = $this->refArticleRepository->countByType($type);
+                $articlesRefExist = $referenceArticleRepository->countByType($type);
                 $articlesExist = $this->articleRepository->countByType($type);
                 $champsLibresExist = $this->champLibreRepository->countByType($type);
                 $filters = 0;

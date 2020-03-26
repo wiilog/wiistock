@@ -22,7 +22,6 @@ use App\Repository\DemandeRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
@@ -73,11 +72,6 @@ class DemandeController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var ArticleRepository
@@ -143,13 +137,12 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
@@ -577,6 +570,7 @@ class DemandeController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
 
@@ -584,7 +578,7 @@ class DemandeController extends AbstractController
             'demande' => $demande,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referenceArticleRepository->getIdAndLibelle(),
+            'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
@@ -658,15 +652,20 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function addArticle(Request $request): Response
+    public function addArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle);
 
             if ($resp === 'article') {

@@ -185,7 +185,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param MailerService $mailerService
      * @param ColisRepository $colisRepository
      * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param ReferenceArticleRepository $referenceArticleRepository
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param ArticleRepository $articleRepository
@@ -205,7 +204,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 MailerService $mailerService,
                                 ColisRepository $colisRepository,
                                 MouvementTracaRepository $mouvementTracaRepository,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserPasswordEncoderInterface $passwordEncoder,
                                 ArticleRepository $articleRepository,
@@ -220,7 +218,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->logger = $logger;
         $this->preparationRepository = $preparationRepository;
         $this->livraisonRepository = $livraisonRepository;
@@ -366,7 +363,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     /** @var Article|null $article */
                                     $article = count($articles) > 0 ? $articles[0] : null;
                                     if (!isset($article)) {
-                                        $references = $this->referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
+                                        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+                                        $references = $referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
                                         /** @var ReferenceArticle|null $article */
                                         $article = count($references) > 0 ? $references[0] : null;
                                     }
@@ -637,7 +635,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 );
                             }
                             foreach ($totalQuantitiesWithRef as $ref => $quantity) {
-                                $refArticle = $this->referenceArticleRepository->findOneByReference($ref);
+                                $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+                                $refArticle = $referenceArticleRepository->findOneByReference($ref);
                                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                                 $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                             }
@@ -1165,6 +1164,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                   UserService $userService,
                                   EntityManagerInterface $entityManager)
     {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1186,7 +1186,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }, $livraisons);
 
             $articlesLivraison = $this->articleRepository->getByLivraisonsIds($livraisonsIds);
-            $refArticlesLivraison = $this->referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
+            $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
             /// preparations
             $preparations = $this->preparationRepository->getAvailablePreparations($user);
@@ -1197,7 +1197,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 return $collecteArray['id'];
             }, $collectes);
             $articlesCollecte = $this->articleRepository->getByOrdreCollectesIds($collectesIds);
-            $refArticlesCollecte = $this->referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
+            $refArticlesCollecte = $referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
 
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = $this->articleRepository->getArticlePrepaForPickingByUser($user);
@@ -1271,6 +1271,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/getData", name="api-get-data", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param UserService $userService
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
@@ -1390,11 +1391,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Get("/api/articles", name="api-get-articles", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function getArticles(Request $request): Response
+    public function getArticles(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         $resData = [];
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
             $barCode = $request->query->get('barCode');
@@ -1404,7 +1408,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $statusCode = Response::HTTP_OK;
                 $resData['success'] = true;
                 $resData['articles'] = array_merge(
-                    $this->referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
+                    $referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
                     $this->articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
                 );
             } else {
@@ -1463,8 +1467,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return new JsonResponse($resData, $statusCode);
     }
 
+    private function getArticlesPrepaArrays(EntityManagerInterface $entityManager, array $preparations, bool $isIdArray = false): array {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-    private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array {
         $preparationsIds = !$isIdArray
             ? array_map(
                 function ($preparationArray) {
@@ -1475,7 +1480,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             : $preparations;
         return array_merge(
             $this->articleRepository->getByPreparationsIds($preparationsIds),
-            $this->referenceArticleRepository->getByPreparationsIds($preparationsIds)
+            $referenceArticleRepository->getByPreparationsIds($preparationsIds)
         );
     }
 

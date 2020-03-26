@@ -22,7 +22,6 @@ use App\Repository\OrdreCollecteRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
 
@@ -67,11 +66,6 @@ class CollecteController extends AbstractController
      * @var CollecteReferenceRepository
      */
     private $collecteReferenceRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var CollecteRepository
@@ -120,11 +114,10 @@ class CollecteController extends AbstractController
     private $collecteService;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -356,8 +349,9 @@ class CollecteController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
