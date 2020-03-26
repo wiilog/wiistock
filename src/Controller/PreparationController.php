@@ -51,16 +51,6 @@ class PreparationController extends AbstractController
 {
 
     /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var LivraisonRepository
      */
     private $livraisonRepository;
@@ -100,14 +90,19 @@ class PreparationController extends AbstractController
      */
     private $preparationsManagerService;
 
-    public function __construct(PreparationsManagerService $preparationsManagerService, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, DemandeRepository $demandeRepository, UserService $userService)
+    public function __construct(PreparationsManagerService $preparationsManagerService,
+                                UtilisateurRepository $utilisateurRepository,
+                                SpecificService $specificService,
+                                LivraisonRepository $livraisonRepository,
+                                ArticleDataService $articleDataService,
+                                PreparationRepository $preparationRepository,
+                                DemandeRepository $demandeRepository,
+                                UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->preparationRepository = $preparationRepository;
-        $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->specificService = $specificService;
@@ -377,12 +372,18 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
+     * @param Preparation $preparation
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function show(Preparation $preparation): Response
+    public function show(Preparation $preparation,
+                         EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
@@ -391,7 +392,7 @@ class PreparationController extends AbstractController
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
-            'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),
+            'articles' => $articleRepository->getIdRefLabelAndQuantity(),
         ]);
     }
 
@@ -492,8 +493,13 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function submitSplitting(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
+    public function submitSplitting(Request $request,
+                                    EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $totalQuantity = 0;
@@ -501,17 +507,20 @@ class PreparationController extends AbstractController
                 $totalQuantity += $quantity;
             }
             if (!empty($data['articles'])) {
-                $em = $this->getDoctrine()->getManager();
-                $preparation = $this->preparationRepository->find($data['preparation']);
-                $articleFirst = $this->articleRepository->find(array_key_first($data['articles']));
+                $articleRepository = $entityManager->getRepository(Article::class);
+                $preparationRepository = $entityManager->getRepository(Preparation::class);
+                $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+
+                $preparation = $preparationRepository->find($data['preparation']);
+                $articleFirst = $articleRepository->find(array_key_first($data['articles']));
                 $refArticle = $articleFirst->getArticleFournisseur()->getReferenceArticle();
                 $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                 foreach ($data['articles'] as $idArticle => $quantite) {
-                    $article = $this->articleRepository->find($idArticle);
+                    $article = $articleRepository->find($idArticle);
                     $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle);
                 }
                 $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle);
-                $em->flush();
+                $entityManager->flush();
                 $resp = true;
             } else {
                 $resp = false;
@@ -523,18 +532,26 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/modifier-article", name="prepa_edit_ligne_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function editLigneArticle(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
+    public function editLigneArticle(Request $request,
+                                     EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($data['isRef']) {
                 $ligneArticle = $ligneArticlePreparationRepository->find($data['ligneArticle']);
             } else {
-                $ligneArticle = $this->articleRepository->find($data['ligneArticle']);
+                $ligneArticle = $articleRepository->find($data['ligneArticle']);
             }
 
             if ($ligneArticle instanceof Article) {
@@ -548,7 +565,7 @@ class PreparationController extends AbstractController
             if (isset($data['quantite'])) {
                 $ligneArticle->setQuantitePrelevee(max($data['quantite'], 0));
             }
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -557,19 +574,26 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/modifier-article-api", name="prepa_edit_api", options={"expose"=true}, methods={"GET","POST"} )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function apiEditLigneArticle(Request $request, LigneArticlePreparationRepository $ligneArticlePreparationRepository): Response
+    public function apiEditLigneArticle(Request $request,
+                                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+
             if ($data['ref']) {
                 $ligneArticle = $ligneArticlePreparationRepository->find($data['id']);
                 $quantity = $ligneArticle->getQuantite();
             } else {
-                $article = $this->articleRepository->find($data['id']);
+                $article = $articleRepository->find($data['id']);
                 $quantity = $article->getQuantitePrelevee();
             }
 

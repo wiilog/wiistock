@@ -30,8 +30,6 @@ use App\Repository\ParametreRoleRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\ArticleRepository;
-use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
 
 use App\Service\CSVExportService;
@@ -66,10 +64,6 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
  */
 class ReferenceArticleController extends AbstractController
 {
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
     /**
      * @var LivraisonRepository
@@ -85,11 +79,6 @@ class ReferenceArticleController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
-
-    /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
 
     /**
      * @var FiltreRefRepository
@@ -170,8 +159,6 @@ class ReferenceArticleController extends AbstractController
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
                                 CategorieCLRepository $categorieCLRepository,
-                                LigneArticleRepository $ligneArticleRepository,
-                                ArticleRepository $articleRepository,
                                 ArticleDataService $articleDataService,
                                 LivraisonRepository $livraisonRepository,
                                 DemandeRepository $demandeRepository,
@@ -190,9 +177,7 @@ class ReferenceArticleController extends AbstractController
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
-        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
-        $this->ligneArticleRepository = $ligneArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->specificService = $specificService;
@@ -890,9 +875,10 @@ class ReferenceArticleController extends AbstractController
 		if ($request->isXmlHttpRequest()) {
 			$search = $request->query->get('term');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
 			$refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
-			$articles = $this->articleRepository->getIdAndRefBySearch($search, $activeOnly);
+			$articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
 
 			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
 		}
@@ -904,7 +890,11 @@ class ReferenceArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
+     * @throws DBALException
+     * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request): Response

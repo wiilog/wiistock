@@ -6,7 +6,6 @@ namespace App\Service;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,11 +29,6 @@ class CollecteService
     private $router;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var CollecteRepository
      */
     private $collecteRepository;
@@ -56,13 +50,11 @@ class CollecteService
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->user = $tokenStorage->getToken()->getUser();

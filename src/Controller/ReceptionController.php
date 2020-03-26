@@ -33,7 +33,6 @@ use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\InventoryCategoryRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -91,11 +90,6 @@ class ReceptionController extends AbstractController
      * @var ReceptionRepository
      */
     private $receptionRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
     /**
      * @var ReceptionReferenceArticleRepository
@@ -164,7 +158,6 @@ class ReceptionController extends AbstractController
         GlobalParamService $globalParamService,
         ReceptionRepository $receptionRepository,
         UtilisateurRepository $utilisateurRepository,
-        ArticleRepository $articleRepository,
         UserService $userService,
         ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
         InventoryCategoryRepository $inventoryCategoryRepository,
@@ -191,7 +184,6 @@ class ReceptionController extends AbstractController
         $this->receptionRepository = $receptionRepository;
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
@@ -587,20 +579,26 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $reception = $this->receptionRepository->find($data['receptionId']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $receptionRepository = $entityManager->getRepository(Reception::class);
 
-            $entityManager = $this->getDoctrine()->getManager();
+            $reception = $receptionRepository->find($data['receptionId']);
+
             foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
                 $entityManager->remove($receptionArticle);
-                $this->articleRepository->setNullByReception($receptionArticle);
+                $articleRepository->setNullByReception($receptionArticle);
             }
             $entityManager->remove($reception);
             $entityManager->flush();
@@ -1107,6 +1105,7 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $litige = $this->litigeRepository->find($post->get('id'));
             $typeBefore = $litige->getType()->getId();
@@ -1129,7 +1128,7 @@ class ReceptionController extends AbstractController
                 // ... et on ajoute ceux sélectionnés
                 $listColis = explode(',', $colis);
                 foreach ($listColis as $colisId) {
-                    $article = $this->articleRepository->find($colisId);
+                    $article = $articleRepository->find($colisId);
                     $litige->addArticle($article);
                     $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
                     if ($ligneIsUrgent) {
@@ -1223,6 +1222,7 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $litige = new Litige();
             $litige
@@ -1233,7 +1233,7 @@ class ReceptionController extends AbstractController
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
-                    $article = $this->articleRepository->find($colisId);
+                    $article = $articleRepository->find($colisId);
                     $litige->addArticle($article);
                     $ligneIsUrgent = $article->getReceptionReferenceArticle() && $article->getReceptionReferenceArticle()->getEmergencyTriggered();
                     if ($ligneIsUrgent) {
@@ -1282,6 +1282,9 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
     public function apiEditLitige(EntityManagerInterface $entityManager,
                                   Request $request): Response

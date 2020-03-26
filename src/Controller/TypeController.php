@@ -36,21 +36,13 @@ class TypeController extends AbstractController
      */
     private $categoryTypeRepository;
 
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
 	/**
 	 * TypeController constructor.
-	 * @param ArticleRepository $articleRepository
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param CategoryTypeRepository $categoryTypeRepository
 	 */
-    public function __construct(ArticleRepository $articleRepository,
-                                FiltreRefRepository $filtreRefRepository,
+    public function __construct(FiltreRefRepository $filtreRefRepository,
                                 CategoryTypeRepository $categoryTypeRepository) {
-        $this->articleRepository = $articleRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
     }
@@ -185,7 +177,7 @@ class TypeController extends AbstractController
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
                 $articlesRefExist = $referenceArticleRepository->countByType($type);
-                $articlesExist = $this->articleRepository->countByType($type);
+                $articlesExist = $articleRepository->countByType($type);
                 $champsLibresExist = $champLibreRepository->countByType($type);
                 $filters = 0;
                 foreach ($champLibreRepository->findByType($type) as $cl) {

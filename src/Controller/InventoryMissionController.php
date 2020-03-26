@@ -4,6 +4,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
@@ -53,11 +54,6 @@ class InventoryMissionController extends AbstractController
     private $inventoryEntryRepository;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var InvMissionService
      */
     private $invMissionService;
@@ -71,7 +67,6 @@ class InventoryMissionController extends AbstractController
     	InventoryMissionRepository $inventoryMissionRepository,
 		UserService $userService,
 		InventoryEntryRepository $inventoryEntryRepository,
-		ArticleRepository $articleRepository,
 		InvMissionService $invMissionService,
 		InventoryService $inventoryService
 	)
@@ -79,7 +74,6 @@ class InventoryMissionController extends AbstractController
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
-        $this->articleRepository = $articleRepository;
         $this->invMissionService = $invMissionService;
         $this->inventoryService = $inventoryService;
     }
@@ -242,11 +236,12 @@ class InventoryMissionController extends AbstractController
             }
 
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $mission = $this->inventoryMissionRepository->find($data['missionId']);
 
             foreach ($data['articles'] as $articleId) {
-                $article = $this->articleRepository->find($articleId);
+                $article = $articleRepository->find($articleId);
 
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
 				if ($alreadyInMission) return new JsonResponse(false);

@@ -3,12 +3,12 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 
@@ -26,11 +26,6 @@ class InventoryService
 	private $entityManager;
 
 	/**
-	 * @var ArticleRepository
-	 */
-    private $articleRepository;
-
-	/**
 	 * @var
 	 */
     private $user;
@@ -46,15 +41,10 @@ class InventoryService
     private $inventoryMissionRepository;
 
 
-    public function __construct(
-    	InventoryEntryRepository $inventoryEntryRepository,
-		Security $security,
-		EntityManagerInterface $entityManager,
-		ArticleRepository $articleRepository,
-		InventoryMissionRepository $inventoryMissionRepository
-	)
-    {
-		$this->articleRepository = $articleRepository;
+    public function __construct(InventoryEntryRepository $inventoryEntryRepository,
+                                Security $security,
+                                EntityManagerInterface $entityManager,
+                                InventoryMissionRepository $inventoryMissionRepository) {
 		$this->entityManager = $entityManager;
 		$this->user = $security->getUser();
 		$this->inventoryEntryRepository = $inventoryEntryRepository;
@@ -74,13 +64,16 @@ class InventoryService
 	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
 	{
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-		$quantitiesAreEqual = true;
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
+
+        $quantitiesAreEqual = true;
 
 		if ($isRef) {
 			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
-			$refOrArt = $this->articleRepository->findOneByReference($reference);
+			$refOrArt = $articleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantite();
 		}
 
@@ -110,16 +103,16 @@ class InventoryService
 			$typeMvt = $diff < 0 ? MouvementStock::TYPE_INVENTAIRE_SORTIE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
 			$mvt->setType($typeMvt);
 
-			$entityManager->persist($mvt);
+			$this->entityManager->persist($mvt);
 			$quantitiesAreEqual = false;
 		}
 
-		$entry = $this->inventoryEntryRepository->find($idEntry);
+		$entry = $inventoryEntryRepository->find($idEntry);
 		$entry->setAnomaly(false);
 
 		$refOrArt->setDateLastInventory(new DateTime('now'));
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
 		return $quantitiesAreEqual;
 	}

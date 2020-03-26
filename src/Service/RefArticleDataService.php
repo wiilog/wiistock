@@ -12,6 +12,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -24,12 +25,10 @@ use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-use App\Repository\ArticleRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
 use DateTime;
 use DateTimeZone;
@@ -60,11 +59,6 @@ class RefArticleDataService
     private $filtreRefRepository;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
@@ -78,11 +72,6 @@ class RefArticleDataService
      * @var UserService
      */
     private $userService;
-
-    /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
 
     /**
      * @var object|string
@@ -108,8 +97,6 @@ class RefArticleDataService
 
 
     public function __construct(DemandeRepository $demandeRepository,
-                                ArticleRepository $articleRepository,
-                                LigneArticleRepository $ligneArticleRepository,
                                 RouterInterface $router,
                                 UserService $userService,
                                 CategorieCLRepository $categorieCLRepository,
@@ -127,8 +114,6 @@ class RefArticleDataService
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->ligneArticleRepository = $ligneArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
@@ -424,11 +409,16 @@ class RefArticleDataService
     public function addRefToDemand($data, $referenceArticle)
     {
         $resp = true;
-        $demande = $this->demandeRepository->find($data['livraison']);
+
+        $demandeRepository = $this->entityManager->getRepository(Demande::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
+
+        $demande = $demandeRepository->find($data['livraison']);
 
         // cas gestion quantité par référence
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+            if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setReference($referenceArticle)
@@ -436,7 +426,7 @@ class RefArticleDataService
                     ->setQuantite(max($data["quantitie"], 0)); // protection contre quantités négatives
                 $this->entityManager->persist($ligneArticle);
             } else {
-                $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
+                $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
             }
             $this->editRefArticle($referenceArticle, $data);
@@ -444,7 +434,7 @@ class RefArticleDataService
             // cas gestion quantité par article
         } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($this->userService->hasParamQuantityByRef()) {
-                if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
                         ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
@@ -453,11 +443,11 @@ class RefArticleDataService
                         ->setToSplit(true);
                     $this->entityManager->persist($ligneArticle);
                 } else {
-                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
+                    $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
                     $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
                 }
             } else {
-                $article = $this->articleRepository->find($data['article']);
+                $article = $articleRepository->find($data['article']);
                 /** @var Article $article */
                 $article
                     ->setDemande($demande)

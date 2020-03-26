@@ -34,10 +34,6 @@ class MissionCommand extends Command
     private $entityManager;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-    /**
      * @var InventoryFrequencyRepository
      */
     private $inventoryFrequencyRepository;
@@ -56,7 +52,6 @@ class MissionCommand extends Command
     public function __construct(
 		UtilisateurRepository $userRepository,
 		EntityManagerInterface $entityManager,
-		ArticleRepository $articleRepository,
 		InventoryFrequencyRepository $inventoryFrequencyRepository,
 		InventoryMissionRepository $inventoryMissionRepository,
 		InventoryService $inventoryService
@@ -65,7 +60,6 @@ class MissionCommand extends Command
         parent::__construct();
         $this->userRepository= $userRepository;
         $this->entityManager = $entityManager;
-        $this->articleRepository = $articleRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryService = $inventoryService;
@@ -81,6 +75,7 @@ class MissionCommand extends Command
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
 
         $now = new \DateTime('now');
         $frequencies = $this->inventoryFrequencyRepository->findUsedByCat();
@@ -119,7 +114,7 @@ class MissionCommand extends Command
 					}
 				} else {
             		$statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-            		$articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+            		$articles = $articleRepository->findByRefArticleAndStatut($refArticle, $statut);
 
             		foreach ($articles as $article) {
    						$artDate = $article->getDateLastInventory();
@@ -149,7 +144,7 @@ class MissionCommand extends Command
 			$limit = (int)($nbToInv/($frequency->getNbMonths() * 4));
 
 			$listRefNextMission = $referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
-			$listArtNextMission = $this->articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
+			$listArtNextMission = $articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
 
 			foreach ($listRefNextMission as $ref) {
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($ref, $mission, true);

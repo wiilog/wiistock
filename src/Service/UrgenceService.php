@@ -9,7 +9,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use DateTime;
 use DateTimeZone;
 use Symfony\Component\Security\Core\Security;
@@ -30,11 +29,6 @@ class UrgenceService
      * @var RouterInterface
      */
     private $router;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
     /**
      * @var UrgenceRepository
@@ -62,7 +56,6 @@ class UrgenceService
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ArticleRepository $articleRepository,
                                 UrgenceRepository $urgenceRepository,
 								SpecificService $specificService,
 								Security $security)
@@ -70,7 +63,6 @@ class UrgenceService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->articleRepository = $articleRepository;
         $this->urgenceRepository = $urgenceRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->security = $security;

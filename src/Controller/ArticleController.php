@@ -57,11 +57,6 @@ class ArticleController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var ReceptionRepository
      */
     private $receptionRepository;
@@ -98,7 +93,6 @@ class ArticleController extends AbstractController
                                 CategorieCLRepository $categorieCLRepository,
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
-                                ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
@@ -106,7 +100,6 @@ class ArticleController extends AbstractController
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
-        $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
         $this->articleDataService = $articleDataService;
@@ -528,14 +521,24 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param ArticleDataService $articleDataService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            ArticleDataService $articleDataService,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $articleRepository = $entityManager->getRepository(Article::class);
 
-            $article = $this->articleRepository->find((int)$data['id']);
+            $article = $articleRepository->find((int)$data['id']);
             if ($article) {
-                $json = $this->articleDataService->getViewEditArticle($article, $data['isADemand']);
+                $json = $articleDataService->getViewEditArticle($article, $data['isADemand']);
             } else {
                 $json = false;
             }
@@ -577,15 +580,21 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $article = $this->articleRepository->find($data['article']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+
+            $article = $articleRepository->find($data['article']);
             $rows = $article->getId();
 
             // on vérifie que l'article n'est plus utilisé
@@ -595,7 +604,6 @@ class ArticleController extends AbstractController
                 return new JsonResponse(false);
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
 
@@ -607,15 +615,21 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/verification", name="article_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function checkArticleCanBeDeleted(Request $request): Response
+    public function checkArticleCanBeDeleted(Request $request,
+                                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $article = $this->articleRepository->find($articleId);
+            $articleRepository = $entityManager->getRepository(Article::class);
+
+            $article = $articleRepository->find($articleId);
             $articleIsUsed = $this->isArticleUsed($article);
 
             if (!$articleIsUsed) {
@@ -662,16 +676,18 @@ class ArticleController extends AbstractController
     /**
      * @Route("/autocomplete-art/{activeOnly}", name="get_articles", options={"expose"=true}, methods="GET|POST")
      *
+     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param bool $activeOnly
      * @return JsonResponse
      */
-    public function getArticles(Request $request, $activeOnly = false)
+    public function getArticles(EntityManagerInterface $entityManager, Request $request, $activeOnly = false)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $articles = $this->articleRepository->getIdAndRefBySearch($search, $activeOnly);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
 
             return new JsonResponse(['results' => $articles]);
         }
@@ -878,10 +894,9 @@ class ArticleController extends AbstractController
                               $min): Response
     {
         if ($request->isXmlHttpRequest()) {
-
-
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $data = [];
             $data['values'] = [];
@@ -892,7 +907,7 @@ class ArticleController extends AbstractController
 
             $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
 
-            $refs = $this->articleRepository->findAll();
+            $refs = $articleRepository->findAll();
             if ($max > count($refs)) $max = count($refs);
             for ($i = $min; $i < $max; $i++) {
                 array_push($data['values'], $this->buildInfos($entityManager, $refs[$i], $listTypes, $headersCL));
@@ -913,7 +928,8 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $data['total'] = $this->articleRepository->countAll();
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $data['total'] = $articleRepository->countAll();
             $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement', 'code barre', 'date dernier inventaire'];
             foreach ($champLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
@@ -980,15 +996,17 @@ class ArticleController extends AbstractController
      * @throws SyntaxError
      */
     public function printArticlesBarCodes(Request $request,
+                                          EntityManagerInterface $entityManager,
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
+        $articleRepository = $entityManager->getRepository(Article::class);
         $listArticles = explode(',', $request->query->get('listArticles') ?? '');
         $barcodeConfigs = array_slice(
             array_map(
                 function (Article $article) use ($articleDataService) {
                     return $articleDataService->getBarcodeConfig($article);
                 },
-                $this->articleRepository->findByIds($listArticles)
+                $articleRepository->findByIds($listArticles)
             ),
             $request->query->get('start'),
             $request->query->get('length')

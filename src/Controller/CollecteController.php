@@ -21,7 +21,6 @@ use App\Entity\ArticleFournisseur;
 
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\CollecteRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
 
@@ -68,11 +67,6 @@ class CollecteController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -102,7 +96,6 @@ class CollecteController extends AbstractController
     public function __construct(OrdreCollecteRepository $ordreCollecteRepository,
                                 RefArticleDataService $refArticleDataService,
                                 CollecteReferenceRepository $collecteReferenceRepository,
-                                ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
@@ -110,7 +103,6 @@ class CollecteController extends AbstractController
                                 CollecteService $collecteService)
     {
         $this->ordreCollecteRepository = $ordreCollecteRepository;
-        $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->collecteReferenceRepository = $collecteReferenceRepository;
@@ -208,17 +200,27 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @param $id
+     * @return Response
      */
-    public function articleApi(Request $request, $id): Response
+    public function articleApi(EntityManagerInterface $entityManager,
+                               Request $request,
+                               $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $collecte = $this->collecteRepository->find($id);
-            $articles = $this->articleRepository->findByCollecteId($collecte->getId());
-            $referenceCollectes = $this->collecteReferenceRepository->findByCollecte($collecte);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+
+            $collecte = $collecteRepository->find($id);
+            $articles = $articleRepository->findByCollecteId($collecte->getId());
+            $referenceCollectes = $collecteReferenceRepository->findByCollecte($collecte);
             $rowsRC = [];
             foreach ($referenceCollectes as $referenceCollecte) {
                 $rowsRC[] = [
@@ -487,22 +489,26 @@ class CollecteController extends AbstractController
     /**
      * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse|RedirectResponse
      */
-    public function removeArticle(Request $request)
+    public function removeArticle(Request $request,
+                                  EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $entityManager = $this->getDoctrine()->getManager();
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+                $collecteReference = $collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($collecteReference);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
-                $collecte = $this->collecteRepository->find($data['collecte']);
+                $article = $articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $collecte = $collecteRepository->find($data['collecte']);
                 $collecte->removeArticle($article);
             }
             $entityManager->flush();
@@ -681,12 +687,19 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/non-vide", name="demande_collecte_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function hasArticles(Request $request): Response
+    public function hasArticles(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articles = $this->articleRepository->findByCollecteId($data['id']);
-            $referenceCollectes = $this->collecteReferenceRepository->findByCollecte($data['id']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+
+            $articles = $articleRepository->findByCollecteId($data['id']);
+            $referenceCollectes = $collecteReferenceRepository->findByCollecte($data['id']);
             $count = count($articles) + count($referenceCollectes);
 
             return new JsonResponse($count > 0);

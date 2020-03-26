@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -46,11 +47,6 @@ class EmplacementController extends AbstractController
     private $emplacementDataService;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
@@ -85,18 +81,11 @@ class EmplacementController extends AbstractController
      */
     private $globalParamService;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
     private $entityManager;
 
     public function __construct(MouvementTracaRepository $mouvementTracaRepository,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 GlobalParamService $globalParamService,
                                 EmplacementDataService $emplacementDataService,
-                                ArticleRepository $articleRepository,
                                 UserService $userService,
                                 DemandeRepository $demandeRepository,
                                 LivraisonRepository $livraisonRepository,
@@ -105,7 +94,6 @@ class EmplacementController extends AbstractController
                                 MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
-        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->entityManager = $entityManager;
         $this->demandeRepository = $demandeRepository;
@@ -287,12 +275,11 @@ class EmplacementController extends AbstractController
 
     /**
      * @param int $emplacementId
-     * @param EntityManagerInterface $entityManager
      * @return array
      */
-    private function isEmplacementUsed($emplacementId, EntityManagerInterface $entityManager)
-    {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+    private function isEmplacementUsed($emplacementId) {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
 
         $usedBy = [];
 
@@ -314,7 +301,7 @@ class EmplacementController extends AbstractController
         $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
         if ($refArticle > 0)$usedBy[] = 'références article';
 
-        $articles = $this->articleRepository->countByEmplacement($emplacementId);
+        $articles = $articleRepository->countByEmplacement($emplacementId);
         if ($articles > 0) $usedBy[] ='articles';
 
         return $usedBy;

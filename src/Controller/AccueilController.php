@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Colis;
 use App\Entity\Collecte;
@@ -31,7 +32,6 @@ use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\AlerteExpiryRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 
@@ -62,11 +62,6 @@ class AccueilController extends AbstractController
     private $mouvementStockRepository;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var AlerteExpiryRepository
      */
     private $alerteExpiryRepository;
@@ -82,7 +77,6 @@ class AccueilController extends AbstractController
     private $dashboardService;
 
     public function __construct(DashboardService $dashboardService,
-                                ArticleRepository $articleRepository,
                                 AlerteExpiryRepository $alerteExpiryRepository,
                                 ManutentionRepository $manutentionRepository,
                                 DemandeRepository $demandeRepository,
@@ -96,7 +90,6 @@ class AccueilController extends AbstractController
         $this->manutentionRepository = $manutentionRepository;
         $this->alerteExpiryRepository = $alerteExpiryRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
-        $this->articleRepository = $articleRepository;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
     }
 
@@ -148,6 +141,7 @@ class AccueilController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         $nbAlerts = $referenceArticleRepository->countAlert();
 
@@ -156,13 +150,13 @@ class AccueilController extends AbstractController
             MouvementStock::TYPE_INVENTAIRE_SORTIE
         ];
         $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
-        $nbActiveRefAndArt = $referenceArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbActiveRefAndArt = $referenceArticleRepository->countActiveTypeRefRef() + $articleRepository->countActiveArticles();
         $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
 
         $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
 
         $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
-        $nbActiveRefAndArtOfThisMonth = $referenceArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbActiveRefAndArtOfThisMonth = $referenceArticleRepository->countActiveTypeRefRef() + $articleRepository->countActiveArticles();
         $nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
             (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
 

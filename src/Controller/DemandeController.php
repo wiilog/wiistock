@@ -8,6 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -23,9 +24,7 @@ use App\Repository\DemandeRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\LigneArticleRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ValeurChampLibreRepository;
@@ -35,7 +34,6 @@ use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 use DateTime;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -54,11 +52,6 @@ class DemandeController extends AbstractController
 {
 
     /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -67,11 +60,6 @@ class DemandeController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
     /**
      * @var PreparationRepository
@@ -128,8 +116,6 @@ class DemandeController extends AbstractController
                                 ParametreRoleRepository $parametreRoleRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 PreparationRepository $preparationRepository,
-                                ArticleRepository $articleRepository,
-                                LigneArticleRepository $ligneArticleRepository,
                                 DemandeRepository $demandeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
@@ -140,8 +126,6 @@ class DemandeController extends AbstractController
         $this->receptionRepository = $receptionRepository;
         $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->articleRepository = $articleRepository;
-        $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
@@ -156,14 +140,20 @@ class DemandeController extends AbstractController
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function compareStock(Request $request): Response
+    public function compareStock(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $demande = $this->demandeRepository->find($data['demande']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
+            $demande = $demandeRepository->find($data['demande']);
 
             $response = [];
             $response['status'] = false;
@@ -197,7 +187,7 @@ class DemandeController extends AbstractController
                     $stock = $articleRef->getQuantiteStock();
                     $quantiteReservee = $ligne->getQuantite();
 
-                    $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+                    $listLigneArticleByRefArticle = $ligneArticleRepository->findByRefArticle($articleRef);
 
                     foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                         $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
@@ -212,7 +202,7 @@ class DemandeController extends AbstractController
                     }
                 } else {
                     $totalQuantity = (
-                        $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
+                        $articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
                         - $ligne->getReference()->getQuantiteReservee()
                     );
                     if ($ligne->getQuantite() > $totalQuantity) {
@@ -598,19 +588,23 @@ class DemandeController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
-	 * @param Request $request
-	 * @param Demande $demande
-	 * @return Response
-	 * @throws DBALException
-	 */
-    public function articleApi(Request $request, Demande $demande): Response
+    /**
+     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param Demande $demande
+     * @return Response
+     */
+    public function articleApi(Request $request,
+                               EntityManagerInterface $entityManager,
+                               Demande $demande): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $ligneArticles = $demande->getLigneArticle();
             $rowsRC = [];
@@ -635,7 +629,7 @@ class DemandeController extends AbstractController
                     )
                 ];
             }
-            $articles = $this->articleRepository->findByDemande($demande);
+            $articles = $articleRepository->findByDemande($demande);
             $rowsCA = [];
             foreach ($articles as $article) {
                 $rowsCA[] = [
@@ -692,19 +686,25 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function removeArticle(Request $request): Response
+    public function removeArticle(Request $request,
+                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $entityManager = $this->getDoctrine()->getManager();
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $ligneAricle = $this->ligneArticleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+                $ligneAricle = $ligneArticleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($ligneAricle);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $article = $articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
                 $demande = $article->getDemande();
                 $demande->removeArticle($article);
                 $article->setQuantitePrelevee(0);
@@ -719,14 +719,19 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/modifier-article", name="demande_article_edit", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editArticle(Request $request): Response
+    public function editArticle(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $ligneArticle = $ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
             $this->getDoctrine()->getManager()->flush();
 
@@ -751,12 +756,14 @@ class DemandeController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
-            $ligneArticle = $this->ligneArticleRepository->find($data['id']);
+            $ligneArticle = $ligneArticleRepository->find($data['id']);
             $articleRef = $ligneArticle->getReference();
             $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
-                $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
+                $articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                 $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
@@ -771,12 +778,19 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function hasArticles(Request $request): Response
+    public function hasArticles(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articles = $this->articleRepository->findByDemande($data['id']);
-            $references = $this->ligneArticleRepository->findByDemande($data['id']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
+            $articles = $articleRepository->findByDemande($data['id']);
+            $references = $ligneArticleRepository->findByDemande($data['id']);
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);
@@ -806,6 +820,7 @@ class DemandeController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
 			$demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
@@ -894,7 +909,7 @@ class DemandeController extends AbstractController
 
 					$data[] = $demandeData;
 				}
-				foreach ($this->articleRepository->findByDemande($demande) as $article) {
+				foreach ($articleRepository->findByDemande($demande) as $article) {
 					$demandeData = [];
 
                     array_push($demandeData, ...$infosDemand);
