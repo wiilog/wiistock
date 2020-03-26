@@ -13,6 +13,7 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
 
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
@@ -21,7 +22,6 @@ use App\Repository\FournisseurRepository;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
-use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\UtilisateurRepository;
 
@@ -49,10 +49,6 @@ class LitigeController extends AbstractController
 	 * @var UtilisateurRepository
 	 */
 	private $utilisateurRepository;
-	/**
-	 * @var StatutRepository
-	 */
-	private $statutRepository;
 	/**
 	 * @var FournisseurRepository
 	 */
@@ -105,7 +101,6 @@ class LitigeController extends AbstractController
 	 * @param ArrivageRepository $arrivageRepository
 	 * @param LitigeRepository $litigeRepository
 	 * @param UtilisateurRepository $utilisateurRepository
-	 * @param StatutRepository $statutRepository
 	 * @param FournisseurRepository $fournisseurRepository
 	 * @param TransporteurRepository $transporteurRepository
 	 * @param ChauffeurRepository $chauffeurRepository
@@ -118,14 +113,12 @@ class LitigeController extends AbstractController
                                 ArrivageRepository $arrivageRepository,
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
-                                StatutRepository $statutRepository,
                                 FournisseurRepository $fournisseurRepository,
                                 TransporteurRepository $transporteurRepository,
                                 ChauffeurRepository $chauffeurRepository,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
-		$this->statutRepository = $statutRepository;
 		$this->fournisseurRepository = $fournisseurRepository;
 		$this->transporteurRepository = $transporteurRepository;
 		$this->chauffeurRepository = $chauffeurRepository;
@@ -154,8 +147,10 @@ class LitigeController extends AbstractController
         }
 
         $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         return $this->render('litige/index.html.twig',[
-            'statuts' => $this->statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
+            'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),

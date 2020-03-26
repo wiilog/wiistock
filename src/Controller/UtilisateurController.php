@@ -188,8 +188,12 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
@@ -197,7 +201,8 @@ class UtilisateurController extends AbstractController
             }
 
             $user = $this->utilisateurRepository->find($data['id']);
-            $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
             $typeUser = [];
             foreach ($user->getTypes() as $type)
@@ -217,7 +222,7 @@ class UtilisateurController extends AbstractController
 				'dropzone' => $user->getDropzone() ? [
 					'id' => $user->getDropzone()->getId(),
 					'text' => $user->getDropzone()->getLabel()
-            		] : null]);
+                ] : null]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -225,17 +230,21 @@ class UtilisateurController extends AbstractController
     /**
      * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EmplacementRepository $emplacementRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function edit(Request $request, EmplacementRepository $emplacementRepository): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $utilisateur = $this->utilisateurRepository->find($data['id']);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+            $utilisateur = $utilisateurRepository->find($data['id']);
 
             $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
             if($result['response'] == false){
@@ -247,7 +256,7 @@ class UtilisateurController extends AbstractController
             }
 
             // unicité de l'email
-            $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
+            $emailAlreadyUsed = intval($utilisateurRepository->countByEmail($data['email']));
 
             if ($emailAlreadyUsed && $data['email'] != $utilisateur->getEmail()) {
 				return new JsonResponse([
@@ -258,7 +267,7 @@ class UtilisateurController extends AbstractController
 			}
 
 			// unicité de l'username
-			$usernameAlreadyUsed = intval($this->utilisateurRepository->countByUsername($data['username']));
+			$usernameAlreadyUsed = intval($utilisateurRepository->countByUsername($data['username']));
 
 			if ($usernameAlreadyUsed && $data['username'] != $utilisateur->getUsername()) {
 				return new JsonResponse([
@@ -294,12 +303,11 @@ class UtilisateurController extends AbstractController
             if (isset($data['type'])) {
                 foreach ($data['type'] as $type)
                 {
-                    $utilisateur->addType($this->typeRepository->find($type));
+                    $utilisateur->addType($typeRepository->find($type));
                 }
             }
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($utilisateur);
-            $em->flush();
+            $entityManager->persist($utilisateur);
+            $entityManager->flush();
 
             return new JsonResponse(['success' => true]);
         }

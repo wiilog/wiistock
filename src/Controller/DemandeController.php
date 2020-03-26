@@ -13,6 +13,7 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Article;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
@@ -23,7 +24,6 @@ use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
-use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
@@ -53,10 +53,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class DemandeController extends AbstractController
 {
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var LigneArticleRepository
@@ -147,10 +143,9 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
-        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -246,17 +241,20 @@ class DemandeController extends AbstractController
 
     /**
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function finish(Request $request): Response
+    public function finish(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $em = $this->getDoctrine()->getManager();
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
             $demande = $this->demandeRepository->find($data['demande']);
 
@@ -267,18 +265,18 @@ class DemandeController extends AbstractController
                 ->setNumero('P-' . $date->format('YmdHis'))
                 ->setDate($date);
 
-            $statutP = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
 
             $demande->addPreparation($preparation);
-            $statutD = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
-            $em->persist($preparation);
+            $entityManager->persist($preparation);
 
             // modification du statut articles => en transit
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 $preparation->addArticle($article);
             }
             $lignesArticles = $demande->getLigneArticle();
@@ -292,7 +290,7 @@ class DemandeController extends AbstractController
                     ->setQuantite($ligneArticle->getQuantite())
                     ->setReference($referenceArticle)
                     ->setPreparation($preparation);
-                $em->persist($lignesArticlePreparation);
+                $entityManager->persist($lignesArticlePreparation);
                 if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
                 }
@@ -301,13 +299,13 @@ class DemandeController extends AbstractController
                 }
                 $preparation->addLigneArticlePreparation($lignesArticlePreparation);
             }
-            $em->flush();
+            $entityManager->flush();
 
             foreach ($refArticleToUpdateQuantities as $refArticle) {
                 $this->refArticleDataService->updateRefArticleQuantities($refArticle);
             }
 
-            $em->flush();
+            $entityManager->flush();
 
             //renvoi de l'en-tête avec modification
             $data = [
@@ -487,6 +485,8 @@ class DemandeController extends AbstractController
         }
 
         $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
         $typeChampLibre = [];
@@ -502,7 +502,7 @@ class DemandeController extends AbstractController
 
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
+            'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
@@ -566,21 +566,24 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Demande $demande
+     * @return Response
      */
-    public function show(Demande $demande): Response
+    public function show(EntityManagerInterface $entityManager,
+                         Demande $demande): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
         $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
 
         return $this->render('demande/show.html.twig', [
-
             'demande' => $demande,
-            //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
+            'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
@@ -723,17 +726,24 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function articleEditApi(Request $request): Response
+    public function articleEditApi(EntityManagerInterface $entityManager,
+                                   Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
             $ligneArticle = $this->ligneArticleRepository->find($data['id']);
             $articleRef = $ligneArticle->getReference();
-            $statutArticleActif = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
                 $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                 $articleRef->getQuantiteStock();

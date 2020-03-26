@@ -15,7 +15,6 @@ use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\FiltreSupRepository;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
@@ -61,11 +60,6 @@ class ArticleController extends AbstractController
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -155,7 +149,6 @@ class ArticleController extends AbstractController
                                 ArticleFournisseurRepository $articleFournisseurRepository,
                                 ReferenceArticleRepository $referenceArticleRepository,
                                 ReceptionRepository $receptionRepository,
-                                StatutRepository $statutRepository,
                                 ArticleRepository $articleRepository,
                                 EmplacementRepository $emplacementRepository,
                                 CollecteRepository $collecteRepository,
@@ -170,7 +163,6 @@ class ArticleController extends AbstractController
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;

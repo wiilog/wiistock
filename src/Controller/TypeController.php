@@ -134,13 +134,18 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/creer", name="type_new", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $typeRepository = $entityManager->getRepository(Type::class);
 
             // on vérifie que le nom du type n'est pas déjà utilisé
-            $typeExist = $this->typeRepository->countByLabel($data['label']);
+            $typeExist = $typeRepository->countByLabel($data['label']);
 
             if (!$typeExist) {
                 if ($data['category'] === null) {
@@ -153,9 +158,8 @@ class TypeController extends AbstractController
                 $type
                     ->setlabel($data["label"])
                     ->setCategory($category);
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($type);
-                $em->flush();
+                $entityManager->persist($type);
+                $entityManager->flush();
                 return new JsonResponse($data);
             } else {
                 return new JsonResponse(false);
@@ -166,12 +170,16 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/supprimer", name="type_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find(intval($data['type']));
-            $entityManager = $this->getDoctrine()->getManager();
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $type = $typeRepository->find(intval($data['type']));
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
                 $this->refArticleRepository->setTypeIdNull($type);
@@ -209,11 +217,16 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="type_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data['id']);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $type = $typeRepository->find($data['id']);
             $json = $this->renderView('champ_libre/modalEditTypeContent.html.twig', [
                 'type' => $type,
                 'category' => $this->categoryTypeRepository->getNoOne($type->getCategory()->getId())
@@ -225,12 +238,17 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/modifier", name="type_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $category = $this->categoryTypeRepository->find($data['category']);
-            $type = $this->typeRepository->find($data['type']);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $type = $typeRepository->find($data['type']);
             $type
                 ->setLabel($data['label'])
                 ->setCategory($category);
