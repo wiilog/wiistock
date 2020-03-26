@@ -64,7 +64,7 @@ class PatchRefArticleCSPFixtures extends Fixture implements FixtureGroupInterfac
     private $valeurCLRepository;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, SReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
