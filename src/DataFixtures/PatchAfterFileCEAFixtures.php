@@ -49,11 +49,6 @@ class PatchAfterFileCEAFixtures extends Fixture
     private $emplacementRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
@@ -73,7 +68,7 @@ class PatchAfterFileCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
@@ -82,7 +77,6 @@ class PatchAfterFileCEAFixtures extends Fixture
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }

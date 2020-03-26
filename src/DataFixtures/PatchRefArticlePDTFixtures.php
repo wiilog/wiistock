@@ -57,11 +57,10 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -71,6 +70,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
     public function load(ObjectManager $manager)
     {
         $statutRepository = $manager->getRepository(Statut::class);
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
 
         $path = "src/DataFixtures/Csv/pdt.csv";
         $file = fopen($path, "r");
@@ -121,7 +121,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
             if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                 $fournisseurRef = $fournisseurLabel;
             }
-            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {
@@ -196,7 +196,7 @@ class PatchRefArticlePDTFixtures extends Fixture implements FixtureGroupInterfac
             if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                 $fournisseurRef = $fournisseurLabel;
             }
-            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {

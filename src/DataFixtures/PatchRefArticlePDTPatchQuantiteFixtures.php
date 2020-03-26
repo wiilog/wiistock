@@ -25,11 +25,6 @@ class PatchRefArticlePDTPatchQuantiteFixtures extends Fixture implements Fixture
     private $champLibreRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ReferenceArticleRepository
      */
     private $refArticleRepository;
@@ -50,11 +45,10 @@ class PatchRefArticlePDTPatchQuantiteFixtures extends Fixture implements Fixture
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;

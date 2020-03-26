@@ -8,7 +8,6 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\FournisseurRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -31,11 +30,6 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
     private $champLibreRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
@@ -46,11 +40,10 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
@@ -58,6 +51,7 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
     public function load(ObjectManager $manager)
     {
         $statutRepository = $manager->getRepository(Statut::class);
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
 
         $path = "src/DataFixtures/Csv/slugcible.csv";
         $file = fopen($path, "r");
@@ -97,7 +91,7 @@ class PatchRefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupIn
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+                $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
                 // si le fournisseur n'existe pas, on le crée
                 if (empty($fournisseur)) {

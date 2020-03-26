@@ -62,14 +62,13 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
      */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
@@ -158,9 +157,11 @@ class PatchRefArticleSILIArticleFixtures extends Fixture implements FixtureGroup
      */
     public function initFournisseur(ObjectManager $manager): Fournisseur
     {
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
         $fournisseurLabel = 'A DETERMINER';
         $fournisseurRef = 'A_DETERMINER';
-        $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+        $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
         // si le fournisseur n'existe pas, on le crée
         if (empty($fournisseur)) {

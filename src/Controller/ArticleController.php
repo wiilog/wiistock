@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
@@ -97,11 +98,6 @@ class ArticleController extends AbstractController
     private $receptionRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var RefArticleDataService
      */
     private $refArticleDataService;
@@ -141,7 +137,6 @@ class ArticleController extends AbstractController
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
                                 CategorieCLRepository $categorieCLRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 ChampLibreRepository $champLibreRepository,
                                 ValeurChampLibreRepository $valeurChampsLibreRepository,
                                 ArticleDataService $articleDataService,
@@ -159,7 +154,6 @@ class ArticleController extends AbstractController
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -344,15 +338,18 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/show-actif-inactif", name="article_actif_inactif", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function displayActifOrInactif(Request $request) : Response
+    public function displayActifOrInactif(Request $request, EntityManagerInterface $entityManager) : Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
 
             $user = $this->getUser();
 
             $filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $user);
-            $em = $this->getDoctrine()->getManager();
             $activeOnly = $data['activeOnly'];
 
             if ($activeOnly) {
@@ -363,17 +360,17 @@ class ArticleController extends AbstractController
 						->setField(FiltreSup::FIELD_STATUT)
 						->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT)
 						->setPage(FiltreSup::PAGE_ARTICLE);
-					$em->persist($filter);
+                    $entityManager->persist($filter);
 				} else {
 					$filter->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT);
 				}
 			} else {
             	if (!empty($filter)) {
-            		$em->remove($filter);
+                    $entityManager->remove($filter);
 				}
 			}
 
-            $em->flush();
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -750,8 +747,11 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function saveColumnVisible(Request $request): Response
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
@@ -761,8 +761,8 @@ class ArticleController extends AbstractController
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $user->setColumnsVisibleForArticle($champs);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -771,11 +771,16 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function getRefArticleByFournisseur(Request $request): Response
+    public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $fournisseur = json_decode($request->getContent(), true)) {
-            $fournisseur = $this->fournisseurRepository->find($fournisseur);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
+            $fournisseur = $fournisseurRepository->find($fournisseur);
 
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [

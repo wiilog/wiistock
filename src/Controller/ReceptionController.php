@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Fournisseur;
 use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
@@ -64,6 +65,7 @@ use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -108,11 +110,6 @@ class ReceptionController extends AbstractController
      * @var ArticleRepository
      */
     private $articleRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
 
     /**
      * @var ArticleFournisseurRepository
@@ -196,7 +193,6 @@ class ReceptionController extends AbstractController
         GlobalParamService $globalParamService,
         ChampLibreRepository $champLibreRepository,
         ValeurChampLibreRepository $valeurChampsLibreRepository,
-        FournisseurRepository $fournisseurRepository,
         ReferenceArticleRepository $referenceArticleRepository,
         ReceptionRepository $receptionRepository,
         UtilisateurRepository $utilisateurRepository,
@@ -231,7 +227,6 @@ class ReceptionController extends AbstractController
         $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleRepository = $articleRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->champLibreRepository = $champLibreRepository;
@@ -262,6 +257,7 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
@@ -279,7 +275,7 @@ class ReceptionController extends AbstractController
             $numero = 'R' . $date->format('ymd') . $cpt;
 
             if (!empty($data['fournisseur'])) {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
                 $reception
                     ->setFournisseur($fournisseur);
             }
@@ -361,13 +357,14 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $reception = $this->receptionRepository->find($data['receptionId']);
 
             $statut = $statutRepository->find(intval($data['statut']));
             $reception->setStatut($statut);
 
-			$fournisseur = !empty($data['fournisseur']) ? $this->fournisseurRepository->find($data['fournisseur']) : null;
+			$fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
             $reception->setFournisseur($fournisseur);
 
 			$utilisateur = !empty($data['utilisateur']) ? $this->utilisateurRepository->find($data['utilisateur']) : null;
@@ -1556,18 +1553,24 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse|RedirectResponse
      */
-    public function getArticleFournisseur(Request $request)
+    public function getArticleFournisseur(Request $request, EntityManagerInterface $entityManager)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
             $json = null;
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
+                $fournisseur = $fournisseurRepository->find($data['fournisseur']);
                 $articlesFournisseurs = $this->articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
                 if ($articlesFournisseurs !== null) {
                     $json = [

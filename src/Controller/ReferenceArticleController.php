@@ -30,7 +30,6 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\TypeRepository;
-use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
@@ -60,7 +59,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 use App\Entity\Demande;
 use App\Entity\ArticleFournisseur;
-use App\Repository\FournisseurRepository;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -115,11 +113,6 @@ class ReferenceArticleController extends AbstractController
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
 
     /**
      * @var LigneArticleRepository
@@ -205,7 +198,6 @@ class ReferenceArticleController extends AbstractController
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
                                 EmplacementRepository $emplacementRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 LigneArticleRepository $ligneArticleRepository,
                                 ArticleRepository $articleRepository,
@@ -240,7 +232,6 @@ class ReferenceArticleController extends AbstractController
         $this->userService = $userService;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->templating = $templating;
         $this->specificService = $specificService;
         $this->parametreRepository = $parametreRepository;
@@ -414,6 +405,7 @@ class ReferenceArticleController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
@@ -494,7 +486,7 @@ class ReferenceArticleController extends AbstractController
                 $fournisseurId = explode(';', $frl)[0];
                 $ref = explode(';', $frl)[1];
                 $label = explode(';', $frl)[2];
-                $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                $fournisseur = $fournisseurRepository->find(intval($fournisseurId));
 
                 // on vérifie que la référence article fournisseur n'existe pas déjà
                 $refFournisseurAlreadyExist = $this->articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
@@ -914,6 +906,7 @@ class ReferenceArticleController extends AbstractController
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
@@ -929,7 +922,7 @@ class ReferenceArticleController extends AbstractController
 					$collecte = $this->collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
-						$fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+						$fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
 						if (!$fournisseurTemp) {
 							$fournisseurTemp = new Fournisseur();
 							$fournisseurTemp
@@ -1239,11 +1232,18 @@ class ReferenceArticleController extends AbstractController
      * @param ReferenceArticle $ref
      * @param array $listTypes
      * @param string[] $headersCL
+     * @param EntityManagerInterface $entityManager
      * @return string
      */
-    public function buildInfos(TypeRepository $typeRepository, ReferenceArticle $ref, $listTypes, $headersCL)
+    public function buildInfos(TypeRepository $typeRepository,
+                               ReferenceArticle $ref,
+                               $listTypes,
+                               $headersCL,
+                               EntityManagerInterface $entityManager
+    )
     {
-    	$listFournisseurAndAF = $this->fournisseurRepository->getNameAndRefArticleFournisseur($ref);
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $listFournisseurAndAF = $fournisseurRepository->getNameAndRefArticleFournisseur($ref);
 
     	$arrayAF = $arrayF = [];
 

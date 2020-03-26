@@ -11,7 +11,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ValeurChampLibreRepository;
 
@@ -47,11 +46,6 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
     private $emplacementRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
@@ -71,7 +65,7 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
+    public function __construct(ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
@@ -80,7 +74,6 @@ class PatchTransfertDonneesCEAFixtures extends Fixture
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }

@@ -26,11 +26,6 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
     private $champLibreRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ReferenceArticleRepository
      */
     private $refArticleRepository;
@@ -54,13 +49,11 @@ class PatchChampsLibresToFixesFixtures extends Fixture implements FixtureGroupIn
                                 EmplacementRepository $emplacementRepository,
                                 UserPasswordEncoderInterface $encoder,
                                 ChampLibreRepository $champsLibreRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 ReferenceArticleRepository $refArticleRepository,
                                 CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;

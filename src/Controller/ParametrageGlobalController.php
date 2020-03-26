@@ -81,7 +81,7 @@ class ParametrageGlobalController extends AbstractController
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $clsForLabels = $champsLibreRepository->findBy([
-            'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE)
+            'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
         ]);
         $paramLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
 

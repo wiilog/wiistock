@@ -49,11 +49,10 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, Packages $assetsManager)
     {
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->assetsManager = $assetsManager;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -62,6 +61,9 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
     public function load(ObjectManager $manager)
     {
         $statutRepository = $manager->getRepository(Statut::class);
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
+
         $path = "src/DataFixtures/Csv/mob.csv";
         $file = fopen($path, "r");
 
@@ -101,7 +103,7 @@ class PatchRefArticleMOBFixtures extends Fixture implements FixtureGroupInterfac
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+                $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
                 // si le fournisseur n'existe pas, on le crée
                 if (empty($fournisseur)) {

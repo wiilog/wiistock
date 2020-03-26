@@ -10,7 +10,6 @@ use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -45,23 +44,17 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
     private $emplacementRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champLibreRepository)
     {
         $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
@@ -157,7 +150,9 @@ class PatchRefArticleSILIFixtures extends Fixture implements FixtureGroupInterfa
     {
         $fournisseurLabel = 'A DETERMINER';
         $fournisseurRef = 'A_DETERMINER';
-        $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
         // si le fournisseur n'existe pas, on le crée
         if (empty($fournisseur)) {

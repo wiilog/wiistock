@@ -9,6 +9,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,10 +43,9 @@ class ArticleFournisseurController extends AbstractController
     private $userService;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->userService = $userService;
     }
@@ -90,15 +90,20 @@ class ArticleFournisseurController extends AbstractController
 
     /**
      * @Route("/creer", name="article_fournisseur_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
+            $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
             $referenceArticle = $this->referenceArticleRepository->find(intval($data['article-reference']));
 
             $articleFournisseur = new ArticleFournisseur();
@@ -107,9 +112,8 @@ class ArticleFournisseurController extends AbstractController
                 ->setReference($data['reference'])
                 ->setReferenceArticle($referenceArticle);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($articleFournisseur);
-            $em->flush();
+            $entityManager->persist($articleFournisseur);
+            $entityManager->flush();
             return new JsonResponse($data);
         }
 
@@ -144,8 +148,11 @@ class ArticleFournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $em = $this->getDoctrine()->getManager();
+            $fournisseurRepository = $em->getRepository(Fournisseur::class);
+
             $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['id']));
-            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
             $referenceArticle = $this->referenceArticleRepository->find(intval($data['article-reference']));
 
             $articleFournisseur

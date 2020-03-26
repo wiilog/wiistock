@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
 use App\Entity\Livraison;
@@ -135,11 +136,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $livraisonRepository;
 
     /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
      * @var InventoryMissionRepository
      */
     private $inventoryMissionRepository;
@@ -183,7 +179,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param InventoryService $inventoryService
      * @param UserService $userService
      * @param InventoryMissionRepository $inventoryMissionRepository
-     * @param FournisseurRepository $fournisseurRepository
      * @param LivraisonRepository $livraisonRepository
      * @param PreparationRepository $preparationRepository
      * @param LoggerInterface $logger
@@ -204,7 +199,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 InventoryService $inventoryService,
                                 UserService $userService,
                                 InventoryMissionRepository $inventoryMissionRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 LivraisonRepository $livraisonRepository,
                                 PreparationRepository $preparationRepository,
                                 LoggerInterface $logger,
@@ -231,7 +225,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $this->logger = $logger;
         $this->preparationRepository = $preparationRepository;
         $this->livraisonRepository = $livraisonRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
         $this->inventoryService = $inventoryService;
@@ -458,7 +451,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $colis = $this->colisRepository->findOneBy(['code' => $mvt['ref_article']]);
 
                                 if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
-                                    $fournisseur = $this->fournisseurRepository->findOneByColis($colis);
+                                    $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+                                    $fournisseur = $fournisseurRepository->findOneByColis($colis);
                                     $arrivage = $colis->getArrivage();
                                     $destinataire = $arrivage->getDestinataire();
                                     if ($this->mailerServerRepository->findOneMailerServer()) {

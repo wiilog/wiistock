@@ -38,6 +38,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -58,11 +59,6 @@ class CollecteController extends AbstractController
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
 
     /**
      * @var EmplacementRepository
@@ -131,10 +127,9 @@ class CollecteController extends AbstractController
     private $collecteService;
 
 
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ChampLibreRepository $champLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService, CollecteService $collecteService)
     {
         $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -211,6 +206,8 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
 	{
@@ -300,8 +297,6 @@ class CollecteController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
-
-            $em = $this->getDoctrine()->getManager();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
@@ -320,8 +315,8 @@ class CollecteController extends AbstractController
                 ->setObjet(substr($data['Objet'], 0, 255))
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
-            $em->persist($collecte);
-			$em->flush();
+            $entityManager->persist($collecte);
+            $entityManager->flush();
 
 			// enregistrement des champs libres
 			$champsLibresKey = array_keys($data);
@@ -333,8 +328,8 @@ class CollecteController extends AbstractController
                         ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
 						->addDemandesCollecte($collecte)
 						->setChampLibre($this->champLibreRepository->find($champs));
-					$em->persist($valeurChampLibre);
-					$em->flush();
+                    $entityManager->persist($valeurChampLibre);
+                    $entityManager->flush();
 				}
 			}
 
@@ -367,6 +362,7 @@ class CollecteController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
@@ -386,7 +382,7 @@ class CollecteController extends AbstractController
                 $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA
-                $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+                $fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
                 if (!$fournisseurTemp) {
                     $fournisseurTemp = new Fournisseur();
                     $fournisseurTemp
@@ -480,15 +476,21 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/nouveau-api-article", name="collecte_article_new_content", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function newArticle(Request $request): Response
+    public function newArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
             $json['content'] = $this->renderView('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
-                'references' => $this->articleFournisseurRepository->getByFournisseur($this->fournisseurRepository->find($data['fournisseur']))
+                'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseurRepository->find($data['fournisseur']))
             ]);
             return new JsonResponse($json);
         }
@@ -497,6 +499,8 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @return JsonResponse|RedirectResponse
      */
     public function removeArticle(Request $request)
     {

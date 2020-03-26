@@ -7,7 +7,6 @@ use App\Entity\Fournisseur;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -24,11 +23,6 @@ class PatchRefArticlePatchFournisseursFixtures extends Fixture implements Fixtur
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -51,11 +45,10 @@ class PatchRefArticlePatchFournisseursFixtures extends Fixture implements Fixtur
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, ChampLibreRepository $champsLibreRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -66,6 +59,8 @@ class PatchRefArticlePatchFournisseursFixtures extends Fixture implements Fixtur
 
     public function load(ObjectManager $manager)
     {
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
         $path = "src/DataFixtures/Csv/pdt.csv";
         $file = fopen($path, "r");
 
@@ -97,7 +92,7 @@ class PatchRefArticlePatchFournisseursFixtures extends Fixture implements Fixtur
             $fournisseurLabel = empty($row[9]) ? 'A DETERMINER' : $row[9];
             $articleFournisseurRef = empty($row[10]) ? 'A DETERMINER' : $row[10];
 
-            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurLabel]);
+            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $fournisseurLabel]);
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {

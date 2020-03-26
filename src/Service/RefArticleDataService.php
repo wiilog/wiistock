@@ -12,6 +12,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -33,7 +34,6 @@ use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
 use DateTime;
 use DateTimeZone;
@@ -62,11 +62,6 @@ class RefArticleDataService
      * @var ChampLibreRepository
      */
     private $champLibreRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
 
     /**
      * @var ArticleFournisseurRepository
@@ -152,7 +147,6 @@ class RefArticleDataService
                                 RouterInterface $router,
                                 UserService $userService,
                                 ArticleFournisseurRepository $articleFournisseurRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $em,
                                 ValeurChampLibreRepository $valeurChampLibreRepository,
@@ -167,7 +161,6 @@ class RefArticleDataService
     {
         $this->filtreSupRepository = $filtreSupRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champLibreRepository = $champLibreRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
@@ -189,6 +182,10 @@ class RefArticleDataService
     /**
      * @param null $params
      * @return array
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function getRefArticleDataByParams($params = null)
     {
@@ -211,8 +208,7 @@ class RefArticleDataService
 	/**
 	 * @param ReferenceArticle $articleRef
 	 * @return array
-	 * @throws DBALException
-	 */
+     */
     public function getDataEditForRefArticle($articleRef)
     {
         $type = $articleRef->getType();
@@ -296,21 +292,23 @@ class RefArticleDataService
         return $view;
     }
 
-	/**
-	 * @param ReferenceArticle $refArticle
-	 * @param string[] $data
-	 * @return RedirectResponse
-	 * @throws DBALException
-	 * @throws LoaderError
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param string[] $data
+     * @return RedirectResponse
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+     * @throws SyntaxError
+     */
     public function editRefArticle($refArticle, $data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
         $statutRepository = $this->em->getRepository(Statut::class);
+        $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
@@ -334,7 +332,7 @@ class RefArticleDataService
                     $fournisseurId = explode(';', $frl)[0];
                     $ref = explode(';', $frl)[1];
                     $label = explode(';', $frl)[2];
-                    $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                    $fournisseur = $fournisseurRepository->find(intval($fournisseurId));
                     $articleFournisseur = new ArticleFournisseur();
                     $articleFournisseur
                         ->setReferenceArticle($refArticle)
