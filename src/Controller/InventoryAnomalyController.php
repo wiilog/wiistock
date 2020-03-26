@@ -42,11 +42,6 @@ class InventoryAnomalyController extends AbstractController
     private $inventoryEntryRepository;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
      * @var ArticleRepository
      */
     private $articleRepository;
@@ -56,12 +51,11 @@ class InventoryAnomalyController extends AbstractController
 	 */
     private $inventoryService;
 
-    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository , ArticleRepository $articleRepository)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->inventoryService = $inventoryService;
     }

@@ -18,7 +18,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\ChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
 use Twig\Environment as Twig_Environment;
 use App\Repository\UtilisateurRepository;
@@ -38,11 +37,6 @@ class DemandeLivraisonService
      * @var RouterInterface
      */
     private $router;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var ArticleRepository
@@ -83,7 +77,6 @@ class DemandeLivraisonService
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 ArticleRepository $articleRepository,
                                 DemandeRepository $demandeRepository)
     {
@@ -93,7 +86,6 @@ class DemandeLivraisonService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->user = $tokenStorage->getToken()->getUser();

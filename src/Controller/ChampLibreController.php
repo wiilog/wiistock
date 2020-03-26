@@ -6,7 +6,6 @@ use App\Entity\CategorieCL;
 use App\Entity\ChampLibre;
 
 use App\Entity\Type;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\CategoryTypeRepository;
 use App\Repository\CategorieCLRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,11 +23,6 @@ class ChampLibreController extends AbstractController
 {
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $refArticleRepository;
-
-    /**
      * @var CategoryTypeRepository
      */
     private $categoryTypeRepository;
@@ -39,11 +33,8 @@ class ChampLibreController extends AbstractController
     private $categorieCLRepository;
 
     public function __construct(CategorieCLRepository $categorieCLRepository,
-                                CategoryTypeRepository $categoryTypeRepository,
-                                ReferenceArticleRepository $refArticleRepository)
-    {
+                                CategoryTypeRepository $categoryTypeRepository) {
         $this->categoryTypeRepository = $categoryTypeRepository;
-        $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
     }
 

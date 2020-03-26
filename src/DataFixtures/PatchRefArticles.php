@@ -15,16 +15,10 @@ class PatchRefArticles extends Fixture implements FixtureGroupInterface
 	 */
 	private $articleRepository;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
-
-	public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository)
+	public function __construct(ArticleRepository $articleRepository)
 	{
 		$this->articleRepository = $articleRepository;
-		$this->referenceArticleRepository = $referenceArticleRepository;
 	}
 
 	public function load(ObjectManager $manager)

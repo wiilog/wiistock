@@ -11,6 +11,13 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface
 {
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
+
+    public function __construct(EmplacementRepository $emplacementRepository)
 
     private $em;
 

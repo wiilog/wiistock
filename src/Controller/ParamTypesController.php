@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Menu;
 
 use App\Entity\Type;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\CategoryTypeRepository;
 
 use App\Service\UserService;
@@ -31,19 +30,13 @@ class ParamTypesController extends AbstractController
     private $userService;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
      * @var CategoryTypeRepository
      */
     private $categoryTypeRepository;
 
-    public function __construct(UserService $userService, ReferenceArticleRepository $referenceArticleRepository, CategoryTypeRepository $categoryTypeRepository)
+    public function __construct(UserService $userService, CategoryTypeRepository $categoryTypeRepository)
     {
         $this->userService = $userService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
     }
 

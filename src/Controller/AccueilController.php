@@ -12,6 +12,7 @@ use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
@@ -33,7 +34,6 @@ use App\Repository\AlerteExpiryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
-use App\Repository\ReferenceArticleRepository;
 
 
 /**
@@ -62,11 +62,6 @@ class AccueilController extends AbstractController
     private $mouvementStockRepository;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $refArticleRepository;
-
-    /**
      * @var ArticleRepository
      */
     private $articleRepository;
@@ -88,7 +83,6 @@ class AccueilController extends AbstractController
 
     public function __construct(DashboardService $dashboardService,
                                 ArticleRepository $articleRepository,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 AlerteExpiryRepository $alerteExpiryRepository,
                                 ManutentionRepository $manutentionRepository,
                                 DemandeRepository $demandeRepository,
@@ -102,7 +96,6 @@ class AccueilController extends AbstractController
         $this->manutentionRepository = $manutentionRepository;
         $this->alerteExpiryRepository = $alerteExpiryRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
-        $this->refArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
     }
@@ -153,22 +146,23 @@ class AccueilController extends AbstractController
     private function getDashboardData(EntityManagerInterface $entityManager)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        $nbAlerts = $this->refArticleRepository->countAlert();
+        $nbAlerts = $referenceArticleRepository->countAlert();
 
         $types = [
             MouvementStock::TYPE_INVENTAIRE_ENTREE,
             MouvementStock::TYPE_INVENTAIRE_SORTIE
         ];
         $nbStockInventoryMouvements = $this->mouvementStockRepository->countByTypes($types);
-        $nbActiveRefAndArt = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbActiveRefAndArt = $referenceArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
         $nbrFiabiliteReference = $nbActiveRefAndArt == 0 ? 0 : (1 - ($nbStockInventoryMouvements / $nbActiveRefAndArt)) * 100;
 
         $firstDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
 
         $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfThisMonth);
-        $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbActiveRefAndArtOfThisMonth = $referenceArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
         $nbrFiabiliteReferenceOfThisMonth = $nbActiveRefAndArtOfThisMonth == 0 ? 0 :
             (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
 

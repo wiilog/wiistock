@@ -30,7 +30,6 @@ use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LigneArticleRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\CategorieCLRepository;
 use DateTime;
 use DateTimeZone;
@@ -50,11 +49,6 @@ use Twig\Error\SyntaxError;
 
 class RefArticleDataService
 {
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
     /**
      * @var CategorieCLRepository
      */
@@ -120,14 +114,12 @@ class RefArticleDataService
                                 UserService $userService,
                                 CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $entityManager,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
                                 InventoryCategoryRepository $inventoryCategoryRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
@@ -143,6 +135,7 @@ class RefArticleDataService
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param null $params
      * @return array
      * @throws DBALException
@@ -150,11 +143,13 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getRefArticleDataByParams($params = null)
+    public function getRefArticleDataByParams(EntityManagerInterface $entityManager, $params = null)
     {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $rows = [];
         foreach ($refs as $refArticle) {
@@ -163,7 +158,7 @@ class RefArticleDataService
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $this->referenceArticleRepository->countAll()
+            'recordsTotal' => $referenceArticleRepository->countAll()
         ];
     }
 
@@ -476,17 +471,20 @@ class RefArticleDataService
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param null $counter
      * @return string
      * @throws Exception
      */
-    public function generateBarCode($counter = null)
+    public function generateBarCode(EntityManagerInterface $entityManager, $counter = null)
     {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         $now = new \DateTime('now');
         $dateCode = $now->format('ym');
 
         if (!isset($counter)) {
-            $highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
+            $highestBarCode = $referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
             $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
             $counter = sprintf('%08u', $highestCounter + 1);
         }
@@ -499,9 +497,11 @@ class RefArticleDataService
     public function getAlerteDataByParams($params, $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
         $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
 
-        $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
+        $results = $referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
         $referenceArticles = $results['data'];
 
         $rows = [];
@@ -574,25 +574,31 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @param EntityManagerInterface $entityManager
      * @return void
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function updateStockQuantity(ReferenceArticle $referenceArticle): void {
+    private function updateStockQuantity(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager): void {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $referenceArticle->setQuantiteStock($this->referenceArticleRepository->getStockQuantity($referenceArticle));
+            $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
         }
     }
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @param EntityManagerInterface $entityManager
      * @return void
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function updateReservedQuantity(ReferenceArticle $referenceArticle): void {
+    private function updateReservedQuantity(ReferenceArticle $referenceArticle, EntityManagerInterface $entityManager): void {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $referenceArticle->setQuantiteReservee($this->referenceArticleRepository->getReservedQuantity($referenceArticle));
+            $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
         }
     }
 

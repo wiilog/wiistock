@@ -6,12 +6,10 @@ namespace App\Command;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\InventoryMission;
-
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Service\InventoryService;
@@ -39,12 +37,6 @@ class MissionCommand extends Command
      * @var ArticleRepository
      */
     private $articleRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
     /**
      * @var InventoryFrequencyRepository
      */
@@ -65,7 +57,6 @@ class MissionCommand extends Command
 		UtilisateurRepository $userRepository,
 		EntityManagerInterface $entityManager,
 		ArticleRepository $articleRepository,
-		ReferenceArticleRepository $referenceArticleRepository,
 		InventoryFrequencyRepository $inventoryFrequencyRepository,
 		InventoryMissionRepository $inventoryMissionRepository,
 		InventoryService $inventoryService
@@ -75,7 +66,6 @@ class MissionCommand extends Command
         $this->userRepository= $userRepository;
         $this->entityManager = $entityManager;
         $this->articleRepository = $articleRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryService = $inventoryService;
@@ -90,6 +80,7 @@ class MissionCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
         $now = new \DateTime('now');
         $frequencies = $this->inventoryFrequencyRepository->findUsedByCat();
@@ -114,7 +105,7 @@ class MissionCommand extends Command
         foreach ($frequencies as $frequency) {
         	// récupération des réf et articles à inventorier (fonction date dernier inventaire)
             $nbMonths = $frequency->getNbMonths();
-            $refArticles = $this->referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
+            $refArticles = $referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
 
             $refsAndArtToInv = [];
             foreach ($refArticles as $refArticle) {
@@ -152,12 +143,12 @@ class MissionCommand extends Command
             }
 
 			// lissage des réf et articles jamais inventoriés
-			$nbRefAndArtToInv = $this->referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
+			$nbRefAndArtToInv = $referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
 			$nbToInv = $nbRefAndArtToInv['nbRa'] + $nbRefAndArtToInv['nbA'];
 
 			$limit = (int)($nbToInv/($frequency->getNbMonths() * 4));
 
-			$listRefNextMission = $this->referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
+			$listRefNextMission = $referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
 			$listArtNextMission = $this->articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
 
 			foreach ($listRefNextMission as $ref) {

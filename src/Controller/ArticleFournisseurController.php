@@ -6,7 +6,7 @@ use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
-use App\Repository\ReferenceArticleRepository;
+use App\Entity\ReferenceArticle;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,19 +22,13 @@ use Symfony\Component\Routing\Annotation\Route;
 class ArticleFournisseurController extends AbstractController
 {
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(UserService $userService)
     {
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->userService = $userService;
     }
 
@@ -64,12 +58,12 @@ class ArticleFournisseurController extends AbstractController
             }
 
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+
             $articlesFournisseurs = $articleFournisseurRepository->findByParams($request->request);
             $rows = [];
             foreach ($articlesFournisseurs as $articleFournisseur) {
                 $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
             }
-
 
             $data['data'] = $rows;
             $data['recordsTotal'] = (int)$articleFournisseurRepository->countAll();
@@ -94,9 +88,10 @@ class ArticleFournisseurController extends AbstractController
             }
 
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
-            $referenceArticle = $this->referenceArticleRepository->find(intval($data['article-reference']));
+            $referenceArticle = $referenceArticleRepository->find(intval($data['article-reference']));
 
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
@@ -150,10 +145,11 @@ class ArticleFournisseurController extends AbstractController
 
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['id']));
             $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
-            $referenceArticle = $this->referenceArticleRepository->find(intval($data['article-reference']));
+            $referenceArticle = $referenceArticleRepository->find(intval($data['article-reference']));
 
             $articleFournisseur
                 ->setFournisseur($fournisseur)

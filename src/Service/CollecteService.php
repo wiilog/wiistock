@@ -9,8 +9,6 @@ use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
-use App\Repository\ReferenceArticleRepository;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -30,11 +28,6 @@ class CollecteService
      * @var RouterInterface
      */
     private $router;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var ArticleRepository
@@ -63,14 +56,12 @@ class CollecteService
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;

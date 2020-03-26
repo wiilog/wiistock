@@ -33,7 +33,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleRepository;
 use App\Entity\Demande;
 use App\Repository\DemandeRepository;
@@ -55,11 +54,6 @@ class PreparationController extends AbstractController
      * @var LigneArticleRepository
      */
     private $ligneArticleRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var ArticleRepository
@@ -106,12 +100,11 @@ class PreparationController extends AbstractController
      */
     private $preparationsManagerService;
 
-    public function __construct(PreparationsManagerService $preparationsManagerService, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(PreparationsManagerService $preparationsManagerService, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, DemandeRepository $demandeRepository, UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->preparationRepository = $preparationRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;

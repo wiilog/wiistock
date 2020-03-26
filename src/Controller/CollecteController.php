@@ -22,7 +22,6 @@ use App\Entity\ArticleFournisseur;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
 
@@ -64,11 +63,6 @@ class CollecteController extends AbstractController
     private $collecteReferenceRepository;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
      * @var CollecteRepository
      */
     private $collecteRepository;
@@ -108,7 +102,6 @@ class CollecteController extends AbstractController
     public function __construct(OrdreCollecteRepository $ordreCollecteRepository,
                                 RefArticleDataService $refArticleDataService,
                                 CollecteReferenceRepository $collecteReferenceRepository,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository,
                                 UtilisateurRepository $utilisateurRepository,
@@ -117,7 +110,6 @@ class CollecteController extends AbstractController
                                 CollecteService $collecteService)
     {
         $this->ordreCollecteRepository = $ordreCollecteRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -355,9 +347,10 @@ class CollecteController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {

@@ -7,12 +7,13 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\ReferenceArticleRepository;
 
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -112,7 +113,6 @@ class EmplacementController extends AbstractController
         $this->collecteRepository = $collecteRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->globalParamService = $globalParamService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
@@ -287,10 +287,13 @@ class EmplacementController extends AbstractController
 
     /**
      * @param int $emplacementId
+     * @param EntityManagerInterface $entityManager
      * @return array
      */
-    private function isEmplacementUsed($emplacementId)
+    private function isEmplacementUsed($emplacementId, EntityManagerInterface $entityManager)
     {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         $usedBy = [];
 
         $demandes = $this->demandeRepository->countByEmplacement($emplacementId);
@@ -308,7 +311,7 @@ class EmplacementController extends AbstractController
         $mouvementsStock = $this->mouvementTracaRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de traçabilité';
 
-        $refArticle = $this->referenceArticleRepository->countByEmplacement($emplacementId);
+        $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
         if ($refArticle > 0)$usedBy[] = 'références article';
 
         $articles = $this->articleRepository->countByEmplacement($emplacementId);

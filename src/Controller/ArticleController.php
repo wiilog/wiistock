@@ -19,15 +19,13 @@ use App\Repository\ArticleRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
-use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -54,11 +52,6 @@ class ArticleController extends AbstractController
     private $categorieCLRepository;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
      * @var CollecteRepository
      */
     private $collecteRepository;
@@ -72,11 +65,6 @@ class ArticleController extends AbstractController
      * @var ReceptionRepository
      */
     private $receptionRepository;
-
-    /**
-     * @var RefArticleDataService
-     */
-    private $refArticleDataService;
 
     /**
      * @var ArticleDataService
@@ -109,8 +97,6 @@ class ArticleController extends AbstractController
                                 GlobalParamService $globalParamService,
                                 CategorieCLRepository $categorieCLRepository,
                                 ArticleDataService $articleDataService,
-                                RefArticleDataService $refArticleDataService,
-                                ReferenceArticleRepository $referenceArticleRepository,
                                 ReceptionRepository $receptionRepository,
                                 ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository,
@@ -120,11 +106,9 @@ class ArticleController extends AbstractController
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
-        $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->categorieCLRepository = $categorieCLRepository;
@@ -696,13 +680,22 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws DBALException
      */
-    public function getCollecteArticleByRefArticle(Request $request): Response
+    public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
             $refArticle = null;
             if ($data['referenceArticle']) {
-                $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+                $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             }
             if ($refArticle) {
                 $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
@@ -717,11 +710,20 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/get-article-demande", name="demande_article_by_refArticle", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function getLivraisonArticlesByRefArticle(Request $request): Response
+    public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $refArticle = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($refArticle);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $refArticle = $referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
                 $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle);
@@ -797,8 +799,9 @@ class ArticleController extends AbstractController
 
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $articleFournisseur = $articleFournisseurRepository
                 ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
 
@@ -831,11 +834,15 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/ajax-fournisseur-by-refarticle", name="ajax_fournisseur_by_refarticle", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function ajaxFournisseurByRefArticle(Request $request): Response
+    public function ajaxFournisseurByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $refArticle = $referenceArticleRepository->find($data['refArticle']);
             if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $articleFournisseurs = $refArticle->getArticlesFournisseur();
                 $fournisseurs = [];
