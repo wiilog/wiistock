@@ -314,8 +314,9 @@ class ImportService
                 $file = $throwable->getFile();
                 $line = $throwable->getLine();
                 $logMessage = $throwable->getMessage();
+                $trace = $throwable->getTraceAsString();
                 $importId = $import->getId();
-                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file:$line");
+                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file:$line | $trace");
             }
 
             $stats['errors']++;

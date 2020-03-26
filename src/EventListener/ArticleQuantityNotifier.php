@@ -6,9 +6,11 @@ namespace App\EventListener;
 
 use App\Entity\Article;
 use App\Service\RefArticleDataService;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\ORMException;
 use Exception;
 
 class ArticleQuantityNotifier
@@ -54,13 +56,24 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     private function treatAlertAndUpdateRefArticleQuantities(Article $article) {
+        $entityManager = $this->getEntityManager();
         $articleFournisseur = $article->getArticleFournisseur();
         if (isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
 			$this->refArticleService->treatAlert($referenceArticle);
             $this->refArticleService->updateRefArticleQuantities($referenceArticle);
 
-            $this->entityManager->flush();
+            $entityManager->flush();
         }
+    }
+
+    /**
+     * @return EntityManagerInterface
+     * @throws ORMException
+     */
+    private function getEntityManager(): EntityManagerInterface {
+        return $this->entityManager->isOpen()
+            ? $this->entityManager
+            : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 }
