@@ -114,3 +114,21 @@ function deleteImport($btn) {
         });
     }
 }
+
+function updateOptions($select) {
+    let $tbody = $select.closest('tbody');
+    let $allSelects = $tbody.find('select');
+    let selectedValues = [];
+
+    $allSelects.each((index, element) => {
+        $(element).find('option').removeAttr('disabled');
+        let selectedValue = $(element).val();
+        if (selectedValue != '') {
+            selectedValues.push('option[value=' + selectedValue + ']');
+        }
+    });
+
+    if (selectedValues.length > 0) {
+        $tbody.find(selectedValues.join(',')).attr('disabled', 'disabled');
+    }
+}

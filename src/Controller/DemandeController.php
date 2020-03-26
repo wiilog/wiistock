@@ -31,6 +31,7 @@ use App\Repository\PreparationRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
+use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
@@ -473,9 +474,11 @@ class DemandeController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param string|null $reception
      * @param string|null $filter
+     * @param GlobalParamService $globalParamService
      * @return Response
      */
     public function index(EntityManagerInterface $entityManager,
+                          GlobalParamService $globalParamService,
                           $reception = null,
                           $filter = null): Response
     {
@@ -504,7 +507,8 @@ class DemandeController extends AbstractController
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'filterStatus' => $filter,
-            'receptionFilter' => $reception
+            'receptionFilter' => $reception,
+            'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation()
         ]);
     }
 
