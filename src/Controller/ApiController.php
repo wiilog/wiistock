@@ -676,7 +676,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             if (!empty($insertedPrepasIds)) {
                 $resData['data']['preparations'] = $this->preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
-                $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($entityManager, $insertedPrepasIds, true);
+                $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
                 $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
             }
 
@@ -1249,7 +1249,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return [
             'emplacements' => $emplacementRepository->getIdAndNom(),
             'preparations' => $preparations,
-            'articlesPrepa' => $this->getArticlesPrepaArrays($entityManager, $preparations),
+            'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
             'livraisons' => $livraisons,
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),

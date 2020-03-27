@@ -11,8 +11,6 @@ namespace App\Service;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
-use App\Repository\EmplacementRepository;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -31,11 +29,6 @@ class EmplacementDataService
      * @var Twig_Environment
      */
     private $templating;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var RouterInterface

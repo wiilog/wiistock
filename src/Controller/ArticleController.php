@@ -766,7 +766,6 @@ class ArticleController extends AbstractController
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $user->setColumnsVisibleForArticle($champs);
-            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->flush();
 
             return new JsonResponse();

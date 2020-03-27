@@ -197,6 +197,9 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
+    /**
+     * @return Emplacement[]
+     */
     public function findAllSorted()
 	{
 		$em = $this->getEntityManager();

@@ -56,8 +56,9 @@ class AlerteExpiryController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $alerteExpiryRepository = $entityManager->getRepository(AlerteExpiry::class);
 
-            $alertes = $this->alerteExpiryRepository->findAll();
+            $alertes = $alerteExpiryRepository->findAll();
             $rows = [];
 			$refs = [];
 
@@ -132,7 +133,8 @@ class AlerteExpiryController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
@@ -164,13 +166,13 @@ class AlerteExpiryController extends AbstractController
 				->setUser($this->getUser())
 				->setRefArticle($refArticle);
 
-			$em->persist($alerte);
-			$em->flush();
+            $entityManager->persist($alerte);
+            $entityManager->flush();
 
 			return new JsonResponse(true);
         }
 
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**

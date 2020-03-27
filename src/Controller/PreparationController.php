@@ -599,7 +599,9 @@ class PreparationController extends AbstractController
                 [
                     'isRef' => $data['ref'],
                     'quantity' => $quantity,
-                    'max' => $data['ref'] ? $quantity : $article->getQuantiteAPrelever()
+                    'max' => $data['ref']
+                        ? $quantity
+                        : (isset($article) ? $article->getQuantiteAPrelever() : null)
                 ]
             );
 

@@ -283,7 +283,7 @@ class ImportService
                                     array &$stats): array {
         $message = 'OK';
         try {
-            $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, $stats) {
+            $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, &$stats) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
 
                 switch ($import->getEntity()) {
