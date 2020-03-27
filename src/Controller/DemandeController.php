@@ -34,6 +34,7 @@ use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -43,6 +44,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -212,7 +216,7 @@ class DemandeController extends AbstractController
                 }
             }
 
-            return $this->finish($request);
+            return $this->finish($request, $entityManager);
         }
         throw new NotFoundHttpException('404');
     }
@@ -662,6 +666,10 @@ class DemandeController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function addArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
