@@ -634,13 +634,13 @@ class ImportService
                                            array $row,
                                            array &$stats)
     {
-        $newEntity = false;
+        $isNewEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
         $refArt = $refArtRepository->findOneByReference($data['reference']);
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
-            $newEntity = true;
+            $isNewEntity = true;
         }
 
         if (isset($data['libelle'])) {
@@ -663,7 +663,7 @@ class ImportService
                 $this->throwError($message);
             };
         }
-        if ($newEntity) {
+        if ($isNewEntity) {
             if (empty($data['typeQuantite'])
                 || !in_array($data['typeQuantite'], [ReferenceArticle::TYPE_QUANTITE_REFERENCE, ReferenceArticle::TYPE_QUANTITE_ARTICLE])) {
                 $this->throwError('Le type de gestion de la référence est invalide (autorisé : "article" ou "reference")');
@@ -694,7 +694,7 @@ class ImportService
             $refArt->setLimitWarning($data['limitWarning']);
         }
 
-        if ($newEntity) {
+        if ($isNewEntity) {
             $statusRepository = $this->em->getRepository(Statut::class);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF);
             $refArt
@@ -753,15 +753,16 @@ class ImportService
             if (!is_numeric($data['quantiteStock'])) {
                 $message = 'La quantité doit être un nombre.';
                 $this->throwError($message);
+            } else if ($data['quantiteStock'] < 0) {
+                $message = 'La quantité doit être positive.';
+                $this->throwError($message);
             }
             else if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if (isset($data['quantiteStock']) && $data['quantiteStock'] < $refArt->getQuantiteReservee()) {
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
                     $this->throwError($message);
                 }
-                if (!$newEntity) {
-                    $this->checkAndCreateMvtStock($refArt, $refArt->getQuantiteStock(), $data['quantiteStock']);
-                }
+                $this->checkAndCreateMvtStock($refArt, $refArt->getQuantiteStock(), $data['quantiteStock'], $isNewEntity);
                 $refArt->setQuantiteStock($data['quantiteStock']);
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
@@ -771,7 +772,7 @@ class ImportService
         $champLibreRepository = $this->em->getRepository(ChampLibre::class);
 
         $missingCL = [];
-        $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($refArt->getType(), CategorieCL::REFERENCE_ARTICLE, $newEntity);
+        $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($refArt->getType(), CategorieCL::REFERENCE_ARTICLE, $isNewEntity);
         $champsLibresId = array_keys($colChampsLibres);
         foreach ($mandatoryCLs as $cl) {
             if (!in_array($cl->getId(), $champsLibresId)) {
@@ -783,7 +784,7 @@ class ImportService
             $message = count($missingCL) > 1
                 ? 'Les champs ' . implode($missingCL, ', ') . ' sont obligatoires'
                 : 'Le champ ' . $missingCL[0] . ' est obligatoire';
-            $message .= ' à la ' . ($newEntity ? 'création.' : 'modification.');
+            $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
             $this->throwError($message);
         }
 
@@ -796,7 +797,7 @@ class ImportService
                 ->addArticleReference($refArt);
             $this->em->persist($valeurCL);
         }
-        $this->updateStats($stats, $newEntity);
+        $this->updateStats($stats, $isNewEntity);
     }
 
     /**
@@ -822,7 +823,7 @@ class ImportService
                 $this->throwError($message);
             }
         }
-        $newEntity = false;
+        $isNewEntity = false;
         if (!empty($data['reference'])) {
             $articleRepository = $this->em->getRepository(Article::class);
             $article = $articleRepository->findOneByReference($data['reference']);
@@ -832,7 +833,7 @@ class ImportService
             $article->setReference($data['reference']);
         } else {
             $article = new Article();
-            $newEntity = true;
+            $isNewEntity = true;
         }
 
         if (isset($data['label'])) {
@@ -842,9 +843,7 @@ class ImportService
             if (!is_numeric($data['quantite'])) {
                 $this->throwError('La quantité doit être un nombre.');
             }
-            if (!$newEntity) {
-                $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite']);
-            }
+            $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite'], $isNewEntity);
             $article->setQuantite($data['quantite']);
         }
 
@@ -855,7 +854,7 @@ class ImportService
             $article->setPrixUnitaire($data['prixUnitaire']);
         }
 
-        if ($newEntity) {
+        if ($isNewEntity) {
             $statutRepository = $this->em->getRepository(Statut::class);
             $article
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
@@ -889,7 +888,7 @@ class ImportService
             $this->em->persist($valeurCL);
         }
 
-        $this->updateStats($stats, $newEntity);
+        $this->updateStats($stats, $isNewEntity);
 
         return $refArticle;
     }
@@ -898,13 +897,16 @@ class ImportService
      * @param ReferenceArticle|Article $refOrArt
      * @param int $formerQuantity
      * @param int $newQuantity
+     * @param bool $isNewEntity
      */
-    private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity)
+    private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
     {
-        $diffQuantity = $newQuantity - $formerQuantity;
+        $diffQuantity = $isNewEntity ? ($newQuantity - $formerQuantity) : $newQuantity;
+
+        $mvtIn = $isNewEntity ? MouvementStock::TYPE_ENTREE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
 
         if ($diffQuantity != 0) {
-            $typeMvt = $diffQuantity > 0 ? MouvementStock::TYPE_INVENTAIRE_ENTREE : MouvementStock::TYPE_INVENTAIRE_SORTIE;
+            $typeMvt = $diffQuantity > 0 ? $mvtIn : MouvementStock::TYPE_INVENTAIRE_SORTIE;
             $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, null, abs($diffQuantity), $refOrArt, $typeMvt);
             $this->em->persist($mvtStock);
         }
