@@ -901,7 +901,7 @@ class ImportService
      */
     private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
     {
-        $diffQuantity = $isNewEntity ? ($newQuantity - $formerQuantity) : $newQuantity;
+        $diffQuantity = $isNewEntity ? $newQuantity : ($newQuantity - $formerQuantity);
 
         $mvtIn = $isNewEntity ? MouvementStock::TYPE_ENTREE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
 
