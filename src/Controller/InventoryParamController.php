@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\ReferenceArticle;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,20 +35,14 @@ class InventoryParamController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
-
-    /**
      * @var InventoryFrequencyRepository
      */
     private $inventoryFrequencyRepository;
 
-    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, InventoryCategoryRepository $inventoryCategoryRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
+    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
@@ -71,6 +64,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/api", name="invParam_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -79,7 +74,8 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $categories = $this->inventoryCategoryRepository->findAll();
+            $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+            $categories = $inventoryCategoryRepository->findAll();
             $rows = [];
             foreach ($categories as $category) {
                 $url['edit'] = $this->generateUrl('category_api_edit', ['id' => $category->getId()]);
@@ -113,9 +109,11 @@ class InventoryParamController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
+            $inventoryCategoryRepository = $em->getRepository(InventoryCategory::class);
+
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->inventoryCategoryRepository->countByLabel($data['label']);
+            $labelExist = $inventoryCategoryRepository->countByLabel($data['label']);
 
             if (!$labelExist) {
                 $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
@@ -146,7 +144,9 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $category = $this->inventoryCategoryRepository->find($data['id']);
+            $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+
+            $category = $inventoryCategoryRepository->find($data['id']);
             $frequencies = $this->inventoryFrequencyRepository->findAll();
 
             $json = $this->renderView('inventaire_param/modalEditCategoryContent.html.twig', [
@@ -170,11 +170,13 @@ class InventoryParamController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
-            $category = $this->inventoryCategoryRepository->find($data['category']);
+            $inventoryCategoryRepository = $em->getRepository(InventoryCategory::class);
+
+            $category = $inventoryCategoryRepository->find($data['category']);
             $categoryLabel = $category->getLabel();
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->inventoryCategoryRepository->countByLabelDiff($data['label'], $categoryLabel);
+            $labelExist = $inventoryCategoryRepository->countByLabelDiff($data['label'], $categoryLabel);
 
             if (!$labelExist) {
                 $frequency = $this->inventoryFrequencyRepository->find($data['frequency']);
@@ -233,9 +235,11 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $category = $this->inventoryCategoryRepository->find($data['category']);
-
             $entityManager = $this->getDoctrine()->getManager();
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+
+            $category = $inventoryCategoryRepository->find($data['category']);
+
             $entityManager->remove($category);
             $entityManager->flush();
             return new JsonResponse();
@@ -372,7 +376,9 @@ class InventoryParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $frequencyIsUsed = $this->inventoryCategoryRepository->countByFrequency($frequencyId);
+            $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+
+            $frequencyIsUsed = $inventoryCategoryRepository->countByFrequency($frequencyId);
 
             if (!$frequencyIsUsed) {
                 $delete = true;
@@ -411,13 +417,14 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-	public function updateCategory(Request $request, EntityManagerInterface $entityManager): Response
+	public function updateCategory(Request $request): Response
 	{
 		if ($request->isXmlHttpRequest()) {
+		    $entityManager = $this->getDoctrine()->getManager();
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $file = $request->files->get('file');
 
@@ -457,7 +464,7 @@ class InventoryParamController extends AbstractController
 
 			foreach ($rows as $row)
 			{
-				$inventoryCategory = $this->inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
+				$inventoryCategory = $inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
 				$refArticle = $referenceArticleRepository->findOneBy(['reference' => $row[0]]);
 				if (!empty($refArticle) && !empty($inventoryCategory))
 				{

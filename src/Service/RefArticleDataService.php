@@ -27,7 +27,6 @@ use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\CategorieCLRepository;
 use DateTime;
@@ -83,11 +82,6 @@ class RefArticleDataService
      */
     private $inventoryFrequencyRepository;
 
-    /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
-
     private $entityManager;
 
     /**
@@ -104,7 +98,6 @@ class RefArticleDataService
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
-                                InventoryCategoryRepository $inventoryCategoryRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
@@ -115,7 +108,6 @@ class RefArticleDataService
         $this->userService = $userService;
         $this->router = $router;
         $this->demandeRepository = $demandeRepository;
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
@@ -263,11 +255,13 @@ class RefArticleDataService
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type = $typeRepository->find(intval($data['type']));
-        $category = $this->inventoryCategoryRepository->find($data['categorie']);
+        $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         $emplacement = $emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
