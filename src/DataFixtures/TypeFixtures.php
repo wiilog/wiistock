@@ -4,28 +4,12 @@ namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
 use App\Entity\Type;
-use App\Repository\CategoryTypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class TypeFixtures extends Fixture implements FixtureGroupInterface
 {
-    private $encoder;
-
-	/**
-	 * @var CategoryTypeRepository
-	 */
-    private $categoryTypeRepository;
-
-
-    public function __construct(CategoryTypeRepository $categoryTypeRepository, UserPasswordEncoderInterface $encoder)
-    {
-        $this->encoder = $encoder;
-        $this->categoryTypeRepository = $categoryTypeRepository;
-    }
-
     public function load(ObjectManager $manager)
     {
     	$categoriesTypes = [
@@ -45,9 +29,11 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 		];
 
         $typeRepository = $manager->getRepository(Type::class);
-    	foreach ($categoriesTypes as $categoryName => $typesNames) {
+        $categoryTypeRepository = $manager->getRepository(CategoryType::class);
+
+        foreach ($categoriesTypes as $categoryName => $typesNames) {
     		// création des catégories de types
-			$categorie = $this->categoryTypeRepository->findOneBy(['label' => $categoryName]);
+			$categorie = $categoryTypeRepository->findOneBy(['label' => $categoryName]);
 
 			if (empty($categorie)) {
 				$categorie = new CategoryType();

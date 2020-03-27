@@ -7,7 +7,6 @@ use App\Entity\CategoryType;
 use App\Entity\ReferenceArticle;
 use App\Entity\ChampLibre;
 use App\Entity\Type;
-use App\Repository\CategoryTypeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\FiltreRefRepository;
-use App\Repository\ArticleRepository;
 
 /**
  * Class TypeController
@@ -31,20 +29,12 @@ class TypeController extends AbstractController
      */
     private $filtreRefRepository;
 
-    /**
-     * @var CategoryTypeRepository
-     */
-    private $categoryTypeRepository;
-
 	/**
 	 * TypeController constructor.
 	 * @param FiltreRefRepository $filtreRefRepository
-	 * @param CategoryTypeRepository $categoryTypeRepository
 	 */
-    public function __construct(FiltreRefRepository $filtreRefRepository,
-                                CategoryTypeRepository $categoryTypeRepository) {
+    public function __construct(FiltreRefRepository $filtreRefRepository) {
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->categoryTypeRepository = $categoryTypeRepository;
     }
 
     /**
@@ -124,15 +114,17 @@ class TypeController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
 
             // on vérifie que le nom du type n'est pas déjà utilisé
             $typeExist = $typeRepository->countByLabel($data['label']);
 
             if (!$typeExist) {
                 if ($data['category'] === null) {
-                    $category = $this->categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
+                    $category = $categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
                 } else {
-                    $category = $this->categoryTypeRepository->find($data['category']);
+                    $category = $categoryTypeRepository->find($data['category']);
                 }
 
                 $type = new Type();
@@ -211,10 +203,12 @@ class TypeController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
             $type = $typeRepository->find($data['id']);
             $json = $this->renderView('champ_libre/modalEditTypeContent.html.twig', [
                 'type' => $type,
-                'category' => $this->categoryTypeRepository->getNoOne($type->getCategory()->getId())
+                'category' => $categoryTypeRepository->getNoOne($type->getCategory()->getId())
             ]);
             return new JsonResponse($json);
         }
@@ -231,8 +225,10 @@ class TypeController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $category = $this->categoryTypeRepository->find($data['category']);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+
+            $category = $categoryTypeRepository->find($data['category']);
             $type = $typeRepository->find($data['type']);
             $type
                 ->setLabel($data['label'])

@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
 use App\Entity\Type;
-use App\Repository\CategoryTypeRepository;
 use App\Repository\CategorieCLRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,31 +21,25 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class ChampLibreController extends AbstractController
 {
-
-    /**
-     * @var CategoryTypeRepository
-     */
-    private $categoryTypeRepository;
-
     /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository,
-                                CategoryTypeRepository $categoryTypeRepository) {
-        $this->categoryTypeRepository = $categoryTypeRepository;
+    public function __construct(CategorieCLRepository $categorieCLRepository) {
         $this->categorieCLRepository = $categorieCLRepository;
     }
 
     /**
      * @Route("/", name="champ_libre_index", methods={"GET"})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         return $this->render('champ_libre/index.html.twig', [
-            'category' => $this->categoryTypeRepository->findAll(),
-
+            'category' => $categoryTypeRepository->findAll(),
         ]);
     }
 
