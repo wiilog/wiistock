@@ -9,7 +9,6 @@ use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Service\InventoryService;

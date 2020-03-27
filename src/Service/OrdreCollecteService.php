@@ -13,7 +13,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;

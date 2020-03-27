@@ -15,7 +15,6 @@ use App\Entity\CategoryType;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\ArticleRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;

@@ -11,7 +11,6 @@ use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
-use App\Repository\ArticleRepository;
 
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
