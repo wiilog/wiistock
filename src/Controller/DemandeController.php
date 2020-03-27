@@ -7,6 +7,8 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
+use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -15,21 +17,17 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
-use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\LigneArticleRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
@@ -46,6 +44,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -53,16 +54,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class DemandeController extends AbstractController
 {
-
-    /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var UtilisateurRepository
@@ -73,16 +64,6 @@ class DemandeController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
     /**
      * @var PreparationRepository
@@ -103,16 +84,6 @@ class DemandeController extends AbstractController
      * @var ArticleDataService
      */
     private $articleDataService;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
     /**
      * @var CategorieCLRepository
      */
@@ -143,22 +114,27 @@ class DemandeController extends AbstractController
      */
     private $demandeLivraisonService;
 
-    public function __construct(ReceptionRepository $receptionRepository, PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService, DemandeLivraisonService $demandeLivraisonService)
+    public function __construct(ReceptionRepository $receptionRepository,
+                                PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
+                                ParametreRepository $parametreRepository,
+                                ParametreRoleRepository $parametreRoleRepository,
+                                CategorieCLRepository $categorieCLRepository,
+                                PreparationRepository $preparationRepository,
+                                DemandeRepository $demandeRepository,
+                                UtilisateurRepository $utilisateurRepository,
+                                UserService $userService,
+                                RefArticleDataService $refArticleDataService,
+                                ArticleDataService $articleDataService,
+                                DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
-        $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->preparationRepository = $preparationRepository;
-        $this->champLibreRepository = $champLibreRepository;
         $this->categorieCLRepository = $categorieCLRepository;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->parametreRepository = $parametreRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
@@ -168,14 +144,20 @@ class DemandeController extends AbstractController
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function compareStock(Request $request): Response
+    public function compareStock(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $demande = $this->demandeRepository->find($data['demande']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
+            $demande = $demandeRepository->find($data['demande']);
 
             $response = [];
             $response['status'] = false;
@@ -209,7 +191,7 @@ class DemandeController extends AbstractController
                     $stock = $articleRef->getQuantiteStock();
                     $quantiteReservee = $ligne->getQuantite();
 
-                    $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+                    $listLigneArticleByRefArticle = $ligneArticleRepository->findByRefArticle($articleRef);
 
                     foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                         $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
@@ -224,7 +206,7 @@ class DemandeController extends AbstractController
                     }
                 } else {
                     $totalQuantity = (
-                        $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
+                        $articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
                         - $ligne->getReference()->getQuantiteReservee()
                     );
                     if ($ligne->getQuantite() > $totalQuantity) {
@@ -234,7 +216,7 @@ class DemandeController extends AbstractController
                 }
             }
 
-            return $this->finish($request);
+            return $this->finish($request, $entityManager);
         }
         throw new NotFoundHttpException('404');
     }
@@ -255,8 +237,10 @@ class DemandeController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
-            $demande = $this->demandeRepository->find($data['demande']);
+            $demande = $demandeRepository->find($data['demande']);
 
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
@@ -314,7 +298,7 @@ class DemandeController extends AbstractController
                     [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+                        'champsLibres' => $valeurChampLibreRepository->getByDemandeLivraison($demande)
                     ]
                 ),
                 'status' => true
@@ -339,18 +323,22 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $this->demandeRepository->find($data['id']);
-
             $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
+
+            $demande = $demandeRepository->find($data['id']);
+
             $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
             $typeChampLibre = [];
 
             foreach ($listTypes as $type) {
-                $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 $champsLibresArray = [];
                 foreach ($champsLibres as $champLibre) {
-                    $valeurChampDL = $this->valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
+                    $valeurChampDL = $valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
                     $champsLibresArray[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
@@ -392,11 +380,17 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
-            $type = $entityManager->find(Type::class, intval($data['type']));
-            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+            $type = $typeRepository->find(intval($data['type']));
+            $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                     $requiredEdit = false;
@@ -404,9 +398,9 @@ class DemandeController extends AbstractController
             }
 
             if ($requiredEdit) {
-                $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
-                $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-                $demande = $this->demandeRepository->find($data['demandeId']);
+                $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
+                $emplacement = $emplacementRepository->find(intval($data['destination']));
+                $demande = $demandeRepository->find($data['demandeId']);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
@@ -420,14 +414,14 @@ class DemandeController extends AbstractController
 
                 foreach ($champsLibresKey as $champ) {
                     if (gettype($champ) === 'integer') {
-                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champ);
+                        $valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champ);
 
                         // si la valeur n'existe pas, on la crée
                         if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampLibre();
                             $valeurChampLibre
                                 ->addDemandesLivraison($demande)
-                                ->setChampLibre($this->champLibreRepository->find($champ));
+                                ->setChampLibre($champLibreRepository->find($champ));
                             $em->persist($valeurChampLibre);
                         }
                         $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
@@ -439,7 +433,7 @@ class DemandeController extends AbstractController
                     'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+                        'champsLibres' => $valeurChampLibreRepository->getByDemandeLivraison($demande)
                     ]),
                 ];
 
@@ -486,12 +480,14 @@ class DemandeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
         $typeChampLibre = [];
         foreach ($types as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
 
             $typeChampLibre[] = [
                 'typeLabel' => $type->getLabel(),
@@ -503,7 +499,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->getIdAndNom(),
+            'emplacements' => $emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'filterStatus' => $filter,
@@ -566,6 +562,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @param EntityManagerInterface $entityManager
      * @param Demande $demande
      * @return Response
      */
@@ -576,35 +573,42 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
-        $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
+        $valeursChampLibre = $valeurChampLibreRepository->getByDemandeLivraison($demande);
 
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referenceArticleRepository->getIdAndLibelle(),
+            'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'emplacements' => $this->emplacementRepository->findAll(),
+            'emplacements' => $emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'champsLibres' => $valeursChampLibre
         ]);
     }
 
-	/**
-	 * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
-	 * @param Request $request
-	 * @param Demande $demande
-	 * @return Response
-	 * @throws DBALException
-	 */
-    public function articleApi(Request $request, Demande $demande): Response
+    /**
+     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param Demande $demande
+     * @return Response
+     */
+    public function articleApi(Request $request,
+                               EntityManagerInterface $entityManager,
+                               Demande $demande): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $ligneArticles = $demande->getLigneArticle();
             $rowsRC = [];
@@ -629,7 +633,7 @@ class DemandeController extends AbstractController
                     )
                 ];
             }
-            $articles = $this->articleRepository->findByDemande($demande);
+            $articles = $articleRepository->findByDemande($demande);
             $rowsCA = [];
             foreach ($articles as $article) {
                 $rowsCA[] = [
@@ -658,15 +662,24 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function addArticle(Request $request): Response
+    public function addArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle);
 
             if ($resp === 'article') {
@@ -681,19 +694,25 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function removeArticle(Request $request): Response
+    public function removeArticle(Request $request,
+                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $entityManager = $this->getDoctrine()->getManager();
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $ligneAricle = $this->ligneArticleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+                $ligneAricle = $ligneArticleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($ligneAricle);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $article = $articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
                 $demande = $article->getDemande();
                 $demande->removeArticle($article);
                 $article->setQuantitePrelevee(0);
@@ -708,14 +727,19 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/modifier-article", name="demande_article_edit", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editArticle(Request $request): Response
+    public function editArticle(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $ligneArticle = $ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
             $this->getDoctrine()->getManager()->flush();
 
@@ -740,12 +764,14 @@ class DemandeController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
-            $ligneArticle = $this->ligneArticleRepository->find($data['id']);
+            $ligneArticle = $ligneArticleRepository->find($data['id']);
             $articleRef = $ligneArticle->getReference();
             $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
-                $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
+                $articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                 $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
@@ -760,12 +786,19 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function hasArticles(Request $request): Response
+    public function hasArticles(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articles = $this->articleRepository->findByDemande($data['id']);
-            $references = $this->ligneArticleRepository->findByDemande($data['id']);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
+            $articles = $articleRepository->findByDemande($data['id']);
+            $references = $ligneArticleRepository->findByDemande($data['id']);
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);
@@ -775,6 +808,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/demandes-infos", name="get_demandes_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
@@ -789,7 +823,14 @@ class DemandeController extends AbstractController
 			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
 			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-			$demandes = $this->demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+            $demandeRepository = $entityManager->getRepository(Demande::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+
+			$demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             // en-têtes champs fixes
             $headers = [
@@ -812,13 +853,13 @@ class DemandeController extends AbstractController
 			];
 
 			// en-têtes champs libres DL
-			$clDL = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+			$clDL = $champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
 			foreach ($clDL as $champLibre) {
 				$headers[] = $champLibre->getLabel();
 			}
 
 			// en-têtes champs libres articles
-			$clAR = $this->champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
+			$clAR = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
 			foreach ($clAR as $champLibre) {
 				$headers[] = $champLibre->getLabel();
 			}
@@ -826,13 +867,12 @@ class DemandeController extends AbstractController
 			$data = [];
 			$data[] = $headers;
 
-            $typeRepository = $entityManager->getRepository(Type::class);
 			$listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 			$listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
 			$listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {
-				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
+				$listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
 			}
 
 			foreach ($demandes as $demande) {
@@ -852,16 +892,16 @@ class DemandeController extends AbstractController
 					$demandeData[] = $ligneArticle->getQuantite();
 
 					// champs libres de la demande
-					$this->addChampsLibresDL($demande, $listChampsLibresDL, $clDL, $demandeData);
+					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
 					// champs libres de l'article de référence
 					$categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
 					$champsLibresArt = [];
 
 					foreach ($listTypesArt as $type) {
-						$listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
+						$listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
 						foreach ($listChampsLibres as $champLibre) {
-							$valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ligneArticle->getReference()->getId(), $champLibre);
+							$valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ligneArticle->getReference()->getId(), $champLibre);
 							if ($valeurChampRefArticle) {
 								$champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
 							}
@@ -877,7 +917,7 @@ class DemandeController extends AbstractController
 
 					$data[] = $demandeData;
 				}
-				foreach ($this->articleRepository->findByDemande($demande) as $article) {
+				foreach ($articleRepository->findByDemande($demande) as $article) {
 					$demandeData = [];
 
                     array_push($demandeData, ...$infosDemand);
@@ -889,14 +929,14 @@ class DemandeController extends AbstractController
 					$demandeData[] = $article->getQuantiteAPrelever();
 
 					// champs libres de la demande
-					$this->addChampsLibresDL($demande, $listChampsLibresDL, $clDL, $demandeData);
+					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
 					// champs libres de l'article
 					$champsLibresArt = [];
 					foreach ($listTypesArt as $type) {
-						$listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+						$listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
 						foreach ($listChampsLibres as $champLibre) {
-							$valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
+							$valeurChampRefArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
 							if ($valeurChampRefArticle) {
 								$champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
 							}
@@ -919,18 +959,19 @@ class DemandeController extends AbstractController
 		}
 	}
 
-	/**
-	 * @param Demande $livraison
-	 * @param ChampLibre[] $listChampsLibresDL
-	 * @param ChampLibre[] $cls
-	 * @param array $demandeData
-	 * @throws NonUniqueResultException
-	 */
-	private function addChampsLibresDL($livraison, $listChampsLibresDL, $cls, &$demandeData)
+    /**
+     * @param ValeurChampLibreRepository $valeurChampLibreRepository
+     * @param Demande $livraison
+     * @param ChampLibre[] $listChampsLibresDL
+     * @param ChampLibre[] $cls
+     * @param array $demandeData
+     * @throws NonUniqueResultException
+     */
+	private function addChampsLibresDL(ValeurChampLibreRepository $valeurChampLibreRepository, $livraison, $listChampsLibresDL, $cls, &$demandeData)
 	{
 		$champsLibresDL = [];
 		foreach ($listChampsLibresDL as $champLibre) {
-			$valeurChampDL = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($livraison, $champLibre);
+			$valeurChampDL = $valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($livraison, $champLibre);
 			if ($valeurChampDL) {
 				$champsLibresDL[$champLibre->getLabel()] = $valeurChampDL->getValeur();
 			}

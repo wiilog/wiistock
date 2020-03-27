@@ -89,7 +89,7 @@ function displayConfirmationModal(data) {
 }
 
 function launchImport(data) {
-    $.post(Routing.generate('import_launch'), {importId: data.importId, force: 1}, (resp) => {
+    $.post(Routing.generate('import_launch'), data, (resp) => {
         tableImport.ajax.reload();
         if (resp.success) {
             alertSuccessMsg(resp.msg);
@@ -161,7 +161,7 @@ function initDoubleClick(elem) {
 }
 
 function launchPlanifiedImport($btn) {
-    let params = { importId : $btn.data('id') };
+    let params = { importId : $btn.data('id'), force: 1 };
 
     $.post(Routing.generate('import_confirm'), JSON.stringify(params), (resp) => {
         if (resp.success) {

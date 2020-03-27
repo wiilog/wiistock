@@ -24,7 +24,6 @@ use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ArrivageRepository;
-use App\Repository\ChampLibreRepository;
 use App\Repository\ColisRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
@@ -35,7 +34,6 @@ use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\UrgenceRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
@@ -128,11 +126,6 @@ class ArrivageController extends AbstractController
     private $arrivageDataService;
 
     /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
      * @var LitigeRepository
      */
     private $litigeRepository;
@@ -166,13 +159,7 @@ class ArrivageController extends AbstractController
      */
     private $fieldsParamRepository;
 
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
-
-    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository,
-                                FieldsParamRepository $fieldsParamRepository,
+    public function __construct(FieldsParamRepository $fieldsParamRepository,
                                 ArrivageDataService $arrivageDataService,
                                 DashboardService $dashboardService,
                                 UrgenceRepository $urgenceRepository,
@@ -182,7 +169,6 @@ class ArrivageController extends AbstractController
                                 ColisRepository $colisRepository,
                                 PieceJointeRepository $pieceJointeRepository,
                                 LitigeRepository $litigeRepository,
-                                ChampLibreRepository $champsLibreRepository,
                                 SpecificService $specificService,
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
@@ -203,7 +189,6 @@ class ArrivageController extends AbstractController
         $this->transporteurRepository = $transporteurRepository;
         $this->chauffeurRepository = $chauffeurRepository;
         $this->mailerService = $mailerService;
-        $this->champLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->colisRepository = $colisRepository;
@@ -211,7 +196,6 @@ class ArrivageController extends AbstractController
         $this->attachmentService = $attachmentService;
         $this->natureRepository = $natureRepository;
         $this->arrivageDataService = $arrivageDataService;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
 
     /**
@@ -436,33 +420,33 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ChampLibreRepository $champLibreRepository
-     * @param ValeurChampLibreRepository $valeurChampLibreRepository
      * @param EntityManagerInterface $entityManager
      * @param StatutService $statutService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
-                            ChampLibreRepository $champLibreRepository,
-                            ValeurChampLibreRepository $valeurChampLibreRepository,
                             EntityManagerInterface $entityManager,
-                            StatutService $statutService
-    ): Response
+                            StatutService $statutService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrivage = $this->arrivageRepository->find($data['id']);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+            $arrivage = $arrivageRepository->find($data['id']);
 
             // construction de la chaîne de caractères pour alimenter le select2
             $acheteursUsernames = [];
             foreach ($arrivage->getAcheteurs() as $acheteur) {
                 $acheteursUsernames[] = $acheteur->getUsername();
             }
-            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
             $champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
             $champsLibresArray = [];
@@ -593,6 +577,8 @@ class ArrivageController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $arrivage
                 ->setCommentaire($post->get('commentaire'))
@@ -640,14 +626,14 @@ class ArrivageController extends AbstractController
             $champLibreKey = array_keys($post->all());
             foreach ($champLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $champLibre = $this->champLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+                    $champLibre = $champLibreRepository->find($champ);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addArrivage($arrivage)
-                            ->setChampLibre($this->champLibreRepository->find($champ));
+                            ->setChampLibre($champLibre);
                         $entityManager->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur(is_array($post->get($champ)) ? implode(";", $post->get($champ)) : $post->get($champ));
@@ -658,10 +644,10 @@ class ArrivageController extends AbstractController
             $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
             $champsLibres = [];
             foreach ($listTypes as $type) {
-                $listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+                $listChampsLibres = $champLibreRepository->findByType($type['id']);
 
                 foreach ($listChampsLibres as $champLibre) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
 
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
@@ -952,13 +938,17 @@ class ArrivageController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     *
+     * @param EntityManagerInterface $entityManager
      * @param Arrivage $arrivage
      * @param bool $printColis
      * @param bool $printArrivage
+     *
      * @return JsonResponse
-     * @throws NonUniqueResultException
+     *
      * @throws NoResultException
-     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
                          Arrivage $arrivage,
@@ -973,20 +963,23 @@ class ArrivageController extends AbstractController
         $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
-        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
         $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
         $champsLibres = [];
         foreach ($listTypes as $type) {
-            $listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+            $listChampsLibres = $champLibreRepository->findByType($type['id']);
 
             foreach ($listChampsLibres as $champLibre) {
-                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+                $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
 
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
@@ -1018,6 +1011,9 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      * @throws NonUniqueResultException
      */
     public function newLitige(Request $request,
@@ -1112,8 +1108,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param ColisService $colisService
-     * @return JsonResponse
-     * @throws NoResultException
+     * @return JsonResponse|RedirectResponse
      * @throws NonUniqueResultException
      */
     public function addColis(Request $request,
@@ -1125,7 +1120,9 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+
+            $arrivage = $arrivageRepository->find($data['arrivageId']);
 
             $natures = array_reduce(
                 array_keys($data),
@@ -1195,30 +1192,34 @@ class ArrivageController extends AbstractController
      * @return Response
      */
     public function apiEditLitige(Request $request,
+                                  UserService $userService,
                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
-            $litige = $this->litigeRepository->find($data['litigeId']);
+            $litige = $litigeRepository->find($data['litigeId']);
 
             $colisCode = [];
             foreach ($litige->getColis() as $colis) {
                 $colisCode[] = $colis->getId();
             }
 
-            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
+            $arrivage = $arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
+            $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getColis(),
             ]);
 
@@ -1538,17 +1539,22 @@ class ArrivageController extends AbstractController
         $response = null;
         if (isset($reloadArrivageId)) {
             $typeRepository = $entityManager->getRepository(Type::class);
-            $arrivageToReload = $this->arrivageRepository->find($reloadArrivageId);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+
+            $arrivageToReload = $arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
-                $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
                 $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
                 $champsLibres = [];
                 foreach ($listTypes as $type) {
-                    $listChampsLibres = $this->champLibreRepository->findByType($type['id']);
+                    $listChampsLibres = $champLibreRepository->findByType($type['id']);
 
                     foreach ($listChampsLibres as $champLibre) {
-                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivageToReload, $champLibre);
+                        $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivageToReload, $champLibre);
 
                         $champsLibres[] = [
                             'id' => $champLibre->getId(),

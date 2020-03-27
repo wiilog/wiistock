@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fournisseur;
-use App\Repository\FournisseurRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;

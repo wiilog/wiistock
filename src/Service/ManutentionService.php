@@ -11,6 +11,9 @@ use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class ManutentionService
 {
@@ -73,6 +76,13 @@ class ManutentionService
         ];
     }
 
+    /**
+     * @param Manutention $manutention
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function dataRowManut($manutention)
     {
         $row = [

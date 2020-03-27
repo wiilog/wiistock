@@ -11,8 +11,12 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
+use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -21,19 +25,10 @@ use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-
-use App\Repository\ArticleFournisseurRepository;
-use App\Repository\ArticleRepository;
-use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\LigneArticleRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\EmplacementRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -53,26 +48,6 @@ use Twig\Error\SyntaxError;
 class RefArticleDataService
 {
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
-
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
-
-    /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
@@ -81,16 +56,6 @@ class RefArticleDataService
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
     /**
      * @var DemandeRepository
@@ -108,11 +73,6 @@ class RefArticleDataService
     private $userService;
 
     /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
-
-    /**
      * @var object|string
      */
     private $user;
@@ -121,11 +81,6 @@ class RefArticleDataService
      * @var InventoryFrequencyRepository
      */
     private $inventoryFrequencyRepository;
-
-    /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
 
     private $entityManager;
 
@@ -136,39 +91,23 @@ class RefArticleDataService
 
 
     public function __construct(DemandeRepository $demandeRepository,
-                                ArticleRepository $articleRepository,
-                                LigneArticleRepository $ligneArticleRepository,
-                                EmplacementRepository $emplacementRepository,
                                 RouterInterface $router,
                                 UserService $userService,
-                                ArticleFournisseurRepository $articleFournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $entityManager,
-                                ValeurChampLibreRepository $valeurChampLibreRepository,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ChampLibreRepository $champLibreRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
-                                InventoryCategoryRepository $inventoryCategoryRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
-        $this->emplacementRepository = $emplacementRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->champLibreRepository = $champLibreRepository;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->ligneArticleRepository = $ligneArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
@@ -182,9 +121,11 @@ class RefArticleDataService
      */
     public function getRefArticleDataByParams($params = null)
     {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $rows = [];
         foreach ($refs as $refArticle) {
@@ -193,7 +134,7 @@ class RefArticleDataService
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $this->referenceArticleRepository->countAll()
+            'recordsTotal' => $referenceArticleRepository->countAll()
         ];
     }
 
@@ -205,8 +146,11 @@ class RefArticleDataService
     public function getDataEditForRefArticle($articleRef)
     {
         $type = $articleRef->getType();
+
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+
         if ($type) {
-            $valeurChampLibre = $this->valeurChampLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+            $valeurChampLibre = $valeurChampLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
         } else {
             $valeurChampLibre = [];
         }
@@ -231,30 +175,34 @@ class RefArticleDataService
         ];
     }
 
-	/**
-	 * @param ReferenceArticle $refArticle
-	 * @param bool $isADemand
-	 * @return string
-	 * @throws DBALException
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param bool $isADemand
+     * @return string
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
-        $data = $this->getDataEditForRefArticle($refArticle);
-        $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
+        $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+
+        $data = $this->getDataEditForRefArticle($refArticle);
+        $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
-        $categories = $this->inventoryCategoryRepository->findAll();
+        $categories = $inventoryCategoryRepository->findAll();
         $typeChampLibre = [];
         foreach ($types as $type) {
-            $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $champsLibres = [];
 
             foreach ($champsLibresComplet as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
+                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
@@ -300,16 +248,23 @@ class RefArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
+
+        $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
-        $type = $this->entityManager->find(Type::class, intval($data['type']));
-        $category = $this->inventoryCategoryRepository->find($data['categorie']);
+        $type = $typeRepository->find(intval($data['type']));
+        $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
-        $emplacement = $this->emplacementRepository->find(intval($data['emplacement']));
-        $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+        $emplacement = $emplacementRepository->find(intval($data['emplacement']));
+        $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                 $requiredEdit = false;
@@ -353,7 +308,7 @@ class RefArticleDataService
                 if ($statut) $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
-                $type = $this->entityManager->find(Type::class, intval($data['type']));
+                $type = $typeRepository->find(intval($data['type']));
                 if ($type) $refArticle->setType($type);
             }
 
@@ -362,14 +317,14 @@ class RefArticleDataService
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $champLibre = $this->champLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
+                    $champLibre = $champLibreRepository->find($champ);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addArticleReference($refArticle)
-                            ->setChampLibre($this->champLibreRepository->find($champ));
+                            ->setChampLibre($champLibreRepository->find($champ));
                         $entityManager->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
@@ -399,7 +354,8 @@ class RefArticleDataService
      */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $rows = $this->valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
+        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $rows = $valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
         $rowCL = [];
         foreach ($rows as $row) {
             $rowCL[$row['label']] = $row['valeur'];
@@ -438,16 +394,25 @@ class RefArticleDataService
      * @param array $data
      * @param ReferenceArticle $referenceArticle
      * @return bool
+     * @throws DBALException
+     * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function addRefToDemand($data, $referenceArticle)
     {
         $resp = true;
-        $demande = $this->demandeRepository->find($data['livraison']);
+
+        $demandeRepository = $this->entityManager->getRepository(Demande::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
+
+        $demande = $demandeRepository->find($data['livraison']);
 
         // cas gestion quantité par référence
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+            if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setReference($referenceArticle)
@@ -455,7 +420,7 @@ class RefArticleDataService
                     ->setQuantite(max($data["quantitie"], 0)); // protection contre quantités négatives
                 $this->entityManager->persist($ligneArticle);
             } else {
-                $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
+                $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
             }
             $this->editRefArticle($referenceArticle, $data);
@@ -463,7 +428,7 @@ class RefArticleDataService
             // cas gestion quantité par article
         } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($this->userService->hasParamQuantityByRef()) {
-                if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
                         ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
@@ -472,11 +437,11 @@ class RefArticleDataService
                         ->setToSplit(true);
                     $this->entityManager->persist($ligneArticle);
                 } else {
-                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
+                    $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
                     $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
                 }
             } else {
-                $article = $this->articleRepository->find($data['article']);
+                $article = $articleRepository->find($data['article']);
                 /** @var Article $article */
                 $article
                     ->setDemande($demande)
@@ -498,11 +463,13 @@ class RefArticleDataService
      */
     public function generateBarCode($counter = null)
     {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
         $now = new \DateTime('now');
         $dateCode = $now->format('ym');
 
         if (!isset($counter)) {
-            $highestBarCode = $this->referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
+            $highestBarCode = $referenceArticleRepository->getHighestBarCodeByDateCode($dateCode);
             $highestCounter = $highestBarCode ? (int)substr($highestBarCode, 7, 8) : 0;
             $counter = sprintf('%08u', $highestCounter + 1);
         }
@@ -515,9 +482,11 @@ class RefArticleDataService
     public function getAlerteDataByParams($params, $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
         $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
 
-        $results = $this->referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
+        $results = $referenceArticleRepository->getAlertDataByParams($params, $filtresAlerte);
         $referenceArticles = $results['data'];
 
         $rows = [];
@@ -595,8 +564,10 @@ class RefArticleDataService
      * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $referenceArticle->setQuantiteStock($this->referenceArticleRepository->getStockQuantity($referenceArticle));
+            $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
         }
     }
 
@@ -607,8 +578,10 @@ class RefArticleDataService
      * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $referenceArticle->setQuantiteReservee($this->referenceArticleRepository->getReservedQuantity($referenceArticle));
+            $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
         }
     }
 

@@ -4,17 +4,14 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
-
 use App\Entity\Type;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\CategoryTypeRepository;
-
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -30,33 +27,25 @@ class ParamTypesController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var CategoryTypeRepository
-     */
-    private $categoryTypeRepository;
-
-    public function __construct(UserService $userService, ReferenceArticleRepository $referenceArticleRepository, CategoryTypeRepository $categoryTypeRepository)
+    public function __construct(UserService $userService)
     {
         $this->userService = $userService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->categoryTypeRepository = $categoryTypeRepository;
     }
 
     /**
      * @Route("/", name="types_param_index")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function index()
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $categories = $this->categoryTypeRepository->findAll();
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+        $categories = $categoryTypeRepository->findAll();
 
         return $this->render('types/index.html.twig', [
             'categories' => $categories,
@@ -118,11 +107,13 @@ class ParamTypesController extends AbstractController
             $em = $this->getDoctrine()->getManager();
 
             $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $typeRepository->countByLabelAndCategory($data['label'], $data['category']);
 
             if (!$labelExist) {
-                $category = $this->categoryTypeRepository->find($data['category']);
+                $category = $categoryTypeRepository->find($data['category']);
                 $type = new Type();
                 $type
                     ->setLabel($data['label'])
@@ -161,7 +152,9 @@ class ParamTypesController extends AbstractController
             }
 
             $type = $entityManager->find(Type::class, $data['id']);
-            $categories = $this->categoryTypeRepository->findAll();
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+            $categories = $categoryTypeRepository->findAll();
 
             $json = $this->renderView('types/modalEditTypeContent.html.twig', [
                 'type' => $type,
@@ -187,7 +180,9 @@ class ParamTypesController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+
             $type = $typeRepository->find($data['type']);
             $typeLabel = $type->getLabel();
 
@@ -195,7 +190,7 @@ class ParamTypesController extends AbstractController
             $labelExist = $typeRepository->countByLabelDiff($data['label'], $typeLabel, $data['category']);
 
             if (!$labelExist) {
-                $category = $this->categoryTypeRepository->find($data['category']);
+                $category = $categoryTypeRepository->find($data['category']);
                 $type
                     ->setLabel($data['label'])
                     ->setCategory($category)

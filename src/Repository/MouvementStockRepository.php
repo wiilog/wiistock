@@ -297,6 +297,11 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+
+    /**
+     * @param $id
+     * @return MouvementStock[]
+     */
 	public function findByRef($id)
 	{
 		$em = $this->getEntityManager();

@@ -55,6 +55,9 @@ class RoleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+    /**
+     * @return Role[]
+     */
     public function findAllExceptNoAccess()
     {
         $em = $this->getEntityManager();

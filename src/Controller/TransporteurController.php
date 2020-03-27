@@ -3,11 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Chauffeur;
 use App\Entity\Transporteur;
 use App\Entity\Menu;
 use App\Service\UserService;
-use App\Repository\TransporteurRepository;
-use App\Repository\ChauffeurRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,39 +22,35 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class TransporteurController extends AbstractController
 {
-    /**
-     * @var TranspoteurRepository
-     */
-    private $transporteurRepository;
-
-    /**
-     * @var ChauffeurRepository
-     */
-    private $chauffeurRepository;
 
 	/**
 	 * @var UserService
 	 */
     private $userService;
 
-    public function __construct(TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, UserService $userService)
+    public function __construct(UserService $userService)
     {
-        $this->transporteurRepository = $transporteurRepository;
-        $this->chauffeurRepository = $chauffeurRepository;
         $this->userService = $userService;
     }
 
     /**
      * @Route("/api", name="transporteur_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_TRAN)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $transporteurs = $this->transporteurRepository->findAll();
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+
+            $transporteurs = $transporteurRepository->findAll();
 
             $rows = [];
             foreach ($transporteurs as $transporteur) {
@@ -60,7 +58,7 @@ class TransporteurController extends AbstractController
                 $rows[] = [
                     'Label' => $transporteur->getLabel() ? $transporteur->getLabel() : null,
                     'Code' => $transporteur->getCode() ? $transporteur->getCode(): null,
-                    'Nombre_chauffeurs' => $this->chauffeurRepository->countByTransporteur($transporteur) ,
+                    'Nombre_chauffeurs' => $chauffeurRepository->countByTransporteur($transporteur) ,
                     'Actions' => $this->renderView('transporteur/datatableTransporteurRow.html.twig', [
                         'transporteur' => $transporteur
                     ]),
@@ -72,24 +70,36 @@ class TransporteurController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
     /**
      * @Route("/", name="transporteur_index", methods={"GET"})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         return $this->render('transporteur/index.html.twig', [
-            'transporteurs' => $this->transporteurRepository->findAll(),
+            'transporteurs' => $transporteurRepository->findAll(),
         ]);
     }
 
     /**
      * @Route("/creer", name="transporteur_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function new(Request $request): Response
+    public function new(EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
 		if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
 			return $this->redirectToRoute('access_denied');
 		}
+
+        $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $data = json_decode($request->getContent(), true);
 
@@ -97,8 +107,8 @@ class TransporteurController extends AbstractController
 		$label = $data['label'];
 
 		// unicité du code et du nom transporteur
-		$codeAlreadyUsed = intval($this->transporteurRepository->countByCode($code));
-		$labelAlreadyUsed = intval($this->transporteurRepository->countByLabel($label));
+		$codeAlreadyUsed = intval($transporteurRepository->countByCode($code));
+		$labelAlreadyUsed = intval($transporteurRepository->countByLabel($label));
 
 		if ($codeAlreadyUsed + $labelAlreadyUsed) {
 			$msg = 'Ce ' . ($codeAlreadyUsed ? 'code ' : 'nom ') . 'de transporteur est déjà utilisé.';
@@ -108,13 +118,12 @@ class TransporteurController extends AbstractController
 			]);
 		}
 
-		$em = $this->getDoctrine()->getManager();
 		$transporteur = new Transporteur();
 		$transporteur
 			->setLabel($label)
 			->setCode($code);
-		$em->persist($transporteur);
-		$em->flush();
+		$entityManager->persist($transporteur);
+		$entityManager->flush();
 
 		return new JsonResponse([
 			'success' => true,
@@ -125,15 +134,21 @@ class TransporteurController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="transporteur_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function editApi(Request $request): Response
+    public function editApi(EntityManagerInterface $entityManager,
+                            Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $transporteur = $this->transporteurRepository->find($data['id']);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $transporteur = $transporteurRepository->find($data['id']);
+
             $json = $this->renderView('transporteur/modalEditTransporteurContent.html.twig', [
                 'transporteur' => $transporteur,
             ]);
@@ -145,20 +160,25 @@ class TransporteurController extends AbstractController
 
     /**
      * @Route("/modifier", name="transporteur_edit", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(EntityManagerInterface $entityManager,
+                         Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $transporteur = $this->transporteurRepository->find($data['id']);
+
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $transporteur = $transporteurRepository->find($data['id']);
 
             $transporteur
                 ->setLabel($data['label'])
                 ->setCode($data['code']);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -167,32 +187,26 @@ class TransporteurController extends AbstractController
 
     /**
      * @Route("/supprimer", name="transporteur_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(EntityManagerInterface $entityManager,
+                           Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $transporteur = $this->transporteurRepository->find($data['transporteur']);
+            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
+            $transporteur = $transporteurRepository->find($data['transporteur']);
 
-            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($transporteur);
             $entityManager->flush();
             return new JsonResponse();
         }
 
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/{id}", name="transporteur_show", methods={"GET"})
-     */
-    public function show(Transporteur $transporteur): Response
-    {
-        return $this->render('transporteur/show.html.twig', [
-            'transporteur' => $transporteur,
-        ]);
     }
 }

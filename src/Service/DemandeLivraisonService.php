@@ -4,7 +4,9 @@
 namespace App\Service;
 
 
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
@@ -12,12 +14,8 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\ArticleRepository;
-use App\Repository\ChampLibreRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
 use Twig\Environment as Twig_Environment;
 use App\Repository\UtilisateurRepository;
@@ -39,16 +37,6 @@ class DemandeLivraisonService
     private $router;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
@@ -57,16 +45,6 @@ class DemandeLivraisonService
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var PrefixeNomDemandeRepository
@@ -85,29 +63,21 @@ class DemandeLivraisonService
 
     private $entityManager;
 
-    public function __construct(ChampLibreRepository $champLibreRepository,
-                                UtilisateurRepository $utilisateurRepository,
+    public function __construct(UtilisateurRepository $utilisateurRepository,
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
-                                EmplacementRepository $emplacementRepository,
                                 TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ArticleRepository $articleRepository,
                                 DemandeRepository $demandeRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->champLibreRepository = $champLibreRepository;
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
@@ -165,11 +135,13 @@ class DemandeLivraisonService
     public function newDemande($data) {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
 
-        $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+        $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
         $msgMissingCL = '';
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -184,7 +156,7 @@ class DemandeLivraisonService
         $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-        $destination = $this->emplacementRepository->find($data['destination']);
+        $destination = $emplacementRepository->find($data['destination']);
 
         // génère le numéro
         $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
@@ -216,7 +188,7 @@ class DemandeLivraisonService
                 $valeurChampLibre
                     ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                     ->addDemandesLivraison($demande)
-                    ->setChampLibre($this->champLibreRepository->find($champs));
+                    ->setChampLibre($champLibreRepository->find($champs));
 				$this->entityManager->persist($valeurChampLibre);
 				$this->entityManager->flush();
             }

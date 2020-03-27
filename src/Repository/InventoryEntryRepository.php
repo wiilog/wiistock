@@ -224,7 +224,6 @@ class InventoryEntryRepository extends ServiceEntityRepository
 	 * @param DateTime $dateMin
 	 * @param DateTime $dateMax
 	 * @return InventoryEntry[]
-	 * @throws Exception
 	 */
 	public function findByDates($dateMin, $dateMax)
 	{

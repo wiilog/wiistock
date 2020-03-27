@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Fournisseur;
 
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
@@ -24,23 +23,21 @@ class FournisseurDataService
      */
     private $router;
 
-    private $em;
+    private $entityManager;
 
     public function __construct(RouterInterface $router,
-                                EntityManagerInterface $em,
-                                Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage)
+                                EntityManagerInterface $entityManager,
+                                Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
     }
 
 
-    public function getDataForDatatable(EntityManagerInterface $entityManager, $params = null)
+    public function getDataForDatatable($params = null)
     {
-        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
 
         $data = $this->getFournisseurDataByParams($params);
         $data['recordsTotal'] = $data['recordsFiltered'] = (int)$fournisseurRepository->countAll();
@@ -48,16 +45,15 @@ class FournisseurDataService
     }
 
     /**
-     * @param EntityManagerInterface $entityManager
      * @param null $params
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getFournisseurDataByParams(EntityManagerInterface $entityManager, $params = null)
+    public function getFournisseurDataByParams($params = null)
     {
-        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $fournisseurs = $fournisseurRepository->findByParams($params);
 
         $rows = [];

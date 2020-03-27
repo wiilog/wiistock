@@ -13,7 +13,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;
@@ -69,11 +68,6 @@ class OrdreCollecteService
 	private $ordreCollecteRepository;
 
 	/**
-	 * @var ArticleRepository
-	 */
-	private $articleRepository;
-
-	/**
 	 * @var Utilisateur
 	 */
 	private $user;
@@ -90,7 +84,6 @@ class OrdreCollecteService
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
     							OrdreCollecteRepository $ordreCollecteRepository,
-    							ArticleRepository $articleRepository,
 								OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository,
 								MailerServerRepository $mailerServerRepository,
                                 CollecteReferenceRepository $collecteReferenceRepository,
@@ -108,7 +101,6 @@ class OrdreCollecteService
 		$this->mouvementTracaService = $mouvementTracaService;
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
 		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
-		$this->articleRepository = $articleRepository;
 		$this->ordreCollecteRepository = $ordreCollecteRepository;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
@@ -143,7 +135,11 @@ class OrdreCollecteService
                                    bool $fromNomade = false)
 	{
 		$em = $this->entityManager;
-        $statutRepository = $em->getRepository(Statut::class);
+
+		$statutRepository = $em->getRepository(Statut::class);
+		$articleRepository = $em->getRepository(Article::class);
+
+
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
 		$dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
@@ -191,7 +187,7 @@ class OrdreCollecteService
             }
 		}
 
-		$listArticles = $this->articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
+		$listArticles = $articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
 		foreach ($listArticles as $article) {
 			if (!in_array($article->getReference(), $listArtRef)) {
 				$rowsToRemove[] = [
@@ -225,7 +221,7 @@ class OrdreCollecteService
 					$ordreCollecte->removeOrdreCollecteReference($ordreCollecteRef);
 					$newCollecte->addOrdreCollecteReference($ordreCollecteRef);
 				} else {
-					$article = $this->articleRepository->find($mouvement['id']);
+					$article = $articleRepository->find($mouvement['id']);
 					$ordreCollecte->removeArticle($article);
 					$newCollecte->addArticle($article);
 				}

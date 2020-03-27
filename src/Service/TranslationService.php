@@ -3,7 +3,8 @@
 namespace App\Service;
 
 
-use App\Repository\TranslationRepository;
+use App\Entity\Translation;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -18,12 +19,12 @@ use Symfony\Component\Yaml\Yaml;
 class TranslationService {
 
     private $kernel;
-    private $translationRepository;
+    private $entityManager;
 
     public function __construct(KernelInterface $kernel,
-                                TranslationRepository $translationRepository) {
+                                EntityManagerInterface $entityManager) {
         $this->kernel = $kernel;
-        $this->translationRepository = $translationRepository;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -34,9 +35,12 @@ class TranslationService {
     public function generateTranslationsFile() {
         $projectDir = $this->kernel->getProjectDir();
         $translationFile = $projectDir . '/translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml';
-        if ($this->translationRepository->countUpdatedRows() > 0 ||
+
+        $translationRepository = $this->entityManager->getRepository(Translation::class);
+
+        if ($translationRepository->countUpdatedRows() > 0 ||
             !file_exists($translationFile)) {
-            $translations = $this->translationRepository->findAll();
+            $translations = $translationRepository->findAll();
 
             $menus = [];
             foreach ($translations as $translation) {
@@ -47,7 +51,7 @@ class TranslationService {
 
             file_put_contents($translationFile, $yaml);
 
-            $this->translationRepository->clearUpdate();
+            $translationRepository->clearUpdate();
 
             $this->cacheClearWarmUp();
             $this->chmod($translationFile, 'w');
@@ -82,9 +86,16 @@ class TranslationService {
 		$process->run();
 	}
 
+    /**
+     * @param $menu
+     * @param $label
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
 	public function getTranslation($menu, $label)
 	{
-		$translation = $this->translationRepository->getTranslationByMenuAndLabel($menu, $label);
+        $translationRepository = $this->entityManager->getRepository(Translation::class);
+		$translation = $translationRepository->getTranslationByMenuAndLabel($menu, $label);
 		return !empty($translation) ? $translation : $label;
 	}
 }

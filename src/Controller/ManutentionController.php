@@ -10,7 +10,6 @@ use App\Entity\Manutention;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
-use App\Repository\EmplacementRepository;
 use App\Repository\ManutentionRepository;
 
 use App\Service\MailerService;
@@ -38,11 +37,6 @@ class ManutentionController extends AbstractController
     private $manutentionRepository;
 
     /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -63,10 +57,9 @@ class ManutentionController extends AbstractController
     private $manutentionService;
 
 
-    public function __construct(ManutentionRepository $manutentionRepository, EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService, ManutentionService $manutentionService)
+    public function __construct(ManutentionRepository $manutentionRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService, ManutentionService $manutentionService)
     {
         $this->manutentionRepository = $manutentionRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
@@ -174,7 +167,7 @@ class ManutentionController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**

@@ -18,32 +18,30 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Manutention;
 use App\Entity\Statut;
-use App\Repository\CategorieStatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class StatutFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-	/**
-	 * @var CategorieStatutRepository
-	 */
-    private $categorieStatutRepository;
+    private $entityManager;
 
 
-    public function __construct(CategorieStatutRepository $categorieStatutRepository, UserPasswordEncoderInterface $encoder)
+    public function __construct(EntityManagerInterface $entityManager,
+                                UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
-        $this->categorieStatutRepository = $categorieStatutRepository;
+        $this->entityManager = $entityManager;
     }
 
     public function load(ObjectManager $manager)
     {
         $statutRepository = $manager->getRepository(Statut::class);
+        $categorieStatutRepository = $manager->getRepository(CategorieStatut::class);
 
         $categoriesStatus = [
     		CategorieStatut::REFERENCE_ARTICLE => [
@@ -146,7 +144,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
     	foreach ($categoriesStatus as $categoryName => $statuses) {
 
     		// création des catégories de statuts
-			$categorie = $this->categorieStatutRepository->findOneBy(['nom' => $categoryName]);
+			$categorie = $categorieStatutRepository->findOneBy(['nom' => $categoryName]);
 
 			if (empty($categorie)) {
 				$categorie = new CategorieStatut();

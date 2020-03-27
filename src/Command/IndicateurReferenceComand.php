@@ -4,12 +4,12 @@
 namespace App\Command;
 
 
+use App\Entity\Article;
 use App\Entity\FiabilityByReference;
 use App\Entity\MouvementStock;
-use App\Repository\ArticleRepository;
+use App\Entity\ReferenceArticle;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
-use App\Repository\ReferenceArticleRepository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,25 +33,15 @@ class IndicateurReferenceComand extends Command
      */
     private $mouvementStockRepository;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $refArticleRepository;
 
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-
-    public function __construct(FiabilityByReferenceRepository $fiabilityByReferenceRepository, MouvementStockRepository $mouvementStockRepository, ReferenceArticleRepository $refArticleRepository, ArticleRepository $articleRepository, EntityManagerInterface $entityManager)
+    public function __construct(FiabilityByReferenceRepository $fiabilityByReferenceRepository,
+                                MouvementStockRepository $mouvementStockRepository,
+                                EntityManagerInterface $entityManager)
     {
         parent::__construct();
         $this->entityManager = $entityManager;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
-        $this->refArticleRepository = $refArticleRepository;
-        $this->articleRepository = $articleRepository;
     }
 
     protected function configure()
@@ -65,6 +55,9 @@ class IndicateurReferenceComand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $em = $this->entityManager;
+        $referenceArticleRepository = $em->getRepository(ReferenceArticle::class);
+        $articleRepository = $em->getRepository(Article::class);
+
         $types = [
             MouvementStock::TYPE_INVENTAIRE_ENTREE,
             MouvementStock::TYPE_INVENTAIRE_SORTIE
@@ -74,7 +67,7 @@ class IndicateurReferenceComand extends Command
         $lastDayOfThisMonth = date("Y-m-d", strtotime("first day of this month"));
 
         $nbStockInventoryMouvementsOfThisMonth = $this->mouvementStockRepository->countByTypes($types, $firstDayOfLastMonth, $lastDayOfThisMonth);
-        $nbActiveRefAndArtOfThisMonth = $this->refArticleRepository->countActiveTypeRefRef() + $this->articleRepository->countActiveArticles();
+        $nbActiveRefAndArtOfThisMonth = $referenceArticleRepository->countActiveTypeRefRef() + $articleRepository->countActiveArticles();
         if ($nbActiveRefAndArtOfThisMonth > 0) {
         	$nbrFiabiliteReferenceOfLastMonth = (1 - ($nbStockInventoryMouvementsOfThisMonth / $nbActiveRefAndArtOfThisMonth)) * 100;
         	round($nbrFiabiliteReferenceOfLastMonth);

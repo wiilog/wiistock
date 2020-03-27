@@ -11,8 +11,6 @@ namespace App\Service;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
-use App\Repository\EmplacementRepository;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -33,11 +31,6 @@ class EmplacementDataService
     private $templating;
 
     /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-
-    /**
      * @var RouterInterface
      */
     private $router;
@@ -52,7 +45,6 @@ class EmplacementDataService
     private $entityManager;
 
     public function __construct(UserService $userService,
-                                EmplacementRepository $emplacementRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
@@ -62,7 +54,6 @@ class EmplacementDataService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->emplacementRepository = $emplacementRepository;
         $this->userService = $userService;
         $this->security = $security;
     }
@@ -84,12 +75,15 @@ class EmplacementDataService
     public function getEmplacementDataByParams($params = null)
     {
         $user = $this->security->getUser();
+
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+
 		$filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, self::PAGE_EMPLACEMENT, $user);
 		$active = $filterStatus ? $filterStatus->getValue() : false;
 
 
-    	$queryResult = $this->emplacementRepository->findByParamsAndExcludeInactive($params, $active);
+    	$queryResult = $emplacementRepository->findByParamsAndExcludeInactive($params, $active);
 
         $emplacements = $queryResult['data'];
         $listId = $queryResult['allEmplacementDataTable'];

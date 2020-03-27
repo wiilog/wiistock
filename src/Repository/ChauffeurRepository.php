@@ -20,6 +20,9 @@ class ChauffeurRepository extends ServiceEntityRepository
     }
 
 
+    /**
+     * @return Chauffeur[]
+     */
     public function findAllSorted()
     {
         $em = $this->getEntityManager();

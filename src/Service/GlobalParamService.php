@@ -18,18 +18,15 @@ Class GlobalParamService
 {
 	private $kernel;
 	private $translationService;
-	private $em;
+    private $em;
 
-	public function __construct(
-	    EntityManagerInterface $em,
-		KernelInterface $kernel,
-		TranslationService $translationService
-	)
-	{
-		$this->kernel = $kernel;
-		$this->translationService = $translationService;
-		$this->em = $em;
-	}
+    public function __construct(EntityManagerInterface $em,
+                                KernelInterface $kernel,
+                                TranslationService $translationService) {
+        $this->kernel = $kernel;
+        $this->translationService = $translationService;
+        $this->em = $em;
+    }
 
 	/**
 	 * @param bool $includeNullDimensions
