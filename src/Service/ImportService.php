@@ -634,13 +634,13 @@ class ImportService
                                            array $row,
                                            array &$stats)
     {
-        $newEntity = false;
+        $isNewEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
         $refArt = $refArtRepository->findOneByReference($data['reference']);
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
-            $newEntity = true;
+            $isNewEntity = true;
         }
 
         if (isset($data['libelle'])) {
@@ -663,7 +663,7 @@ class ImportService
                 $this->throwError($message);
             };
         }
-        if ($newEntity) {
+        if ($isNewEntity) {
             if (empty($data['typeQuantite'])
                 || !in_array($data['typeQuantite'], [ReferenceArticle::TYPE_QUANTITE_REFERENCE, ReferenceArticle::TYPE_QUANTITE_ARTICLE])) {
                 $this->throwError('Le type de gestion de la référence est invalide (autorisé : "article" ou "reference")');
@@ -694,7 +694,7 @@ class ImportService
             $refArt->setLimitWarning($data['limitWarning']);
         }
 
-        if ($newEntity) {
+        if ($isNewEntity) {
             $statusRepository = $this->em->getRepository(Statut::class);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, ReferenceArticle::STATUT_ACTIF);
             $refArt
@@ -759,7 +759,7 @@ class ImportService
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
                     $this->throwError($message);
                 }
-                if (!$newEntity) {
+                if (!$isNewEntity) {
                     $this->checkAndCreateMvtStock($refArt, $refArt->getQuantiteStock(), $data['quantiteStock']);
                 }
                 $refArt->setQuantiteStock($data['quantiteStock']);
@@ -768,35 +768,8 @@ class ImportService
         }
 
         // champs libres
-        $champLibreRepository = $this->em->getRepository(ChampLibre::class);
-
-        $missingCL = [];
-        $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($refArt->getType(), CategorieCL::REFERENCE_ARTICLE, $newEntity);
-        $champsLibresId = array_keys($colChampsLibres);
-        foreach ($mandatoryCLs as $cl) {
-            if (!in_array($cl->getId(), $champsLibresId)) {
-                $missingCL[] = $cl->getLabel();
-            }
-        }
-
-        if (!empty($missingCL)) {
-            $message = count($missingCL) > 1
-                ? 'Les champs ' . implode($missingCL, ', ') . ' sont obligatoires'
-                : 'Le champ ' . $missingCL[0] . ' est obligatoire';
-            $message .= ' à la ' . ($newEntity ? 'création.' : 'modification.');
-            $this->throwError($message);
-        }
-
-        foreach ($colChampsLibres as $clId => $col) {
-            $champLibre = $champLibreRepository->find($clId);
-            $valeurCL = new ValeurChampLibre();
-            $valeurCL
-                ->setChampLibre($champLibre)
-                ->setValeur($row[$col])
-                ->addArticleReference($refArt);
-            $this->em->persist($valeurCL);
-        }
-        $this->updateStats($stats, $newEntity);
+        $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
+        $this->updateStats($stats, $isNewEntity);
     }
 
     /**
@@ -822,7 +795,7 @@ class ImportService
                 $this->throwError($message);
             }
         }
-        $newEntity = false;
+        $isNewEntity = false;
         if (!empty($data['reference'])) {
             $articleRepository = $this->em->getRepository(Article::class);
             $article = $articleRepository->findOneByReference($data['reference']);
@@ -832,7 +805,7 @@ class ImportService
             $article->setReference($data['reference']);
         } else {
             $article = new Article();
-            $newEntity = true;
+            $isNewEntity = true;
         }
 
         if (isset($data['label'])) {
@@ -842,7 +815,7 @@ class ImportService
             if (!is_numeric($data['quantite'])) {
                 $this->throwError('La quantité doit être un nombre.');
             }
-            if (!$newEntity) {
+            if (!$isNewEntity) {
                 $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite']);
             }
             $article->setQuantite($data['quantite']);
@@ -855,7 +828,7 @@ class ImportService
             $article->setPrixUnitaire($data['prixUnitaire']);
         }
 
-        if ($newEntity) {
+        if ($isNewEntity) {
             $statutRepository = $this->em->getRepository(Statut::class);
             $article
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF))
@@ -875,23 +848,51 @@ class ImportService
         // liaison emplacement
         $this->checkAndCreateEmplacement($data, $article);
 
-
         $this->em->persist($article);
 
-        // champs libres
+        $this->checkAndSetChampsLibres($colChampsLibres, $article, $isNewEntity, $row);
+        $this->updateStats($stats, $isNewEntity);
+
+        return $refArticle;
+    }
+
+    /**
+     * @param array $colChampsLibres
+     * @param ReferenceArticle|Article $refOrArt
+     * @param bool $isNewEntity
+     * @param array $row
+     * @throws ImportException
+     */
+    private function checkAndSetChampsLibres($colChampsLibres, $refOrArt, $isNewEntity, $row)
+    {
+        $champLibreRepository = $this->em->getRepository(ChampLibre::class);
+        $missingCL = [];
+
+        $categoryCL = $refOrArt instanceof ReferenceArticle ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
+        $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($refOrArt->getType(), $categoryCL, $isNewEntity);
+        $champsLibresId = array_keys($colChampsLibres);
+        foreach ($mandatoryCLs as $cl) {
+            if (!in_array($cl->getId(), $champsLibresId)) {
+                $missingCL[] = $cl->getLabel();
+            }
+        }
+
+        if (!empty($missingCL)) {
+            $message = count($missingCL) > 1
+                ? 'Les champs ' . implode($missingCL, ', ') . ' sont obligatoires'
+                : 'Le champ ' . $missingCL[0] . ' est obligatoire';
+            $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
+            $this->throwError($message);
+        }
         foreach ($colChampsLibres as $clId => $col) {
-            $champLibre = $this->em->getRepository(ChampLibre::class)->find($clId);
+            $champLibre = $champLibreRepository->find($clId);
             $valeurCL = new ValeurChampLibre();
             $valeurCL
                 ->setChampLibre($champLibre)
-                ->setValeur($row[$col])
-                ->addArticle($article);
+                ->setValeur($row[$col]);
             $this->em->persist($valeurCL);
+            $refOrArt->addValeurChampLibre($valeurCL);
         }
-
-        $this->updateStats($stats, $newEntity);
-
-        return $refArticle;
     }
 
     /**
