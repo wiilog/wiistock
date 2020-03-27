@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
@@ -32,7 +33,6 @@ use App\Repository\LitigeRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\FieldsParamRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -137,11 +137,6 @@ class ReceptionController extends AbstractController
     private $pieceJointeRepository;
 
     /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
-
-    /**
      * @var ParametrageGlobalRepository
      */
     private $paramGlobalRepository;
@@ -160,7 +155,6 @@ class ReceptionController extends AbstractController
         UtilisateurRepository $utilisateurRepository,
         UserService $userService,
         ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
-        InventoryCategoryRepository $inventoryCategoryRepository,
         PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
         LitigeRepository $litigeRepository,
@@ -174,7 +168,6 @@ class ReceptionController extends AbstractController
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->litigeRepository = $litigeRepository;
         $this->mailerService = $mailerService;
@@ -1574,22 +1567,23 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function checkIfQuantityArticle(Request $request,
-                                           EntityManagerInterface $entityManager): Response
+    public function checkIfQuantityArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE_REF_FROM_RECEP)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $entityManager = $this->getDoctrine()->getManager();
+
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
-            $inventoryCategories = $this->inventoryCategoryRepository->findAll();
+            $inventoryCategories = $inventoryCategoryRepository->findAll();
             $typeChampLibre = [];
             foreach ($types as $type) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);

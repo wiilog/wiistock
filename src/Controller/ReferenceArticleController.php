@@ -8,6 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -22,7 +23,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ParametreRepository;
@@ -136,11 +136,6 @@ class ReferenceArticleController extends AbstractController
     private $inventoryFrequencyRepository;
 
     /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
-
-    /**
      * @var MouvementStockRepository
      */
     private $mouvementStockRepository;
@@ -166,7 +161,6 @@ class ReferenceArticleController extends AbstractController
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
-                                InventoryCategoryRepository $inventoryCategoryRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 MouvementStockRepository $mouvementStockRepository,
                                 CSVExportService $CSVExportService)
@@ -184,7 +178,6 @@ class ReferenceArticleController extends AbstractController
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->globalParamService = $globalParamService;
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -338,7 +331,6 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws DBALException
      * @throws LoaderError
@@ -346,13 +338,14 @@ class ReferenceArticleController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager): Response
+    public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $entityManager = $this->getDoctrine()->getManager();
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -361,6 +354,8 @@ class ReferenceArticleController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -427,7 +422,7 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
             if ($data['categorie']) {
-            	$category = $this->inventoryCategoryRepository->find($data['categorie']);
+            	$category = $inventoryCategoryRepository->find($data['categorie']);
             	if ($category) $refArticle->setCategory($category);
 			}
             if ($statut) $refArticle->setStatut($statut);
@@ -483,18 +478,20 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $entityManager = $this->getDoctrine()->getManager();
+
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
         $typeQuantite = [
             [
@@ -637,7 +634,7 @@ class ReferenceArticleController extends AbstractController
 		});
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-        $inventoryCategories = $this->inventoryCategoryRepository->findAll();
+        $inventoryCategories = $inventoryCategoryRepository->findAll();
         $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
