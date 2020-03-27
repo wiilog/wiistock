@@ -294,10 +294,10 @@ class ImportService
                         $this->importArticleFournisseurEntity($verifiedData, $stats);
                         break;
                     case Import::ENTITY_REF:
-                        $this->importReferenceEntity($verifiedData, $colChampsLibres, $row, $stats);
+                        $this->importReferenceEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
                         break;
                     case Import::ENTITY_ART:
-                        $refToUpdate[] = $this->importArticleEntity($verifiedData, $colChampsLibres, $row, $stats);
+                        $refToUpdate[] = $this->importArticleEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
                         break;
                 }
             });
@@ -629,7 +629,8 @@ class ImportService
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importReferenceEntity(array $data,
+    private function importReferenceEntity(Import $import,
+                                           array $data,
                                            array $colChampsLibres,
                                            array $row,
                                            array &$stats)
@@ -762,7 +763,7 @@ class ImportService
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
                     $this->throwError($message);
                 }
-                $this->checkAndCreateMvtStock($refArt, $refArt->getQuantiteStock(), $data['quantiteStock'], $isNewEntity);
+                $this->checkAndCreateMvtStock($import, $refArt, $refArt->getQuantiteStock(), $data['quantiteStock'], $isNewEntity);
                 $refArt->setQuantiteStock($data['quantiteStock']);
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
@@ -801,6 +802,7 @@ class ImportService
     }
 
     /**
+     * @param Import $import
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
@@ -809,7 +811,8 @@ class ImportService
      * @throws ImportException
      * @throws NonUniqueResultException
      */
-    private function importArticleEntity(array $data,
+    private function importArticleEntity(Import $import,
+                                         array $data,
                                          array $colChampsLibres,
                                          array $row,
                                          array &$stats): ReferenceArticle
@@ -843,7 +846,7 @@ class ImportService
             if (!is_numeric($data['quantite'])) {
                 $this->throwError('La quantité doit être un nombre.');
             }
-            $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite'], $isNewEntity);
+            $this->checkAndCreateMvtStock($import, $article, $article->getQuantite(), $data['quantite'], $isNewEntity);
             $article->setQuantite($data['quantite']);
         }
 
@@ -894,20 +897,25 @@ class ImportService
     }
 
     /**
+     * @param Import $import
      * @param ReferenceArticle|Article $refOrArt
      * @param int $formerQuantity
      * @param int $newQuantity
      * @param bool $isNewEntity
+     * @throws Exception
      */
-    private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
+    private function checkAndCreateMvtStock(Import $import, $refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
     {
         $diffQuantity = $isNewEntity ? $newQuantity : ($newQuantity - $formerQuantity);
 
         $mvtIn = $isNewEntity ? MouvementStock::TYPE_ENTREE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
-
         if ($diffQuantity != 0) {
             $typeMvt = $diffQuantity > 0 ? $mvtIn : MouvementStock::TYPE_INVENTAIRE_SORTIE;
-            $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, null, abs($diffQuantity), $refOrArt, $typeMvt);
+
+            $emplacement = $refOrArt->getEmplacement();
+            $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, $emplacement, abs($diffQuantity), $refOrArt, $typeMvt);
+            $this->mouvementStockService->finishMouvementStock($mvtStock, new DateTime('now'), $emplacement);
+            $import->addMouvement($mvtStock);
             $this->em->persist($mvtStock);
         }
     }

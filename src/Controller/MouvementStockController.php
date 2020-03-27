@@ -129,8 +129,7 @@ class MouvementStockController extends AbstractController
                 }
             }
 
-            $headers = [];
-            $headers = array_merge($headers, ['date', 'ordre', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
+            $headers = ['date', 'ordre', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur'];
             $data = [];
             $data[] = $headers;
 
