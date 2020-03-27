@@ -193,17 +193,17 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
-    public function apiColumns(Request $request,
-                               EntityManagerInterface $entityManager): Response
+    public function apiColumns(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibreRepository = $this->getDoctrine()->getRepository(ChampLibre::class);
 
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnVisible();
@@ -1258,16 +1258,15 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @param EntityManagerInterface $entityManager
      * @param ReferenceArticle $ref
      * @param array $listTypes
      * @param string[] $headersCL
      * @return string
      */
-    public function buildInfos(EntityManagerInterface $entityManager,
-                               ReferenceArticle $ref,
+    public function buildInfos(ReferenceArticle $ref,
                                $listTypes,
                                $headersCL) {
+        $entityManager = $this->getDoctrine()->getManager();
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $typeRepository = $entityManager->getRepository(Type::class);

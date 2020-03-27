@@ -55,8 +55,13 @@ class FournisseurController extends AbstractController
      */
     private $userService;
 
-
-    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, UserService $userService)
+    public function __construct(
+        ArrivageRepository $arrivageRepository,
+        FournisseurDataService $fournisseurDataService,
+        ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
+        ReceptionRepository $receptionRepository,
+        UserService $userService
+    )
     {
         $this->arrivageRepository = $arrivageRepository;
         $this->fournisseurDataService = $fournisseurDataService;
@@ -204,13 +209,12 @@ class FournisseurController extends AbstractController
 
     /**
      * @param int $fournisseurId
-     * @param EntityManagerInterface $entityManager
      * @return array
      */
-    private function isFournisseurUsed($fournisseurId, EntityManagerInterface $entityManager)
+    private function isFournisseurUsed($fournisseurId)
     {
     	$usedBy = [];
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $articleFournisseurRepository = $this->getDoctrine()->getRepository(ArticleFournisseur::class);
 
         $AF = $articleFournisseurRepository->countByFournisseur($fournisseurId);
     	if ($AF > 0) $usedBy[] = 'articles fournisseur';

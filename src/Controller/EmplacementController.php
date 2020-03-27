@@ -79,8 +79,6 @@ class EmplacementController extends AbstractController
      */
     private $globalParamService;
 
-    private $entityManager;
-
     public function __construct(MouvementTracaRepository $mouvementTracaRepository,
                                 GlobalParamService $globalParamService,
                                 EmplacementDataService $emplacementDataService,
@@ -88,12 +86,10 @@ class EmplacementController extends AbstractController
                                 DemandeRepository $demandeRepository,
                                 LivraisonRepository $livraisonRepository,
                                 CollecteRepository $collecteRepository,
-                                EntityManagerInterface $entityManager,
                                 MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->userService = $userService;
-        $this->entityManager = $entityManager;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
@@ -215,7 +211,7 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+            $emplacementRepository = $this->getDoctrine()->getRepository(Emplacement::class);
 
             $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
             if ($errorResponse) {
@@ -276,8 +272,8 @@ class EmplacementController extends AbstractController
      * @return array
      */
     private function isEmplacementUsed($emplacementId) {
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $referenceArticleRepository = $this->getDoctrine()->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->getDoctrine()->getRepository(Article::class);
 
         $usedBy = [];
 
@@ -409,7 +405,6 @@ class EmplacementController extends AbstractController
      * @param PDFGeneratorService $PDFGeneratorService
      * @return PdfResponse
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -429,7 +424,7 @@ class EmplacementController extends AbstractController
     private function checkLocationLabel(?string $label, $locationId = null) {
         $labelTrimmed = $label ? trim($label) : null;
         if (!empty($labelTrimmed)) {
-            $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+            $emplacementRepository = $this->getDoctrine()->getRepository(Emplacement::class);
             $emplacementAlreadyExist = $emplacementRepository->countByLabel($label, $locationId);
             if ($emplacementAlreadyExist) {
                 return new JsonResponse([

@@ -5,12 +5,12 @@ namespace App\Service;
 use App\Entity\AlerteExpiry;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\AlerteExpiryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 class AlerteService
 {
+    private $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
     {

@@ -28,11 +28,9 @@ class FournisseurDataService
 
     public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage)
+                                Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
         $this->entityManager = $entityManager;
         $this->router = $router;
     }
