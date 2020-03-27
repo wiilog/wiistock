@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -1197,7 +1198,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $references = $referenceArticleRepository->getBetweenLimits($min, $max-$min);
             foreach ($references as $reference) {
-                $data['values'][] = $this->buildInfos($entityManager, $reference, $listTypes, $headersCL);
+                $data['values'][] = $this->buildInfos($reference, $listTypes, $headersCL);
             }
             return new JsonResponse($data);
         }
@@ -1499,12 +1500,19 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @param $id
+     * @return Response
      */
-    public function apiMouvements(Request $request, $id): Response
+    public function apiMouvements(EntityManagerInterface $entityManager,
+                                  Request $request,
+                                  $id): Response
     {
         if ($request->isXmlHttpRequest()) {
 
-            $mouvements = $this->mouvementStockRepository->findByRef($id);
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+            $mouvements = $mouvementStockRepository->findByRef($id);
 
             $rows = [];
             foreach ($mouvements as $mouvement) {

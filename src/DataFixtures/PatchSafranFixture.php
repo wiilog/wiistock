@@ -6,19 +6,26 @@ use App\Entity\Role;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\NonUniqueResultException;
 
 
 class PatchSafranFixture extends Fixture implements FixtureGroupInterface
 {
 
+    /**
+     * @param ObjectManager $manager
+     * @throws NonUniqueResultException
+     */
     public function load(ObjectManager $manager)
     {
 		$rolesLabels = [
 			'Demandeur Safran'
 		];
 
+        $roleRepository = $manager->getRepository(Role::class);
+
 		foreach ($rolesLabels as $roleLabel) {
-			$role = $this->roleRepository->findByLabel($roleLabel);
+			$role = $roleRepository->findByLabel($roleLabel);
 
 			if (empty($role)) {
 				$role = new Role();

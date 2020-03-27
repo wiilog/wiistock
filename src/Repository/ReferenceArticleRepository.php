@@ -739,7 +739,7 @@ class ReferenceArticleRepository extends EntityRepository
 
     /**
      * @param InventoryMission $mission
-     * @param int $refId
+     * @param $refId
      * @return mixed
      * @throws NonUniqueResultException
      */

@@ -942,7 +942,7 @@ class ArticleRepository extends EntityRepository
 
     /**
      * @param InventoryMission $mission
-     * @param int $artId
+     * @param $artId
      * @return mixed
      * @throws NonUniqueResultException
      */

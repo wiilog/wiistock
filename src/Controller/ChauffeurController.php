@@ -9,6 +9,7 @@ use App\Repository\ArrivageRepository;
 use App\Service\UserService;
 use App\Repository\ChauffeurRepository;
 use App\Repository\TransporteurRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,15 +54,21 @@ class ChauffeurController extends AbstractController
 
     /**
      * @Route("/api", name="chauffeur_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_CHAU)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $chauffeurs = $this->chauffeurRepository->findAllSorted();
+            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+
+            $chauffeurs = $chauffeurRepository->findAllSorted();
 
             $rows = [];
             foreach ($chauffeurs as $chauffeur) {
@@ -125,7 +132,7 @@ class ChauffeurController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**

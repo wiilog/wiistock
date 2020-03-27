@@ -142,12 +142,13 @@ class InvMissionService
         ];
     }
 
-	/**
-	 * @param ReferenceArticle $ref
-	 * @param InventoryMission $mission
-	 * @return array
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param ReferenceArticle $ref
+     * @param InventoryMission $mission
+     * @return array
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
     public function dataRowRefMission($ref, $mission)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);

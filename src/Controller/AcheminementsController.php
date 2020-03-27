@@ -145,7 +145,7 @@ Class AcheminementsController extends AbstractController
             $response['acheminement'] = $acheminements->getId();
             return new JsonResponse($response);
         }
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**

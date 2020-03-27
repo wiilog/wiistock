@@ -167,7 +167,7 @@ class ManutentionController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
     /**
