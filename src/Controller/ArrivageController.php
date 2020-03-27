@@ -940,13 +940,17 @@ class ArrivageController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     *
+     * @param EntityManagerInterface $entityManager
      * @param Arrivage $arrivage
      * @param bool $printColis
      * @param bool $printArrivage
+     *
      * @return JsonResponse
-     * @throws NonUniqueResultException
+     *
      * @throws NoResultException
-     * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
                          Arrivage $arrivage,
@@ -1009,6 +1013,9 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      * @throws NonUniqueResultException
      */
     public function newLitige(Request $request,
@@ -1103,8 +1110,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param ColisService $colisService
-     * @return JsonResponse
-     * @throws NoResultException
+     * @return JsonResponse|RedirectResponse
      * @throws NonUniqueResultException
      */
     public function addColis(Request $request,
@@ -1116,7 +1122,9 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+
+            $arrivage = $arrivageRepository->find($data['arrivageId']);
 
             $natures = array_reduce(
                 array_keys($data),
@@ -1186,30 +1194,34 @@ class ArrivageController extends AbstractController
      * @return Response
      */
     public function apiEditLitige(Request $request,
+                                  UserService $userService,
                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
-            $litige = $this->litigeRepository->find($data['litigeId']);
+            $litige = $litigeRepository->find($data['litigeId']);
 
             $colisCode = [];
             foreach ($litige->getColis() as $colis) {
                 $colisCode[] = $colis->getId();
             }
 
-            $arrivage = $this->arrivageRepository->find($data['arrivageId']);
+            $arrivage = $arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
+            $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'attachements' => $this->pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getColis(),
             ]);
 
