@@ -187,6 +187,7 @@ class ImportController extends AbstractController
                         'data' => $data ?? [],
                         'fields' => $fields ?? [],
                         'fieldsNeeded' => Import::FIELDS_NEEDED[$entity],
+                        'fieldPK' => Import::FIELD_PK[$entity],
                         'columnsToFields' => $columnsToFields ?? null
                     ])
                 ];

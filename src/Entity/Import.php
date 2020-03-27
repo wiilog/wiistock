@@ -46,6 +46,13 @@ class Import
         ]
     ];
 
+	const FIELD_PK = [
+	    self::ENTITY_ART_FOU => 'référence',
+        self::ENTITY_ART => 'referenceReference',
+        self::ENTITY_FOU => 'codeReference',
+        self::ENTITY_REF => 'reference'
+    ];
+
 	const FIELDS_ENTITY = [
         'reference' => 'référence',
         'quantite' => 'quantité',
