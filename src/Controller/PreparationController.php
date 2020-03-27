@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -742,14 +743,9 @@ class PreparationController extends AbstractController
      */
     public function getBarCodes(Preparation $preparation,
                                 RefArticleDataService $refArticleDataService,
-                                EntityManagerInterface $entityManager,
                                 ArticleDataService $articleDataService,
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
-
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $wantBL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-
         $articles = $preparation->getArticles()->toArray();
         $lignesArticle = $preparation->getLigneArticlePreparations()->toArray();
         $referenceArticles = [];

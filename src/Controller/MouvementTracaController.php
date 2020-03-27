@@ -114,9 +114,8 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param UtilisateurRepository $utilisateurRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function new(Request $request,
@@ -255,6 +254,7 @@ class MouvementTracaController extends AbstractController
 
     /**
      * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
      */

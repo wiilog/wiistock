@@ -48,6 +48,9 @@ class FiltreRefController extends AbstractController
 
     /**
      * @Route("/creer", name="filter_ref_new", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response

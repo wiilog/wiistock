@@ -47,7 +47,7 @@ class OrdreCollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function index(string $demandId = null, UserService $userService, EntityManagerInterface $entityManager)
+    public function index(UserService $userService, EntityManagerInterface $entityManager, string $demandId = null)
     {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
             return $this->redirectToRoute('access_denied');

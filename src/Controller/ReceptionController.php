@@ -1086,6 +1086,10 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws Exception
      */
     public function editLitige(EntityManagerInterface $entityManager,
                                Request $request): Response
@@ -1099,8 +1103,10 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $litige = $this->litigeRepository->find($post->get('id'));
+            $litige = $litigeRepository->find($post->get('id'));
             $typeBefore = $litige->getType()->getId();
             $typeBeforeName = $litige->getType()->getLabel();
             $typeAfter = (int)$post->get('typeLitige');
@@ -1141,7 +1147,7 @@ class ReceptionController extends AbstractController
                 // ... et on ajoute ceux sélectionnés
                 $listBuyer = explode(',', $buyers);
                 foreach ($listBuyer as $buyerId) {
-                    $litige->addBuyer($this->utilisateurRepository->find($buyerId));
+                    $litige->addBuyer($utilisateurRepository->find($buyerId));
                 }
             }
             $entityManager->flush();
@@ -1216,6 +1222,7 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = new Litige();
             $litige
@@ -1240,7 +1247,7 @@ class ReceptionController extends AbstractController
             if (!empty($buyers = $post->get('acheteursLitige'))) {
                 $listBuyers = explode(',', $buyers);
                 foreach ($listBuyers as $buyer) {
-                    $litige->addBuyer($this->utilisateurRepository->find($buyer));
+                    $litige->addBuyer($utilisateurRepository->find($buyer));
                 }
             }
             $statutinstance = $statutRepository->find($post->get('statutLitige'));
