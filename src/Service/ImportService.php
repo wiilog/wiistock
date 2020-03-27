@@ -769,6 +769,7 @@ class ImportService
 
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
+
         $this->updateStats($stats, $isNewEntity);
     }
 
@@ -847,10 +848,11 @@ class ImportService
 
         // liaison emplacement
         $this->checkAndCreateEmplacement($data, $article);
-
         $this->em->persist($article);
 
+        // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $article, $isNewEntity, $row);
+
         $this->updateStats($stats, $isNewEntity);
 
         return $refArticle;
@@ -886,11 +888,42 @@ class ImportService
         }
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $champLibreRepository->find($clId);
-            $valeurCL = new ValeurChampLibre();
-            $valeurCL
-                ->setChampLibre($champLibre)
-                ->setValeur($row[$col]);
-            $this->em->persist($valeurCL);
+
+            switch ($champLibre->getTypage()) {
+                case ChampLibre::TYPE_BOOL:
+                    $value = in_array($row[$col], ['Oui', 'oui', 1, '1']);
+                    break;
+                case ChampLibre::TYPE_DATE:
+                case ChampLibre::TYPE_DATETIME:
+                    try {
+                        $date = DateTime::createFromFormat('d/m/Y', $row[$col]);
+                        $value = $date->format('Y-m-d');
+                    } catch (Exception $e) {
+                        $message = 'La date du champ "' . $champLibre->getLabel() . '" n\'est pas au format jj/mm/AAAA.';
+                        $this->throwError($message);
+                        $value = null;
+                    };
+                    break;
+                default:
+                    $value = $row[$col];
+            }
+
+            $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
+
+            if ($refOrArt instanceof ReferenceArticle) {
+                $valeurCL = $valeurCLRepository->findOneByRefArticleAndChampLibre($refOrArt, $champLibre);
+            } else if ($refOrArt instanceof  Article) {
+                $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt, $champLibre);
+            } else {
+                $valeurCL = null;
+            }
+
+            if (empty($valeurCL)) {
+                $valeurCL = new ValeurChampLibre();
+                $valeurCL->setChampLibre($champLibre);
+                $this->em->persist($valeurCL);
+            }
+            $valeurCL->setValeur($value);
             $refOrArt->addValeurChampLibre($valeurCL);
         }
     }
