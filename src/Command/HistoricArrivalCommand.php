@@ -40,7 +40,7 @@ class HistoricArrivalCommand extends Command
         $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
         $todayEnd->setTime(23, 59);
         $arrivagesToday = $arrivageRepository->findByDates($todayStart, $todayEnd);
-        $arrivageWithoutLitiges = array_filter($arrivagesToday, function ($arrivage) {
+        $arrivageWithoutLitiges = array_filter($arrivagesToday, function (Arrivage $arrivage) {
             if ($arrivage->getStatus() === Arrivage::STATUS_CONFORME) return true;
             return false;
         });

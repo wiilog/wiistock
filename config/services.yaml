@@ -44,11 +44,6 @@ services:
         class: App\Service\SpecificService
         public: true
 
-    App\EventListener\CardUploadListener:
-        tags:
-            - { name: doctrine.event_listener, event: prePersist }
-            - { name: doctrine.event_listener, event: preUpdate }
-
     ref_article_listener:
         class: App\EventListener\RefArticleQuantityNotifier
         tags:

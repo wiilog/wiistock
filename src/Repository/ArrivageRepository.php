@@ -362,13 +362,13 @@ class ArrivageRepository extends ServiceEntityRepository
         }
         $arrivages = $qb->getQuery()->getResult();
         if ($statut) {
-            $arrivages = array_filter($arrivages, function ($arrivage) use ($statut) {
+            $arrivages = array_filter($arrivages, function (Arrivage $arrivage) use ($statut) {
                 return ($arrivage->getStatus() === $statut);
             });
         }
 
         if ($orderStatut) {
-            usort($arrivages, function ($arrivage1, $arrivage2) use ($orderStatut) {
+            usort($arrivages, function (Arrivage $arrivage1, Arrivage $arrivage2) use ($orderStatut) {
                 return $orderStatut === 'asc'
                     ?
                     strcmp($arrivage1->getStatus(), $arrivage2->getStatus())

@@ -13,6 +13,7 @@ use App\Repository\ParametreRoleRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -102,15 +103,21 @@ class RoleController extends AbstractController
 
     /**
      * @Route("/api", name="role_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $roles = $this->roleRepository->findAllExceptNoAccess();
+            $roleRepository = $entityManager->getRepository(Role::class);
+
+            $roles = $roleRepository->findAllExceptNoAccess();
             $rows = [];
             foreach ($roles as $role) {
                 $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
