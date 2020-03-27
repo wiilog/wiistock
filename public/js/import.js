@@ -130,7 +130,7 @@ function updateOptions($select) {
         $(element).find('option').removeAttr('disabled');
         let selectedValue = $(element).val();
         if (selectedValue != '') {
-            selectedValues.push('option[value=' + selectedValue + ']');
+            selectedValues.push('option[value="' + selectedValue + '"]');
         }
     });
 
@@ -144,7 +144,7 @@ function updateOptions($select) {
     }
 
     if (selectValue != '') {
-        $select.find('option[value=' + selectValue + ']').removeAttr('disabled');
+        $select.find('option[value="' + selectValue + '"]').removeAttr('disabled');
     }
 }
 
