@@ -132,7 +132,8 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
+    public function sendArrivalEmails(Arrivage $arrival,
+                                      array $emergencies = []): void {
 
         $isUrgentArrival = !empty($emergencies);
 
@@ -157,6 +158,7 @@ class ArrivageDataService
                 })
                 ->toArray();
         }
+        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
         $this->mailerService->sendMail(
             'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
@@ -167,6 +169,7 @@ class ArrivageDataService
                     'arrival' => $arrival,
                     'emergencies' => $emergencies,
                     'isUrgentArrival' => $isUrgentArrival
+
                 ]
             ),
             $senders
