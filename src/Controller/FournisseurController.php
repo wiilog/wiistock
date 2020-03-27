@@ -3,13 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Repository\ArrivageRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReceptionReferenceArticleRepository;
 use App\Service\UserService;
 use App\Service\FournisseurDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,10 +27,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class FournisseurController extends AbstractController
 {
-    /**
-     * @var ReceptionReferenceArticleRepository
-     */
-    private $receptionReferenceArticleRepository;
 
     /**
      * @var ReceptionRepository
@@ -58,7 +56,6 @@ class FournisseurController extends AbstractController
     public function __construct(
         ArrivageRepository $arrivageRepository,
         FournisseurDataService $fournisseurDataService,
-        ReceptionReferenceArticleRepository $receptionReferenceArticleRepository,
         ReceptionRepository $receptionRepository,
         UserService $userService
     )
@@ -67,7 +64,6 @@ class FournisseurController extends AbstractController
         $this->fournisseurDataService = $fournisseurDataService;
         $this->userService = $userService;
         $this->receptionRepository = $receptionRepository;
-        $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
     }
 
     /**
@@ -215,17 +211,20 @@ class FournisseurController extends AbstractController
     {
     	$usedBy = [];
         $articleFournisseurRepository = $this->getDoctrine()->getRepository(ArticleFournisseur::class);
+        $receptionReferenceArticleRepository = $this->getDoctrine()->getRepository(ReceptionReferenceArticle::class);
+        $arrivageRepository = $this->getDoctrine()->getRepository(Arrivage::class);
+        $receptionRepository = $this->getDoctrine()->getRepository(Reception::class);
 
         $AF = $articleFournisseurRepository->countByFournisseur($fournisseurId);
     	if ($AF > 0) $usedBy[] = 'articles fournisseur';
 
-    	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
+    	$receptions = $receptionRepository->countByFournisseur($fournisseurId);
     	if ($receptions > 0) $usedBy[] = 'réceptions';
 
-		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
+		$ligneReceptions = $receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
 		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
 
-		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);
+		$arrivages = $arrivageRepository->countByFournisseur($fournisseurId);
 		if ($arrivages > 0) $usedBy[] = 'arrivages';
 
         return $usedBy;

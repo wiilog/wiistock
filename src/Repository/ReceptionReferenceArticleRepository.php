@@ -4,11 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
-
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReceptionReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,12 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ReceptionReferenceArticle[]    findAll()
  * @method ReceptionReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReceptionReferenceArticleRepository extends ServiceEntityRepository
+class ReceptionReferenceArticleRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ReceptionReferenceArticle::class);
-    }
 
 	/**
 	 * @param Reception $reception
