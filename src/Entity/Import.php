@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -135,9 +137,14 @@ class Import
 	 */
     private $columnToField;
 
-    public function __construct()
-    {}
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="import")
+     */
+    private $mouvements;
 
+    public function __construct() {
+        $this->mouvements = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -291,6 +298,37 @@ class Import
 
         if (isset($this->logFile)) {
             $this->logFile->setImportLog($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setImport($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getImport() === $this) {
+                $mouvement->setImport(null);
+            }
         }
 
         return $this;

@@ -115,6 +115,10 @@ class MouvementStockService
 			$from = 'réception';
 			$orderPath = 'reception_show';
 			$orderId = $mouvement->getReceptionOrder()->getId();
+		} else if ($mouvement->getImport()) {
+			$from = 'import';
+			$orderPath = 'import_index';
+			$orderId = null;
 		} else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
 			$from = 'transfert de stock';
 		}
