@@ -40,22 +40,22 @@ class ImportController extends AbstractController
      * @param UserService $userService
      * @return RedirectResponse|Response
      */
-	public function index(UserService $userService)
-	{
-		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
-			return $this->redirectToRoute('access_denied');
-		}
+    public function index(UserService $userService)
+    {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
-		$statusRepository = $this->getDoctrine()->getRepository(Statut::class);
-		$statuts = $statusRepository->findByCategoryNameAndStatusCodes(
-		    CategorieStatut::IMPORT,
+        $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
+        $statuts = $statusRepository->findByCategoryNameAndStatusCodes(
+            CategorieStatut::IMPORT,
             [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
         );
 
-		return $this->render('import/index.html.twig', [
-			'statuts' => $statuts
-		]);
-	}
+        return $this->render('import/index.html.twig', [
+            'statuts' => $statuts
+        ]);
+    }
 
     /**
      * @Route("/api", name="import_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
@@ -68,49 +68,49 @@ class ImportController extends AbstractController
      * @throws SyntaxError
      * @throws NonUniqueResultException
      */
-	public function api(Request $request, ImportService $importDataService, UserService $userService): Response
-	{
-		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
-			return $this->redirectToRoute('access_denied');
-		}
-		$data = $importDataService->getDataForDatatable($request->request);
+    public function api(Request $request, ImportService $importDataService, UserService $userService): Response
+    {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $data = $importDataService->getDataForDatatable($request->request);
 
-		return new JsonResponse($data);
-	}
+        return new JsonResponse($data);
+    }
 
-	/**
-	 * @Route("/creer", name="import_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @param UserService $userService
-	 * @param AttachmentService $attachmentService
-	 * @param ImportService $importService
-	 * @return Response
-	 * @throws NonUniqueResultException
-	 */
-	public function new(Request $request,
-						UserService $userService,
-						AttachmentService $attachmentService,
-						ImportService $importService): Response
-	{
-		if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
-			return $this->redirectToRoute('access_denied');
-		}
+    /**
+     * @Route("/creer", name="import_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param UserService $userService
+     * @param AttachmentService $attachmentService
+     * @param ImportService $importService
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function new(Request $request,
+                        UserService $userService,
+                        AttachmentService $attachmentService,
+                        ImportService $importService): Response
+    {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
-		$post = $request->request;
-		$em = $this->getDoctrine()->getManager();
-		$statusRepository = $em->getRepository(Statut::class);
+        $post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $statusRepository = $em->getRepository(Statut::class);
 
-		$import = new Import();
-		$import
-			->setLabel($post->get('label'))
-			->setEntity($post->get('entity'))
-			->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
-			->setUser($this->getUser());
+        $import = new Import();
+        $import
+            ->setLabel($post->get('label'))
+            ->setEntity($post->get('entity'))
+            ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
+            ->setUser($this->getUser());
 
-		$em->persist($import);
-		$em->flush();
+        $em->persist($import);
+        $em->flush();
 
-		// vérif qu'un et un seul fichier a été chargé
+        // vérif qu'un et un seul fichier a été chargé
         $nbFiles = count($request->files);
         if ($nbFiles !== 1) {
             $response = [
@@ -129,68 +129,74 @@ class ImportController extends AbstractController
             } else {
                 $attachements = $attachmentService->addAttachements($request->files, $import);
                 $data = $importService->readFile($attachements[0]);
+                if ($data["isUtf"] == false) {
+                    $response = [
+                        'success' => false,
+                        'msg' => 'Veuillez charger un fichier encodé en UTF-8'
+                    ];
+                } else {
+                    $entity = $import->getEntity();
+                    $entityCodeToClass = [
+                        Import::ENTITY_ART => Article::class,
+                        Import::ENTITY_REF => ReferenceArticle::class,
+                        Import::ENTITY_FOU => Fournisseur::class,
+                        Import::ENTITY_ART_FOU => ArticleFournisseur::class
+                    ];
+                    $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
-                $entity = $import->getEntity();
-                $entityCodeToClass = [
-                    Import::ENTITY_ART => Article::class,
-                    Import::ENTITY_REF => ReferenceArticle::class,
-                    Import::ENTITY_FOU => Fournisseur::class,
-                    Import::ENTITY_ART_FOU => ArticleFournisseur::class
-                ];
-                $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
-
-                $fieldsToHide = ['id', 'barCode', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
-                    'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
-                    'quantiteReservee'];
-                $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
-                switch ($entity) {
-                    case Import::ENTITY_ART:
-                        $categoryCL = CategorieCL::ARTICLE;
-                        $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
-                        $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                        break;
-                    case Import::ENTITY_REF:
-                        $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                        $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut'];
-                        $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                        break;
-                    case Import::ENTITY_ART_FOU:
-                        $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
-                        $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                        break;
-                }
-
-                $fields = [];
-                foreach ($fieldNames as $fieldName) {
-                    $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
-                }
-
-                if (isset($categoryCL)) {
-                    $champsLibres = $em->getRepository(ChampLibre::class)->getLabelAndIdByCategory($categoryCL);
-
-                    foreach ($champsLibres as $champLibre) {
-                        $fields[$champLibre['id']] = $champLibre['value'];
+                    $fieldsToHide = ['id', 'barCode', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
+                        'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
+                        'quantiteReservee'];
+                    $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
+                    switch ($entity) {
+                        case Import::ENTITY_ART:
+                            $categoryCL = CategorieCL::ARTICLE;
+                            $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
+                        case Import::ENTITY_REF:
+                            $categoryCL = CategorieCL::REFERENCE_ARTICLE;
+                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
+                        case Import::ENTITY_ART_FOU:
+                            $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
                     }
+
+                    $fields = [];
+                    foreach ($fieldNames as $fieldName) {
+                        $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
+                    }
+
+                    if (isset($categoryCL)) {
+                        $champsLibres = $em->getRepository(ChampLibre::class)->getLabelAndIdByCategory($categoryCL);
+
+                        foreach ($champsLibres as $champLibre) {
+                            $fields[$champLibre['id']] = $champLibre['value'];
+                        }
+                    }
+
+                    natcasesort($fields);
+
+                    if ($post->get('importId')) {
+                        $copiedImport = $this->getDoctrine()->getRepository(Import::class)->find($post->get('importId'));
+                        $columnsToFields = $copiedImport->getColumnToField();
+                    }
+
+                    $response = [
+                        'success' => true,
+                        'importId' => $import->getId(),
+                        'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
+                            'data' => $data ?? [],
+                            'fields' => $fields ?? [],
+                            'fieldsNeeded' => Import::FIELDS_NEEDED[$entity],
+                            'fieldPK' => Import::FIELD_PK[$entity],
+                            'columnsToFields' => $columnsToFields ?? null
+                        ])
+                    ];
                 }
-
-                natcasesort($fields);
-
-                if ($post->get('importId')){
-                    $copiedImport = $this->getDoctrine()->getRepository(Import::class)->find($post->get('importId'));
-                    $columnsToFields = $copiedImport->getColumnToField();
-                }
-
-                $response = [
-                    'success' => true,
-                    'importId' => $import->getId(),
-                    'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
-                        'data' => $data ?? [],
-                        'fields' => $fields ?? [],
-                        'fieldsNeeded' => Import::FIELDS_NEEDED[$entity],
-                        'fieldPK' => Import::FIELD_PK[$entity],
-                        'columnsToFields' => $columnsToFields ?? null
-                    ])
-                ];
             }
         }
 

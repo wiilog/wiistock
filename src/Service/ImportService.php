@@ -151,11 +151,11 @@ class ImportService
     {
         $path = "../public/uploads/attachements/" . $attachment->getFileName();
         $file = fopen($path, "r");
+        $headers = fgetcsv($file, 1000, ";");
+        $firstRow =  fgetcsv($file, 1000, ";");
+        $isUtf = mb_check_encoding ( $firstRow, "UTF-8" );
 
-        $headers = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
-        $firstRow = array_map('utf8_encode', fgetcsv($file, 1000, ";"));
-
-        return ['headers' => $headers, 'firstRow' => $firstRow];
+        return ['headers' => $headers, 'firstRow' => $firstRow,'isUtf' => $isUtf];
     }
 
     /**
