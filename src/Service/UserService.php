@@ -8,10 +8,10 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Parametre;
 use App\Entity\Utilisateur;
 
-use App\Repository\ActionRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
@@ -23,6 +23,7 @@ use App\Repository\ManutentionRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
@@ -46,11 +47,6 @@ class UserService
      * @var Utilisateur
      */
     private $user;
-
-    /**
-     * @var ActionRepository
-     */
-    private $actionRepository;
 
      /**
      * @var UtilisateurRepository
@@ -101,6 +97,7 @@ class UserService
 	 * @var ReceptionRepository
 	 */
 	private $receptionRepository;
+	private $em;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 DemandeRepository $demandeRepository,
@@ -113,12 +110,11 @@ class UserService
                                 ParametreRoleRepository $parametreRoleRepository,
                                 Twig_Environment $templating,
                                 RoleRepository $roleRepository,
+                                EntityManagerInterface $em,
                                 UtilisateurRepository $utilisateurRepository,
-                                Security $security,
-                                ActionRepository $actionRepository)
+                                Security $security)
     {
         $this->user = $security->getUser();
-        $this->actionRepository = $actionRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->templating = $templating;
@@ -131,6 +127,7 @@ class UserService
         $this->manutentionRepository = $manutentionRepository;
         $this->preparationRepository = $preparationRepository;
         $this->receptionRepository = $receptionRepository;
+        $this->em = $em;
     }
 
     public function getUserRole($user = null)
@@ -148,8 +145,8 @@ class UserService
 
         $role = $this->getUserRole($user);
 		$actions = $role ? $role->getActions() : [];
-
-        $thisAction = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
+		$actionRepository = $this->em->getRepository(Action::class);
+        $thisAction = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
         if ($thisAction) {
             foreach ($actions as $action) {
