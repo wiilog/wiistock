@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Action;
 use App\Entity\Role;
 use App\Repository\RoleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
