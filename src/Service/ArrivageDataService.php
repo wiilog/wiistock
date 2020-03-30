@@ -45,16 +45,16 @@ class ArrivageDataService
         $this->specificService = $specificService;
     }
 
-	/**
-	 * @param array $params
-	 * @param int|null $userId
-	 * @return array
-	 * @throws LoaderError
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @param array $params
+     * @param int|null $userId
+     * @return array
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function getDataForDatatable($params = null, $userId)
     {
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
@@ -77,16 +77,16 @@ class ArrivageDataService
         ];
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
+    /**
+     * @param Arrivage $arrivage
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
     public function dataRowArrivage($arrivage)
     {
         $url = $this->router->generate('arrivage_show', [
@@ -107,9 +107,9 @@ class ArrivageDataService
             'NoTracking' => $arrivage->getNoTracking() ?? '',
             'NumeroCommandeList' => implode(',', $arrivage->getNumeroCommandeList()),
             'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
-			'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
-			'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',
-			'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
+            'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
+            'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',
+            'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
             'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
             'Acheteurs' => implode(', ', $acheteursUsernames),
             'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
@@ -128,12 +128,15 @@ class ArrivageDataService
     /**
      * @param Arrivage $arrival
      * @param Urgence[] $emergencies
+     * @param array $addedSenders
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function sendArrivalEmails(Arrivage $arrival,
-                                      array $emergencies = []): void {
+                                      array $emergencies = [],
+                                      array $addedSenders = []): void
+    {
 
         $isUrgentArrival = !empty($emergencies);
 
@@ -149,8 +152,7 @@ class ArrivageDataService
                 },
                 []
             );
-        }
-        else {
+        } else {
             $senders = $arrival
                 ->getInitialAcheteurs()
                 ->map(function (Utilisateur $acheteur) {
@@ -172,7 +174,7 @@ class ArrivageDataService
 
                 ]
             ),
-            $senders
+            !empty($addedSenders) ? $addedSenders : $senders
         );
     }
 
@@ -183,15 +185,16 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void {
+    public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void
+    {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
             foreach ($emergencies as $emergency) {
-            	$emergency->setLastArrival($arrivage);
-			}
+                $emergency->setLastArrival($arrivage);
+            }
             $this->entityManager->flush();
-			$this->sendArrivalEmails($arrivage, $emergencies);
-		}
+            $this->sendArrivalEmails($arrivage, $emergencies);
+        }
     }
 
     /**
@@ -202,7 +205,8 @@ class ArrivageDataService
      */
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
-                                             array $urgences = []): array {
+                                             array $urgences = []): array
+    {
         $isArrivalUrgent = count($urgences);
 
         if ($askQuestion && $isArrivalUrgent) {
@@ -233,8 +237,7 @@ class ArrivageDataService
                     ";
                 }
             }
-        }
-        else {
+        } else {
             $numeroCommande = null;
         }
 
@@ -260,7 +263,8 @@ class ArrivageDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function processEmergenciesOnArrival(Arrivage $arrival): array {
+    public function processEmergenciesOnArrival(Arrivage $arrival): array
+    {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
 
@@ -280,8 +284,7 @@ class ArrivageDataService
                 if (!empty($urgencesMatching)) {
                     if (!$isSEDCurrentClient) {
                         $this->setArrivalUrgent($arrival, $urgencesMatching);
-                    }
-                    else {
+                    } else {
                         $alertConfigs[] = $this->createArrivalAlertConfig(
                             $arrival,
                             $isSEDCurrentClient,

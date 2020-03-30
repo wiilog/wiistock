@@ -579,6 +579,8 @@ class ArrivageController extends AbstractController
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $arrivage
                 ->setCommentaire($post->get('commentaire'))
@@ -594,17 +596,21 @@ class ArrivageController extends AbstractController
 
             $acheteurs = $post->get('acheteurs');
             // on détache les acheteurs existants...
-            $existingAcheteurs = $arrivage->getAcheteurs();
-
-            foreach ($existingAcheteurs as $existingAcheteur) {
-                $arrivage->removeAcheteur($existingAcheteur);
-            }
+            $addedSenders = [];
             if (!empty($acheteurs)) {
                 // ... et on ajoute ceux sélectionnés
                 $listAcheteurs = explode(',', $acheteurs);
                 foreach ($listAcheteurs as $acheteur) {
-                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                    $addedSender = $this->utilisateurRepository->findOneByUsername($acheteur);
+                    if (!$arrivage->getAcheteurs()->contains($addedSender)) {
+                        $addedSenders[] = $addedSender->getEmail();
+                    }
+                    $arrivage->addAcheteur($addedSender);
                 }
+            }
+
+            if ($sendMail) {
+                $arrivageDataService->sendArrivalEmails($arrivage, [], $addedSenders);
             }
 
             $entityManager->flush();
