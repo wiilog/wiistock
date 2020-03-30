@@ -82,7 +82,7 @@
     <div style="">
         <!--[if mso | IE]>
         <table
-                align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
+            align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
         >
             <tr>
                 <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
@@ -98,7 +98,7 @@
                             <tr>
 
                                 <td
-                                        class="" style="vertical-align:top;width:600px;"
+                                    class="" style="vertical-align:top;width:600px;"
                                 >
                         <![endif]-->
                         <div class="mj-column-per-100 mj-outlook-group-fix"
@@ -107,7 +107,8 @@
                                    style="vertical-align:top;" width="100%">
                                 <tr>
                                     <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                        <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">
+                                        <div
+                                            style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">
                                             <p> Bonjour, </p>
                                             <p> Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée : </p>
                                             <ul>
@@ -129,13 +130,13 @@
                                                 {% endif %}
 
                                                 {% if arrival.noTracking %}
-                                                    <li>N° tracking transporteur : {{ arrival.noTracking }}</li>
+                                                    <li>Numéro tracking transporteur : {{ arrival.noTracking }}</li>
                                                 {% endif %}
 
                                                 <li>Horodatage {{ "arrivage.arrivage"|trans }}
                                                     : {{ arrival.date|date('d/m/Y H:i') }}</li>
                                             </ul>
-                                            <p>Votre colis sera livré en Drop Zone en millieu d'aprés-midi.</p>
+                                            <p>Votre colis sera livré en Drop Zone en milieu d'aprés-midi.</p>
                                             <p>Merci et bonne journée :-)</p>
                                         </div>
                                     </td>

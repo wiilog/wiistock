@@ -1,31 +1,25 @@
 <mjml>
     <mj-head>
         <mj-attributes>
-            <mj-class name="mjclass" font-size="30px" />
+            <mj-class name="mjclass" font-size="30px"/>
         </mj-attributes>
         <mj-style inline="inline">
             .purple-text { color: #1AB394; }
         </mj-style>
     </mj-head>
     <mj-body>
-        <mj-section>
-            <mj-column>
-                <mj-include path="logo-gtlogistics.mjml.twig"/>
-            </mj-column>
-
-        </mj-section>
-
         <mj-section background-color="white">
             <mj-column>
+                <mj-include path="logo-gtlogistics.mjml.twig"/>
                 <mj-table>
                     <tr>
-                        <td class="container" width="600">
-                            <mj-section class="content">
-                                <mj-table class="main" width="100%" cellpadding="0" cellspacing="0">
+                        <td class="container" width="600"></td>
+                    </tr>
                     <tr>
                         <td class="content-wrap">
-                            <mj-table cellpadding="0" cellspacing="0">
-                                {% if title is defined %}
+                            {% if title is defined %}
+                        </td>
+                    </tr>
                     <tr>
                         <td class="content-block">
                             <h3>{{ title }}</h3>
@@ -34,8 +28,7 @@
                     {% endif %}
                     <tr>
                         <td>
-                            {% block content %}
-                            {% endblock %}
+                            {% block content %} {% endblock %}
                         </td>
                     </tr>
                     <tr>
@@ -44,28 +37,18 @@
                         </td>
                     </tr>
                     <tr>
-                        {% if urlSuffix is not defined %}
-                            {% set urlSuffix = '' %}
-                        {% endif %}
+                        {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
                     </tr>
                 </mj-table>
-            </mj-column>
-        </mj-section >
-        <mj-section>
-            <mj-column>
                 <mj-text>
                     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-                        <p>PS : En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions
-                            mettre à jour la base de données. Ecrivez-nous à l'adresse suivante : j.amengual@gt-logistics.fr,
-                            s.marion@gt-logistics.fr</p>
+                        <p>PS : En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
+                            Ecrivez-nous aux adresses suivantes : j.amengual@gt-logistics.fr, s.marion@gt-logistics.fr
+                        </p>
                     {% endif %}
                 </mj-text>
-            </mj-column>
-        </mj-section>
-        <mj-section>
-            <mj-column>
                 <mj-button background-color="#130078">
-                    <a class="purple-text" href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}"  >
+                    <a class="purple-text" href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">
                         {% if buttonText is defined %}
                             {{ buttonText }}
                         {% else %}
