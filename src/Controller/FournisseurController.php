@@ -88,7 +88,9 @@ class FournisseurController extends AbstractController
         }
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
-        return $this->render('fournisseur/index.html.twig', ['fournisseur' => $fournisseurRepository->findAll()]);
+        return $this->render('fournisseur/index.html.twig', [
+            'fournisseur' => $fournisseurRepository->findAll()
+        ]);
     }
 
     /**
@@ -238,16 +240,19 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function delete(Request $request,
-                            EntityManagerInterface $entityManager): Response
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseurId = $data['fournisseur'] ?? '';
+            $fournisseurId = $data['fournisseur'] ?? null;
             if ($fournisseurId) {
                 $fournisseur = $fournisseurRepository->find($fournisseurId);
 
@@ -258,7 +263,6 @@ class FournisseurController extends AbstractController
                     return new JsonResponse(false);
                 }
 
-                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($fournisseur);
                 $entityManager->flush();
             }
@@ -270,10 +274,11 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      */
     public function getFournisseur(Request $request,
-                    EntityManagerInterface $entityManager)
+                                   EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
