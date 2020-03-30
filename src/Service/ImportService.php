@@ -936,8 +936,11 @@ class ImportService
                 case ChampLibre::TYPE_DATETIME:
                     try {
                         $date = DateTime::createFromFormat('d/m/Y', $row[$col]);
+                        if(!$date){
+                            throw new Exception('Invalid format');
+                        }
                         $value = $date->format('Y-m-d');
-                    } catch (Exception $e) {
+                    } catch (Exception $ignored) {
                         $message = 'La date du champ "' . $champLibre->getLabel() . '" n\'est pas au format jj/mm/AAAA.';
                         $this->throwError($message);
                         $value = null;
@@ -948,11 +951,10 @@ class ImportService
             }
 
             $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
-
-            if ($refOrArt instanceof ReferenceArticle) {
-                $valeurCL = $valeurCLRepository->findOneByRefArticleAndChampLibre($refOrArt, $champLibre);
-            } else if ($refOrArt instanceof  Article) {
-                $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt, $champLibre);
+            if ($refOrArt instanceof ReferenceArticle && !$isNewEntity) {
+                $valeurCL = $valeurCLRepository->findOneByRefArticleAndChampLibre($refOrArt->getId(), $champLibre);
+            } else if ($refOrArt instanceof  Article && !$isNewEntity) {
+                $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt->getId(), $champLibre);
             } else {
                 $valeurCL = null;
             }
