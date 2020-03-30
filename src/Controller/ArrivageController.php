@@ -245,16 +245,16 @@ class ArrivageController extends AbstractController
         ]);
     }
 
-	/**
-	 * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
-	 * @param Request $request
-	 * @return Response
-	 * @throws LoaderError
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
+    /**
+     * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -321,8 +321,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-				->setDuty($data['duty'] == 'true')
-				->setFrozen($data['frozen'] == 'true')
+                ->setDuty($data['duty'] == 'true')
+                ->setFrozen($data['frozen'] == 'true')
                 ->setCommentaire($data['commentaire'] ?? null);
 
             if (!empty($data['fournisseur'])) {
@@ -513,7 +513,8 @@ class ArrivageController extends AbstractController
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
                                        ArrivageDataService $arrivageDataService,
-                                       EntityManagerInterface $entityManager): Response {
+                                       EntityManagerInterface $entityManager): Response
+    {
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $numeroCommande = $request->request->get('numeroCommande');
 
@@ -590,27 +591,28 @@ class ArrivageController extends AbstractController
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
                 ->setChauffeur($chauffeurId ? $this->chauffeurRepository->find($chauffeurId) : null)
                 ->setStatut($statutId ? $statutRepository->find($statutId) : null)
-				->setDuty($post->get('duty') == 'true')
-				->setFrozen($post->get('frozen') == 'true')
+                ->setDuty($post->get('duty') == 'true')
+                ->setFrozen($post->get('frozen') == 'true')
                 ->setDestinataire($destinataireId ? $this->utilisateurRepository->find($destinataireId) : null);
 
             $acheteurs = $post->get('acheteurs');
-            // on détache les acheteurs existants...
-            $addedSenders = [];
-            if (!empty($acheteurs)) {
-                // ... et on ajoute ceux sélectionnés
-                $listAcheteurs = explode(',', $acheteurs);
-                foreach ($listAcheteurs as $acheteur) {
-                    $addedSender = $this->utilisateurRepository->findOneByUsername($acheteur);
-                    if (!$arrivage->getAcheteurs()->contains($addedSender)) {
-                        $addedSenders[] = $addedSender->getEmail();
-                    }
-                    $arrivage->addAcheteur($addedSender);
+            $editedBuyers = [];
+            $acheteursEntities = array_map(function($acheteur) {
+                return $this->utilisateurRepository->findOneByUsername($acheteur);
+            }, explode(',', $acheteurs));
+            foreach ($acheteursEntities as $acheteursEntity) {
+                if (!$arrivage->getAcheteurs()->contains($acheteursEntity)) {
+                    $editedBuyers[] = $acheteursEntity->getEmail();
                 }
             }
-
-            if ($sendMail) {
-                $arrivageDataService->sendArrivalEmails($arrivage, [], $addedSenders);
+            $arrivage->removeAllAcheteur();
+            if (!empty($acheteurs)) {
+                foreach ($acheteursEntities as $acheteursEntity) {
+                    $arrivage->addAcheteur($acheteursEntity);
+                }
+            }
+            if ($sendMail && !empty($editedBuyers)) {
+                $arrivageDataService->sendArrivalEmails($arrivage, [], $editedBuyers);
             }
 
             $entityManager->flush();
@@ -1454,7 +1456,8 @@ class ArrivageController extends AbstractController
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
                                                PDFGeneratorService $PDFGeneratorService,
-                                               Colis $colis = null): Response {
+                                               Colis $colis = null): Response
+    {
         $barcodeConfigs = [];
 
         if (!isset($colis)) {
@@ -1470,8 +1473,7 @@ class ArrivageController extends AbstractController
                     'code' => $arrivage->getNumeroArrivage()
                 ];
             }
-        }
-        else {
+        } else {
             if (!$colis->getArrivage() || $colis->getArrivage()->getId() !== $arrivage->getId()) {
                 throw new NotFoundHttpException("404");
             }
@@ -1510,7 +1512,8 @@ class ArrivageController extends AbstractController
      */
     public function printArrivageAlias(Arrivage $arrivage,
                                        Request $request,
-                                       PDFGeneratorService $PDFGeneratorService) {
+                                       PDFGeneratorService $PDFGeneratorService)
+    {
         return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
     }
 
@@ -1532,8 +1535,8 @@ class ArrivageController extends AbstractController
             'labels' => [
                 ($buyersCounter === 1)
                     ? ($buyers->first()->getDropzone()
-                        ? $buyers->first()->getDropzone()->getLabel()
-                        : '')
+                    ? $buyers->first()->getDropzone()->getLabel()
+                    : '')
                     : ''
             ]
         ];

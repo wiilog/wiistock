@@ -305,6 +305,14 @@ class Arrivage
         return $this;
     }
 
+    public function removeAllAcheteur(): self
+    {
+        foreach ($this->acheteurs as $acheteur) {
+            $this->acheteurs->removeElement($acheteur);
+        }
+        return $this;
+    }
+
     public function getNumeroReception(): ?string
     {
         return $this->numeroReception;
