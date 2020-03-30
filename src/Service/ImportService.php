@@ -478,12 +478,15 @@ class ImportService
      * @return string
      * @throws NonUniqueResultException
      */
-    private function buildErrorFile(array $logRows)
+    private function buildLogFile(array $logRows)
     {
         $fileName = uniqid() . '.csv';
         $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
+
         $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
+
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
         foreach ($logRows as $row) {
             if (!$wantsUFT8) {
@@ -502,7 +505,7 @@ class ImportService
      */
     private function persistLogFilePieceJointe(array $logRows)
     {
-        $createdLogFile = $this->buildErrorFile($logRows);
+        $createdLogFile = $this->buildLogFile($logRows);
 
         $pieceJointeForLogFile = new PieceJointe();
         $pieceJointeForLogFile
