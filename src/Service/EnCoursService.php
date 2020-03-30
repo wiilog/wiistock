@@ -146,7 +146,7 @@ class EnCoursService
      * @throws DBALException
      * @throws Exception
      */
-    public function getEnCoursForEmplacement(Emplacement $emplacement, array $natures = []): array {
+    public function getEnCoursForEmplacement(Emplacement $emplacement, array $natures = [], bool $onlyLate = false): array {
         $success = true;
         $emplacementInfo = [];
         $colisRepository = $this->entityManager->getRepository(Colis::class);
@@ -161,13 +161,16 @@ class EnCoursService
             $dateMaxTime = $emplacement->getDateMaxTime();
             if ($dateMaxTime) {
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
-                $emplacementInfo[] = [
-                    'colis' => $packIntel['code'],
-                    'delay' => $timeInformation['ageTimespan'],
-                    'date' => $dateMvt->format('d/m/Y H:i:s'),
-                    'late' => $timeInformation['countDownLateTimespan'] < 0,
-                    'emp' => $emplacement->getLabel()
+                $isLate = $timeInformation['countDownLateTimespan'] < 0;
+                if (!$onlyLate || $isLate) {
+                    $emplacementInfo[] = [
+                        'colis' => $packIntel['code'],
+                        'delay' => $timeInformation['ageTimespan'],
+                        'date' => $dateMvt->format('d/m/Y H:i:s'),
+                        'late' => $isLate,
+                        'emp' => $emplacement->getLabel()
                 ];
+                }
             }
         }
 
