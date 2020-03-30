@@ -8,7 +8,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 
 use App\Entity\Statut;
-use App\Repository\AcheminementsRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
@@ -48,11 +47,6 @@ Class AcheminementsController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var AcheminementsRepository
-     */
-    private $acheminementsRepository;
-
-    /**
      * @var AcheminementsService
      */
     private $acheminementsService;
@@ -62,11 +56,10 @@ Class AcheminementsController extends AbstractController
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(AcheminementsRepository $acheminementsRepository, UserService $userService, UtilisateurRepository $utilisateurRepository, AcheminementsService $acheminementsService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository)
+    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, AcheminementsService $acheminementsService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository)
     {
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->acheminementsRepository = $acheminementsRepository;
         $this->acheminementsService = $acheminementsService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
     }
@@ -95,6 +88,9 @@ Class AcheminementsController extends AbstractController
      * @Route("/api", name="acheminements_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {

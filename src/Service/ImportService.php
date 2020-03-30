@@ -14,6 +14,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -472,18 +473,33 @@ class ImportService
         return $dataToCheck;
     }
 
+    /**
+     * @param array $logRows
+     * @return string
+     * @throws NonUniqueResultException
+     */
     private function buildErrorFile(array $logRows)
     {
         $fileName = uniqid() . '.csv';
         $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
         $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+        $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
         foreach ($logRows as $row) {
-            fputcsv($logCsvFilePathOpened, array_map('utf8_decode', $row), ';');
+            if (!$wantsUFT8) {
+                $row =  array_map('utf8_decode', $row);
+            }
+            fputcsv($logCsvFilePathOpened, $row, ';');
         }
         fclose($logCsvFilePathOpened);
         return $fileName;
     }
 
+    /**
+     * @param array $logRows
+     * @return PieceJointe
+     * @throws NonUniqueResultException
+     */
     private function persistLogFilePieceJointe(array $logRows)
     {
         $createdLogFile = $this->buildErrorFile($logRows);

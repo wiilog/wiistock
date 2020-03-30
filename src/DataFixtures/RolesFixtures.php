@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Role;
-use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -18,15 +17,12 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
      * @var RoleRepository
      */
     private $roleRepository;
-    private $actionRepository;
 
     public function __construct(
-    	ActionRepository $actionRepository,
     	RoleRepository $roleRepository,
 		UserPasswordEncoderInterface $encoder
 	)
     {
-    	$this->actionRepository = $actionRepository;
         $this->encoder = $encoder;
         $this->roleRepository = $roleRepository;
     }
@@ -37,7 +33,7 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
             Role::NO_ACCESS_USER,
 			Role::SUPER_ADMIN
         ];
-
+        $actionRepository = $manager->getRepository(Action::class);
         foreach ($rolesLabels as $roleLabel) {
             $role = $this->roleRepository->findByLabel($roleLabel);
 
@@ -51,7 +47,7 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
                 dump("création du rôle " . $roleLabel);
 
                 if ($roleLabel == Role::SUPER_ADMIN) {
-                	$actions = $this->actionRepository->findAll();
+                	$actions = $actionRepository->findAll();
                 	foreach ($actions as $action) {
                 		$action->addRole($role);
 					}

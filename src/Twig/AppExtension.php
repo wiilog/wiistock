@@ -8,7 +8,6 @@
 
 namespace App\Twig;
 
-use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
 
 use App\Service\SpecificService;
@@ -26,11 +25,6 @@ class AppExtension extends AbstractExtension
     private $userService;
 
     /**
-     * @var ActionRepository
-     */
-    private $actionRepository;
-
-    /**
      * @var RoleRepository
      */
     private $roleRepository;
@@ -43,11 +37,9 @@ class AppExtension extends AbstractExtension
 
     public function __construct(SpecificService $specificService,
                                 UserService $userService,
-                                ActionRepository $actionRepository,
                                 RoleRepository $roleRepository)
     {
         $this->userService = $userService;
-        $this->actionRepository = $actionRepository;
         $this->roleRepository = $roleRepository;
         $this->specificService = $specificService;
     }

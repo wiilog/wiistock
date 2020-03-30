@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Acheminements;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 
@@ -13,12 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Acheminements[]    findAll()
  * @method Acheminements[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class AcheminementsRepository extends ServiceEntityRepository
+class AcheminementsRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Acheminements::class);
-    }
     private const DtToDbLabels = [
         'Date' => 'date',
         'Demandeur' => 'requester',
