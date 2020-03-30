@@ -128,13 +128,20 @@ class ImportController extends AbstractController
 
             } else {
                 $attachements = $attachmentService->addAttachements($request->files, $import);
-                $data = $importService->readFile($attachements[0]);
-                if ($data["isUtf"] == false) {
+                $data = $importService->getImportConfig($attachements[0]);
+                if (!$data) {
+                    $response = [
+                        'success' => false,
+                        'msg' => 'Format du fichier incorrect. Il doit au moins contenir une ligne d\'en-tête et une ligne à importer.'
+                    ];
+                }
+                else if (!$data["isUtf8"]) {
                     $response = [
                         'success' => false,
                         'msg' => 'Veuillez charger un fichier encodé en UTF-8'
                     ];
-                } else {
+                }
+                else {
                     $entity = $import->getEntity();
                     $entityCodeToClass = [
                         Import::ENTITY_ART => Article::class,

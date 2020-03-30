@@ -56,9 +56,11 @@ class ImportService
     private $refArticleDataService;
     private $mouvementStockService;
     private $logger;
+    private $attachmentService;
 
     public function __construct(RouterInterface $router,
                                 LoggerInterface $logger,
+                                AttachmentService $attachmentService,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
@@ -74,6 +76,7 @@ class ImportService
         $this->refArticleDataService = $refArticleDataService;
         $this->mouvementStockService = $mouvementStockService;
         $this->logger = $logger;
+        $this->attachmentService = $attachmentService;
     }
 
     /**
@@ -147,15 +150,27 @@ class ImportService
      * @param PieceJointe $attachment
      * @return array
      */
-    public function readFile($attachment)
+    public function getImportConfig(PieceJointe $attachment)
     {
-        $path = "../public/uploads/attachements/" . $attachment->getFileName();
-        $file = fopen($path, "r");
-        $headers = fgetcsv($file, 1000, ";");
-        $firstRow =  fgetcsv($file, 1000, ";");
-        $isUtf = mb_check_encoding ( $firstRow, "UTF-8" );
+        $path = $this->attachmentService->getServerPath($attachment);
 
-        return ['headers' => $headers, 'firstRow' => $firstRow,'isUtf' => $isUtf];
+        $file = fopen($path, "r");
+
+        $headers = fgetcsv($file, 0, ";");
+        $firstRow =  fgetcsv($file, 0, ";");
+
+        if ($headers && $firstRow) {
+            $isHeaderUtf8 = mb_check_encoding($headers, 'UTF-8');
+            $isFirstRowUtf8 = mb_check_encoding($headers, 'UTF-8');
+            $res = ['headers' => $headers, 'firstRow' => $firstRow,'isUtf8' => ($isHeaderUtf8 && $isFirstRowUtf8)];
+        }
+        else {
+            $res = null;
+        }
+
+        fclose($file);
+
+        return $res;
     }
 
     /**
@@ -187,7 +202,7 @@ class ImportService
         $rowCount = 0;
         $firstRows = [];
 
-        while (($data = fgetcsv($file, 1000, ';')) !== false
+        while (($data = fgetcsv($file, 0, ';')) !== false
                && $rowCount <= self::MAX_LINES_FLASH_IMPORT) {
             $row = array_map('utf8_encode', $data);
 
@@ -223,7 +238,7 @@ class ImportService
 
             if (!$smallFile) {
                 // on fait la suite du fichier
-                while (($data = fgetcsv($file, 1000, ';')) !== false) {
+                while (($data = fgetcsv($file, 0, ';')) !== false) {
                     $row = array_map('utf8_encode', $data);
                     $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
                 }
