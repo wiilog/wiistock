@@ -128,20 +128,20 @@ class ArrivageDataService
     /**
      * @param Arrivage $arrival
      * @param Urgence[] $emergencies
-     * @param array $addedSenders
+     * @param array $manualRecipients
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function sendArrivalEmails(Arrivage $arrival,
                                       array $emergencies = [],
-                                      array $addedSenders = []): void
+                                      array $manualRecipients = []): void
     {
 
         $isUrgentArrival = !empty($emergencies);
 
         if ($isUrgentArrival) {
-            $senders = array_reduce(
+            $recipients = array_reduce(
                 $emergencies,
                 function (array $carry, Urgence $emergency) {
                     $email = $emergency->getBuyer()->getEmail();
@@ -153,14 +153,13 @@ class ArrivageDataService
                 []
             );
         } else {
-            $senders = $arrival
+            $recipients = $arrival
                 ->getInitialAcheteurs()
                 ->map(function (Utilisateur $acheteur) {
                     return $acheteur->getEmail();
                 })
                 ->toArray();
         }
-        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
         $this->mailerService->sendMail(
             'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
@@ -174,7 +173,7 @@ class ArrivageDataService
 
                 ]
             ),
-            !empty($addedSenders) ? $addedSenders : $senders
+            !empty($manualRecipients) ? $manualRecipients : $recipients
         );
     }
 

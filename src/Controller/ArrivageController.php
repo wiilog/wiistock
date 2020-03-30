@@ -597,6 +597,7 @@ class ArrivageController extends AbstractController
 
             $acheteurs = $post->get('acheteurs');
             $editedBuyers = [];
+
             $acheteursEntities = array_map(function($acheteur) {
                 return $this->utilisateurRepository->findOneByUsername($acheteur);
             }, explode(',', $acheteurs));
@@ -605,6 +606,7 @@ class ArrivageController extends AbstractController
                     $editedBuyers[] = $acheteursEntity->getEmail();
                 }
             }
+
             $arrivage->removeAllAcheteur();
             if (!empty($acheteurs)) {
                 foreach ($acheteursEntities as $acheteursEntity) {
