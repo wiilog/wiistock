@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 
@@ -56,7 +57,10 @@ Class AcheminementsController extends AbstractController
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, AcheminementsService $acheminementsService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository)
+    public function __construct(UserService $userService,
+                                UtilisateurRepository $utilisateurRepository,
+                                AcheminementsService $acheminementsService,
+                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository)
     {
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -206,12 +210,14 @@ Class AcheminementsController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
-                         EntityManagerInterface $entityManager): Response
-    {
+                         EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $acheminement = $this->acheminementsRepository->find($data['id']);
-
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+            $acheminement = $acheminementsRepository->find($data['id']);
+
             $statutLabel = (intval($data['statut']) === 1) ? Acheminements::STATUT_A_TRAITER : Acheminements::STATUT_TRAITE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ACHEMINEMENT, $statutLabel);
 
@@ -220,13 +226,13 @@ Class AcheminementsController extends AbstractController
 
             $acheminement
                 ->setDate($date)
-                ->setRequester($this->utilisateurRepository->find($data['demandeur']))
-                ->setReceiver($this->utilisateurRepository->find($data['destinataire']))
+                ->setRequester($utilisateurRepository->find($data['demandeur']))
+                ->setReceiver($utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
                 ->setLocationTake($data['prise'])
                 ->setColis($data['colis']);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+
+            $entityManager->flush();
 
             $response['acheminement'] = $acheminement->getId();
 
@@ -246,10 +252,13 @@ Class AcheminementsController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $acheminement = $this->acheminementsRepository->find($data['id']);
+            $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+            $acheminement = $acheminementsRepository->find($data['id']);
             $json = $this->renderView('acheminements/modalEditContentAcheminements.html.twig', [
                 'acheminement' => $acheminement,
-                'utilisateurs' => $this->utilisateurRepository->findAll(),
+                'utilisateurs' => $utilisateurRepository->findAll(),
                 'statut' => (($acheminement->getStatut()->getNom() === Acheminements::STATUT_A_TRAITER) ? 1 : 0),
                 'statuts' => $statutRepository->findByCategorieName(Acheminements::CATEGORIE),
             ]);
@@ -261,19 +270,20 @@ Class AcheminementsController extends AbstractController
 
     /**
      * @Route("/supprimer", name="acheminement_delete", options={"expose"=true},methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
+            $acheminements = $acheminementsRepository->find($data['acheminements']);
+            $entityManager->remove($acheminements);
+            $entityManager->flush();
 
-            $acheminements = $this->acheminementsRepository->find($data['acheminements']);
-
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($acheminements);
-                $entityManager->flush();
-                $response = true;
-
-            return new JsonResponse($response);
+            return new JsonResponse(true);
         }
 
         throw new NotFoundHttpException("404");

@@ -3,10 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Action;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Action|null find($id, $lockMode = null, $lockVersion = null)
