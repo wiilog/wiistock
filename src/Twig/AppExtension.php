@@ -1,19 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 12/04/2019
- * Time: 10:37
- */
 
 namespace App\Twig;
 
-use App\Repository\ActionRepository;
-use App\Repository\RoleRepository;
-
 use App\Service\SpecificService;
 use App\Service\UserService;
-
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
@@ -25,16 +15,6 @@ class AppExtension extends AbstractExtension
      */
     private $userService;
 
-    /**
-     * @var ActionRepository
-     */
-    private $actionRepository;
-
-    /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
-
 	/**
 	 * @var SpecificService
 	 */
@@ -42,13 +22,9 @@ class AppExtension extends AbstractExtension
 
 
     public function __construct(SpecificService $specificService,
-                                UserService $userService,
-                                ActionRepository $actionRepository,
-                                RoleRepository $roleRepository)
+                                UserService $userService)
     {
         $this->userService = $userService;
-        $this->actionRepository = $actionRepository;
-        $this->roleRepository = $roleRepository;
         $this->specificService = $specificService;
     }
 

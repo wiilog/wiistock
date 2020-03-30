@@ -116,4 +116,8 @@ class AttachmentService
         $this->em->flush();
 	}
 
+	public function getServerPath(PieceJointe $attachment): string {
+	    return self::ATTACHMENT_DIRECTORY . $attachment->getFileName();
+    }
+
 }

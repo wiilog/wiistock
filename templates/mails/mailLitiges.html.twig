@@ -2,22 +2,23 @@
 
 {% block content %}
 
-{% set s = litiges|length > 1 ? 's' : '' %}
-{% set nt = litiges|length > 1 ? 'nt' : '' %}
-<h3 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h3>
+    {% set s = litiges|length > 1 ? 's' : '' %}
+    {% set nt = litiges|length > 1 ? 'nt' : '' %}
+    <h3 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h3>
 
-<table class="table" style="border: 1px solid black;border-collapse: collapse;">
-    <thead>
+    <table class="table" style="border: 1px solid black;border-collapse: collapse;">
+        <thead>
         <tr>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Type de litige</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Colis</th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         {% for litige in litiges %}
             <tr>
-                <td class="td" rowspan="{{ litige.colis|length }}" style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
+                <td class="td" rowspan="{{ litige.colis|length }}"
+                    style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
 
                 {% set firstColis = litige.colis|first %}
                 <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">
@@ -42,9 +43,9 @@
                 {% endif %}
             {% endfor %}
         {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
-<br>
-<br>
+    <br>
+    <br>
 {% endblock %}
