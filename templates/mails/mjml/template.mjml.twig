@@ -1,71 +1,39 @@
 <mjml>
     <mj-head>
         <mj-attributes>
-            <mj-class name="mjclass" font-size="30px" />
+            <mj-class name="email-title" color="#212b35" font-weight="bold" font-size="18px"/>
+            <mj-class name="email-content" font-size="15px"/>
+            <mj-class name="button-followgt" background-color="#130078" color="white"/>
         </mj-attributes>
         <mj-style inline="inline">
-            .purple-text { color: #1AB394; }
+            .button-followgt a {
+                text-decoration: none;
+                color: white
+            }
         </mj-style>
     </mj-head>
     <mj-body>
-        <mj-section>
+        <mj-section background-color="white" full-width="full-width">
             <mj-column>
                 <mj-include path="logo-gtlogistics.mjml.twig"/>
-            </mj-column>
-
-        </mj-section>
-
-        <mj-section background-color="white">
-            <mj-column>
-                <mj-table>
-                    <tr>
-                        <td class="container" width="600">
-                            <mj-section class="content">
-                                <mj-table class="main" width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="content-wrap">
-                            <mj-table cellpadding="0" cellspacing="0">
-                                {% if title is defined %}
-                    <tr>
-                        <td class="content-block">
-                            <h3>{{ title }}</h3>
-                        </td>
-                    </tr>
-                    {% endif %}
-                    <tr>
-                        <td>
-                            {% block content %}
-                            {% endblock %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            L'équipe GT Logistics
-                        </td>
-                    </tr>
-                    <tr>
-                        {% if urlSuffix is not defined %}
-                            {% set urlSuffix = '' %}
-                        {% endif %}
-                    </tr>
-                </mj-table>
-            </mj-column>
-        </mj-section >
-        <mj-section>
-            <mj-column>
-                <mj-text>
-                    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-                        <p>PS : En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions
-                            mettre à jour la base de données. Ecrivez-nous à l'adresse suivante : j.amengual@gt-logistics.fr,
-                            s.marion@gt-logistics.fr</p>
-                    {% endif %}
+                {% if title is defined %}
+                    <mj-text mj-class="email-title">{{ title }}</mj-text>
+                {% endif %}
+                <mj-text mj-class="email-content">
+                    {% block content %}{% endblock %}
                 </mj-text>
-            </mj-column>
-        </mj-section>
-        <mj-section>
-            <mj-column>
-                <mj-button background-color="#130078">
-                    <a class="purple-text" href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}"  >
+                <mj-text mj-class="email-content">
+                    L'équipe GT Logistics
+                </mj-text>
+                {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                    <mj-text mj-class="email-content">
+                        PS&nbsp;: En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
+                        Ecrivez-nous aux adresses suivantes&nbsp;: j.amengual@gt-logistics.fr, s.marion@gt-logistics.fr
+                    </mj-text>
+                {% endif %}
+                <mj-button css-class="button-followgt" mj-class="button-followgt">
+                    {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
+                    <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">
                         {% if buttonText is defined %}
                             {{ buttonText }}
                         {% else %}
