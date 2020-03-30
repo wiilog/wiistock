@@ -160,9 +160,12 @@ class ImportService
         $firstRow =  fgetcsv($file, 0, ";");
 
         if ($headers && $firstRow) {
-            $isHeaderUtf8 = mb_check_encoding($headers, 'UTF-8');
-            $isFirstRowUtf8 = mb_check_encoding($headers, 'UTF-8');
-            $res = ['headers' => $headers, 'firstRow' => $firstRow,'isUtf8' => ($isHeaderUtf8 && $isFirstRowUtf8)];
+            $csvContent = file_get_contents($path);
+            $res = [
+                'headers' => $headers,
+                'firstRow' => $firstRow,
+                'isUtf8' => mb_check_encoding($csvContent, 'UTF-8')
+            ];
         }
         else {
             $res = null;
