@@ -26,12 +26,14 @@ class Import
 	const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
             'référence article de référence',
-            'référence fournisseur'
+            'référence fournisseur',
+            'reference',
         ],
         self::ENTITY_ART => [
             'référence article de référence',
             'label',
-            'emplacement'
+            'emplacement',
+            'reference'
         ],
         self::ENTITY_FOU => [
             'codeReference',
@@ -47,8 +49,8 @@ class Import
     ];
 
 	const FIELD_PK = [
-	    self::ENTITY_ART_FOU => 'référence',
-        self::ENTITY_ART => 'referenceReference',
+	    self::ENTITY_ART_FOU => 'reference',
+        self::ENTITY_ART => 'reference',
         self::ENTITY_FOU => 'codeReference',
         self::ENTITY_REF => 'reference'
     ];
