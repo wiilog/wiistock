@@ -25,12 +25,6 @@
                 <mj-text mj-class="email-content">
                     L'équipe GT Logistics
                 </mj-text>
-                {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-                    <mj-text mj-class="email-content">
-                        PS&nbsp;: En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
-                        Ecrivez-nous aux adresses suivantes&nbsp;: j.amengual@gt-logistics.fr, s.marion@gt-logistics.fr
-                    </mj-text>
-                {% endif %}
                 <mj-button css-class="button-followgt" mj-class="button-followgt">
                     {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
                     <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">
