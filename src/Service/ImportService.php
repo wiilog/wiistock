@@ -208,14 +208,13 @@ class ImportService
 
         while (($data = fgetcsv($file, 0, ';')) !== false
                && $rowCount <= self::MAX_LINES_FLASH_IMPORT) {
-            $row = array_map('utf8_encode', $data);
 
             if (empty($headers)) {
-                $headers = $row;
+                $headers = $data;
                 $logRows[] = array_merge($headers, ['Import']);
             }
             else {
-                $firstRows[] = $row;
+                $firstRows[] = $data;
                 $rowCount++;
             }
         }
@@ -243,8 +242,7 @@ class ImportService
             if (!$smallFile) {
                 // on fait la suite du fichier
                 while (($data = fgetcsv($file, 0, ';')) !== false) {
-                    $row = array_map('utf8_encode', $data);
-                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
+                    $logRows[] = $this->treatImportRow($data, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
                 }
             }
 
