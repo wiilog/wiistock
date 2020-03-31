@@ -783,7 +783,6 @@ class ParametrageGlobalController extends AbstractController
         $value = $post->get('value');
         $trimmedValue = trim($value);
         $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
-        dump($parametrageGlobal);
         $em->flush();
 
         return new JsonResponse(true);
