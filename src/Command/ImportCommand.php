@@ -53,7 +53,7 @@ class ImportCommand extends Command
         $importsToExecute = $importRepository->findByStatusLabel(Import::STATUS_PLANNED);
 
         foreach ($importsToExecute as $import) {
-            $this->importService->loadData($import, true);
+            $this->importService->treatImport($import, ImportService::IMPORT_MODE_RUN);
             $import
                 ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
                 ->setEndDate(new DateTime('now'));

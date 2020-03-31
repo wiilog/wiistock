@@ -10,16 +10,18 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
-                <p class="text-center">
-                    Confirmez-vous le lancement immédiat de cet import planifié ?
-                </p>
+                <p class="text-center">Confirmez-vous le lancement de cet import planifié ?</p>
+                <p class="text-center italic little-font">L'import sera effectué dans moins de 30min.</p>
             </div>
 
             <div class="error-msg pl-4 pb-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="importIdToLaunch" onclick="launchPlanifiedImport($(this))" data-id=""
-                        type="button" class="btn btn-success" data-dismiss="modal">Valider
+                <button id="importIdToLaunch"
+                        onclick="launchImport($(this).data('id'), true)"
+                        data-id=""
+                        type="button"
+                        class="btn btn-success" data-dismiss="modal">Valider
                 </button>
             </div>
         </div>

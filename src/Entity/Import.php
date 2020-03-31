@@ -121,6 +121,24 @@ class Import
     private $updatedEntries;
 
 	/**
+     * @var bool
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+    private $forced;
+
+	/**
+     * @var bool
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+    private $flash;
+
+	/**
+     * @var DateTime
+	 * @ORM\Column(type="datetime", nullable=false)
+	 */
+    private $createdAt;
+
+	/**
 	 * @ORM\Column(type="integer", nullable=true)
 	 */
     private $nbErrors;
@@ -152,7 +170,10 @@ class Import
     private $mouvements;
 
     public function __construct() {
+        $this->createdAt = new DateTime();
         $this->mouvements = new ArrayCollection();
+        $this->forced = false;
+        $this->flash = false;
     }
 
     public function getId(): ?int
@@ -341,6 +362,28 @@ class Import
         }
 
         return $this;
+    }
+
+    public function isForced(): bool {
+        return $this->forced;
+    }
+
+    public function setForced(bool $forced): self {
+        $this->forced = $forced;
+        return $this;
+    }
+
+    public function isFlash(): bool {
+        return $this->flash;
+    }
+
+    public function setFlash(bool $flash): self {
+        $this->flash = $flash;
+        return $this;
+    }
+
+    public function getCreateAt(): DateTime {
+        return $this->createdAt;
     }
 
 }

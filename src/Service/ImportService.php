@@ -39,7 +39,13 @@ use Twig\Error\SyntaxError;
 
 class ImportService
 {
-    public const MAX_LINES_FLASH_IMPORT = 500;
+    public const MAX_LINES_FLASH_IMPORT = 100;
+    public const MAX_LINES_AUTO_FORCED_IMPORT = 500;
+
+    public const IMPORT_MODE_RUN = 1; // réaliser l'import maintenant
+    public const IMPORT_MODE_FORCE_PLAN = 2; // réaliser l'import rapidement (dans le cron qui s'exécute toutes les 30min)
+    public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
+    public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
 
     /**
      * @var Twig_Environment
@@ -117,15 +123,18 @@ class ImportService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NonUniqueResultException
      */
     public function dataRowImport($import)
     {
-        $statutRepository = $this->em->getRepository(Statut::class);
-
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
         $status = $import->getStatus() ? $import->getStatus()->getNom() : '';
+
+        $importStatus = $import->getStatus();
+        $statusLabel = isset($importStatus) ? $importStatus->getLabel() : null;
+        $statusTitle = !empty($statusLabel)
+            ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
+            : '';
 
         return [
             'id' => $import->getId(),
@@ -135,13 +144,13 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => '<span class="status-' . $status . ' cursor-default" data-id="' . $importId . '">' . $status . '</span>',
+            'status' => '<span class="status-' . $status . ' cursor-default" data-id="' . $importId . '" title="' . $statusTitle . '">' . $status . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
                 'importId' => $importId,
                 'fournisseurId' => $importId,
-                'canCancel' => $import->getStatus() == $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED),
+                'canCancel' => ($statusLabel === Import::STATUS_PLANNED),
                 'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null
             ]),
         ];
@@ -179,15 +188,21 @@ class ImportService
 
     /**
      * @param Import $import
-     * @param bool $force
-     * @return bool
+     * @param int $mode IMPORT_MODE_RUN ou IMPORT_MODE_FORCE_PLAN ou IMPORT_MODE_PLAN
+     * @return int Used mode
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
+     * @throws Exception
      */
-    public function loadData(Import $import, $force = false): bool
+    public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
     {
         $csvFile = $import->getCsvFile();
+
+        // we check mode validity
+        if (!in_array($mode, [self::IMPORT_MODE_RUN, self::IMPORT_MODE_FORCE_PLAN, self::IMPORT_MODE_PLAN])) {
+            throw new Exception('Invalid import mode');
+        }
 
         $path = "../public/uploads/attachements/" . $csvFile->getFileName();
         $file = fopen($path, "r");
@@ -211,7 +226,7 @@ class ImportService
         $firstRows = [];
 
         while (($data = fgetcsv($file, 0, ';')) !== false
-               && $rowCount <= self::MAX_LINES_FLASH_IMPORT) {
+               && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
             $row = array_map('utf8_encode', $data);
 
             if (empty($headers)) {
@@ -227,16 +242,30 @@ class ImportService
         // le fichier fait moins de MAX_LINES_FLASH_IMPORT lignes
         $smallFile = ($rowCount <= self::MAX_LINES_FLASH_IMPORT);
 
-        // si + de 500 ligne && !force -> planification
-        if (!$smallFile && !$force) {
-            $importDone = false;
+        // si + de MAX_LINES_FLASH_IMPORT lignes
+        // ET que c'est pas un import planifié
+        if (!$smallFile
+            && ($mode !== self::IMPORT_MODE_RUN)) {
+            if (!$import->isFlash() && !$import->isForced()) {
+                $importForced = (
+                    ($rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT)
+                    || ($mode !== self::IMPORT_MODE_FORCE_PLAN)
+                );
+                $importModeChoosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
+                $import->setForced($importForced);
 
-            $statutRepository = $this->em->getRepository(Statut::class);
-            $statusPlanned = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED);
-            $import->setStatus($statusPlanned);
-            $this->em->flush();
+                $statutRepository = $this->em->getRepository(Statut::class);
+                $statusPlanned = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED);
+                $import->setStatus($statusPlanned);
+                $this->em->flush();
+            }
+            else {
+                $importModeChoosen = self::IMPORT_MODE_NONE;
+            }
         }
         else {
+            $importModeChoosen = self::IMPORT_MODE_RUN;
+            $import->setFlash(true);
             $importDone = true;
 
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
@@ -278,7 +307,7 @@ class ImportService
 
         fclose($file);
 
-        return $importDone;
+        return $importModeChoosen;
     }
 
     /**
