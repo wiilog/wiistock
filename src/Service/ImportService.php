@@ -933,18 +933,10 @@ class ImportService
                     $value = in_array($row[$col], ['Oui', 'oui', 1, '1']);
                     break;
                 case ChampLibre::TYPE_DATE:
+                    $value = $this->checkDate($row[$col], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $champLibre);
+                    break;
                 case ChampLibre::TYPE_DATETIME:
-                    try {
-                        $date = DateTime::createFromFormat('d/m/Y', $row[$col]);
-                        if(!$date){
-                            throw new Exception('Invalid format');
-                        }
-                        $value = $date->format('Y-m-d');
-                    } catch (Exception $ignored) {
-                        $message = 'La date du champ "' . $champLibre->getLabel() . '" n\'est pas au format jj/mm/AAAA.';
-                        $this->throwError($message);
-                        $value = null;
-                    };
+                    $value = $this->checkDate($row[$col], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $champLibre);
                     break;
                 default:
                     $value = $row[$col];
@@ -967,6 +959,21 @@ class ImportService
             $valeurCL->setValeur($value);
             $refOrArt->addValeurChampLibre($valeurCL);
         }
+    }
+
+    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, ChampLibre $champLibre) {
+        try {
+            $date = DateTime::createFromFormat($format, $dateString);
+            if(!$date){
+                throw new Exception('Invalid format');
+            }
+            $value = $date->format($outputFormat);
+        } catch (Exception $ignored) {
+            $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
+            $this->throwError($message);
+            $value = null;
+        }
+        return $value;
     }
 
     /**
