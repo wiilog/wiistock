@@ -982,15 +982,15 @@ class ReferenceArticleRepository extends EntityRepository
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em->createQuery(
-            /** @lang DQL */
-                "SELECT SUM(a.quantite)
-			FROM App\Entity\ReferenceArticle ra
-			JOIN ra.articlesFournisseur af
-			JOIN af.articles a
-			JOIN a.statut s
-			WHERE s.nom = :activeStatus
-			  AND ra = :refArt
-			")
+                    /** @lang DQL */
+                    "SELECT SUM(a.quantite)
+                    FROM App\Entity\ReferenceArticle ra
+                    JOIN ra.articlesFournisseur af
+                    JOIN af.articles a
+                    JOIN a.statut s
+                    WHERE s.nom = :activeStatus
+                      AND ra = :refArt
+                ")
                 ->setParameters([
                     'refArt' => $referenceArticle->getId(),
                     'activeStatus' => Article::STATUT_ACTIF

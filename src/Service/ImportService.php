@@ -201,7 +201,11 @@ class ImportService
         $headers = null;
         $logRows = [];
         $refToUpdate = [];
-        $stats = ['news' => 0, 'updates' => 0, 'errors' => 0];
+        $stats = [
+            'news' => 0,
+            'updates' => 0,
+            'errors' => 0
+        ];
 
         $rowCount = 0;
         $firstRows = [];
@@ -249,8 +253,7 @@ class ImportService
             }
 
             // mise à jour des quantités sur références par article
-            $uniqueRefToUpdate = array_unique($refToUpdate);
-            foreach ($uniqueRefToUpdate as $ref) {
+            foreach ($refToUpdate as $ref) {
                 $this->refArticleDataService->updateRefArticleQuantities($ref);
             }
 
@@ -262,10 +265,6 @@ class ImportService
 
             $statutRepository = $this->em->getRepository(Statut::class);
             $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
-
-            // we reset local entities because entitymanager could be closed
-            $import = $this->em->find(Import::class, $import->getId());
-            $statusFinished = $this->em->find(Statut::class, $statusFinished->getId());
 
             $import
                 ->setLogFile($pieceJointeForLogFile)
@@ -300,7 +299,6 @@ class ImportService
                                     $colChampsLibres,
                                     array &$refToUpdate,
                                     array &$stats): array {
-        $message = 'OK';
         try {
             $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, &$stats) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
@@ -316,9 +314,11 @@ class ImportService
                         $this->importReferenceEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
                         break;
                     case Import::ENTITY_ART:
-                        $refToUpdate[] = $this->importArticleEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
+                        $referenceArticle = $this->importArticleEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
+                        $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
                         break;
                 }
+                $message = 'OK';
             });
         }
         catch (Throwable $throwable) {
@@ -337,7 +337,7 @@ class ImportService
                 $logMessage = $throwable->getMessage();
                 $trace = $throwable->getTraceAsString();
                 $importId = $import->getId();
-                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file:$line | $trace");
+                $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file($line) | $trace");
             }
 
             $stats['errors']++;
@@ -508,10 +508,11 @@ class ImportService
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
         foreach ($logRows as $row) {
             if (!$wantsUFT8) {
-                $row =  array_map('utf8_decode', $row);
+                $row = array_map('utf8_decode', $row);
             }
             fputcsv($logCsvFilePathOpened, $row, ';');
         }
+
         fclose($logCsvFilePathOpened);
         return $fileName;
     }
@@ -568,7 +569,6 @@ class ImportService
      * @param array $data
      * @param array $stats
      * @throws ImportException
-     * @throws NonUniqueResultException
      */
     private function importFournisseurEntity(array $data, array &$stats): void
     {
@@ -579,7 +579,7 @@ class ImportService
         }
 
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-        $fournisseur = $fournisseurRepository->findOneByCodeReference($data['codeReference']);
+        $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['codeReference']]);
 
         if (empty($fournisseur)) {
             $fournisseur = new Fournisseur();
@@ -625,7 +625,7 @@ class ImportService
 
         if (!empty($data['referenceReference'])) {
             $refArticleRepository = $this->em->getRepository(ReferenceArticle::class);
-            $refArticle = $refArticleRepository->findOneByReference($data['referenceReference']);
+            $refArticle = $refArticleRepository->findOneBy(['reference' => $data['referenceReference']]);
         }
 
         if (empty($refArticle)) {
@@ -635,7 +635,7 @@ class ImportService
         }
 
         if (!empty($data['fournisseurReference'])) {
-            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($data['fournisseurReference']);
+            $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneBy(['codeReference' => $data['fournisseurReference']]);
         }
 
         if (empty($fournisseur)) {
@@ -659,6 +659,7 @@ class ImportService
     }
 
     /**
+     * @param Import $import
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
@@ -674,7 +675,7 @@ class ImportService
     {
         $isNewEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
-        $refArt = $refArtRepository->findOneByReference($data['reference']);
+        $refArt = $refArtRepository->findOneBy(['reference' => $data['reference']]);
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
@@ -831,7 +832,7 @@ class ImportService
         $refArticle = null;
         if (!empty($data['referenceReference'])) {
             $refArticleRepository = $this->em->getRepository(ReferenceArticle::class);
-            $refArticle = $refArticleRepository->findOneByReference($data['referenceReference']);
+            $refArticle = $refArticleRepository->findOneBy(['reference' => $data['referenceReference']]);
             if (empty($refArticle)) {
                 $message = "La valeur renseignée pour la référence de l'article de référence ne correspond à aucune référence connue.";
                 $this->throwError($message);
@@ -840,7 +841,7 @@ class ImportService
         $isNewEntity = false;
         if (!empty($data['reference'])) {
             $articleRepository = $this->em->getRepository(Article::class);
-            $article = $articleRepository->findOneByReference($data['reference']);
+            $article = $articleRepository->findOneBy(['reference' => $data['referenceReference']]);
             if (!$article) {
                 $this->throwError('La référence donnée est invalide.');
             }
@@ -951,15 +952,21 @@ class ImportService
             }
 
             $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
-            if ($refOrArt instanceof ReferenceArticle && !$isNewEntity) {
-                $valeurCL = $valeurCLRepository->findOneByRefArticleAndChampLibre($refOrArt->getId(), $champLibre);
-            } else if ($refOrArt instanceof  Article && !$isNewEntity) {
-                $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt->getId(), $champLibre);
-            } else {
-                $valeurCL = null;
+            if (!$isNewEntity) {
+                if ($refOrArt instanceof ReferenceArticle) {
+                    $valeurCL = $valeurCLRepository->findOneBy([
+                        'article' => $refOrArt,
+                        'champLibre' => $champLibre
+                    ]);
+                } else if ($refOrArt instanceof  Article && !$isNewEntity) {
+                    $valeurCL = $valeurCLRepository->findOneBy([
+                        'articleReference' => $refOrArt,
+                        'champLibre' => $champLibre
+                    ]);
+                }
             }
 
-            if (empty($valeurCL)) {
+            if (!isset($valeurCL)) {
                 $valeurCL = new ValeurChampLibre();
                 $valeurCL->setChampLibre($champLibre);
                 $this->em->persist($valeurCL);
@@ -996,11 +1003,10 @@ class ImportService
     /**
      * @param string $ref
      * @return Fournisseur
-     * @throws NonUniqueResultException
      */
     private function checkAndCreateProvider($ref) {
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
-        $provider = $fournisseurRepository->findOneByCodeReference($ref);
+        $provider = $fournisseurRepository->findOneBy(['codeReference' => $ref]);
 
         if (empty($provider)) {
             $provider = new Fournisseur();
@@ -1032,7 +1038,7 @@ class ImportService
         }
         else {
             $emplacementRepository = $this->em->getRepository(Emplacement::class);
-            $location = $emplacementRepository->findOneByLabel($data['emplacement']);
+            $location = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
             if (empty($location)) {
                 $location = new Emplacement();
                 $location
@@ -1087,7 +1093,7 @@ class ImportService
                 // on a réussi à trouver un article fournisseur
                 // vérif que l'article fournisseur correspond au couple référence article / fournisseur
                 if (!empty($fournisseurReference)) {
-                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneByCodeReference($fournisseurReference);
+                    $fournisseur = $this->em->getRepository(Fournisseur::class)->findOneBy(['codeReference' => $fournisseurReference]);
 
                     if (!empty($fournisseur)) {
                         if ($articleFournisseur->getFournisseur()->getId() !== $fournisseur->getId()) {

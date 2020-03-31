@@ -283,7 +283,8 @@ class ImportController extends AbstractController
      * @throws NoResultException
      * @throws ORMException
      */
-	public function launchImport(Request $request, ImportService $importService)
+	public function launchImport(Request $request,
+                                 ImportService $importService)
 	{
 		$importId = $request->request->get('importId');
 		$force = $request->request->get('force') ?? 0;
@@ -293,10 +294,11 @@ class ImportController extends AbstractController
         if ($import) {
             $success = true;
             $isLaunched = $importService->loadData($import, $force);
-            $msg = $isLaunched ?
-                'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.' :
-                'Votre import contient plus de ' . ImportService::MAX_LINES_FLASH_IMPORT . ' lignes. Il sera effectué cette nuit.';
-        } else {
+            $msg = $isLaunched
+                ? 'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.'
+                : ('Votre import contient plus de ' . ImportService::MAX_LINES_FLASH_IMPORT . ' lignes. Il sera effectué cette nuit.');
+        }
+        else {
             $success = false;
             $msg = 'Une erreur est survenue lors de l\'import. Veuillez le renouveler.';
         }
