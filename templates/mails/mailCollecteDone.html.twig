@@ -2,19 +2,20 @@
 
 {% block content %}
 
-Numéro : {{ demande.numero }}<br>
-Date de demande : {{ demande.date|date('d/m/Y') }}<br>
-Demandeur : {{ demande.demandeur.username }}<br>
-Point de collecte : {{ demande.pointCollecte.label }}<br>
-{% if (demande.commentaire is not empty and demande.commentaire != '<p><br></p>') %}
-    Commentaire : {{ demande.commentaire|raw }}<br>
-{% endif %}
-<br>
-<br>
-Liste des articles :<br>
-<br>
-<table class="table">
-    <thead>
+    Numéro : {{ demande.numero }}<br>
+    Date de demande : {{ demande.date|date('d/m/Y') }}<br>
+    Demandeur : {{ demande.demandeur.username }}<br>
+    Point de collecte : {{ demande.pointCollecte.label }}<br>
+    {% if (demande.commentaire is not empty and demande.commentaire != '<p><br></p>') %}
+        Commentaire : {{ demande.commentaire|raw }}<br>
+    {% endif %}
+    <br>
+    <br>
+    Liste des articles :<br>
+    <br>
+
+    <table class="table">
+        <thead>
         <tr>
             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
                 <th class="th">Référence CEA</th>
@@ -24,23 +25,23 @@ Liste des articles :<br>
             <th class="th">Libellé</th>
             <th class="th">Quantité</th>
         </tr>
-    </thead>
-    <tbody>
-    {% for article in collecte.articles %}
-        <tr>
-            <td class="td">{{ article.articleFournisseur.referenceArticle.reference }}</td>
-            <td class="td">{{ article.articleFournisseur.referenceArticle.libelle }}</td>
-            <td class="td">{{ article.quantite }}</td>
-        </tr>
-    {% endfor %}
-    {% for collecteRef in collecte.ordreCollecteReferences %}
-        <tr>
-            <td class="td">{{ collecteRef.referenceArticle.reference }}</td>
-            <td class="td">{{ collecteRef.referenceArticle.libelle }}</td>
-            <td class="td">{{ collecteRef.quantite }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+        {% for article in collecte.articles %}
+            <tr>
+                <td class="td">{{ article.articleFournisseur.referenceArticle.reference }}</td>
+                <td class="td">{{ article.articleFournisseur.referenceArticle.libelle }}</td>
+                <td class="td">{{ article.quantite }}</td>
+            </tr>
+        {% endfor %}
+        {% for collecteRef in collecte.ordreCollecteReferences %}
+            <tr>
+                <td class="td">{{ collecteRef.referenceArticle.reference }}</td>
+                <td class="td">{{ collecteRef.referenceArticle.libelle }}</td>
+                <td class="td">{{ collecteRef.quantite }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}
