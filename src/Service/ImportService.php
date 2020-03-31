@@ -993,17 +993,17 @@ class ImportService
      * @return string
      * @throws ImportException
      */
-    private function checkList(string $element, ChampLibre $champLibre, bool $isMultiple) : string {
+    private function checkList(string $element, ChampLibre $champLibre, bool $isMultiple): string
+    {
         $correctElements = [];
         $elements = $isMultiple ? explode(";", $element) : [$element];
         foreach ($elements as $listElement) {
             if (in_array($listElement, $champLibre->getElements())) {
                 $correctElements[] = $listElement;
+            } else {
+                $this->throwError('La ou les valeures fournies pour le champ "' . $champLibre->getLabel() . '" doit faire partie des valeures du champ libre ('
+                    . implode(",", $champLibre->getElements()) . ').');
             }
-        }
-        if (empty($correctElements)) {
-            $this->throwError('La ou les valeures fournies pour le champ "' . $champLibre->getLabel() . '" doit faire partie des valeures du champ libre ('
-            . implode(",", $champLibre->getElements()) . ').');
         }
         return implode(";", $correctElements);
     }
