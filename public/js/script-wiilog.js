@@ -1447,6 +1447,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
 function initTooltips($elements) {
     $elements.each(function () {
+        $(this).tooltip('dispose');
         $(this).tooltip();
     });
 }

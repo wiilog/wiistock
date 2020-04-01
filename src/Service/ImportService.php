@@ -132,7 +132,7 @@ class ImportService
             ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
             : '';
 
-        $statusClass = "status-$importStatus cursor-default";
+        $statusClass = "user-select-none status-$importStatus cursor-default";
         if (!empty($statusTitle)) {
             $statusClass .= ' has-tooltip';
         }
