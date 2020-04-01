@@ -250,7 +250,7 @@ class ImportService
             if (!$import->isFlash() && !$import->isForced()) {
                 $importForced = (
                     ($rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT)
-                    || ($mode !== self::IMPORT_MODE_FORCE_PLAN)
+                    || ($mode === self::IMPORT_MODE_FORCE_PLAN)
                 );
                 $importModeChoosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
                 $import->setForced($importForced);
