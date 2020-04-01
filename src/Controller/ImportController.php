@@ -263,7 +263,7 @@ class ImportController extends AbstractController
 	{
 		$importId = $request->request->get('importId');
 		$force = $request->request->getBoolean('force');
-
+		dump($request->request);
         $import = $entityManager->getRepository(Import::class)->find($importId);
 
         if ($import) {

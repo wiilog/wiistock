@@ -86,7 +86,7 @@ function displayConfirmationModal(importId, data) {
     $submitNewImport.off();
 
     $submitNewImport.click(() => {
-        launchImport();
+        launchImport(importId);
     });
 }
 
@@ -153,10 +153,10 @@ function initDoubleClick(elem) {
 
 function launchImport(importId, force = false) {
     if (importId) {
-        const params = JSON.stringify({
+        const params = {
             importId,
             force: Number(Boolean(force))
-        });
+        };
         $.post(Routing.generate('import_launch'), params, (resp) => {
             if (!force) {
                 $modalNewImport.modal('hide');
