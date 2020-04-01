@@ -131,7 +131,7 @@ class ImportService
         $status = $import->getStatus() ? $import->getStatus()->getNom() : '';
 
         $importStatus = $import->getStatus();
-        $statusLabel = isset($importStatus) ? $importStatus->getLabel() : null;
+        $statusLabel = isset($importStatus) ? $importStatus->getNom() : null;
         $statusTitle = !empty($statusLabel)
             ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
             : '';
