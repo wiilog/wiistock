@@ -62,15 +62,19 @@ class ImportCommand extends Command
         // si on est au alentours de minuit => on commence tous les imports sinon uniquement ceux qui sont forcés
         $runOnlyForced = ($nowHours !== 0 || $nowMinutes >= 30);
 
+        $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
+
         foreach ($importsToExecute as $import) {
             if (!$runOnlyForced
                 || $import->isForced()) {
                 $this->importService->treatImport($import, ImportService::IMPORT_MODE_RUN);
                 $import
-                    ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
+                    ->setStatus($statusFinished)
                     ->setEndDate(new DateTime('now'));
             }
         }
+
+        $this->em->flush();
 
         // nettoyage des éventuels imports en brouillon
         $drafts = $importRepository->findByStatusLabel(Import::STATUS_DRAFT);
