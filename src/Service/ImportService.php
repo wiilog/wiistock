@@ -128,13 +128,17 @@ class ImportService
     {
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
-        $status = $import->getStatus() ? $import->getStatus()->getNom() : '';
 
         $importStatus = $import->getStatus();
-        $statusLabel = isset($importStatus) ? $importStatus->getLabel() : null;
-        $statusTitle = !empty($statusLabel)
+        $statusLabel = isset($importStatus) ? $importStatus->getNom() : null;
+        $statusTitle = (!empty($statusLabel) && ($statusLabel === Import::STATUS_PLANNED))
             ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
             : '';
+
+        $statusClass = "status-$importStatus cursor-default";
+        if (!empty($statusTitle)) {
+            $statusClass .= ' has-tooltip';
+        }
 
         return [
             'id' => $import->getId(),
@@ -144,7 +148,7 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => '<span class="status-' . $status . ' cursor-default" data-id="' . $importId . '" title="' . $statusTitle . '">' . $status . '</span>',
+            'status' => '<span class="' . $statusClass . '" data-id="' . $importId . '" title="' . $statusTitle . '">' . $statusLabel . '</span>',
             'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
             'actions' => $this->templating->render('import/datatableImportRow.html.twig', [
                 'url' => $url,
