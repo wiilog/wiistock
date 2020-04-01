@@ -903,7 +903,11 @@ class ImportService
         $missingCL = [];
 
         $categoryCL = $refOrArt instanceof ReferenceArticle ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
-        $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($refOrArt->getType(), $categoryCL, $isNewEntity);
+        if ($refOrArt->getType() && $refOrArt->getType()->getId()) {
+            $mandatoryCLs = $champLibreRepository->getMandatoryByTypeAndCategorieCLLabel($refOrArt->getType(), $categoryCL, $isNewEntity);
+        } else {
+            $mandatoryCLs = [];
+        }
         $champsLibresId = array_keys($colChampsLibres);
         foreach ($mandatoryCLs as $cl) {
             if (!in_array($cl->getId(), $champsLibresId)) {
