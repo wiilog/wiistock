@@ -232,7 +232,7 @@ class ImportService
 
             if (empty($headers)) {
                 $headers = $row;
-                $logRows[] = array_merge($headers, ['Import']);
+                $logRows[] = array_merge($headers, ['Statut import']);
             }
             else {
                 $firstRows[] = $row;
@@ -350,8 +350,8 @@ class ImportService
                         $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
                         break;
                 }
-                $message = 'OK';
             });
+            $message = 'OK';
         }
         catch (Throwable $throwable) {
             // On réinitialise l'entity manager car il a été fermé
