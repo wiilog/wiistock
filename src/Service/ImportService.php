@@ -1001,22 +1001,15 @@ class ImportService
                     $value = $row[$col];
                     break;
             }
-
             $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
+            $valeurCL = null;
             if (!$isNewEntity) {
                 if ($refOrArt instanceof ReferenceArticle) {
-                    $valeurCL = $valeurCLRepository->findOneBy([
-                        'article' => $refOrArt,
-                        'champLibre' => $champLibre
-                    ]);
-                } else if ($refOrArt instanceof Article && !$isNewEntity) {
-                    $valeurCL = $valeurCLRepository->findOneBy([
-                        'articleReference' => $refOrArt,
-                        'champLibre' => $champLibre
-                    ]);
+                    $valeurCL = $valeurCLRepository->findOneByRefArticleAndChampLibre($refOrArt->getId(), $champLibre);
+                } else if ($refOrArt instanceof Article) {
+                    $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt->getId(), $champLibre);
                 }
             }
-
             if (!isset($valeurCL)) {
                 $valeurCL = new ValeurChampLibre();
                 $valeurCL->setChampLibre($champLibre);
