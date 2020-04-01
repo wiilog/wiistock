@@ -970,20 +970,22 @@ class ImportService
      * @return string
      * @throws ImportException
      */
-    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, ChampLibre $champLibre): string
+    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, ChampLibre $champLibre): ?string
     {
-        try {
-            $date = DateTime::createFromFormat($format, $dateString);
-            if (!$date) {
-                throw new Exception('Invalid format');
+        $response = null;
+        if ($dateString !== "") {
+            try {
+                $date = DateTime::createFromFormat($format, $dateString);
+                if (!$date) {
+                    throw new Exception('Invalid format');
+                }
+                $response = $date->format($outputFormat);
+            } catch (Exception $ignored) {
+                $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
+                $this->throwError($message);
             }
-            $value = $date->format($outputFormat);
-        } catch (Exception $ignored) {
-            $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
-            $this->throwError($message);
-            $value = null;
         }
-        return $value;
+        return $response;
     }
 
     /**
