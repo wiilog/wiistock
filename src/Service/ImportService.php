@@ -266,7 +266,9 @@ class ImportService
         }
         else {
             $importModeChoosen = self::IMPORT_MODE_RUN;
-            $import->setFlash(true);
+            if ($smallFile) {
+                $import->setFlash(true);
+            }
 
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
