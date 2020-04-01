@@ -34,40 +34,34 @@ class MouvementStockService
      */
     private $router;
 
-	/**
-	 * @var UserService
-	 */
-    private $userService;
-
-    private $security;
-
     private $entityManager;
 
-    public function __construct(UserService $userService,
-                                RouterInterface $router,
+    public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                Security $security)
+                                Twig_Environment $templating)
     {
 
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->userService = $userService;
-        $this->security = $security;
     }
 
-	/**
-	 * @param array|null $params
-	 * @return array
-	 * @throws \Exception
-	 */
-    public function getDataForDatatable($params = null)
+    /**
+     * @param Utilisateur $utilisateur
+     * @param array|null $params
+     * @return array
+     * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getDataForDatatable(Utilisateur $utilisateur, $params = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $mouvementStockRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $this->security->getUser());
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $utilisateur);
 
 		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters);
 

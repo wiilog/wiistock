@@ -323,7 +323,10 @@ class ReferenceArticleController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
+
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
+            $data = $this->refArticleDataService->getRefArticleDataByParams($user, $request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

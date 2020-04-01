@@ -13,6 +13,7 @@ use App\Entity\Import;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;
@@ -30,6 +31,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Zend\Code\Scanner\Util;
 
 /**
  * @Route("/import")
@@ -74,7 +76,9 @@ class ImportController extends AbstractController
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
             return $this->redirectToRoute('access_denied');
         }
-        $data = $importDataService->getDataForDatatable($request->request, $this->getUser());
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = $importDataService->getDataForDatatable($user, $request->request);
 
         return new JsonResponse($data);
     }

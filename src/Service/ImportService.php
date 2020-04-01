@@ -93,7 +93,7 @@ class ImportService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getDataForDatatable($params = null, Utilisateur $user)
+    public function getDataForDatatable(Utilisateur $user, $params = null)
     {
         $importRepository = $this->em->getRepository(Import::class);
         $filtreSupRepository = $this->em->getRepository(FiltreSup::class);
@@ -206,7 +206,7 @@ class ImportService
             throw new Exception('Invalid import mode');
         }
 
-        $path = "../public/uploads/attachements/" . $csvFile->getFileName();
+        $path = $this->attachmentService->getServerPath($csvFile);
         $file = fopen($path, "r");
 
         $columnsToFields = $import->getColumnToField();
@@ -532,21 +532,16 @@ class ImportService
     private function buildLogFile(array $logRows)
     {
         $fileName = uniqid() . '.csv';
-        $logCsvFilePath = "../public/uploads/attachements/" . $fileName;
-
-        $logCsvFilePathOpened = fopen($logCsvFilePath, 'w');
 
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
 
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
-        foreach ($logRows as $row) {
-            if (!$wantsUFT8) {
-                $row = array_map('utf8_decode', $row);
-            }
-            fputcsv($logCsvFilePathOpened, $row, ';');
-        }
 
-        fclose($logCsvFilePathOpened);
+        $this->attachmentService->saveCSVFile($fileName, $logRows, function ($row) use ($wantsUFT8) {
+            return !$wantsUFT8
+                ? array_map('utf8_decode', $row)
+                : $row;
+        });
         return $fileName;
     }
 
