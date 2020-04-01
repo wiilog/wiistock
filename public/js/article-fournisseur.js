@@ -26,14 +26,42 @@ let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
 let modalNewArticleFournisseur = $("#modalNewArticleFournisseur");
 let submitNewArticleFournisseur = $("#submitNewArticleFournisseur");
 let urlNewArticleFournisseur = Routing.generate('article_fournisseur_new', true);
-InitialiserModal(modalNewArticleFournisseur, submitNewArticleFournisseur, urlNewArticleFournisseur, tableArticleFournisseur);
+InitialiserModal(modalNewArticleFournisseur, submitNewArticleFournisseur, urlNewArticleFournisseur, tableArticleFournisseur, handleArticleFournisseurSucces, false, false);
 
 let modalDeleteArticleFournisseur = $("#modalDeleteArticleFournisseur");
 let submitDeleteArticleFournisseur = $("#submitDeleteArticleFournisseur");
-let urlDeleteArticleFournisseur = Routing.generate('article_fournisseur_delete', true)
+let urlDeleteArticleFournisseur = Routing.generate('article_fournisseur_delete', true);
 InitialiserModal(modalDeleteArticleFournisseur, submitDeleteArticleFournisseur, urlDeleteArticleFournisseur, tableArticleFournisseur);
 
 let modalEditArticleFournisseur = $('#modalEditArticleFournisseur');
 let submitEditArticleFournisseur = $('#submitEditArticleFournisseur');
 let urlEditArticleFournisseur = Routing.generate('article_fournisseur_edit', true);
-InitialiserModal(modalEditArticleFournisseur, submitEditArticleFournisseur, urlEditArticleFournisseur, tableArticleFournisseur);
+InitialiserModal(modalEditArticleFournisseur, submitEditArticleFournisseur, urlEditArticleFournisseur, tableArticleFournisseur, handleEditArticleFournisseurSucces, false, false);
+
+function handleArticleFournisseurSucces(data) {
+
+    if (data.success){
+        console.log(data);
+        modalNewArticleFournisseur.modal('hide');
+        clearModal(modalNewArticleFournisseur);
+    }
+    else {
+        modalNewArticleFournisseur.find('.error-msg').text(data.message);
+        console.log(data);
+    }
+
+}
+
+function handleEditArticleFournisseurSucces(data) {
+
+    if (data.success){
+        console.log(data);
+        modalEditArticleFournisseur.modal('hide');
+        clearModal(modalNewArticleFournisseur);
+    }
+    else {
+        modalEditArticleFournisseur.find('.error-msg').text(data.message);
+        console.log(data);
+    }
+
+}

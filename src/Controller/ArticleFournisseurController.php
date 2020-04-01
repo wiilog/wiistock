@@ -50,7 +50,8 @@ class ArticleFournisseurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function api(Request $request, EntityManagerInterface $entityManager): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI_FOUR)) {
@@ -80,7 +81,8 @@ class ArticleFournisseurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
@@ -93,15 +95,27 @@ class ArticleFournisseurController extends AbstractController
             $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
             $referenceArticle = $referenceArticleRepository->find(intval($data['article-reference']));
 
-            $articleFournisseur = new ArticleFournisseur();
-            $articleFournisseur
-                ->setFournisseur($fournisseur)
-                ->setReference($data['reference'])
-                ->setReferenceArticle($referenceArticle);
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+//            $count = $articleFournisseurRepository->countByReferenceAndReferenceArticle($data['reference'],$data['article-reference']);
+            $already = $articleFournisseurRepository->findByReferenceArticleFournisseur($data['reference']);
+            $dataResponse = [];
+            if (empty($already)){
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setFournisseur($fournisseur)
+                    ->setReference($data['reference'])
+                    ->setReferenceArticle($referenceArticle);
 
-            $entityManager->persist($articleFournisseur);
-            $entityManager->flush();
-            return new JsonResponse($data);
+                $entityManager->persist($articleFournisseur);
+                $entityManager->flush();
+
+                $dataResponse['success'] = true;
+            }
+            else {
+                $dataResponse['success'] = false;
+                $dataResponse['message'] = "La référence est déja utilisée";
+            }
+            return new JsonResponse($dataResponse);
         }
 
         throw new NotFoundHttpException("404");
@@ -113,7 +127,8 @@ class ArticleFournisseurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function displayEdit(Request $request, EntityManagerInterface $entityManager): Response
+    public function displayEdit(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -136,7 +151,8 @@ class ArticleFournisseurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -156,9 +172,20 @@ class ArticleFournisseurController extends AbstractController
                 ->setReference($data['reference'])
                 ->setReferenceArticle($referenceArticle);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-            return new JsonResponse();
+            $already = $articleFournisseurRepository->findByReferenceArticleFournisseur($data['reference']);
+//          $count = $articleFournisseurRepository->countByReference($data['reference']);
+            $dataResponse = [];
+
+            if (empty($already) || $already[0] === $articleFournisseur ) {
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+                $dataResponse['success'] = true;
+            } else {
+                $dataResponse['success'] = false;
+                $dataResponse['message'] = "La reference est déja utilisée";
+            }
+
+            return new JsonResponse($dataResponse);
         }
         throw new NotFoundHttpException("404");
     }
@@ -169,7 +196,8 @@ class ArticleFournisseurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
@@ -192,7 +220,8 @@ class ArticleFournisseurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function deleteVerif(Request $request, EntityManagerInterface $entityManager): Response
+    public function deleteVerif(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
