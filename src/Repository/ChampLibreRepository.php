@@ -177,9 +177,10 @@ class ChampLibreRepository extends EntityRepository
 	{
 		$qb = $this->createQueryBuilder('c')
             ->join('c.categorieCL', 'ccl')
-            ->where('c.type = :type AND ccl.label = :categorieCLLabel')
+            ->join('c.type', 't')
+            ->where('t.id = :type AND ccl.label = :categorieCLLabel')
             ->setParameters([
-                    'type' => $type,
+                    'type' => $type->getId(),
                     'categorieCLLabel' => $categorieCLLabel,
             ]);
 
