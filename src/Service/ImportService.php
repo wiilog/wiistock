@@ -78,6 +78,7 @@ class ImportService
 
         $this->templating = $templating;
         $this->em = $em;
+        $this->em->getConnection()->getConfiguration()->setSQLLogger(null);
         $this->router = $router;
         $this->articleDataService = $articleDataService;
         $this->refArticleDataService = $refArticleDataService;
@@ -276,15 +277,28 @@ class ImportService
                 $this->currentImport->setFlash(true);
             }
 
-            // les premières lignes <= MAX_LINES_FLASH_IMPORT
+            // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
             foreach ($firstRows as $row) {
-                $logRows[] = $this->treatImportRow($row, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
+                $logRows[] = $this->treatImportRow($row, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats, false);
             }
-
+            $triggerForClear = 0;
+            $this->clearEntityManagerAndRetrieveImport();
             if (!$smallFile) {
                 // on fait la suite du fichier
                 while (($row = fgetcsv($file, 0, ';')) !== false) {
-                    $logRows[] = $this->treatImportRow($row, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
+                    $logRows[] = $this->treatImportRow(
+                        $row,
+                        $headers,
+                        $dataToCheck,
+                        $colChampsLibres,
+                        $refToUpdate,
+                        $stats,
+                        $triggerForClear === 500);
+                    if ($triggerForClear === 500) {
+                        $triggerForClear = 0;
+                    } else {
+                        $triggerForClear++;
+                    }
                 }
             }
 
@@ -324,6 +338,7 @@ class ImportService
      * @param $colChampsLibres
      * @param array $refToUpdate
      * @param array $stats
+     * @param bool $needsUnitClear
      * @return array
      * @throws ORMException
      */
@@ -332,7 +347,8 @@ class ImportService
                                     $dataToCheck,
                                     $colChampsLibres,
                                     array &$refToUpdate,
-                                    array &$stats): array {
+                                    array &$stats,
+                                    bool $needsUnitClear): array {
         try {
             $this->em->transactional(function () use ($dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, &$stats) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
@@ -353,12 +369,16 @@ class ImportService
                         break;
                 }
             });
+            if ($needsUnitClear) {
+                $this->clearEntityManagerAndRetrieveImport();
+            }
             $message = 'OK';
         }
         catch (Throwable $throwable) {
             // On réinitialise l'entity manager car il a été fermé
             if (!$this->em->isOpen()) {
                 $this->em = EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
+                $this->em->getConnection()->getConfiguration()->setSQLLogger(null);
                 $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
             }
 
@@ -1076,7 +1096,7 @@ class ImportService
             $emplacement = $refOrArt->getEmplacement();
             $mvtStock = $this->mouvementStockService->createMouvementStock($this->currentImport->getUser(), $emplacement, abs($diffQuantity), $refOrArt, $typeMvt);
             $this->mouvementStockService->finishMouvementStock($mvtStock, new DateTime('now'), $emplacement);
-            $this->currentImport->addMouvement($mvtStock);
+            $mvtStock->setImport($this->currentImport);
             $this->em->persist($mvtStock);
         }
     }
@@ -1224,5 +1244,10 @@ class ImportService
         } else {
             $stats['updates']++;
         }
+    }
+
+    private function clearEntityManagerAndRetrieveImport() {
+        $this->em->clear();
+        $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
     }
 }
