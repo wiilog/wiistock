@@ -19,6 +19,7 @@ use App\Entity\PieceJointe;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
 use Doctrine\ORM\EntityManager;
@@ -36,6 +37,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Zend\Code\Scanner\Util;
 
 class ImportService
 {
@@ -58,7 +60,6 @@ class ImportService
     private $router;
 
     private $em;
-    private $user;
     private $articleDataService;
     private $refArticleDataService;
     private $mouvementStockService;
@@ -70,13 +71,11 @@ class ImportService
                                 AttachmentService $attachmentService,
                                 EntityManagerInterface $em,
                                 Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage,
                                 ArticleDataService $articleDataService,
                                 RefArticleDataService $refArticleDataService,
                                 MouvementStockService $mouvementStockService) {
 
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
         $this->router = $router;
         $this->articleDataService = $articleDataService;
@@ -88,18 +87,18 @@ class ImportService
 
     /**
      * @param null $params
+     * @param Utilisateur $user
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NonUniqueResultException
      */
-    public function getDataForDatatable($params = null)
+    public function getDataForDatatable($params = null, Utilisateur $user)
     {
         $importRepository = $this->em->getRepository(Import::class);
         $filtreSupRepository = $this->em->getRepository(FiltreSup::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_IMPORT, $this->user);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_IMPORT, $user);
 
         $queryResult = $importRepository->findByParamsAndFilters($params, $filters);
 
@@ -193,12 +192,11 @@ class ImportService
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
-     * @throws Exception
      */
     public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
     {
         $csvFile = $import->getCsvFile();
-
+        $user = $import->getUser();
         // we check mode validity
         if (!in_array($mode, [self::IMPORT_MODE_RUN, self::IMPORT_MODE_FORCE_PLAN, self::IMPORT_MODE_PLAN])) {
             throw new Exception('Invalid import mode');
@@ -271,13 +269,13 @@ class ImportService
 
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
-                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
+                $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats, $user);
             }
 
             if (!$smallFile) {
                 // on fait la suite du fichier
                 while (($row = fgetcsv($file, 0, ';')) !== false) {
-                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
+                    $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats, $user);
                 }
             }
 
@@ -316,6 +314,7 @@ class ImportService
      * @param array $headers
      * @param $dataToCheck
      * @param $colChampsLibres
+     * @param Utilisateur $user
      * @param array $refToUpdate
      * @param array $stats
      * @return array
@@ -327,9 +326,10 @@ class ImportService
                                     $dataToCheck,
                                     $colChampsLibres,
                                     array &$refToUpdate,
-                                    array &$stats): array {
+                                    array &$stats,
+                                    Utilisateur $user): array {
         try {
-            $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, &$stats) {
+            $this->em->transactional(function () use ($import, $dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, &$stats, $user) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
 
                 switch ($import->getEntity()) {
@@ -340,10 +340,10 @@ class ImportService
                         $this->importArticleFournisseurEntity($verifiedData, $stats);
                         break;
                     case Import::ENTITY_REF:
-                        $this->importReferenceEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
+                        $this->importReferenceEntity($import, $verifiedData, $colChampsLibres, $row, $stats, $user);
                         break;
                     case Import::ENTITY_ART:
-                        $referenceArticle = $this->importArticleEntity($import, $verifiedData, $colChampsLibres, $row, $stats);
+                        $referenceArticle = $this->importArticleEntity($import, $verifiedData, $colChampsLibres, $row, $stats, $user);
                         $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
                         break;
                 }
@@ -692,6 +692,7 @@ class ImportService
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param Utilisateur $user
      * @param array $stats
      * @throws ImportException
      * @throws NonUniqueResultException
@@ -700,7 +701,8 @@ class ImportService
                                            array $data,
                                            array $colChampsLibres,
                                            array $row,
-                                           array &$stats)
+                                           array &$stats,
+                                           Utilisateur $user)
     {
         $isNewEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
@@ -830,7 +832,7 @@ class ImportService
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee() . ').';
                     $this->throwError($message);
                 }
-                $this->checkAndCreateMvtStock($import, $refArt, $refArt->getQuantiteStock(), $data['quantiteStock'], $isNewEntity);
+                $this->checkAndCreateMvtStock($import, $refArt, $refArt->getQuantiteStock(), $data['quantiteStock'], $isNewEntity, $user);
                 $refArt->setQuantiteStock($data['quantiteStock']);
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
@@ -847,6 +849,7 @@ class ImportService
      * @param array $data
      * @param array $colChampsLibres
      * @param array $row
+     * @param Utilisateur $user
      * @param array $stats
      * @return ReferenceArticle
      * @throws ImportException
@@ -856,6 +859,7 @@ class ImportService
                                          array $data,
                                          array $colChampsLibres,
                                          array $row,
+                                         Utilisateur $user,
                                          array &$stats): ReferenceArticle
     {
         $refArticle = null;
@@ -887,7 +891,7 @@ class ImportService
             if (!is_numeric($data['quantite'])) {
                 $this->throwError('La quantité doit être un nombre.');
             }
-            $this->checkAndCreateMvtStock($import, $article, $article->getQuantite(), $data['quantite'], $isNewEntity);
+            $this->checkAndCreateMvtStock($import, $article, $article->getQuantite(), $data['quantite'], $isNewEntity, $user);
             $article->setQuantite($data['quantite']);
         }
 
@@ -1061,9 +1065,10 @@ class ImportService
      * @param int $formerQuantity
      * @param int $newQuantity
      * @param bool $isNewEntity
+     * @param Utilisateur $user
      * @throws Exception
      */
-    private function checkAndCreateMvtStock(Import $import, $refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
+    private function checkAndCreateMvtStock(Import $import, $refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity, Utilisateur $user)
     {
         $diffQuantity = $isNewEntity ? $newQuantity : ($newQuantity - $formerQuantity);
 
@@ -1072,7 +1077,7 @@ class ImportService
             $typeMvt = $diffQuantity > 0 ? $mvtIn : MouvementStock::TYPE_INVENTAIRE_SORTIE;
 
             $emplacement = $refOrArt->getEmplacement();
-            $mvtStock = $this->mouvementStockService->createMouvementStock($this->user, $emplacement, abs($diffQuantity), $refOrArt, $typeMvt);
+            $mvtStock = $this->mouvementStockService->createMouvementStock($user, $emplacement, abs($diffQuantity), $refOrArt, $typeMvt);
             $this->mouvementStockService->finishMouvementStock($mvtStock, new DateTime('now'), $emplacement);
             $import->addMouvement($mvtStock);
             $this->em->persist($mvtStock);

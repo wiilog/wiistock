@@ -123,7 +123,8 @@ class ImportRepository extends EntityRepository
             ->select('i')
             ->from('App:Import', 'i')
             ->leftJoin('i.status', 's')
-            ->where('s.nom', $statusLabel);
+            ->where('s.nom = :statut')
+            ->setParameter('statut', $statusLabel);
 
         $query = $qb->getQuery();
 

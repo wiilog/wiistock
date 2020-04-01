@@ -74,7 +74,7 @@ class ImportController extends AbstractController
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
             return $this->redirectToRoute('access_denied');
         }
-        $data = $importDataService->getDataForDatatable($request->request);
+        $data = $importDataService->getDataForDatatable($request->request, $this->getUser());
 
         return new JsonResponse($data);
     }
@@ -263,7 +263,6 @@ class ImportController extends AbstractController
 	{
 		$importId = $request->request->get('importId');
 		$force = $request->request->getBoolean('force');
-		dump($request->request);
         $import = $entityManager->getRepository(Import::class)->find($importId);
 
         if ($import) {
