@@ -30,14 +30,12 @@ use Doctrine\ORM\ORMException;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use Zend\Code\Scanner\Util;
 
 class ImportService
 {
@@ -269,7 +267,6 @@ class ImportService
         else {
             $importModeChoosen = self::IMPORT_MODE_RUN;
             $import->setFlash(true);
-            $importDone = true;
 
             // les premières lignes <= MAX_LINES_FLASH_IMPORT
             foreach ($firstRows as $row) {
@@ -296,6 +293,8 @@ class ImportService
 
             $statutRepository = $this->em->getRepository(Statut::class);
             $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
+
+            $import = $this->em->find(Import::class, $import->getId());
 
             $import
                 ->setLogFile($pieceJointeForLogFile)
@@ -958,6 +957,7 @@ class ImportService
             $message .= ' à la ' . ($isNewEntity ? 'création.' : 'modification.');
             $this->throwError($message);
         }
+
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $champLibreRepository->find($clId);
 
@@ -1111,7 +1111,6 @@ class ImportService
      * @param array $data
      * @param Article|ReferenceArticle $articleOrRef
      * @throws ImportException
-     * @throws NonUniqueResultException
      */
     private function checkAndCreateEmplacement(array $data,
                                                $articleOrRef): void {
@@ -1142,7 +1141,6 @@ class ImportService
      * @param ReferenceArticle|null $referenceArticle
      * @return ArticleFournisseur|null
      * @throws ImportException
-     * @throws NonUniqueResultException
      */
     private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
                                                       ?string $fournisseurReference,

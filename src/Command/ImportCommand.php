@@ -10,6 +10,7 @@ use App\Entity\Import;
 use App\Entity\Statut;
 use App\Service\ImportService;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -49,8 +50,8 @@ class ImportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $importRepository = $this->em->getRepository(Import::class);
-        $statutRepository = $this->em->getRepository(Statut::class);
+        $importRepository = $this->getEntityManager()->getRepository(Import::class);
+        $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
 
         $importsToExecute = $importRepository->findByStatusLabel(Import::STATUS_PLANNED);
 
@@ -74,14 +75,27 @@ class ImportCommand extends Command
             }
         }
 
-        $this->em->flush();
+        $this->getEntityManager()->flush();
 
         // nettoyage des éventuels imports en brouillon
         $drafts = $importRepository->findByStatusLabel(Import::STATUS_DRAFT);
         foreach ($drafts as $draft) {
-            $this->em->remove($draft);
+            $this->getEntityManager()->remove($draft);
         }
 
-        $this->em->flush();
+        $this->getEntityManager()->flush();
+
+        // 0 si tou s'est bien passé
+        return 0;
+    }
+
+    /**
+     * @return EntityManagerInterface
+     * @throws ORMException
+     */
+    private function getEntityManager(): EntityManagerInterface {
+        return $this->em->isOpen()
+            ? $this->em
+            : EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
     }
 }
