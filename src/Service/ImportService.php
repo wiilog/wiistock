@@ -167,7 +167,7 @@ class ImportService
         $file = fopen($path, "r");
 
         $headers = fgetcsv($file, 0, ";");
-        $firstRow =  fgetcsv($file, 0, ";");
+        $firstRow = fgetcsv($file, 0, ";");
 
         if ($headers && $firstRow) {
             $csvContent = file_get_contents($path);
@@ -209,7 +209,9 @@ class ImportService
 
         $columnsToFields = $import->getColumnToField();
         $corresp = array_flip($columnsToFields);
-        $colChampsLibres = array_filter($corresp, function ($elem) {return is_int($elem);}, ARRAY_FILTER_USE_KEY);
+        $colChampsLibres = array_filter($corresp, function ($elem) {
+            return is_int($elem);
+        }, ARRAY_FILTER_USE_KEY);
 
         $dataToCheck = $this->getDataToCheck($import->getEntity(), $corresp);
 
@@ -225,9 +227,8 @@ class ImportService
         $rowCount = 0;
         $firstRows = [];
 
-        while (($data = fgetcsv($file, 0, ';')) !== false
+        while (($row = fgetcsv($file, 0, ';')) !== false
                && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
-            $row = array_map('utf8_encode', $data);
 
             if (empty($headers)) {
                 $headers = $row;
@@ -275,8 +276,7 @@ class ImportService
 
             if (!$smallFile) {
                 // on fait la suite du fichier
-                while (($data = fgetcsv($file, 0, ';')) !== false) {
-                    $row = array_map('utf8_encode', $data);
+                while (($row = fgetcsv($file, 0, ';')) !== false) {
                     $logRows[] = $this->treatImportRow($row, $import, $headers, $dataToCheck, $colChampsLibres, $refToUpdate, $stats);
                 }
             }
@@ -827,7 +827,7 @@ class ImportService
             }
             else if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if (isset($data['quantiteStock']) && $data['quantiteStock'] < $refArt->getQuantiteReservee()) {
-                    $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee(). ').';
+                    $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee() . ').';
                     $this->throwError($message);
                 }
                 $this->checkAndCreateMvtStock($import, $refArt, $refArt->getQuantiteStock(), $data['quantiteStock'], $isNewEntity);
@@ -963,21 +963,20 @@ class ImportService
                     $value = in_array($row[$col], ['Oui', 'oui', 1, '1']);
                     break;
                 case ChampLibre::TYPE_DATE:
+                    $value = $this->checkDate($row[$col], 'd/m/Y', 'Y-m-d', 'jj/mm/AAAA', $champLibre);
+                    break;
                 case ChampLibre::TYPE_DATETIME:
-                    try {
-                        $date = DateTime::createFromFormat('d/m/Y', $row[$col]);
-                        if(!$date){
-                            throw new Exception('Invalid format');
-                        }
-                        $value = $date->format('Y-m-d');
-                    } catch (Exception $ignored) {
-                        $message = 'La date du champ "' . $champLibre->getLabel() . '" n\'est pas au format jj/mm/AAAA.';
-                        $this->throwError($message);
-                        $value = null;
-                    };
+                    $value = $this->checkDate($row[$col], 'd/m/Y H:i', 'Y-m-d\TH:i', 'jj/mm/AAAA HH:MM', $champLibre);
+                    break;
+                case ChampLibre::TYPE_LIST:
+                    $value = $this->checkList($row[$col], $champLibre, false);
+                    break;
+                case ChampLibre::TYPE_LIST_MULTIPLE:
+                    $value = $this->checkList($row[$col], $champLibre, true);
                     break;
                 default:
                     $value = $row[$col];
+                    break;
             }
 
             $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
@@ -987,7 +986,7 @@ class ImportService
                         'article' => $refOrArt,
                         'champLibre' => $champLibre
                     ]);
-                } else if ($refOrArt instanceof  Article && !$isNewEntity) {
+                } else if ($refOrArt instanceof Article && !$isNewEntity) {
                     $valeurCL = $valeurCLRepository->findOneBy([
                         'articleReference' => $refOrArt,
                         'champLibre' => $champLibre
@@ -1003,6 +1002,55 @@ class ImportService
             $valeurCL->setValeur($value);
             $refOrArt->addValeurChampLibre($valeurCL);
         }
+    }
+
+    /**
+     * @param string $dateString
+     * @param string $format
+     * @param string $outputFormat
+     * @param string $errorFormat
+     * @param ChampLibre $champLibre
+     * @return string
+     * @throws ImportException
+     */
+    private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, ChampLibre $champLibre): string
+    {
+        try {
+            $date = DateTime::createFromFormat($format, $dateString);
+            if (!$date) {
+                throw new Exception('Invalid format');
+            }
+            $value = $date->format($outputFormat);
+        } catch (Exception $ignored) {
+            $message = 'La date fournie pour le champ "' . $champLibre->getLabel() . '" doit être au format ' . $errorFormat . '.';
+            $this->throwError($message);
+            $value = null;
+        }
+        return $value;
+    }
+
+    /**
+     * @param string $element
+     * @param ChampLibre $champLibre
+     * @param bool $isMultiple
+     * @return string
+     * @throws ImportException
+     */
+    private function checkList(string $element, ChampLibre $champLibre, bool $isMultiple): ?string
+    {
+        $response = null;
+        if ($element !== "") {
+            $elements = $isMultiple ? explode(";", $element) : [$element];
+            foreach ($elements as $listElement) {
+                if (!in_array($listElement, $champLibre->getElements())) {
+                    $this->throwError('La ou les valeurs fournies pour le champ "' . $champLibre->getLabel() . '"'
+                        . 'doivent faire partie des valeurs du champ libre ('
+                        . implode(",", $champLibre->getElements()) . ').');
+                }
+            }
+            $response = $element;
+        }
+        return $response;
     }
 
     /**
