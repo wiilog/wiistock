@@ -31,7 +31,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
-use App\Repository\AlerteExpiryRepository;
 use App\Repository\FiabilityByReferenceRepository;
 use App\Repository\MouvementStockRepository;
 
@@ -62,11 +61,6 @@ class AccueilController extends AbstractController
     private $mouvementStockRepository;
 
     /**
-     * @var AlerteExpiryRepository
-     */
-    private $alerteExpiryRepository;
-
-    /**
      * @var fiabilityByReferenceRepository
      */
     private $fiabilityByReferenceRepository;
@@ -77,7 +71,6 @@ class AccueilController extends AbstractController
     private $dashboardService;
 
     public function __construct(DashboardService $dashboardService,
-                                AlerteExpiryRepository $alerteExpiryRepository,
                                 ManutentionRepository $manutentionRepository,
                                 DemandeRepository $demandeRepository,
                                 CollecteRepository $collecteRepository,
@@ -88,7 +81,6 @@ class AccueilController extends AbstractController
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
-        $this->alerteExpiryRepository = $alerteExpiryRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
     }
