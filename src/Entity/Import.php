@@ -33,7 +33,6 @@ class Import
             'référence article de référence',
             'label',
             'emplacement',
-            'reference'
         ],
         self::ENTITY_FOU => [
             'codeReference',
