@@ -25,6 +25,7 @@
                 <mj-text mj-class="email-content">
                     L'équipe GT Logistics
                 </mj-text>
+                {% block postScriptum %}{% endblock %}
                 <mj-button css-class="button-followgt" mj-class="button-followgt">
                     {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
                     <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">

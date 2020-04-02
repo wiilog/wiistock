@@ -153,6 +153,7 @@ class ArrivageDataService
         } else if ($arrival->getDestinataire()) {
             $finalRecipents = [$arrival->getDestinataire()->getEmail()];
         }
+
         if (!empty($finalRecipents)) {
             $this->mailerService->sendMail(
                 'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),

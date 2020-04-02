@@ -9,8 +9,8 @@
 
         {% set numeroCommandeList = (
             (emergencies|length > 0 and emergencies[0].commande)
-            ? [emergencies[0].commande]
-            : arrival.numeroCommandeList
+                ? [emergencies[0].commande]
+                : arrival.numeroCommandeList
             ) %}
         {% if numeroCommandeList|length > 0 %}
             <li> Numéro de commande :{{ numeroCommandeList|length > 1 ? 's' }}
@@ -37,6 +37,8 @@
         <p>Votre colis sera livré en dropzone en milieu d'après-midi.</p>
     {% endif %}
     <p>Merci et bonne journée :-)</p>
+{% endblock %}
+{% block postScriptum %}
     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
         <p>
             PS&nbsp;: En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
