@@ -14,6 +14,7 @@ $(function () {
             displayFiltersSup(data);
             loadPage();
         }, 'json');
+        ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     });
 });
 

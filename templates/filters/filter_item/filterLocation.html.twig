@@ -1,11 +1,7 @@
 <div {{ multiple is defined ? 'class="select2-overflow"' }}>
     <div class="input-group minw-300px w-100">
-        <select class="form-control data select2 cursor-default filter-select2" name="location"
+        <select class="form-control data cursor-default filter-select2 ajax-autocomplete-emplacements" name="location"
                 id="emplacement" {{ multiple is defined ? 'multiple'}} {{ disabled }}>
-            <option>&nbsp;</option>
-            {% for emplacement in emplacements %}
-                <option value="{{ emplacement.id }}">{{ emplacement.label }}</option>
-            {% endfor %}
         </select>
     </div>
 </div>
