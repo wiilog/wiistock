@@ -13,10 +13,12 @@ use App\Entity\Import;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
@@ -29,6 +31,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use Zend\Code\Scanner\Util;
 
 /**
  * @Route("/import")
@@ -73,7 +76,9 @@ class ImportController extends AbstractController
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
             return $this->redirectToRoute('access_denied');
         }
-        $data = $importDataService->getDataForDatatable($request->request);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = $importDataService->getDataForDatatable($user, $request->request);
 
         return new JsonResponse($data);
     }
@@ -210,12 +215,13 @@ class ImportController extends AbstractController
 		return new JsonResponse($response);
 	}
 
-	/**
-	 * @Route("/lier", name="import_links", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 */
+    /**
+     * @Route("/lier", name="import_links", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @return Response
+     */
 	public function defineLinks(Request $request): Response
 	{
-	    $success = true;
 		$importRepository = $this->getDoctrine()->getRepository(Import::class);
 		$data = json_decode($request->getContent(), true);
 
@@ -227,38 +233,9 @@ class ImportController extends AbstractController
         $this->getDoctrine()->getManager()->flush();
 
 		return new JsonResponse([
-			'success' => $success,
-			'html' => $success ? $this->renderView('import/modalNewImportConfirm.html.twig') : ''
+			'success' => true,
+			'html' => $this->renderView('import/modalNewImportConfirm.html.twig')
 		]);
-	}
-
-	/**
-	 * @Route("/confirmer", name="import_confirm", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @return JsonResponse
-	 * @throws NonUniqueResultException
-	 */
-	public function confirm(Request $request)
-	{
-		$doctrine = $this->getDoctrine();
-		$importRepository = $doctrine->getRepository(Import::class);
-		$statusRepository = $doctrine->getRepository(Statut::class);
-
-		$data = json_decode($request->getContent(), true);
-
-		$import = $importRepository->find($data['importId']);
-
-		if ($import) {
-			$import
-                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_IN_PROGRESS))
-			    ->setStartDate(new DateTime('now'));
-			$doctrine->getManager()->flush();
-			$resp = true;
-		} else {
-			$resp = false;
-		}
-
-		return new JsonResponse(['success' => $resp, 'importId' => $data['importId']]);
 	}
 
     /**
@@ -277,57 +254,43 @@ class ImportController extends AbstractController
     /**
      * @Route("/lancer-import", name="import_launch", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param ImportService $importService
      * @return JsonResponse
-     * @throws NonUniqueResultException
      * @throws NoResultException
+     * @throws NonUniqueResultException
      * @throws ORMException
      */
-	public function launchImport(Request $request, ImportService $importService)
+	public function launchImport(Request $request,
+                                 EntityManagerInterface $entityManager,
+                                 ImportService $importService)
 	{
 		$importId = $request->request->get('importId');
-		$force = $request->request->get('force') ?? 0;
-		$em = $this->getDoctrine()->getManager();
-        $import = $em->getRepository(Import::class)->find($importId);
+		$force = $request->request->getBoolean('force');
+        $import = $entityManager->getRepository(Import::class)->find($importId);
 
         if ($import) {
+            $importModeTodo = ($force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN);
+            $importModeDone = $importService->treatImport($import, $importModeTodo);
+
             $success = true;
-            $isLaunched = $importService->loadData($import, $force);
-            $msg = $isLaunched ?
-                'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.' :
-                'Votre import contient plus de ' . ImportService::MAX_LINES_FLASH_IMPORT . ' lignes. Il sera effectué cette nuit.';
-        } else {
+            $message = (
+                ($importModeDone === ImportService::IMPORT_MODE_RUN) ? 'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.' :
+                (($importModeDone === ImportService::IMPORT_MODE_FORCE_PLAN) ? 'Votre import a bien été lancé. Il sera effectué dans moins de 30min.' :
+                (($importModeDone === ImportService::IMPORT_MODE_PLAN) ? 'Votre import a bien été lancé. Il sera effectué cette nuit.' :
+                /* $importModeDone === ImportService::IMPORT_MODE_NONE */ 'Votre import a déjà été lancé. Il sera effectué dans moins de 30min.'))
+            );
+        }
+        else {
             $success = false;
-            $msg = 'Une erreur est survenue lors de l\'import. Veuillez le renouveler.';
+            $message = 'Une erreur est survenue lors de l\'import. Veuillez le renouveler.';
         }
 
 		return new JsonResponse([
 		    'success' => $success,
-            'msg' => $msg
+            'message' => $message
         ]);
 	}
-
-    /**
-     * @Route("/forcer-import", name="import_force", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param ImportService $importService
-     * @return JsonResponse
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws ORMException
-     */
-	public function forceImport(Request $request, ImportService $importService)
-    {
-        $importId = $request->request->get('importId');
-        $em = $this->getDoctrine()->getManager();
-        $import = $em->getRepository(Import::class)->find($importId);
-
-        if ($import) {
-            $importService->loadData($import, true);
-        }
-
-        return new JsonResponse();
-    }
 
     /**
      * @Route("/annuler-import", name="import_cancel", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

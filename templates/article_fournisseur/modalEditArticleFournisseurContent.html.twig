@@ -1,5 +1,5 @@
 <div class="form-group w-100">
-    <label for="fournisseur">Fournisseur</label>
+    <label for="fournisseur">Code Fournisseur</label>
     <select class="form-control data ajax-autocomplete-fournisseur-edit needed" name="fournisseur" id="fournisseur">
        <option value="{{articleFournisseur.fournisseur.id}}">{{articleFournisseur.fournisseur.nom}}</option>
     </select>
@@ -9,7 +9,7 @@
     <label for="article-reference">Article de référence</label>
     <select class="form-control ajax-autocomplete-edit data needed" name="article-reference" id="article-reference">
         <option value="{{ articleFournisseur.referenceArticle.id }}">{{ articleFournisseur.referenceArticle.libelle }}</option>
-       
+
     </select>
 </div>
 

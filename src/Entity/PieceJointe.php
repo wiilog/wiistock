@@ -11,6 +11,7 @@ class PieceJointe
 {
     const MAIN_PATH = '/uploads/attachements/';
 	const TEMP_PATH = self::MAIN_PATH . 'temp/';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -50,15 +51,11 @@ class PieceJointe
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="csvFile")
-     * @ORM\JoinColumn(name="import_csv_id", referencedColumnName="id", onDelete="CASCADE")
-     * @ORM\JoinColumn(nullable=true)
      */
     private $importCsv;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="logFile")
-     * @ORM\JoinColumn(name="import_log_id", referencedColumnName="id", onDelete="CASCADE")
-     * @ORM\JoinColumn(nullable=true)
      */
     private $importLog;
 

@@ -742,7 +742,6 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $fileNames = [];
-            $path = "../public/uploads/attachements";
 
             $id = (int)$request->request->get('id');
             $arrivage = $this->arrivageRepository->find($id);
@@ -750,21 +749,13 @@ class ArrivageController extends AbstractController
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
-                    if ($file->getClientOriginalExtension()) {
-                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    } else {
-                        $filename = uniqid();
-                    }
-                    $file->move($path, $filename);
-
-                    $pj = new PieceJointe();
-                    $pj
-                        ->setFileName($filename)
-                        ->setOriginalName($file->getClientOriginalName())
-                        ->setArrivage($arrivage);
+                    $pj = $this->attachmentService->createPieceJointe($file, $arrivage);
                     $entityManager->persist($pj);
 
-                    $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
+                    $fileNames[] = [
+                        'name' => $pj->getFileName(),
+                        'originalName' => $file->getClientOriginalName()
+                    ];
                 }
             }
             $entityManager->flush();
@@ -1358,7 +1349,6 @@ class ArrivageController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $fileNames = [];
-            $path = "../public/uploads/attachements";
 
             $id = (int)$request->request->get('id');
             $litige = $this->litigeRepository->find($id);
@@ -1366,21 +1356,13 @@ class ArrivageController extends AbstractController
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
-                    if ($file->getClientOriginalExtension()) {
-                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    } else {
-                        $filename = uniqid();
-                    }
-                    $file->move($path, $filename);
-
-                    $pj = new PieceJointe();
-                    $pj
-                        ->setFileName($filename)
-                        ->setOriginalName($file->getClientOriginalName())
-                        ->setLitige($litige);
+                    $pj = $this->attachmentService->createPieceJointe($file, $litige);
                     $entityManager->persist($pj);
 
-                    $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
+                    $fileNames[] = [
+                        'name' => $pj->getFileName(),
+                        'originalName' => $file->getClientOriginalName()
+                    ];
                 }
             }
             $entityManager->flush();

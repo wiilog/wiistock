@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Commande Cron exécutée toute les 30 min
+ */
 
 namespace App\Command;
 
@@ -8,6 +10,7 @@ use App\Entity\Import;
 use App\Entity\Statut;
 use App\Service\ImportService;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -34,7 +37,7 @@ class ImportCommand extends Command
 
     protected function configure()
     {
-		$this->setDescription('This command executes planified imports.');
+        $this->setDescription('This command executes planified imports.');
     }
 
     /**
@@ -47,24 +50,61 @@ class ImportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $importRepository = $this->em->getRepository(Import::class);
-        $statutRepository = $this->em->getRepository(Statut::class);
+        $importRepository = $this->getEntityManager()->getRepository(Import::class);
+        $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
 
-        $importsToExecute = $importRepository->findByStatusLabel(Import::STATUS_PLANNED);
+        $importsPlanned = $importRepository->findByStatusLabel(Import::STATUS_PLANNED);
 
-        foreach ($importsToExecute as $import) {
-            $this->importService->loadData($import, true);
+        $now = new DateTime('now');
+
+        $nowHours = (int)$now->format('G'); // 0-23
+        $nowMinutes = (int)$now->format('i'); // 0-59
+
+        $statusEnCours = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_IN_PROGRESS);
+
+        $importsToLaunch = [];
+        // si on est au alentours de minuit => on commence tous les imports sinon uniquement ceux qui sont forcés
+        $runOnlyForced = ($nowHours !== 0 || $nowMinutes >= 30);
+        foreach ($importsPlanned as $import) {
+            if (!$runOnlyForced
+                || $import->isForced()) {
+                $import->setStatus($statusEnCours);
+                $importsToLaunch[] = $import;
+            }
+        }
+        $this->getEntityManager()->flush();
+
+        $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
+
+        foreach ($importsToLaunch as $import) {
+            $this->importService->treatImport($import, ImportService::IMPORT_MODE_RUN);
             $import
-                ->setStatus($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED))
+                ->setStatus($statusFinished)
                 ->setEndDate(new DateTime('now'));
         }
+        $this->getEntityManager()->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->getEntityManager()->flush();
 
         // nettoyage des éventuels imports en brouillon
         $drafts = $importRepository->findByStatusLabel(Import::STATUS_DRAFT);
         foreach ($drafts as $draft) {
-            $this->em->remove($draft);
+            $this->getEntityManager()->remove($draft);
         }
 
-        $this->em->flush();
+        $this->getEntityManager()->flush();
+
+        // 0 si tout s'est bien passé
+        return 0;
+    }
+
+    /**
+     * @return EntityManagerInterface
+     * @throws ORMException
+     */
+    private function getEntityManager(): EntityManagerInterface
+    {
+        return $this->em->isOpen()
+            ? $this->em
+            : EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
     }
 }
