@@ -8,16 +8,15 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\Statut;
 
-use App\Repository\CategorieStatutRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
-
 use App\Service\UserService;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -33,45 +32,23 @@ class StatusController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statusRepository;
-
-	/**
-	 * @var CategorieStatutRepository
-	 */
-    private $categoryStatusRepository;
-
-    public function __construct(CategorieStatutRepository $categoryStatusRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository, TypeRepository $typeRepository, StatutRepository $statusRepository)
-    {
+    public function __construct(UserService $userService) {
         $this->userService = $userService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->typeRepository = $typeRepository;
-        $this->statusRepository = $statusRepository;
-        $this->categoryStatusRepository = $categoryStatusRepository;
     }
 
     /**
      * @Route("/", name="status_param_index")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function index()
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
 
-		$categoriesStatusLitigeArr = $this->categoryStatusRepository->findByLabelLike('litige');
+        $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+		$categoriesStatusLitigeArr = $categoryStatusRepository->findByLabelLike('litige');
 
         return $this->render('status/index.html.twig', [
             'categories' => $categoriesStatusLitigeArr,
@@ -80,16 +57,23 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $listStatusLitigeArr = $this->statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
-            $listStatusLitigeRecep = $this->statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+
+            $listStatusLitigeArr = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
+            $listStatusLitigeRecep = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
+
             $rows = [];
             foreach (array_merge($listStatusLitigeArr, $listStatusLitigeRecep) as $status) {
                 $url['edit'] = $this->generateUrl('status_api_edit', ['id' => $status->getId()]);
@@ -116,21 +100,28 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->statusRepository->countByLabelAndCategory($data['label'], $data['category']);
+            $labelExist = $statutRepository->countByLabelAndCategory($data['label'], $data['category']);
 
             if (!$labelExist) {
-                $category = $this->categoryStatusRepository->find($data['category']);
+                $category = $categoryStatusRepository->find($data['category']);
                 $status = new Statut();
 				$status
                     ->setNom($data['label'])
@@ -140,8 +131,8 @@ class StatusController extends AbstractController
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setCategorie($category);
 
-                $em->persist($status);
-                $em->flush();
+                $entityManager->persist($status);
+                $entityManager->flush();
 
 				return new JsonResponse([
 					'success' => true,
@@ -160,15 +151,19 @@ class StatusController extends AbstractController
     /**
      * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $status = $this->statusRepository->find($data['id']);
-            $categories = $this->categoryStatusRepository->findByLabelLike('litige');
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+
+            $status = $statutRepository->find($data['id']);
+            $categories = $categoryStatusRepository->findByLabelLike('litige');
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
                 'status' => $status,
@@ -182,23 +177,29 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(EntityManagerInterface $entityManager,
+                         Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
-			$status = $this->statusRepository->find($data['status']);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+
+			$status = $statutRepository->find($data['status']);
             $statusLabel = $status->getNom();
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->statusRepository->countByLabelDiff($data['label'], $statusLabel, $data['category']);
+            $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $data['category']);
 
             if (!$labelExist) {
-                $category = $this->categoryStatusRepository->find($data['category']);
+                $category = $categoryStatusRepository->find($data['category']);
                 $status
                     ->setNom($data['label'])
                     ->setCategorie($category)
@@ -207,8 +208,8 @@ class StatusController extends AbstractController
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setComment($data['comment']);
 
-                $em->persist($status);
-                $em->flush();
+                $entityManager->persist($status);
+                $entityManager->flush();
 
                 return new JsonResponse([
                 	'success' => true,
@@ -226,15 +227,23 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/verification", name="status_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function checkStatusCanBeDeleted(Request $request): Response
+    public function checkStatusCanBeDeleted(Request $request,
+                                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statusIsUsed = $this->statusRepository->countUsedById($typeId);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+
+            $statusIsUsed = $statutRepository->countUsedById($typeId);
 
             if (!$statusIsUsed) {
                 $delete = true;
@@ -251,17 +260,22 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/supprimer", name="status_delete", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(EntityManagerInterface $entityManager,
+                           Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $status = $this->statusRepository->find($data['status']);
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $entityManager = $this->getDoctrine()->getManager();
+            $status = $statutRepository->find($data['status']);
+
             $entityManager->remove($status);
             $entityManager->flush();
             return new JsonResponse();

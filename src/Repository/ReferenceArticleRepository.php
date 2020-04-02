@@ -10,14 +10,13 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
@@ -25,7 +24,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ReferenceArticle[]    findAll()
  * @method ReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReferenceArticleRepository extends ServiceEntityRepository
+class ReferenceArticleRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Label' => 'libelle',
@@ -35,7 +34,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
-        'Quantité stock' => 'quantiteStock',
+        'QuantiteStock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
@@ -45,11 +44,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         'typeQuantite' => 'typeQuantite',
         'Dernier inventaire' => 'dateLastInventory'
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ReferenceArticle::class);
-    }
 
     public function getIdAndLibelle()
     {
@@ -745,7 +739,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
     /**
      * @param InventoryMission $mission
-     * @param int $refId
+     * @param $refId
      * @return mixed
      * @throws NonUniqueResultException
      */
@@ -988,15 +982,15 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em->createQuery(
-            /** @lang DQL */
-                "SELECT SUM(a.quantite)
-			FROM App\Entity\ReferenceArticle ra
-			JOIN ra.articlesFournisseur af
-			JOIN af.articles a
-			JOIN a.statut s
-			WHERE s.nom = :activeStatus
-			  AND ra = :refArt
-			")
+                    /** @lang DQL */
+                    "SELECT SUM(a.quantite)
+                    FROM App\Entity\ReferenceArticle ra
+                    JOIN ra.articlesFournisseur af
+                    JOIN af.articles a
+                    JOIN a.statut s
+                    WHERE s.nom = :activeStatus
+                      AND ra = :refArt
+                ")
                 ->setParameters([
                     'refArt' => $referenceArticle->getId(),
                     'activeStatus' => Article::STATUT_ACTIF
@@ -1065,6 +1059,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 ra.limitWarning,
                 ra.dateEmergencyTriggered,
                 ra.typeQuantite,
+                ra.quantiteDisponible,
                 t.label as type')
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->where('ra.dateEmergencyTriggered IS NOT NULL')
@@ -1082,6 +1077,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
      * @param ReferenceArticle $ref
      * @return int
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function countInventoryAnomaliesByRef($ref)
     {

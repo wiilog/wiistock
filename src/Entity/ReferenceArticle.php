@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ReferenceArticle
 {
-
     const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
@@ -179,6 +178,11 @@ class ReferenceArticle
     private $ligneArticlePreparations;
 
     /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $emergencyComment;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="referenceArticle")
      */
     private $mouvementTracas;
@@ -198,6 +202,10 @@ class ReferenceArticle
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
         $this->mouvementTracas = new ArrayCollection();
+
+        $this->quantiteStock = 0;
+        $this->quantiteReservee = 0;
+        $this->quantiteDisponible = 0;
     }
 
     public function getId()
@@ -808,6 +816,18 @@ class ReferenceArticle
                 $ligneArticlePreparation->setReference(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmergencyComment(): ?string
+    {
+        return $this->emergencyComment;
+    }
+
+    public function setEmergencyComment(?string $emergencyComment): self
+    {
+        $this->emergencyComment = $emergencyComment;
 
         return $this;
     }

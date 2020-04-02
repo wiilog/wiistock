@@ -95,13 +95,21 @@ function InitPageDataTable() {
                 {"data": 'A recevoir', 'title': 'A recevoir'},
                 {"data": 'Reçu', 'title': 'Reçu'},
                 {"data": 'Urgence', 'title': 'Urgence'},
+                {"data": 'Comment', 'title': 'Comment', visible: false},
             ],
             columnDefs: [
                 {"orderable": false, "targets": 0},
                 {"visible": false, "targets": 5}
             ],
             rowCallback: function (row, data) {
-                $(row).addClass(data.Urgence ? 'table-danger' : '');
+                if (data.Urgence) {
+                    const $row = $(row);
+                    $row.addClass('table-danger');
+                    if (data.Comment) {
+                        $row.attr('title', data.Comment);
+                        initTooltips($row);
+                    }
+                }
             }
         }),
         tableLitigesReception: $('#tableReceptionLitiges').DataTable({
@@ -318,8 +326,9 @@ function articleChanged(select) {
         let route = Routing.generate('is_urgent', true);
         let params = JSON.stringify(select.val());
         $.post(route, params, function (response) {
-            if (response) {
+            if (response.urgent) {
                 $('.emergency').removeClass('d-none');
+                $('.emergency-comment').text(response.comment);
             } else {
                 $('.emergency').addClass('d-none');
             }
@@ -490,7 +499,9 @@ function initNewLigneReception() {
     initSelect2($('.select2-type'));
     initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route:  'get_user'});
     initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {route: 'get_ref_article_reception', param: {reception: $('#receptionId').val()}});
-
+    if ($('#locationDemandeLivraison').length > 0) {
+        initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+    }
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},

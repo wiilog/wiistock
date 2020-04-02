@@ -3,15 +3,14 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
 use App\Entity\MouvementStock;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
-use App\Repository\ReferenceArticleRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -24,17 +23,7 @@ class InventoryService
 	/**
 	 * @var EntityManagerInterface
 	 */
-	private $em;
-
-	/**
-	 * @var ReferenceArticleRepository
-	 */
-    private $referenceArticleRepository;
-
-	/**
-	 * @var ArticleRepository
-	 */
-    private $articleRepository;
+	private $entityManager;
 
 	/**
 	 * @var
@@ -52,43 +41,39 @@ class InventoryService
     private $inventoryMissionRepository;
 
 
-    public function __construct(
-    	InventoryEntryRepository $inventoryEntryRepository,
-		Security $security,
-		EntityManagerInterface $em,
-		ReferenceArticleRepository $referenceArticleRepository,
-		ArticleRepository $articleRepository,
-		InventoryMissionRepository $inventoryMissionRepository
-	)
-    {
-		$this->referenceArticleRepository = $referenceArticleRepository;
-		$this->articleRepository = $articleRepository;
-		$this->em = $em;
+    public function __construct(InventoryEntryRepository $inventoryEntryRepository,
+                                Security $security,
+                                EntityManagerInterface $entityManager,
+                                InventoryMissionRepository $inventoryMissionRepository) {
+		$this->entityManager = $entityManager;
 		$this->user = $security->getUser();
 		$this->inventoryEntryRepository = $inventoryEntryRepository;
 		$this->inventoryMissionRepository = $inventoryMissionRepository;
     }
 
-	/**
-	 * @param int $idEntry
-	 * @param string $reference
-	 * @param bool $isRef
-	 * @param int $newQuantity
-	 * @param string $comment
-	 * @param Utilisateur $user
-	 * @return bool
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param int $idEntry
+     * @param string $reference
+     * @param bool $isRef
+     * @param int $newQuantity
+     * @param string $comment
+     * @param Utilisateur $user
+     * @return bool
+     * @throws NonUniqueResultException
+     */
 	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
 	{
-		$em = $this->em;
-		$quantitiesAreEqual = true;
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
+
+        $quantitiesAreEqual = true;
 
 		if ($isRef) {
-			$refOrArt = $this->referenceArticleRepository->findOneByReference($reference);
+			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
-			$refOrArt = $this->articleRepository->findOneByReference($reference);
+			$refOrArt = $articleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantite();
 		}
 
@@ -118,16 +103,16 @@ class InventoryService
 			$typeMvt = $diff < 0 ? MouvementStock::TYPE_INVENTAIRE_SORTIE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
 			$mvt->setType($typeMvt);
 
-			$em->persist($mvt);
+			$this->entityManager->persist($mvt);
 			$quantitiesAreEqual = false;
 		}
 
-		$entry = $this->inventoryEntryRepository->find($idEntry);
+		$entry = $inventoryEntryRepository->find($idEntry);
 		$entry->setAnomaly(false);
 
 		$refOrArt->setDateLastInventory(new DateTime('now'));
 
-		$em->flush();
+        $this->entityManager->flush();
 
 		return $quantitiesAreEqual;
 	}

@@ -2,13 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\ReferenceArticle;
+use App\Entity\ChampLibre;
 use App\Entity\Type;
-
-use App\Repository\CategoryTypeRepository;
-use App\Repository\ChampLibreRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\TypeRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\FiltreRefRepository;
-use App\Repository\ArticleRepository;
 
 /**
  * Class TypeController
@@ -25,69 +23,41 @@ use App\Repository\ArticleRepository;
  */
 class TypeController extends AbstractController
 {
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
 
     /**
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
 
-    /**
-     * @var CategoryTypeRepository
-     */
-    private $categoryTypeRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $refArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
 	/**
 	 * TypeController constructor.
-	 * @param ArticleRepository $articleRepository
 	 * @param FiltreRefRepository $filtreRefRepository
-	 * @param TypeRepository $typeRepository
-	 * @param CategoryTypeRepository $categoryTypeRepository
-	 * @param ChampLibreRepository $champLibreRepository
-	 * @param ReferenceArticleRepository $refArticleRepository
 	 */
-    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
-    {
-        $this->articleRepository = $articleRepository;
+    public function __construct(FiltreRefRepository $filtreRefRepository) {
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->typeRepository = $typeRepository;
-        $this->categoryTypeRepository = $categoryTypeRepository;
-        $this->refArticleRepository = $refArticleRepository;
-        $this->champLibreRepository = $champLibreRepository;
     }
 
     /**
      * @Route("/", name="type_show_select", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function showSelectInput(Request $request)
+    public function showSelectInput(EntityManagerInterface $entityManager,
+                                    Request $request)
     {
         if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
 
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
             $isType = true;
             if (is_numeric($value['value'])) {
-                $cl = $this->champLibreRepository->find(intval($value['value']));
+                $cl = $champLibreRepository->find(intval($value['value']));
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $options = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+                $options = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
@@ -101,12 +71,18 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/api", name="type_api", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $types = $this->typeRepository->findAll();
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->findAll();
+
             $rows = [];
             foreach ($types as $type) {
                 $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
@@ -129,28 +105,34 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/creer", name="type_new", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
 
             // on vérifie que le nom du type n'est pas déjà utilisé
-            $typeExist = $this->typeRepository->countByLabel($data['label']);
+            $typeExist = $typeRepository->countByLabel($data['label']);
 
             if (!$typeExist) {
                 if ($data['category'] === null) {
-                    $category = $this->categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
+                    $category = $categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
                 } else {
-                    $category = $this->categoryTypeRepository->find($data['category']);
+                    $category = $categoryTypeRepository->find($data['category']);
                 }
 
                 $type = new Type();
                 $type
                     ->setlabel($data["label"])
                     ->setCategory($category);
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($type);
-                $em->flush();
+                $entityManager->persist($type);
+                $entityManager->flush();
                 return new JsonResponse($data);
             } else {
                 return new JsonResponse(false);
@@ -161,28 +143,36 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/supprimer", name="type_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find(intval($data['type']));
-            $entityManager = $this->getDoctrine()->getManager();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+
+            $type = $typeRepository->find(intval($data['type']));
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
-                $this->refArticleRepository->setTypeIdNull($type);
-                $this->articleRepository->setTypeIdNull($type);
-                foreach ($this->champLibreRepository->findByType($type) as $cl) {
+                $referenceArticleRepository->setTypeIdNull($type);
+                $articleRepository->setTypeIdNull($type);
+                foreach ($champLibreRepository->findByType($type) as $cl) {
                     $this->filtreRefRepository->deleteByChampLibre($cl);
                 }
-                $this->champLibreRepository->deleteByType($type);
+                $champLibreRepository->deleteByType($type);
                 $entityManager->flush();
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
-                $articlesRefExist = $this->refArticleRepository->countByType($type);
-                $articlesExist = $this->articleRepository->countByType($type);
-                $champsLibresExist = $this->champLibreRepository->countByType($type);
+                $articlesRefExist = $referenceArticleRepository->countByType($type);
+                $articlesExist = $articleRepository->countByType($type);
+                $champsLibresExist = $champLibreRepository->countByType($type);
                 $filters = 0;
-                foreach ($this->champLibreRepository->findByType($type) as $cl) {
+                foreach ($champLibreRepository->findByType($type) as $cl) {
                     $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
@@ -204,14 +194,21 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="type_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data['id']);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+            $type = $typeRepository->find($data['id']);
             $json = $this->renderView('champ_libre/modalEditTypeContent.html.twig', [
                 'type' => $type,
-                'category' => $this->categoryTypeRepository->getNoOne($type->getCategory()->getId())
+                'category' => $categoryTypeRepository->getNoOne($type->getCategory()->getId())
             ]);
             return new JsonResponse($json);
         }
@@ -220,12 +217,19 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/modifier", name="type_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $category = $this->categoryTypeRepository->find($data['category']);
-            $type = $this->typeRepository->find($data['type']);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+
+            $category = $categoryTypeRepository->find($data['category']);
+            $type = $typeRepository->find($data['type']);
             $type
                 ->setLabel($data['label'])
                 ->setCategory($category);

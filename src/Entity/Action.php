@@ -72,6 +72,7 @@ class Action
 	const DISPLAY_STATU_LITI = 'afficher statuts litiges';
 	const DISPLAY_NATU_COLI = 'afficher nature colis';
 	const DISPLAY_CF = 'afficher champs fixes';
+	const DISPLAY_IMPORT = 'afficher import et mise à jour';
 
 	// menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';

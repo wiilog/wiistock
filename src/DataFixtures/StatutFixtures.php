@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -17,39 +18,32 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Manutention;
 use App\Entity\Statut;
-use App\Repository\CategorieStatutRepository;
-use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class StatutFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-	/**
-	 * @var CategorieStatutRepository
-	 */
-    private $categorieStatutRepository;
+    private $entityManager;
 
 
-    public function __construct(CategorieStatutRepository $categorieStatutRepository, StatutRepository $statutRepository, UserPasswordEncoderInterface $encoder)
+    public function __construct(EntityManagerInterface $entityManager,
+                                UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
-        $this->statutRepository = $statutRepository;
-        $this->categorieStatutRepository = $categorieStatutRepository;
+        $this->entityManager = $entityManager;
     }
 
     public function load(ObjectManager $manager)
     {
-    	$categoriesStatus = [
+        $statutRepository = $manager->getRepository(Statut::class);
+        $categorieStatutRepository = $manager->getRepository(CategorieStatut::class);
+
+        $categoriesStatus = [
     		CategorieStatut::REFERENCE_ARTICLE => [
     			ReferenceArticle::STATUT_ACTIF,
 				ReferenceArticle::STATUT_INACTIF
@@ -120,12 +114,19 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::ACHEMINEMENT => [
                 Acheminements::STATUT_A_TRAITER,
                 Acheminements::STATUT_TRAITE,
-            ]
+            ],
+			CategorieStatut::IMPORT => [
+				Import::STATUS_PLANNED,
+				Import::STATUS_FINISHED,
+				Import::STATUS_IN_PROGRESS,
+				Import::STATUS_CANCELLED,
+				Import::STATUS_DRAFT,
+			]
         ];
 
         // on supprime les anciens statut d'arrivage qui ne sont pas dans le tableau
         /** @var Statut[] $statutsASupprimer */
-        $statutsASupprimer = $this->statutRepository->createQueryBuilder('statut')
+        $statutsASupprimer = $statutRepository->createQueryBuilder('statut')
             ->distinct()
             ->innerJoin('statut.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieArrivage')
@@ -143,7 +144,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
     	foreach ($categoriesStatus as $categoryName => $statuses) {
 
     		// création des catégories de statuts
-			$categorie = $this->categorieStatutRepository->findOneBy(['nom' => $categoryName]);
+			$categorie = $categorieStatutRepository->findOneBy(['nom' => $categoryName]);
 
 			if (empty($categorie)) {
 				$categorie = new CategorieStatut();
@@ -155,7 +156,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
 			// création des statuts
 			foreach ($statuses as $statusLabel) {
-				$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode($categoryName, $statusLabel);
+				$statut = $statutRepository->findOneByCategorieNameAndStatutCode($categoryName, $statusLabel);
 
 				if (empty($statut)) {
 					$statut = new Statut();

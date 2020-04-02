@@ -7,6 +7,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
+use Laminas\Code\Scanner\Util;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
@@ -97,6 +98,11 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 		return $query->execute();
 	}
 
+    /**
+     * @param $search
+     * @return Utilisateur|null
+     * @throws NonUniqueResultException
+     */
 	public function findOneByUsername($search)
 	{
 		$em = $this->getEntityManager();

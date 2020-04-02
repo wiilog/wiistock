@@ -3,9 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Type;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Type|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,13 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Type[]    findAll()
  * @method Type[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class TypeRepository extends ServiceEntityRepository
+class TypeRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Type::class);
-    }
-
 	/**
 	 * @param string $categoryLabel
 	 * @param string|null $order ("asc" ou "desc")

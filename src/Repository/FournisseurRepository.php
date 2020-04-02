@@ -4,9 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Colis;
 use App\Entity\Fournisseur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Fournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Fournisseur[]    findAll()
  * @method Fournisseur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class FournisseurRepository extends ServiceEntityRepository
+class FournisseurRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
@@ -22,11 +21,11 @@ class FournisseurRepository extends ServiceEntityRepository
         'Code de référence' => 'codeReference',
     ];
 
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Fournisseur::class);
-    }
-
+    /**
+     * @param $code
+     * @return Fournisseur|null
+     * @throws NonUniqueResultException
+     */
     public function findOneByCodeReference($code)
     {
         $entityManager = $this->getEntityManager();

@@ -1,0 +1,37 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage / Import{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersImport.html.twig' with {
+        'page': 'PAGE_IMPORT',
+        'tableSelector': '#tableImport'
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    <h1>Import</h1>
+
+    <div class="row ">
+        {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_IMPORT')) %}
+            <div class="btn btn-primary float-left" onclick="displayFirstModal()">
+                <span class="fa fa-plus mr-2"></span>Nouvel import
+            </div>
+        {% endif %}
+    </div>
+
+    <table id="tableImport" class="table table-striped table-bordered w-100">
+    </table>
+
+    {% include 'import/modalNewImport.html.twig' %}
+    {% include 'import/modalConfirmCancel.html.twig' %}
+    {% include 'import/modalLaunchPlanifiedImport.html.twig' %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/attachments.js')}}?{{ date().timestamp }}"> </script>
+    <script src="{{ asset('js/import.js')}}?{{ date().timestamp }}"> </script>
+{% endblock %}
+

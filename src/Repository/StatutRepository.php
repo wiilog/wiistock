@@ -3,11 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Statut;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Statut|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,13 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Statut[]    findAll()
  * @method Statut[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class StatutRepository extends ServiceEntityRepository
+class StatutRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Statut::class);
-    }
-
     /**
      * @param string $categorieName
      * @param bool $ordered
@@ -95,21 +89,18 @@ class StatutRepository extends ServiceEntityRepository
      */
     public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT s
-          FROM App\Entity\Statut s
-          JOIN s.categorie c
-          WHERE c.nom = :categorieName AND s.code = :statutCode
-          "
-        );
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder
+            ->join('s.categorie', 'c')
+            ->where('c.nom = :categorieName AND s.code = :statutCode')
+            ->setParameters([
+                'categorieName' => $categorieName,
+                'statutCode' => $statutCode
+            ]);
 
-        $query->setParameters([
-            'categorieName' => $categorieName,
-            'statutCode' => $statutCode
-        ]);
-
-        return $query->getOneOrNullResult();
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     /**

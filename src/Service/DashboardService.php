@@ -322,9 +322,8 @@ class DashboardService
     /**
      * @return array
      * @throws NonUniqueResultException
-     * @throws NoResultException
      * @throws Exception
-     */
+*/
     public function getDailyArrivalCarriers(): array {
         $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);

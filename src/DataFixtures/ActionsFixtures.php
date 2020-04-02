@@ -4,7 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -16,18 +15,15 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     private $encoder;
-    private $actionRepository;
     private $specificService;
     private $roleRepository;
 
-    public function __construct(ActionRepository $actionRepository,
-                                UserPasswordEncoderInterface $encoder,
+    public function __construct(UserPasswordEncoderInterface $encoder,
                                 SpecificService $specificService,
 								RoleRepository $roleRepository
 	)
     {
         $this->encoder = $encoder;
-        $this->actionRepository = $actionRepository;
         $this->specificService = $specificService;
         $this->roleRepository = $roleRepository;
     }
@@ -115,6 +111,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_CF,
 				Action::EDIT,
 				Action::DELETE,
+				Action::DISPLAY_IMPORT
 			],
             Menu::NOMADE => [
                 Action::MODULE_ACCESS_STOCK,
@@ -129,10 +126,10 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     		Menu::NOMADE . Action::MODULE_ACCESS_TRACA,
     		Menu::NOMADE . Action::MODULE_ACCESS_MANUT
 		];
-
+        $actionRepository = $manager->getRepository(Action::class);
 		foreach ($menus as $menuCode => $actionLabels) {
 			foreach ($actionLabels as $actionLabel) {
-				$action = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
+				$action = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
 
 				if (empty($action)) {
 					$action = new Action();

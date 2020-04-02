@@ -10,14 +10,10 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\FiltreSupRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
 use DateTime;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -26,7 +22,6 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
 class MouvementTracaService
 {
@@ -53,49 +48,24 @@ class MouvementTracaService
     private $userService;
 
     private $security;
-
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    private $em;
-    private $statutRepository;
+    private $entityManager;
     private $attachmentService;
 
     public function __construct(UserService $userService,
                                 MouvementTracaRepository $mouvementTracaRepository,
-                                StatutRepository $statutRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ArticleRepository $articleRepository,
-                                FiltreSupRepository $filtreSupRepository,
                                 Security $security,
                                 AttachmentService $attachmentService)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->userService = $userService;
-        $this->statutRepository = $statutRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -105,9 +75,11 @@ class MouvementTracaService
      */
     public function getDataForDatatable($params = null)
     {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
 
-        $queryResult = $this->mouvementTracaRepository->findByParamsAndFilters($params, $filters);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
+        $queryResult = $mouvementTracaRepository->findByParamsAndFilters($params, $filters);
 
         $mouvements = $queryResult['data'];
 
@@ -148,7 +120,7 @@ class MouvementTracaService
             $fromLabel = null;
             $originFrom = '-';
         }
-        $row = [
+        return [
             'id' => $mouvement->getId(),
             'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
             'colis' => $mouvement->getColis(),
@@ -161,26 +133,20 @@ class MouvementTracaService
             'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
             'reference' => $mouvement->getReferenceArticle()
                 ? $mouvement->getReferenceArticle()->getReference()
-                : (
-                $mouvement->getArticle()
+                : ($mouvement->getArticle()
                     ? $mouvement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ''
-                ),
+                    : ''),
             'label' => $mouvement->getReferenceArticle()
                 ? $mouvement->getReferenceArticle()->getLibelle()
-                : (
-                $mouvement->getArticle()
+                : ($mouvement->getArticle()
                     ? $mouvement->getArticle()->getLabel()
-                    : ''
-                ),
+                    : ''),
             'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
             'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
             'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $mouvement,
             ])
         ];
-
-        return $row;
     }
 
     /**
@@ -193,7 +159,7 @@ class MouvementTracaService
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
      * @param array $options = ['commentaire' => string|null, 'mouvementStock' => MouvementStock|null, 'fileBag' => FileBag|null, from => Arrivage|Reception|null]
      * @return MouvementTraca
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function persistMouvementTraca(string $colis,
                                           ?Emplacement $location,
@@ -204,10 +170,11 @@ class MouvementTracaService
                                           $typeMouvementTraca,
                                           array $options = []): MouvementTraca
     {
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $type = is_string($typeMouvementTraca)
-            ? $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
-            : $this->statutRepository->find($typeMouvementTraca);
+            ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+            : $statutRepository->find($typeMouvementTraca);
 
         if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
@@ -239,9 +206,11 @@ class MouvementTracaService
             ]);
         if ($refOrArticle instanceof ReferenceArticle) {
             $mouvementTraca->setReferenceArticle($refOrArticle);
-        } else if ($refOrArticle instanceof Article) {
+        }
+        else if ($refOrArticle instanceof Article) {
             $mouvementTraca->setArticle($refOrArticle);
         }
+
         if (isset($from)) {
             if ($from instanceof Arrivage) {
                 $mouvementTraca->setArrivage($from);
@@ -250,10 +219,10 @@ class MouvementTracaService
             }
         }
 
-        $this->em->persist($mouvementTraca);
+        $this->entityManager->persist($mouvementTraca);
 
         if (isset($fileBag)) {
-            $this->attachmentService->addAttachements($fileBag, null, null, $mouvementTraca);
+            $this->attachmentService->addAttachements($fileBag, $mouvementTraca);
         }
 
         return $mouvementTraca;

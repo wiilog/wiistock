@@ -5,6 +5,7 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_IMPORT = 'import';
 const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
@@ -626,8 +627,8 @@ function initDisplaySelect2Multiple(select, inputValues) {
     }
 }
 
-function ajaxAutoCompleteEmplacementInit(select, autoSelectOptions) {
-    initSelect2(select, '', 1, {route: 'get_emplacement'}, autoSelectOptions);
+function ajaxAutoCompleteEmplacementInit(select, autoSelectOptions, placeholder = '', lengthMin = 1) {
+    initSelect2(select, placeholder, lengthMin, {route: 'get_emplacement'}, autoSelectOptions);
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
@@ -733,9 +734,6 @@ function clearModal(modal) {
             } else {
                 $(this).val("");
             }
-        }
-        if ($(this).attr('id') === 'statut') {
-            $(this).val($(this).parent().find('span.active').data('title'));
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
@@ -1238,23 +1236,15 @@ function displayFiltersSup(data) {
     data.forEach(function (element) {
         switch (element.field) {
             case 'utilisateurs':
-                let valuesUsers = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                valuesUsers.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-                break;
-
             case 'providers':
             case 'reference':
+            case 'statut':
+            case 'carriers':
+            case 'emplacement':
             case 'demCollecte':
             case 'demande':
                 let valuesElement = element.value.split(',');
-                let $select = $('#' + element.field);
+                let $select = $(`.filter-select2[name="${element.field}"]`);
                 valuesElement.forEach((value) => {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
@@ -1264,12 +1254,10 @@ function displayFiltersSup(data) {
                 });
                 break;
 
-            case 'statut':
-            case 'carriers':
-            case 'emplacement':
+            // multiple
             case 'natures':
                 let valuesElement2 = element.value.split(',');
-                let $select2 = $('#' + element.field);
+                let $select2 = $(`.filter-select2[name="${element.field}"]`);
                 let ids = [];
                 valuesElement2.forEach((value) => {
                     let valueArray = value.split(':');
@@ -1290,7 +1278,7 @@ function displayFiltersSup(data) {
             case 'litigeOrigin':
                 const text = element.value || '';
                 const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
-                $('#' + element.field).val(id).trigger('change');
+                $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
                 break;
 
             case 'dateMin':
@@ -1298,7 +1286,7 @@ function displayFiltersSup(data) {
                 const sourceFormat = (element.value && element.value.indexOf('/') > -1)
                     ? 'DD/MM/YYYY'
                     : 'YYYY-MM-DD';
-                const $fieldDate = $('#' + element.field);
+                const $fieldDate = $(`.filter-input[name="${element.field}"]`);
                 const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
                 if ($fieldDate.data("DateTimePicker")) {
                     $fieldDate.data("DateTimePicker").date(dateValue);
@@ -1449,6 +1437,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
 function initTooltips($elements) {
     $elements.each(function () {
+        $(this).tooltip('dispose');
         $(this).tooltip();
     });
 }
@@ -1476,7 +1465,9 @@ function initFreeSelect2($selects) {
         $self.select2({
             tags: true,
             "language": {
-                "noResults": function () { return 'Ajoutez des éléments'; }
+                "noResults": function () {
+                    return 'Ajoutez des éléments';
+                }
             },
         });
         $self.next('.select2-container').find('.select2-selection').on('focus', () => {

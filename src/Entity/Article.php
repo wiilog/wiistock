@@ -168,6 +168,8 @@ class Article
         $this->ordreCollecte = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->mouvementTracas = new ArrayCollection();
+
+        $this->quantite = 0;
     }
 
     public function getId(): ?int
@@ -426,32 +428,29 @@ class Article
 	/**
 	 * @return Collection|InventoryEntry[]
 	 */
-	public function getInventoryEntries(): Collection
-                                       {
-                                    	   return $this->inventoryEntries;
-                                       }
+	public function getInventoryEntries(): Collection {
+        return $this->inventoryEntries;
+    }
 
-	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-                                    	{
-                                    		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-                                    			$this->inventoryEntries[] = $inventoryEntry;
-                                    			$inventoryEntry->setArticle($this);
-                                    		}
-                        
-                                    		return $this;
-                                    	}
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self {
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setArticle($this);
+        }
 
-	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-                                    	{
-                                    		if ($this->inventoryEntries->contains($inventoryEntry)) {
-                                    			$this->inventoryEntries->removeElement($inventoryEntry);
-                                    			// set the owning side to null (unless already changed)
-                                    			if ($inventoryEntry->getArticle() === $this) {
-                                    				$inventoryEntry->setArticle(null);
-                                    			}
-                                    		}
-                                    		return $this;
-                                    	}
+        return $this;
+    }
+
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getArticle() === $this) {
+                $inventoryEntry->setArticle(null);
+            }
+        }
+        return $this;
+    }
 
     /**
      * @return Collection|InventoryMission[]

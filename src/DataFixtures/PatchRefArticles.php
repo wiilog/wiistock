@@ -2,37 +2,22 @@
 
 namespace App\DataFixtures;
 
-use App\Repository\ArticleRepository;
-use App\Repository\ReferenceArticleRepository;
+use App\Entity\Article;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
 class PatchRefArticles extends Fixture implements FixtureGroupInterface
 {
-	/**
-	 * @var ArticleRepository
-	 */
-	private $articleRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-
-	public function __construct(ArticleRepository $articleRepository, ReferenceArticleRepository $referenceArticleRepository)
-	{
-		$this->articleRepository = $articleRepository;
-		$this->referenceArticleRepository = $referenceArticleRepository;
-	}
 
 	public function load(ObjectManager $manager)
 	{
+        $articleRepository = $manager->getRepository(Article::class);
+
 		// patch spécifique pour dédoublonner les références des articles
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
-		$doublons = $this->articleRepository->findDoublons();
+		$doublons = $articleRepository->findDoublons();
 		$counter = 0;
 
 		$saveLastRefToRestart = null;
@@ -50,7 +35,7 @@ class PatchRefArticles extends Fixture implements FixtureGroupInterface
 				$formattedCounter = sprintf('%05u', $counter);
 				$referenceRef = $doublon->getArticleFournisseur()->getReferenceArticle()->getReference();
 				$newRef = $referenceRef . $formattedDate . $formattedCounter;
-			} while ($this->articleRepository->findByReference($newRef));
+			} while ($articleRepository->findByReference($newRef));
 
 			$doublon->setReference($newRef);
 			$manager->flush();

@@ -351,7 +351,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function __toString()
+    public function __toString(): ?string
     {
         // Attention le toString est utilisé pour l'unicité, getAcheteurs dans les arrivages notamment
         return $this->username;

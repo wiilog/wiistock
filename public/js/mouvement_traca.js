@@ -16,7 +16,7 @@ $(function() {
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
-
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($('#modalNewMvtTraca'));
 });
 

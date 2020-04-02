@@ -4,11 +4,9 @@ namespace App\Repository;
 
 use App\Entity\ChampLibre;
 use App\Entity\Type;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ChampLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,12 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method ChampLibre[]    findAll()
  * @method ChampLibre[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ChampLibreRepository extends ServiceEntityRepository
+class ChampLibreRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ChampLibre::class);
-    }
 
     public function getByTypeAndRequiredCreate($type)
     {
@@ -173,6 +167,31 @@ class ChampLibreRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+    /**
+     * @param Type $type
+     * @param string $categorieCLLabel
+     * @param bool $creation
+     * @return ChampLibre[]
+     */
+	public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true)
+	{
+		$qb = $this->createQueryBuilder('c')
+            ->join('c.categorieCL', 'ccl')
+            ->where('c.type = :type AND ccl.label = :categorieCLLabel')
+            ->setParameters([
+                'type' => $type,
+                'categorieCLLabel' => $categorieCLLabel,
+            ]);
+
+		if ($creation) {
+            $qb->andWhere('c.requiredCreate = 1');
+        } else {
+            $qb->andWhere('c.requiredEdit = 1');
+        }
+
+		return $qb->getQuery()->getResult();
+	}
+
 	/**
 	 * @param int|Type $typeId
 	 * @return ChampLibre[]
@@ -251,4 +270,21 @@ class ChampLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param string $categoryCL
+	 * @return array
+	 */
+    public function getLabelAndIdByCategory($categoryCL)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT cl.label as value, cl.id as id
+			FROM App\Entity\ChampLibre cl
+			JOIN cl.categorieCL cat
+			WHERE cat.label = :categoryCL")
+			->setParameter('categoryCL', $categoryCL);
+
+		return $query->execute();
+	}
 }

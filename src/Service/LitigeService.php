@@ -4,8 +4,6 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
-use App\Repository\FiltreSupRepository;
-use App\Repository\LitigeRepository;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -24,11 +22,6 @@ class LitigeService
     private $templating;
 
     /**
-     * @var LitigeRepository
-     */
-    private $litigeRepository;
-
-    /**
      * @var RouterInterface
      */
     private $router;
@@ -40,30 +33,21 @@ class LitigeService
 
     private $security;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    private $em;
+    private $entityManager;
     private $translator;
 
     public function __construct(UserService $userService,
-                                LitigeRepository $litigeRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FiltreSupRepository $filtreSupRepository,
                                 TranslatorInterface $translator,
                                 Security $security)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->translator = $translator;
         $this->router = $router;
-        $this->litigeRepository = $litigeRepository;
         $this->userService = $userService;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
     }
 
@@ -74,9 +58,13 @@ class LitigeService
 	 */
     public function getDataForDatatable($params = null)
     {
-		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LITIGE, $this->security->getUser());
 
-		$queryResult = $this->litigeRepository->findByParamsAndFilters($params, $filters);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $litigeRepository = $this->entityManager->getRepository(Litige::class);
+
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LITIGE, $this->security->getUser());
+
+		$queryResult = $litigeRepository->findByParamsAndFilters($params, $filters);
 
 		$litiges = $queryResult['data'];
 
@@ -101,16 +89,18 @@ class LitigeService
 	 */
     public function dataRowLitige($litige)
     {
-    	$litigeId = $litige['id'];
-		$acheteursArrivage = $this->litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
-		$acheteursReception = $this->litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
+        $litigeRepository = $this->entityManager->getRepository(Litige::class);
 
-		$lastHistoric = $this->litigeRepository->getLastHistoricByLitigeId($litigeId);
+    	$litigeId = $litige['id'];
+		$acheteursArrivage = $litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
+		$acheteursReception = $litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
+
+		$lastHistoric = $litigeRepository->getLastHistoricByLitigeId($litigeId);
 		$lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
 
-		$commands = $this->litigeRepository->getCommandesByLitigeId($litigeId);
+		$commands = $litigeRepository->getCommandesByLitigeId($litigeId);
 
-		$references = $this->litigeRepository->getReferencesByLitigeId($litigeId);
+		$references = $litigeRepository->getReferencesByLitigeId($litigeId);
 
 		$isNumeroBLJson = !empty($litige['arrivageId']);
 		$numerosBL = isset($litige['numCommandeBl'])

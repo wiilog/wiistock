@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Role;
 use App\Repository\RoleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
@@ -92,13 +93,18 @@ class SecuriteController extends AbstractController
 
     /**
      * @Route("/register", name="register")
+     * @param Request $request
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
+    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
     {
         $session = $request->getSession();
         $user = new Utilisateur();
 
         $form = $this->createForm(UtilisateurType::class, $user);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -107,12 +113,12 @@ class SecuriteController extends AbstractController
                 ->setStatus(true)
                 ->setPassword($password)
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
-                ->setRole($this->roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
+                ->setRole($roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
 				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
 				->setRecherche(Utilisateur::SEARCH_DEFAULT);
-            $em->persist($user);
-            $em->flush();
+            $entityManager->persist($user);
+            $entityManager->flush();
             $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
 
             return $this->redirectToRoute('login');

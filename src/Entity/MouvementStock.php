@@ -82,6 +82,12 @@ class MouvementStock
 	private $preparationOrder;
 
 	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Import", inversedBy="mouvements")
+     * @ORM\JoinColumn(name="import_id", referencedColumnName="id", onDelete="CASCADE")
+	 */
+	private $import;
+
+	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvements")
 	 * @ORM\JoinColumn(name="reception_order_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
@@ -213,6 +219,18 @@ class MouvementStock
     public function setPreparationOrder(?Preparation $preparationOrder): self
     {
         $this->preparationOrder = $preparationOrder;
+
+        return $this;
+    }
+
+    public function getImport(): ?Import
+    {
+        return $this->import;
+    }
+
+    public function setImport(?Import $import): self
+    {
+        $this->import = $import;
 
         return $this;
     }

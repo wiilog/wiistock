@@ -3,26 +3,17 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fournisseur;
-use App\Repository\FournisseurRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
 class ImportFournisseursFixtures extends Fixture implements FixtureGroupInterface
 {
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    public function __construct(FournisseurRepository $fournisseurRepository)
-    {
-        $this->fournisseurRepository = $fournisseurRepository;
-    }
-
     public function load(ObjectManager $manager)
     {
-		$path = "src/DataFixtures/fournisseurs.csv";
+        $fournisseurRepository = $manager->getRepository(Fournisseur::class);
+
+        $path = "src/DataFixtures/fournisseurs.csv";
 		$file = fopen($path, "r");
 
         $firstRow = true;
@@ -33,7 +24,7 @@ class ImportFournisseursFixtures extends Fixture implements FixtureGroupInterfac
 			} else {
 				$row = array_map('utf8_encode', $data);
 				$code = $row[1] ?? $row[0];
-				$fournisseur = $this->fournisseurRepository->findOneByCodeReference($code);
+				$fournisseur = $fournisseurRepository->findOneByCodeReference($code);
 				if (empty($fournisseur)) {
 					$fournisseur = new Fournisseur();
 					$fournisseur

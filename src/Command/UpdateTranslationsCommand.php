@@ -4,8 +4,6 @@
 namespace App\Command;
 
 
-use App\Repository\TranslationRepository;
-
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -17,15 +15,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class UpdateTranslationsCommand extends Command
 {
     private $entityManager;
-    private $translationRepository;
     private $translationService;
 
     public function __construct(EntityManagerInterface $entityManager,
-		                		TranslationRepository $translationRepository,
                                 TranslationService $translationService) {
         parent::__construct();
         $this->entityManager = $entityManager;
-        $this->translationRepository = $translationRepository;
         $this->translationService = $translationService;
     }
 

@@ -1,0 +1,35 @@
+<div class="row">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Titre de colonne de fichier</th>
+            <th>Aperçu (ligne 1)</th>
+            <th>Champ Follow GT</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for i in 0..(data.headers|length -  1) %}
+            <tr>
+                <td>{{ data.headers[i] }}</td>
+                <td>{{ data.firstRow[i] }}</td>
+                <td><select class="form-control data no-clear" name="{{ i }}" onchange="updateOptions($(this))">
+                        <option></option>
+                        {% for fieldValue, fieldName in fields %}
+                            {% set needed = fieldValue in fieldsNeeded ? '*'%}
+                            {% set pk = (fieldValue == fieldPK) ? ' [clé unique]' %}
+                            {% set selected = (columnsToFields[i] is defined and fieldValue == columnsToFields[i]) ? 'selected' %}
+                            i<option value="{{ fieldValue }}" {{ selected }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="row">
+    <p class="italic little-font">
+        * champ obligatoire à la création<br>
+        La clé unique permet d'identifier une valeur unique d'enregistrement et sera utilisée pour effectuer une mise à jour.
+    </p>
+</div>

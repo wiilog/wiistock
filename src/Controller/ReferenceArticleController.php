@@ -6,35 +6,32 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\InventoryCategory;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
-use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FiltreRefRepository;
-use App\Repository\InventoryCategoryRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\ChampLibreRepository;
-use App\Repository\ValeurChampLibreRepository;
-use App\Repository\TypeRepository;
-use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\ArticleRepository;
-use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
-use App\Repository\EmplacementRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -57,7 +54,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 use App\Entity\Demande;
 use App\Entity\ArticleFournisseur;
-use App\Repository\FournisseurRepository;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -69,19 +65,6 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
  */
 class ReferenceArticleController extends AbstractController
 {
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
 
     /**
      * @var LivraisonRepository
@@ -97,41 +80,6 @@ class ReferenceArticleController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var ValeurChampLibreRepository
-     */
-    private $valeurChampLibreRepository;
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
-    /**
-     * @var LigneArticleRepository
-     */
-    private $ligneArticleRepository;
 
     /**
      * @var FiltreRefRepository
@@ -189,11 +137,6 @@ class ReferenceArticleController extends AbstractController
     private $inventoryFrequencyRepository;
 
     /**
-     * @var InventoryCategoryRepository
-     */
-    private $inventoryCategoryRepository;
-
-    /**
      * @var MouvementStockRepository
      */
     private $mouvementStockRepository;
@@ -211,53 +154,31 @@ class ReferenceArticleController extends AbstractController
                                 ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
-                                EmplacementRepository $emplacementRepository,
-                                FournisseurRepository $fournisseurRepository,
                                 CategorieCLRepository $categorieCLRepository,
-                                LigneArticleRepository $ligneArticleRepository,
-                                ArticleRepository $articleRepository,
                                 ArticleDataService $articleDataService,
                                 LivraisonRepository $livraisonRepository,
                                 DemandeRepository $demandeRepository,
                                 CollecteRepository $collecteRepository,
-                                StatutRepository $statutRepository,
-                                ValeurChampLibreRepository $valeurChampLibreRepository,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                TypeRepository  $typeRepository,
-                                ChampLibreRepository $champsLibreRepository,
-                                ArticleFournisseurRepository $articleFournisseurRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
-                                InventoryCategoryRepository $inventoryCategoryRepository,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 MouvementStockRepository $mouvementStockRepository,
                                 CSVExportService $CSVExportService)
     {
-        $this->emplacementRepository = $emplacementRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->champLibreRepository = $champsLibreRepository;
-        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
-        $this->typeRepository = $typeRepository;
-        $this->statutRepository = $statutRepository;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
-        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
-        $this->ligneArticleRepository = $ligneArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->templating = $templating;
         $this->specificService = $specificService;
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->globalParamService = $globalParamService;
-        $this->inventoryCategoryRepository = $inventoryCategoryRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -266,6 +187,8 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function apiColumns(Request $request): Response
     {
@@ -274,11 +197,13 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $champLibreRepository = $this->getDoctrine()->getRepository(ChampLibre::class);
+
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnVisible();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = CategoryType::ARTICLE;
-            $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+            $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
 			$columns = [
 				[
@@ -344,6 +269,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Commentaire',
 					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Commentaire d\'urgence',
+                    "data" => 'Commentaire d\'urgence',
+                    'name' => 'Commentaire d\'urgence',
+                    "class" => (in_array('Commentaire d\'urgence', $columnsVisible) ? 'display' : 'hide'),
+                ],
 				[
 					"title" => 'Seuil d\'alerte',
 					"data" => 'Seuil d\'alerte',
@@ -392,6 +323,9 @@ class ReferenceArticleController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
             $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
             return new JsonResponse($data);
         }
@@ -402,11 +336,11 @@ class ReferenceArticleController extends AbstractController
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @return Response
+     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
      */
     public function new(Request $request): Response
     {
@@ -415,8 +349,20 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $entityManager = $this->getDoctrine()->getManager();
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+
+
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
+            $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
 
             if ($refAlreadyExist) {
                 return new JsonResponse([
@@ -426,14 +372,15 @@ class ReferenceArticleController extends AbstractController
 				]);
             }
             $requiredCreate = true;
-            $type = $this->typeRepository->find($data['type']);
+
+            $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
-                $emplacement = $this->emplacementRepository->find($data['emplacement']);
+                $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             };
-            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+            $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -447,8 +394,7 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
             switch($data['type_quantite']) {
                 case 'article':
@@ -476,8 +422,11 @@ class ReferenceArticleController extends AbstractController
             if ($data['limitWarning']) {
             	$refArticle->setLimitWarning($data['limitWarning']);
 			}
+            if ($data['emergency-comment-input']) {
+                $refArticle->setEmergencyComment($data['emergency-comment-input']);
+            }
             if ($data['categorie']) {
-            	$category = $this->inventoryCategoryRepository->find($data['categorie']);
+            	$category = $inventoryCategoryRepository->find($data['categorie']);
             	if ($category) $refArticle->setCategory($category);
 			}
             if ($statut) $refArticle->setStatut($statut);
@@ -491,10 +440,10 @@ class ReferenceArticleController extends AbstractController
                 $fournisseurId = explode(';', $frl)[0];
                 $ref = explode(';', $frl)[1];
                 $label = explode(';', $frl)[2];
-                $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                $fournisseur = $fournisseurRepository->find(intval($fournisseurId));
 
                 // on vérifie que la référence article fournisseur n'existe pas déjà
-                $refFournisseurAlreadyExist = $this->articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
+                $refFournisseurAlreadyExist = $articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
                 if ($refFournisseurAlreadyExist) {
                     return new JsonResponse([
                         'success' => false,
@@ -508,11 +457,11 @@ class ReferenceArticleController extends AbstractController
                     ->setFournisseur($fournisseur)
                     ->setReference($ref)
                     ->setLabel($label);
-                $em->persist($articleFournisseur);
+                $entityManager->persist($articleFournisseur);
 
             }
-            $em->persist($refArticle);
-            $em->flush();
+            $entityManager->persist($refArticle);
+            $entityManager->flush();
             $champsLibresKey = array_keys($data);
 
             foreach ($champsLibresKey as $champs) {
@@ -521,9 +470,9 @@ class ReferenceArticleController extends AbstractController
                     $valeurChampLibre
                         ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                         ->addArticleReference($refArticle)
-                        ->setChampLibre($this->champLibreRepository->find($champs));
-                    $em->persist($valeurChampLibre);
-                    $em->flush();
+                        ->setChampLibre($champLibreRepository->find($champs));
+                    $entityManager->persist($valeurChampLibre);
+                    $entityManager->flush();
                 }
             }
             return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
@@ -533,12 +482,20 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
+     * @return Response
      */
     public function index(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $entityManager = $this->getDoctrine()->getManager();
+
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
         $typeQuantite = [
             [
@@ -553,7 +510,7 @@ class ReferenceArticleController extends AbstractController
 
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
-        $champL = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champF[] = [
             'label' => 'Actions',
             'id' => 0,
@@ -608,6 +565,11 @@ class ReferenceArticleController extends AbstractController
             'typage' => 'text'
         ];
         $champF[] = [
+            'label' => 'Commentaire d\'urgence',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
             'label' => 'Seuil de sécurité',
             'id' => 0,
             'typage' => 'number'
@@ -629,8 +591,8 @@ class ReferenceArticleController extends AbstractController
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
-		$champsLText = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
-		$champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
+		$champsLText = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
+		$champsLTList = $champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
 
 		$champsFText[] = [
             'label' => 'Libellé',
@@ -675,13 +637,13 @@ class ReferenceArticleController extends AbstractController
 			return strcasecmp($a['label'], $b['label']);
 		});
 
-        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-        $inventoryCategories = $this->inventoryCategoryRepository->findAll();
-        $emplacements = $this->emplacementRepository->findAll();
+        $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $inventoryCategories = $inventoryCategoryRepository->findAll();
+        $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $typeChampLibre[] = [
                 'typeLabel' =>  $type->getLabel(),
                 'typeId' => $type->getId(),
@@ -707,14 +669,22 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find((int)$data['id']);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $refArticle = $referenceArticleRepository->find((int)$data['id']);
 
             if ($refArticle) {
                 $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand']);
@@ -728,18 +698,27 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $refId = intval($data['idRefArticle']);
-            $refArticle = $this->referenceArticleRepository->find($refId);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $refArticle = $referenceArticleRepository->find($refId);
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference'], $refId);
+            $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference'], $refId);
 
             if ($refAlreadyExist) {
                 return new JsonResponse([
@@ -760,15 +739,19 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            $refArticle = $referenceArticleRepository->find($data['refArticle']);
             $rows = $refArticle->getId();
             $entityManager = $this->getDoctrine()->getManager();
             if (count($refArticle->getCollecteReferences()) > 0
@@ -804,19 +787,24 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/removeFournisseur", name="ajax_render_remove_fournisseur", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function removeFournisseur(Request $request): Response
+    public function removeFournisseur(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($this->articleFournisseurRepository->find($data['articleF']));
-            $em->flush();
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $entityManager->remove($articleFournisseurRepository->find($data['articleF']));
+            $entityManager->flush();
             $json =  $this->renderView('reference_article/fournisseurArticleContent.html.twig', [
-                'articles' => $this->articleFournisseurRepository->findByRefArticle($data['articleRef']),
-                'articleRef' => $this->referenceArticleRepository->find($data['articleRef'])
+                'articles' => $articleFournisseurRepository->findByRefArticle($data['articleRef']),
+                'articleRef' => $referenceArticleRepository->find($data['articleRef'])
             ]);
             return new JsonResponse($json);
         }
@@ -825,18 +813,22 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse|RedirectResponse
      */
-    public function getQuantityByRefArticleId(Request $request)
+    public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $quantity = false;
 
             $refArticleId = $request->request->get('refArticleId');
-            $refArticle = $this->referenceArticleRepository->find($refArticleId);
+            $refArticle = $referenceArticleRepository->find($refArticleId);
 
             if ($refArticle) {
 				if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -849,39 +841,45 @@ class ReferenceArticleController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
-	 *
-	 * @param Request $request
-	 * @param bool $activeOnly
-	 * @return JsonResponse
-	 */
-    public function getRefArticles(Request $request, $activeOnly = false, $typeQuantity = null)
+    /**
+     * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param bool $activeOnly
+     * @param null $typeQuantity
+     * @return JsonResponse
+     */
+    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
 
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/autocomplete-ref-and-article/{activeOnly}", name="get_ref_and_articles", options={"expose"=true}, methods="GET|POST")
-	 *
-	 * @param Request $request
-	 * @param bool $activeOnly
-	 * @return JsonResponse
-	 */
-	public function getRefAndArticles(Request $request, $activeOnly = false)
+    /**
+     * @Route("/autocomplete-ref-and-article/{activeOnly}", name="get_ref_and_articles", options={"expose"=true}, methods="GET|POST")
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param bool $activeOnly
+     * @return JsonResponse
+     */
+	public function getRefAndArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false)
 	{
 		if ($request->isXmlHttpRequest()) {
 			$search = $request->query->get('term');
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
-			$refArticles = $this->referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
-			$articles = $this->articleRepository->getIdAndRefBySearch($search, $activeOnly);
+			$refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly);
+			$articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
 
 			return new JsonResponse(['results' => array_merge($articles, $refArticles)]);
 		}
@@ -890,14 +888,28 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function plusDemande(Request $request): Response
+    public function plusDemande(EntityManagerInterface $entityManager,
+                                Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
             $json = true;
 
-            $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
+            $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
@@ -913,17 +925,17 @@ class ReferenceArticleController extends AbstractController
 					$collecte = $this->collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
-						$fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+						$fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
 						if (!$fournisseurTemp) {
 							$fournisseurTemp = new Fournisseur();
 							$fournisseurTemp
 								->setCodeReference('A_DETERMINER')
 								->setNom('A DETERMINER');
-							$em->persist($fournisseurTemp);
+                            $entityManager->persist($fournisseurTemp);
 						}
 						$newArticle = new Article();
-						$index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
-						$statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
+						$index = $articleFournisseurRepository->countByRefArticle($refArticle);
+						$statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
 						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 						$ref = $date->format('YmdHis');
 						$articleFournisseur = new ArticleFournisseur();
@@ -932,7 +944,7 @@ class ReferenceArticleController extends AbstractController
 							->setFournisseur($fournisseurTemp)
 							->setReference($refArticle->getReference())
 							->setLabel('A déterminer -' . $index);
-						$em->persist($articleFournisseur);
+                        $entityManager->persist($articleFournisseur);
 						$newArticle
 							->setLabel($refArticle->getLibelle() . '-' . $index)
 							->setConform(true)
@@ -944,7 +956,7 @@ class ReferenceArticleController extends AbstractController
 							->setArticleFournisseur($articleFournisseur)
 							->setType($refArticle->getType())
 							->setBarCode($this->articleDataService->generateBarCode());
-						$em->persist($newArticle);
+                        $entityManager->persist($newArticle);
 						$collecte->addArticle($newArticle);
 						//TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
 						//                    $article = $this->articleRepository->find($data['article']);
@@ -955,14 +967,14 @@ class ReferenceArticleController extends AbstractController
 							->setCollecte($collecte)
 							->setReferenceArticle($refArticle)
 							->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
-						$em->persist($collecteReference);
+                        $entityManager->persist($collecteReference);
 					} else {
 						$json = false; //TOOD gérer message erreur
 					}
 				} else {
 					$json = false; //TOOD gérer message erreur
 				}
-				$em->flush();
+                $entityManager->flush();
 			} else {
             	$json = false;
 			}
@@ -975,15 +987,27 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/ajax-plus-demande-content", name="ajax_plus_demande_content", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function ajaxPlusDemandeContent(Request $request): Response
+    public function ajaxPlusDemandeContent(EntityManagerInterface $entityManager,
+                                           Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($data['id']);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
                 $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
-                $statutD = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+                $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -1055,41 +1079,63 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function isUrgent(Request $request): Response
+    public function isUrgent(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $referenceArticle = $this->referenceArticleRepository->find($id);
-            return new JsonResponse($referenceArticle->getIsUrgent() ?? false);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $referenceArticle = $referenceArticleRepository->find($id);
+
+            return new JsonResponse([
+                'urgent' => $referenceArticle->getIsUrgent() ?? false,
+                'comment' => $referenceArticle->getEmergencyComment()
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
 
     /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function show(Request $request): Response
+    public function show(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle  = $this->referenceArticleRepository->find($data);
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+
+            $refArticle  = $referenceArticleRepository->find($data);
 
             $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-            $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-            $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
+
+            $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
             $typeChampLibre =  [];
             foreach ($types as $type) {
-                $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+                $champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
 
                 $champsLibres = [];
                 foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
+                    $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
@@ -1129,18 +1175,31 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/exporter/{min}/{max}", name="reference_article_export", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @param $max
+     * @param $min
+     * @return Response
      */
-    public function exportAll(Request $request, $max, $min): Response
+    public function exportAll(EntityManagerInterface $entityManager,
+                              Request $request,
+                              $max,
+                              $min): Response
     {
         if ($request->isXmlHttpRequest()) {
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
             $data = [];
             $data['values'] = [];
             $headersCL = [];
-            foreach ($this->champLibreRepository->findAll() as $champLibre) {
+            foreach ($champLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
-            $references = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
+            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
+
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $references = $referenceArticleRepository->getBetweenLimits($min, $max-$min);
             foreach ($references as $reference) {
                 $data['values'][] = $this->buildInfos($reference, $listTypes, $headersCL);
             }
@@ -1160,11 +1219,17 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/total", name="get_total_and_headers_ref", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function total(Request $request): Response
+    public function total(Request $request,
+                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            $data['total'] = $this->referenceArticleRepository->countAll();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $data['total'] = $referenceArticleRepository->countAll();
             $data['headers'] = [
                 'reference',
                 'libellé',
@@ -1183,7 +1248,9 @@ class ReferenceArticleController extends AbstractController
 				'catégorie inventaire',
 				'date dernier inventaire'
             ];
-            foreach ($this->champLibreRepository->findAll() as $champLibre) {
+
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            foreach ($champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
             return new JsonResponse($data);
@@ -1191,15 +1258,22 @@ class ReferenceArticleController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @param ReferenceArticle $ref
-	 * @param array $listTypes
-	 * @param string[] $headersCL
-	 * @return string
-	 */
-    public function buildInfos(ReferenceArticle $ref, $listTypes, $headersCL)
-    {
-    	$listFournisseurAndAF = $this->fournisseurRepository->getNameAndRefArticleFournisseur($ref);
+    /**
+     * @param ReferenceArticle $ref
+     * @param array $listTypes
+     * @param string[] $headersCL
+     * @return string
+     */
+    public function buildInfos(ReferenceArticle $ref,
+                               $listTypes,
+                               $headersCL) {
+        $entityManager = $this->getDoctrine()->getManager();
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+
+        $listFournisseurAndAF = $fournisseurRepository->getNameAndRefArticleFournisseur($ref);
 
     	$arrayAF = $arrayF = [];
 
@@ -1230,10 +1304,10 @@ class ReferenceArticleController extends AbstractController
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
-        	$type = $this->typeRepository->find($typeArray['id']);
-            $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+        	$type = $typeRepository->find($typeArray['id']);
+            $listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ref->getId(), $champLibre);
+                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ref->getId(), $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
             }
         }
@@ -1247,13 +1321,18 @@ class ReferenceArticleController extends AbstractController
         return implode(';', $refData);
     }
 
-	/**
-	 * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST")
-	 */
-    public function getQuantityType(Request $request)
+    /**
+     * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+    public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$reference = $this->referenceArticleRepository->find($data['id']);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $reference = $referenceArticleRepository->find($data['id']);
 
 			$quantityType = $reference ? $reference->getTypeQuantite() : '';
 
@@ -1264,12 +1343,18 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/get-demande", name="demande", options={"expose"=true})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
-    public function getDemande(Request $request): Response
+    public function getDemande(EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $statutDemande = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+            $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
             $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
@@ -1291,20 +1376,24 @@ class ReferenceArticleController extends AbstractController
      * @Route("/etiquettes", name="reference_article_bar_codes_print", options={"expose"=true})
      * @param Request $request
      * @param RefArticleDataService $refArticleDataService
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function getBarCodes(Request $request,
                                 RefArticleDataService $refArticleDataService,
-                                PDFGeneratorService $PDFGeneratorService): Response {
+                                EntityManagerInterface $entityManager,
+                                PDFGeneratorService $PDFGeneratorService): Response
+    {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
         $refs = $queryResult['data'];
         $refs = array_map(function($refArticle) {
             return is_array($refArticle) ? $refArticle[0] : $refArticle;
@@ -1392,12 +1481,16 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function showMovements(Request $request): Response
+    public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            if ($ref = $this->referenceArticleRepository->find($data)) {
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            if ($ref = $referenceArticleRepository->find($data)) {
                 $name = $ref->getLibelle();
             }
 
@@ -1410,12 +1503,19 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @param $id
+     * @return Response
      */
-    public function apiMouvements(Request $request, $id): Response
+    public function apiMouvements(EntityManagerInterface $entityManager,
+                                  Request $request,
+                                  $id): Response
     {
         if ($request->isXmlHttpRequest()) {
 
-            $mouvements = $this->mouvementStockRepository->findByRef($id);
+            $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+            $mouvements = $mouvementStockRepository->findByRef($id);
 
             $rows = [];
             foreach ($mouvements as $mouvement) {

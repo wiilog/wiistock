@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\Emplacement;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Repository\EmplacementRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PasswordService;
@@ -20,11 +19,6 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var PasswordService
@@ -44,11 +38,9 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
     public function __construct(UtilisateurRepository $utilisateurRepository,
                                 PasswordService $passwordService,
                                 RoleRepository $roleRepository,
-                                UserPasswordEncoderInterface $encoder,
-                                EmplacementRepository $emplacementRepository)
+                                UserPasswordEncoderInterface $encoder)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->passwordService = $passwordService;
         $this->encoder = $encoder;
         $this->roleRepository = $roleRepository;
@@ -60,6 +52,8 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 		$file = fopen($path, "r");
 
         $firstRow = true;
+
+        $emplacementRepository = $manager->getRepository(Emplacement::class);
 
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
         	if ($firstRow) {
@@ -74,7 +68,7 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 				$utilisateur = $this->utilisateurRepository->findOneByMail($mail);
 				if (empty($utilisateur)) {
                     $role = $this->roleRepository->findByLabel($roleStr);
-                    $emplacement = $this->emplacementRepository->findOneByLabel($emplacementStr);
+                    $emplacement = $emplacementRepository->findOneByLabel($emplacementStr);
 				    if (empty($role)) {
 				        $role = new Role();
 				        $role

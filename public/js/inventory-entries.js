@@ -11,14 +11,7 @@ $(function () {
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
 
     initSearchDate(tableEntries);
-
-    $('#emplacement').select2({
-        placeholder: {
-            id: 0,
-            text: 'Emplacement',
-        }
-    });
-
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     $('.ajax-autocomplete-inv-entries').select2({
         ajax: {
             url: Routing.generate('get_ref_and_articles', {activeOnly: 0}, true),

@@ -305,6 +305,14 @@ class Arrivage
         return $this;
     }
 
+    public function removeAllAcheteur(): self
+    {
+        foreach ($this->acheteurs as $acheteur) {
+            $this->acheteurs->removeElement($acheteur);
+        }
+        return $this;
+    }
+
     public function getNumeroReception(): ?string
     {
         return $this->numeroReception;
@@ -371,7 +379,7 @@ class Arrivage
         return $this->colis;
     }
 
-    public function addColis(Colis $colis): self
+    public function addColi(Colis $colis): self
     {
         if (!$this->colis->contains($colis)) {
             $this->colis[] = $colis;
@@ -381,7 +389,7 @@ class Arrivage
         return $this;
     }
 
-    public function removeColis(Colis $colis): self
+    public function removeColi(Colis $colis): self
     {
         if ($this->colis->contains($colis)) {
             $this->colis->removeElement($colis);

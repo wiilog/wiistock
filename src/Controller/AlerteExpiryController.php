@@ -4,15 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\AlerteExpiry;
-
 use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
 use App\Repository\AlerteExpiryRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Service\AlerteService;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -33,33 +32,33 @@ class AlerteExpiryController extends AbstractController
 	 * @var UserService
 	 */
 	private $userService;
-
-	/**
-	 * @var ReferenceArticleRepository
-	 */
-	private $referenceArticleRepository;
-
 	/**
 	 * @var AlerteService
 	 */
 	private $alerteService;
 
 
-    public function __construct(AlerteService $alerteService, AlerteExpiryRepository $alerteExpiryRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(AlerteService $alerteService, AlerteExpiryRepository $alerteExpiryRepository, UserService $userService)
     {
 		$this->alerteExpiryRepository = $alerteExpiryRepository;
 		$this->userService = $userService;
-		$this->referenceArticleRepository = $referenceArticleRepository;
 		$this->alerteService = $alerteService;
     }
 
     /**
      * @Route("/api", name="alerte_expiry_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws Exception
      */
-    public function api(Request $request): Response
+    public function api(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            $alertes = $this->alerteExpiryRepository->findAll();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $alerteExpiryRepository = $entityManager->getRepository(AlerteExpiry::class);
+
+            $alertes = $alerteExpiryRepository->findAll();
             $rows = [];
 			$refs = [];
 
@@ -90,7 +89,7 @@ class AlerteExpiryController extends AbstractController
 			}
 
             foreach($refs as $refId => $alertes) {
-            	$reference = $this->referenceArticleRepository->find($refId);
+            	$reference = $referenceArticleRepository->find($refId);
 
             	$delay = $user = '';
             	$active = false;
@@ -128,38 +127,26 @@ class AlerteExpiryController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-//	/**
-//	 * @Route("/liste/{filter}", name="alerte_expiry_index", methods="GET")
-//	 * @param string|null $filter
-//	 * @return Response
-//	 */
-//    public function index($filter = null): Response
-//    {
-//    	$nbAlerts = $this->alerteExpiryRepository->countAlertsExpiryActive()
-//			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
-//
-//        return $this->render('alerte_expiry/index.html.twig', [
-//        	'nbAlerts' => $nbAlerts,
-//			'filter' => $filter == 'active'
-//		]);
-//    }
-
     /**
      * @Route("/creer", name="alerte_expiry_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             if ($data['allRef']) {
             	$refArticle = null;
 			} else {
-            	$refArticle = $this->referenceArticleRepository->find($data['reference']);
+            	$refArticle = $referenceArticleRepository->find($data['reference']);
 			}
 
             switch($data['period']) {
@@ -179,30 +166,33 @@ class AlerteExpiryController extends AbstractController
 				->setUser($this->getUser())
 				->setRefArticle($refArticle);
 
-			$em->persist($alerte);
-			$em->flush();
+            $entityManager->persist($alerte);
+            $entityManager->flush();
 
 			return new JsonResponse(true);
         }
 
-        throw new XmlHttpException('404 not found');
+        throw new NotFoundHttpException('404 not found');
     }
 
-	/**
-	 * @Route("/voir", name="show_alerte", options={"expose"=true})
-	 * @param Request $request
-	 * @return Response
-	 * @throws Exception
-	 */
-    public function show(Request $request): Response
+    /**
+     * @Route("/voir", name="show_alerte", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws Exception
+     */
+    public function show(Request $request, EntityManagerInterface $entityManager): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$alerte = $this->alerteExpiryRepository->find($data);
-			$listRef = $this->referenceArticleRepository->findWithExpiryDateUpTo($alerte->getNbPeriod(), $alerte->getTypePeriod());
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $alerte = $this->alerteExpiryRepository->find($data);
+			$listRef = $referenceArticleRepository->findWithExpiryDateUpTo($alerte->getNbPeriod(), $alerte->getTypePeriod());
 			$html = $this->renderView('alerte_expiry/modalShowAlerteExpiryContent.html.twig', [
 				'nbPeriod' => $alerte->getNbPeriod(),
 				'typePeriod' => $alerte->getTypePeriod(),
@@ -235,20 +225,24 @@ class AlerteExpiryController extends AbstractController
 
     /**
      * @Route("/modifier", name="alerte_expiry_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $alerte = $this->alerteExpiryRepository->find($data['id']);
 
 			if ($data['allRef']) {
 				$refArticle = null;
 			} else {
-				$refArticle = $this->referenceArticleRepository->find($data['reference']);
+				$refArticle = $referenceArticleRepository->find($data['reference']);
 			}
 
 			switch($data['period']) {

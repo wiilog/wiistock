@@ -3,42 +3,30 @@
 
 namespace App\Service;
 
+use App\Entity\DimensionsEtiquettes;
+use App\Entity\Emplacement;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
-use App\Repository\DimensionsEtiquettesRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\NatureRepository;
-use App\Repository\ParametrageGlobalRepository;
+use App\Entity\Transporteur;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 
 Class GlobalParamService
 {
-	private $parametrageGlobalRepository;
-	private $dimensionsEtiquettesRepository;
-	private $emplacementRepository;
 	private $kernel;
 	private $translationService;
-	private $natureRepository;
+    private $em;
 
-	public function __construct(
-		ParametrageGlobalRepository $parametrageGlobalRepository,
-		DimensionsEtiquettesRepository $dimensionsEtiquettesRepository,
-		EmplacementRepository $emplacementRepository,
-		KernelInterface $kernel,
-		TranslationService $translationService,
-		NatureRepository $natureRepository
-	)
-	{
-		$this->parametrageGlobalRepository = $parametrageGlobalRepository;
-		$this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
-		$this->emplacementRepository = $emplacementRepository;
-		$this->natureRepository = $natureRepository;
-		$this->kernel = $kernel;
-		$this->translationService = $translationService;
-	}
+    public function __construct(EntityManagerInterface $em,
+                                KernelInterface $kernel,
+                                TranslationService $translationService) {
+        $this->kernel = $kernel;
+        $this->translationService = $translationService;
+        $this->em = $em;
+    }
 
 	/**
 	 * @param bool $includeNullDimensions
@@ -46,9 +34,12 @@ Class GlobalParamService
 	 * @throws NonUniqueResultException
 	 */
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
-		$dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+        $dimensionsEtiquettesRepository = $this->em->getRepository(DimensionsEtiquettes::class);
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+
+		$dimension = $dimensionsEtiquettesRepository->findOneDimension();
 		$response = [];
-		$response['logo'] = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+		$response['logo'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
 		if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
 		{
 			$response['height'] = $dimension->getHeight();
@@ -61,7 +52,7 @@ Class GlobalParamService
 			}
 			$response['exists'] = false;
 		}
-		$typeBarcode = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+		$typeBarcode = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 		$response['isCode128'] = $typeBarcode === '1';
 		return $response;
 	}
@@ -71,10 +62,13 @@ Class GlobalParamService
 	 * @throws NonUniqueResultException
 	 */
 	public function getReceptionDefaultLocation() {
-		$locationId = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+	    $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+	    $emplacementRepository = $this->em->getRepository(Emplacement::class);
+
+		$locationId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
 
 		if ($locationId) {
-			$location = $this->emplacementRepository->find($locationId);
+			$location = $emplacementRepository->find($locationId);
 
 			if ($location) {
 				$resp = [
@@ -87,13 +81,86 @@ Class GlobalParamService
 	}
 
 	/**
+	 * @return array|null
 	 * @throws NonUniqueResultException
 	 */
-	public function generateSassFile() {
-		$projectDir = $this->kernel->getProjectDir();
+	public function getMvtDeposeArrival() {
+	    $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+	    $emplacementRepository = $this->em->getRepository(Emplacement::class);
+
+		$locationId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+
+		if ($locationId) {
+			$location = $emplacementRepository->find($locationId);
+
+			if ($location) {
+				$resp = [
+					'id' => $locationId,
+					'text' => $location->getLabel()
+				];
+			}
+		}
+		return $resp ?? null;
+	}
+
+	public function getLivraisonDefaultLocation() {
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+        $emplacementRepository = $this->em->getRepository(Emplacement::class);
+
+        $locationId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+
+        if ($locationId) {
+            $location = $emplacementRepository->find($locationId);
+
+            if ($location) {
+                $resp = [
+                    'id' => $locationId,
+                    'text' => $location->getLabel()
+                ];
+            }
+        }
+        return $resp ?? null;
+    }
+
+    public function getDashboardCarrierDock()
+    {
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+        $transporteurRepository = $this->em->getRepository(Transporteur::class);
+
+        $carriersId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);
+
+        if (!empty($carriersId)) {
+            $ids = $texts = [];
+
+            foreach (explode(',', $carriersId) as $id) {
+                $transporteur = $transporteurRepository->find($id);
+
+                if ($transporteur) {
+                    $ids[] = $id;
+                    $texts[] = $transporteur->getLabel();
+                }
+            }
+
+            $resp = [
+                'id' => implode(',', $ids),
+                'text' => implode(',', $texts)
+            ];
+        }
+
+        return $resp ?? [];
+    }
+
+	/**
+	 * @throws NonUniqueResultException
+	 */
+	public function generateSassFile()
+    {
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+
+        $projectDir = $this->kernel->getProjectDir();
 		$sassFile = $projectDir . '/assets/sass/_customFont.sass';
 
-		$param = $this->parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+		$param = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
 		$font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
 
 		$sassText = '$mainFont: "' . $font . '"';
@@ -117,7 +184,10 @@ Class GlobalParamService
      * @return array
      * @throws NonUniqueResultException
      */
-	public function getDashboardLocations() {
+	public function getDashboardLocations()
+    {
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+        $emplacementRepository = $this->em->getRepository(Emplacement::class);
 
 		$paramLabels = [
 			ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
@@ -133,14 +203,14 @@ Class GlobalParamService
 
 		$resp = [];
 		foreach ($paramLabels as $paramLabel) {
-			$locationIds = $this->parametrageGlobalRepository->getOneParamByLabel($paramLabel);
+			$locationIds = $parametrageGlobalRepository->getOneParamByLabel($paramLabel);
 
 			if ($locationIds) {
 				$locationIdsArr = explode(',', $locationIds);
 
 				$text = [];
 				foreach ($locationIdsArr as $locationId) {
-					$location = $this->emplacementRepository->find($locationId);
+					$location = $emplacementRepository->find($locationId);
 					$text[] = $location ? $location->getLabel() : '';
 				}
 
@@ -158,17 +228,19 @@ Class GlobalParamService
 
 	/**
 	 * @return array
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
+     * @throws NonUniqueResultException
 	 */
 	public function getDashboardListNatures() {
-		$listNatureId = $this->parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
+        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+        $natureRepository = $this->em->getRepository(Nature::class);
+
+        $listNatureId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS);
 
 		$listNatureIdArray = explode(',', $listNatureId);
 		$resp = [];
 
 		foreach ($listNatureIdArray as $natureId) {
-			$nature = $this->natureRepository->find($natureId);
+			$nature = $natureRepository->find($natureId);
 
 			if ($nature) {
 				$resp[] = $natureId;

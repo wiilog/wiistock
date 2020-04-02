@@ -595,3 +595,12 @@ function showRowMouvements(button) {
         initDatatableMovements(id);
     }, 'json');
 }
+
+function toggleEmergency($switch) {
+    if ($switch.is(':checked')) {
+        $('.emergency-comment').removeClass('d-none');
+    } else {
+        $('.emergency-comment').addClass('d-none');
+        $('.emergency-comment').val('');
+    }
+}

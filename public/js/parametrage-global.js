@@ -51,8 +51,8 @@ $(function () {
     initDisplaySelect2Multiple('#locationsFirstGraph', '#locationsFirstGraphValue');
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
     initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
+    initDisplaySelect2Multiple('#locationDemandeLivraison','#locationDemandeLivraisonValue');
     $('#locationArrivageDest').on('change', editArrivageDestination);
-
     // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });
@@ -251,6 +251,21 @@ function editStatusLitigeArrivage($select) {
     });
 }
 
+function editStatusArrivage($select) {
+    let path = Routing.generate('edit_status_arrivage',true);
+    const param = {
+        value: $select.val()
+    };
+
+    $.post(path, param, (resp) => {
+        if (resp) {
+            alertSuccessMsg("Le statut de l'arrivage par défaut a bien été mis à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut par défaut de l'arrivage.");
+        }
+    });
+}
+
 function editFont() {
     let path = Routing.generate('edit_font', true);
     let param = {
@@ -271,9 +286,19 @@ function editFont() {
 function editArrivageDestination() {
     $.post(Routing.generate('set_arrivage_default_dest'), $(this).val(), (resp) => {
         if (resp) {
-            alertSuccessMsg("Mise à jour de la destination des arrivages bien effectuée.");
+            alertSuccessMsg("la destination des arrivages a bien été mise à jour.");
         } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du choix de la police.");
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des arrivages.");
+        }
+    });
+}
+
+function editDemandeLivraisonDestination($select) {
+    $.post(Routing.generate('edit_demande_livraison_default_dest'), $select.val(), (resp) => {
+        if (resp) {
+            alertSuccessMsg("La destination des demandes de livraison a bien été mise à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des demandes de livraison.");
         }
     });
 }
@@ -287,7 +312,7 @@ function editReceptionStatus() {
         let name = $(this).attr('name');
         let val = $(this).val();
         param[name] = val;
-    })
+    });
 
     $.post(path, param, (resp) => {
         if (resp) {
