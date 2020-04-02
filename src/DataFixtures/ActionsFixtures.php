@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Repository\RoleRepository;
+use App\Entity\Role;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -16,15 +16,12 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 {
     private $encoder;
     private $specificService;
-    private $roleRepository;
 
     public function __construct(UserPasswordEncoderInterface $encoder,
-                                SpecificService $specificService,
-								RoleRepository $roleRepository)
+                                SpecificService $specificService)
     {
         $this->encoder = $encoder;
         $this->specificService = $specificService;
-        $this->roleRepository = $roleRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -126,6 +123,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     		Menu::NOMADE . Action::MODULE_ACCESS_MANUT
 		];
         $actionRepository = $manager->getRepository(Action::class);
+        $roleRepository = $manager->getRepository(Role::class);
 		foreach ($menus as $menuCode => $actionLabels) {
 			foreach ($actionLabels as $actionLabel) {
 				$action = $actionRepository->findOneByMenuLabelAndActionLabel($menuCode, $actionLabel);
@@ -140,7 +138,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 					// actions à sélectionner par défaut
 					if (in_array($menuCode . $actionLabel, $selectedByDefault)) {
 					    if (!isset($roles)) {
-                            $roles = $this->roleRepository->findAll();
+                            $roles = $roleRepository->findAll();
                         }
 						foreach ($roles as $role) {
 							$action->addRole($role);

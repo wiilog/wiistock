@@ -10,7 +10,6 @@ use App\Entity\Parametre;
 
 use App\Entity\Statut;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\ParametreRepository;
 
 use App\Service\SpecificService;
 
@@ -23,11 +22,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 {
 
 	/**
-	 * @var ParametreRepository
-	 */
-	private $parametreRepository;
-
-	/**
 	 * @var ParametrageGlobalRepository
 	 */
 	private $parametreGlobalRepository;
@@ -37,12 +31,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 	 */
 	private $specificService;
 
-    public function __construct(
-    	ParametreRepository $parametreRepository,
-		ParametrageGlobalRepository $parametrageGlobalRepository,
-		SpecificService $specificService)
+    public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository,
+                                SpecificService $specificService)
     {
-    	$this->parametreRepository = $parametreRepository;
     	$this->parametreGlobalRepository = $parametrageGlobalRepository;
     	$this->specificService = $specificService;
     }
@@ -58,8 +49,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			]
 		];
 
+        $parametreRepository = $manager->getRepository(Parametre::class);
+
 		foreach ($parameters as $parameter) {
-			$param = $this->parametreRepository->findBy(['label' => $parameter['label']]);
+			$param = $parametreRepository->findBy(['label' => $parameter['label']]);
 
 			if (empty($param)) {
 				$param = new Parametre();

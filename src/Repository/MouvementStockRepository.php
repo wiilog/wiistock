@@ -6,12 +6,11 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method MouvementStock[]    findAll()
  * @method MouvementStock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MouvementStockRepository extends ServiceEntityRepository
+class MouvementStockRepository extends EntityRepository
 {
 	private const DtToDbLabels = [
 		'date' => 'date',
@@ -30,11 +29,6 @@ class MouvementStockRepository extends ServiceEntityRepository
 		'type' => 'type',
 		'operateur' => 'user',
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, MouvementStock::class);
-    }
 
     public function countByEmplacement($emplacementId)
     {

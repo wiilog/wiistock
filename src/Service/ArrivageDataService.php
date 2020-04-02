@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Urgence;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;

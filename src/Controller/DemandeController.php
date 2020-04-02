@@ -19,10 +19,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\CategorieCLRepository;
 use App\Repository\DemandeRepository;
-use App\Repository\ParametreRepository;
-use App\Repository\ParametreRoleRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\PreparationRepository;
@@ -84,20 +81,6 @@ class DemandeController extends AbstractController
      * @var ArticleDataService
      */
     private $articleDataService;
-    /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
-
-    /**
-     * @var ParametreRoleRepository
-     */
-    private $parametreRoleRepository;
-
-    /**
-     * @var ParametreRepository
-     */
-    private $parametreRepository;
 
     /**
      * @var ReceptionRepository
@@ -116,9 +99,6 @@ class DemandeController extends AbstractController
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
-                                ParametreRepository $parametreRepository,
-                                ParametreRoleRepository $parametreRoleRepository,
-                                CategorieCLRepository $categorieCLRepository,
                                 PreparationRepository $preparationRepository,
                                 DemandeRepository $demandeRepository,
                                 UtilisateurRepository $utilisateurRepository,
@@ -134,9 +114,6 @@ class DemandeController extends AbstractController
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->preparationRepository = $preparationRepository;
-        $this->categorieCLRepository = $categorieCLRepository;
-        $this->parametreRoleRepository = $parametreRoleRepository;
-        $this->parametreRepository = $parametreRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->demandeLivraisonService = $demandeLivraisonService;
     }

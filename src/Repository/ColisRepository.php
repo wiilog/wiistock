@@ -7,13 +7,12 @@ use App\Entity\Colis;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Colis|null find($id, $lockMode = null, $lockVersion = null)
@@ -21,12 +20,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Colis[]    findAll()
  * @method Colis[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ColisRepository extends ServiceEntityRepository
+class ColisRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Colis::class);
-    }
 
     /**
      * @param DateTime $dateMin

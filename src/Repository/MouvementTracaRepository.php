@@ -8,14 +8,13 @@ use App\Entity\MouvementTraca;
 use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\FetchMode;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
 
@@ -25,7 +24,7 @@ use Exception;
  * @method MouvementTraca[]    findAll()
  * @method MouvementTraca[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MouvementTracaRepository extends ServiceEntityRepository
+class MouvementTracaRepository extends EntityRepository
 {
 
     public const MOUVEMENT_TRACA_DEFAULT = 'tracking';
@@ -40,11 +39,6 @@ class MouvementTracaRepository extends ServiceEntityRepository
         'label' => 'label',
 		'operateur' => 'user',
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, MouvementTraca::class);
-    }
 
     private static function AddMobileTrackingMovementSelect(QueryBuilder $queryBuilder, bool $preferDate = false): QueryBuilder {
         return $queryBuilder

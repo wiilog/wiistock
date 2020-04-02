@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
@@ -19,7 +20,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Repository\ColisRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LivraisonRepository;
@@ -78,16 +78,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @var UserPasswordEncoderInterface
      */
     private $passwordEncoder;
-
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
 
     /**
      * @var array
@@ -168,8 +158,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param LoggerInterface $logger
      * @param MailerServerRepository $mailerServerRepository
      * @param MailerService $mailerService
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserPasswordEncoderInterface $passwordEncoder
      */
@@ -185,16 +173,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 LoggerInterface $logger,
                                 MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
-                                ColisRepository $colisRepository,
-                                MouvementTracaRepository $mouvementTracaRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->manutentionRepository = $manutentionRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
-        $this->colisRepository = $colisRepository;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
         $this->logger = $logger;
@@ -325,6 +309,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $articleRepository = $entityManager->getRepository(Article::class);
                         $statutRepository = $entityManager->getRepository(Statut::class);
                         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                        $colisRepository = $entityManager->getRepository(Colis::class);
 
                         $mouvementTraca1 = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                         if (!isset($mouvementTraca1)) {
@@ -380,7 +365,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     }
                                 }
                                 else { // MouvementTraca::TYPE_DEPOSE
-                                    $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
+                                    $mouvementTracaPrises = $mouvementTracaRepository->findBy(
                                         [
                                             'colis' => $mvt['ref_article'],
                                             'type' => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
@@ -451,7 +436,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                             if ($location) {
                                 $isDepose = ($mvt['type'] === MouvementTraca::TYPE_DEPOSE);
-                                $colis = $this->colisRepository->findOneBy(['code' => $mvt['ref_article']]);
+                                $colis = $colisRepository->findOneBy(['code' => $mvt['ref_article']]);
 
                                 if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
                                     $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -501,9 +486,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
             }
 
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+
             // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
             foreach ($mouvementsNomade as $index => $mvt) {
-                $mouvementTracaPriseToFinish = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
+                $mouvementTracaPriseToFinish = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                 if (isset($mouvementTracaPriseToFinish) &&
                     ($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
                     in_array($mouvementTracaPriseToFinish->getColis(), $finishMouvementTraca) &&
@@ -1174,6 +1161,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1216,7 +1205,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
             // prises en cours
-            $stockTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
+            $stockTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
         }
         else {
             // livraisons
@@ -1253,13 +1242,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         }
 
         if ($rights['tracking']) {
-            $trackingTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
+            $trackingTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
         }
         else {
             $trackingTaking = [];
         }
-
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         return [
             'emplacements' => $emplacementRepository->getIdAndNom(),

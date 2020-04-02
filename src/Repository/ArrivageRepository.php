@@ -4,11 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Arrivage;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
 /**
@@ -17,7 +16,7 @@ use Exception;
  * @method Arrivage[]    findAll()
  * @method Arrivage[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArrivageRepository extends ServiceEntityRepository
+class ArrivageRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Date' => 'date',
@@ -36,11 +35,6 @@ class ArrivageRepository extends ServiceEntityRepository
         'Frozen' => 'frozen',
         'Urgent' => 'isUrgent'
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Arrivage::class);
-    }
 
     /**
      * @param DateTime $dateMin
