@@ -2,14 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
-use App\Repository\ChampLibreRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\TypeRepository;
-use App\Repository\CategoryTypeRepository;
+use App\Entity\Type;
 use App\Repository\CategorieCLRepository;
-
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,57 +22,41 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class ChampLibreController extends AbstractController
 {
     /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $refArticleRepository;
-
-    /**
-     * @var CategoryTypeRepository
-     */
-    private $categoryTypeRepository;
-
-    /**
      * @var CategorieCLRepository
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
-    {
-        $this->champLibreRepository = $champsLibreRepository;
-        $this->typeRepository = $typeRepository;
-        $this->categoryTypeRepository = $categoryTypeRepository;
-        $this->refArticleRepository = $refArticleRepository;
+    public function __construct(CategorieCLRepository $categorieCLRepository) {
         $this->categorieCLRepository = $categorieCLRepository;
     }
 
     /**
      * @Route("/", name="champ_libre_index", methods={"GET"})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         return $this->render('champ_libre/index.html.twig', [
-            'category' => $this->categoryTypeRepository->findAll(),
-
+            'category' => $categoryTypeRepository->findAll(),
         ]);
     }
 
     /**
      * @Route("/api/{id}", name="champ_libre_api", options={"expose"=true}, methods={"POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param $id
+     * @return Response
      */
-    public function api(Request $request, $id): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager,
+                        $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $champsLibres = $this->champLibreRepository->findByType($id);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champsLibres = $champLibreRepository->findByType($id);
             $rows = [];
             foreach ($champsLibres as $champLibre) {
 
@@ -119,12 +102,15 @@ class ChampLibreController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="champs_libre_show", methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param $id
+     * @return Response
      */
-    public function show(Request $request, $id): Response
+    public function show(EntityManagerInterface $entityManager, $id): Response
     {
         $typages = ChampLibre::TYPAGE;
         return $this->render('champ_libre/show.html.twig', [
-            'type' => $this->typeRepository->find($id),
+            'type' => $entityManager->find(Type::class, $id),
             'categoriesCL' => $this->categorieCLRepository->findAll(),
             'typages' => $typages,
         ]);
@@ -132,15 +118,22 @@ class ChampLibreController extends AbstractController
 
     /**
      * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
 
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
 		// on vérifie que le nom du champ libre n'est pas déjà utilisé
-		$champLibreExist = $this->champLibreRepository->countByLabel($data['label']);
+		$champLibreExist = $champLibreRepository->countByLabel($data['label']);
 		if (!$champLibreExist) {
-			$type = $this->typeRepository->find($data['type']);
+			$type = $typeRepository->find($data['type']);
 			$categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
 			$champLibre = new ChampLibre();
 			$champLibre
@@ -172,11 +165,16 @@ class ChampLibreController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="champ_libre_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibre = $this->champLibreRepository->find($data['id']);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champLibre = $champLibreRepository->find($data['id']);
             $typages = ChampLibre::TYPAGE;
 
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
@@ -193,13 +191,20 @@ class ChampLibreController extends AbstractController
 
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
 
-		$categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
-		$champLibre = $this->champLibreRepository->find($data['champLibre']);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+		$categorieCL = $categorieCLRepository->find($data['categorieCL']);
+		$champLibre = $champLibreRepository->find($data['champLibre']);
 
 		$champLibre
 			->setLabel($data['label'])
@@ -224,13 +229,19 @@ class ChampLibreController extends AbstractController
 
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
 
-		$champLibre = $this->champLibreRepository->find($data['champLibre']);
-		$entityManager = $this->getDoctrine()->getManager();
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
+		$champLibre = $champLibreRepository->find($data['champLibre']);
+
 		$entityManager->remove($champLibre);
 		$entityManager->flush();
 
@@ -239,16 +250,23 @@ class ChampLibreController extends AbstractController
 
     /**
      * @Route("/display-require-champ", name="display_required_champs_libres", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function displayRequiredChampsLibres(Request $request): Response
+    public function displayRequiredChampsLibres(Request $request,
+                                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+
             if (array_key_exists('create', $data)) {
-                $type = $this->typeRepository->find($data['create']);
-                $champsLibres = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+                $type = $typeRepository->find($data['create']);
+                $champsLibres = $champLibreRepository->getByTypeAndRequiredCreate($type);
             } else if (array_key_exists('edit', $data)) {
-                $type = $this->typeRepository->find($data['edit']);
-                $champsLibres = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+                $type = $typeRepository->find($data['edit']);
+                $champsLibres = $champLibreRepository->getByTypeAndRequiredEdit($type);
             } else {
                 $json = false;
                 return new JsonResponse($json);

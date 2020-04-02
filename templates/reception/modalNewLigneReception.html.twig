@@ -17,6 +17,13 @@
                         <h5 class="bold mb-3">Demande de livraison<span id="reference-list"></span></h5>
                         <div class="row">
                             <div class="col-4 form-group">
+                                <label for="destination">Destination*</label>
+                                <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed" id="locationDemandeLivraison">
+                                    <option></option>
+                                </select>
+                                <input hidden id="locationDemandeLivraisonValue" data-id="{{ livraisonLocation ? livraisonLocation.id }}" data-text="{{ livraisonLocation ? livraisonLocation.text }}">
+                            </div>
+                            <div class="col-4 form-group">
                                 <label for="demandeur">Demandeur*</label>
                                 <select type="text" class="select2-user data w-100 needed" name="demandeur">
                                     <option></option>
@@ -26,16 +33,10 @@
                                 <label for="type">Type*</label>
                                 <select type="text" class="select2-type data w-100 needed" name="type"
                                         onchange="typeChoice($(this), '-new', $('#typeContentNew')), toggleRequiredChampsLibres($(this),'create')">
-                                    <option></option>
+                                    <option>&nbsp;</option>
                                     {% for type in typeChampsLibresDL %}
                                         <option value="{{type.typeId}}">{{type.typeLabel}}</option>
                                     {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-4 form-group">
-                                <label for="destination">Destination*</label>
-                                <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed">
-                                    <option></option>
                                 </select>
                             </div>
                         </div>

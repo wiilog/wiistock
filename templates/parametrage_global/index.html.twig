@@ -12,7 +12,11 @@
     </div>
 
     <div class="row">
-        {% include 'parametrage_global/paramPrefixDemands.html.twig' %}
+        {% include 'parametrage_global/paramPrefixDemands.html.twig' with paramArrivages %}
+    </div>
+
+    <div class="row">
+        {% include 'parametrage_global/paramDemandeLivraison.html.twig' with paramLivraisons  %}
     </div>
 
     <div class="row">

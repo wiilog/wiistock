@@ -4,43 +4,29 @@ namespace App\Service;
 
 use App\Entity\AlerteExpiry;
 
-use App\Repository\AlerteExpiryRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
+use App\Entity\ReferenceArticle;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 
 class AlerteService
 {
-	/**
-	 * @var AlerteExpiryRepository
-	 */
-    private $alerteExpiryRepository;
+    private $entityManager;
 
-	/**
-	 * @var StatutRepository
-	 */
-    private $statutRepository;
-
-	/**
-	 * @var ReferenceArticleRepository
-	 */
-    private $referenceArticleRepository;
-
-
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, AlerteExpiryRepository $alerteExpiryRepository)
+    public function __construct(EntityManagerInterface $entityManager)
     {
-		$this->alerteExpiryRepository = $alerteExpiryRepository;
-		$this->statutRepository = $statutRepository;
-		$this->referenceArticleRepository = $referenceArticleRepository;
+		$this->entityManager = $entityManager;
     }
 
-	/**
-	 * @param AlerteExpiry $alerte
-	 * @return bool
-	 * @throws \Exception
-	 */
+    /**
+     * @param AlerteExpiry $alerte
+     * @return bool
+     * @throws NonUniqueResultException
+     */
     public function isAlerteExpiryActive($alerte)
 	{
-		$refArticle = $alerte->getRefArticle();
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+
+        $refArticle = $alerte->getRefArticle();
 
 		if ($refArticle) {
 			$expiryDate = $alerte->getRefArticle()->getExpiryDate();
@@ -67,7 +53,7 @@ class AlerteService
 		} else {
 			$nbPeriod = $alerte->getNbPeriod();
 			$typePeriod = $alerte->getTypePeriod();
-			$countRef = $this->referenceArticleRepository->countWithExpiryDateUpTo($nbPeriod, $typePeriod);
+			$countRef = $referenceArticleRepository->countWithExpiryDateUpTo($nbPeriod, $typePeriod);
 
 			return $countRef > 0;
 		}

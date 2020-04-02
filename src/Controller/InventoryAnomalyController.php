@@ -8,9 +8,6 @@ use App\Entity\Menu;
 
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\ArticleRepository;
-
 use App\Service\InventoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,28 +38,19 @@ class InventoryAnomalyController extends AbstractController
      */
     private $inventoryEntryRepository;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
 	/**
 	 * @var InventoryService
 	 */
     private $inventoryService;
 
-    public function __construct(InventoryService $inventoryService, UserService $userService, InventoryMissionRepository $inventoryMissionRepository, InventoryEntryRepository $inventoryEntryRepository, ReferenceArticleRepository $referenceArticleRepository, ArticleRepository $articleRepository)
+    public function __construct(InventoryService $inventoryService,
+                                UserService $userService,
+                                InventoryMissionRepository $inventoryMissionRepository,
+                                InventoryEntryRepository $inventoryEntryRepository)
     {
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->inventoryService = $inventoryService;
     }
 

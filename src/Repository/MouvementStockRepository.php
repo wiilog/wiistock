@@ -31,13 +31,9 @@ class MouvementStockRepository extends ServiceEntityRepository
 		'operateur' => 'user',
 	];
 
-	private $statutRepository;
-
-    public function __construct(ManagerRegistry $registry, StatutRepository $statutRepository)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, MouvementStock::class);
-
-        $this->statutRepository = $statutRepository;
     }
 
     public function countByEmplacement($emplacementId)
@@ -301,6 +297,11 @@ class MouvementStockRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+
+    /**
+     * @param $id
+     * @return MouvementStock[]
+     */
 	public function findByRef($id)
 	{
 		$em = $this->getEntityManager();

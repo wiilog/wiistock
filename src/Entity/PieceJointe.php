@@ -11,6 +11,7 @@ class PieceJointe
 {
     const MAIN_PATH = '/uploads/attachements/';
 	const TEMP_PATH = self::MAIN_PATH . 'temp/';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -47,6 +48,16 @@ class PieceJointe
      * @ORM\JoinColumn(nullable=true)
      */
     private $mouvementTraca;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="csvFile")
+     */
+    private $importCsv;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="logFile")
+     */
+    private $importLog;
 
     public function getId(): ?int
     {
@@ -109,6 +120,30 @@ class PieceJointe
     public function setMouvementTraca(?MouvementTraca $mouvementTraca): self
     {
         $this->mouvementTraca = $mouvementTraca;
+
+        return $this;
+    }
+
+    public function getImportLog(): ?Import
+    {
+        return $this->importLog;
+    }
+
+    public function setImportLog(?Import $importLog): self
+    {
+        $this->importLog = $importLog;
+
+        return $this;
+    }
+
+    public function getImportCsv(): ?Import
+    {
+        return $this->importCsv;
+    }
+
+    public function setImportCsv(?Import $importCsv): self
+    {
+        $this->importCsv = $importCsv;
 
         return $this;
     }

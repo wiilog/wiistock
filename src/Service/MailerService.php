@@ -25,7 +25,8 @@ class MailerService
     private $templating;
 
 
-    public function __construct(MailerServerRepository $mailerServerRepository, Twig_Environment $templating)
+    public function __construct(MailerServerRepository $mailerServerRepository,
+                                Twig_Environment $templating)
     {
         $this->mailerServerRepository = $mailerServerRepository;
         $this->templating = $templating;

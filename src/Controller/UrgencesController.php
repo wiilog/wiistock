@@ -95,6 +95,7 @@ class UrgencesController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
+
         $urgence = new Urgence();
         $urgenceService->updateUrgence($urgence, $data);
 

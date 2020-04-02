@@ -4,15 +4,18 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 
-use App\Repository\EmplacementRepository;
 use App\Repository\InventoryEntryRepository;
 
 use App\Repository\UtilisateurRepository;
 use App\Service\InventoryEntryService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -43,40 +46,41 @@ class InventoryEntryController extends AbstractController
     private $userRepository;
 
 	/**
-	 * @var EmplacementRepository
-	 */
-    private $emplacementRepository;
-
-	/**
 	 * @var InventoryEntryService
 	 */
     private $inventoryEntryService;
 
-    public function __construct(InventoryEntryService $inventoryEntryService, EmplacementRepository $emplacementRepository, UtilisateurRepository $userRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository)
+    public function __construct(InventoryEntryService $inventoryEntryService, UtilisateurRepository $userRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository)
     {
         $this->userService = $userService;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
         $this->userRepository = $userRepository;
-        $this->emplacementRepository = $emplacementRepository;
         $this->inventoryEntryService = $inventoryEntryService;
     }
 
     /**
      * @Route("/", name="inventory_entry_index", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function index()
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
         return $this->render('saisie_inventaire/index.html.twig', [
-			'emplacements' => $this->emplacementRepository->findAll(),
+			'emplacements' => $emplacementRepository->findAll(),
 		]);
     }
 
     /**
      * @Route("/api", name="entries_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse|RedirectResponse
+     * @throws Exception
      */
     public function api(Request $request)
     {

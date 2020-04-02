@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
-use App\Repository\TypeRepository;
+use App\Entity\Type;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,11 +37,13 @@ class AlertController extends AbstractController
      * @param UserService $userService
      * @return Response
      */
-    public function indexAlerte(UserService $userService, TypeRepository $typeRepository): Response
+    public function indexAlerte(UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ALER)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $typeRepository = $this->getDoctrine()->getRepository(Type::class);
 
         return $this->render('alerte_reference/index.html.twig', [
             'types' => $typeRepository->findByCategoryLabel(CategoryType::ARTICLE)

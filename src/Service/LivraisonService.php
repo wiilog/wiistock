@@ -5,10 +5,6 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
-use App\Repository\DemandeRepository;
-use App\Repository\LivraisonRepository;
-use App\Repository\FiltreSupRepository;
-
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -27,11 +23,6 @@ class LivraisonService
     private $templating;
 
     /**
-     * @var LivraisonRepository
-     */
-    private $livraisonRepository;
-
-    /**
      * @var RouterInterface
      */
     private $router;
@@ -43,34 +34,18 @@ class LivraisonService
 
     private $security;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
+    private $entityManager;
 
-	/**
-	 * @var DemandeRepository
-	 */
-    private $demandeRepository;
-
-    private $em;
-
-    public function __construct(DemandeRepository $demandeRepository,
-                                UserService $userService,
-                                LivraisonRepository $livraisonRepository,
+    public function __construct(UserService $userService,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FiltreSupRepository $filtreSupRepository,
                                 Security $security) {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->livraisonRepository = $livraisonRepository;
         $this->userService = $userService;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->security = $security;
-        $this->demandeRepository = $demandeRepository;
     }
 
     /**
@@ -84,6 +59,9 @@ class LivraisonService
      */
     public function getDataForDatatable($params = null, $filterDemandId = null)
     {
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $livraisonRepository = $this->entityManager->getRepository(Livraison::class);
+
         if ($filterDemandId) {
             $filters = [
                 [
@@ -93,9 +71,9 @@ class LivraisonService
             ];
         }
         else {
-            $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_LIVRAISON, $this->security->getUser());
         }
-		$queryResult = $this->livraisonRepository->findByParamsAndFilters($params, $filters);
+		$queryResult = $livraisonRepository->findByParamsAndFilters($params, $filters);
 
 		$livraisons = $queryResult['data'];
 
@@ -110,14 +88,13 @@ class LivraisonService
 		];
     }
 
-	/**
-	 * @param Livraison $livraison
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param Livraison $livraison
+     * @return array
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
     public function dataRowLivraison($livraison)
     {
 		$url['show'] = $this->router->generate('livraison_show', ['id' => $livraison->getId()]);

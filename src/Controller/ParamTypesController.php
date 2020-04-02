@@ -4,17 +4,14 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
-
 use App\Entity\Type;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\TypeRepository;
-use App\Repository\CategoryTypeRepository;
-
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -30,39 +27,25 @@ class ParamTypesController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
-     * @var CategoryTypeRepository
-     */
-    private $categoryTypeRepository;
-
-    public function __construct(UserService $userService, ReferenceArticleRepository $referenceArticleRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository)
+    public function __construct(UserService $userService)
     {
         $this->userService = $userService;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->typeRepository = $typeRepository;
-        $this->categoryTypeRepository = $categoryTypeRepository;
     }
 
     /**
      * @Route("/", name="types_param_index")
+     * @param EntityManagerInterface $entityManager
+     * @return RedirectResponse|Response
      */
-    public function index()
+    public function index(EntityManagerInterface $entityManager)
     {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $categories = $this->categoryTypeRepository->findAll();
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+        $categories = $categoryTypeRepository->findAll();
 
         return $this->render('types/index.html.twig', [
             'categories' => $categories,
@@ -71,15 +54,20 @@ class ParamTypesController extends AbstractController
 
     /**
      * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $types = $this->typeRepository->findAll();
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->findAll();
             $rows = [];
             foreach ($types as $type) {
                 $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
@@ -104,8 +92,12 @@ class ParamTypesController extends AbstractController
 
     /**
      * @Route("/creer", name="types_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
@@ -114,11 +106,14 @@ class ParamTypesController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
 
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->typeRepository->countByLabelAndCategory($data['label'], $data['category']);
+            $labelExist = $typeRepository->countByLabelAndCategory($data['label'], $data['category']);
 
             if (!$labelExist) {
-                $category = $this->categoryTypeRepository->find($data['category']);
+                $category = $categoryTypeRepository->find($data['category']);
                 $type = new Type();
                 $type
                     ->setLabel($data['label'])
@@ -144,16 +139,22 @@ class ParamTypesController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="types_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $type = $this->typeRepository->find($data['id']);
-            $categories = $this->categoryTypeRepository->findAll();
+            $type = $entityManager->find(Type::class, $data['id']);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+
+            $categories = $categoryTypeRepository->findAll();
 
             $json = $this->renderView('types/modalEditTypeContent.html.twig', [
                 'type' => $type,
@@ -167,30 +168,36 @@ class ParamTypesController extends AbstractController
 
     /**
      * @Route("/modifier", name="types_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $type = $this->typeRepository->find($data['type']);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+
+            $type = $typeRepository->find($data['type']);
             $typeLabel = $type->getLabel();
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $this->typeRepository->countByLabelDiff($data['label'], $typeLabel, $data['category']);
+            $labelExist = $typeRepository->countByLabelDiff($data['label'], $typeLabel, $data['category']);
 
             if (!$labelExist) {
-                $category = $this->categoryTypeRepository->find($data['category']);
+                $category = $categoryTypeRepository->find($data['category']);
                 $type
                     ->setLabel($data['label'])
                     ->setCategory($category)
                     ->setDescription($data['description']);
 
-                $em->persist($type);
-                $em->flush();
+                $entityManager->persist($type);
+                $entityManager->flush();
 
                 return new JsonResponse([
                 	'success' => true,
@@ -208,15 +215,20 @@ class ParamTypesController extends AbstractController
 
     /**
      * @Route("/verification", name="types_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function checkTypeCanBeDeleted(Request $request): Response
+    public function checkTypeCanBeDeleted(Request $request,
+                                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeIsUsed = $this->typeRepository->countUsedById($typeId);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $typeIsUsed = $typeRepository->countUsedById($typeId);
 
             if (!$typeIsUsed) {
                 $delete = true;
@@ -233,17 +245,19 @@ class ParamTypesController extends AbstractController
 
     /**
      * @Route("/supprimer", name="types_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $type = $this->typeRepository->find($data['type']);
+            $type = $entityManager->find(Type::class, $data['type']);
 
-            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($type);
             $entityManager->flush();
             return new JsonResponse();

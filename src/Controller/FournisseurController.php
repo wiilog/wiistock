@@ -3,15 +3,17 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Repository\ArrivageRepository;
-use App\Repository\FournisseurRepository;
-use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReceptionReferenceArticleRepository;
 use App\Service\UserService;
 use App\Service\FournisseurDataService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,25 +26,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class FournisseurController extends AbstractController
 {
-    /**
-     * @var ReceptionReferenceArticleRepository
-     */
-    private $receptionReferenceArticleRepository;
 
     /**
      * @var ReceptionRepository
      */
     private $receptionRepository;
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
 
     /**
      * @var FournisseurDataService
@@ -59,16 +47,17 @@ class FournisseurController extends AbstractController
      */
     private $userService;
 
-
-    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
+    public function __construct(
+        ArrivageRepository $arrivageRepository,
+        FournisseurDataService $fournisseurDataService,
+        ReceptionRepository $receptionRepository,
+        UserService $userService
+    )
     {
         $this->arrivageRepository = $arrivageRepository;
         $this->fournisseurDataService = $fournisseurDataService;
-        $this->fournisseurRepository = $fournisseurRepository;
         $this->userService = $userService;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->receptionRepository = $receptionRepository;
-        $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
     }
 
     /**
@@ -89,27 +78,38 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
             return $this->redirectToRoute('access_denied');
         }
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
-        return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
+        return $this->render('fournisseur/index.html.twig', [
+            'fournisseur' => $fournisseurRepository->findAll()
+        ]);
     }
 
     /**
      * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
 			// unicité du code fournisseur
-			$codeAlreadyUsed = intval($this->fournisseurRepository->countByCode($data['Code']));
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['Code']));
 
 			if ($codeAlreadyUsed) {
 				return new JsonResponse([
@@ -118,13 +118,12 @@ class FournisseurController extends AbstractController
 				]);
 			}
 
-            $em = $this->getDoctrine()->getManager();
             $fournisseur = new Fournisseur();
             $fournisseur
 				->setNom($data["Nom"])
 				->setCodeReference($data["Code"]);
-            $em->persist($fournisseur);
-            $em->flush();
+            $entityManager->persist($fournisseur);
+            $entityManager->flush();
 
 			return new JsonResponse(['success' => true, 'id' => $fournisseur->getId(), 'text' => $fournisseur->getNom()]);
         }
@@ -134,15 +133,20 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="fournisseur_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function apiEdit(Request $request): Response
+    public function apiEdit(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
-            $fournisseur = $this->fournisseurRepository->find($data['id']);
+            $fournisseur = $fournisseurRepository->find($data['id']);
             $json = $this->renderView('fournisseur/modalEditFournisseurContent.html.twig', [
                 'fournisseur' => $fournisseur,
             ]);
@@ -153,15 +157,20 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/modifier", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $fournisseur = $this->fournisseurRepository->find($data['id']);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $fournisseur = $fournisseurRepository->find($data['id']);
             $fournisseur
                 ->setNom($data['nom'])
                 ->setCodeReference($data['codeReference']);
@@ -201,28 +210,29 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @param int $fournisseurId
-	 * @return array
-	 */
+    /**
+     * @param int $fournisseurId
+     * @return array
+     */
     private function isFournisseurUsed($fournisseurId)
     {
     	$usedBy = [];
+        $articleFournisseurRepository = $this->getDoctrine()->getRepository(ArticleFournisseur::class);
+        $receptionReferenceArticleRepository = $this->getDoctrine()->getRepository(ReceptionReferenceArticle::class);
+        $arrivageRepository = $this->getDoctrine()->getRepository(Arrivage::class);
+        $receptionRepository = $this->getDoctrine()->getRepository(Reception::class);
 
-    	$AF = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
+        $AF = $articleFournisseurRepository->countByFournisseur($fournisseurId);
     	if ($AF > 0) $usedBy[] = 'articles fournisseur';
 
-    	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
+    	$receptions = $receptionRepository->countByFournisseur($fournisseurId);
     	if ($receptions > 0) $usedBy[] = 'réceptions';
 
-		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
+		$ligneReceptions = $receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
 		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
 
-		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);
+		$arrivages = $arrivageRepository->countByFournisseur($fournisseurId);
 		if ($arrivages > 0) $usedBy[] = 'arrivages';
-
-        // $mouvements = $this->mouvementRepository->countByFournisseur($fournisseurId);
-//		if ($mouvements > 0) $usedBy[] = 'mouvements';
 
         return $usedBy;
     }
@@ -230,16 +240,21 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            if ($fournisseurId = (int)$data['fournisseur']) {
-
-                $fournisseur = $this->fournisseurRepository->find($fournisseurId);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $fournisseurId = $data['fournisseur'] ?? null;
+            if ($fournisseurId) {
+                $fournisseur = $fournisseurRepository->find($fournisseurId);
 
                 // on vérifie que le fournisseur n'est plus utilisé
                 $usedFournisseur = $this->isFournisseurUsed($fournisseurId);
@@ -248,7 +263,6 @@ class FournisseurController extends AbstractController
                     return new JsonResponse(false);
                 }
 
-                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($fournisseur);
                 $entityManager->flush();
             }
@@ -259,17 +273,21 @@ class FournisseurController extends AbstractController
 
     /**
      * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
      */
-    public function getFournisseur(Request $request)
+    public function getFournisseur(Request $request,
+                                   EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $fournisseur = $this->fournisseurRepository->getIdAndLibelleBySearch($search);
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $fournisseur = $fournisseurRepository->getIdAndLibelleBySearch($search);
 
             return new JsonResponse(['results' => $fournisseur]);
         }
         throw new NotFoundHttpException("404");
     }
-
 }

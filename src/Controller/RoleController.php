@@ -6,13 +6,13 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
-use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,11 +29,6 @@ class RoleController extends AbstractController
      * @var RoleRepository
      */
     private $roleRepository;
-
-    /**
-     * @var ActionRepository
-     */
-    private $actionRepository;
 
     /**
      * @var MenuRepository
@@ -60,10 +55,9 @@ class RoleController extends AbstractController
     private $userService;
 
 
-    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
+    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, RoleRepository $roleRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->roleRepository = $roleRepository;
-        $this->actionRepository = $actionRepository;
         $this->menuRepository = $menuRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
@@ -102,15 +96,21 @@ class RoleController extends AbstractController
 
     /**
      * @Route("/api", name="role_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $roles = $this->roleRepository->findAllExceptNoAccess();
+            $roleRepository = $entityManager->getRepository(Role::class);
+
+            $roles = $roleRepository->findAllExceptNoAccess();
             $rows = [];
             foreach ($roles as $role) {
                 $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
@@ -143,7 +143,7 @@ class RoleController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
-
+            $actionRepository = $em->getRepository(Action::class);
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $this->roleRepository->countByLabel($data['label']);
 
@@ -181,7 +181,7 @@ class RoleController extends AbstractController
                     $menuLabel = $menuActionArray[0];
                     $actionLabel = $menuActionArray[1];
 
-                    $action = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
+                    $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
                     if ($action && $isChecked) {
                         $role->addAction($action);
@@ -252,6 +252,7 @@ class RoleController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
+            $actionRepository = $em->getRepository(Action::class);
             $role = $this->roleRepository->find($data['id']);
 
             $role->setLabel($data['label']);
@@ -283,7 +284,7 @@ class RoleController extends AbstractController
                 $menuActionArray = explode('/', $menuAction);
                 $menuLabel = $menuActionArray[0];
                 $actionLabel = $menuActionArray[1];
-                $action = $this->actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
+                $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
                 if ($action) {
                     if ($isChecked) {

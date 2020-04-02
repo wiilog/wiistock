@@ -4,16 +4,17 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\ArticleRepository;
 
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -52,16 +53,6 @@ class InventoryMissionController extends AbstractController
     private $inventoryEntryRepository;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var InvMissionService
      */
     private $invMissionService;
@@ -75,8 +66,6 @@ class InventoryMissionController extends AbstractController
     	InventoryMissionRepository $inventoryMissionRepository,
 		UserService $userService,
 		InventoryEntryRepository $inventoryEntryRepository,
-		ReferenceArticleRepository $referenceArticleRepository,
-		ArticleRepository $articleRepository,
 		InvMissionService $invMissionService,
 		InventoryService $inventoryService
 	)
@@ -84,8 +73,6 @@ class InventoryMissionController extends AbstractController
         $this->userService = $userService;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->invMissionService = $invMissionService;
         $this->inventoryService = $inventoryService;
     }
@@ -234,38 +221,44 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function addToMission(Request $request): Response
+    public function addToMission(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
 
             $mission = $this->inventoryMissionRepository->find($data['missionId']);
 
             foreach ($data['articles'] as $articleId) {
-                $article = $this->articleRepository->find($articleId);
+                $article = $articleRepository->find($articleId);
 
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
 				if ($alreadyInMission) return new JsonResponse(false);
 
                 $article->addInventoryMission($mission);
-                $em->persist($mission);
-                $em->flush();
+                $entityManager->persist($mission);
+                $entityManager->flush();
             }
 
             foreach ($data['refArticles'] as $refArticleId) {
-                $refArticle = $this->referenceArticleRepository->find($refArticleId);
+                $refArticle = $referenceArticleRepository->find($refArticleId);
 
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refArticle, $mission, true);
 				if ($alreadyInMission) return new JsonResponse(false);
 
 				$refArticle->addInventoryMission($mission);
-                $em->persist($mission);
-                $em->flush();
+                $entityManager->persist($mission);
+                $entityManager->flush();
             }
 
             return new JsonResponse();

@@ -3,11 +3,13 @@
      ondragenter="dragEnterDiv(event, $(this))"
      ondragover="dragOverDiv(event, $(this))"
      ondragleave="dragLeaveDiv(event, $(this))"
-     ondrop="dropOnDiv(event, $(this))">
-    <p>Faites glisser vos pièces jointes ou <span onclick="openFE($(this))" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
-        <input type="file" name="files[]" multiple class="d-none fileInput" onchange="uploadFE($(this))">
+     ondrop="saveDroppedFiles(event, $(this))">
+    {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
+    <p>{{ text }} ou <span onclick="openFileExplorer($(this))" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
+        <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput" onchange="saveInputFiles($(this))">
     </p>
 </div>
+<div class="file-bag"></div>
 
 {% if isNew != true %}
     {% for pj in attachements %}

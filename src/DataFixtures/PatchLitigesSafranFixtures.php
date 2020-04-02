@@ -4,7 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
 use App\Entity\Type;
-use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -35,19 +34,8 @@ class PatchLitigesSafranFixtures extends Fixture implements FixtureGroupInterfac
 	const MSG_DEST_NON_IDENT = "Nous venons de recevoir un colis à titre gracieux et nous sommes dans l’incapacité d’identifier un destinataire.\n" .
 	"Dans l’attente de vos instructions le colis est placé en zone litige.";
 
-	/**
-	 * @var TypeRepository
-	 */
-	private $typeRepository;
-
-    public function __construct(TypeRepository $typeRepository)
-    {
-    	$this->typeRepository = $typeRepository;
-    }
-
     public function load(ObjectManager $manager)
     {
-
 		$typesAndMsg = [
 			Type::LABEL_MANQUE_BL => self::MSG_MANQUE_BL,
 			Type::LABEL_MANQUE_INFO_BL => self::MSG_MANQUE_INFO_BL,
@@ -57,8 +45,10 @@ class PatchLitigesSafranFixtures extends Fixture implements FixtureGroupInterfac
 			Type::LABEL_DEST_NON_IDENT => self::MSG_DEST_NON_IDENT
 		];
 
+        $typeRepository = $manager->getRepository(Type::class);
+
 		foreach ($typesAndMsg as $typeLabel => $msg) {
-			$type = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::LITIGE, $typeLabel);
+			$type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::LITIGE, $typeLabel);
 			if (!$type) {
 				dump('il manque le type ' . $typeLabel);
 				break;

@@ -3,36 +3,38 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Import;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 
 class AttachmentService
 {
-    private const ATTACHMENT_DIRECTORY = '../public/uploads/attachements/';
     const LOGO_FOR_LABEL = 'logo_for_label';
 
-	/**
-	 * @var EntityManagerInterface
-	 */
+    private $attachmentDirectory;
 	private $em;
 
-    public function __construct(EntityManagerInterface $em)
-    {
+    public function __construct(EntityManagerInterface $em,
+                                KernelInterface $kernel) {
+        $this->attachmentDirectory = $kernel->getProjectDir() . '/public/uploads/attachements';
     	$this->em = $em;
     }
 
 	/**
 	 * @param FileBag|UploadedFile[]|array $files if array it's an assoc array between originalFileName and serverFileName
-	 * @param Arrivage $arrivage
-	 * @param Litige|null $litige
-	 * @param MouvementTraca|null $mvtTraca
+	 * @param Arrivage|Litige|MouvementTraca|Import $entity
+	 * @return PieceJointe[]
 	 */
-	public function addAttachements($files, $arrivage, $litige = null, $mvtTraca = null) {
+	public function addAttachements($files, $entity) {
+		$attachments = [];
+
         if ($files instanceof FileBag) {
             $files = $files->all();
         }
@@ -52,18 +54,24 @@ class AttachmentService
                 $pj
                     ->setOriginalName($originalFileName)
                     ->setFileName($fileName);
-
                 $this->em->persist($pj);
+                $attachments[] = $pj;
 
-				if ($arrivage) {
-					$arrivage->addAttachement($pj);
-				} elseif ($litige) {
-					$litige->addPiecesJointe($pj);
-				} elseif ($mvtTraca) {
-					$mvtTraca->addAttachement($pj);
+                if ($entity instanceof Arrivage) {
+					$entity->addAttachement($pj);
+				} elseif ($entity instanceof Litige) {
+					$entity->addPiecesJointe($pj);
+				} elseif ($entity instanceof MouvementTraca) {
+					$entity->addAttachement($pj);
+				} elseif ($entity instanceof Import) {
+					$entity->setCsvFile($pj);
 				}
+
+                $this->em->flush();
 			}
 		}
+
+        return $attachments;
 	}
 
     /**
@@ -72,12 +80,12 @@ class AttachmentService
      * @return array [originalName (string) => filename (string)]
      */
 	public function saveFile(UploadedFile $file, string $wantedName = null): array {
-        if (!file_exists(self::ATTACHMENT_DIRECTORY)) {
-            mkdir(self::ATTACHMENT_DIRECTORY, 0777);
+        if (!file_exists($this->attachmentDirectory)) {
+            mkdir($this->attachmentDirectory, 0777);
         }
 
         $filename = ($wantedName ?? uniqid()) . '.' . $file->getClientOriginalExtension() ?? '';
-        $file->move(self::ATTACHMENT_DIRECTORY, $filename);
+        $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
     }
 
@@ -100,12 +108,66 @@ class AttachmentService
         $pieceJointeRepository = $this->em->getRepository(PieceJointe::class);
         $pieceJointeAlreadyInDB = $pieceJointeRepository->findOneByFileName($attachment->getFileName());
         if (count($pieceJointeAlreadyInDB) === 1) {
-            $path = "../public/uploads/attachements/" . $attachment->getFileName();
+            $path = $this->getServerPath($attachment);
             unlink($path);
         }
 
         $this->em->remove($attachment);
         $this->em->flush();
 	}
+
+    /**
+     * @param PieceJointe $attachment
+     * @return string
+     */
+	public function getServerPath(PieceJointe $attachment): string {
+	    return $this->attachmentDirectory . '/' . $attachment->getFileName();
+    }
+
+    /**
+     * @param string $fileName
+     * @param array $content
+     * @param callable $mapper
+     * @return void
+     */
+	public function saveCSVFile(string $fileName, array $content, callable $mapper): void {
+        $csvFilePath = $this->attachmentDirectory . '/' . $fileName;
+
+        $logCsvFilePathOpened = fopen($csvFilePath, 'w');
+
+        foreach ($content as $row) {
+            fputcsv($logCsvFilePathOpened, $mapper($row), ';');
+        }
+
+        fclose($logCsvFilePathOpened);
+    }
+
+    /**
+     * @param UploadedFile $file
+     * @param Arrivage|Litige $link
+     * @return PieceJointe
+     */
+    public function createPieceJointe(UploadedFile $file, $link): PieceJointe {
+        if ($file->getClientOriginalExtension()) {
+            $filename = uniqid() . "." . $file->getClientOriginalExtension();
+        } else {
+            $filename = uniqid();
+        }
+        $file->move($this->attachmentDirectory, $filename);
+
+        $pj = new PieceJointe();
+        $pj
+            ->setFileName($filename)
+            ->setOriginalName($file->getClientOriginalName());
+
+        if ($link instanceof Arrivage) {
+            $pj->setArrivage($link);
+        }
+        else if($link instanceof Litige) {
+            $pj->setLitige($link);
+        }
+
+        return $pj;
+    }
 
 }

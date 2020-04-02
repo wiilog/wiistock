@@ -4,12 +4,12 @@ namespace App\Controller;
 
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
-use App\Repository\ChampLibreRepository;
-use App\Repository\EmplacementRepository;
+use App\Entity\Type;
 use App\Repository\FiltreRefRepository;
-use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,10 +24,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class FiltreRefController extends AbstractController
 {
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
 
     /**
      * @var FiltreRefRepository
@@ -40,39 +36,27 @@ class FiltreRefController extends AbstractController
     private $refArticleDataService;
 
 	/**
-	 * @var TypeRepository
-	 */
-    private $typeRepository;
-
-	/**
-	 * @var EmplacementRepository
-	 */
-    private $emplacementRepository;
-
-	/**
 	 * FiltreRefController constructor.
-	 * @param TypeRepository $typeRepository
-	 * @param EmplacementRepository $emplacementRepository
-	 * @param ChampLibreRepository $champLibreRepository
 	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
     {
-        $this->champLibreRepository = $champLibreRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
-        $this->typeRepository = $typeRepository;
-        $this->emplacementRepository = $emplacementRepository;
     }
 
     /**
      * @Route("/creer", name="filter_ref_new", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $this->getUser()->getId();
@@ -90,7 +74,7 @@ class FiltreRefController extends AbstractController
                     $field = $data['field'];
 
                     if (intval($field) != 0) {
-                        $champLibre = $this->champLibreRepository->find(intval($field));
+                        $champLibre = $champLibreRepository->find(intval($field));
                         $filter->setChampLibre($champLibre);
                     } else {
                         $filter->setChampFixe($data['field']);
@@ -108,8 +92,8 @@ class FiltreRefController extends AbstractController
                 $user = $this->getUser();
                 $filter->setUtilisateur($user);
 
-                $em->persist($filter);
-                $em->flush();
+                $entityManager->persist($filter);
+                $entityManager->flush();
 
                 $filterArray = [
                     'id' => $filter->getId(),
@@ -152,29 +136,37 @@ class FiltreRefController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
-	 */
-	public function displayFieldElements(Request $request)
+    /**
+     * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+	public function displayFieldElements(Request $request,
+                                         EntityManagerInterface $entityManager)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
 			$value = $data['value'];
 			$multiple = false;
 			if ($value === 'Emplacement') {
-				$emplacements = $this->emplacementRepository->findAllSorted();
+				$emplacements = $emplacementRepository->findAllSorted();
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'Type') {
-				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE, 'asc');
+				$types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE, 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();
 				}
 			} else {
-				$cl = $this->champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
+				$cl = $champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
 				$options = $cl->getElements();
 				$multiple = true;
 			}

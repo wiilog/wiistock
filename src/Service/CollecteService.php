@@ -6,12 +6,8 @@ namespace App\Service;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\CollecteRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\OrdreCollecteRepository;
-use App\Repository\ReferenceArticleRepository;
-
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -33,16 +29,6 @@ class CollecteService
     private $router;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var CollecteRepository
      */
     private $collecteRepository;
@@ -53,34 +39,23 @@ class CollecteService
     private $ordreCollecteRepository;
 
 	/**
-	 * @var FiltreSupRepository
-	 */
-    private $filtreSupRepository;
-
-	/**
 	 * @var Utilisateur
 	 */
     private $user;
 
-    private $em;
+    private $entityManager;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 OrdreCollecteRepository $ordreCollecteRepository,
-                                FiltreSupRepository $filtreSupRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ArticleRepository $articleRepository,
                                 CollecteRepository $collecteRepository)
     {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
@@ -95,7 +70,8 @@ class CollecteService
 				]
 			];
 		} else {
-    		$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
+            $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+    		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
 		}
         $queryResult = $this->collecteRepository->findByParamsAndFilters($params, $filters);
 

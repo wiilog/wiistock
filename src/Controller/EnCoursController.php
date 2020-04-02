@@ -94,8 +94,8 @@ class EnCoursController extends AbstractController
         $retards = [];
         foreach ($emplacementRepository->findWhereArticleIs() as $emplacementArray) {
             $emplacement = $emplacementRepository->find($emplacementArray['id']);
-            $enCours = $enCoursService->getEnCoursForEmplacement($emplacement);
-            if (!empty($enCours['data'])) {
+            $enCours = $enCoursService->getEnCoursForEmplacement($emplacement, [], true);
+            if (!empty($enCours['data'] )) {
                 array_push(
                     $retards,
                     ...($enCours['data'])

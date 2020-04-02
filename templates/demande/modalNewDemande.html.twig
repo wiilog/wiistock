@@ -18,8 +18,9 @@
 
                 <div class="form-group w-100">
                     <label for="destination">Destination*</label>
-                    <select name="destination" class="form-control data ajax-autocompleteEmplacement d-block needed">
+                    <select name="destination" class="form-control data ajax-autocompleteEmplacement d-block needed" id="locationDemandeLivraison">
                     </select>
+                    <input hidden id="locationDemandeLivraisonValue" data-id="{{ livraisonLocation ? livraisonLocation.id }}" data-text="{{ livraisonLocation ? livraisonLocation.text }}">
                 </div>
 
                 <div class="form-group">

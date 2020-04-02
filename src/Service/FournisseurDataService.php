@@ -1,19 +1,15 @@
 <?php
-/**
- * Created by VisualStudioCode.
- * User: jv.Sicot
- * Date: 03/04/2019
- * Time: 15:09.
- */
 
 namespace App\Service;
 
-use App\Repository\FournisseurRepository;
+use App\Entity\Fournisseur;
 
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class FournisseurDataService
 {
@@ -22,51 +18,43 @@ class FournisseurDataService
      * @var Twig_Environment
      */
     private $templating;
-
-    /**
-     * @var FournisseurRepository
-     */
-    private $fournisseurRepository;
-
     /**
      * @var RouterInterface
      */
     private $router;
 
-    private $em;
+    private $entityManager;
 
-    public function __construct(FournisseurRepository $fournisseurRepository,
-                                RouterInterface $router,
-                                EntityManagerInterface $em,
-                                Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage)
+    public function __construct(RouterInterface $router,
+                                EntityManagerInterface $entityManager,
+                                Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->fournisseurRepository = $fournisseurRepository;
     }
 
 
     public function getDataForDatatable($params = null)
     {
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
+
         $data = $this->getFournisseurDataByParams($params);
-        $data['recordsTotal'] = (int)$this->fournisseurRepository->countAll();
-        $data['recordsFiltered'] = (int)$this->fournisseurRepository->countAll();
+        $data['recordsTotal'] = $data['recordsFiltered'] = (int)$fournisseurRepository->countAll();
         return $data;
     }
 
     /**
      * @param null $params
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function getFournisseurDataByParams($params = null)
     {
-        $fournisseurs = $this->fournisseurRepository->findByParams($params);
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $fournisseurs = $fournisseurRepository->findByParams($params);
 
         $rows = [];
         foreach ($fournisseurs as $fournisseur) {
@@ -78,9 +66,9 @@ class FournisseurDataService
     /**
      * @param Fournisseur $fournisseur
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function dataRowFournisseur($fournisseur)
     {

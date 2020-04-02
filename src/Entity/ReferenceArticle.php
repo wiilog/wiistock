@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ReferenceArticle
 {
-
     const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
@@ -197,6 +196,10 @@ class ReferenceArticle
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
+
+        $this->quantiteStock = 0;
+        $this->quantiteReservee = 0;
+        $this->quantiteDisponible = 0;
     }
 
     public function getId()

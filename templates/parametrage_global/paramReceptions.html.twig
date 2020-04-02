@@ -4,29 +4,6 @@
                 class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
 </a>
 <div class="collapse col-12" id="paramReceptions">
-    <div class="row">
-        <div class="col-12">
-            {% set checked = (parametrageG == 1) ? 'checked' : '' %}
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
-                <span class="slider round"></span>
-            </label>
-            <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après
-                réception</label>
-        </div>
-    </div>
-    <div class="row mt-2">
-        <div class="col-12">
-            {% set checked = (parametrageGPrepa == 1) ? 'checked' : '' %}
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
-                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_prepa') }}')">
-                <span class="slider round"></span>
-            </label>
-            <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
-        </div>
-    </div>
     <div class="row mt-2">
         <div class="form-group col-4">
             <label for="receptionStatusLitige" class="d-block">Statut litige par défaut</label>

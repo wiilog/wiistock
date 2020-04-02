@@ -4,7 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\RoleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -14,16 +13,13 @@ use Doctrine\Common\Persistence\ObjectManager;
 
 class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
-    private $actionRepository;
     private $roleRepository;
     private $menuRepository;
 
-    public function __construct(ActionRepository $actionRepository,
-								RoleRepository $roleRepository,
+    public function __construct(RoleRepository $roleRepository,
 								MenuRepository $menuRepository
 	)
     {
-        $this->actionRepository = $actionRepository;
         $this->roleRepository = $roleRepository;
         $this->menuRepository = $menuRepository;
     }
@@ -82,17 +78,17 @@ class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface
 		];
 
 		$roles = $this->roleRepository->findAll();
-
+		$actionRepository = $manager->getRepository(Action::class);
 		foreach ($formerActionToNewAction as $formerAction => $newMenuAndActions) {
 			$formerActionArr = explode('/', $formerAction);
-			$formerActionObj = $this->actionRepository->findOneByMenuLabelAndActionLabel($formerActionArr[0], $formerActionArr[1]);
+			$formerActionObj = $actionRepository->findOneByMenuLabelAndActionLabel($formerActionArr[0], $formerActionArr[1]);
 
 			foreach ($newMenuAndActions as $newMenu => $newActions) {
 				foreach ($roles as $role) {
 
 					if ($role->getActions()->contains($formerActionObj)) {
 						foreach ($newActions as $newAction) {
-							$newActionObj = $this->actionRepository->findOneByMenuLabelAndActionLabel($newMenu, $newAction);
+							$newActionObj = $actionRepository->findOneByMenuLabelAndActionLabel($newMenu, $newAction);
 							$role->addAction($newActionObj);
 						}
 						$role->removeAction($formerActionObj);

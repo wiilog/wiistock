@@ -6,9 +6,6 @@ namespace App\Service;
 use App\Entity\Acheminements;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
-
-use App\Repository\AcheminementsRepository;
-use App\Repository\FiltreSupRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -34,32 +31,32 @@ Class AcheminementsService
      */
     private $user;
 
-    /**
-     * @var AcheminementsRepository
-     */
-    private $acheminementsRepository;
+    private $entityManager;
 
-    /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    private $em;
-
-    public function __construct(TokenStorageInterface $tokenStorage, RouterInterface $router, EntityManagerInterface $em, Twig_Environment $templating, AcheminementsRepository $acheminementsRepository, FiltreSupRepository $filtreSupRepository)
-    {
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                RouterInterface $router,
+                                EntityManagerInterface $entityManager,
+                                Twig_Environment $templating) {
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->acheminementsRepository = $acheminementsRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
     }
 
-    public function getDataForDatatable($params = null)
-    {
-        $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ACHEMINEMENTS, $this->user);
-        $queryResult = $this->acheminementsRepository->findByParamAndFilters($params, $filters);
+    /**
+     * @param null $params
+     * @return array
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function getDataForDatatable($params = null) {
+
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $acheminementsRepository = $this->entityManager->getRepository(Acheminements::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ACHEMINEMENTS, $this->user);
+        $queryResult = $acheminementsRepository->findByParamAndFilters($params, $filters);
 
         $acheminementsArray = $queryResult['data'];
 
@@ -85,20 +82,18 @@ Class AcheminementsService
     public function dataRowAcheminement($acheminement)
     {
         $nbColis = count($acheminement->getColis());
-        $row =
-            [
-                'id' => $acheminement->getId() ?? 'Non défini',
-                'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
-                'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
-                'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
-                'Emplacement prise' => $acheminement->getLocationTake() ?? '',
-                'Emplacement de dépose' => $acheminement->getLocationDrop() ?? '',
-                'Nb Colis' => $nbColis ?? 0,
-                'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
-                'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
-                    'acheminement' => $acheminement
-                ]),
-            ];
-        return $row;
+        return [
+            'id' => $acheminement->getId() ?? 'Non défini',
+            'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
+            'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
+            'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
+            'Emplacement prise' => $acheminement->getLocationTake() ?? '',
+            'Emplacement de dépose' => $acheminement->getLocationDrop() ?? '',
+            'Nb Colis' => $nbColis ?? 0,
+            'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
+            'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
+                'acheminement' => $acheminement
+            ]),
+        ];
     }
 }

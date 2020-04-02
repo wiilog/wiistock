@@ -11,15 +11,13 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\OrdreCollecteReferenceRepository;
 use App\Repository\OrdreCollecteRepository;
-use App\Repository\StatutRepository;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -47,10 +45,6 @@ class OrdreCollecteService
 	 */
 	private $templating;
 	/**
-	 * @var StatutRepository
-	 */
-	private $statutRepository;
-	/**
 	 * @var MailerServerRepository
 	 */
 	private $mailerServerRepository;
@@ -74,16 +68,6 @@ class OrdreCollecteService
 	private $ordreCollecteRepository;
 
 	/**
-	 * @var ArticleRepository
-	 */
-	private $articleRepository;
-
-	/**
-	 * @var FiltreSupRepository
-	 */
-	private $filtreSupRepository;
-
-	/**
 	 * @var Utilisateur
 	 */
 	private $user;
@@ -99,14 +83,11 @@ class OrdreCollecteService
 
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
-    							FiltreSupRepository $filtreSupRepository,
     							OrdreCollecteRepository $ordreCollecteRepository,
-    							ArticleRepository $articleRepository,
 								OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository,
 								MailerServerRepository $mailerServerRepository,
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
-                                StatutRepository $statutRepository,
                                 MouvementStockService $mouvementStockService,
                                 MouvementTracaRepository $mouvementTracaRepository,
                                 EntityManagerInterface $entityManager,
@@ -116,14 +97,11 @@ class OrdreCollecteService
 	    $this->mailerServerRepository = $mailerServerRepository;
 		$this->templating = $templating;
 		$this->entityManager = $entityManager;
-		$this->statutRepository = $statutRepository;
 		$this->mailerService = $mailerService;
 		$this->mouvementTracaService = $mouvementTracaService;
 		$this->collecteReferenceRepository = $collecteReferenceRepository;
 		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
-		$this->articleRepository = $articleRepository;
 		$this->ordreCollecteRepository = $ordreCollecteRepository;
-		$this->filtreSupRepository = $filtreSupRepository;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
 		$this->mouvementTracaRepository = $mouvementTracaRepository;
@@ -157,6 +135,11 @@ class OrdreCollecteService
                                    bool $fromNomade = false)
 	{
 		$em = $this->entityManager;
+
+		$statutRepository = $em->getRepository(Statut::class);
+		$articleRepository = $em->getRepository(Article::class);
+
+
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
 		$dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
@@ -164,7 +147,7 @@ class OrdreCollecteService
 		$referenceToQuantity = [];
 		$artToQuantity = [];
 
-        $statutATraiter = $this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
+        $statutATraiter = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
 		if ($statutATraiter->getId() !== $ordreCollecte->getStatut()->getId()) {
             throw new Exception(self::COLLECTE_ALREADY_BEGUN);
         }
@@ -204,7 +187,7 @@ class OrdreCollecteService
             }
 		}
 
-		$listArticles = $this->articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
+		$listArticles = $articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
 		foreach ($listArticles as $article) {
 			if (!in_array($article->getReference(), $listArtRef)) {
 				$rowsToRemove[] = [
@@ -238,27 +221,27 @@ class OrdreCollecteService
 					$ordreCollecte->removeOrdreCollecteReference($ordreCollecteRef);
 					$newCollecte->addOrdreCollecteReference($ordreCollecteRef);
 				} else {
-					$article = $this->articleRepository->find($mouvement['id']);
+					$article = $articleRepository->find($mouvement['id']);
 					$ordreCollecte->removeArticle($article);
 					$newCollecte->addArticle($article);
 				}
 			}
 
-			$demandeCollecte->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
+			$demandeCollecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_INCOMPLETE));
 
 			$em->flush();
 		}
 		else {
 		// cas de collecte totale
 			$demandeCollecte
-				->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
+				->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE))
 				->setValidationDate($dateNow);
 		}
 
 		// on modifie le statut de l'ordre de collecte
 		$ordreCollecte
 			->setUtilisateur($user)
-			->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
+			->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
@@ -292,7 +275,7 @@ class OrdreCollecteService
                     $article->setEmplacement($depositLocation);
                 }
 
-                $statutArticle = $this->statutRepository->findOneByCategorieNameAndStatutCode(
+                $statutArticle = $statutRepository->findOneByCategorieNameAndStatutCode(
                     CategorieStatut::ARTICLE,
                     $fromNomade ? Article::STATUT_INACTIF : Article::STATUT_ACTIF
                 );
@@ -344,13 +327,15 @@ class OrdreCollecteService
      */
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+
 		if ($demandeCollecteIdFilter) {
 			$filters = [
 				['field' => 'demandeCollecte',
 				'value' => $demandeCollecteIdFilter]
 			];
 		} else {
-			$filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
+			$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
 		}
 		$queryResult = $this->ordreCollecteRepository->findByParamsAndFilters($params, $filters);
 

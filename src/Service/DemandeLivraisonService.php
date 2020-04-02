@@ -4,23 +4,20 @@
 namespace App\Service;
 
 
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\ArticleRepository;
-use App\Repository\ChampLibreRepository;
-use App\Repository\EmplacementRepository;
-use App\Repository\FiltreSupRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\ReferenceArticleRepository;
 use App\Repository\DemandeRepository;
 use Twig\Environment as Twig_Environment;
-use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,49 +37,14 @@ class DemandeLivraisonService
     private $router;
 
     /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
 
     /**
-     * @var FiltreSupRepository
-     */
-    private $filtreSupRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-
-    /**
-     * @var ChampLibreRepository
-     */
-    private $champLibreRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
-     * @var EmplacementRepository
-     */
-    private $emplacementRepository;
 
     /**
      * @var PrefixeNomDemandeRepository
@@ -99,38 +61,24 @@ class DemandeLivraisonService
      */
     private $user;
 
-    private $em;
+    private $entityManager;
 
-    public function __construct(TypeRepository $typeRepository,
-                                ChampLibreRepository $champLibreRepository,
-                                UtilisateurRepository $utilisateurRepository,
+    public function __construct(UtilisateurRepository $utilisateurRepository,
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
-                                EmplacementRepository $emplacementRepository,
-                                StatutRepository $statutRepository,
                                 TokenStorageInterface $tokenStorage,
-                                FiltreSupRepository $filtreSupRepository,
                                 RouterInterface $router,
-                                EntityManagerInterface $em,
+                                EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                ReferenceArticleRepository $referenceArticleRepository,
-                                ArticleRepository $articleRepository,
                                 DemandeRepository $demandeRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->typeRepository = $typeRepository;
-        $this->champLibreRepository = $champLibreRepository;
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
-        $this->emplacementRepository = $emplacementRepository;
-        $this->statutRepository = $statutRepository;
         $this->templating = $templating;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->filtreSupRepository = $filtreSupRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
@@ -144,7 +92,8 @@ class DemandeLivraisonService
 				]
             ];
         } else {
-            $filters = $this->filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
+            $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
         }
         $queryResult = $this->demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
 
@@ -184,11 +133,15 @@ class DemandeLivraisonService
     }
 
     public function newDemande($data) {
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $typeRepository = $this->entityManager->getRepository(Type::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $requiredCreate = true;
-        $type = $this->typeRepository->find($data['type']);
+        $type = $typeRepository->find($data['type']);
 
-        $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+        $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
         $msgMissingCL = '';
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -202,9 +155,8 @@ class DemandeLivraisonService
         }
         $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $statut = $this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-        $destination = $this->emplacementRepository->find($data['destination']);
-        $type = $this->typeRepository->find($data['type']);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $destination = $emplacementRepository->find($data['destination']);
 
         // génère le numéro
         $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
@@ -225,7 +177,7 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
-        $this->em->persist($demande);
+        $this->entityManager->persist($demande);
 
         // enregistrement des champs libres
         $champsLibresKey = array_keys($data);
@@ -236,28 +188,28 @@ class DemandeLivraisonService
                 $valeurChampLibre
                     ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
                     ->addDemandesLivraison($demande)
-                    ->setChampLibre($this->champLibreRepository->find($champs));
-				$this->em->persist($valeurChampLibre);
-				$this->em->flush();
+                    ->setChampLibre($champLibreRepository->find($champs));
+				$this->entityManager->persist($valeurChampLibre);
+				$this->entityManager->flush();
             }
         }
-        $this->em->flush();
+        $this->entityManager->flush();
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
-            $demande->setStatut($this->statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
+            $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $preparation = new Preparation();
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $preparation
                     ->setNumero('P-' . $date->format('YmdHis'))
                     ->setDate($date);
-                $statutP = $this->statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+                $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
-                $this->em->persist($preparation);
+                $this->entityManager->persist($preparation);
                 $demande->addPreparation($preparation);
             }
-			$this->em->flush();
+			$this->entityManager->flush();
             $data = $demande;
         } else {
             $data = [

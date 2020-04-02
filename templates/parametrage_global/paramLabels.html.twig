@@ -18,7 +18,7 @@
                value="{{ dimensions_etiquettes.width is defined ? dimensions_etiquettes.width : '' }}">
     </div>
     <div class="form-group w-fit-content">
-        <label for="param-type-etiquette">Champs libre présent sur les étiquettes</label>
+        <label for="param-type-etiquette">Champ libre présent sur les étiquettes</label>
         <select name="param-cl-etiquette" class="data form-control select2 w-100">
             {% for cl in cls %}
                 <option value="{{ cl.label }}" {{ cl.label == blChosen ? 'selected' : '' }}>{{ cl.label }}</option>
@@ -26,7 +26,7 @@
         </select>
     </div>
     <div class="form-group">
-        <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur l'étiquette</label>
+        <label for="param-bl-etiquette">Champ libre <span class="blChosen">"{{ blChosen }}"</span> sur les étiquettes</label>
         <label class="switch">
             <input type="checkbox" class="checkbox col-3 data"
                    name="param-bl-etiquette" {{ wantsBL ? 'checked' : '' }}>

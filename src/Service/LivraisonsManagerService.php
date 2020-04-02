@@ -105,6 +105,7 @@ class LivraisonsManagerService
             $demande->setStatut($statutLivre);
 
             // quantités gérées à l'article
+            $preparation = $livraison->getPreparation();
             $articles = $preparation->getArticles();
 
             foreach ($articles as $article) {

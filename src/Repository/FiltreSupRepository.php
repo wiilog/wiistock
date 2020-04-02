@@ -4,9 +4,8 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method FiltreSup|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,12 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method FiltreSup[]    findAll()
  * @method FiltreSup[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class FiltreSupRepository extends ServiceEntityRepository
+class FiltreSupRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, FiltreSup::class);
-    }
 
 	/**
 	 * @param string $field

@@ -5,6 +5,7 @@ const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
 const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_IMPORT = 'import';
 const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
@@ -626,8 +627,8 @@ function initDisplaySelect2Multiple(select, inputValues) {
     }
 }
 
-function ajaxAutoCompleteEmplacementInit(select, autoSelectOptions) {
-    initSelect2(select, '', 1, {route: 'get_emplacement'}, autoSelectOptions);
+function ajaxAutoCompleteEmplacementInit(select, autoSelectOptions, placeholder = '', lengthMin = 1) {
+    initSelect2(select, placeholder, lengthMin, {route: 'get_emplacement'}, autoSelectOptions);
 }
 
 function ajaxAutoCompleteTransporteurInit(select) {
@@ -1264,6 +1265,16 @@ function displayFiltersSup(data) {
             case 'statut':
             case 'carriers':
             case 'emplacement':
+                let valuesEmp = element.value.split(',');
+                let $emplacements = $('#emplacement');
+                valuesEmp.forEach((value) => {
+                    let valueArray = value.split(':');
+                    let id = valueArray[0];
+                    let label = valueArray[1];
+                    let option = new Option(label, id, true, true);
+                    $emplacements.append(option).trigger('change');
+                });
+                break;
             case 'natures':
                 let valuesElement2 = element.value.split(',');
                 let $select2 = $('#' + element.field);
@@ -1446,6 +1457,7 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
 
 function initTooltips($elements) {
     $elements.each(function () {
+        $(this).tooltip('dispose');
         $(this).tooltip();
     });
 }
@@ -1473,7 +1485,9 @@ function initFreeSelect2($selects) {
         $self.select2({
             tags: true,
             "language": {
-                "noResults": function () { return 'Ajoutez des éléments'; }
+                "noResults": function () {
+                    return 'Ajoutez des éléments';
+                }
             },
         });
         $self.next('.select2-container').find('.select2-selection').on('focus', () => {

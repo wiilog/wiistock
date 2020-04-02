@@ -69,11 +69,9 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage) {
+                                Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
@@ -194,17 +192,17 @@ class ArticleDataService
         return $data;
     }
 
-	/**
-	 * @param $refArticle
-	 * @return array
-	 *
-	 * @throws DBALException
-	 * @throws NonUniqueResultException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle)
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param Utilisateur $user
+     * @return array
+     *
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -218,7 +216,7 @@ class ArticleDataService
 
             $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-            $role = $this->user->getRole();
+            $role = $user->getRole();
 
             $parametreRepository = $this->entityManager->getRepository(Parametre::class);
             $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
@@ -712,7 +710,6 @@ class ArticleDataService
         $champLibreValue = (!empty($this->typeCLOnLabel))
             ? $this->getCLValue($champLibre, $this->typeCLOnLabel)
             : null;
-        dump($champLibre, $champLibreValue);
 
         $labels = [
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
