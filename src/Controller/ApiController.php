@@ -33,6 +33,7 @@ use App\Service\AttachmentService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\ManutentionService;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
 use App\Service\PreparationsManagerService;
@@ -56,6 +57,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use DateTime;
 use Throwable;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 /**
@@ -770,11 +774,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/validateManut", name="api-validate-manut", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param ManutentionService $manutentionService
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
-    public function validateManut(Request $request) {
+    public function validateManut(Request $request,
+                                  ManutentionService $manutentionService) {
         $apiKey = $request->request->get('apiKey');
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
@@ -795,14 +804,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                 $em->flush();
                 if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
-                    $this->mailerService->sendMail(
-                        'FOLLOW GT // Manutention effectuée',
-                        $this->renderView('mails/mailManutentionDone.html.twig', [
-                            'manut' => $manut,
-                            'title' => 'Votre demande de manutention a bien été effectuée.',
-                        ]),
-                        $manut->getDemandeur()->getEmail()
-                    );
+                    $manutentionService->sendTreatedEmail($manut);
                 }
                 $this->successDataMsg['success'] = true;
             } else {

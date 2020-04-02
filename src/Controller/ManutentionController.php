@@ -28,6 +28,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Constraints\Timezone;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 /**
  * @Route("/manutention")
@@ -208,11 +211,17 @@ class ManutentionController extends AbstractController
     /**
      * @Route("/modifier", name="manutention_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param ManutentionService $manutentionService
      * @param Request $request
      * @return Response
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
+                         ManutentionService $manutentionService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -229,19 +238,12 @@ class ManutentionController extends AbstractController
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, $statutLabel);
             if ($statut->getNom() === Manutention::STATUT_TRAITE
                 && $statut !== $manutention->getStatut()) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Manutention effectuée',
-                    $this->renderView('mails/mailManutentionDone.html.twig', [
-                        'manut' => $manutention,
-                        'title' => 'Votre demande de manutention a bien été effectuée.',
-                    ]),
-                    $manutention->getDemandeur()->getEmail()
-                );
+                $manutentionService->sendTreatedEmail($manutention);
                 $manutention->setDateEnd(new DateTime('now', new \DateTimeZone('Europe/Paris')));
             }
-            $manutention->setStatut($statut);
 
             $manutention
+                ->setStatut($statut)
                 ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])

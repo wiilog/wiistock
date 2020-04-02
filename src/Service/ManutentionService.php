@@ -33,14 +33,17 @@ class ManutentionService
     private $user;
 
     private $entityManager;
+    private $mailerService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
+                                MailerService $mailerService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+        $this->mailerService = $mailerService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
     }
@@ -98,5 +101,22 @@ class ManutentionService
                 'manut' => $manutention
             ]),
         ];
+    }
+
+    /**
+     * @param Manutention $manutention
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function sendTreatedEmail(Manutention $manutention): void {
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Manutention effectuée',
+            $this->templating->render('mails/mailManutentionDone.html.twig', [
+                'manut' => $manutention,
+                'title' => 'Votre demande de manutention a bien été effectuée.',
+            ]),
+            $manutention->getDemandeur()->getEmail()
+        );
     }
 }
