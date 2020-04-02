@@ -551,8 +551,11 @@ class ArrivageController extends AbstractController
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function edit(Request $request,
                          ArrivageDataService $arrivageDataService,
@@ -572,7 +575,8 @@ class ArrivageController extends AbstractController
             $destinataireId = $post->get('destinataire');
             $statutId = $post->get('statut');
             $chauffeurId = $post->get('chauffeur');
-
+            $newDestinataire = $destinataireId ? $this->utilisateurRepository->find($destinataireId) : null;
+            $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
             $numeroCommadeListStr = $post->get('numeroCommandeList');
 
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -593,19 +597,13 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutId ? $statutRepository->find($statutId) : null)
                 ->setDuty($post->get('duty') == 'true')
                 ->setFrozen($post->get('frozen') == 'true')
-                ->setDestinataire($destinataireId ? $this->utilisateurRepository->find($destinataireId) : null);
+                ->setDestinataire($newDestinataire);
 
             $acheteurs = $post->get('acheteurs');
-            $editedBuyers = [];
 
             $acheteursEntities = array_map(function($acheteur) {
                 return $this->utilisateurRepository->findOneByUsername($acheteur);
             }, explode(',', $acheteurs));
-            foreach ($acheteursEntities as $acheteursEntity) {
-                if (!$arrivage->getAcheteurs()->contains($acheteursEntity)) {
-                    $editedBuyers[] = $acheteursEntity->getEmail();
-                }
-            }
 
             $arrivage->removeAllAcheteur();
             if (!empty($acheteurs)) {
@@ -613,11 +611,11 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($acheteursEntity);
                 }
             }
-            if ($sendMail && !empty($editedBuyers)) {
-                $arrivageDataService->sendArrivalEmails($arrivage, [], $editedBuyers);
+            $entityManager->flush();
+            if ($sendMail && $destinataireChanged) {
+                $arrivageDataService->sendArrivalEmails($arrivage);
             }
 
-            $entityManager->flush();
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
@@ -716,6 +714,9 @@ class ArrivageController extends AbstractController
                 }
                 foreach ($arrivage->getAttachements() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
+                }
+                foreach ($arrivage->getUrgences() as $urgence) {
+                    $urgence->setLastArrival(null);
                 }
                 $entityManager->remove($arrivage);
                 $entityManager->flush();
