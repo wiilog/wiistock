@@ -1236,23 +1236,15 @@ function displayFiltersSup(data) {
     data.forEach(function (element) {
         switch (element.field) {
             case 'utilisateurs':
-                let valuesUsers = element.value.split(',');
-                let $utilisateur = $('#utilisateur');
-                valuesUsers.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let username = valueArray[1];
-                    let option = new Option(username, id, true, true);
-                    $utilisateur.append(option).trigger('change');
-                });
-                break;
-
             case 'providers':
             case 'reference':
+            case 'statut':
+            case 'carriers':
+            case 'emplacement':
             case 'demCollecte':
             case 'demande':
                 let valuesElement = element.value.split(',');
-                let $select = $('#' + element.field);
+                let $select = $(`.filter-select2[name="${element.field}"]`);
                 valuesElement.forEach((value) => {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
@@ -1262,22 +1254,10 @@ function displayFiltersSup(data) {
                 });
                 break;
 
-            case 'statut':
-            case 'carriers':
-            case 'emplacement':
-                let valuesEmp = element.value.split(',');
-                let $emplacements = $('#emplacement');
-                valuesEmp.forEach((value) => {
-                    let valueArray = value.split(':');
-                    let id = valueArray[0];
-                    let label = valueArray[1];
-                    let option = new Option(label, id, true, true);
-                    $emplacements.append(option).trigger('change');
-                });
-                break;
+            // multiple
             case 'natures':
                 let valuesElement2 = element.value.split(',');
-                let $select2 = $('#' + element.field);
+                let $select2 = $(`.filter-select2[name="${element.field}"]`);
                 let ids = [];
                 valuesElement2.forEach((value) => {
                     let valueArray = value.split(':');
@@ -1298,7 +1278,7 @@ function displayFiltersSup(data) {
             case 'litigeOrigin':
                 const text = element.value || '';
                 const id = text.replace('é', 'e').substring(0, 3).toUpperCase();
-                $('#' + element.field).val(id).trigger('change');
+                $(`.filter-checkbox[name="${element.field}"]`).val(id).trigger('change');
                 break;
 
             case 'dateMin':
@@ -1306,7 +1286,7 @@ function displayFiltersSup(data) {
                 const sourceFormat = (element.value && element.value.indexOf('/') > -1)
                     ? 'DD/MM/YYYY'
                     : 'YYYY-MM-DD';
-                const $fieldDate = $('#' + element.field);
+                const $fieldDate = $(`.filter-input[name="${element.field}"]`);
                 const dateValue = moment(element.value, sourceFormat).format('DD/MM/YYYY');
                 if ($fieldDate.data("DateTimePicker")) {
                     $fieldDate.data("DateTimePicker").date(dateValue);

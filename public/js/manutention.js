@@ -43,27 +43,18 @@ let tableManutention = $('#tableManutention_id').DataTable({
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statut');
+    initSelect2($('.filter-select2[name="statut"]'), 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
 
-    if (val && val.length > 0) {
-        let valuesStr = val.split(',');
-        let valuesInt = [];
-        valuesStr.forEach((value) => {
-            valuesInt.push(parseInt(value));
-        })
-        $('#statut').val(valuesInt).select2();
-    } else {
         // sinon, filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_MANUT);
         $.post(path, params, function (data) {
             displayFiltersSup(data);
         }, 'json');
-    }
 });
 
 // filtres de recheches
