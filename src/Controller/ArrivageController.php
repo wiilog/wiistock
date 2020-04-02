@@ -601,7 +601,7 @@ class ArrivageController extends AbstractController
 
             $acheteurs = $post->get('acheteurs');
 
-            $acheteursEntities = array_map(function($acheteur) {
+            $acheteursEntities = array_map(function ($acheteur) {
                 return $this->utilisateurRepository->findOneByUsername($acheteur);
             }, explode(',', $acheteurs));
 
@@ -1463,7 +1463,7 @@ class ArrivageController extends AbstractController
                 throw new NotFoundHttpException("404");
             }
 
-            $barcodeConfigs[] = $this->getBarcodeColisConfig($colis, $arrivage->getAcheteurs());
+            $barcodeConfigs[] = $this->getBarcodeColisConfig($colis, $arrivage->getDestinataire());
         }
 
         if (empty($barcodeConfigs)) {
@@ -1506,22 +1506,21 @@ class ArrivageController extends AbstractController
     {
         return array_map(
             function (Colis $colisInArrivage) use ($arrivage) {
-                return $this->getBarcodeColisConfig($colisInArrivage, $arrivage->getAcheteurs());
+                return $this->getBarcodeColisConfig($colisInArrivage, $arrivage->getDestinataire());
             },
             $arrivage->getColis()->toArray()
         );
     }
 
-    private function getBarcodeColisConfig(Colis $colis, Collection $buyers)
+    private function getBarcodeColisConfig(Colis $colis, ?Utilisateur $destinataire)
     {
-        $buyersCounter = $buyers->count();
         return [
             'code' => $colis->getCode(),
             'labels' => [
-                ($buyersCounter === 1)
-                    ? ($buyers->first()->getDropzone()
-                    ? $buyers->first()->getDropzone()->getLabel()
-                    : '')
+                $destinataire
+                    ? $destinataire->getDropzone()
+                    ? $destinataire->getDropzone()->getLabel()
+                    : ''
                     : ''
             ]
         ];
