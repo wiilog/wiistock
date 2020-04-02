@@ -6,7 +6,7 @@ namespace App\DataFixtures;
 use App\Entity\Emplacement;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 
 class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInterface

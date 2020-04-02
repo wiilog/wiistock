@@ -9,7 +9,7 @@ use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
@@ -20,8 +20,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
     public function __construct(UserPasswordEncoderInterface $encoder,
                                 SpecificService $specificService,
-								RoleRepository $roleRepository
-	)
+								RoleRepository $roleRepository)
     {
         $this->encoder = $encoder;
         $this->specificService = $specificService;

@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Repository\CategorieCLRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategorieCL;
@@ -24,7 +24,7 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
         $this->encoder = $encoder;
         $this->categorieCLRepository = $categorieCLRepository;
     }
-    
+
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
