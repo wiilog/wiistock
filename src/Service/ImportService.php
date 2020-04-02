@@ -902,13 +902,6 @@ class ImportService
         if (isset($data['label'])) {
             $article->setLabel($data['label']);
         }
-        if (isset($data['quantite'])) {
-            if (!is_numeric($data['quantite'])) {
-                $this->throwError('La quantité doit être un nombre.');
-            }
-            $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite'], $isNewEntity);
-            $article->setQuantite($data['quantite']);
-        }
 
         if (isset($data['prixUnitaire'])) {
             if (!is_numeric($data['prixUnitaire'])) {
@@ -942,8 +935,15 @@ class ImportService
 
         // liaison emplacement
         $this->checkAndCreateEmplacement($data, $article);
-        $this->em->persist($article);
 
+        if (isset($data['quantite'])) {
+            if (!is_numeric($data['quantite'])) {
+                $this->throwError('La quantité doit être un nombre.');
+            }
+            $this->checkAndCreateMvtStock($article, $article->getQuantite(), $data['quantite'], $isNewEntity);
+            $article->setQuantite($data['quantite']);
+        }
+        $this->em->persist($article);
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $article, $isNewEntity, $row);
 
