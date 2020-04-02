@@ -166,13 +166,14 @@ class MouvementTracaService
         $mouvementStock = $options['mouvementStock'] ?? null;
         $fileBag = $options['fileBag'] ?? null;
         $from = $options['from'] ?? null;
+        $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
 
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
             ->setColis($colis)
             ->setEmplacement($location)
             ->setOperateur($user)
-            ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($date) : null)
+            ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($date) : null))
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
@@ -180,7 +181,7 @@ class MouvementTracaService
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
         $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $colis])
-                        ?? $articleRepository->findOneBy(['barCode' => $colis]);
+                        ?: $articleRepository->findOneBy(['barCode' => $colis]);
         if ($refOrArticle instanceof ReferenceArticle) {
             $mouvementTraca->setReferenceArticle($refOrArticle);
         }

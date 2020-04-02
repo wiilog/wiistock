@@ -332,7 +332,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 'commentaire' => null,
                                 'mouvementStock' => null,
                                 'fileBag' => null,
-                                'from' => null
+                                'from' => null,
+                                'uniqueIdForMobile' => $mvt['date']
                             ];
                             $location = $emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
                             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $mvt['type']);
