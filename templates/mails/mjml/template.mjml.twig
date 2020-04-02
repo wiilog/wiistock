@@ -7,8 +7,8 @@
         </mj-attributes>
         <mj-style inline="inline">
             .button-followgt a {
-                text-decoration: none;
-                color: white
+            text-decoration: none;
+            color: white
             }
         </mj-style>
     </mj-head>
@@ -25,7 +25,9 @@
                 <mj-text mj-class="email-content">
                     L'équipe GT Logistics
                 </mj-text>
-                {% block postScriptum %}{% endblock %}
+                <mj-text>
+                    {% block postScriptum %}{% endblock %}
+                </mj-text>
                 <mj-button css-class="button-followgt" mj-class="button-followgt">
                     {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
                     <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">
