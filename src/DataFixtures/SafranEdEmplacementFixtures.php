@@ -8,7 +8,7 @@ use App\Entity\Emplacement;
 use App\Service\SpecificService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\ORM\NonUniqueResultException;
 
 class SafranEdEmplacementFixtures extends Fixture implements FixtureGroupInterface
