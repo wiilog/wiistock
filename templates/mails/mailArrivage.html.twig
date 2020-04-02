@@ -13,7 +13,7 @@
             : arrival.numeroCommandeList
             ) %}
         {% if numeroCommandeList|length > 0 %}
-            <li> Numéro de commande :{{ numeroCommandeList|length > 1 ? 's' }}
+            <li> Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }}
                 : {{ numeroCommandeList|join(', ') }}</li>
         {% endif %}
 
