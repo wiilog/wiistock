@@ -2,6 +2,7 @@
 
 {% block content %}
     Date de demande : {{ manut.date|date('d/m/Y') }}<br>
+    Date de réalisation : {{ manut.dateEnd|date('d/m/Y') }}<br>
     Libellé : {{ manut.libelle }}<br>
     Demandeur : {{ manut.demandeur.username }}<br>
     Source : {{ manut.source }}<br>
