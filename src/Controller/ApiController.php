@@ -377,7 +377,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                         $article->setStatut($status);
                                     }
-                                } else { // MouvementTraca::TYPE_DEPOSE
+                                }
+                                else { // MouvementTraca::TYPE_DEPOSE
                                     $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
                                         [
                                             'colis' => $mvt['ref_article'],
@@ -394,13 +395,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             : $mouvementStockPrise->getRefArticle();
 
                                         $collecteOrder = $mouvementStockPrise->getCollecteOrder();
-                                        if (isset($collecteOrder) &&
-                                            ($article instanceof ReferenceArticle) &&
-                                            $article->getEmplacement() &&
-                                            $article->getEmplacement()->getId() !== $location->getId()) {
+                                        if (isset($collecteOrder)
+                                            && ($article instanceof ReferenceArticle)
+                                            && $article->getEmplacement()
+                                            && ($article->getEmplacement()->getId() !== $location->getId())) {
                                             $invalidLocationTo = ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : '');
                                             throw new Exception(MouvementTracaService::INVALID_LOCATION_TO);
-                                        } else {
+                                        }
+                                        else {
                                             $options['mouvementStock'] = $mouvementStockPrise;
                                             $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 

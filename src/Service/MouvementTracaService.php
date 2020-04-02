@@ -12,7 +12,6 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\MouvementTracaRepository;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -27,32 +26,14 @@ class MouvementTracaService
 {
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
-    /**
-     * @var Twig_Environment
-     */
     private $templating;
-
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
-
-    /**
-     * @var UserService
-     */
     private $userService;
-
     private $security;
     private $entityManager;
     private $attachmentService;
 
     public function __construct(UserService $userService,
-                                MouvementTracaRepository $mouvementTracaRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
@@ -62,7 +43,6 @@ class MouvementTracaService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->userService = $userService;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
@@ -171,6 +151,8 @@ class MouvementTracaService
                                           array $options = []): MouvementTraca
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
 
         $type = is_string($typeMouvementTraca)
             ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
@@ -197,13 +179,8 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
-        $refOrArticle = $this->referenceArticleRepository->findOneBy([
-            'barCode' => $colis
-        ]);
-        $refOrArticle = $refOrArticle ??
-            $this->articleRepository->findOneBy([
-                'barCode' => $colis
-            ]);
+        $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $colis])
+                        ?? $articleRepository->findOneBy(['barCode' => $colis]);
         if ($refOrArticle instanceof ReferenceArticle) {
             $mouvementTraca->setReferenceArticle($refOrArticle);
         }
@@ -230,6 +207,8 @@ class MouvementTracaService
 
     private function generateUniqueIdForMobile(DateTime $date): string
     {
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+
         $uniqueId = null;
         //same format as moment.defaultFormat
         $dateStr = $date->format(DateTime::ATOM);
@@ -237,7 +216,7 @@ class MouvementTracaService
         do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));
             $uniqueId = $dateStr . '_' . $random;
-            $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
+            $existingMouvements = $mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
         } while (!empty($existingMouvements));
 
         return $uniqueId;
