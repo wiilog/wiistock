@@ -1,6 +1,6 @@
 $(function () {
-    initSelect2($('#emplacement'), 'Emplacements');
-    initSelect2($('#natures'), 'Natures');
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    initSelect2($('.filter-select2[name="natures"]'), 'Natures');
 
     $.post(Routing.generate('check_time_worked_is_defined', true), (data) => {
         if (data === false) {

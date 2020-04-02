@@ -13,6 +13,7 @@ $(function() {
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
 });
 
 let pathMvt = Routing.generate('mouvement_stock_api', true);
