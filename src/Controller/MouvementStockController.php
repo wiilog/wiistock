@@ -45,11 +45,9 @@ class MouvementStockController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         return $this->render('mouvement_stock/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
-            'emplacements' => $emplacementRepository->findAll(),
+            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK)
         ]);
     }
 
@@ -74,7 +72,6 @@ class MouvementStockController extends AbstractController
             $user = $this->getUser();
 
             $data = $mouvementStockService->getDataForDatatable($user, $request->request);
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
