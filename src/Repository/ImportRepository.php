@@ -19,7 +19,8 @@ class ImportRepository extends EntityRepository
 			->select('i')
             ->join('i.status', 's')
             ->where('s.nom != :draft')
-            ->setParameter('draft', Import::STATUS_DRAFT);
+            ->setParameter('draft', Import::STATUS_DRAFT)
+            ->orderBy('i.createdAt', 'DESC');
 
 		$countTotal = count($qb->getQuery()->getResult());
 
@@ -123,7 +124,8 @@ class ImportRepository extends EntityRepository
             ->select('i')
             ->from('App:Import', 'i')
             ->leftJoin('i.status', 's')
-            ->where('s.nom', $statusLabel);
+            ->where('s.nom = :statut')
+            ->setParameter('statut', $statusLabel);
 
         $query = $qb->getQuery();
 

@@ -151,6 +151,11 @@ class Article
      */
     private $preparation;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="article")
+     */
+    private $mouvementTracas;
+
 
     public function __construct()
     {
@@ -162,6 +167,7 @@ class Article
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->litiges = new ArrayCollection();
+        $this->mouvementTracas = new ArrayCollection();
 
         $this->quantite = 0;
     }
@@ -422,32 +428,29 @@ class Article
 	/**
 	 * @return Collection|InventoryEntry[]
 	 */
-	public function getInventoryEntries(): Collection
-                        {
-                     	   return $this->inventoryEntries;
-                        }
+	public function getInventoryEntries(): Collection {
+        return $this->inventoryEntries;
+    }
 
-	public function addInventoryEntry(InventoryEntry $inventoryEntry): self
-                     	{
-                     		if (!$this->inventoryEntries->contains($inventoryEntry)) {
-                     			$this->inventoryEntries[] = $inventoryEntry;
-                     			$inventoryEntry->setArticle($this);
-                     		}
-         
-                     		return $this;
-                     	}
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self {
+        if (!$this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries[] = $inventoryEntry;
+            $inventoryEntry->setArticle($this);
+        }
 
-	public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
-                     	{
-                     		if ($this->inventoryEntries->contains($inventoryEntry)) {
-                     			$this->inventoryEntries->removeElement($inventoryEntry);
-                     			// set the owning side to null (unless already changed)
-                     			if ($inventoryEntry->getArticle() === $this) {
-                     				$inventoryEntry->setArticle(null);
-                     			}
-                     		}
-                     		return $this;
-                     	}
+        return $this;
+    }
+
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self {
+        if ($this->inventoryEntries->contains($inventoryEntry)) {
+            $this->inventoryEntries->removeElement($inventoryEntry);
+            // set the owning side to null (unless already changed)
+            if ($inventoryEntry->getArticle() === $this) {
+                $inventoryEntry->setArticle(null);
+            }
+        }
+        return $this;
+    }
 
     /**
      * @return Collection|InventoryMission[]
@@ -585,6 +588,37 @@ class Article
     public function setPreparation(?Preparation $preparation): self
     {
         $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getMouvementTracas(): Collection
+    {
+        return $this->mouvementTracas;
+    }
+
+    public function addMouvementTraca(MouvementTraca $mouvementTraca): self
+    {
+        if (!$this->mouvementTracas->contains($mouvementTraca)) {
+            $this->mouvementTracas[] = $mouvementTraca;
+            $mouvementTraca->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementTraca(MouvementTraca $mouvementTraca): self
+    {
+        if ($this->mouvementTracas->contains($mouvementTraca)) {
+            $this->mouvementTracas->removeElement($mouvementTraca);
+            // set the owning side to null (unless already changed)
+            if ($mouvementTraca->getArticle() === $this) {
+                $mouvementTraca->setArticle(null);
+            }
+        }
 
         return $this;
     }

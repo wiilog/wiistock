@@ -367,6 +367,11 @@ class CollecteController extends AbstractController
 
                     $entityManager->persist($collecteReference);
                 }
+
+                if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+                    return $this->redirectToRoute('access_denied');
+                }
+
                 $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA

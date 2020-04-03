@@ -42,8 +42,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 
 
 //CHAMPS LIBRE
-
-const urlApiChampLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
+const urlApiChampLibre = Routing.generate('champ_libre_api', {'id': $('#cl-type-id').val()}, true);
 let tableChampLibre = $('#tableChamplibre_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",

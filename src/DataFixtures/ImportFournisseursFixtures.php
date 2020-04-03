@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Fournisseur;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class ImportFournisseursFixtures extends Fixture implements FixtureGroupInterface
 {

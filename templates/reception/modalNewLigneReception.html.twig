@@ -33,7 +33,7 @@
                                 <label for="type">Type*</label>
                                 <select type="text" class="select2-type data w-100 needed" name="type"
                                         onchange="typeChoice($(this), '-new', $('#typeContentNew')), toggleRequiredChampsLibres($(this),'create')">
-                                    <option></option>
+                                    <option>&nbsp;</option>
                                     {% for type in typeChampsLibresDL %}
                                         <option value="{{type.typeId}}">{{type.typeLabel}}</option>
                                     {% endfor %}

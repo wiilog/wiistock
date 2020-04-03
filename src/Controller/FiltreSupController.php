@@ -41,7 +41,7 @@ class FiltreSupController extends AbstractController
                 'dateMin' => FiltreSup::FIELD_DATE_MIN,
                 'dateMax' => FiltreSup::FIELD_DATE_MAX,
                 'type' => FiltreSup::FIELD_TYPE,
-                'urgence' => FiltreSup::FIELD_EMERGENCY,
+                'emergency' => FiltreSup::FIELD_EMERGENCY,
                 'arrivage_string' => FiltreSup::FIELD_ARRIVAGE_STRING,
                 'reception_string' => FiltreSup::FIELD_RECEPTION_STRING,
                 'litigeOrigin' => FiltreSup::FIELD_LITIGE_ORIGIN,
@@ -81,8 +81,8 @@ class FiltreSupController extends AbstractController
             }
 
             $filterLabelsSelect2 = [
-                'users' => FiltreSup::FIELD_USERS,
-                'location' => FiltreSup::FIELD_EMPLACEMENT,
+                'utilisateurs' => FiltreSup::FIELD_USERS,
+                'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
                 'reference' => FiltreSup::FIELD_REFERENCE,
                 'statut' => FiltreSup::FIELD_STATUT,
                 'colis' => FiltreSup::FIELD_COLIS,

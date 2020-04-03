@@ -11,7 +11,6 @@ namespace App\Command;
 
 use App\Entity\Litige;
 
-use App\Repository\ArrivageRepository;
 use App\Repository\LitigeRepository;
 use App\Service\MailerService;
 use Psr\Log\LoggerInterface;
@@ -42,15 +41,7 @@ class MailsLitigesComand extends Command
      */
     private $logger;
 
-
-    /**
-     * @var ArrivageRepository
-     */
-    private $arrivageRepository;
-
-
-    public function __construct(ArrivageRepository $arrivageRepository,
-                                LoggerInterface $logger,
+    public function __construct(LoggerInterface $logger,
                                 LitigeRepository $litigeRepository,
                                 MailerService $mailerService,
                                 Twig_Environment $templating)
@@ -60,7 +51,6 @@ class MailsLitigesComand extends Command
         $this->mailerService = $mailerService;
         $this->templating = $templating;
         $this->logger = $logger;
-        $this->arrivageRepository = $arrivageRepository;
     }
 
     protected function configure()

@@ -10,19 +10,18 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Parametre;
+use App\Entity\ParametreRole;
+use App\Entity\Role;
 use App\Entity\Utilisateur;
 
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\OrdreCollecteRepository;
-use App\Repository\ParametreRepository;
-use App\Repository\ParametreRoleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\RoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
@@ -38,11 +37,6 @@ class UserService
      * @var Twig_Environment
      */
     private $templating;
-
-    /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
     /**
      * @var Utilisateur
      */
@@ -53,15 +47,6 @@ class UserService
      */
     private $utilisateurRepository;
 
-	/**
-	 * @var ParametreRepository
-	 */
-	private $parametreRepository;
-
-	/**
-	 * @var ParametreRoleRepository
-	 */
-	private $parametreRoleRepository;
 
 	/**
 	 * @var DemandeRepository
@@ -106,20 +91,14 @@ class UserService
                                 OrdreCollecteRepository $ordreCollecteRepository,
                                 ManutentionRepository $manutentionRepository,
                                 PreparationRepository $preparationRepository,
-                                ParametreRepository $parametreRepository,
-                                ParametreRoleRepository $parametreRoleRepository,
                                 Twig_Environment $templating,
-                                RoleRepository $roleRepository,
                                 EntityManagerInterface $em,
                                 UtilisateurRepository $utilisateurRepository,
                                 Security $security)
     {
         $this->user = $security->getUser();
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->roleRepository = $roleRepository;
         $this->templating = $templating;
-        $this->parametreRepository = $parametreRepository;
-        $this->parametreRoleRepository = $parametreRoleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
@@ -193,7 +172,8 @@ class UserService
     public function dataRowUtilisateur($utilisateur)
     {
         $idUser = $utilisateur->getId();
-        $roles = $this->roleRepository->findAll();
+        $roleRepository = $this->em->getRepository(Role::class);
+        $roles = $roleRepository->findAll();
 
 		$row = [
 			'id' => $utilisateur->getId() ?? '',
@@ -215,10 +195,13 @@ class UserService
 	{
 		$response = false;
 
+        $parametreRoleRepository = $this->em->getRepository(ParametreRole::class);
+        $parametreRepository = $this->em->getRepository(Parametre::class);
+
 		$role = $this->user->getRole();
-		$param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+		$param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
 		if ($param) {
-			$paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
+			$paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
 			if ($paramQuantite) {
 				$response = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
 			}

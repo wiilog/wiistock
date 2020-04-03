@@ -8,7 +8,7 @@ use App\Entity\DaysWorked;
 use App\Repository\DaysWorkedRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class SetDaysFixtures extends Fixture implements FixtureGroupInterface
 {

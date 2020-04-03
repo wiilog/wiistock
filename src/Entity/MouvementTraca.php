@@ -86,6 +86,16 @@ class MouvementTraca
      */
     private $arrivage;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="mouvementTracas")
+     */
+    private $referenceArticle;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="mouvementTracas")
+     */
+    private $article;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -255,6 +265,30 @@ class MouvementTraca
     public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
+
+        return $this;
+    }
+
+    public function getReferenceArticle(): ?ReferenceArticle
+    {
+        return $this->referenceArticle;
+    }
+
+    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
+    {
+        $this->referenceArticle = $referenceArticle;
+
+        return $this;
+    }
+
+    public function getArticle(): ?Article
+    {
+        return $this->article;
+    }
+
+    public function setArticle(?Article $article): self
+    {
+        $this->article = $article;
 
         return $this;
     }

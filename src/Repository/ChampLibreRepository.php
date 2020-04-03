@@ -179,8 +179,8 @@ class ChampLibreRepository extends EntityRepository
             ->join('c.categorieCL', 'ccl')
             ->where('c.type = :type AND ccl.label = :categorieCLLabel')
             ->setParameters([
-                    'type' => $type,
-                    'categorieCLLabel' => $categorieCLLabel,
+                'type' => $type,
+                'categorieCLLabel' => $categorieCLLabel,
             ]);
 
 		if ($creation) {

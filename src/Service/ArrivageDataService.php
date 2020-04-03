@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Urgence;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
@@ -128,20 +127,18 @@ class ArrivageDataService
     /**
      * @param Arrivage $arrival
      * @param Urgence[] $emergencies
-     * @param array $manualRecipients
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function sendArrivalEmails(Arrivage $arrival,
-                                      array $emergencies = [],
-                                      array $manualRecipients = []): void
+                                      array $emergencies = []): void
     {
 
         $isUrgentArrival = !empty($emergencies);
-
+        $finalRecipents = [];
         if ($isUrgentArrival) {
-            $recipients = array_reduce(
+            $finalRecipents = array_reduce(
                 $emergencies,
                 function (array $carry, Urgence $emergency) {
                     $email = $emergency->getBuyer()->getEmail();
@@ -152,29 +149,25 @@ class ArrivageDataService
                 },
                 []
             );
-        } else {
-            $recipients = $arrival
-                ->getInitialAcheteurs()
-                ->map(function (Utilisateur $acheteur) {
-                    return $acheteur->getEmail();
-                })
-                ->toArray();
+        } else if ($arrival->getDestinataire()) {
+            $finalRecipents = [$arrival->getDestinataire()->getEmail()];
         }
 
-        $this->mailerService->sendMail(
-            'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
-            $this->templating->render(
-                'mails/mailArrivage.html.twig',
-                [
-                    'title' => 'Arrivage ' . ($isUrgentArrival ? 'urgent ' : '') . 'reçu',
-                    'arrival' => $arrival,
-                    'emergencies' => $emergencies,
-                    'isUrgentArrival' => $isUrgentArrival
-
-                ]
-            ),
-            !empty($manualRecipients) ? $manualRecipients : $recipients
-        );
+        if (!empty($finalRecipents)) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
+                $this->templating->render(
+                    'mails/mailArrivage.html.twig',
+                    [
+                        'title' => 'Arrivage ' . ($isUrgentArrival ? 'urgent ' : '') . 'reçu',
+                        'arrival' => $arrival,
+                        'emergencies' => $emergencies,
+                        'isUrgentArrival' => $isUrgentArrival
+                    ]
+                ),
+                $finalRecipents
+            );
+        }
     }
 
     /**

@@ -16,7 +16,7 @@ $(function() {
     }, 'json');
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
-
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($('#modalNewMvtTraca'));
 });
 
@@ -41,8 +41,8 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
-        {"data": "reference", 'name': 'reference', 'title': 'Référence', orderable: false},
-        {"data": "label", 'name': 'label', 'title': 'Libellé', orderable: false},
+        {"data": "reference", 'name': 'reference', 'title': 'Référence'},
+        {"data": "label", 'name': 'label', 'title': 'Libellé'},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},

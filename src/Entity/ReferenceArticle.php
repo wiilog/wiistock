@@ -182,6 +182,11 @@ class ReferenceArticle
      */
     private $emergencyComment;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="referenceArticle")
+     */
+    private $mouvementTracas;
+
 
     public function __construct()
     {
@@ -196,6 +201,7 @@ class ReferenceArticle
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
+        $this->mouvementTracas = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -822,6 +828,37 @@ class ReferenceArticle
     public function setEmergencyComment(?string $emergencyComment): self
     {
         $this->emergencyComment = $emergencyComment;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getMouvementTracas(): Collection
+    {
+        return $this->mouvementTracas;
+    }
+
+    public function addMouvementTraca(MouvementTraca $mouvementTraca): self
+    {
+        if (!$this->mouvementTracas->contains($mouvementTraca)) {
+            $this->mouvementTracas[] = $mouvementTraca;
+            $mouvementTraca->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementTraca(MouvementTraca $mouvementTraca): self
+    {
+        if ($this->mouvementTracas->contains($mouvementTraca)) {
+            $this->mouvementTracas->removeElement($mouvementTraca);
+            // set the owning side to null (unless already changed)
+            if ($mouvementTraca->getReferenceArticle() === $this) {
+                $mouvementTraca->setReferenceArticle(null);
+            }
+        }
 
         return $this;
     }

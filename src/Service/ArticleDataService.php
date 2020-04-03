@@ -39,7 +39,6 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -49,7 +48,6 @@ class ArticleDataService
 {
 
     private $templating;
-    private $user;
     private $router;
 
     private $refArticleDataService;
@@ -69,11 +67,9 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                TokenStorageInterface $tokenStorage) {
+                                Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
@@ -194,17 +190,17 @@ class ArticleDataService
         return $data;
     }
 
-	/**
-	 * @param $refArticle
-	 * @return array
-	 *
-	 * @throws DBALException
-	 * @throws NonUniqueResultException
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle)
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param Utilisateur $user
+     * @return array
+     *
+     * @throws NonUniqueResultException
+     * @throws Twig_Error_Loader
+     * @throws Twig_Error_Runtime
+     * @throws Twig_Error_Syntax
+     */
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -218,7 +214,7 @@ class ArticleDataService
 
             $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-            $role = $this->user->getRole();
+            $role = $user->getRole();
 
             $parametreRepository = $this->entityManager->getRepository(Parametre::class);
             $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);

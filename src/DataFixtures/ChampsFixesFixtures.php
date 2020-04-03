@@ -8,7 +8,7 @@ use App\Entity\FieldsParam;
 use App\Repository\FieldsParamRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
 {

@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 
 class PatchAlerteFixtures extends Fixture implements FixtureGroupInterface

@@ -18,7 +18,6 @@ use App\Entity\ValeurChampLibre;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
-use App\Repository\CategorieCLRepository;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -44,11 +43,6 @@ use Twig\Error\SyntaxError;
  */
 class ArticleController extends AbstractController
 {
-
-    /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
 
     /**
      * @var CollecteRepository
@@ -89,7 +83,6 @@ class ArticleController extends AbstractController
 
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
-                                CategorieCLRepository $categorieCLRepository,
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
                                 CollecteRepository $collecteRepository,
@@ -103,7 +96,6 @@ class ArticleController extends AbstractController
         $this->receptionRepository = $receptionRepository;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
-        $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->CSVExportService = $CSVExportService;
     }
@@ -122,10 +114,11 @@ class ArticleController extends AbstractController
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
         $category = CategoryType::ARTICLE;
         $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champF[] = [
@@ -353,11 +346,12 @@ class ArticleController extends AbstractController
             }
 
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $currentUser = $this->getUser();
             /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnsVisibleForArticle();
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
             $category = CategoryType::ARTICLE;
             $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
@@ -741,7 +735,7 @@ class ArticleController extends AbstractController
             $refArticle = $referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $this->getUser());
             } else {
                 $json = false; //TODO gérer erreur retour
             }

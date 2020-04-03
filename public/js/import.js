@@ -69,33 +69,24 @@ function displayFirstModal(importId = null) {
 
 function displaySecondModal(data) {
     if (data.success) {
+        const importId = data.importId;
         $modalNewImport.find('.modal-body').html(data.html);
-        $modalNewImport.find('[name="importId"]').val(data.importId);
+        $modalNewImport.find('[name="importId"]').val(importId);
         $submitNewImport.off();
 
         let urlNewImportSecond = Routing.generate('import_links', true);
-        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportSecond, null, displayConfirmationModal, false);
+        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportSecond, null, (data) => displayConfirmationModal(importId, data), false);
     } else {
         $modalNewImport.find('.error-msg').html(data.msg);
     }
 }
 
-function displayConfirmationModal(data) {
+function displayConfirmationModal(importId, data) {
     $modalNewImport.find('.modal-body').html(data.html);
     $submitNewImport.off();
 
-    let urlNewImportConfirm = Routing.generate('import_confirm', true);
-    InitialiserModal($modalNewImport, $submitNewImport, urlNewImportConfirm, tableImport, launchImport);
-}
-
-function launchImport(data) {
-    $.post(Routing.generate('import_launch'), data, (resp) => {
-        tableImport.ajax.reload();
-        if (resp.success) {
-            alertSuccessMsg(resp.msg);
-        } else {
-            alertErrorMsg(resp.msg);
-        }
+    $submitNewImport.click(() => {
+        launchImport(importId);
     });
 }
 
@@ -160,16 +151,27 @@ function initDoubleClick(elem) {
     }
 }
 
-function launchPlanifiedImport($btn) {
-    let params = { importId : $btn.data('id'), force: 1 };
+function launchImport(importId, force = false) {
+    if (importId) {
+        const params = {
+            importId,
+            force: Number(Boolean(force))
+        };
+        $.post(Routing.generate('import_launch'), params, (resp) => {
+            if (!force) {
+                $modalNewImport.modal('hide');
+            }
 
-    $.post(Routing.generate('import_confirm'), JSON.stringify(params), (resp) => {
-        if (resp.success) {
-            alertSuccessMsg('Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.');
-            launchImport(params);
-        } else {
-            alertErrorMsg('Une erreur est survenue lors du lancement de votre import.');
-        }
-        tableImport.ajax.reload();
-    });
+            if (resp.success) {
+                alertSuccessMsg(resp.message);
+            } else {
+                alertErrorMsg(resp.message);
+            }
+
+            tableImport.ajax.reload();
+        });
+    }
+    else {
+        alertErrorMsg('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.');
+    }
 }

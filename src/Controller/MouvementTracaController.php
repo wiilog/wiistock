@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
@@ -38,10 +39,6 @@ use DateTime;
  */
 class MouvementTracaController extends AbstractController
 {
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementRepository;
 
     /**
      * @var UserService
@@ -59,11 +56,6 @@ class MouvementTracaController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
-
-    /**
      * @var MouvementTracaService
      */
     private $mouvementTracaService;
@@ -74,15 +66,14 @@ class MouvementTracaController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserService $userService
-     * @param MouvementTracaRepository $mouvementTracaRepository
      */
-
-    public function __construct(MouvementTracaService $mouvementTracaService, ColisRepository $colisRepository, AttachmentService $attachmentService, UtilisateurRepository $utilisateurRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(MouvementTracaService $mouvementTracaService,
+                                AttachmentService $attachmentService,
+                                UtilisateurRepository $utilisateurRepository,
+                                UserService $userService)
     {
-        $this->colisRepository = $colisRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
-        $this->mouvementRepository = $mouvementTracaRepository;
         $this->attachmentService = $attachmentService;
         $this->mouvementTracaService = $mouvementTracaService;
     }
@@ -106,7 +97,6 @@ class MouvementTracaController extends AbstractController
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'emplacements' => $emplacementRepository->findAll(),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
         ]);
     }
@@ -238,8 +228,9 @@ class MouvementTracaController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-            $mvt = $this->mouvementRepository->find($data['id']);
+            $mvt = $mouvementTracaRepository->find($data['id']);
 
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
                 'mvt' => $mvt,
@@ -271,13 +262,14 @@ class MouvementTracaController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
             $date = DateTime::createFromFormat(DateTime::ATOM, $post->get('datetime') . ':00P', new \DateTimeZone('Europe/Paris'));
             $type = $statutRepository->find($post->get('type'));
             $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
 
-            $mvt = $this->mouvementRepository->find($post->get('id'));
+            $mvt = $mouvementTracaRepository->find($post->get('id'));
             $mvt
                 ->setDatetime($date)
                 ->setOperateur($operator)
@@ -309,17 +301,21 @@ class MouvementTracaController extends AbstractController
 
     /**
      * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $mvt = $this->mouvementRepository->find($data['mvt']);
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $mvt = $mouvementTracaRepository->find($data['mvt']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($mvt);
             $entityManager->flush();
             return new JsonResponse();
@@ -331,19 +327,23 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/mouvement-traca-infos", name="get_mouvements_traca_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
-    public function getMouvementIntels(Request $request): Response
+    public function getMouvementIntels(Request $request,
+                                       EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $colisRepository = $entityManager->getRepository(Colis::class);
             $dateMin = $data['dateMin'] . ' 00:00:00';
             $dateMax = $data['dateMax'] . ' 23:59:59';
 
             $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
             $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-            $mouvements = $this->mouvementRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $mouvements = $mouvementTracaRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             foreach ($mouvements as $mouvement) {
                 $date = $mouvement->getDatetime();
@@ -395,7 +395,7 @@ class MouvementTracaController extends AbstractController
                         : ($mouvement->getReception()
                         ? $mouvement->getReception()->getReference()
                         : '');
-                $colis = $this->colisRepository->findOneBy(['code' => $mouvement->getColis()]);
+                $colis = $colisRepository->findOneBy(['code' => $mouvement->getColis()]);
                 if ($colis) {
                     $arrivage = $colis->getArrivage();
                     $mouvementData[] = ($arrivage->getIsUrgent() ? 'oui' : 'non');
@@ -425,8 +425,9 @@ class MouvementTracaController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-            $mouvementTraca = $this->mouvementRepository->find($data);
+            $mouvementTraca = $mouvementTracaRepository->find($data);
             $json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
                 'mvt' => $mouvementTraca,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
