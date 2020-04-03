@@ -97,7 +97,6 @@ class MouvementTracaController extends AbstractController
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'emplacements' => $emplacementRepository->findAll(),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
         ]);
     }

@@ -30,15 +30,15 @@ class MouvementTracaRepository extends EntityRepository
     public const MOUVEMENT_TRACA_DEFAULT = 'tracking';
     public const MOUVEMENT_TRACA_STOCK = 'stock';
 
-	private const DtToDbLabels = [
-		'date' => 'datetime',
-		'colis' => 'colis',
-		'location' => 'emplacement',
+    private const DtToDbLabels = [
+        'date' => 'datetime',
+        'colis' => 'colis',
+        'location' => 'emplacement',
         'type' => 'status',
         'reference' => 'reference',
         'label' => 'label',
-		'operateur' => 'user',
-	];
+        'operateur' => 'user',
+    ];
 
     private static function AddMobileTrackingMovementSelect(QueryBuilder $queryBuilder, bool $preferDate = false): QueryBuilder {
         return $queryBuilder
@@ -56,31 +56,43 @@ class MouvementTracaRepository extends EntityRepository
      * @return MouvementTraca
      * @throws NonUniqueResultException
      */
-    public function findOneByUniqueIdForMobile($uniqueId) {
+    public function findOneByUniqueIdForMobile($uniqueId)
+    {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        	/** @lang DQL */
-			'SELECT mvt
+        /** @lang DQL */
+            'SELECT mvt
                 FROM App\Entity\MouvementTraca mvt
                 WHERE mvt.uniqueIdForMobile = :uniqueId'
         )->setParameter('uniqueId', $uniqueId);
         return $query->getOneOrNullResult();
     }
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 * @return MouvementTraca[]
-	 * @throws Exception
-	 */
+    public function countAll()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(m)
+            FROM App\Entity\MouvementTraca m"
+        );
+        return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return MouvementTraca[]
+     * @throws Exception
+     */
     public function findByDates($dateMin, $dateMax)
     {
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
 
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-        	/** @lang DQL */
+        /** @lang DQL */
             'SELECT m
             FROM App\Entity\MouvementTraca m
             WHERE m.datetime BETWEEN :dateMin AND :dateMax'
@@ -91,30 +103,30 @@ class MouvementTracaRepository extends EntityRepository
         return $query->execute();
     }
 
-	/**
-	 * @param string $colis
-	 * @return  MouvementTraca
-	 */
+    /**
+     * @param string $colis
+     * @return  MouvementTraca
+     */
     public function getLastByColis($colis)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT mt
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT mt
 			FROM App\Entity\MouvementTraca mt
 			WHERE mt.colis = :colis
 			ORDER BY mt.datetime DESC"
-		)->setParameter('colis', $colis);
+        )->setParameter('colis', $colis);
 
-		$result = $query->execute();
-		return $result ? $result[0] : null;
-	}
+        $result = $query->execute();
+        return $result ? $result[0] : null;
+    }
 
-	/**
-	 * @param string $colis
-	 * @param DateTimeInterface $date
-	 * @return  MouvementTraca
-	 */
+    /**
+     * @param string $colis
+     * @param DateTimeInterface $date
+     * @return  MouvementTraca
+     */
     public function getByColisAndPriorToDate($colis, $date)
     {
         $em = $this->getEntityManager();
@@ -132,7 +144,8 @@ class MouvementTracaRepository extends EntityRepository
         return $result;
     }
 
-    public function getColisById(array $ids) {
+    public function getColisById(array $ids)
+    {
         $result = $this
             ->createQueryBuilder('mouvementTraca')
             ->select('mouvementTraca.colis')
@@ -150,7 +163,8 @@ class MouvementTracaRepository extends EntityRepository
      * @return int[]
      * @throws DBALException
      */
-    public function getIdForPacksOnLocations(array $locations, array $onDateBracket = []): array {
+    public function getIdForPacksOnLocations(array $locations, array $onDateBracket = []): array
+    {
         $connection = $this->getEntityManager()->getConnection();
 
         return $connection
@@ -164,7 +178,8 @@ class MouvementTracaRepository extends EntityRepository
      * @return array[]
      * @throws DBALException
      */
-    public function getLastOnLocations(array $locations): array {
+    public function getLastOnLocations(array $locations): array
+    {
         $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
 
         $queryBuilder = $this->createQueryBuilder('tracking')
@@ -187,7 +202,8 @@ class MouvementTracaRepository extends EntityRepository
      * @return array[]
      * @throws DBALException
      */
-    public function getLastTrackingMovementsOnLocations(array $locations): array {
+    public function getLastTrackingMovementsOnLocations(array $locations): array
+    {
         $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
 
         $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'), true)
@@ -220,7 +236,8 @@ class MouvementTracaRepository extends EntityRepository
      * @return int[]
      * @throws DBALException
      */
-    public function getFirstIdForPacksOnLocations(array $locations, array $onDateBracket = []): array {
+    public function getFirstIdForPacksOnLocations(array $locations, array $onDateBracket = []): array
+    {
         $connection = $this->getEntityManager()->getConnection();
 
         $locationIds = $this->getIdsFromLocations($locations);
@@ -253,7 +270,8 @@ class MouvementTracaRepository extends EntityRepository
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return string
      */
-    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id', array $onDateBracket = []): string {
+    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id', array $onDateBracket = []): string
+    {
         $locationIds = implode(',', $this->getIdsFromLocations($locations));
         $dropType = str_replace('\'', '\'\'', MouvementTraca::TYPE_DEPOSE);
 
@@ -264,8 +282,7 @@ class MouvementTracaRepository extends EntityRepository
             $maxDate = $onDateBracket['maxDate']->format('Y-m-d H:i:s');
             $locationsInDateBracketClause = "WHERE max_datetime_packs_local.emplacement_id IN (${locationIds})";
             $uniquePackInLocationClause = "AND unique_packs_in_location.datetime BETWEEN '${minDate}' AND '${maxDate}'";
-        }
-        else {
+        } else {
             $locationsInDateBracketClause = '';
             $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${locationIds})";
         }
@@ -296,9 +313,10 @@ class MouvementTracaRepository extends EntityRepository
      * @param Emplacement[]|int[] $locations
      * @return array
      */
-    private function getIdsFromLocations(array $locations): array {
+    private function getIdsFromLocations(array $locations): array
+    {
         return array_map(
-            function($location) {
+            function ($location) {
                 return ($location instanceof Emplacement)
                     ? $location->getId()
                     : $location;
@@ -319,21 +337,20 @@ class MouvementTracaRepository extends EntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('m')
             ->from('App\Entity\MouvementTraca', 'm');
 
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = $this->countAll();
 
         // filtres sup
         foreach ($filters as $filter) {
-            switch($filter['field']) {
+            switch ($filter['field']) {
                 case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('m.type', 's')
-						->andWhere('s.id in (:statut)')
-						->setParameter('statut', $value);
-					break;
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('m.type', 's')
+                        ->andWhere('s.id in (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
                 case 'emplacement':
                     $emplacementValue = explode(':', $filter['value']);
                     $qb
@@ -393,11 +410,9 @@ class MouvementTracaRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order')))
-            {
+            if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
+                if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     if ($column === 'emplacement') {
@@ -440,7 +455,12 @@ class MouvementTracaRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+        $qb
+            ->select('count(m)');
+        // compte éléments filtrés
+        $countFiltered = $qb->getQuery()->getSingleScalarResult();
+        $qb
+            ->select('m');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -450,7 +470,7 @@ class MouvementTracaRepository extends EntityRepository
         $query = $qb->getQuery();
 
         return [
-            'data' => $query ? $query->getResult() : null ,
+            'data' => $query ? $query->getResult() : null,
             'count' => $countFiltered,
             'total' => $countTotal
         ];
@@ -464,7 +484,8 @@ class MouvementTracaRepository extends EntityRepository
      */
     public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
                                                      string $type,
-                                                     array $filterDemandeCollecteIds = []) {
+                                                     array $filterDemandeCollecteIds = [])
+    {
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
             ? 'mouvementTraca.mouvementStock IS NOT NULL'
             : 'mouvementTraca.mouvementStock IS NULL'; // MOUVEMENT_TRACA_DEFAULT
@@ -494,34 +515,34 @@ class MouvementTracaRepository extends EntityRepository
             ->execute();
     }
 
-	public function countByEmplacement($emplacementId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(m)
+    public function countByEmplacement($emplacementId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(m)
             FROM App\Entity\MouvementTraca m
             JOIN m.emplacement e
             WHERE e.id = :emplacementId"
-		)->setParameter('emplacementId', $emplacementId);
-		return $query->getSingleScalarResult();
-	}
+        )->setParameter('emplacementId', $emplacementId);
+        return $query->getSingleScalarResult();
+    }
 
-	/**
-	 * @param MouvementStock $mouvementStock
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-	public function countByMouvementStock($mouvementStock)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(m)
+    /**
+     * @param MouvementStock $mouvementStock
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countByMouvementStock($mouvementStock)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(m)
             FROM App\Entity\MouvementTraca m
             WHERE m.mouvementStock = :mouvementStock"
-		)->setParameter('mouvementStock', $mouvementStock);
-		return $query->getSingleScalarResult();
-	}
+        )->setParameter('mouvementStock', $mouvementStock);
+        return $query->getSingleScalarResult();
+    }
 }
