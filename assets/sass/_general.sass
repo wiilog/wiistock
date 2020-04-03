@@ -125,9 +125,22 @@ input:-webkit-autofill
 
 .big-font
   font-size: 4em !important
+  @media (min-width: 3800px)
+      font-size: 12em !important
+
+.spec-font
+    font-size: 4.5rem !important
 
 .medium-font
   font-size: 1.5rem !important
+  @media (max-height: 950px)
+    font-size: 1rem !important
+  @media (min-width: 3800px)
+    font-size: 3em !important
+    margin-bottom: 20px
+
+.display-font
+    font-size: 5rem !important
 
 .little-font
   font-size: .8rem

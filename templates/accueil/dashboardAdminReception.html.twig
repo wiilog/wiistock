@@ -1,11 +1,15 @@
-
-<div class="row">
-    <p class="col-12 white mb-1">
+<div class="{% if isDashboardExt %}row d-flex align-items-end{% endif %}">
+    {% if isDashboardExt %}
+        <div>
+            <img src="{{ asset('img/followGTwhite.svg') }}" alt="Logo" height="100px" class="m-2" >
+        </div>
+    {% endif %}
+    <div class="white mt-2 mb-2{% if isDashboardExt %} spec-font mb-4 ml-5{% endif %}">
         Dashboard | RÉCEPTION ADMINISTRATIVE
-    </p>
+    </div>
 </div>
-<div class="row">
-    <div class="col-12">
+<div class=" h-100 container-fluid ">
+<div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
         <div class="row">
             <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
@@ -40,8 +44,8 @@
                                     </i>
                                 </div>
                             {% endif %}
-                            <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
-                                Nombre de lignes restant à traiter
+                            <p class="text-center medium-font bold ">
+                                Nombre de lignes à traiter
                             </p>
                             <div class="d-flex align-items-center justify-content-center ellipsis"
                                  style="height: inherit;">
@@ -63,12 +67,12 @@
                                     </i>
                                 </div>
                             {% endif %}
-                            <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
+                            <p class="text-center medium-font bold ">
                                 Prochain emplacement à traiter
                             </p>
                             <div class="d-flex align-items-center justify-content-center"
                                  style="height: inherit;">
-                                <p class="medium-font figure" id="empForChart1">
+                                <p class="display-font figure " id="empForChart1" >Emplacement 12345
                                 </p>
                             </div>
                         </div>
@@ -77,8 +81,7 @@
             </div>
         </div>
     </div>
-</div>
-<div class="col-12 p-0">
+<div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
     <div class="row">
         <div class="col-9 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
@@ -114,8 +117,8 @@
                                 </i>
                             </div>
                         {% endif %}
-                        <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
-                            Nombre de lignes restant à traiter
+                        <p class="text-center {{ isDashboardExt ? 'medium-font bold' }}">
+                            Nombre de lignes à traiter
                         </p>
                         <div class="d-flex align-items-center justify-content-center ellipsis"
                              style="height: inherit;">
@@ -137,12 +140,12 @@
                                 </i>
                             </div>
                         {% endif %}
-                        <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
+                        <p class="text-center {{ isDashboardExt ? 'medium-font bold' }}">
                             Prochain emplacement à traiter
                         </p>
                         <div class="d-flex align-items-center justify-content-center"
                              style="height: inherit;">
-                            <p class="medium-font figure" id="empForChart2">
+                            <p class="display-font figure " id="empForChart2">blabla
                             </p>
                         </div>
                     </div>
@@ -151,62 +154,69 @@
         </div>
     </div>
 </div>
-<div class="col-12 p-0">
+<div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
     <div class="row">
-        <div class="col mr-1">
-            <div class="dashboard-box-wrapper fourth-height">
-                <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
-                    <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
-                        Urgences restant à recevoir
+        <div class="col-3">
+            <div class="dashboard-box-wrapper fourth-height justify-content-around">
+                <div id="remaining-urgences-box-admin" class="dashboard-box text-center ">
+                    <p class="text-center bold medium-font">
+                        Urgences à recevoir
                     </p>
                     <div class="d-flex align-items-center justify-content-center"
                          style="height: inherit;">
-                        <p class="big-font figure red counter"></p>
+                        <p class="big-font figure counter"></p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col mr-1">
+        <div class="col-3 ">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
-                    <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
-                        Urgences restant à traiter<br>
-                        <span class="location-label ellipsis"></span>
+                    <div>
+                    <p class="text-center bold medium-font">
+                        <i class="fas "></i>
+                        Urgences à traiter
+                        <i class="fas "></i>
                     </p>
-                    <div class="d-flex align-items-center justify-content-center"
-                         style="height: inherit;">
+                        <div class="location-label ellipsis lh medium-font"></div>
+                    </div>
+                    <div class="align-items-center lh">
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col mr-1">
+        <div class="col-3 ">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
-                    <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
-                        Lignes en litiges<br>
-                        <span class="location-label ellipsis"></span>
-                    </p>
-                    <div class="d-flex align-items-center justify-content-center"
-                         style="height: inherit;">
+                    <div>
+                        <p class="text-center bold medium-font">
+                        Lignes en litiges
+                        </p>
+                        <div class="location-label ellipsis lh medium-font"></div>
+                    </div>
+                    <div class="align-items-center lh">
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col mr-1">
+        <div class="col-3">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
-                    <p class="text-center {{ isDashboardExt ? 'medium-font' }}">
-                        Colis en attente de dédouanement<br>
-                        <span class="location-label ellipsis"></span>
+                    <div>
+                    <p class="text-center bold medium-font">
+                        Colis en attente de dédouanement
                     </p>
-                    <div class="d-flex align-items-center justify-content-center"
-                         style="height: inherit;">
+                        <div class="location-label ellipsis lh medium-font"></div>
+                    </div>
+                    <div class="align-items-center lh"
+                         >
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>

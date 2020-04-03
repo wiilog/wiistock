@@ -97,7 +97,7 @@ function updateCharts() {
 function updateSimpleChartData(
     chart,
     data,
-    {lastColor, lastLabel,  label } = {lastColor: undefined, lastLabel: undefined, label: undefined},
+    label,
     {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}) {
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
@@ -107,12 +107,10 @@ function updateSimpleChartData(
         chart.data.datasets[0].data.push(data[key]);
     }
 
-
     const dataLength = chart.data.datasets[0].data.length;
     if (dataLength > 0) {
         chart.data.datasets[0].backgroundColor = new Array(dataLength);
         chart.data.datasets[0].backgroundColor.fill('#A3D1FF');
-        chart.data.datasets[0].backgroundColor[dataLength - 1] = lastColor;
     }
 
     if (subData) {
@@ -124,43 +122,7 @@ function updateSimpleChartData(
         });
 
         chart.legend.display = true;
-
-        const legendConfig = [
-            {
-                label,
-                color: '#A3D1FF'
-            },
-            ...((lastLabel && lastColor)
-                ? [{
-                    label: lastLabel,
-                    color: lastColor
-                }]
-                : []),
-            {
-                label: lineChartLabel,
-                color: subColor
-            }
-        ];
-
-
-        const $legendContainer = $(chart.canvas).parent().siblings('.custom-chart-legend');
-        const subClasses = isDashboardExt() ? 'chart-legend-label-bigger' : '';
-        $legendContainer.html($('<ul/>', {
-            class: 'd-flex justify-content-center align-items-center',
-            html: legendConfig.map(({label, color}) => (
-                $('<li/>', {
-                    class: 'd-flex justify-content-center align-items-center',
-                    html: [
-                        $('<span/>', {class: 'chart-legend-color', style: `background-color: ${color}`}),
-                        $('<span/>', {class: `chart-legend-label ${subClasses}`, text: label,})
-                    ]
-                })
-            ))
-        }));
-
     }
-
-
 
     chart.update();
 }
@@ -200,24 +162,20 @@ function updateMultipleChartData(chart, chartData, chartColors) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path, chart = null, canHaveNegativValues = false, showLegend = false) {
+function drawSimpleChart($canvas, path, chart = null, canHaveNegativValues = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
-                    chart = newChart($canvas, showLegend, false, canHaveNegativValues);
+                    chart = newChart($canvas, false, canHaveNegativValues);
                 }
 
                 updateSimpleChartData(
                     chart,
                     data.data || data,
-                    {
-                        lastColor: '#39B54A',
-                        lastLabel: data.data && data.lastLabel,
-                        label:  data.data && data.label
-                    },
+                    data.data && data.label,
                     {
                         data: data.subCounters,
                         label: data.subLabel
@@ -306,9 +264,11 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, showLegend = false, redForLastData = false, canHaveNegativValues = false) {
+function newChart($canvasId, redForLastData = false, canHaveNegativValues = false) {
     if ($canvasId.length) {
-        const fontSize = isDashboardExt() ? 20 : 12;
+        const fontSize = isDashboardExt()
+            ? 40
+            : 12;
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
@@ -322,9 +282,10 @@ function newChart($canvasId, showLegend = false, redForLastData = false, canHave
                 tooltips: false,
                 responsive: true,
                 legend: {
-                    display: showLegend,
                     position: 'bottom',
                     labels: {
+                        fontSize,
+                        fontStyle: 'bold',
                         filter: function(item) {
                             return Boolean(item && item.text);
                         }
@@ -412,12 +373,12 @@ function refreshIndicatorsReceptionAdmin() {
     $.get(Routing.generate('get_indicators_reception_admin', true), function(data) {
         refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
         refreshCounter($('#encours-litige-box'), data.enCoursLitige);
-        refreshCounter($('#encours-urgence-box'), data.enCoursUrgence);
+        refreshCounter($('#encours-urgence-box'), data.enCoursUrgence, true);
         refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
     });
 }
 
-function refreshCounter($counterCountainer, data) {
+function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false) {
     let counter;
 
     if (typeof data === 'object') {
@@ -428,7 +389,13 @@ function refreshCounter($counterCountainer, data) {
     else {
         counter = data;
     }
-
+    if (counter > 0 && needsRedColorIfPositiv) {
+        $counterCountainer.find('.counter').addClass('red');
+        $counterCountainer.find('.fas').addClass('red fa-exclamation-triangle');
+    } else {
+        $counterCountainer.find('.counter').removeClass('red');
+        $counterCountainer.find('.fas').removeClass('red fa-exclamation-triangle');
+    }
     $counterCountainer.find('.counter').text(counter);
 }
 
