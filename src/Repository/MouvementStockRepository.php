@@ -358,7 +358,6 @@ class MouvementStockRepository extends ServiceEntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('m')
             ->from('App\Entity\MouvementStock', 'm');
 
         $countTotal = $this->countAll();
@@ -449,10 +448,12 @@ class MouvementStockRepository extends ServiceEntityRepository
                 }
             }
         }
-
+        $qb
+            ->select('count(m)');
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
-
+        $countFiltered = $qb->getQuery()->getSingleScalarResult();
+        $qb
+            ->select('m');
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
