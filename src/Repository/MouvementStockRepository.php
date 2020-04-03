@@ -413,7 +413,7 @@ class MouvementStockRepository extends ServiceEntityRepository
 					break;
 			}
 		}
-
+		dump($countTotal);
 		//Filter search
 		if (!empty($params)) {
 			if (!empty($params->get('search'))) {
