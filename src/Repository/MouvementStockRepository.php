@@ -175,14 +175,18 @@ class MouvementStockRepository extends EntityRepository
         } else if (!empty($dateDebut) && $dateFin == '') {
             $qb
                 ->where('m.type = :entreeInv AND m.date > :dateDebut')
-                ->setParameters(['entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
-                    'dateDebut' => $dateDebut]);
+                ->setParameters([
+                    'entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                    'dateDebut' => $dateDebut
+                ]);
         } else if (!empty($dateDebut) && !empty($dateFin)) {
             $qb
                 ->where('m.type = :entreeInv AND m.date BETWEEN :dateDebut AND :dateFin')
-                ->setParameters(['entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
+                ->setParameters([
+                    'entreeInv' => MouvementStock::TYPE_INVENTAIRE_ENTREE,
                     'dateDebut' => $dateDebut,
-                    'dateFin' => $dateFin]);
+                    'dateFin' => $dateFin
+                ]);
         }
         $query = $qb->getQuery();
         return $query->getSingleScalarResult();

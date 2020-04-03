@@ -112,18 +112,16 @@ class EmplacementRepository extends EntityRepository
 
     public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
     {
+        $countTotal = $this->countAll();
+
         $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
+        $qb = $em
+            ->createQueryBuilder()
             ->from('App\Entity\Emplacement', 'e');
-
-        $countQuery = $countTotal = $this->countAll();
 
         if ($excludeInactive) {
             $qb->where('e.isActive = 1');
         }
-
 
         $allEmplacementDataTable = null;
         // prise en compte des paramètres issus du datatable
@@ -142,10 +140,13 @@ class EmplacementRepository extends EntityRepository
                     $qb->orderBy('e.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']], $order);
                 }
             }
-            $qb
-                ->select('count(e)');
-            $countQuery = $qb->getQuery()->getSingleScalarResult();
+            $qb->select('count(e)');
+            $countQuery = (int) $qb->getQuery()->getSingleScalarResult();
         }
+        else {
+            $countQuery = $countTotal;
+        }
+
         $qb
             ->select('e');
         if ($params) {
