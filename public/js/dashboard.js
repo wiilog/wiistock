@@ -268,7 +268,7 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
     if ($canvasId.length) {
         const fontSize = isDashboardExt()
             ? 40
-            : 12;
+            : 18;
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},

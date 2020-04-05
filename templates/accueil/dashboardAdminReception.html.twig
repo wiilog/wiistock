@@ -13,7 +13,7 @@
         <div class="row">
             <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
-                    <p class=" title {% if isDashboardExt %} medium-font {% endif %}">
+                    <p class=" title bold {% if isDashboardExt %} medium-font {% endif %}">
                         Entrées à effectuer
                         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                             Composant
@@ -32,9 +32,9 @@
                 </div>
             </div>
             <div class="col-3 d-flex flex-column justify-content-between">
-                <div class="mr-1">
+                <div>
                     <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box justify-content-between pb-2">
+                        <div class="dashboard-box justify-content-around p-1">
                             {% if not isDashboardExt %}
                                 <div class="points">
                                     <i class="fa fa-question has-tooltip"
@@ -44,11 +44,10 @@
                                     </i>
                                 </div>
                             {% endif %}
-                            <p class="text-center medium-font bold ">
+                            <p class="text-center medium-font bold">
                                 Nombre de lignes à traiter
                             </p>
-                            <div class="d-flex align-items-center justify-content-center ellipsis"
-                                 style="height: inherit;">
+                            <div class="text-center mb-1">
                                 <p class="big-font">
                                     <strong id="totalForChart1" class="figure"></strong>
                                 </p>
@@ -56,24 +55,23 @@
                         </div>
                     </div>
                 </div>
-                <div class="mr-1">
+                <div>
                     <div class="dashboard-box-wrapper side-panels">
                         <div class="dashboard-box text-center justify-content-around">
                             {% if not isDashboardExt %}
                                 <div class="points">
                                     <i class="fa fa-question has-tooltip"
                                        title="Emplacement paramétré sur le graphe 1
-                                        ayant l'encours de nature pour le graphe 1 paramétrée le plus ancien.">
+                                              ayant l'encours de nature pour le graphe 1 paramétrée le plus ancien.">
                                     </i>
                                 </div>
                             {% endif %}
-                            <p class="text-center medium-font bold ">
+                            <p class="text-center medium-font bold">
                                 Prochain emplacement à traiter
                             </p>
                             <div class="d-flex align-items-center justify-content-center"
                                  style="height: inherit;">
-                                <p class="display-font figure " id="empForChart1" >Emplacement 12345
-                                </p>
+                                <p class="display-font figure counter" id="empForChart1"></p>
                             </div>
                         </div>
                     </div>
@@ -82,10 +80,10 @@
         </div>
     </div>
 <div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
-    <div class="row">
+    <div class="row mb-3 mt-3">
         <div class="col-9 dashboard-box-wrapper third-height">
             <div class="dashboard-box">
-                <p class="title {% if isDashboardExt %} medium-font  {% endif %}">
+                <p class="title bold {% if isDashboardExt %} medium-font {% endif %}">
                     Entrées à effectuer
                     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                         Méca
@@ -93,10 +91,12 @@
                 </p>
                 {% if not isDashboardExt %}
                     <div class="points">
-                        <i
-                                class="fa fa-question has-tooltip"
-                                title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
-                                présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2."></i>
+                         <i
+                            class="fa fa-question has-tooltip"
+                            title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
+                            présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2.">
+
+                         </i>
                     </div>
                 {% endif %}
                 <div class="h-100">
@@ -105,9 +105,9 @@
             </div>
         </div>
         <div class="col-3 d-flex flex-column justify-content-between">
-            <div class="mr-1">
+            <div>
                 <div class="dashboard-box-wrapper side-panels">
-                    <div class="dashboard-box">
+                    <div class="dashboard-box justify-content-around">
                         {% if not isDashboardExt %}
                             <div class="points">
                                 <i class="fa fa-question has-tooltip"
@@ -117,11 +117,10 @@
                                 </i>
                             </div>
                         {% endif %}
-                        <p class="text-center {{ isDashboardExt ? 'medium-font bold' }}">
+                        <p class="text-center medium-font bold">
                             Nombre de lignes à traiter
                         </p>
-                        <div class="d-flex align-items-center justify-content-center ellipsis"
-                             style="height: inherit;">
+                        <div class="text-center mb-1">
                             <p class="big-font">
                                 <strong id="totalForChart2" class="figure"></strong>
                             </p>
@@ -129,24 +128,23 @@
                     </div>
                 </div>
             </div>
-            <div class="mr-1">
+            <div>
                 <div class="dashboard-box-wrapper side-panels">
-                    <div class="dashboard-box text-center">
+                    <div class="dashboard-box text-center justify-content-around">
                         {% if not isDashboardExt %}
                             <div class="points">
                                 <i class="fa fa-question has-tooltip"
                                    title="Emplacement paramétré sur le graphe 2
-                                        ayant l'encours de nature paramétrée pour le graphe 2 le plus ancien.">
+                                          ayant l'encours de nature paramétrée pour le graphe 2 le plus ancien.">
                                 </i>
                             </div>
                         {% endif %}
-                        <p class="text-center {{ isDashboardExt ? 'medium-font bold' }}">
+                        <p class="text-center medium-font bold">
                             Prochain emplacement à traiter
                         </p>
                         <div class="d-flex align-items-center justify-content-center"
                              style="height: inherit;">
-                            <p class="display-font figure " id="empForChart2">blabla
-                            </p>
+                            <p class="display-font figure" id="empForChart2"></p>
                         </div>
                     </div>
                 </div>
@@ -157,30 +155,30 @@
 <div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
     <div class="row">
         <div class="col-3">
-            <div class="dashboard-box-wrapper fourth-height justify-content-around">
-                <div id="remaining-urgences-box-admin" class="dashboard-box text-center ">
-                    <p class="text-center bold medium-font">
+            <div class="dashboard-box-wrapper fourth-height">
+                <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
+                    <p class="text-center medium-font bold p-0 pt-2">
                         Urgences à recevoir
                     </p>
-                    <div class="d-flex align-items-center justify-content-center"
-                         style="height: inherit;">
+                    <div class="align-items-end justify-content-center"
+                         >
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-3 ">
+        <div class="col-3">
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
                     <div>
-                    <p class="text-center bold medium-font">
-                        <i class="fas "></i>
+                    <p class="text-center bold medium-font p-0 pt-2">
+                        <i class="fas"></i>
                         Urgences à traiter
-                        <i class="fas "></i>
+                        <i class="fas"></i>
                     </p>
                         <div class="location-label ellipsis lh medium-font"></div>
                     </div>
-                    <div class="align-items-center lh">
+                    <div class="align-items-center">
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>
@@ -190,12 +188,12 @@
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
                     <div>
-                        <p class="text-center bold medium-font">
+                        <p class="text-center bold medium-font p-0 pt-2">
                         Lignes en litiges
                         </p>
                         <div class="location-label ellipsis lh medium-font"></div>
                     </div>
-                    <div class="align-items-center lh">
+                    <div class="align-items-center">
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>
@@ -205,13 +203,12 @@
             <div class="dashboard-box-wrapper fourth-height">
                 <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
                     <div>
-                    <p class="text-center bold medium-font">
+                    <p class="text-center bold medium-font pt-2{% if not isDashboardExt %} p-0 {% endif %}">
                         Colis en attente de dédouanement
                     </p>
                         <div class="location-label ellipsis lh medium-font"></div>
                     </div>
-                    <div class="align-items-center lh"
-                         >
+                    <div class="align-items-center">
                         <p class="big-font figure counter"></p>
                     </div>
                 </div>

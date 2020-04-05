@@ -94,19 +94,14 @@
                     </div>
                     <div class="col-3">
                         <div class="dashboard-box-wrapper fourth-height">
-                        <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
-
-                            <p class="text-center medium-font bold">
-
-                                Urgences à recevoir
-
-                            </p>
-                            <div class=" align-items-start justify-content-center"
-                                 >
-                                <p class="big-font figure red counter"></p>
-
+                            <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
+                                <p class="text-center medium-font bold">
+                                    Urgences à recevoir
+                                </p>
+                                <div class=" align-items-start justify-content-center">
+                                    <p class="big-font figure red counter"></p>
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -127,14 +122,14 @@
             </div>
             <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
-                    <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
+                    <p class="title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                         Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
                     </p>
                     {% if not isDashboardExt %}
                         <div class="points">
-                            <i
-                                    class="fa fa-question has-tooltip"
-                                    title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable)."></i>
+                            <i class="fa fa-question has-tooltip"
+                               title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
+                            </i>
                         </div>
                     {% endif %}
                     <div class="h-100">
@@ -144,7 +139,7 @@
             </div>
         </div>
     </div>
-    <div class="col-2 dashboard-box-wrapper ">
+    <div class="col-2 dashboard-box-wrapper">
         <div class="dashboard-box">
             <p class="bold medium-font lh text-center">Suivi des transporteurs</p>
             {% if not isDashboardExt %}
