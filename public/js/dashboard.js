@@ -10,6 +10,12 @@ let chartMonetaryFiability;
 let chartFirstForAdmin;
 let chartSecondForAdmin;
 
+
+FONT_SIZE_DEFAULT = 18;
+FONT_SIZE_EXT = 40;
+
+
+
 $(function () {
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -267,8 +273,8 @@ function goToFilteredDemande(type, filter) {
 function newChart($canvasId, redForLastData = false, canHaveNegativValues = false) {
     if ($canvasId.length) {
         const fontSize = isDashboardExt()
-            ? 40
-            : 18;
+            ? FONT_SIZE_EXT
+            : FONT_SIZE_DEFAULT;
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
@@ -404,7 +410,7 @@ function updateCarriers() {
         const $container = $('#statistics-arrival-carriers');
         $container.empty();
         $container.append(
-            ...((data || []).map((carrier) => ($('<p/>', {text: carrier}))))
+            ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: 'medium-font m-0'}))))
         );
     });
 }
@@ -418,10 +424,13 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     ctx.strokeStyle = 'black';
     ctx.shadowColor = '#999';
 
-    // on récupère la fontSize de font (format [X]px Arial)
-    const fontArray = (ctx.font || '').split(' ');
 
-    const fontSize = Number(fontArray[0].substr(0, fontArray[0].length > 2 ? (fontArray[0].length - 2) : 0) || 12);
+    // cxt.font format :
+    //   * fontWeight XXpx fontFamily
+    //   * XXpx fontFamily
+    const fontSizeMatch = (ctx.font || '').match(/(\d+)px(?:\s|$)/);
+    const fontSize = Number((fontSizeMatch && fontSizeMatch[1]) || FONT_SIZE_DEFAULT);
+
     const figurePaddingHorizontal = 8;
     const figurePaddingVertical = 4;
     const figureColor = '#666666';

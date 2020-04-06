@@ -1,154 +1,151 @@
-<div class="{% if isDashboardExt %}row d-flex align-items-end{% endif %}">
-    {% if isDashboardExt %}
-        <div>
-            <img src="{{ asset('img/followGTwhite.svg') }}" alt="Logo" height="100px" class="m-2">
-        </div>
-    {% endif %}
-    <div class="white mt-2 mb-2{% if isDashboardExt %} spec-font mb-5 ml-5{% endif %}">
-        Dashboard | RÉCEPTION QUAI
-    </div>
+<div class="col-12 space">
+    {% include 'accueil/dashboardTitle.html.twig' with {
+        isDashboardExt: isDashboardExt,
+        title: 'Dashboard | RÉCEPTION QUAI'
+    } %}
 </div>
-<div class="row align-items-start">
-    <div class="col-10">
-        <div class="row">
-            <div class="col-6  dashboard-box-wrapper">
-                <div class="dashboard-box d-flex justify-content-start">
-                    <p class="title bold {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
-                        Arrivages quotidiens<br>
-                    </p>
-                    {% if not isDashboardExt %}
-                        <div class="points">
-                            <i class="fa fa-question has-tooltip"
-                               title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour.">
-                            </i>
+<div class="col-12">
+    <div class="row align-items-start">
+        <div class="col-10">
+            <div class="row">
+                <div class="col-6 space dashboard-box-wrapper">
+                    <div class="dashboard-box d-flex justify-content-start">
+                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">Arrivages quotidiens</p>
+                        {% if not isDashboardExt %}
+                            <div class="points">
+                                <i class="fa fa-question has-tooltip"
+                                   title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour.">
+                                </i>
+                            </div>
+                        {% endif %}
+                        <div class="h-100">
+                            <canvas id="chartDailyArrival" width="300" height="90"></canvas>
                         </div>
-                    {% endif %}
-                    <div class="h-100">
-                        <canvas id="chartDailyArrival" width="300" height="90"></canvas>
+                    </div>
+                </div>
+                <div class="col-6 space dashboard-box-wrapper third-height">
+                    <div class="dashboard-box d-flex justify-content-start">
+                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">Arrivages hebdomadaires</p>
+                        {% if not isDashboardExt %}
+                            <div class="points">
+                                <i class="fa fa-question has-tooltip"
+                                   title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
+                            </div>
+                        {% endif %}
+                        <div class="h-100">
+                            <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 dashboard-box-wrapper third-height">
-                <div class="dashboard-box d-flex justify-content-start">
-                    <p class=" title bold{% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
-                        Arrivages hebdomadaires<br>
-                    </p>
-                    {% if not isDashboardExt %}
-                        <div class="points">
-                            <i
-                                    class="fa fa-question has-tooltip"
-                                    title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
+            <div class="row">
+                <div class="col-12 space">
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="dashboard-box-wrapper fourth-height">
+                                <div id="encours-dock-box" class="dashboard-box text-center justify-content-between">
+                                    <div>
+                                        <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font pt-1' }} p-0 ">
+                                            Colis restant à traiter
+                                        </p>
+                                        <div class="location-label ellipsis medium-font"></div>
+                                    </div>
+                                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                                        <p class="big-font figure counter"></p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    {% endif %}
-                    <div class="h-100">
-                        <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
+                        <div class="col-3">
+                            <div class="dashboard-box-wrapper fourth-height">
+                                <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-between">
+                                    <div>
+                                        <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }} p-0 ">
+                                            Colis en attente de dédouanement
+                                        </p>
+                                        <div class="location-label ellipsis medium-font"></div>
+                                    </div>
+                                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                                        <p class="big-font figure counter"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="dashboard-box-wrapper fourth-height">
+                                <div id="encours-cleared-box" class="dashboard-box text-center justify-content-between">
+                                    <div>
+                                        <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }} p-0 ">
+                                            Colis dédouanés et dispo</p>
+                                        <div class="location-label ellipsis medium-font"></div>
+                                    </div>
+                                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                                        <p class="big-font figure counter"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="dashboard-box-wrapper fourth-height">
+                                <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
+                                    <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }} p-0 ">
+                                        Urgences à recevoir
+                                    </p>
+                                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                                        <p class="big-font figure counter"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 mt-4 mb-4">
-                <div class="row">
-                    <div class="col-3">
-                        <div class="dashboard-box-wrapper fourth-height">
-                            <div id="encours-dock-box" class="dashboard-box text-center justify-content-between">
-                                <div>
-                                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font pt-1' }} p-0 ">
-                                        Colis restant à traiter
-                                    </p>
-                                    <div class="location-label ellipsis lh medium-font"></div>
-                                </div>
-                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                                    <p class="big-font figure counter"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="dashboard-box-wrapper fourth-height">
-                            <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-between">
-                                <div>
-                                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
-                                        Colis en attente de dédouanement
-                                    </p>
-                                    <div class="location-label ellipsis lh medium-font"></div>
-                                </div>
-                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                                    <p class="big-font figure counter"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="dashboard-box-wrapper fourth-height">
-                            <div id="encours-cleared-box" class="dashboard-box text-center justify-content-between">
-                                <div>
-                                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
-                                        Colis dédouanés et dispo</p>
-                                    <div class="location-label ellipsis lh medium-font"></div>
-                                </div>
-                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                                    <p class="big-font figure counter"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="dashboard-box-wrapper fourth-height">
-                            <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
-                                <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
-                                    Urgences à recevoir
+            <div class="row">
+                <div class="col-3 space">
+                    <div class="dashboard-box-wrapper fourth-height">
+                        <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
+                            <div>
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }} p-0 ">
+                                    Colis à déposer en Drop Zones
                                 </p>
-                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                                    <p class="big-font figure counter"></p>
-                                </div>
+                                <div class="location-label ellipsis medium-font"></div>
+                            </div>
+                            <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                                <p class="big-font figure counter"></p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-3">
-                <div class="dashboard-box-wrapper fourth-height">
-                    <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
-                        <div>
-                            <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
-                                Colis à déposer en Drop Zones
-                            </p>
-                            <div class="location-label ellipsis lh medium-font"></div>
+                <div class="col-9 space dashboard-box-wrapper third-height">
+                    <div class="dashboard-box">
+                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">
+                            Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
+                        </p>
+                        {% if not isDashboardExt %}
+                            <div class="points">
+                                <i class="fa fa-question has-tooltip"
+                                   title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
+                                </i>
+                            </div>
+                        {% endif %}
+                        <div class="h-100">
+                            <canvas id="chartColis" width="300" height="90"></canvas>
                         </div>
-                        <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                            <p class="big-font figure counter"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-9 dashboard-box-wrapper third-height">
-                <div class="dashboard-box">
-                    <p class="title bold{% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
-                        Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
-                    </p>
-                    {% if not isDashboardExt %}
-                        <div class="points">
-                            <i class="fa fa-question has-tooltip"
-                               title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
-                            </i>
-                        </div>
-                    {% endif %}
-                    <div class="h-100">
-                        <canvas id="chartColis" width="300" height="90"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-2 dashboard-box-wrapper">
-        <div class="dashboard-box">
-            <p class="bold medium-font lh text-center ">Suivi des transporteurs</p>
-            {% if not isDashboardExt %}
-                <div class="points">
-                    <i class="fa fa-question has-tooltip ml-1"
-                       title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
-                </div>
-            {% endif %}
-            <div class="text-center" id="statistics-arrival-carriers"></div>
+        <div class="col-2 space dashboard-box-wrapper">
+            <div class="dashboard-box dashboard-box-list">
+                <p class="bold text-center title {{ isDashboardExt ? 'ext-title-font' }}">Suivi des transporteurs</p>
+                {% if not isDashboardExt %}
+                    <div class="points">
+                        <i class="fa fa-question has-tooltip ml-1"
+                           title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
+                    </div>
+                {% endif %}
+                <ul class="text-center" id="statistics-arrival-carriers"></ul>
+            </div>
         </div>
     </div>
 </div>

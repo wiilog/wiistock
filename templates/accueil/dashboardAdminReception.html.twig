@@ -1,218 +1,213 @@
-<div class="{% if isDashboardExt %}row d-flex align-items-end{% endif %}">
-    {% if isDashboardExt %}
-        <div>
-            <img src="{{ asset('img/followGTwhite.svg') }}" alt="Logo" height="100px" class="m-2" >
+<div class="col-12">
+    <div class="row">
+        <div class="col-12 space">
+            {% include 'accueil/dashboardTitle.html.twig' with {isDashboardExt: isDashboardExt, title: 'Dashboard | RÉCEPTION ADMINISTRATIVE'} %}
         </div>
-    {% endif %}
-    <div class="white mt-2 mb-2{% if isDashboardExt %} spec-font mb-4 ml-5{% endif %}">
-        Dashboard | RÉCEPTION ADMINISTRATIVE
-    </div>
-</div>
-<div class=" h-100 container-fluid ">
-<div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
-        <div class="row">
-            <div class="col-9 dashboard-box-wrapper third-height">
-                <div class="dashboard-box">
-                    <p class=" title bold {% if isDashboardExt %} medium-font {% endif %}">
-                        Entrées à effectuer
-                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-                            Composant
+        <div class="col-12 space">
+            <div class="row">
+                <div class="col-9 dashboard-box-wrapper third-height">
+                    <div class="dashboard-box">
+                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">
+                            Entrées à effectuer
+                            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                                Composant
+                            {% endif %}
+                        </p>
+                        {% if not isDashboardExt %}
+                            <div class="points has-tooltip"
+                                 title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1)
+                            présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 1.">
+                                <i class="fa fa-question"></i>
+                            </div>
                         {% endif %}
-                    </p>
-                    {% if not isDashboardExt %}
-                        <div class="points has-tooltip"
-                             title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1)
-                                présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 1.">
-                            <i class="fa fa-question"></i>
+                        <div class="h-100">
+                            <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
                         </div>
-                    {% endif %}
-                    <div class="h-100">
-                        <canvas id="chartFirstForAdmin" width="300" height="90"></canvas>
                     </div>
                 </div>
-            </div>
-            <div class="col-3 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box justify-content-around">
-                            {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Nombre {{ 'arrivage.de colis'|trans }} présents
-                                        sur l'emplacement paramétré sur le graphe 1 ayant
-                                        l'encours de nature paramétrée pour le graphe 1 le plus ancien.">
-                                    </i>
-                                </div>
-                            {% endif %}
-                            <p class="text-center bold {{ isDashboardExt ? 'spec-font lh pt-0' : 'medium-font' }}">
-                                Nombre de lignes à traiter
-                            </p>
-                            <div class="text-center mb-1 {{ isDashboardExt ? ' ' : 'mb-1' }}">
-                                <p class="big-font {{ isDashboardExt ? 'mb-5' : ' ' }}">
-                                    <strong id="totalForChart1" class="figure"></strong>
+                <div class="col-3 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="dashboard-box-wrapper side-panels">
+                            <div class="dashboard-box justify-content-between">
+                                {% if not isDashboardExt %}
+                                    <div class="points">
+                                        <i class="fa fa-question has-tooltip"
+                                           title="Nombre {{ 'arrivage.de colis'|trans }} présents
+                                    sur l'emplacement paramétré sur le graphe 1 ayant
+                                    l'encours de nature paramétrée pour le graphe 1 le plus ancien.">
+                                        </i>
+                                    </div>
+                                {% endif %}
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font pt-0' : 'medium-font' }}">
+                                    Nombre de lignes à traiter
                                 </p>
+                                <div class="text-center mb-1 {{ isDashboardExt ? ' ' : 'mb-1' }}">
+                                    <p class="big-font {{ isDashboardExt ? 'mb-5' : ' ' }}">
+                                        <strong id="totalForChart1" class="figure"></strong>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div>
-                    <div class="dashboard-box-wrapper side-panels">
-                        <div class="dashboard-box text-center justify-content-around">
-                            {% if not isDashboardExt %}
-                                <div class="points">
-                                    <i class="fa fa-question has-tooltip"
-                                       title="Emplacement paramétré sur le graphe 1
-                                              ayant l'encours de nature pour le graphe 1 paramétrée le plus ancien.">
-                                    </i>
+                    <div>
+                        <div class="dashboard-box-wrapper side-panels">
+                            <div class="dashboard-box text-center justify-content-between">
+                                {% if not isDashboardExt %}
+                                    <div class="points">
+                                        <i class="fa fa-question has-tooltip"
+                                           title="Emplacement paramétré sur le graphe 1
+                                          ayant l'encours de nature pour le graphe 1 paramétrée le plus ancien.">
+                                        </i>
+                                    </div>
+                                {% endif %}
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font pt-0' : 'medium-font' }}">
+                                    Prochain emplacement à traiter
+                                </p>
+                                <div class="d-flex align-items-center justify-content-center"
+                                     style="height: inherit;">
+                                    <p class="display-font figure counter" id="empForChart1"></p>
                                 </div>
-                            {% endif %}
-                            <p class="text-center bold {{ isDashboardExt ? 'spec-font lh pt-0' : 'medium-font' }}">
-                                Prochain emplacement à traiter
-                            </p>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="height: inherit;">
-                                <p class="display-font figure counter" id="empForChart1"></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-<div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
-    <div class="row mb-3 mt-3">
-        <div class="col-9 dashboard-box-wrapper third-height">
-            <div class="dashboard-box">
-                <p class="title bold {% if isDashboardExt %} medium-font {% endif %}">
-                    Entrées à effectuer
-                    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
-                        Méca
-                    {% endif %}
-                </p>
-                {% if not isDashboardExt %}
-                    <div class="points">
-                         <i
-                            class="fa fa-question has-tooltip"
-                            title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
+        <div class="col-12 space">
+            <div class="row">
+                <div class="col-9 dashboard-box-wrapper third-height">
+                    <div class="dashboard-box">
+                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">
+                            Entrées à effectuer
+                            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+                                Méca
+                            {% endif %}
+                        </p>
+                        {% if not isDashboardExt %}
+                            <div class="points">
+                                <i
+                                    class="fa fa-question has-tooltip"
+                                    title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
                             présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2.">
 
-                         </i>
+                                </i>
+                            </div>
+                        {% endif %}
+                        <div class="h-100">
+                            <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
+                        </div>
                     </div>
-                {% endif %}
-                <div class="h-100">
-                    <canvas id="chartSecondForAdmin" width="300" height="90"></canvas>
                 </div>
-            </div>
-        </div>
-        <div class="col-3 d-flex flex-column justify-content-between">
-            <div>
-                <div class="dashboard-box-wrapper side-panels">
-                    <div class="dashboard-box justify-content-around">
-                        {% if not isDashboardExt %}
-                            <div class="points">
-                                <i class="fa fa-question has-tooltip"
-                                   title="Nombre {{ 'arrivage.de colis'|trans }} présents
+                <div class="col-3 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="dashboard-box-wrapper side-panels">
+                            <div class="dashboard-box justify-content-between">
+                                {% if not isDashboardExt %}
+                                    <div class="points">
+                                        <i class="fa fa-question has-tooltip"
+                                           title="Nombre {{ 'arrivage.de colis'|trans }} présents
                                         sur l'emplacement paramétré sur le graphe 2 ayant l'encours
                                         de nature paramétrée pour le graphe 2 le plus ancien.">
-                                </i>
+                                        </i>
+                                    </div>
+                                {% endif %}
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                    Nombre de lignes à traiter
+                                </p>
+                                <div class="text-center mb-1">
+                                    <p class="big-font">
+                                        <strong id="totalForChart2" class="figure"></strong>
+                                    </p>
+                                </div>
                             </div>
-                        {% endif %}
-                        <p class="text-center bold {{ isDashboardExt ? 'spec-font lh pt-0' : 'medium-font' }}">
-                            Nombre de lignes à traiter
-                        </p>
-                        <div class="text-center mb-1">
-                            <p class="big-font">
-                                <strong id="totalForChart2" class="figure"></strong>
-                            </p>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div>
-                <div class="dashboard-box-wrapper side-panels">
-                    <div class="dashboard-box text-center justify-content-around">
-                        {% if not isDashboardExt %}
-                            <div class="points">
-                                <i class="fa fa-question has-tooltip"
-                                   title="Emplacement paramétré sur le graphe 2
+                    <div>
+                        <div class="dashboard-box-wrapper side-panels">
+                            <div class="dashboard-box text-center justify-content-between">
+                                {% if not isDashboardExt %}
+                                    <div class="points">
+                                        <i class="fa fa-question has-tooltip"
+                                           title="Emplacement paramétré sur le graphe 2
                                           ayant l'encours de nature paramétrée pour le graphe 2 le plus ancien.">
-                                </i>
+                                        </i>
+                                    </div>
+                                {% endif %}
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                    Prochain emplacement à traiter
+                                </p>
+                                <div class="d-flex align-items-center justify-content-center"
+                                     style="height: inherit;">
+                                    <p class="display-font figure" id="empForChart2"></p>
+                                </div>
                             </div>
-                        {% endif %}
-                        <p class="text-center bold {{ isDashboardExt ? 'spec-font lh pt-0' : 'medium-font' }}">
-                            Prochain emplacement à traiter
-                        </p>
-                        <div class="d-flex align-items-center justify-content-center"
-                             style="height: inherit;">
-                            <p class="display-font figure" id="empForChart2"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 space">
+            <div class="row">
+                <div class="col-3">
+                    <div class="dashboard-box-wrapper fourth-height">
+                        <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
+                            <p class="text-center title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }} bold">
+                                Urgences à recevoir
+                            </p>
+                            <div class="align-items-end justify-content-center">
+                                <p class="big-font figure counter"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="dashboard-box-wrapper fourth-height">
+                        <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
+                            <div>
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                    <i class="fas"></i>
+                                    Urgences à traiter
+                                    <i class="fas"></i>
+                                </p>
+                                <div class="location-label ellipsis medium-font"></div>
+                            </div>
+                            <div class="align-items-center">
+                                <p class="big-font figure counter"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3 ">
+                    <div class="dashboard-box-wrapper fourth-height">
+                        <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
+                            <div>
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                    Lignes en litiges
+                                </p>
+                                <div class="location-label ellipsis medium-font"></div>
+                            </div>
+                            <div class="align-items-center">
+                                <p class="big-font figure counter"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="dashboard-box-wrapper fourth-height">
+                        <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
+                            <div>
+                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                    Colis en attente de dédouanement
+                                </p>
+                                <div class="location-label ellipsis medium-font"></div>
+                            </div>
+                            <div class="align-items-center">
+                                <p class="big-font figure counter"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="col-12 {% if isDashboardExt %} space {% endif %} p-0">
-    <div class="row">
-        <div class="col-3">
-            <div class="dashboard-box-wrapper fourth-height">
-                <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
-                    <p class="text-center  {{ isDashboardExt ? 'spec-font pt-5' : 'medium-font' }} bold p-0 pt-2">
-                        Urgences à recevoir
-                    </p>
-                    <div class="align-items-end justify-content-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                        <p class="big-font figure counter"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="dashboard-box-wrapper fourth-height">
-                <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
-                    <div>
-                    <p class="text-center bold {{ isDashboardExt ? 'spec-font pt-4' : 'medium-font' }} p-0 pt-2">
-                        <i class="fas"></i>
-                        Urgences à traiter
-                        <i class="fas"></i>
-                    </p>
-                        <div class="location-label ellipsis lh medium-font"></div>
-                    </div>
-                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                        <p class="big-font figure counter"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-3 ">
-            <div class="dashboard-box-wrapper fourth-height">
-                <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
-                    <div>
-                        <p class="text-center bold {{ isDashboardExt ? 'spec-font pt-5 pb-4' : 'medium-font' }} p-0 pt-2">
-                        Lignes en litiges
-                        </p>
-                        <div class="location-label ellipsis lh medium-font"></div>
-                    </div>
-                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                        <p class="big-font figure counter"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="dashboard-box-wrapper fourth-height">
-                <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
-                    <div>
-                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
-                        Colis en attente de dédouanement
-                    </p>
-                        <div class="location-label ellipsis lh medium-font"></div>
-                    </div>
-                    <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
-                        <p class="big-font figure counter"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 </div>

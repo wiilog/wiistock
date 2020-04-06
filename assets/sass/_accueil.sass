@@ -21,9 +21,6 @@
     min-height: 40%
 
 .dashboard-box-wrapper
-    margin-top: 0px
-    margin-bottom: 8px
-
     &.side-panels
         height: 15vh
 
@@ -48,16 +45,26 @@
         height: 100%
         position: relative
         background: $white
-        padding: .5rem
+        padding: 1rem
+
+        &.dashboard-box-list
+            .title
+                margin-bottom: 1.5rem
+            li
+                line-height: 1.5
 
         .title
+            line-height: 1
             font-size: 1em
             margin-bottom: .5rem
-            padding: 8px
+            padding: 0px
             color: $blackDashboard
 
+        .location-label
+            line-height: 1
+
         .label
-          color: $greyDashboard
+            color: $greyDashboard
             font-size: .8em
 
         .points
@@ -179,9 +186,7 @@
     background-image: linear-gradient(-15.7deg, #1b1464, #2e5492)
 
 .space
-    margin: 2.1rem
-    margin-left: 0
-    margin-right: 0
+    margin-top: 2.1rem
 
 .lh
     line-height: 1em
