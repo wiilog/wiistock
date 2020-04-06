@@ -132,8 +132,13 @@ class ImportController extends AbstractController
                 ];
 
             } else {
-                $attachements = $attachmentService->addAttachements($request->files, $import);
-                $data = $importService->getImportConfig($attachements[0]);
+                $attachments = $attachmentService->addAttachements($request->files);
+                foreach ($attachments as $attachment) {
+                    $em->persist($attachment);
+                    $import->setCsvFile($attachment);
+                }
+                $em->flush();
+                $data = $importService->getImportConfig($attachments[0]);
                 if (!$data) {
                     $response = [
                         'success' => false,

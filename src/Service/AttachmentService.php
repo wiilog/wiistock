@@ -29,10 +29,9 @@ class AttachmentService
 
 	/**
 	 * @param FileBag|UploadedFile[]|array $files if array it's an assoc array between originalFileName and serverFileName
-	 * @param Arrivage|Litige|MouvementTraca|Import $entity
 	 * @return PieceJointe[]
 	 */
-	public function addAttachements($files, $entity) {
+	public function addAttachements($files) {
 		$attachments = [];
 
         if ($files instanceof FileBag) {
@@ -54,20 +53,7 @@ class AttachmentService
                 $pj
                     ->setOriginalName($originalFileName)
                     ->setFileName($fileName);
-                $this->em->persist($pj);
                 $attachments[] = $pj;
-
-                if ($entity instanceof Arrivage) {
-					$entity->addAttachement($pj);
-				} elseif ($entity instanceof Litige) {
-					$entity->addPiecesJointe($pj);
-				} elseif ($entity instanceof MouvementTraca) {
-					$entity->addAttachement($pj);
-				} elseif ($entity instanceof Import) {
-					$entity->setCsvFile($pj);
-				}
-
-                $this->em->flush();
 			}
 		}
 

@@ -197,12 +197,12 @@ class MouvementTracaService
             }
         }
 
-        $this->entityManager->persist($mouvementTraca);
-
         if (isset($fileBag)) {
-            $this->attachmentService->addAttachements($fileBag, $mouvementTraca);
+            $attachements = $this->attachmentService->addAttachements($fileBag);
+            foreach ($attachements as $attachement) {
+                $mouvementTraca->addAttachement($attachement);
+            }
         }
-
         return $mouvementTraca;
     }
 

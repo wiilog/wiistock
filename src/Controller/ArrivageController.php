@@ -351,11 +351,8 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $entityManager->persist($arrivage);
-            $entityManager->flush();
 
-            $attachmentService->addAttachements($request->files, $arrivage);
-
+            $this->addAttachementsForEntity($arrivage, $attachmentService, $request, $entityManager);
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -627,9 +624,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, $arrivage);
-
-            $entityManager->flush();
+            $this->addAttachementsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
 
             $champLibreKey = array_keys($post->all());
             foreach ($champLibreKey as $champ) {
@@ -1069,11 +1064,7 @@ class ArrivageController extends AbstractController
                 $entityManager->persist($histo);
             }
 
-            $entityManager->persist($litige);
-            $entityManager->flush();
-
-            $this->attachmentService->addAttachements($request->files, $litige);
-            $entityManager->flush();
+            $this->addAttachementsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1329,7 +1320,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, $litige);
+            $this->addAttachementsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
 
             $response = $this->getResponseReloadArrivage($entityManager, $request->query->get('reloadArrivage'));
@@ -1572,6 +1563,22 @@ class ArrivageController extends AbstractController
         }
 
         return $response;
+    }
+
+    /**
+     * @param Arrivage|Litige $entity
+     * @param AttachmentService $attachmentService
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     */
+    private function addAttachementsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+        $attachments = $attachmentService->addAttachements($request->files);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $entity->addAttachement($attachment);
+        }
+        $entityManager->persist($entity);
+        $entityManager->flush();
     }
 
 }

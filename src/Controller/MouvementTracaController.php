@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
+use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
@@ -25,6 +27,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -142,7 +145,7 @@ class MouvementTracaController extends AbstractController
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                $createdMvt = $this->mouvementTracaService->persistMouvementTraca(
                     $colisStr,
                     $emplacement,
                     $operator,
@@ -152,13 +155,14 @@ class MouvementTracaController extends AbstractController
                     $post->getInt('type'),
                     ['commentaire' => $commentaire]
                 );
+                $entityManager->persist($createdMvt);
+                $createdMouvements[] = $createdMvt;
             } else {
                 $colisArray = explode(',', $colisStr);
                 foreach ($colisArray as $colis) {
                     $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
                     $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-
-                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                    $createdMvt = $this->mouvementTracaService->persistMouvementTraca(
                         $colis,
                         $emplacementPrise,
                         $operator,
@@ -168,7 +172,9 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
-                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                    $entityManager->persist($createdMvt);
+                    $createdMouvements[] = $createdMvt;
+                    $createdMvt = $this->mouvementTracaService->persistMouvementTraca(
                         $colis,
                         $emplacementDepose,
                         $operator,
@@ -178,6 +184,8 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
+                    $entityManager->persist($createdMvt);
+                    $createdMouvements[] = $createdMvt;
                 }
             }
 
@@ -190,7 +198,7 @@ class MouvementTracaController extends AbstractController
                     );
                 }
                 foreach ($createdMouvements as $mouvement) {
-                    $this->attachmentService->addAttachements($fileNames, $mouvement);
+                    $this->addAttachements($mouvement, $this->attachmentService, $fileNames, $entityManager);
                 }
             }
 
@@ -298,7 +306,7 @@ class MouvementTracaController extends AbstractController
                 }
             }
 
-			$this->attachmentService->addAttachements($request->files, $mvt);
+            $this->addAttachements($mvt, $this->attachmentService, $request->files, $entityManager);
             $entityManager->flush();
 
             return new JsonResponse();
@@ -474,5 +482,21 @@ class MouvementTracaController extends AbstractController
             ]);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @param MouvementTraca $mouvementTraca
+     * @param AttachmentService $attachmentService
+     * @param FileBag $files
+     * @param EntityManagerInterface $entityManager
+     */
+    private function addAttachements(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, FileBag $files, EntityManagerInterface $entityManager) {
+        $attachments = $attachmentService->addAttachements($files);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $mouvementTraca->addAttachement($attachment);
+        }
+        $entityManager->persist($mouvementTraca);
+        $entityManager->flush();
     }
 }
