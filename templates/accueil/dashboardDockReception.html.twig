@@ -13,7 +13,7 @@
         <div class="row">
             <div class="col-6  dashboard-box-wrapper">
                 <div class="dashboard-box d-flex justify-content-start">
-                    <p class="title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
+                    <p class="title bold {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                         Arrivages quotidiens<br>
                     </p>
                     {% if not isDashboardExt %}
@@ -30,7 +30,7 @@
             </div>
             <div class="col-6 dashboard-box-wrapper third-height">
                 <div class="dashboard-box d-flex justify-content-start">
-                    <p class=" title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
+                    <p class=" title bold{% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                         Arrivages hebdomadaires<br>
                     </p>
                     {% if not isDashboardExt %}
@@ -51,12 +51,12 @@
                         <div class="dashboard-box-wrapper fourth-height">
                             <div id="encours-dock-box" class="dashboard-box text-center justify-content-between">
                                 <div>
-                                    <p class="text-center medium-font bold">
+                                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font pt-1' }} p-0 ">
                                         Colis restant à traiter
                                     </p>
                                     <div class="location-label ellipsis lh medium-font"></div>
                                 </div>
-                                <div class="align-items-center lh">
+                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
                                     <p class="big-font figure counter"></p>
                                 </div>
                             </div>
@@ -64,15 +64,14 @@
                     </div>
                     <div class="col-3">
                         <div class="dashboard-box-wrapper fourth-height">
-                            <div id="encours-clearance-box-dock"
-                                 class="dashboard-box text-center justify-content-between">
+                            <div id="encours-clearance-box-dock" class="dashboard-box text-center justify-content-between">
                                 <div>
-                                    <p class="text-center lh medium-font bold">
+                                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
                                         Colis en attente de dédouanement
                                     </p>
                                     <div class="location-label ellipsis lh medium-font"></div>
                                 </div>
-                                <div class="align-items-center lh">
+                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
                                     <p class="big-font figure counter"></p>
                                 </div>
                             </div>
@@ -82,11 +81,11 @@
                         <div class="dashboard-box-wrapper fourth-height">
                             <div id="encours-cleared-box" class="dashboard-box text-center justify-content-between">
                                 <div>
-                                    <p class="text-center medium-font bold">
+                                    <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
                                         Colis dédouanés et dispo</p>
-                                    <div class="location-label ellipsis medium-font lh"></div>
+                                    <div class="location-label ellipsis lh medium-font"></div>
                                 </div>
-                                <div class="align-items-center justify-content-center">
+                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
                                     <p class="big-font figure counter"></p>
                                 </div>
                             </div>
@@ -95,34 +94,35 @@
                     <div class="col-3">
                         <div class="dashboard-box-wrapper fourth-height">
                             <div id="remaining-urgences-box-dock" class="dashboard-box text-center justify-content-between">
-                                <p class="text-center medium-font bold">
+                                <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
                                     Urgences à recevoir
                                 </p>
-                                <div class=" align-items-start justify-content-center">
-                                    <p class="big-font figure red counter"></p>
+                                <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                                    <p class="big-font figure counter"></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-3 dashboard-box-wrapper fourth-height align-self-start">
-                <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
-                    <div>
-                        <p class="text-center medium-font bold lh">
-                            Colis à déposer en Drop Zones
-                        </p>
-                        <div class="location-label ellipsis lh medium-font"></div>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-center"
-                         style="height: inherit;">
-                        <p class="big-font figure counter"></p>
+            <div class="col-3">
+                <div class="dashboard-box-wrapper fourth-height">
+                    <div id="encours-dropzone-box" class="dashboard-box text-center justify-content-between">
+                        <div>
+                            <p class="text-center bold {{ isDashboardExt ? 'spec-font  lh' : 'medium-font' }} p-0 ">
+                                Colis à déposer en Drop Zones
+                            </p>
+                            <div class="location-label ellipsis lh medium-font"></div>
+                        </div>
+                        <div class="align-items-center {{ isDashboardExt ? 'pb-4' : '' }}">
+                            <p class="big-font figure counter"></p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-9 dashboard-box-wrapper third-height">
                 <div class="dashboard-box">
-                    <p class="title {% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
+                    <p class="title bold{% if isDashboardExt %} medium-font dashBoardExtTitle {% endif %}">
                         Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
                     </p>
                     {% if not isDashboardExt %}
@@ -141,7 +141,9 @@
     </div>
     <div class="col-2 dashboard-box-wrapper">
         <div class="dashboard-box">
-            <p class="bold medium-font lh text-center">Suivi des transporteurs</p>
+
+            <p class="bold medium-font lh text-center ">Suivi des transporteurs</p>
+            
             {% if not isDashboardExt %}
                 <div class="points">
                     <i class="fa fa-question has-tooltip ml-1"
