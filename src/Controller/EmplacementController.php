@@ -8,11 +8,12 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 
+use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
 
 use App\Service\GlobalParamService;
@@ -59,16 +60,6 @@ class EmplacementController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var MouvementStockRepository
-     */
-    private $mouvementStockRepository;
-
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -78,23 +69,19 @@ class EmplacementController extends AbstractController
      */
     private $globalParamService;
 
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository,
-                                GlobalParamService $globalParamService,
+    public function __construct(GlobalParamService $globalParamService,
                                 EmplacementDataService $emplacementDataService,
                                 UserService $userService,
                                 DemandeRepository $demandeRepository,
                                 LivraisonRepository $livraisonRepository,
-                                CollecteRepository $collecteRepository,
-                                MouvementStockRepository $mouvementStockRepository)
+                                CollecteRepository $collecteRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->userService = $userService;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->globalParamService = $globalParamService;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
@@ -271,8 +258,11 @@ class EmplacementController extends AbstractController
      * @return array
      */
     private function isEmplacementUsed($emplacementId) {
-        $referenceArticleRepository = $this->getDoctrine()->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->getDoctrine()->getRepository(Article::class);
+        $entityManager = $this->getDoctrine()->getManager();
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
         $usedBy = [];
 
@@ -285,10 +275,10 @@ class EmplacementController extends AbstractController
         $collectes = $this->collecteRepository->countByEmplacement($emplacementId);
         if ($collectes > 0) $usedBy[] = 'collectes';
 
-        $mouvementsStock = $this->mouvementStockRepository->countByEmplacement($emplacementId);
+        $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
 
-        $mouvementsStock = $this->mouvementTracaRepository->countByEmplacement($emplacementId);
+        $mouvementsStock = $mouvementTracaRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de traçabilité';
 
         $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);

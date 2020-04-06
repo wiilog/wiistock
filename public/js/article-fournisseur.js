@@ -14,7 +14,7 @@ let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
     },
     columns: [
         {"data": 'Actions', title: 'Actions'},
-        {"data": 'Fournisseur', title: 'Fournisseur'},
+        {"data": 'Code Fournisseur', title: 'Code Fournisseur'},
         {"data": 'Référence', title: 'Référence'},
         {"data": 'Article de référence', title: 'Article de référence'},
     ],

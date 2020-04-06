@@ -9,11 +9,11 @@
 
         {% set numeroCommandeList = (
             (emergencies|length > 0 and emergencies[0].commande)
-            ? [emergencies[0].commande]
-            : arrival.numeroCommandeList
+                ? [emergencies[0].commande]
+                : arrival.numeroCommandeList
             ) %}
         {% if numeroCommandeList|length > 0 %}
-            <li> Numéro de commande :{{ numeroCommandeList|length > 1 ? 's' }}
+            <li> Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }}
                 : {{ numeroCommandeList|join(', ') }}</li>
         {% endif %}
 
@@ -27,6 +27,22 @@
 
         <li>Horodatage {{ "arrivage.arrivage"|trans }} : {{ arrival.date|date('d/m/Y H:i') }}</li>
     </ul>
-    <p>Votre colis sera livré en Drop Zone en milieu d'après-midi.</p>
+    {% if isUrgentArrival and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+        {% if arrival.duty  %}
+            <p style="font-weight: bold">La réception de cette commande sera effectuée après dédouanement.</p>
+        {% else %}
+            <p>La réception de cette commande sera effectuée sous deux heures.</p>
+        {% endif %}
+    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+        <p>Votre colis sera livré en dropzone en milieu d'après-midi.</p>
+    {% endif %}
     <p>Merci et bonne journée :-)</p>
+{% endblock %}
+{% block postScriptum %}
+    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+        <p>
+            PS&nbsp;: En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
+            Ecrivez-nous aux adresses suivantes&nbsp;: j.amengual@gt-logistics.fr, s.marion@gt-logistics.fr
+        </p>
+    {% endif %}
 {% endblock %}

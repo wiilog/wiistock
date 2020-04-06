@@ -1,7 +1,7 @@
 $('.select2').select2();
 
 //ARTICLE DEMANDE
-let pathArticle = Routing.generate('demande_article_api', {id: id}, true);
+let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
 let tableArticle = $('#table-lignes').DataTable({
     processing: true,
     language: {

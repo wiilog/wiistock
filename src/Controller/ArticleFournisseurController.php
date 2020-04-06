@@ -251,7 +251,7 @@ class ArticleFournisseurController extends AbstractController
         $url['delete'] = $this->generateUrl('article_fournisseur_delete', ['id' => $articleFournisseurId]);
 
         $row = [
-            'Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
+            'Code Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
             'Référence' => $articleFournisseur->getReference(),
             'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
             'Actions' => $this->renderView('article_fournisseur/datatableRowActions.html.twig', [

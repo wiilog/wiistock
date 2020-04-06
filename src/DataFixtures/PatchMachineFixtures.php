@@ -7,7 +7,7 @@ use App\Entity\ChampLibre;
 use App\Entity\ValeurChampLibre;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 
 class PatchMachineFixtures extends Fixture implements FixtureGroupInterface

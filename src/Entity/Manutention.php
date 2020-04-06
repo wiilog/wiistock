@@ -61,6 +61,11 @@ class Manutention
 	 */
     private $dateAttendue;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateEnd;
+
 
     public function getId(): ?int
     {
@@ -159,6 +164,18 @@ class Manutention
     public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
     {
         $this->dateAttendue = $dateAttendue;
+
+        return $this;
+    }
+
+    public function getDateEnd(): ?\DateTimeInterface
+    {
+        return $this->dateEnd;
+    }
+
+    public function setDateEnd(?\DateTimeInterface $dateEnd): self
+    {
+        $this->dateEnd = $dateEnd;
 
         return $this;
     }

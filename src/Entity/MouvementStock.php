@@ -83,13 +83,13 @@ class MouvementStock
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Import", inversedBy="mouvements")
-     * @ORM\JoinColumn(name="import_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\JoinColumn(name="import_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
 	 */
 	private $import;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvements")
-	 * @ORM\JoinColumn(name="reception_order_id", referencedColumnName="id", onDelete="CASCADE")
+	 * @ORM\JoinColumn(name="reception_order_id", referencedColumnName="id", nullable=true, onDelete="CASCADE")
 	 */
 	private $receptionOrder;
 

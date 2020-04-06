@@ -23,6 +23,7 @@ class ManutentionRepository extends ServiceEntityRepository
         'Demandeur' => 'demandeur',
         'Libellé' => 'libelle',
         'Date souhaitée' => 'dateAttendue',
+        'Date de réalisation' => 'dateEnd',
         'Statut' => 'statut',
     ];
 

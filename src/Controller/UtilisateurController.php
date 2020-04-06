@@ -6,10 +6,10 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\PasswordService;
@@ -18,6 +18,7 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,11 +38,6 @@ class UtilisateurController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -57,10 +53,12 @@ class UtilisateurController extends AbstractController
     private $passwordService;
 
 
-    public function __construct(PasswordService $passwordService, UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
+    public function __construct(PasswordService $passwordService,
+                                UserPasswordEncoderInterface $encoder,
+                                UtilisateurRepository $utilisateurRepository,
+                                UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->roleRepository = $roleRepository;
         $this->userService = $userService;
         $this->encoder = $encoder;
         $this->passwordService = $passwordService;
@@ -78,6 +76,7 @@ class UtilisateurController extends AbstractController
         }
         $typeRepository = $entityManager->getRepository(Type::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
         if ($_POST) {
             $utilisateurId = array_keys($_POST); /* Chaque clé représente l'id d'un utilisateur */
@@ -94,7 +93,7 @@ class UtilisateurController extends AbstractController
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         return $this->render('utilisateur/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
-            'roles' => $this->roleRepository->findAll(),
+            'roles' => $roleRepository->findAll(),
             'types' => $types
         ]);
     }
@@ -114,6 +113,7 @@ class UtilisateurController extends AbstractController
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $roleRepository = $entityManager->getRepository(Role::class);
 
             $password = $data['password'];
             $password2 = $data['password2'];
@@ -151,7 +151,7 @@ class UtilisateurController extends AbstractController
 
             $utilisateur = new Utilisateur();
 
-            $role = $this->roleRepository->find($data['role']);
+            $role = $roleRepository->find($data['role']);
 
             $utilisateur
                 ->setUsername($data['username'])
@@ -315,15 +315,20 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/modifier-role", name="user_edit_role",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse|RedirectResponse
      */
-    public function editRole(Request $request)
+    public function editRole(Request $request,
+                             EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $roleRepository = $entityManager->getRepository(Role::class);
 
-            $role = $this->roleRepository->find((int)$data['role']);
+            $role = $roleRepository->find((int)$data['role']);
             $user = $this->utilisateurRepository->find($data['userId']);
 
             if ($user) {

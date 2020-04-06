@@ -65,6 +65,7 @@ Class ColisService
      * @param Utilisateur $user
      * @return Colis[]
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function persistMultiColis(Arrivage $arrivage,
                                       array $colisByNatures,
@@ -72,7 +73,7 @@ Class ColisService
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
-        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getAcheteurs()->count() > 0)
+        $defaultEmpForMvt = ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire())
             ? $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE)
             : null;
         if (!isset($defaultEmpForMvt)) {

@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Role;
-use App\Repository\RoleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -35,11 +34,6 @@ class SecuriteController extends AbstractController
     private $passwordEncoder;
 
     /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -49,11 +43,13 @@ class SecuriteController extends AbstractController
      */
     private $userService;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $passwordService, RoleRepository $roleRepository, UserService $userService, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(UtilisateurRepository $utilisateurRepository,
+                                PasswordService $passwordService,
+                                UserService $userService,
+                                UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordService = $passwordService;
-        $this->roleRepository = $roleRepository;
         $this->userService = $userService;
         $this->passwordEncoder = $passwordEncoder;
     }

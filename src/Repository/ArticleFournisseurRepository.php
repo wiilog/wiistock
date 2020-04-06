@@ -17,7 +17,7 @@ use Doctrine\ORM\NoResultException;
 class ArticleFournisseurRepository extends EntityRepository
 {
     private const DtToDbLabels = [
-        'Fournisseur' => 'fournisseur',
+        'Code Fournisseur' => 'fournisseur',
         'Référence' => 'reference',
         'Article de référence' => 'art_ref',
     ];

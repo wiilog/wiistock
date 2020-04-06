@@ -26,12 +26,13 @@ class Import
 	const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
             'référence article de référence',
-            'référence fournisseur'
+            'référence fournisseur',
+            'reference',
         ],
         self::ENTITY_ART => [
             'référence article de référence',
             'label',
-            'emplacement'
+            'emplacement',
         ],
         self::ENTITY_FOU => [
             'codeReference',
@@ -47,8 +48,8 @@ class Import
     ];
 
 	const FIELD_PK = [
-	    self::ENTITY_ART_FOU => 'référence',
-        self::ENTITY_ART => 'referenceReference',
+	    self::ENTITY_ART_FOU => 'reference',
+        self::ENTITY_ART => 'reference',
         self::ENTITY_FOU => 'codeReference',
         self::ENTITY_REF => 'reference'
     ];
@@ -119,6 +120,24 @@ class Import
     private $updatedEntries;
 
 	/**
+     * @var bool
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+    private $forced;
+
+	/**
+     * @var bool
+	 * @ORM\Column(type="boolean", nullable=false)
+	 */
+    private $flash;
+
+	/**
+     * @var DateTime
+	 * @ORM\Column(type="datetime", nullable=false)
+	 */
+    private $createdAt;
+
+	/**
 	 * @ORM\Column(type="integer", nullable=true)
 	 */
     private $nbErrors;
@@ -150,7 +169,10 @@ class Import
     private $mouvements;
 
     public function __construct() {
+        $this->createdAt = new DateTime();
         $this->mouvements = new ArrayCollection();
+        $this->forced = false;
+        $this->flash = false;
     }
 
     public function getId(): ?int
@@ -339,6 +361,28 @@ class Import
         }
 
         return $this;
+    }
+
+    public function isForced(): bool {
+        return $this->forced;
+    }
+
+    public function setForced(bool $forced): self {
+        $this->forced = $forced;
+        return $this;
+    }
+
+    public function isFlash(): bool {
+        return $this->flash;
+    }
+
+    public function setFlash(bool $flash): self {
+        $this->flash = $flash;
+        return $this;
+    }
+
+    public function getCreateAt(): DateTime {
+        return $this->createdAt;
     }
 
 }

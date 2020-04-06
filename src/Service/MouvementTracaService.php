@@ -12,7 +12,6 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\MouvementTracaRepository;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -27,32 +26,14 @@ class MouvementTracaService
 {
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
-    /**
-     * @var Twig_Environment
-     */
     private $templating;
-
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
-
-    /**
-     * @var UserService
-     */
     private $userService;
-
     private $security;
     private $entityManager;
     private $attachmentService;
 
     public function __construct(UserService $userService,
-                                MouvementTracaRepository $mouvementTracaRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
@@ -62,7 +43,6 @@ class MouvementTracaService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->userService = $userService;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
@@ -76,10 +56,10 @@ class MouvementTracaService
     public function getDataForDatatable($params = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
-
-        $queryResult = $this->mouvementTracaRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $mouvementTracaRepository->findByParamsAndFilters($params, $filters);
 
         $mouvements = $queryResult['data'];
 
@@ -120,19 +100,7 @@ class MouvementTracaService
             $fromLabel = null;
             $originFrom = '-';
         }
-        $articleRepository = $this->entityManager->getRepository(Article::class);
-        $refArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-
-        $articleOrRef = $articleRepository->findOneBy([
-            'barCode' => $mouvement->getColis()
-        ]);
-        if (!$articleOrRef) {
-            $articleOrRef = $refArticleRepository->findOneBy([
-                'barCode' => $mouvement->getColis()
-            ]);
-        }
-
-        $row = [
+        return [
             'id' => $mouvement->getId(),
             'date' => $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '',
             'colis' => $mouvement->getColis(),
@@ -143,24 +111,22 @@ class MouvementTracaService
                 'entityId' => $fromEntityId
             ]),
             'location' => $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '',
-            'reference' => $articleOrRef
-                ? ($articleOrRef instanceof ReferenceArticle
-                    ? $articleOrRef->getReference()
-                    : $articleOrRef->getArticleFournisseur()->getReferenceArticle()->getReference())
-                : '',
-            'label' => $articleOrRef
-                ? ($articleOrRef instanceof ReferenceArticle
-                    ? $articleOrRef->getLibelle()
-                    : $articleOrRef->getLabel())
-                : '',
+            'reference' => $mouvement->getReferenceArticle()
+                ? $mouvement->getReferenceArticle()->getReference()
+                : ($mouvement->getArticle()
+                    ? $mouvement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : ''),
+            'label' => $mouvement->getReferenceArticle()
+                ? $mouvement->getReferenceArticle()->getLibelle()
+                : ($mouvement->getArticle()
+                    ? $mouvement->getArticle()->getLabel()
+                    : ''),
             'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
             'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
             'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $mouvement,
             ])
         ];
-
-        return $row;
     }
 
     /**
@@ -185,6 +151,8 @@ class MouvementTracaService
                                           array $options = []): MouvementTraca
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
 
         $type = is_string($typeMouvementTraca)
             ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
@@ -198,18 +166,28 @@ class MouvementTracaService
         $mouvementStock = $options['mouvementStock'] ?? null;
         $fileBag = $options['fileBag'] ?? null;
         $from = $options['from'] ?? null;
+        $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
 
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
             ->setColis($colis)
             ->setEmplacement($location)
             ->setOperateur($user)
-            ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($date) : null)
+            ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($date) : null))
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
+
+        $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $colis])
+                        ?: $articleRepository->findOneBy(['barCode' => $colis]);
+        if ($refOrArticle instanceof ReferenceArticle) {
+            $mouvementTraca->setReferenceArticle($refOrArticle);
+        }
+        else if ($refOrArticle instanceof Article) {
+            $mouvementTraca->setArticle($refOrArticle);
+        }
 
         if (isset($from)) {
             if ($from instanceof Arrivage) {
@@ -230,6 +208,8 @@ class MouvementTracaService
 
     private function generateUniqueIdForMobile(DateTime $date): string
     {
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+
         $uniqueId = null;
         //same format as moment.defaultFormat
         $dateStr = $date->format(DateTime::ATOM);
@@ -237,7 +217,7 @@ class MouvementTracaService
         do {
             $random = strtolower(substr(sha1(rand()), 0, $randomLength));
             $uniqueId = $dateStr . '_' . $random;
-            $existingMouvements = $this->mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
+            $existingMouvements = $mouvementTracaRepository->findBy(['uniqueIdForMobile' => $uniqueId]);
         } while (!empty($existingMouvements));
 
         return $uniqueId;
