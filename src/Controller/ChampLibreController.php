@@ -7,7 +7,6 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
 use App\Entity\Type;
-use App\Repository\CategorieCLRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,14 +20,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class ChampLibreController extends AbstractController
 {
-    /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
-
-    public function __construct(CategorieCLRepository $categorieCLRepository) {
-        $this->categorieCLRepository = $categorieCLRepository;
-    }
 
     /**
      * @Route("/", name="champ_libre_index", methods={"GET"})
@@ -106,12 +97,13 @@ class ChampLibreController extends AbstractController
      * @param $id
      * @return Response
      */
-    public function show(EntityManagerInterface $entityManager, $id): Response
-    {
+    public function show(EntityManagerInterface $entityManager,
+                         $id): Response {
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $typages = ChampLibre::TYPAGE;
         return $this->render('champ_libre/show.html.twig', [
             'type' => $entityManager->find(Type::class, $id),
-            'categoriesCL' => $this->categorieCLRepository->findAll(),
+            'categoriesCL' => $categorieCLRepository->findAll(),
             'typages' => $typages,
         ]);
     }
@@ -129,12 +121,13 @@ class ChampLibreController extends AbstractController
 
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
 		// on vérifie que le nom du champ libre n'est pas déjà utilisé
 		$champLibreExist = $champLibreRepository->countByLabel($data['label']);
 		if (!$champLibreExist) {
 			$type = $typeRepository->find($data['type']);
-			$categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
+			$categorieCL = $categorieCLRepository->find($data['categorieCL']);
 			$champLibre = new ChampLibre();
 			$champLibre
 				->setlabel($data['label'])
@@ -174,13 +167,14 @@ class ChampLibreController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
             $champLibre = $champLibreRepository->find($data['id']);
             $typages = ChampLibre::TYPAGE;
 
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
                 'typageCL' => ChampLibre::TYPAGE_ARR[$champLibre->getTypage()],
-                'categoriesCL' => $this->categorieCLRepository->findAll(),
+                'categoriesCL' => $categorieCLRepository->findAll(),
                 'typages' => $typages,
             ]);
 

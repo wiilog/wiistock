@@ -28,7 +28,6 @@ use App\Entity\ArticleFournisseur;
 use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\CategorieCLRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -47,10 +46,6 @@ use Twig\Error\SyntaxError;
 
 class RefArticleDataService
 {
-    /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
 
     /**
      * @var FiltreRefRepository
@@ -93,7 +88,6 @@ class RefArticleDataService
     public function __construct(DemandeRepository $demandeRepository,
                                 RouterInterface $router,
                                 UserService $userService,
-                                CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $entityManager,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
@@ -101,7 +95,6 @@ class RefArticleDataService
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->entityManager = $entityManager;

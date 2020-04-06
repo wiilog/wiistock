@@ -36,7 +36,19 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
-	/**
+    public function countAll()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(e)
+            FROM App\Entity\Emplacement e"
+        );
+        return $query->getSingleScalarResult();
+    }
+
+
+    /**
 	 * @param string $label
 	 * @param int|null $emplacementId
 	 * @return int
@@ -100,18 +112,16 @@ class EmplacementRepository extends EntityRepository
 
     public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $countTotal = $this->countAll();
 
-        $qb
-            ->select('e')
+        $em = $this->getEntityManager();
+        $qb = $em
+            ->createQueryBuilder()
             ->from('App\Entity\Emplacement', 'e');
 
         if ($excludeInactive) {
             $qb->where('e.isActive = 1');
         }
-
-        $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
         $allEmplacementDataTable = null;
         // prise en compte des paramètres issus du datatable
@@ -123,7 +133,6 @@ class EmplacementRepository extends EntityRepository
                         ->andWhere('e.label LIKE :value OR e.description LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
-                $countQuery = count($qb->getQuery()->getResult());
             }
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
@@ -131,29 +140,26 @@ class EmplacementRepository extends EntityRepository
                     $qb->orderBy('e.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']], $order);
                 }
             }
-            $allEmplacementDataTable = $qb->getQuery();
+            $qb->select('count(e)');
+            $countQuery = (int) $qb->getQuery()->getSingleScalarResult();
+        }
+        else {
+            $countQuery = $countTotal;
+        }
+
+        $qb
+            ->select('e');
+        if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,
-            'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null,
+            'allEmplacementDataTable' => !empty($params) ? $query->getResult() : null,
             'count' => $countQuery,
             'total' => $countTotal
         ];
-    }
-
-    public function countAll()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(e)
-            FROM App\Entity\Emplacement e
-           "
-        );
-
-        return $query->getSingleScalarResult();
     }
 
     public function findOneByRefArticleWithChampLibreAdresse($refArticle)

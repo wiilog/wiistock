@@ -5,6 +5,8 @@
 {% block page_content %}
     <h1>Liste des champs libres pour la catégorie {{ type.category.label|upper }} / type {{type.label|upper}} </h1>
 
+    <input id="cl-type-id" type="hidden" value="{{ type.id }}"/>
+
     <div>
         <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary" onclick="clearModal('#modalNewChampLibre')">
             <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
@@ -24,8 +26,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{type.id}}
-    </script>
     <script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

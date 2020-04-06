@@ -15,7 +15,6 @@ use App\Entity\LitigeHistoric;
 
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\ColisRepository;
 use App\Repository\LitigeHistoricRepository;
@@ -61,14 +60,6 @@ class LitigeController extends AbstractController
 	 */
 	private $litigeRepository;
 	/**
-	 * @var ArrivageRepository
-	 */
-	private $arrivageRepository;
-    /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
-	/**
 	 * @var UserService
 	 */
 	private $userService;
@@ -91,9 +82,7 @@ class LitigeController extends AbstractController
 	/**
 	 * @param LitigeService $litigeService
 	 * @param PieceJointeRepository $pieceJointeRepository
-	 * @param ColisRepository $colisRepository
 	 * @param UserService $userService ;
-	 * @param ArrivageRepository $arrivageRepository
 	 * @param LitigeRepository $litigeRepository
 	 * @param UtilisateurRepository $utilisateurRepository
 	 * @param TransporteurRepository $transporteurRepository
@@ -102,9 +91,7 @@ class LitigeController extends AbstractController
 	 */
 	public function __construct(LitigeService $litigeService,
                                 PieceJointeRepository $pieceJointeRepository,
-                                ColisRepository $colisRepository,
                                 UserService $userService,
-                                ArrivageRepository $arrivageRepository,
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 TransporteurRepository $transporteurRepository,
@@ -115,9 +102,7 @@ class LitigeController extends AbstractController
 		$this->transporteurRepository = $transporteurRepository;
 		$this->chauffeurRepository = $chauffeurRepository;
 		$this->litigeRepository = $litigeRepository;
-		$this->arrivageRepository = $arrivageRepository;
 		$this->userService = $userService;
-		$this->colisRepository = $colisRepository;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->pieceJointeRepository = $pieceJointeRepository;
 		$this->litigeService = $litigeService;

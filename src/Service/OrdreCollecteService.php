@@ -77,7 +77,6 @@ class OrdreCollecteService
 	 */
 	private $router;
 
-	private $mouvementTracaRepository;
 	private $mouvementTracaService;
 	private $mouvementStockService;
 
@@ -89,7 +88,6 @@ class OrdreCollecteService
                                 CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
                                 MouvementStockService $mouvementStockService,
-                                MouvementTracaRepository $mouvementTracaRepository,
                                 EntityManagerInterface $entityManager,
                                 MouvementTracaService $mouvementTracaService,
                                 Twig_Environment $templating)
@@ -104,7 +102,6 @@ class OrdreCollecteService
 		$this->ordreCollecteRepository = $ordreCollecteRepository;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
-		$this->mouvementTracaRepository = $mouvementTracaRepository;
 		$this->mouvementStockService = $mouvementStockService;
 	}
 

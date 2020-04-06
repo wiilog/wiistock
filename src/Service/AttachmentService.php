@@ -6,7 +6,6 @@ use App\Entity\Arrivage;
 use App\Entity\Import;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
-use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;

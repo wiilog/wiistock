@@ -4,23 +4,19 @@ namespace App\DataFixtures;
 
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\Role;
 use App\Repository\MenuRepository;
-use App\Repository\RoleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
-    private $roleRepository;
     private $menuRepository;
 
-    public function __construct(RoleRepository $roleRepository,
-								MenuRepository $menuRepository
-	)
+    public function __construct(MenuRepository $menuRepository)
     {
-        $this->roleRepository = $roleRepository;
         $this->menuRepository = $menuRepository;
     }
 
@@ -77,8 +73,9 @@ class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface
 			'Litige/traiter litige' => [Menu::QUALI => [Action::TREAT_LITIGE]]
 		];
 
-		$roles = $this->roleRepository->findAll();
-		$actionRepository = $manager->getRepository(Action::class);
+        $actionRepository = $manager->getRepository(Action::class);
+        $roleRepository = $manager->getRepository(Role::class);
+        $roles = $roleRepository->findAll();
 		foreach ($formerActionToNewAction as $formerAction => $newMenuAndActions) {
 			$formerActionArr = explode('/', $formerAction);
 			$formerActionObj = $actionRepository->findOneByMenuLabelAndActionLabel($formerActionArr[0], $formerActionArr[1]);

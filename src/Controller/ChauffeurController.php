@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Chauffeur;
 use App\Entity\Menu;
-use App\Repository\ArrivageRepository;
 use App\Service\UserService;
 use App\Repository\ChauffeurRepository;
 use App\Repository\TransporteurRepository;
@@ -38,18 +38,13 @@ class ChauffeurController extends AbstractController
      */
     private $userService;
 
-	/**
-	 * @var ArrivageRepository
-	 */
-    private $arrivageRepository;
-
-
-    public function __construct(ArrivageRepository $arrivageRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, UserService $userService)
+    public function __construct(ChauffeurRepository $chauffeurRepository,
+                                TransporteurRepository $transporteurRepository,
+                                UserService $userService)
     {
         $this->chauffeurRepository = $chauffeurRepository;
         $this->transporteurRepository = $transporteurRepository;
         $this->userService = $userService;
-        $this->arrivageRepository = $arrivageRepository;
     }
 
     /**
@@ -217,7 +212,9 @@ class ChauffeurController extends AbstractController
 
     public function isChauffeurUsed($chauffeur)
 	{
-		return $this->arrivageRepository->countByChauffeur($chauffeur) > 0;
+	    $entityManager = $this->getDoctrine()->getManager();
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+		return $arrivageRepository->countByChauffeur($chauffeur) > 0;
 	}
 
 	/**

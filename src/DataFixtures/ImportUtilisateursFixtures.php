@@ -5,12 +5,11 @@ namespace App\DataFixtures;
 use App\Entity\Emplacement;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PasswordService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterface
@@ -30,20 +29,13 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
      */
     private $encoder;
 
-    /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
-
     public function __construct(UtilisateurRepository $utilisateurRepository,
                                 PasswordService $passwordService,
-                                RoleRepository $roleRepository,
                                 UserPasswordEncoderInterface $encoder)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordService = $passwordService;
         $this->encoder = $encoder;
-        $this->roleRepository = $roleRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -54,6 +46,8 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
         $firstRow = true;
 
         $emplacementRepository = $manager->getRepository(Emplacement::class);
+        $roleRepository = $manager->getRepository(Role::class);
+        $utilisateurRepository = $manager->getRepository(Utilisateur::class);
 
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
         	if ($firstRow) {
@@ -65,9 +59,9 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
                 $emplacementStr = $row[4];
                 $roleStr = $row[5];
                 $pass = $this->passwordService->generateToken(8);
-				$utilisateur = $this->utilisateurRepository->findOneByMail($mail);
+				$utilisateur = $utilisateurRepository->findOneByMail($mail);
 				if (empty($utilisateur)) {
-                    $role = $this->roleRepository->findByLabel($roleStr);
+                    $role = $roleRepository->findByLabel($roleStr);
                     $emplacement = $emplacementRepository->findOneByLabel($emplacementStr);
 				    if (empty($role)) {
 				        $role = new Role();
