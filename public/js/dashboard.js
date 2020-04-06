@@ -120,7 +120,7 @@ function updateSimpleChartData(
     }
 
     if (subData) {
-        const subColor = '#e0e0e0';
+        const subColor = '#999';
         chart.data.datasets.push({
             label: lineChartLabel,
             backgroundColor: (new Array(dataLength)).fill(subColor),
@@ -275,6 +275,9 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
         const fontSize = isDashboardExt()
             ? FONT_SIZE_EXT
             : FONT_SIZE_DEFAULT;
+        const fontStyle = isDashboardExt()
+            ? 'bold'
+            : undefined;
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
@@ -291,7 +294,7 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
                     position: 'bottom',
                     labels: {
                         fontSize,
-                        fontStyle: 'bold',
+                        fontStyle,
                         filter: function(item) {
                             return Boolean(item && item.text);
                         }
@@ -301,6 +304,7 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
                     yAxes: [{
                         ticks: {
                             fontSize,
+                            fontStyle,
                             beginAtZero: true,
                             callback: (value) => {
                                 if (Math.floor(value) === value) {
@@ -311,7 +315,8 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
                     }],
                     xAxes: [{
                         ticks: {
-                            fontSize
+                            fontSize,
+                            fontStyle
                         }
                     }]
                 },
@@ -409,8 +414,9 @@ function updateCarriers() {
     $.get(Routing.generate('get_daily_carriers_statistics'), function(data) {
         const $container = $('#statistics-arrival-carriers');
         $container.empty();
+        const cssClass = `${isDashboardExt() ? 'medium-font' : ''} m-0`;
         $container.append(
-            ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: 'medium-font m-0'}))))
+            ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: cssClass}))))
         );
     });
 }

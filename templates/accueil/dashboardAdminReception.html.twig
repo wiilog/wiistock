@@ -6,8 +6,8 @@
         <div class="col-12 space">
             <div class="row">
                 <div class="col-9 dashboard-box-wrapper third-height">
-                    <div class="dashboard-box">
-                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">
+                    <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
+                        <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
                             Entrées à effectuer
                             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                                 Composant
@@ -28,7 +28,7 @@
                 <div class="col-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="dashboard-box-wrapper side-panels">
-                            <div class="dashboard-box justify-content-between">
+                            <div class="dashboard-box {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -38,20 +38,18 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font pt-0' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-0' }}">
                                     Nombre de lignes à traiter
                                 </p>
                                 <div class="text-center mb-1 {{ isDashboardExt ? ' ' : 'mb-1' }}">
-                                    <p class="big-font {{ isDashboardExt ? 'mb-5' : ' ' }}">
-                                        <strong id="totalForChart1" class="figure"></strong>
-                                    </p>
+                                    <p id="totalForChart1" class="figure bold {{ isDashboardExt ? 'big-font mb-5' : ' ' }}"></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
                         <div class="dashboard-box-wrapper side-panels">
-                            <div class="dashboard-box text-center justify-content-between">
+                            <div class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -60,12 +58,12 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font pt-0' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-0' }}">
                                     Prochain emplacement à traiter
                                 </p>
                                 <div class="d-flex align-items-center justify-content-center"
                                      style="height: inherit;">
-                                    <p class="display-font figure counter" id="empForChart1"></p>
+                                    <div class="display-font figure counter" id="empForChart1"></div>
                                 </div>
                             </div>
                         </div>
@@ -76,8 +74,8 @@
         <div class="col-12 space">
             <div class="row">
                 <div class="col-9 dashboard-box-wrapper third-height">
-                    <div class="dashboard-box">
-                        <p class="title bold {{ isDashboardExt ? 'ext-title-font' }}">
+                    <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
+                        <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
                             Entrées à effectuer
                             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                                 Méca
@@ -85,11 +83,8 @@
                         </p>
                         {% if not isDashboardExt %}
                             <div class="points">
-                                <i
-                                    class="fa fa-question has-tooltip"
-                                    title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2)
-                            présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2.">
-
+                                <i class="fa fa-question has-tooltip"
+                                   title="Nombre {{ 'arrivage.de colis'|trans }} (de natures paramétrées pour le graphe 2) présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 2.">
                                 </i>
                             </div>
                         {% endif %}
@@ -101,7 +96,7 @@
                 <div class="col-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="dashboard-box-wrapper side-panels">
-                            <div class="dashboard-box justify-content-between">
+                            <div class="dashboard-box {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -111,20 +106,18 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
                                     Nombre de lignes à traiter
                                 </p>
                                 <div class="text-center mb-1">
-                                    <p class="big-font">
-                                        <strong id="totalForChart2" class="figure"></strong>
-                                    </p>
+                                    <div id="totalForChart2" class="figure bold {{ isDashboardExt ? 'big-font mb-5' : ' ' }}"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
                         <div class="dashboard-box-wrapper side-panels">
-                            <div class="dashboard-box text-center justify-content-between">
+                            <div class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -133,7 +126,7 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
                                     Prochain emplacement à traiter
                                 </p>
                                 <div class="d-flex align-items-center justify-content-center"
@@ -150,59 +143,59 @@
             <div class="row">
                 <div class="col-3">
                     <div class="dashboard-box-wrapper fourth-height">
-                        <div id="remaining-urgences-box-admin" class="dashboard-box text-center justify-content-between">
-                            <p class="text-center title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }} bold">
+                        <div id="remaining-urgences-box-admin" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                            <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
                                 Urgences à recevoir
                             </p>
                             <div class="align-items-end justify-content-center">
-                                <p class="big-font figure counter"></p>
+                                <p class="figure counter  {{ isDashboardExt ? 'big-font' }}"></p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="dashboard-box-wrapper fourth-height">
-                        <div id="encours-urgence-box" class="dashboard-box text-center justify-content-between">
+                        <div id="encours-urgence-box" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                             <div>
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
                                     <i class="fas"></i>
                                     Urgences à traiter
                                     <i class="fas"></i>
                                 </p>
-                                <div class="location-label ellipsis medium-font"></div>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' }}"></div>
                             </div>
                             <div class="align-items-center">
-                                <p class="big-font figure counter"></p>
+                                <p class="figure counter  {{ isDashboardExt ? 'big-font' }}"></p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-3 ">
                     <div class="dashboard-box-wrapper fourth-height">
-                        <div id="encours-litige-box" class="dashboard-box text-center justify-content-between">
+                        <div id="encours-litige-box" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                             <div>
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
                                     Lignes en litiges
                                 </p>
-                                <div class="location-label ellipsis medium-font"></div>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' }}"></div>
                             </div>
                             <div class="align-items-center">
-                                <p class="big-font figure counter"></p>
+                                <p class="figure counter  {{ isDashboardExt ? 'big-font' }}"></p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="dashboard-box-wrapper fourth-height">
-                        <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-between">
+                        <div id="encours-clearance-box-admin" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                             <div>
-                                <p class="text-center bold title {{ isDashboardExt ? 'ext-title-font' : 'medium-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
                                     Colis en attente de dédouanement
                                 </p>
-                                <div class="location-label ellipsis medium-font"></div>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' }}"></div>
                             </div>
                             <div class="align-items-center">
-                                <p class="big-font figure counter"></p>
+                                <p class="figure counter {{ isDashboardExt ? 'big-font' }}"></p>
                             </div>
                         </div>
                     </div>

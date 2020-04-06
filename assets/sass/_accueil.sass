@@ -45,7 +45,10 @@
         height: 100%
         position: relative
         background: $white
-        padding: 1rem
+        padding: .5rem
+
+        .dashboard-box-ext
+            padding: 1rem
 
         &.dashboard-box-list
             .title
@@ -55,7 +58,7 @@
 
         .title
             line-height: 1
-            font-size: 1em
+            font-size: 1.35rem
             margin-bottom: .5rem
             padding: 0px
             color: $blackDashboard
@@ -69,8 +72,8 @@
 
         .points
             position: absolute
-            right: 10px
-            top: 10px
+            right: .5rem
+            top: .5rem
 
         .arrow-chart
             color: $blueGT
@@ -116,6 +119,8 @@
     font-weight: bold
     color: $blueNeon
     cursor: default
+    font-size: 3rem
+    line-height: 0.8
 
 .home-card
     background-color: $lightGrey
@@ -186,7 +191,11 @@
     background-image: linear-gradient(-15.7deg, #1b1464, #2e5492)
 
 .space
-    margin-top: 2.1rem
+    @media (max-height: 1800px)
+        margin-top: 1rem
+    @media (min-height: 1801px)
+        margin-top: 2.1rem
+
 
 .lh
     line-height: 1em

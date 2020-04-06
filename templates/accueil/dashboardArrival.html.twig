@@ -1,7 +1,7 @@
 <div class="row">
-    <p class="col-12 white">
-        Dashboard | RÉCEPTION ARRIVAGE
-    </p>
+    <div class="col-12 space">
+        {% include 'accueil/dashboardTitle.html.twig' with {isDashboardExt: 0, title: 'Dashboard | RÉCEPTION ARRIVAGE'} %}
+    </div>
 </div>
 <div class="row">
     {% if extDashboard is not defined %}
@@ -17,11 +17,9 @@
             </div>
         </div>
     {% endif %}
-    <div class="col-6 dashboard-box-wrapper half-height">
+    <div class="col-6 space dashboard-box-wrapper half-height">
         <div class="dashboard-box m-1">
-            <p class="title">
-                Arrivage (UM)<br>
-            </p>
+            <p class="title">Arrivage (UM)</p>
             <div class="points">
                 <i
                     class="fa fa-question has-tooltip"
@@ -44,15 +42,12 @@
             </div>
         </div>
     </div>
-    <div class="col-6 dashboard-box-wrapper half-height">
+    <div class="col-6 space dashboard-box-wrapper half-height">
         <div class="dashboard-box m-1">
-            <p class="title">
-                Réceptions (nombre d'associations)<br>
-            </p>
+            <p class="title">Réceptions (nombre d'associations)</p>
             <div class="points">
-                <i
-                    class="fa fa-question has-tooltip"
-                    title="Nombre réceptions de traçabilité par jour."></i>
+                <i class="fa fa-question has-tooltip"
+                   title="Nombre réceptions de traçabilité par jour."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartAssocRecep" width="300" height="90"></canvas>
@@ -71,16 +66,13 @@
             </div>
         </div>
     </div>
-    <div class="col-6 dashboard-box-wrapper half-height">
-        <div class="dashboard-box m-1">
-            <p class="title mb-0 pb-0">
-                Colis en retard<br>
-            </p>
+    <div class="col-6 space dashboard-box-wrapper half-height">
+        <div class="dashboard-box justify-content-between m-1">
+            <p class="title mb-0 pb-0">Colis en retard</p>
             <div class="points">
-                <i
-                    class="fa fa-question has-tooltip"
-                    title="{{ 'arrivage.colis'|trans }} ayant dépassé le délai de présence sur son emplacement
-                     (paramétrable sur chaque emplacement)."></i>
+                <i class="fa fa-question has-tooltip"
+                   title="{{ 'arrivage.colis'|trans }} ayant dépassé le délai de présence sur son emplacement (paramétrable sur chaque emplacement).">
+                </i>
             </div>
             <div class="dashboard-box-content pt-0 pb-0">
                 <table class="table retards-table w-100">
@@ -89,11 +81,9 @@
         </div>
     </div>
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) or extDashboard is defined %}
-        <div class="col-6 dashboard-box-wrapper half-height">
+        <div class="col-6 space dashboard-box-wrapper half-height">
             <div id="dashboard-monetary" class="dashboard-box m-1">
-                <p class="title">
-                    Fiabilité monétaire<br>
-                </p>
+                <p class="title">Fiabilité monétaire</p>
                 <div class="points">
                     <i
                         class="fa fa-question has-tooltip"
