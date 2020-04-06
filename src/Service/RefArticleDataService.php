@@ -353,13 +353,13 @@ class RefArticleDataService
         $rows = $valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
         $rowCL = [];
         foreach ($rows as $row) {
-            if ($row['typage'] === ChampLibre::TYPE_DATE && !empty($row['valeur'])) {
+            if (in_array($row['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
+                && !empty($row['valeur'])) {
                 $champLibreDateTime = new DateTime($row['valeur'], new DateTimeZone('Europe/Paris'));
-                $rowCL[$row['label']] = $champLibreDateTime->format('d/m/Y');
-            } else if ($row['typage'] === ChampLibre::TYPE_DATETIME &&  !empty($row['valeur'])) {
-                $champLibreDateTime = New DateTime($row['valeur'], new DateTimeZone('Europe/Paris'));
-                $rowCL[$row['label']] = $champLibreDateTime->format('d/m/Y H:i');
-            } else {
+                $hourFormat = ($row['typage'] === ChampLibre::TYPE_DATETIME) ? ' H:i' : '';
+                $rowCL[$row['label']] = $champLibreDateTime->format("d/m/Y$hourFormat");
+            }
+            else {
                 $rowCL[$row['label']] = $row['valeur'];
             }
         }
