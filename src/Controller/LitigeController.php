@@ -15,8 +15,6 @@ use App\Entity\LitigeHistoric;
 
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\ChauffeurRepository;
-use App\Repository\ColisRepository;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
@@ -52,10 +50,6 @@ class LitigeController extends AbstractController
 	 */
 	private $transporteurRepository;
 	/**
-	 * @var ChauffeurRepository
-	 */
-	private $chauffeurRepository;
-	/**
 	 * @var LitigeRepository
 	 */
 	private $litigeRepository;
@@ -86,7 +80,6 @@ class LitigeController extends AbstractController
 	 * @param LitigeRepository $litigeRepository
 	 * @param UtilisateurRepository $utilisateurRepository
 	 * @param TransporteurRepository $transporteurRepository
-	 * @param ChauffeurRepository $chauffeurRepository
 	 * @param LitigeHistoricRepository $litigeHistoricRepository
 	 */
 	public function __construct(LitigeService $litigeService,
@@ -95,12 +88,10 @@ class LitigeController extends AbstractController
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 TransporteurRepository $transporteurRepository,
-                                ChauffeurRepository $chauffeurRepository,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->transporteurRepository = $transporteurRepository;
-		$this->chauffeurRepository = $chauffeurRepository;
 		$this->litigeRepository = $litigeRepository;
 		$this->userService = $userService;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;

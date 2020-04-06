@@ -296,8 +296,7 @@ class AccueilController extends AbstractController
             'data' => $arrivalCountByDays,
             'subCounters' => $colisCountByDay,
             'subLabel' => 'Colis',
-            'label' => 'Autres arrivages',
-            'lastLabel' => 'Arrivages du jour'
+            'label' => 'Arrivages'
         ]);
     }
 
@@ -360,8 +359,7 @@ class AccueilController extends AbstractController
             'data' => $arrivalsCountByWeek,
             'subCounters' => $colisCountByWeek,
             'subLabel' => 'Colis',
-            'label' => 'Autres arrivages',
-            'lastLabel' => 'Arrivages de la semaine'
+            'label' => 'Arrivages'
         ]);
     }
 

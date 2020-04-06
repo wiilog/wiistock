@@ -21,9 +21,6 @@
     min-height: 40%
 
 .dashboard-box-wrapper
-    margin-top: 0px
-    margin-bottom: 8px
-
     &.side-panels
         height: 15vh
 
@@ -50,38 +47,33 @@
         background: $white
         padding: .5rem
 
-        .custom-chart-legend
-            justify-content: center
-            .chart-legend-color
-                height: 15px
-                width: 40px
-                margin-right: 6px
-                display: inline-block
-                border: solid 1px #e0e0e0
+        .dashboard-box-ext
+            padding: 1rem
 
-            .chart-legend-label
-                font-size: 12px
-                font-weight: bold
-                font-family: Arial, sans-serif
-                color: #888
-                margin-right: 10px
-                &.chart-legend-label-bigger
-                    font-size: 20px
+        &.dashboard-box-list
+            .title
+                margin-bottom: 1.5rem
+            li
+                line-height: 1.5
 
         .title
-            font-size: 1em
+            line-height: 1
+            font-size: 1.35rem
             margin-bottom: .5rem
-            padding: 8px
+            padding: 0px
             color: $blackDashboard
 
+        .location-label
+            line-height: 1
+
         .label
-          color: $greyDashboard
+            color: $greyDashboard
             font-size: .8em
 
         .points
             position: absolute
-            right: 15px
-            top: 15px
+            right: .5rem
+            top: .5rem
 
         .arrow-chart
             color: $blueGT
@@ -127,6 +119,8 @@
     font-weight: bold
     color: $blueNeon
     cursor: default
+    font-size: 3rem
+    line-height: 0.8
 
 .home-card
     background-color: $lightGrey
@@ -192,3 +186,22 @@
         border-radius: 5px
         color: white
         cursor: pointer !important
+
+.degrade
+    background-image: linear-gradient(-15.7deg, #1b1464, #2e5492)
+
+.space
+    @media (max-height: 1800px)
+        margin-top: 1rem
+    @media (min-height: 1801px)
+        margin-top: 2.1rem
+
+
+.lh
+    line-height: 1em
+    margin-bottom: 0
+
+#statistics-arrival-carriers
+    p
+        font-size: 1vw
+
