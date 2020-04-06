@@ -27,7 +27,6 @@ use App\Entity\ValeurChampLibre;
 use App\Repository\ColisRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
-use App\Repository\ChauffeurRepository;
 use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
@@ -77,11 +76,6 @@ class ArrivageController extends AbstractController
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-
-    /**
-     * @var ChauffeurRepository
-     */
-    private $chauffeurRepository;
 
     /**
      * @var TransporteurRepository
@@ -153,7 +147,6 @@ class ArrivageController extends AbstractController
                                 SpecificService $specificService,
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
-                                ChauffeurRepository $chauffeurRepository,
                                 TransporteurRepository $transporteurRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService)
@@ -166,7 +159,6 @@ class ArrivageController extends AbstractController
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->transporteurRepository = $transporteurRepository;
-        $this->chauffeurRepository = $chauffeurRepository;
         $this->mailerService = $mailerService;
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
@@ -444,6 +436,7 @@ class ArrivageController extends AbstractController
 
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
 
+                $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
                 $typeRepository = $entityManager->getRepository(Type::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
@@ -453,7 +446,7 @@ class ArrivageController extends AbstractController
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
-                    'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
+                    'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
@@ -550,6 +543,7 @@ class ArrivageController extends AbstractController
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
 
             $post = $request->request;
             $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
@@ -573,7 +567,7 @@ class ArrivageController extends AbstractController
                 ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
                 ->setFournisseur($fournisseurId ? $fournisseurRepository->find($fournisseurId) : null)
                 ->setTransporteur($transporteurId ? $this->transporteurRepository->find($transporteurId) : null)
-                ->setChauffeur($chauffeurId ? $this->chauffeurRepository->find($chauffeurId) : null)
+                ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
                 ->setStatut($statutId ? $statutRepository->find($statutId) : null)
                 ->setDuty($post->get('duty') == 'true')
                 ->setFrozen($post->get('frozen') == 'true')
