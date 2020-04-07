@@ -141,14 +141,14 @@ class MouvementTracaService
      * @return MouvementTraca
      * @throws Exception
      */
-    public function persistMouvementTraca(string $colis,
-                                          ?Emplacement $location,
-                                          Utilisateur $user,
-                                          DateTime $date,
-                                          bool $fromNomade,
-                                          ?bool $finished,
-                                          $typeMouvementTraca,
-                                          array $options = []): MouvementTraca
+    public function createMouvementTraca(string $colis,
+                                         ?Emplacement $location,
+                                         Utilisateur $user,
+                                         DateTime $date,
+                                         bool $fromNomade,
+                                         ?bool $finished,
+                                         $typeMouvementTraca,
+                                         array $options = []): MouvementTraca
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
@@ -198,7 +198,7 @@ class MouvementTracaService
         }
 
         if (isset($fileBag)) {
-            $attachements = $this->attachmentService->addAttachements($fileBag);
+            $attachements = $this->attachmentService->createAttachements($fileBag);
             foreach ($attachements as $attachement) {
                 $mouvementTraca->addAttachement($attachement);
             }

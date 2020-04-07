@@ -132,7 +132,7 @@ class MouvementTracaController extends AbstractController
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMvt = $this->mouvementTracaService->persistMouvementTraca(
+                $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                     $colisStr,
                     $emplacement,
                     $operator,
@@ -149,7 +149,7 @@ class MouvementTracaController extends AbstractController
                 foreach ($colisArray as $colis) {
                     $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
                     $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-                    $createdMvt = $this->mouvementTracaService->persistMouvementTraca(
+                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                         $colis,
                         $emplacementPrise,
                         $operator,
@@ -161,7 +161,7 @@ class MouvementTracaController extends AbstractController
                     );
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
-                    $createdMvt = $this->mouvementTracaService->persistMouvementTraca(
+                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                         $colis,
                         $emplacementDepose,
                         $operator,
@@ -489,7 +489,7 @@ class MouvementTracaController extends AbstractController
      * @param EntityManagerInterface $entityManager
      */
     private function addAttachements(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, FileBag $files, EntityManagerInterface $entityManager) {
-        $attachments = $attachmentService->addAttachements($files);
+        $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $mouvementTraca->addAttachement($attachment);

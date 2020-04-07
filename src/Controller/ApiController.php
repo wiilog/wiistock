@@ -410,7 +410,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $options['fileBag'] = [$signatureFile];
                             }
 
-                            $createdMvt = $mouvementTracaService->persistMouvementTraca(
+                            $createdMvt = $mouvementTracaService->createMouvementTraca(
                                 $mvt['ref_article'],
                                 $location,
                                 $nomadUser,

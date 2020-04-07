@@ -1500,7 +1500,7 @@ class ReceptionController extends AbstractController
                 $entityManager->persist($mouvementStock);
 
 
-                $entityManager->persist($mouvementTracaService->persistMouvementTraca(
+                $entityManager->persist($mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1527,7 +1527,7 @@ class ReceptionController extends AbstractController
                         ->setDate($now);
                     $entityManager->persist($mouvementStock);
 
-                    $entityManager->persist($mouvementTracaService->persistMouvementTraca(
+                    $entityManager->persist($mouvementTracaService->createMouvementTraca(
                         $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
@@ -1983,7 +1983,7 @@ class ReceptionController extends AbstractController
      * @param EntityManagerInterface $entityManager
      */
     private function addAttachementsForEntity(Litige $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
-        $attachments = $attachmentService->addAttachements($request->files);
+        $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachement($attachment);

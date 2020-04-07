@@ -320,7 +320,7 @@ class ArrivageController extends AbstractController
             }
 
 
-            $this->addAttachementsForEntity($arrivage, $attachmentService, $request, $entityManager);
+            $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -597,7 +597,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->addAttachementsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
+            $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
 
             $champLibreKey = array_keys($post->all());
             foreach ($champLibreKey as $champ) {
@@ -1060,7 +1060,7 @@ class ArrivageController extends AbstractController
                 $entityManager->persist($histo);
             }
 
-            $this->addAttachementsForEntity($litige, $this->attachmentService, $request, $entityManager);
+            $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1317,7 +1317,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->addAttachementsForEntity($litige, $this->attachmentService, $request, $entityManager);
+            $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
 
             $response = $this->getResponseReloadArrivage($entityManager, $request->query->get('reloadArrivage'));
@@ -1579,8 +1579,8 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function addAttachementsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
-        $attachments = $attachmentService->addAttachements($request->files);
+    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+        $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachement($attachment);

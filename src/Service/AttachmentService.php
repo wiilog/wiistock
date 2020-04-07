@@ -30,7 +30,7 @@ class AttachmentService
 	 * @param FileBag|UploadedFile[]|array $files if array it's an assoc array between originalFileName and serverFileName
 	 * @return PieceJointe[]
 	 */
-	public function addAttachements($files) {
+	public function createAttachements($files) {
 		$attachments = [];
 
         if ($files instanceof FileBag) {

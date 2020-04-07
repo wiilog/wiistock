@@ -380,7 +380,7 @@ class OrdreCollecteService
         $this->entityManager->persist($mouvementStock);
 
         // Mouvement traca prise
-        $this->entityManager->persist($this->mouvementTracaService->persistMouvementTraca(
+        $this->entityManager->persist($this->mouvementTracaService->createMouvementTraca(
             $article->getBarCode(),
             $locationFrom,
             $user,
@@ -396,7 +396,7 @@ class OrdreCollecteService
             $deposeDate = clone $date;
             $deposeDate->modify('+1 second');
             // mouvement de traca de dépose
-            $this->entityManager->persist($this->mouvementTracaService->persistMouvementTraca(
+            $this->entityManager->persist($this->mouvementTracaService->createMouvementTraca(
                 $article->getBarCode(),
                 $locationTo,
                 $user,
