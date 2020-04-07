@@ -11,10 +11,7 @@
     overflow-wrap: break-word
 
 .filters
-  align-items: center
-  padding: 6px
   >div
-    margin: auto 12px
     .select2-selection
       padding-top: 2px
       padding-bottom: 4px
@@ -25,10 +22,13 @@
       vertical-align: middle
   .minw-150px
     .select2-container
-      min-width: 150px !important
+        width: 200px !important
   .minw-300px
     .select2-container
       min-width: 150px !important
   .select2-overflow
     .select2-selection
       overflow: auto
+
+.filter-input, .filter-select2
+    width: 200px !important

@@ -115,6 +115,7 @@ class ArrivageDataService
             'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
             'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
             'Urgent' => $arrivage->getIsUrgent() ? 'oui' : 'non',
+            'url' => $url,
             'Actions' => $this->templating->render(
                 'arrivage/datatableArrivageRow.html.twig',
                 ['url' => $url, 'arrivage' => $arrivage]
