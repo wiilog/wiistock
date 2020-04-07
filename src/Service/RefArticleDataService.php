@@ -318,7 +318,7 @@ class RefArticleDataService
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addArticleReference($refArticle)
-                            ->setChampLibre($champLibreRepository->find($champ));
+                            ->setChampLibre($champ);
                         $entityManager->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
