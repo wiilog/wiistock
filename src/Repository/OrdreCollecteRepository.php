@@ -5,11 +5,10 @@ namespace App\Repository;
 use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method OrdreCollecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method OrdreCollecte[]    findAll()
  * @method OrdreCollecte[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class OrdreCollecteRepository extends ServiceEntityRepository
+class OrdreCollecteRepository extends EntityRepository
 {
 	const DtToDbLabels = [
 		'Numéro' => 'numero',
@@ -26,11 +25,6 @@ class OrdreCollecteRepository extends ServiceEntityRepository
 		'Opérateur' => 'utilisateur',
 		'Type' => 'type'
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, OrdreCollecte::class);
-    }
 
     /**
      * @param Utilisateur $user

@@ -6,8 +6,6 @@ namespace App\Service;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
-use App\Repository\CollecteRepository;
-use App\Repository\OrdreCollecteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -28,16 +26,6 @@ class CollecteService
      */
     private $router;
 
-    /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
-
-	/**
-	 * @var OrdreCollecteRepository
-	 */
-    private $ordreCollecteRepository;
-
 	/**
 	 * @var Utilisateur
 	 */
@@ -46,20 +34,24 @@ class CollecteService
     private $entityManager;
 
     public function __construct(TokenStorageInterface $tokenStorage,
-                                OrdreCollecteRepository $ordreCollecteRepository,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                CollecteRepository $collecteRepository)
+                                Twig_Environment $templating)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->collecteRepository = $collecteRepository;
-        $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
+    /**
+     * @param null $params
+     * @param null $statusFilter
+     * @return array
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     public function getDataForDatatable($params = null, $statusFilter = null)
     {
 		if ($statusFilter) {
@@ -73,7 +65,10 @@ class CollecteService
             $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
     		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_COLLECTE, $this->user);
 		}
-        $queryResult = $this->collecteRepository->findByParamsAndFilters($params, $filters);
+
+        $collecteRepository = $this->entityManager->getRepository(Collecte::class);
+
+        $queryResult = $collecteRepository->findByParamsAndFilters($params, $filters);
 
         $collecteArray = $queryResult['data'];
 

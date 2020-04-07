@@ -68,11 +68,6 @@ class ReferenceArticleController extends AbstractController
     private $livraisonRepository;
 
     /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
@@ -131,14 +126,12 @@ class ReferenceArticleController extends AbstractController
                                 ArticleDataService $articleDataService,
                                 LivraisonRepository $livraisonRepository,
                                 DemandeRepository $demandeRepository,
-                                CollecteRepository $collecteRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 CSVExportService $CSVExportService)
     {
-        $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->livraisonRepository = $livraisonRepository;
@@ -882,6 +875,7 @@ class ReferenceArticleController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
@@ -894,7 +888,7 @@ class ReferenceArticleController extends AbstractController
 					}
 
 				} elseif (array_key_exists('collecte', $data) && $data['collecte']) {
-					$collecte = $this->collecteRepository->find($data['collecte']);
+					$collecte = $collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
 						$fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
@@ -974,10 +968,11 @@ class ReferenceArticleController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
-                $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
+                $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
                 $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
@@ -1325,11 +1320,12 @@ class ReferenceArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
-            $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
+            $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
             if ($data['typeDemande'] === 'livraison' && $demandes) {
                 $json = $demandes;

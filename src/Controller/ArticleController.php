@@ -16,7 +16,6 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -43,11 +42,6 @@ use Twig\Error\SyntaxError;
  */
 class ArticleController extends AbstractController
 {
-
-    /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
 
     /**
      * @var ReceptionRepository
@@ -85,14 +79,12 @@ class ArticleController extends AbstractController
                                 GlobalParamService $globalParamService,
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
-                                CollecteRepository $collecteRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
                                 CSVExportService $CSVExportService)
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
-        $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;

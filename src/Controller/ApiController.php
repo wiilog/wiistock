@@ -26,7 +26,6 @@ use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\OrdreCollecteRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\AttachmentService;
@@ -130,11 +129,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $manutentionRepository;
 
     /**
-     * @var OrdreCollecteRepository
-     */
-    private $ordreCollecteRepository;
-
-    /**
      * @var OrdreCollecteService
      */
     private $ordreCollecteService;
@@ -149,7 +143,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param InventoryEntryRepository $inventoryEntryRepository
      * @param ManutentionRepository $manutentionRepository
      * @param OrdreCollecteService $ordreCollecteService
-     * @param OrdreCollecteRepository $ordreCollecteRepository
      * @param InventoryService $inventoryService
      * @param UserService $userService
      * @param InventoryMissionRepository $inventoryMissionRepository
@@ -164,7 +157,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function __construct(InventoryEntryRepository $inventoryEntryRepository,
                                 ManutentionRepository $manutentionRepository,
                                 OrdreCollecteService $ordreCollecteService,
-                                OrdreCollecteRepository $ordreCollecteRepository,
                                 InventoryService $inventoryService,
                                 UserService $userService,
                                 InventoryMissionRepository $inventoryMissionRepository,
@@ -187,7 +179,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
         $this->inventoryService = $inventoryService;
-        $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->ordreCollecteService = $ordreCollecteService;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
 
@@ -734,26 +725,26 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/beginCollecte", name="api-begin-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function beginCollecte(Request $request) {
+    public function beginCollecte(Request $request,
+                                  EntityManagerInterface $entityManager) {
         $apiKey = $request->request->get('apiKey');
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
-            $em = $this->getDoctrine()->getManager();
+            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
 
             $id = $request->request->get('id');
-            $ordreCollecte = $this->ordreCollecteRepository->find($id);
+            $ordreCollecte = $ordreCollecteRepository->find($id);
 
-            if (
-                $ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
-                (empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)
-            ) {
+            if ($ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
+                (empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)) {
                 // modif de la collecte
                 $ordreCollecte->setUtilisateur($nomadUser);
 
-                $em->flush();
+                $entityManager->flush();
 
                 $this->successDataMsg['success'] = true;
             } else {
@@ -1163,6 +1154,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1190,7 +1182,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $preparations = $this->preparationRepository->getAvailablePreparations($user);
 
             /// collecte
-            $collectes = $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+            $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
             $collectesIds = array_map(function ($collecteArray) {
                 return $collecteArray['id'];
             }, $collectes);

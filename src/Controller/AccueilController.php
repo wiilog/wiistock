@@ -28,7 +28,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\FiabilityByReferenceRepository;
@@ -39,10 +38,6 @@ use App\Repository\FiabilityByReferenceRepository;
  */
 class AccueilController extends AbstractController
 {
-    /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
 
     /**
      * @var DemandeRepository
@@ -67,11 +62,9 @@ class AccueilController extends AbstractController
     public function __construct(DashboardService $dashboardService,
                                 ManutentionRepository $manutentionRepository,
                                 DemandeRepository $demandeRepository,
-                                CollecteRepository $collecteRepository,
                                 FiabilityByReferenceRepository $fiabilityByReferenceRepository)
     {
         $this->dashboardService = $dashboardService;
-        $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
         $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
@@ -127,6 +120,7 @@ class AccueilController extends AbstractController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+        $collecteRepository = $entityManager->getRepository(Collecte::class);
 
         $nbAlerts = $referenceArticleRepository->countAlert();
 
@@ -163,7 +157,7 @@ class AccueilController extends AbstractController
         $nbrFiabiliteMonetaireOfThisMonth = $totalRefArticleOfThisMonth + $totalArticleOfThisMonth;
 
         $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER);
-        $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
+        $nbrDemandeCollecte = $collecteRepository->countByStatut($statutCollecte);
 
         $statutDemandeAT = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
