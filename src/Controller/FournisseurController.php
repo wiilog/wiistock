@@ -9,7 +9,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
-use App\Repository\ArrivageRepository;
 use App\Repository\ReceptionRepository;
 use App\Service\UserService;
 use App\Service\FournisseurDataService;
@@ -38,23 +37,13 @@ class FournisseurController extends AbstractController
     private $fournisseurDataService;
 
     /**
-     * @var ArrivageRepository
-     */
-    private $arrivageRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
 
-    public function __construct(
-        ArrivageRepository $arrivageRepository,
-        FournisseurDataService $fournisseurDataService,
-        ReceptionRepository $receptionRepository,
-        UserService $userService
-    )
-    {
-        $this->arrivageRepository = $arrivageRepository;
+    public function __construct(FournisseurDataService $fournisseurDataService,
+                                ReceptionRepository $receptionRepository,
+                                UserService $userService) {
         $this->fournisseurDataService = $fournisseurDataService;
         $this->userService = $userService;
         $this->receptionRepository = $receptionRepository;

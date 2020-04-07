@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\AlerteExpiry;
 use App\Entity\Article;
 use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
@@ -641,87 +640,6 @@ class ReferenceArticleRepository extends EntityRepository
         )->setParameter('emplacementId', $emplacementId);
 
         return $query->getSingleScalarResult();
-    }
-
-    /**
-     * @param int $nbPeriod
-     * @param string $typePeriod
-     * @return int|null
-     * @throws NonUniqueResultException
-     */
-    public function countWithExpiryDateUpTo($nbPeriod, $typePeriod)
-    {
-        switch ($typePeriod) {
-            case AlerteExpiry::TYPE_PERIOD_DAY:
-                $typePeriod = 'day';
-                break;
-            case AlerteExpiry::TYPE_PERIOD_WEEK:
-                $typePeriod = 'week';
-                break;
-            case AlerteExpiry::TYPE_PERIOD_MONTH:
-                $typePeriod = 'month';
-                break;
-            default:
-                return 0;
-        }
-
-        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $now->setTime(0, 0);
-        $now = $now->format('Y-m-d H:i:s');
-
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */ "
-			SELECT COUNT(ra)
-			FROM App\Entity\ReferenceArticle ra
-			WHERE ra.expiryDate IS NOT NULL
-			AND DATE_SUB(ra.expiryDate, :nbPeriod, '" . $typePeriod . "') <= '" . $now . "'
-		")->setParameters([
-            'nbPeriod' => $nbPeriod,
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
-    /**
-     * @param int $nbPeriod
-     * @param string $typePeriod
-     * @return int|null
-     * @throws \Exception
-     */
-    public function findWithExpiryDateUpTo($nbPeriod, $typePeriod)
-    {
-        switch ($typePeriod) {
-            case AlerteExpiry::TYPE_PERIOD_DAY:
-                $typePeriod = 'day';
-                break;
-            case AlerteExpiry::TYPE_PERIOD_WEEK:
-                $typePeriod = 'week';
-                break;
-            case AlerteExpiry::TYPE_PERIOD_MONTH:
-                $typePeriod = 'month';
-                break;
-            default:
-                return 0;
-        }
-
-        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $now->setTime(0, 0);
-        $now = $now->format('Y-m-d H:i:s');
-
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */ "
-			SELECT ra
-			FROM App\Entity\ReferenceArticle ra
-			WHERE ra.expiryDate IS NOT NULL
-			AND DATE_SUB(ra.expiryDate, :nbPeriod, '" . $typePeriod . "') <= '" . $now . "'
-			ORDER BY ra.expiryDate")
-            ->setParameters([
-                'nbPeriod' => $nbPeriod,
-            ]);
-
-        return $query->execute();
     }
 
     public function countByCategory($category)

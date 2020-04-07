@@ -9,20 +9,24 @@
 namespace App\Service;
 
 use App\Entity\Action;
+use App\Entity\Collecte;
+use App\Entity\Demande;
+use App\Entity\Livraison;
+use App\Entity\Manutention;
+use App\Entity\OrdreCollecte;
 use App\Entity\Parametre;
+use App\Entity\ParametreRole;
+use App\Entity\Preparation;
+use App\Entity\Reception;
+use App\Entity\Role;
 use App\Entity\Utilisateur;
 
-use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\OrdreCollecteRepository;
-use App\Repository\ParametreRepository;
-use App\Repository\ParametreRoleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\RoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
@@ -38,11 +42,6 @@ class UserService
      * @var Twig_Environment
      */
     private $templating;
-
-    /**
-     * @var RoleRepository
-     */
-    private $roleRepository;
     /**
      * @var Utilisateur
      */
@@ -53,15 +52,6 @@ class UserService
      */
     private $utilisateurRepository;
 
-	/**
-	 * @var ParametreRepository
-	 */
-	private $parametreRepository;
-
-	/**
-	 * @var ParametreRoleRepository
-	 */
-	private $parametreRoleRepository;
 
 	/**
 	 * @var DemandeRepository
@@ -72,16 +62,6 @@ class UserService
 	 * @var LivraisonRepository
 	 */
 	private $livraisonRepository;
-
-	/**
-	 * @var CollecteRepository
-	 */
-	private $collecteRepository;
-
-	/**
-	 * @var OrdreCollecteRepository
-	 */
-	private $ordreCollecteRepository;
 
 	/**
 	 * @var ManutentionRepository
@@ -102,28 +82,18 @@ class UserService
     public function __construct(ReceptionRepository $receptionRepository,
                                 DemandeRepository $demandeRepository,
                                 LivraisonRepository $livraisonRepository,
-                                CollecteRepository $collecteRepository,
-                                OrdreCollecteRepository $ordreCollecteRepository,
                                 ManutentionRepository $manutentionRepository,
                                 PreparationRepository $preparationRepository,
-                                ParametreRepository $parametreRepository,
-                                ParametreRoleRepository $parametreRoleRepository,
                                 Twig_Environment $templating,
-                                RoleRepository $roleRepository,
                                 EntityManagerInterface $em,
                                 UtilisateurRepository $utilisateurRepository,
                                 Security $security)
     {
         $this->user = $security->getUser();
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->roleRepository = $roleRepository;
         $this->templating = $templating;
-        $this->parametreRepository = $parametreRepository;
-        $this->parametreRoleRepository = $parametreRoleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
-        $this->collecteRepository = $collecteRepository;
-        $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->manutentionRepository = $manutentionRepository;
         $this->preparationRepository = $preparationRepository;
         $this->receptionRepository = $receptionRepository;
@@ -193,7 +163,8 @@ class UserService
     public function dataRowUtilisateur($utilisateur)
     {
         $idUser = $utilisateur->getId();
-        $roles = $this->roleRepository->findAll();
+        $roleRepository = $this->em->getRepository(Role::class);
+        $roles = $roleRepository->findAll();
 
 		$row = [
 			'id' => $utilisateur->getId() ?? '',
@@ -215,10 +186,13 @@ class UserService
 	{
 		$response = false;
 
+        $parametreRoleRepository = $this->em->getRepository(ParametreRole::class);
+        $parametreRepository = $this->em->getRepository(Parametre::class);
+
 		$role = $this->user->getRole();
-		$param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+		$param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
 		if ($param) {
-			$paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
+			$paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
 			if ($paramQuantite) {
 				$response = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
 			}
@@ -235,13 +209,21 @@ class UserService
      */
 	public function isUsedByDemandsOrOrders($user)
 	{
-		$nbDemandesLivraison = $this->demandeRepository->countByUser($user);
-		$nbDemandesCollecte = $this->collecteRepository->countByUser($user);
-		$nbOrdresLivraison = $this->livraisonRepository->countByUser($user);
-		$nbOrdresCollecte = $this->ordreCollecteRepository->countByUser($user);
-		$nbManutentions = $this->manutentionRepository->countByUser($user);
-		$nbPrepa = $this->preparationRepository->countByUser($user);
-		$nbReceptions = $this->receptionRepository->countByUser($user);
+	    $collecteRepository = $this->em->getRepository(Collecte::class);
+	    $demandeRepository = $this->em->getRepository(Demande::class);
+	    $livraisonRepository = $this->em->getRepository(Livraison::class);
+	    $ordreCollecteRepository = $this->em->getRepository(OrdreCollecte::class);
+	    $manutentionRepository = $this->em->getRepository(Manutention::class);
+	    $preparationRepository = $this->em->getRepository(Preparation::class);
+	    $receptionRepository = $this->em->getRepository(Reception::class);
+
+		$nbDemandesLivraison = $demandeRepository->countByUser($user);
+		$nbDemandesCollecte = $collecteRepository->countByUser($user);
+		$nbOrdresLivraison = $livraisonRepository->countByUser($user);
+		$nbOrdresCollecte = $ordreCollecteRepository->countByUser($user);
+		$nbManutentions = $manutentionRepository->countByUser($user);
+		$nbPrepa = $preparationRepository->countByUser($user);
+		$nbReceptions = $receptionRepository->countByUser($user);
 
 		return $nbDemandesLivraison + $nbDemandesCollecte + $nbOrdresLivraison + $nbOrdresCollecte + $nbManutentions + $nbPrepa + $nbReceptions > 0;
 	}

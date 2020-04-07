@@ -2,10 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Repository\CategorieCLRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategorieCL;
@@ -14,19 +13,14 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-    /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
-
-    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder)
+    public function __construct(UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
-        $this->categorieCLRepository = $categorieCLRepository;
     }
-    
+
     public function load(ObjectManager $manager)
     {
+        $categorieCLRepository = $manager->getRepository(CategorieCL::class);
         $categoriesNames = [
             CategorieCL::REFERENCE_ARTICLE,
             CategorieCL::ARTICLE,
@@ -37,7 +31,7 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 			CategorieCL::ARRIVAGE
         ];
         foreach ($categoriesNames as $categorieName) {
-            $categorie = $this->categorieCLRepository->findOneByLabel($categorieName);
+            $categorie = $categorieCLRepository->findOneByLabel($categorieName);
 
             if (empty($categorie)) {
                 $categorie = new CategorieCL();

@@ -13,7 +13,6 @@ use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 

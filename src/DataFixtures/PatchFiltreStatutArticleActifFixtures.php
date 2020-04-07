@@ -9,7 +9,7 @@ use App\Repository\FiltreRefRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 
 class PatchFiltreStatutArticleActifFixtures extends Fixture implements FixtureGroupInterface

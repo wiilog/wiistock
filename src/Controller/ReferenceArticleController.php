@@ -25,13 +25,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\MouvementStockRepository;
-use App\Repository\ParametreRepository;
-use App\Repository\ParametreRoleRepository;
-use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\CategorieCLRepository;
 
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -72,11 +67,6 @@ class ReferenceArticleController extends AbstractController
     private $livraisonRepository;
 
     /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
-
-    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
@@ -102,11 +92,6 @@ class ReferenceArticleController extends AbstractController
     private $userService;
 
     /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
-
-    /**
      * @var Twig_Environment
      */
     private $templating;
@@ -115,16 +100,6 @@ class ReferenceArticleController extends AbstractController
 	 * @var SpecificService
 	 */
     private $specificService;
-
-	/**
-	 * @var ParametreRepository
-	 */
-    private $parametreRepository;
-
-	/**
-	 * @var ParametreRoleRepository
-	 */
-    private $parametreRoleRepository;
 
     /**
      * @var GlobalParamService
@@ -137,11 +112,6 @@ class ReferenceArticleController extends AbstractController
     private $inventoryFrequencyRepository;
 
     /**
-     * @var MouvementStockRepository
-     */
-    private $mouvementStockRepository;
-
-    /**
      * @var object|string
      */
     private $user;
@@ -150,37 +120,27 @@ class ReferenceArticleController extends AbstractController
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 GlobalParamService $globalParamService,
-                                ParametreRoleRepository $parametreRoleRepository,
-                                ParametreRepository $parametreRepository,
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
-                                CategorieCLRepository $categorieCLRepository,
                                 ArticleDataService $articleDataService,
                                 LivraisonRepository $livraisonRepository,
                                 DemandeRepository $demandeRepository,
-                                CollecteRepository $collecteRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
-                                MouvementStockRepository $mouvementStockRepository,
                                 CSVExportService $CSVExportService)
     {
-        $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
-        $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->specificService = $specificService;
-        $this->parametreRepository = $parametreRepository;
-        $this->parametreRoleRepository = $parametreRoleRepository;
         $this->globalParamService = $globalParamService;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
-        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->CSVExportService = $CSVExportService;
     }
@@ -188,20 +148,23 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function apiColumns(Request $request): Response
+    public function apiColumns(Request $request,
+                               EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $champLibreRepository = $this->getDoctrine()->getRepository(ChampLibre::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnVisible();
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = CategoryType::ARTICLE;
             $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
@@ -324,8 +287,6 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
             $data = $this->refArticleDataService->getRefArticleDataByParams($request->request);
             return new JsonResponse($data);
         }
@@ -496,6 +457,7 @@ class ReferenceArticleController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $typeQuantite = [
             [
@@ -508,7 +470,7 @@ class ReferenceArticleController extends AbstractController
             ]
         ];
 
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
         $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champF[] = [
@@ -910,6 +872,7 @@ class ReferenceArticleController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
@@ -922,7 +885,7 @@ class ReferenceArticleController extends AbstractController
 					}
 
 				} elseif (array_key_exists('collecte', $data) && $data['collecte']) {
-					$collecte = $this->collecteRepository->find($data['collecte']);
+					$collecte = $collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
 						$fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
@@ -1002,10 +965,11 @@ class ReferenceArticleController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
-                $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
+                $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
                 $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
@@ -1353,11 +1317,12 @@ class ReferenceArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
-            $collectes = $this->collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
+            $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
             if ($data['typeDemande'] === 'livraison' && $demandes) {
                 $json = $demandes;

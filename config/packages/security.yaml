@@ -15,8 +15,6 @@ security:
                     admin_api:
                         password:           $2y$12$qcxKW2DmvSqeKHdR4RPnvOWNu19JndkoLQCorzoilu7.bevQ0tPVm
                         roles:              ROLE_API
-        api_key_user_provider:
-            id: App\Security\ApiKeyUserProvider
         our_db_provider:
             entity:
                 class: App\Entity\Utilisateur

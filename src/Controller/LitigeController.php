@@ -15,9 +15,6 @@ use App\Entity\LitigeHistoric;
 
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\ArrivageRepository;
-use App\Repository\ChauffeurRepository;
-use App\Repository\ColisRepository;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
@@ -53,21 +50,9 @@ class LitigeController extends AbstractController
 	 */
 	private $transporteurRepository;
 	/**
-	 * @var ChauffeurRepository
-	 */
-	private $chauffeurRepository;
-	/**
 	 * @var LitigeRepository
 	 */
 	private $litigeRepository;
-	/**
-	 * @var ArrivageRepository
-	 */
-	private $arrivageRepository;
-    /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
 	/**
 	 * @var UserService
 	 */
@@ -91,33 +76,24 @@ class LitigeController extends AbstractController
 	/**
 	 * @param LitigeService $litigeService
 	 * @param PieceJointeRepository $pieceJointeRepository
-	 * @param ColisRepository $colisRepository
 	 * @param UserService $userService ;
-	 * @param ArrivageRepository $arrivageRepository
 	 * @param LitigeRepository $litigeRepository
 	 * @param UtilisateurRepository $utilisateurRepository
 	 * @param TransporteurRepository $transporteurRepository
-	 * @param ChauffeurRepository $chauffeurRepository
 	 * @param LitigeHistoricRepository $litigeHistoricRepository
 	 */
 	public function __construct(LitigeService $litigeService,
                                 PieceJointeRepository $pieceJointeRepository,
-                                ColisRepository $colisRepository,
                                 UserService $userService,
-                                ArrivageRepository $arrivageRepository,
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 TransporteurRepository $transporteurRepository,
-                                ChauffeurRepository $chauffeurRepository,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
 		$this->transporteurRepository = $transporteurRepository;
-		$this->chauffeurRepository = $chauffeurRepository;
 		$this->litigeRepository = $litigeRepository;
-		$this->arrivageRepository = $arrivageRepository;
 		$this->userService = $userService;
-		$this->colisRepository = $colisRepository;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->pieceJointeRepository = $pieceJointeRepository;
 		$this->litigeService = $litigeService;

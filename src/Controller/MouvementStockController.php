@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
@@ -45,11 +44,9 @@ class MouvementStockController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         return $this->render('mouvement_stock/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK),
-            'emplacements' => $emplacementRepository->findAll(),
+            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_STOCK)
         ]);
     }
 
@@ -74,7 +71,6 @@ class MouvementStockController extends AbstractController
             $user = $this->getUser();
 
             $data = $mouvementStockService->getDataForDatatable($user, $request->request);
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');

@@ -6,7 +6,7 @@ use App\Entity\Menu;
 use App\Repository\MenuRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class MenusFixtures extends Fixture implements FixtureGroupInterface

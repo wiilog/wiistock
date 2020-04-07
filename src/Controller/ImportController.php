@@ -17,7 +17,6 @@ use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use App\Service\UserService;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -31,7 +30,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use Zend\Code\Scanner\Util;
 
 /**
  * @Route("/import")

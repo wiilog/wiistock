@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Chauffeur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method Chauffeur|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,14 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Chauffeur[]    findAll()
  * @method Chauffeur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ChauffeurRepository extends ServiceEntityRepository
+class ChauffeurRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Chauffeur::class);
-    }
-
-
     /**
      * @return Chauffeur[]
      */

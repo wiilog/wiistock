@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ColumnHidden;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method ColumnHidden|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,11 +11,6 @@ use Doctrine\Common\Persistence\ManagerRegistry;
  * @method ColumnHidden[]    findAll()
  * @method ColumnHidden[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ColumnHiddenRepository extends ServiceEntityRepository
+class ColumnHiddenRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ColumnHidden::class);
-    }
-
 }

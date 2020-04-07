@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CategorieCL;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method CategorieCL|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,13 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method CategorieCL[]    findAll()
  * @method CategorieCL[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CategorieCLRepository extends ServiceEntityRepository
+class CategorieCLRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, CategorieCL::class);
-    }
-
     public function findOneByLabel($label)
     {
         $entityManager = $this->getEntityManager();

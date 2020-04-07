@@ -4,16 +4,16 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Livraison;
 use App\Entity\Menu;
 
+use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
-use App\Repository\CollecteRepository;
-use App\Repository\DemandeRepository;
-use App\Repository\LivraisonRepository;
-use App\Repository\MouvementStockRepository;
-use App\Repository\MouvementTracaRepository;
 
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -44,31 +44,6 @@ class EmplacementController extends AbstractController
     private $emplacementDataService;
 
     /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
-     * @var LivraisonRepository
-     */
-    private $livraisonRepository;
-
-    /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
-
-    /**
-     * @var MouvementStockRepository
-     */
-    private $mouvementStockRepository;
-
-    /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -78,27 +53,19 @@ class EmplacementController extends AbstractController
      */
     private $globalParamService;
 
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository,
-                                GlobalParamService $globalParamService,
+    public function __construct(GlobalParamService $globalParamService,
                                 EmplacementDataService $emplacementDataService,
-                                UserService $userService,
-                                DemandeRepository $demandeRepository,
-                                LivraisonRepository $livraisonRepository,
-                                CollecteRepository $collecteRepository,
-                                MouvementStockRepository $mouvementStockRepository)
+                                UserService $userService)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->userService = $userService;
-        $this->demandeRepository = $demandeRepository;
-        $this->livraisonRepository = $livraisonRepository;
-        $this->collecteRepository = $collecteRepository;
-        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->globalParamService = $globalParamService;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
     }
 
     /**
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -271,24 +238,30 @@ class EmplacementController extends AbstractController
      * @return array
      */
     private function isEmplacementUsed($emplacementId) {
-        $referenceArticleRepository = $this->getDoctrine()->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->getDoctrine()->getRepository(Article::class);
+        $entityManager = $this->getDoctrine()->getManager();
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $collecteRepository = $entityManager->getRepository(Collecte::class);
+        $livraisonRepository = $entityManager->getRepository(Livraison::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
 
         $usedBy = [];
 
-        $demandes = $this->demandeRepository->countByEmplacement($emplacementId);
+        $demandes = $demandeRepository->countByEmplacement($emplacementId);
         if ($demandes > 0) $usedBy[] = 'demandes';
 
-        $livraisons = $this->livraisonRepository->countByEmplacement($emplacementId);
+        $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
         if ($livraisons > 0) $usedBy[] = 'livraisons';
 
-        $collectes = $this->collecteRepository->countByEmplacement($emplacementId);
+        $collectes = $collecteRepository->countByEmplacement($emplacementId);
         if ($collectes > 0) $usedBy[] = 'collectes';
 
-        $mouvementsStock = $this->mouvementStockRepository->countByEmplacement($emplacementId);
+        $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
 
-        $mouvementsStock = $this->mouvementTracaRepository->countByEmplacement($emplacementId);
+        $mouvementsStock = $mouvementTracaRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de traçabilité';
 
         $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);

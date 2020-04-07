@@ -39,7 +39,6 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -49,7 +48,6 @@ class ArticleDataService
 {
 
     private $templating;
-    private $user;
     private $router;
 
     private $refArticleDataService;
@@ -167,12 +165,12 @@ class ArticleDataService
     //TODOO les méthode getCollecteArticleOrNoByRefArticle() et getLivraisonArticleOrNoByRefArticle() ont le même fonctionnement la seul différence et le statut de l'article (actif/ inactif)
 
     /**
+     * @param ReferenceArticle $refArticle
      * @return array
      *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {

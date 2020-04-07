@@ -99,6 +99,8 @@ class MissionCommand extends Command
         foreach ($frequencies as $frequency) {
         	// récupération des réf et articles à inventorier (fonction date dernier inventaire)
             $nbMonths = $frequency->getNbMonths();
+
+            /** @var ReferenceArticle[] $refArticles */
             $refArticles = $referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
 
             $refsAndArtToInv = [];
@@ -113,6 +115,8 @@ class MissionCommand extends Command
 					}
 				} else {
             		$statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+
+            		/** @var Article[] $articles */
             		$articles = $articleRepository->findByRefArticleAndStatut($refArticle, $statut);
 
             		foreach ($articles as $article) {

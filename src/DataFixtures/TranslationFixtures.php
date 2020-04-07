@@ -6,7 +6,7 @@ use App\Entity\Translation;
 use App\Repository\TranslationRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 
 class TranslationFixtures extends Fixture implements FixtureGroupInterface
 {

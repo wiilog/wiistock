@@ -4,10 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method CollecteReference|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,12 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method CollecteReference[]    findAll()
  * @method CollecteReference[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CollecteReferenceRepository extends ServiceEntityRepository
+class CollecteReferenceRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, CollecteReference::class);
-    }
 
 	/**
 	 * @param Collecte|int $collecte

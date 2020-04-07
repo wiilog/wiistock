@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
@@ -19,14 +20,12 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Repository\ColisRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\OrdreCollecteRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\AttachmentService;
@@ -80,16 +79,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $passwordEncoder;
 
     /**
-     * @var MouvementTracaRepository
-     */
-    private $mouvementTracaRepository;
-
-    /**
-     * @var ColisRepository
-     */
-    private $colisRepository;
-
-    /**
      * @var array
      */
     private $successDataMsg;
@@ -140,11 +129,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $manutentionRepository;
 
     /**
-     * @var OrdreCollecteRepository
-     */
-    private $ordreCollecteRepository;
-
-    /**
      * @var OrdreCollecteService
      */
     private $ordreCollecteService;
@@ -159,7 +143,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param InventoryEntryRepository $inventoryEntryRepository
      * @param ManutentionRepository $manutentionRepository
      * @param OrdreCollecteService $ordreCollecteService
-     * @param OrdreCollecteRepository $ordreCollecteRepository
      * @param InventoryService $inventoryService
      * @param UserService $userService
      * @param InventoryMissionRepository $inventoryMissionRepository
@@ -168,15 +151,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param LoggerInterface $logger
      * @param MailerServerRepository $mailerServerRepository
      * @param MailerService $mailerService
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
      * @param UtilisateurRepository $utilisateurRepository
      * @param UserPasswordEncoderInterface $passwordEncoder
      */
     public function __construct(InventoryEntryRepository $inventoryEntryRepository,
                                 ManutentionRepository $manutentionRepository,
                                 OrdreCollecteService $ordreCollecteService,
-                                OrdreCollecteRepository $ordreCollecteRepository,
                                 InventoryService $inventoryService,
                                 UserService $userService,
                                 InventoryMissionRepository $inventoryMissionRepository,
@@ -185,16 +165,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 LoggerInterface $logger,
                                 MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
-                                ColisRepository $colisRepository,
-                                MouvementTracaRepository $mouvementTracaRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->manutentionRepository = $manutentionRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
-        $this->colisRepository = $colisRepository;
-        $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
         $this->logger = $logger;
@@ -203,7 +179,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
         $this->inventoryService = $inventoryService;
-        $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->ordreCollecteService = $ordreCollecteService;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
 
@@ -309,23 +284,23 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $invalidLocationTo = '';
                 try {
                     $entityManager->transactional(function (EntityManagerInterface $entityManager)
-                    use (
-                        $mouvementStockService,
-                        &$numberOfRowsInserted,
-                        $mvt,
-                        $nomadUser,
-                        $request,
-                        $attachmentService,
-                        $index,
-                        &$invalidLocationTo,
-                        &$finishMouvementTraca,
-                        $mouvementTracaService
-                    ) {
+                                                  use (
+                                                      $mouvementStockService,
+                                                      &$numberOfRowsInserted,
+                                                      $mvt,
+                                                      $nomadUser,
+                                                      $request,
+                                                      $attachmentService,
+                                                      $index,
+                                                      &$invalidLocationTo,
+                                                      &$finishMouvementTraca,
+                                                      $mouvementTracaService) {
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
                         $statutRepository = $entityManager->getRepository(Statut::class);
                         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                        $colisRepository = $entityManager->getRepository(Colis::class);
 
                         $mouvementTraca1 = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                         if (!isset($mouvementTraca1)) {
@@ -379,8 +354,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                         $article->setStatut($status);
                                     }
-                                } else { // MouvementTraca::TYPE_DEPOSE
-                                    $mouvementTracaPrises = $this->mouvementTracaRepository->findBy(
+                                }
+                                else { // MouvementTraca::TYPE_DEPOSE
+                                    $mouvementTracaPrises = $mouvementTracaRepository->findBy(
                                         [
                                             'colis' => $mvt['ref_article'],
                                             'type' => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, MouvementTraca::TYPE_PRISE),
@@ -402,7 +378,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             && ($article->getEmplacement()->getId() !== $location->getId())) {
                                             $invalidLocationTo = ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : '');
                                             throw new Exception(MouvementTracaService::INVALID_LOCATION_TO);
-                                        } else {
+                                        }
+                                        else {
                                             $options['mouvementStock'] = $mouvementStockPrise;
                                             $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 
@@ -452,7 +429,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                             if ($location) {
                                 $isDepose = ($mvt['type'] === MouvementTraca::TYPE_DEPOSE);
-                                $colis = $this->colisRepository->findOneBy(['code' => $mvt['ref_article']]);
+                                $colis = $colisRepository->findOneBy(['code' => $mvt['ref_article']]);
 
                                 if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
                                     $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -487,27 +464,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
                     });
-                } catch (Exception $e) {
+                }
+                catch (Exception $e) {
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                     }
 
                     if ($e->getMessage() === MouvementTracaService::INVALID_LOCATION_TO) {
                         $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
-                    } else {
+                    }
+                    else {
                         throw $e;
                     }
                 }
             }
 
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+
             // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
             foreach ($mouvementsNomade as $index => $mvt) {
-                $mouvementTracaPriseToFinish = $this->mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
+                /** @var MouvementTraca $mouvementTracaPriseToFinish */
+                $mouvementTracaPriseToFinish = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                 if (isset($mouvementTracaPriseToFinish) &&
                     ($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&
                     in_array($mouvementTracaPriseToFinish->getColis(), $finishMouvementTraca) &&
                     !$mouvementTracaPriseToFinish->isFinished()) {
-                    $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+                    $mouvementTracaPriseToFinish->setFinished((bool) $mvt['finished']);
                 }
             }
             $entityManager->flush();
@@ -518,7 +500,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 ? 'Aucun mouvement à synchroniser.'
                 : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
 
-        } else {
+        }
+        else {
             $successData['success'] = false;
             $successData['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
@@ -599,8 +582,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $preparation,
                             $nomadUser,
                             $dateEnd,
-                            $entityManager
-                        ) {
+                            $entityManager) {
 
                             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                             $articleRepository = $entityManager->getRepository(Article::class);
@@ -678,7 +660,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_prepa' => $preparation->getId(),
 //TODO  CG msg prépa vide
                             'message' => (
-                            ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                 (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
                                     'Une erreur est survenue')
                             )
@@ -746,27 +728,26 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/beginCollecte", name="api-begin-collecte", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function beginCollecte(Request $request)
-    {
+    public function beginCollecte(Request $request,
+                                  EntityManagerInterface $entityManager) {
         $apiKey = $request->request->get('apiKey');
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
-            $em = $this->getDoctrine()->getManager();
+            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
 
             $id = $request->request->get('id');
-            $ordreCollecte = $this->ordreCollecteRepository->find($id);
+            $ordreCollecte = $ordreCollecteRepository->find($id);
 
-            if (
-                $ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
-                (empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)
-            ) {
+            if ($ordreCollecte->getStatut()->getNom() == OrdreCollecte::STATUT_A_TRAITER &&
+                (empty($ordreCollecte->getUtilisateur()) || $ordreCollecte->getUtilisateur() === $nomadUser)) {
                 // modif de la collecte
                 $ordreCollecte->setUtilisateur($nomadUser);
 
-                $em->flush();
+                $entityManager->flush();
 
                 $this->successDataMsg['success'] = true;
             } else {
@@ -793,8 +774,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws Exception
      */
     public function validateManut(Request $request,
-                                  ManutentionService $manutentionService)
-    {
+                                  ManutentionService $manutentionService) {
         $apiKey = $request->request->get('apiKey');
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
@@ -841,8 +821,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function finishLivraison(Request $request,
                                     EntityManagerInterface $entityManager,
-                                    LivraisonsManagerService $livraisonsManager)
-    {
+                                    LivraisonsManagerService $livraisonsManager) {
         $resData = [];
         $statusCode = Response::HTTP_OK;
         $apiKey = $request->request->get('apiKey');
@@ -865,7 +844,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         if ($emplacement) {
                             // flush auto at the end
                             $entityManager->transactional(function ()
-                            use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
+                                                          use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $emplacement) {
                                 $livraisonsManager->setEntityManager($entityManager);
                                 $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $emplacement);
                                 $entityManager->flush();
@@ -890,7 +869,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_livraison' => $livraison->getId(),
 
                             'message' => (
-                            ($exception->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                 (($exception->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
                                     'Une erreur est survenue')
                             )
@@ -944,19 +923,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $collecte = $ordreCollecteRepository->find($collecteArray['id']);
                 try {
                     $entityManager->transactional(function ()
-                    use (
-                        $entityManager,
-                        $collecteArray,
-                        $collecte,
-                        $nomadUser,
-                        &$resData,
-                        $mouvementTracaRepository,
-                        $articleRepository,
-                        $refArticlesRepository,
-                        $ordreCollecteRepository,
-                        $emplacementRepository,
-                        $ordreCollecteService
-                    ) {
+                                                  use ($entityManager,
+                                                       $collecteArray,
+                                                       $collecte,
+                                                       $nomadUser,
+                                                       &$resData,
+                                                       $mouvementTracaRepository,
+                                                       $articleRepository,
+                                                       $refArticlesRepository,
+                                                       $ordreCollecteRepository,
+                                                       $emplacementRepository,
+                                                       $ordreCollecteService) {
                         $ordreCollecteService->setEntityManager($entityManager);
                         $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
 
@@ -1088,7 +1065,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 if (isset($articleToInventory)) {
                     if ($articleToInventory instanceof ReferenceArticle) {
                         $criteriaInventoryEntry['refArticle'] = $articleToInventory;
-                    } else { // ($articleToInventory instanceof Article)
+                    }
+                    else { // ($articleToInventory instanceof Article)
                         $criteriaInventoryEntry['article'] = $articleToInventory;
                     }
                 }
@@ -1118,7 +1096,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         if (!$isAnomaly) {
                             $articleToInventory->setDateLastInventory($newDate);
                         }
-                    } else {
+                    }
+                    else {
                         $inventoryEntry->setArticle($articleToInventory);
                         $isAnomaly = ($inventoryEntry->getQuantity() !== $articleToInventory->getQuantite());
                         $inventoryEntry->setAnomaly($isAnomaly);
@@ -1176,13 +1155,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+        $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
         if ($rights['inventoryManager']) {
-            $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
-            $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
-        } else {
+            $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
+            $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
+        }
+        else {
             $refAnomalies = [];
             $artAnomalies = [];
         }
@@ -1202,7 +1186,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $preparations = $this->preparationRepository->getAvailablePreparations($user);
 
             /// collecte
-            $collectes = $this->ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+            $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
             $collectesIds = array_map(function ($collecteArray) {
                 return $collecteArray['id'];
             }, $collectes);
@@ -1217,8 +1201,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $refArticlesInventory = $this->inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
             // prises en cours
-            $stockTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
-        } else {
+            $stockTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
+        }
+        else {
             // livraisons
             $livraisons = [];
             $articlesLivraison = [];
@@ -1247,17 +1232,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $statutRepository = $entityManager->getRepository(Statut::class);
             $manutentionRepository = $entityManager->getRepository(Manutention::class);
             $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
-        } else {
+        }
+        else {
             $manutentions = [];
         }
 
         if ($rights['tracking']) {
-            $trackingTaking = $this->mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
-        } else {
+            $trackingTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
+        }
+        else {
             $trackingTaking = [];
         }
-
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         return [
             'emplacements' => $emplacementRepository->getIdAndNom(),
@@ -1295,7 +1280,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
             $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $entityManager);
-        } else {
+        }
+        else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
             $dataResponse['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -1304,8 +1290,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return new JsonResponse($dataResponse, $httpCode);
     }
 
-    private function apiKeyGenerator()
-    {
+    private function apiKeyGenerator() {
         return md5(microtime() . rand());
     }
 
@@ -1469,7 +1454,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
                 $resData['success'] = true;
                 $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
-            } else {
+            }
+            else {
                 $resData['success'] = true;
                 $resData['trackingDrops'] = [];
             }
@@ -1481,8 +1467,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return new JsonResponse($resData, $statusCode);
     }
 
-    private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array
-    {
+    private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array {
         $entityManager = $this->getDoctrine()->getManager();
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -1501,8 +1486,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         );
     }
 
-    private function getMenuRights($user, UserService $userService)
-    {
+    private function getMenuRights($user, UserService $userService) {
         return [
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),

@@ -46,6 +46,11 @@ class LivraisonRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+    /**
+     * @param $statusLabel
+     * @param Utilisateur $user
+     * @return mixed
+     */
 	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
 	{
         $typeUser = [];
