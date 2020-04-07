@@ -24,7 +24,6 @@ use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\ColisRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\NatureRepository;

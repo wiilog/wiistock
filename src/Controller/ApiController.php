@@ -481,6 +481,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
             foreach ($mouvementsNomade as $index => $mvt) {
+                /** @var MouvementTraca $mouvementTracaPriseToFinish */
                 $mouvementTracaPriseToFinish = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                 if (isset($mouvementTracaPriseToFinish) &&
                     ($mouvementTracaPriseToFinish->getType()->getNom() === MouvementTraca::TYPE_PRISE) &&

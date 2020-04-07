@@ -19,7 +19,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 
-use App\Repository\OrdreCollecteRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\ArticleDataService;

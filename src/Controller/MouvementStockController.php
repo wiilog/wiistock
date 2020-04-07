@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;

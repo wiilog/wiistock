@@ -32,7 +32,6 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NoResultException;
-use Symfony\Component\Validator\Constraints\Timezone;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;

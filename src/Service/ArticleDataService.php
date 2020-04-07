@@ -165,12 +165,12 @@ class ArticleDataService
     //TODOO les méthode getCollecteArticleOrNoByRefArticle() et getLivraisonArticleOrNoByRefArticle() ont le même fonctionnement la seul différence et le statut de l'article (actif/ inactif)
 
     /**
+     * @param ReferenceArticle $refArticle
      * @return array
      *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
