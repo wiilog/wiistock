@@ -485,10 +485,10 @@ class MouvementTracaController extends AbstractController
     /**
      * @param MouvementTraca $mouvementTraca
      * @param AttachmentService $attachmentService
-     * @param FileBag $files
+     * @param FileBag|array $files
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, FileBag $files, EntityManagerInterface $entityManager) {
+    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager) {
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
