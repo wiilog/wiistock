@@ -35,7 +35,6 @@
 
         {# datetime picker #}
         <link rel="stylesheet" href="{{ asset('css/bootstrap-datetimepicker.css') }}"/>
-
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 </head>
@@ -97,7 +96,6 @@
 
         {# chart.js #}
         <script src="{{ asset('js/Chart.min.js') }}"></script>
-
         <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}

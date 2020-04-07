@@ -1,13 +1,31 @@
 {% extends 'filters/filters.html.twig' %}
 
 {% block filters %}
-    {% include 'filters/filter_item/filterDate.html.twig' %}
-    {% include 'filters/filter_item/filterStatus.html.twig' %}
-    {% include 'filters/filter_item/filterUser.html.twig' %}
-    {% include 'filters/filter_item/filterEmergency.html.twig' %}
-    {% include 'filters/filter_item/filterProvider.html.twig' %}
-    {% include 'filters/filter_item/filterCarrier.html.twig' %}
-    {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
-    {% include 'filters/filter_item/filterDuty.html.twig' %}
-    {% include 'filters/filter_item/filterFrozen.html.twig' %}
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterDate.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterNumArrivage.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterDuty.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterFrozen.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterEmergency.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterProvider.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterCarrier.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterUser.html.twig' %}
+    </div>
+    <div class="col-auto mb-2">
+        {% include 'filters/filter_item/filterStatus.html.twig' %}
+    </div>
 {% endblock %}
