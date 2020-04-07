@@ -185,7 +185,7 @@ class MouvementTracaController extends AbstractController
                     );
                 }
                 foreach ($createdMouvements as $mouvement) {
-                    $this->addAttachements($mouvement, $this->attachmentService, $fileNames, $entityManager);
+                    $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
                 }
             }
 
@@ -295,7 +295,7 @@ class MouvementTracaController extends AbstractController
                 }
             }
 
-            $this->addAttachements($mvt, $this->attachmentService, $request->files, $entityManager);
+            $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
             $entityManager->flush();
 
             return new JsonResponse();
@@ -488,7 +488,7 @@ class MouvementTracaController extends AbstractController
      * @param FileBag $files
      * @param EntityManagerInterface $entityManager
      */
-    private function addAttachements(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, FileBag $files, EntityManagerInterface $entityManager) {
+    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, FileBag $files, EntityManagerInterface $entityManager) {
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);

@@ -1206,7 +1206,7 @@ class ReceptionController extends AbstractController
                 }
             }
 
-            $this->addAttachementsForEntity($litige, $this->attachmentService, $request, $entityManager);
+            $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
 
             $response = [];
@@ -1283,7 +1283,7 @@ class ReceptionController extends AbstractController
             $entityManager->persist($litige);
             $entityManager->flush();
 
-            $this->addAttachementsForEntity($litige, $this->attachmentService, $request, $entityManager);
+            $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
             $this->sendMailToAcheteurs($litige);
             $response = [];
@@ -1982,7 +1982,7 @@ class ReceptionController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function addAttachementsForEntity(Litige $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+    private function createAttachmentsForEntity(Litige $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
