@@ -2,37 +2,61 @@
     <div class="col">
         <h1><span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span> {{ arrivage.numeroarrivage }}</h1>
         <input hidden value="{{ arrivage.id }}" id="arrivageId">
-        <input hidden value="{{ arrivage.numeroarrivage  }}" id="numeroArrivage">
+        <input hidden value="{{ arrivage.numeroarrivage }}" id="numeroArrivage">
         <input hidden value="{{ printColis is defined ? printColis : false }}" id="printColis">
         <input hidden value="{{ printArrivage is defined ? printArrivage : false }}" id="printArrivage">
         <div class="d-none" id="barcodes"></div>
     </div>
 
     <div class="col text-right">
-        <a href="" class="btn btn-primary btn-action ml-auto" data-target='#modalNewAssociation' data-toggle='modal'>
-            <i class="fa fa-bullseye mr-2"></i>Association/BR
-        </a>
-        <a class="btn btn-success"
-           id="printArrivageBtn"
-           href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
-            <i class='fas fa-print pointer'></i>
-            Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
-        </a>
-        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT'))%}
-            <a href="" data-id='{{ arrivage.id }}' data-target='#modalEditArrivage'
-               onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
-               data-toggle='modal' class="btn btn-primary btn-action ml-auto">
-                Modifier
-            </a>
-        {% endif %}
-
-        {% if (canBeDeleted) %}
-            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE'))%}
-                <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
-                   class="btn btn-danger btn-action ml-auto" onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
-                    Supprimer</a>
+        <div class="btn-group split-button-container col-auto align-self-end">
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                <button type="button"
+                        data-id='{{ arrivage.id }}'
+                        data-target='#modalEditArrivage'
+                        onclick="editRowArrivage(
+                        $(this), Routing.generate('arrivage_edit_api', true),
+                        $('#modalEditArrivage'),
+                        $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
+                        data-toggle='modal' class="btn btn-primary btn-ripple ml-auto split-button">
+                    Modifier
+                </button>
+            {% else %}
+                <button type="button" class="btn btn-primary btn-ripple ml-auto split-button"
+                        id="printArrivageBtn">
+                    <a
+                        href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
+                        <i class='fas fa-print pointer'></i>
+                        Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
+                    </a>
+                </button>
             {% endif %}
-        {% endif %}
+            <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu mr-5 pointer">
+                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                    <a class="dropdown-item"
+                       id="printArrivageBtn"
+                       href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1}) }}">
+                        <i class='fas fa-print pointer'></i>
+                        Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
+                    </a>
+                {% endif %}
+                <a href="" class="dropdown-item" data-target='#modalNewAssociation' data-toggle='modal'>
+                    <i class="fa fa-bullseye mr-2"></i>Association/BR
+                </a>
+                {% if (canBeDeleted) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
+                        <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
+                           class="dropdown-item"
+                           onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'))">
+                            <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
@@ -103,7 +127,7 @@
             {% set value = null %}
             {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                 {% set value = (champLibre.valeurChampLibre is not null and champLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
-            {% elseif champLibre.typage == 'list multiple' and champLibre.valeurChampLibre is not null%}
+            {% elseif champLibre.typage == 'list multiple' and champLibre.valeurChampLibre is not null %}
                 {% set value = champLibre.valeurChampLibre.valeur | replace({';' : ','}) %}
             {% elseif champLibre.valeurChampLibre is not null %}
                 {% set value = champLibre.valeurChampLibre.valeur %}
@@ -118,25 +142,26 @@
 
 <div class="row">
     {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
-    <div class="col-8">
-        <p><strong>Commentaire :</strong> <span>{{ arrivage.commentaire | raw}} </span></p>
-    </div>
+        <div class="col-8">
+            <p><strong>Commentaire :</strong> <span>{{ arrivage.commentaire | raw }} </span></p>
+        </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('pj', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Pièces jointes :</strong><br>
-        {% for attachement in arrivage.attachements %}
-            <a href="/uploads/attachements/{{ attachement.filename }}" target="_blank">
-                <i class="fas fa-file"></i> {{ attachement.originalname }}<br>
-            </a>
-        {% endfor %}
-        </p>
-    </div>
+        <div class="col-4">
+            <p><strong>Pièces jointes :</strong><br>
+                {% for attachement in arrivage.attachements %}
+                    <a href="/uploads/attachements/{{ attachement.filename }}" target="_blank">
+                        <i class="fas fa-file"></i> {{ attachement.originalname }}<br>
+                    </a>
+                {% endfor %}
+            </p>
+        </div>
     {% endif %}
 </div>
 
 {% if arrivage.isUrgent is defined and arrivage.isUrgent == true %}
     <div class="urgence-row row ml-2">
-        <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans }}</span> est à traiter en URGENCE.</h1>
+        <h1><i class="fa fa-exclamation-triangle mr-2"></i><span title="cet arrivage">{{ 'arrivage.cet arrivage'|trans }}</span> est à traiter en
+            URGENCE.</h1>
     </div>
 {% endif %}

@@ -1,6 +1,16 @@
 <div class="d-flex">
-    <a class="btn btn-col-action"
-       href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
-        <i class='fas fa-print'></i>
-    </a>
+    <div class="dropdown">
+        <a href="#"
+           data-toggle="dropdown"
+           aria-haspopup="true"
+           aria-expanded="false">
+            {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
+        </a>
+        <div class="dropdown-menu pointer">
+            <a class="dropdown-item"
+                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
+                <i class='fas fa-print mr-2'></i>Imprimer
+            </a>
+        </div>
+    </div>
 </div>

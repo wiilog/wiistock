@@ -1480,3 +1480,21 @@ function initFreeSelect2($selects) {
 function openSelect2($select2) {
     $select2.select2('open');
 }
+
+function registerDropdownPosition() {
+    let dropdownMenu;
+    $(window).on('show.bs.dropdown', function(e) {
+        dropdownMenu = $(e.target).find('.dropdown-menu');
+        $('body').append(dropdownMenu.detach());
+        dropdownMenu.css('display', 'block');
+        dropdownMenu.position({
+            'my': 'right top',
+            'at': 'right bottom',
+            'of': $(e.relatedTarget)
+        })
+    });
+    $(window).on('hide.bs.dropdown', function(e) {
+        $(e.target).append(dropdownMenu.detach());
+        dropdownMenu.hide();
+    });
+}

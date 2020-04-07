@@ -82,7 +82,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     "rowCallback": function (row, data) {
         if (data.urgent === true) $(row).addClass('table-danger');
         $(row).addClass('pointer');
-        $(row).find('td:not(.noVis)').dblclick(function() {
+        $(row).find('td:not(.noVis)').click(function() {
             window.location.href = data.url;
         })
     },

@@ -3,7 +3,7 @@ $('.select2').select2();
 $(function () {
     //fill l'input acheteurs (modalNewLititge)
     let modal = $('#modalNewLitige');
-
+    registerDropdownPosition();
     let inputAcheteurs = $('#acheteursLitigeHidden').val();
     let acheteurs = inputAcheteurs.split(',');
     let $acheteursLitige = modal.find('#acheteursLitige');
@@ -46,7 +46,6 @@ $(function () {
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
 let tableColis = $('#tableColis').DataTable({
-    responsive: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -56,7 +55,7 @@ let tableColis = $('#tableColis').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'actions', 'name': 'actions', 'title': ''},
         {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
@@ -120,7 +119,6 @@ InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) 
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
-    responsive: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -140,7 +138,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'actions', 'title': ''},
         {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
         {"data": 'status', 'name': 'status', 'title': 'Statut'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
