@@ -3,11 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Colis;
 use App\Entity\Emplacement;
-use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
 use App\Entity\ParametrageGlobal;
@@ -104,11 +102,13 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function new(Request $request,
+                        MouvementTracaService $mouvementTracaService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -132,7 +132,7 @@ class MouvementTracaController extends AbstractController
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMvt = $this->mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $colisStr,
                     $emplacement,
                     $operator,

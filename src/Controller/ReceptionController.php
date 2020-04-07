@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
@@ -1471,6 +1470,7 @@ class ReceptionController extends AbstractController
      * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
      * @param MouvementTracaService $mouvementTracaService
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
     {
