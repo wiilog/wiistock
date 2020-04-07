@@ -5,7 +5,9 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
         const alertConfig = alertConfigs[0];
         const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
         const nextAlertConfigs = alertConfigs.slice(1, alertConfigs.length);
-
+        if (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0) {
+            printArrival(response);
+        }
         const buttonConfigs = [
             {
                 class: 'btn btn-success m-0 btn-action-on-hide',
@@ -127,16 +129,6 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
         $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
 
-        if (printArrivage || printColis) {
-            let params = {
-                arrivage: arrivageId,
-                printColis: printColis ? 1 : 0,
-                printArrivage: printArrivage ? 1 : 0
-            };
-
-            window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
-        }
-
         clearModal($modalNewArrivage);
     }
     else {
@@ -149,4 +141,15 @@ function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
     const printColisNumber = (printColis === true) ? '1' : '0';
     const printArrivageNumber = (printArrivage === true) ? '1' : '0';
     return `${arrivageShowUrl}/${printColisNumber}/${printArrivageNumber}`;
+}
+
+function printArrival({arrivageId, printColis, printArrivage}) {
+    if (printArrivage || printColis) {
+        let params = {
+            arrivage: arrivageId,
+            printColis: printColis ? 1 : 0,
+            printArrivage: printArrivage ? 1 : 0
+        };
+        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+    }
 }

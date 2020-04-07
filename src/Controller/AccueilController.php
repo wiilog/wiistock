@@ -416,6 +416,8 @@ class AccueilController extends AbstractController
 
         $locationCounters = [];
 
+        $globalCounter = 0;
+
         $olderPackLocation = [
             'locationLabel' => null,
             'locationId' => null,
@@ -431,7 +433,7 @@ class AccueilController extends AbstractController
             }
 
             $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation) {
+                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
@@ -471,6 +473,7 @@ class AccueilController extends AbstractController
                         }
 
                         $locationCounters[$currentLocationId]++;
+                        $globalCounter++;
                     }
                     else {
                         $packUntreated[] = $pack;
@@ -486,7 +489,7 @@ class AccueilController extends AbstractController
         }
 
         $totalToDisplay = !empty($olderPackLocation['locationId'])
-            ? ($locationCounters[$olderPackLocation['locationId']] ?? null)
+            ? $globalCounter
             : null;
 
         $locationToDisplay = !empty($olderPackLocation['locationLabel'])
@@ -495,8 +498,8 @@ class AccueilController extends AbstractController
 
         return new JsonResponse([
             "data" => $graphData,
-            'total' =>  isset($totalToDisplay) ? $totalToDisplay : '-',
-            'location' =>  isset($locationToDisplay) ? $locationToDisplay : '-',
+            'total' => isset($totalToDisplay) ? $totalToDisplay : '-',
+            'location' => isset($locationToDisplay) ? $locationToDisplay : '-',
 			'chartColors' => array_reduce(
 			    $naturesForGraph,
                 function (array $carry, Nature $nature) {
