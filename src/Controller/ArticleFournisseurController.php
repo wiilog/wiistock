@@ -169,21 +169,13 @@ class ArticleFournisseurController extends AbstractController
 
             $articleFournisseur
                 ->setFournisseur($fournisseur)
-                ->setReference($data['reference'])
-                ->setReferenceArticle($referenceArticle);
+                ->setReferenceArticle($referenceArticle)
+                ->setLabel($data['label'] ?: null);
 
-            $already = $articleFournisseurRepository->findByReferenceArticleFournisseur($data['reference']);
-//          $count = $articleFournisseurRepository->countByReference($data['reference']);
             $dataResponse = [];
-
-            if (empty($already) || $already[0] === $articleFournisseur ) {
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
                 $dataResponse['success'] = true;
-            } else {
-                $dataResponse['success'] = false;
-                $dataResponse['message'] = "La reference est déja utilisée";
-            }
 
             return new JsonResponse($dataResponse);
         }

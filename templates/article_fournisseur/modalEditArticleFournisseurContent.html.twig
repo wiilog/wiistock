@@ -1,19 +1,23 @@
+<div class="form-group">
+    <label for="reference">Référence</label>
+    <input type="text" id="reference" class="form-control data" name="reference" value="{{ articleFournisseur.reference }}" disabled>
+</div>
+
 <div class="form-group w-100">
-    <label for="fournisseur">Code Fournisseur</label>
+    <label for="article-fournisseur-label">Libellé</label>
+    <input type="text" id="article-fournisseur-label" class="form-control data" name="label" value="{{ articleFournisseur.label}}" />
+</div>
+
+<div class="form-group w-100">
+    <label for="fournisseur">Code Fournisseur*</label>
     <select class="form-control data ajax-autocomplete-fournisseur-edit needed" name="fournisseur" id="fournisseur">
        <option value="{{articleFournisseur.fournisseur.id}}">{{articleFournisseur.fournisseur.nom}}</option>
     </select>
 </div>
 
 <div class="form-group w-100">
-    <label for="article-reference">Article de référence</label>
+    <label for="article-reference">Article de référence*</label>
     <select class="form-control ajax-autocomplete-edit data needed" name="article-reference" id="article-reference">
         <option value="{{ articleFournisseur.referenceArticle.id }}">{{ articleFournisseur.referenceArticle.libelle }}</option>
-
     </select>
-</div>
-
-<div class="form-group">
-    <label for="reference">Référence</label>
-    <input type="text" id="reference" class="form-control data" name="reference" value="{{ articleFournisseur.reference }}">
 </div>
