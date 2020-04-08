@@ -16,7 +16,7 @@ class ValeurChampLibreService {
     }
 
 
-    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): string {
+    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): ?string {
         if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
             $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
@@ -29,7 +29,7 @@ class ValeurChampLibreService {
         return $formattedValue;
     }
 
-    public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): string {
+    public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): ?string {
         $typage = $valeurChampLibre->getChampLibre()->getTypage();
         $value = $valeurChampLibre->getValeur();
 
