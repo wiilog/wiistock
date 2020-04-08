@@ -13,6 +13,8 @@
     } %}
 {% endblock %}
 {% block page_content %}
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     <input type="hidden" id="dateMinFilter">
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
@@ -26,17 +28,27 @@
         <div class="row mb-0">
             <h1 title="arrivages" class="col align-self-start ml-2">{{ 'arrivage.arrivages'|trans }}</h1>
             <div class="btn-group split-button-container col-auto align-self-end">
+                {% if hasRightToCreate %}
                 <button type="button" class="btn btn-primary split-button btn-ripple"
                         data-toggle="modal" data-target="#modalNewArrivage"
                         data-backdrop="static" data-keyboard="false"
-                        onclick="initNewArrivageEditor('#modalNewArrivage')"><span class="fa fa-plus mr-2"></span>Nouvel Arrivage
+                        onclick="initNewArrivageEditor('#modalNewArrivage')"><span class="fa fa-plus mr-2"></span>
+                    {{ 'arrivage.nouvel arrivage'|trans }}
                 </button>
+                    {% elseif hasRightToExport %}
+                        <button type="button" class="btn btn-primary split-button btn-ripple"
+                                onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
+                            <span class="fa fa-file-csv mr-2"></span>
+                            Exporter au format CSV
+                        </button>
+                {% endif %}
                 <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
                         aria-expanded="false">
                     <span class="fa fa-angle-down"></span>
                 </button>
-                <div class="dropdown-menu mr-5">
-                    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+                <div class="dropdown-menu {{ hasRightToCreate or hasRightToExport ? 'mr-5' : 'dropdown-single' }}">
+                    {% if hasRightToCreate
+                    and hasRightToExport %}
                         <a href="#" class="dropdown-item"
                            onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV

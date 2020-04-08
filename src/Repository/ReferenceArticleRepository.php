@@ -163,7 +163,11 @@ class ReferenceArticleRepository extends EntityRepository
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
-            'Code barre' => ['field' => 'barCode', 'typage' => 'text']
+            'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
+            'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
+            'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
+            'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
+
         ];
 
         $qb
@@ -896,12 +900,13 @@ class ReferenceArticleRepository extends EntityRepository
      * @throws NonUniqueResultException
      * @throws NoResultException
      */
-    public function getStockQuantity(ReferenceArticle $referenceArticle): int {
+    public function getStockQuantity(ReferenceArticle $referenceArticle): int
+    {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em->createQuery(
-                    /** @lang DQL */
-                    "SELECT SUM(a.quantite)
+            /** @lang DQL */
+                "SELECT SUM(a.quantite)
                     FROM App\Entity\ReferenceArticle ra
                     JOIN ra.articlesFournisseur af
                     JOIN af.articles a
@@ -914,8 +919,7 @@ class ReferenceArticleRepository extends EntityRepository
                     'activeStatus' => Article::STATUT_ACTIF
                 ]);
             $stockQuantity = ($query->getSingleScalarResult() ?? 0);
-        }
-        else {
+        } else {
             $stockQuantity = $referenceArticle->getQuantiteStock();
         }
         return $stockQuantity;
@@ -927,7 +931,8 @@ class ReferenceArticleRepository extends EntityRepository
      * @throws NonUniqueResultException
      * @throws NoResultException
      */
-    public function getReservedQuantity(ReferenceArticle $referenceArticle): int {
+    public function getReservedQuantity(ReferenceArticle $referenceArticle): int
+    {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em
@@ -946,8 +951,7 @@ class ReferenceArticleRepository extends EntityRepository
                     'preparationStatusCurrent' => Preparation::STATUT_EN_COURS_DE_PREPARATION
                 ]);
             $reservedQuantity = ($query->getSingleScalarResult() ?? 0);
-        }
-        else {
+        } else {
             $reservedQuantity = $referenceArticle->getQuantiteReservee();
         }
         return $reservedQuantity;

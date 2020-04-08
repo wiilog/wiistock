@@ -7,6 +7,11 @@
             {% include 'svg/dotsblack.svg.twig' with { height: '20px', width: '8px'} %}
         </a>
         <div class="dropdown-menu pointer">
+            <a href='{{ url }}' class="d-none action-on-click">
+                <div class="btn btn-col-action">
+                    <i class='fas fa-eye'></i>
+                </div>
+            </a>
             <a href="#" class="dropdown-item"
                 data-id='{{ arrivage.id }}'
                 data-target='#modalListColis' data-toggle='modal'
@@ -15,14 +20,4 @@
             </a>
         </div>
     </div>
-    {#    <a href='{{ url }}'>#}
-    {#            <div class="btn btn-col-action">#}
-    {#                <i class='fas fa-eye'></i>#}
-    {#            </div>#}
-    {#        </a>#}
-
-    {#        <div data-id='{{ arrivage.id }}' data-target='#modalListColis' data-toggle='modal' class='btn btn-col-action'#}
-    {#             onclick="listColis($(this))">#}
-    {#            <i class='fas fa-print'></i>#}
-    {#        </div>#}
 </div>

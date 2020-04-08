@@ -1,16 +1,21 @@
-
 // TODO AB
 // import Routing from '../../router';
 // import '../../form-reference-article';
-let $printTag ;
+let $printTag;
 $(function () {
     $printTag = $('#printTag');
-    managePrintButtonTooltip(true, $printTag);
+    initTooltips($('.has-tooltip'));
+    if ($('#filters').find('.filter').length <= 0) {
+        $('#noFilters').removeClass('d-none');
+    }
+    registerDropdownPosition();
 });
 
 $('.select2').select2();
 let tableRefArticle;
-function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
+
+function InitialiserModalRefArticle(modal, submit, path, callback = function () {
+}, close = true) {
     submit.click(function () {
         submitActionRefArticle(modal, path, callback, close);
     });
@@ -26,12 +31,12 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
         tableColumnVisible.search('').draw()
     }
 
-    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModalReferenceArticle(modal);
+    let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
 
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) modal.find('.close').click();
-        $.post(path, JSON.stringify(Data), function(data) {
+        $.post(path, JSON.stringify(Data), function (data) {
             if (!data) {
                 $('#cannotDelete').click();
             }
@@ -60,7 +65,7 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
 }
 
 function clearModalRefArticle(modal, data) {
-    if (typeof(data.msg) == 'undefined') {
+    if (typeof (data.msg) == 'undefined') {
         // on vide tous les inputs
         let inputs = modal.find('.modal-body').find(".data, .newContent>input");
         inputs.each(function () {
@@ -79,8 +84,8 @@ function clearModalRefArticle(modal, data) {
             $(this).prop('checked', false);
         })
     } else {
-        if (typeof(data.codeError) != 'undefined') {
-            switch(data.codeError) {
+        if (typeof (data.codeError) != 'undefined') {
+            switch (data.codeError) {
                 case 'DOUBLON-REF':
                     modal.find('.is-invalid').removeClass('is-invalid');
                     modal.find('#reference').addClass('is-invalid');
@@ -135,8 +140,8 @@ $(function () {
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
         tableRefArticle = $('#tableRefArticle_id')
-            .on('error.dt', (a,b,c,d) => {
-                console.log(a,b,c,d)
+            .on('error.dt', (a, b, c, d) => {
+                console.log(a, b, c, d)
             })
             .DataTable({
                 processing: true,
@@ -151,27 +156,41 @@ function initTableRefArticle() {
                         return json.data;
                     }
                 },
-                initComplete: function() {
+                rowCallback: function (row, data) {
+                    $(row).addClass('pointer');
+                    $(row).find('td:not(.noVis)').click(function() {
+                        $(row).find('.action-on-click').get(0).click();
+                    });
+                },
+                initComplete: function () {
                     hideSpinner($('#spinner'));
                     initRemove();
                     hideAndShowColumns(columns);
-                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function($input) {
-                        let $printBtn = $('.justify-content-end').find('#printTag');
-
+                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function ($input) {
+                        let $printBtn = $('#printTag');
+                        $printBtn.parent().tooltip('dispose');
                         if ($input.val() === '') {
+                            $printBtn.parent().addClass('has-tooltip');
                             $printBtn.addClass('btn-disabled');
                             $printBtn.removeClass('btn-primary');
                         } else {
+                            $printBtn.parent().removeClass('has-tooltip');
                             $printBtn.removeClass('btn-disabled');
-                            $printBtn.addClass('btn-primary');
+                            if ($printBtn.is('button')) {
+                                $printBtn.addClass('btn-primary');
+                            }
                         }
+                        initTooltips($('.has-tooltip'));
                     });
                 },
                 length: 10,
-                columns: columns.map((column) => ({
-                    ...column,
-                    class: undefined
-                })),
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'Actions' ? 'noVis' : undefined,
+                        title: column.title === 'Actions' ? '' : column.title
+                    }
+                }),
                 columnDefs: [
                     {
                         orderable: false,
@@ -181,7 +200,7 @@ function initTableRefArticle() {
                 language: {
                     url: "/js/i18n/dataTableLanguage.json",
                 },
-                "drawCallback": function(settings) {
+                "drawCallback": function (settings) {
                     resizeTable();
                 },
             });
@@ -220,7 +239,7 @@ function showOrHideColumn(check) {
 }
 
 function hideAndShowColumns(columns) {
-    tableRefArticle.columns().every(function(index) {
+    tableRefArticle.columns().every(function (index) {
         this.visible(columns[index].class !== 'hide');
     });
 }
@@ -259,31 +278,40 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
-    $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
+    $printTag.removeClass('btn-disabled');
+    if ($printTag.is('button')) {
+        $printTag.addClass('btn-primary');
+    }
+    $('#noFilters').addClass('d-none');
+    $printTag.parent().removeClass('has-tooltip');
+    $printTag.parent().tooltip('dispose');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
-    managePrintButtonTooltip(false, $printTag);
+    initTooltips($('.has-tooltip'));
 }
 
 // suppression du filtre au clic dessus
 function initRemove() {
     // $('.filter-bloc').on('click', removeFilter); //TODO filtres et/ou
-    $('.filter').on('click', removeFilter);
+    $('.filter').find('.remove-filter').on('click', removeFilter);
     tableRefArticle.on('responsive-resize', function (e, datatable) {
         resizeTable();
     });
 }
 
 function removeFilter() {
-    $(this).remove();
-    let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
+    let params = JSON.stringify({'filterId': $(this).parents('.filter').find('.filter-id').val()});
+    $(this).parents('.filter').tooltip('dispose');
+    $(this).parents('.filter').remove();
     $.post(Routing.generate('filter_ref_delete', true), params, function () {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();
     });
-    if($('#filters').find('.filter').length <= 0){
-        managePrintButtonTooltip(true, $printTag);
-        $('.justify-content-end').find('.printButton').addClass('btn-disabled');
+    if ($('#filters').find('.filter').length <= 0) {
+        $('#printTag').addClass('btn-disabled');
+        $printTag.parent().addClass('has-tooltip');
+        initTooltips($('.has-tooltip'));
+        $('#noFilters').removeClass('d-none');
     }
 }
 
@@ -373,10 +401,10 @@ let ajaxPlusDemandeContent = function (button, demande) {
             if (dataReponse.editChampLibre) {
                 editChampLibre.html(dataReponse.editChampLibre);
                 modalFooter.removeClass('d-none');
-            } if (dataReponse.temp || dataReponse.byRef) {
-                modalFooter.removeClass('d-none');
             }
-            else {
+            if (dataReponse.temp || dataReponse.byRef) {
+                modalFooter.removeClass('d-none');
+            } else {
                 //TODO gérer erreur
             }
             showDemande(button);
@@ -396,9 +424,9 @@ let ajaxPlusDemandeContent = function (button, demande) {
 let ajaxEditArticle = function (select) {
     let modalFooter = select.closest('.modal').find('.modal-footer');
     let path = Routing.generate('article_api_edit', true);
-    let params = { id: select.val(), isADemand: 1 };
+    let params = {id: select.val(), isADemand: 1};
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         if (data) {
             $('.editChampLibre').html(data);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -413,6 +441,7 @@ let ajaxEditArticle = function (select) {
 
 //initialisation editeur de texte une seule fois
 let editorNewReferenceArticleAlreadyDone = false;
+
 function initNewReferenceArticleEditor(modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
         initEditor('.editor-container-new');
@@ -444,7 +473,7 @@ function deleteArticleFournisseur(button) {
 function passArgsToModal(button) {
     let path = Routing.generate('article_fournisseur_can_delete', true);
     let params = JSON.stringify({articleFournisseur: $(button).data('value')});
-    $.post(path, params, function(response) {
+    $.post(path, params, function (response) {
         if (response) {
             $('#modalDeleteFournisseur').find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
             $("#submitDeleteFournisseur").data('value', $(button).data('value'));
@@ -487,7 +516,7 @@ function initRequiredChampsFixes(button) {
     let params = {id: button.data('id')};
     let path = Routing.generate('get_quantity_type');
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
     }, 'json');
 }
@@ -520,33 +549,41 @@ function redirectToDemande() {
         demandeType = 'demande';
     }
 
-    window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
+    window.location.href = Routing.generate(demandeType + '_show', {'id': demandeId});
 }
 
 function saveRapidSearch() {
     let searchesWanted = [];
-    $('#rapidSearch tbody td').each(function() {
+    $('#rapidSearch tbody td').each(function () {
         searchesWanted.push($(this).html());
     });
     let params = {
         recherches: searchesWanted
     };
     let json = JSON.stringify(params);
-    $.post(Routing.generate('update_user_searches', true), json, function(data) {
+    $.post(Routing.generate('update_user_searches', true), json, function (data) {
         $("#modalRapidSearch").find('.close').click();
         tableRefArticle.search(tableRefArticle.search()).draw();
     });
 }
 
 function printReferenceArticleBarCode() {
-    window.location.href = Routing.generate(
-        'reference_article_bar_codes_print',
-        {length: tableRefArticle.page.info().length, start: tableRefArticle.page.info().start, search: $('#tableRefArticle_id_filter input').val()},
-        true
-    );
+    if (tableRefArticle.data().count() > 0) {
+        window.location.href = Routing.generate(
+            'reference_article_bar_codes_print',
+            {
+                length: tableRefArticle.page.info().length,
+                start: tableRefArticle.page.info().start,
+                search: $('#tableRefArticle_id_filter input').val()
+            },
+            true
+        );
+    } else {
+        alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
+    }
 }
 
-function displayActifOrInactif(select){
+function displayActifOrInactif(select) {
     let donnees;
     if (select.is(':checked')) {
         donnees = 'actif';
@@ -557,13 +594,13 @@ function displayActifOrInactif(select){
     let params = {donnees: donnees};
     let path = Routing.generate('reference_article_actif_inactif');
 
-    $.post(path, JSON.stringify(params), function(){
+    $.post(path, JSON.stringify(params), function () {
         tableRefArticle.ajax.reload();
     });
 }
 
 function initDatatableMovements(id) {
-    let pathRefMouvements = Routing.generate('ref_mouvements_api', { 'id': id }, true);
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', {'id': id}, true);
     let tableRefMouvements = $('#tableMouvements').DataTable({
         "language": {
             url: "/js/i18n/dataTableLanguage.json",
