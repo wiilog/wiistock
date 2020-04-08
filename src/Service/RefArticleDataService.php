@@ -83,11 +83,13 @@ class RefArticleDataService
      * @var RouterInterface
      */
     private $router;
+    private $valeurChampLibreService;
 
 
     public function __construct(DemandeRepository $demandeRepository,
                                 RouterInterface $router,
                                 UserService $userService,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 EntityManagerInterface $entityManager,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
@@ -95,6 +97,7 @@ class RefArticleDataService
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
+        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->entityManager = $entityManager;
@@ -351,7 +354,7 @@ class RefArticleDataService
         $rows = $valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
         $rowCL = [];
         foreach ($rows as $row) {
-            $rowCL[$row['label']] = $row['valeur'];
+            $rowCL[$row['label']] = $this->valeurChampLibreService->formatValeurChampLibreForDatatable($row);
         }
 
         $availableQuantity = $refArticle->getQuantiteDisponible();
