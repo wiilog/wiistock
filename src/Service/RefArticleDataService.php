@@ -88,11 +88,13 @@ class RefArticleDataService
      * @var RouterInterface
      */
     private $router;
+    private $valeurChampLibreService;
 
 
     public function __construct(DemandeRepository $demandeRepository,
                                 RouterInterface $router,
                                 UserService $userService,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 CategorieCLRepository $categorieCLRepository,
                                 EntityManagerInterface $entityManager,
                                 FiltreRefRepository $filtreRefRepository,
@@ -101,6 +103,7 @@ class RefArticleDataService
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
+        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
@@ -358,7 +361,7 @@ class RefArticleDataService
         $rows = $valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
         $rowCL = [];
         foreach ($rows as $row) {
-            $rowCL[$row['label']] = $row['valeur'];
+            $rowCL[$row['label']] = $this->valeurChampLibreService->formatValeurChampLibreForDatatable($row);
         }
 
         $availableQuantity = $refArticle->getQuantiteDisponible();

@@ -20,6 +20,7 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use App\Service\ValeurChampLibreService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
@@ -147,6 +148,7 @@ class ReferenceArticleController extends AbstractController
     private $user;
 
     private $CSVExportService;
+    private $valeurChampLibreService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 GlobalParamService $globalParamService,
@@ -164,7 +166,8 @@ class ReferenceArticleController extends AbstractController
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 MouvementStockRepository $mouvementStockRepository,
-                                CSVExportService $CSVExportService)
+                                CSVExportService $CSVExportService,
+                                ValeurChampLibreService $valeurChampLibreService)
     {
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
@@ -183,6 +186,7 @@ class ReferenceArticleController extends AbstractController
         $this->mouvementStockRepository = $mouvementStockRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->CSVExportService = $CSVExportService;
+        $this->valeurChampLibreService = $valeurChampLibreService;
     }
 
     /**
@@ -1308,7 +1312,9 @@ class ReferenceArticleController extends AbstractController
             $listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ref->getId(), $champLibre);
-                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                if ($valeurChampRefArticle) {
+                    $champsLibres[$champLibre->getLabel()] = $this->valeurChampLibreService->formatValeurChampLibreForExport($valeurChampRefArticle);
+                }
             }
         }
         foreach ($headersCL as $type) {
