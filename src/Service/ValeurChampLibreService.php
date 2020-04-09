@@ -6,6 +6,7 @@ use App\Entity\ChampLibre;
 use App\Entity\ValeurChampLibre;
 use DateTime;
 use DateTimeZone;
+use Throwable;
 
 class ValeurChampLibreService {
 
@@ -16,12 +17,17 @@ class ValeurChampLibreService {
     }
 
 
-    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): string {
+    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): ?string {
         if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
-            $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
-            $hourFormat = ($valeurChampLibre['typage'] === ChampLibre::TYPE_DATETIME) ? ' H:i' : '';
-            $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
+            try {
+                $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
+                $hourFormat = ($valeurChampLibre['typage'] === ChampLibre::TYPE_DATETIME) ? ' H:i' : '';
+                $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
+            }
+            catch(Throwable $ignored) {
+                $formattedValue = $valeurChampLibre['valeur'];
+            }
         }
         else {
             $formattedValue = $valeurChampLibre['valeur'];
@@ -29,7 +35,7 @@ class ValeurChampLibreService {
         return $formattedValue;
     }
 
-    public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): string {
+    public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): ?string {
         $typage = $valeurChampLibre->getChampLibre()->getTypage();
         $value = $valeurChampLibre->getValeur();
 
