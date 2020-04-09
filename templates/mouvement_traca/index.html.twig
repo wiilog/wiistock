@@ -2,14 +2,13 @@
 
 {% block title %}Mouvements{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersMouvementTraca.html.twig' with {
-        'page' : 'PAGE_MVT_TRACA',
-        'tableSelector' : '#tableMvts'
-    } %}
-{% endblock %}
-
 {% block page_content %}
+    {% block page_filter %}
+        {% include 'filters/filtersMouvementTraca.html.twig' with {
+            'page' : 'PAGE_MVT_TRACA',
+            'tableSelector' : '#tableMvts'
+        } %}
+    {% endblock %}
     {% set isSafran = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
     <div class="col-12">
         <h1>Mouvements</h1>
@@ -24,9 +23,9 @@
             </a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-        <div class="btn btn-primary" onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
-            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-        </div>
+            <div class="btn btn-primary" onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+            </div>
         {% endif %}
     </div>
 

@@ -2,16 +2,19 @@
 
 {% block title %}Missions d'inventaire{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersMissionInv.html.twig' with {
-        'page': 'PAGE_INV_MISSIONS',
-        'tableSelector': '#tableMissionsInv'
-    } %}
-{% endblock %}
-
 {% block page_content %}
-    <h1>Missions d'inventaire</h1>
-    <div class="row justify-content-end">
+
+    {% block page_filter %}
+        {% include 'filters/filtersMissionInv.html.twig' with {
+            'page': 'PAGE_INV_MISSIONS',
+            'tableSelector': '#tableMissionsInv'
+        } %}
+    {% endblock %}
+    <div class="col-12">
+        <h1>Missions d'inventaire</h1>
+    </div>
+    <div class="col-12">
+        <div class="row justify-content-end">
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
                 <a href="" data-toggle="modal" data-target="#modalNewMission" class="btn btn-primary">
                     <span class="fa fa-plus mr-2"></span>Nouvelle mission
@@ -23,10 +26,12 @@
                     <span class="fa fa-alert mr-2"></span>Gérer les anomalies
                 </a>
             {% endif %}
+        </div>
     </div>
-
-    <table id="tableMissionsInv" class="table table-striped table-bordered w-100">
-    </table>
+    <div class="col-12">
+        <table id="tableMissionsInv" class="table table-striped table-bordered w-100">
+        </table>
+    </div>
     {% include 'inventaire/modalNewMissionInv.html.twig' %}
     {% include 'inventaire/modalDeleteMission.html.twig' %}
 {% endblock %}

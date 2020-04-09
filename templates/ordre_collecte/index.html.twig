@@ -2,19 +2,20 @@
 
 {% block title %}Ordres de collecte{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersOrderCollect.html.twig' with {
-        page: 'PAGE_ORDRE_COLLECTE',
-        tableSelector: '#tableCollecte',
-        disabled: filtersDisabled
-    } %}
-{% endblock %}
 
 {% block page_content %}
     {% set pageFilteredByDemand = (
         (filterDemandId is defined and filterDemandId is not null) and
         (filterDemandValue is defined and filterDemandValue is not null)
-    ) %}
+        ) %}
+
+    {% block page_filter %}
+        {% include 'filters/filtersOrderCollect.html.twig' with {
+            page: 'PAGE_ORDRE_COLLECTE',
+            tableSelector: '#tableCollecte',
+            disabled: filtersDisabled
+        } %}
+    {% endblock %}
     <div class="col-12">
         <h1>Ordres de collecte</h1>
     </div>
@@ -53,5 +54,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{asset('js/ordre-collecte.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/ordre-collecte.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

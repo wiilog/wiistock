@@ -1,13 +1,13 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Saisie d'inventaire{% endblock %}
-{% block page_filter %}
-    {% include 'filters/filtersEntryInv.html.twig' with {
-        'page': 'PAGE_INV_ENTRIES',
-        'tableSelector': '#tableMissionEntries'
-    } %}
-{% endblock %}
 {% block page_content %}
+    {% block page_filter %}
+        {% include 'filters/filtersEntryInv.html.twig' with {
+            'page': 'PAGE_INV_ENTRIES',
+            'tableSelector': '#tableMissionEntries'
+        } %}
+    {% endblock %}
     <div class="col-12">
         <h1>Saisies d'inventaire</h1>
     </div>

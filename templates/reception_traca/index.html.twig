@@ -2,16 +2,18 @@
 
 {% block title %}Réceptions{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersReceptionTraca.html.twig' with {
-        'page' : 'PAGE_RCPT_TRACA',
-        'tableSelector' : '#tableRecepts'
-    } %}
-{% endblock %}
-
 {% block page_content %}
-    <h1>Réceptions</h1>
-    <div class="row">
+
+    {% block page_filter %}
+        {% include 'filters/filtersReceptionTraca.html.twig' with {
+            'page' : 'PAGE_RCPT_TRACA',
+            'tableSelector' : '#tableRecepts'
+        } %}
+    {% endblock %}
+    <div class="col-12">
+        <h1>Réceptions</h1>
+    </div>
+    <div class="col-12">
         <div class="btn btn-primary" data-target='#modalNewAssociation' data-toggle='modal'>
             <i class="fa fa-bullseye mr-2"></i>Association / BR
         </div>
@@ -19,7 +21,7 @@
             <i class="fa fa-file-csv mr-2"></i>Exporter
         </div>
     </div>
-    <div>
+    <div class="col-12">
         <table id="tableRecepts" class="table table-striped table-bordered w-100">
         </table>
     </div>
@@ -32,5 +34,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src = "{{ asset('js/reception_traca.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/reception_traca.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

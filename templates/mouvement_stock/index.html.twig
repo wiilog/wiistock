@@ -2,14 +2,14 @@
 
 {% block title %}Mouvements de stock{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersMouvementStock.html.twig' with {
-        'page': 'PAGE_MVT_STOCK',
-        'tableSelector': '#tableMvts'
-    } %}
-{% endblock %}
-
 {% block page_content %}
+
+    {% block page_filter %}
+        {% include 'filters/filtersMouvementStock.html.twig' with {
+            'page': 'PAGE_MVT_STOCK',
+            'tableSelector': '#tableMvts'
+        } %}
+    {% endblock %}
     <div class="col-12">
         <h1>Mouvements de stock</h1>
     </div>

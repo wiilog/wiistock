@@ -331,10 +331,14 @@
     {% endblock %}#}
     <div class="wrapper {% block wrapperClass '' %}">
         {% include 'header.html.twig' %}
-        {% block page_filter %}{% endblock %}
 
         <div class="container-fluid {% block pageContainerClass '' %}">
-            {% block page_content %}{% endblock %}
+            {% block page_content %}
+
+                {% block page_filter %}
+
+                {% endblock %}
+            {% endblock %}
 
             {% include 'alert/modal-alert.html.twig' %}
         </div>
