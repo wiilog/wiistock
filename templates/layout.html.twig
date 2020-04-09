@@ -1,7 +1,6 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-
     <div id="alerts">
         <div class="alert alert-danger text-center d-none" onclick="this.style.display='none';">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
@@ -14,7 +13,7 @@
         </div>
     </div>
 
-    {% block menu %}
+   {# {% block menu %}
         <nav>
             <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
             <ul id="sidemenu" class="sidemenu">
@@ -329,19 +328,15 @@
             </ul>
 
         </nav>
-    {% endblock %}
-    <div class="wrapper" class="accueil-back">
-        {% block page_filter %}
+    {% endblock %}#}
+    <div class="wrapper {% block wrapperClass '' %}">
+        {% include 'header.html.twig' %}
+        {% block page_filter %}{% endblock %}
 
-        {% endblock %}
-
-        <div class="container-fluid">
-            {% block page_content %}
-
-            {% endblock %}
+        <div class="container-fluid {% block pageContainerClass '' %}">
+            {% block page_content %}{% endblock %}
 
             {% include 'alert/modal-alert.html.twig' %}
-
         </div>
     </div>
 

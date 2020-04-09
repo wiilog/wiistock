@@ -41,22 +41,24 @@
   padding: 0
 
 html
-  height: 100%
-  overflow: auto
+    height: 100%
+    overflow: auto
+    body
+        font-family: $mainFont, Helvetica, Arial, sans-serif
+        line-height: 20px
+        font-weight: 400
+        -webkit-font-smoothing: antialiased
+        font-size: 1em
+        color: $bodyColor
+        background-image: linear-gradient(to right, $backgroundBodyColorLight, $backgroundBodyColorDark)
+        background-repeat: no-repeat
+        background-size: 100% 40%
+        overflow-x: hidden
+        height: 100%
+        display: flex
 
-body
-  font-family: $mainFont, Helvetica, Arial, sans-serif
-  line-height: 20px
-  font-weight: 400
-  -webkit-font-smoothing: antialiased
-  font-size: 1em
-  color: $bodyColor
-  &.new-body
-    background-image: linear-gradient(to right, $backgroundBodyColorLight, $backgroundBodyColorDark)
-  background-repeat: no-repeat
-  background-size: 100% 40%
-  overflow-x: hidden
-  height: 100%
+        .wrapper
+            flex: 1
 
 p
   padding: 10px
@@ -77,9 +79,6 @@ a, a:link, a:visited
   &:hover
     color : inherit
 
-.container-fluid
-  flex: 1
-
 .datepicker
   z-index: 1 !important
 
@@ -88,12 +87,6 @@ a, a:link, a:visited
 
 input:-webkit-autofill
   box-shadow: 0 0 0 30px white inset !important
-
-.wrapper
-    padding-left: 130px
-    height: 100%
-    display: flex
-    flex-direction: column
 
 .page-title
   font-size: 32px
@@ -190,9 +183,6 @@ a
 
 .green
   color: $green
-
-.white
-  color: $white
 
 .bg-grey-transparent
   background-color: rgba(0,0,0,0.5)

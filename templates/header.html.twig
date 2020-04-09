@@ -1,0 +1,20 @@
+{% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
+
+<nav class="main-header mt-3">
+    <div class="col-12">
+        <div class="row">
+            <div class="col-2">
+                <img src="{{ asset('img/followGTwhite.svg') }}" alt="Logo">
+            </div>
+            <div class="header-title text-white col h5 {{ isDashboardExt ? 'ext-title-font' }}">
+                <div class="row align-items-end h-100">
+                    <span class="col-12">
+                        {% if block("title") is defined %}
+                            {{ block('title') }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
