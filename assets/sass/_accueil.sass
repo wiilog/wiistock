@@ -33,6 +33,16 @@
     &.half-height
         height: 38vh
 
+    &.dashboard-box-container-ext
+        &.fourth-height
+            height: 18vh
+
+        &.third-height
+            height: 33vh
+
+        &.half-height
+            height: 41vh
+
     &:not(:first-child)
         padding-left: 16px
 
@@ -162,11 +172,19 @@
     border-radius: 5px
     cursor: pointer
 
+    .icon
+        background-color: $white
+        width: 20px
+        height: 20px
+        display: block
+        -webkit-mask: url('../../public/svg/plusblanc.svg') no-repeat center
+        mask: url('../../public/svg/plusblanc.svg') no-repeat center
+
     &:hover
         background-color: $white
 
-        svg > path
-            fill: $backgroundBodyColorDark
+        .icon
+            background-color: $backgroundBodyColorDark
 
 .indicators
     position: absolute

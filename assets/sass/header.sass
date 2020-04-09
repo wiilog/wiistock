@@ -1,2 +1,43 @@
 nav.main-header
+    .menu-button
+        display: inline-block
+        cursor: pointer
+        padding: 1rem .5rem
+
+        .icon-menu
+            background-color: $white
+            width: 50px
+            height: 24px
+            display: block
+            -webkit-mask: url('../../public/svg/menu.svg') no-repeat center
+            mask: url('../../public/svg/menu.svg') no-repeat center
+
+        &:hover
+            background-color: $white
+
+            .icon-menu
+                background-color: $backgroundBodyColorDark !important
+
+    .dropdown-item
+        display: flex
+        align-items: center
+        padding-top: .8rem
+        padding-bottom: .8rem
+        &:active
+            background-color: grey
+            .label
+                color: white
+
+        .arrow-container
+            width: 10px
+            margin-right: 4rem
+
+        .label
+            font-size: 1.2rem
+        .icon-container
+            display: inline-flex
+            margin-right: 1rem
+            img
+                height: 23px
+                width: 23px
 

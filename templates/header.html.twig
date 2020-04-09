@@ -1,20 +1,73 @@
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
-
 <nav class="main-header mt-3">
     <div class="col-12">
-        <div class="row">
+        <div class="row align-items-center">
             <div class="col-2">
-                <img src="{{ asset('img/followGTwhite.svg') }}" alt="Logo">
+                <a href="{{ path('accueil') }}">
+                    <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT"/>
+                </a>
             </div>
-            <div class="header-title text-white col h5 {{ isDashboardExt ? 'ext-title-font' }}">
-                <div class="row align-items-end h-100">
-                    <span class="col-12">
-                        {% if block("title") is defined %}
-                            {{ block('title') }}
-                        {% endif %}
-                    </span>
+            <div class="header-title text-white col-auto h5 {{ isDashboardExt ? 'ext-title-font' }}">
+                {% if block("title") is defined %}
+                    {{ block('title') }}
+                {% endif %}
+            </div>
+            {% if not isDashboardExt
+                  and app.user is defined
+                  and app.user
+                  and app.user.username is defined %}
+                <div class="text-white col-auto h5 ml-auto">
+                    <span>{{app.user.username}}</span>
                 </div>
-            </div>
+                <div class="text-white col-auto dropdown dropleft">
+                    <div class="menu-button rounded pointer"
+                         data-toggle="dropdown"
+                         aria-haspopup="true"
+                         aria-expanded="false">
+                        <span class="icon-menu"></span>
+                    </div>
+                    <div class="dropdown-menu pointer mr-0">
+                        {% set menuConfig = getMenuConfig() %}
+                        {% for itemMenu in menuConfig %}
+                            {% if itemMenu.sub is defined %}
+                                <div class="text-white dropdown dropleft " onclick="event.stopPropagation()">
+                                    <div class="pointer dropdown-item dropdown-item-sub"
+                                         data-toggle="dropdown"
+                                         aria-haspopup="true"
+                                         aria-expanded="false">
+                                        {% include 'menu/menu-item.html.twig' with {
+                                            label: itemMenu.label,
+                                            icon: itemMenu.icon is defined ? itemMenu.icon,
+                                            isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
+                                            showArrow: true
+                                        } %}
+                                    </div>
+                                    <div class="dropdown-menu dropdown-menu-sub pointer">
+                                        {% for itemMenuSub in itemMenu.sub %}
+                                            {% include 'menu/menu-item.html.twig' with {
+                                                label: itemMenuSub.label,
+                                                icon: itemMenuSub.icon is defined ? itemMenuSub.icon,
+                                                isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
+                                                url: itemMenuSub.url is defined ? itemMenuSub.url : path(itemMenuSub.path)
+                                            } %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                {% include 'menu/menu-item.html.twig' with {
+                                    label: itemMenu.label,
+                                    icon: itemMenu.icon is defined ? itemMenu.icon,
+                                    isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
+                                    url: itemMenu.url is defined ? itemMenu.url : path(itemMenu.path),
+                                    isExtern: itemMenu.url is defined,
+                                    arrowPlaceholder: true,
+                                    iconPlaceholder: true
+                                } %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </nav>

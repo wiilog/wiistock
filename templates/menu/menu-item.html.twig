@@ -1,0 +1,32 @@
+{% set isLink = url is defined %}
+{% if isLink %}
+    <a class="dropdown-item"
+       {{ isExtern is defined and isExtern ? 'target="_blank"' }}
+       href="{{ url }}">
+{% endif %}
+
+    {% set showArrow = showArrow is defined and showArrow %}
+    {% if (arrowPlaceholder is defined and arrowPlaceholder)
+          or showArrow %}
+        <span class="mr-5 arrow-container user-select-none">
+            {% if showArrow %}
+                <i class="fas fa-chevron-left"></i>
+            {% endif %}
+        </span>
+    {% endif %}
+
+    {% if (iconPlaceholder is defined and iconPlaceholder)
+        or (icon is defined and icon is not empty)  %}
+        <span class="icon-container user-select-none">
+            {% if icon is defined and icon is not empty %}
+                <img alt="" src="{{ asset('svg/' ~ icon ~ '.svg') }}"/>
+            {% endif %}
+        </span>
+    {% endif %}
+
+    {% set isTranslation = isTranslation is defined and isTranslation %}
+    <span class="label user-select-none" title="{{ isTranslation ? label }}">{{ isTranslation ? label|trans : label }}</span>
+
+{% if isLink %}
+    </a>
+{% endif %}

@@ -17,6 +17,13 @@ FONT_SIZE_EXT = 40;
 
 
 $(function () {
+
+    refreshPageTitle();
+    const $carouselIndicators = $('#carouselIndicators');
+    $carouselIndicators.on('slid.bs.carousel', () => {
+        refreshPageTitle();
+    });
+
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
@@ -73,12 +80,6 @@ $(function () {
         } else if (e.which === 39) {
             activeBtn.next('li').click()
         }
-    });
-
-    refreshPageTitle();
-    const $carouselIndicators = $('#carouselIndicators');
-    $carouselIndicators.on('slid.bs.carousel', () => {
-        refreshPageTitle();
     });
 });
 
@@ -500,9 +501,12 @@ function isDashboardExt() {
 
 function refreshPageTitle() {
     const $carouselIndicators = $('#carouselIndicators');
-    const activeCarousel = $carouselIndicators.find('.carousel-item.active').first();
-    const pageTitle = activeCarousel.find('input.page-title').val() || '';
+    const $activeCarousel = $carouselIndicators.find('.carousel-item.active').first();
+    const $pageTitle = $activeCarousel.length > 0
+        ? $activeCarousel.find('input.page-title')
+        : $('input.page-title');
+    const pageTitle = $pageTitle.val() || '';
 
     document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
-    $('nav.main-header .header-title span').text(pageTitle);
+    $('nav.main-header .header-title').text(pageTitle);
 }
