@@ -172,6 +172,7 @@ class DashboardService
 
     /**
      * @param string $paramName
+     * @param bool $isPack
      * @param DateTime[]|null $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
      * @return array|null
      * @throws DBALException
@@ -279,7 +280,7 @@ class DashboardService
         $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
 
         if ($daysWorkedInWeek > 0) {
-            for ($weekIndex = ($nbWeeksToReturn - 1); $weekIndex >= 0; $weekIndex--) {
+            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1  ; $weekIndex--) {
                 $dateMin = new DateTime("monday $weekIndex weeks ago");
                 $dateMin->setTime(0, 0, 0);
                 $dateMax = new DateTime("sunday $weekIndex weeks ago");
