@@ -331,13 +331,13 @@
         </nav>
     {% endblock %}
     <div class="wrapper" class="accueil-back">
-        {% block page_filter %}
-
-        {% endblock %}
 
         <div class="container-fluid">
             {% block page_content %}
 
+                {% block page_filter %}
+
+                {% endblock %}
             {% endblock %}
 
             {% include 'alert/modal-alert.html.twig' %}

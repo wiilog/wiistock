@@ -2,35 +2,38 @@
 
 {% block title %}Traçabilité / Encours{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersEncours.html.twig' with {
-        page: 'PAGE_ENCOURS',
-        callback: 'loadPage'
-    } %}
-{% endblock %}
-
 {% block page_content %}
-    <div class="row">
-        <div class="col-10"><h1>Emplacements d'encours</h1></div>
-        <div class="col-2"><h2>Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</h2></div>
+    {% block page_filter %}
+        {% include 'filters/filtersEncours.html.twig' with {
+            page: 'PAGE_ENCOURS',
+            callback: 'loadPage'
+        } %}
+    {% endblock %}
+    <div class="col-12">
+        <div class="row">
+            <div class="col-10"><h1>Emplacements d'encours</h1></div>
+            <div class="col-2"><h2>Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</h2></div>
+        </div>
     </div>
     <br>
-    <div class="row">
-        {% if emplacements is empty %}
-            <div class="col-12">Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.</div>
-        {% endif %}
-        {% for emplacement in emplacements %}
-            <div class="col-12 col-xl-6 block-encours d-none">
-                <h1>Encours - {{ emplacement.label }}</h1>
-                <table class="table table-striped table-bordered encours-table w-100"
-                       id="{{ emplacement.id }}">
-                </table>
-            </div>
-        {% endfor %}
+    <div class="col-12">
+        <div class="row">
+            {% if emplacements is empty %}
+                <div class="col-12">Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.</div>
+            {% endif %}
+            {% for emplacement in emplacements %}
+                <div class="col-12 col-xl-6 block-encours d-none">
+                    <h1>Encours - {{ emplacement.label }}</h1>
+                    <table class="table table-striped table-bordered encours-table w-100"
+                           id="{{ emplacement.id }}">
+                    </table>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src = "{{ asset('js/encours.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/encours.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

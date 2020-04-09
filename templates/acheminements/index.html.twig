@@ -2,25 +2,28 @@
 
 {% block title %}Acheminements{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersAcheminements.html.twig' with {
-        'page': 'PAGE_ACHEMINEMENTS',
-        'tableSelector': '#tableAcheminement'
-    } %}
-{% endblock %}
-
 {% block page_content %}
-    <h1>Acheminements</h1>
 
-    <div class="row">
+    {% block page_filter %}
+        {% include 'filters/filtersAcheminements.html.twig' with {
+            'page': 'PAGE_ACHEMINEMENTS',
+            'tableSelector': '#tableAcheminement'
+        } %}
+    {% endblock %}
+    <div class="col-12">
+        <h1>Acheminements</h1>
+    </div>
+
+    <div class="col-12">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
-            <a href="" data-toggle="modal" data-target="#modalNewAcheminements" class="btn btn-primary" onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
+            <a href="" data-toggle="modal" data-target="#modalNewAcheminements" class="btn btn-primary"
+               onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
                 <span class="fa fa-plus mr-2"></span>Nouvel acheminement
             </a>
         {% endif %}
     </div>
 
-    <div>
+    <div class="col-12">
         <table id="tableAcheminement" class="table table-striped table-bordered w-100">
         </table>
     </div>

@@ -2,18 +2,23 @@
 
 {% block title %}Alertes{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersAlerte.html.twig' with {'page': 'PAGE_ALERTE', tableSelector: '#tableAlerte_id'} %}
-{% endblock %}
 
 {% block page_content %}
-    <h1>
-        Liste des alertes
-    </h1>
-    <table id="tableAlerte_id" class="table table-striped table-bordered w-100">
-    </table>
+
+    {% block page_filter %}
+        {% include 'filters/filtersAlerte.html.twig' with {'page': 'PAGE_ALERTE', tableSelector: '#tableAlerte_id'} %}
+    {% endblock %}
+    <div class="col-12">
+        <h1>
+            Liste des alertes
+        </h1>
+    </div>
+    <div class="col-12">
+        <table id="tableAlerte_id" class="table table-striped table-bordered w-100">
+        </table>
+    </div>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src = "{{ asset('js/alert.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/alert.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

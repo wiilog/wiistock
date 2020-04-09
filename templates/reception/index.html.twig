@@ -2,14 +2,15 @@
 
 {% block title %}Ordres {{ 'réception.de réception'|trans }}{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersReception.html.twig' with {
-        page: 'PAGE_RECEPTION',
-        tableSelector: '#tableReception_id'
-    } %}
-{% endblock %}
 
 {% block page_content %}
+
+    {% block page_filter %}
+        {% include 'filters/filtersReception.html.twig' with {
+            page: 'PAGE_RECEPTION',
+            tableSelector: '#tableReception_id'
+        } %}
+    {% endblock %}
     <div class="col-12">
         <h1>Ordres <span title="de réception">{{ 'réception.de réception'|trans }}</span></h1>
     </div>

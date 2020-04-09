@@ -2,20 +2,21 @@
 
 {% block title %}Ordres de livraison{% endblock %}
 
-{% block page_filter %}
-    {% include 'filters/filtersDemands.html.twig' with {
-        page: 'PAGE_ORDRE_LIVRAISON',
-        tableSelector: '#tableLivraison_id',
-        disabled: filtersDisabled,
-        displayDemandFilter: displayDemandFilter
-    } %}
-{% endblock %}
 
 {% block page_content %}
     {% set pageFilteredByDemand = (
         (filterDemandId is defined and filterDemandId is not null) and
         (filterDemandValue is defined and filterDemandValue is not null)
-    ) %}
+        ) %}
+
+    {% block page_filter %}
+        {% include 'filters/filtersDemands.html.twig' with {
+            page: 'PAGE_ORDRE_LIVRAISON',
+            tableSelector: '#tableLivraison_id',
+            disabled: filtersDisabled,
+            displayDemandFilter: displayDemandFilter
+        } %}
+    {% endblock %}
     <div class="col-12">
         <h1>Ordres de livraison</h1>
     </div>
@@ -57,5 +58,5 @@
     <script>
         let id = 0;
     </script>
-    <script src="{{asset('js/livraison.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/livraison.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
