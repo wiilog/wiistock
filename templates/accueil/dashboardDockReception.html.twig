@@ -3,7 +3,7 @@
     <div class="row align-items-start">
         <div class="col-10">
             <div class="row">
-                <div class="col-6 mt-3 mb-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} third-height">
+                <div class="col-6 mt-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }} third-height">
                     <div class="dashboard-box d-flex justify-content-start">
                         <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">Arrivages quotidiens</p>
                         {% if not isDashboardExt %}
@@ -18,7 +18,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6 mt-3 mb-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} third-height">
+                <div class="col-6 mt-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }} third-height">
                     <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }} d-flex justify-content-start">
                         <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">Arrivages hebdomadaires</p>
                         {% if not isDashboardExt %}
@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-12 mt-3 mb-3">
+                <div class="col-12 mt-3 {{ isDashboardExt ? 'mb-3' }}">
                     <div class="row">
                         <div class="col-3">
                             <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
@@ -96,7 +96,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-3 mt-3 mb-3">
+                <div class="col-3 mt-3 {{ isDashboardExt ? 'mb-3' }}">
                     <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
                         <div id="encours-dropzone-box" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
                             <div>
@@ -111,7 +111,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-9 mt-3 mb-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} third-height">
+                <div class="col-9 mt-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }} third-height">
                     <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
                         <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
                             Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
@@ -130,7 +130,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-2 mt-3 mb-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }}">
+        <div class="col-2 mt-3 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }}">
             <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }} dashboard-box-list">
                 <div class="title {{ isDashboardExt ? 'ext-title-font text-center bold' }}">
                     Suivi des transporteurs
