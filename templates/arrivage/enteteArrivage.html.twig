@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col">
+    <div class="col-auto">
         <h1><span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span> {{ arrivage.numeroarrivage }}</h1>
         <input hidden value="{{ arrivage.id }}" id="arrivageId">
         <input hidden value="{{ arrivage.numeroarrivage }}" id="numeroArrivage">
@@ -8,7 +8,7 @@
         <div class="d-none" id="barcodes"></div>
     </div>
 
-    <div class="col text-right">
+    <div class="col-auto ml-auto">
         <div class="btn-group split-button-container col-auto align-self-end">
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                 <button type="button"
