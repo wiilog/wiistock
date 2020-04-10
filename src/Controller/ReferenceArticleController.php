@@ -20,6 +20,7 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
@@ -313,7 +314,8 @@ class ReferenceArticleController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
@@ -407,32 +409,33 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setQuantiteStock(0);
             }
             $refArticle->setQuantiteReservee(0);
+
             foreach ($data['frl'] as $frl) {
-                $fournisseurId = explode(';', $frl)[0];
-                $ref = explode(';', $frl)[1];
-                $label = explode(';', $frl)[2];
-                $fournisseur = $fournisseurRepository->find(intval($fournisseurId));
+                $articleFournisseurData = explode(';', $frl);
 
-                // on vérifie que la référence article fournisseur n'existe pas déjà
-                $refFournisseurAlreadyExist = $articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
-                if ($refFournisseurAlreadyExist) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Ce nom de référence article fournisseur existe déjà. Vous ne pouvez pas le recréer.'
+                try {
+                    $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                        'fournisseur' => $articleFournisseurData[0],
+                        'article-reference' => $refArticle,
+                        'label' => $articleFournisseurData[2],
+                        'reference' => $articleFournisseurData[1]
                     ]);
+
+                    $entityManager->persist($articleFournisseur);
                 }
-
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setReferenceArticle($refArticle)
-                    ->setFournisseur($fournisseur)
-                    ->setReference($ref)
-                    ->setLabel($label);
-                $entityManager->persist($articleFournisseur);
-
+                catch (\Exception $exception) {
+                    if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => 'Ce nom de référence article fournisseur existe déjà. Vous ne pouvez pas le recréer.'
+                        ]);
+                    }
+                }
             }
+
             $entityManager->persist($refArticle);
             $entityManager->flush();
+
             $champsLibresKey = array_keys($data);
 
             foreach ($champsLibresKey as $champs) {
@@ -870,7 +873,8 @@ class ReferenceArticleController extends AbstractController
      * @throws SyntaxError
      */
     public function plusDemande(EntityManagerInterface $entityManager,
-                                Request $request): Response
+                                Request $request,
+                                ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -910,12 +914,13 @@ class ReferenceArticleController extends AbstractController
 						$statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
 						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 						$ref = $date->format('YmdHis');
-						$articleFournisseur = new ArticleFournisseur();
-						$articleFournisseur
-							->setReferenceArticle($refArticle)
-							->setFournisseur($fournisseurTemp)
-							->setReference($refArticle->getReference())
-							->setLabel('A déterminer -' . $index);
+						$articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                            'label' => 'A déterminer - ' . $index,
+                            'article-reference' => $refArticle,
+                            'reference' => $refArticle->getReference(),
+                            'fournisseur' => $fournisseurTemp
+                        ], true);
+
                         $entityManager->persist($articleFournisseur);
 						$newArticle
 							->setLabel($refArticle->getLibelle() . '-' . $index)

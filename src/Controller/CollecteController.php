@@ -25,6 +25,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
 
 use App\Service\ArticleDataService;
+use App\Service\ArticleFournisseurService;
 use App\Service\CollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -339,7 +340,8 @@ class CollecteController extends AbstractController
      * @throws SyntaxError
      */
     public function addArticle(Request $request,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager,
+                                ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -354,6 +356,7 @@ class CollecteController extends AbstractController
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
+
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $this->collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
@@ -388,12 +391,14 @@ class CollecteController extends AbstractController
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $ref = $date->format('YmdHis');
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setReferenceArticle($refArticle)
-                    ->setFournisseur($fournisseurTemp)
-                    ->setReference($refArticle->getReference())
-                    ->setLabel('A déterminer -' . $index);
+
+                $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                    'label' => 'A déterminer - ' . $index,
+                    'article-reference' => $refArticle,
+                    'reference' => $refArticle->getReference(),
+                    'fournisseur' => $fournisseurTemp
+                ], true);
+
                 $entityManager->persist($articleFournisseur);
                 $article
                     ->setLabel($refArticle->getLibelle() . '-' . $index)

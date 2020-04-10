@@ -106,7 +106,7 @@ class ArticleDataService
             if ($modifieRefArticle === true) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
             } else {
-                $data = false;
+                $data = [];
             }
 
             $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
@@ -122,8 +122,8 @@ class ArticleDataService
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                'articlesFournisseur' => ($data ? $data['listArticlesFournisseur'] : ''),
-                'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : ''),
+                'articlesFournisseur' => (isset($data['listArticlesFournisseur']) ? $data['listArticlesFournisseur'] : ''),
+                'totalQuantity' => (isset($data['totalQuantity']) ? $data['totalQuantity'] : ''),
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);

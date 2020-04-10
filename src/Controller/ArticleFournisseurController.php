@@ -7,8 +7,11 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Service\ArticleFournisseurService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use mysql_xdevapi\Exception;
+use phpDocumentor\Reflection\Types\String_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -79,46 +82,37 @@ class ArticleFournisseurController extends AbstractController
      * @Route("/creer", name="article_fournisseur_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      */
     public function new(Request $request,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        ArticleFournisseurService $articleFournisseurService): Response
     {
+        $dataResponse = [];
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
-            $referenceArticle = $referenceArticleRepository->find(intval($data['article-reference']));
-
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-//            $count = $articleFournisseurRepository->countByReferenceAndReferenceArticle($data['reference'],$data['article-reference']);
-            $already = $articleFournisseurRepository->findByReferenceArticleFournisseur($data['reference']);
-            $dataResponse = [];
-            if (empty($already)){
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setFournisseur($fournisseur)
-                    ->setReference($data['reference'])
-                    ->setReferenceArticle($referenceArticle);
+            try {
+                $articleFournisseur = $articleFournisseurService->createArticleFournisseur($data);
 
                 $entityManager->persist($articleFournisseur);
                 $entityManager->flush();
 
                 $dataResponse['success'] = true;
             }
-            else {
+            catch (\Exception $exception) {
+                if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                    $dataResponse['message'] = 'La référence existe déjà';
+                } else {
+                    $dataResponse['message'] = 'Une erreur est survenue';
+                }
                 $dataResponse['success'] = false;
-                $dataResponse['message'] = "La référence est déja utilisée";
             }
-            return new JsonResponse($dataResponse);
         }
-
-        throw new NotFoundHttpException("404");
+        return new JsonResponse($dataResponse);
     }
 
     /**
@@ -243,6 +237,7 @@ class ArticleFournisseurController extends AbstractController
         $url['delete'] = $this->generateUrl('article_fournisseur_delete', ['id' => $articleFournisseurId]);
 
         $row = [
+            'label' => $articleFournisseur ->getLabel(),
             'Code Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
             'Référence' => $articleFournisseur->getReference(),
             'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
@@ -251,7 +246,6 @@ class ArticleFournisseurController extends AbstractController
                 'id' => $articleFournisseurId
             ]),
         ];
-
         return $row;
     }
 }

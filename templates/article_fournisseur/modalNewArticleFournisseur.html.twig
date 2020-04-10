@@ -2,6 +2,7 @@
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
+
             <div class="modal-header">
                 <h5 class="modal-title">Nouvel article fournisseur</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -9,6 +10,17 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
+
+                <div class="form-group">
+                    <label for="reference">Référence*</label>
+                    <input type="text" id="reference" class="form-control data needed" name="reference">
+                </div>
+
+            <div class="form-group">
+                <label for="label">Libellé</label>
+                <input type="text" id="label" class="form-control data" name="label">
+            </div>
+
                 <div class="form-group w-100">
                     <label for="fournisseur">Code Fournisseur*</label>
                     <select class="form-control data ajax-autocomplete-fournisseur needed" name="fournisseur" id="fournisseur">
@@ -18,17 +30,12 @@
                 <div class="form-group w-100">
                     <label for="article-reference">Article de référence*</label>
                     <select class="form-control data ajax-autocomplete needed" name="article-reference" id="article-reference">
-
                     </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="reference">Référence*</label>
-                    <input type="text" id="reference" class="form-control data needed" name="reference">
                 </div>
 
             </div>
             <div class="error-msg p-4"></div>
+
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewArticleFournisseur" type="button" class="btn btn-success">Enregistrer</button>
