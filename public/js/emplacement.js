@@ -21,7 +21,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         overrideSearchEmplacement();
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
         {"data": 'Description', 'name': 'Description', 'title': 'Description'},
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
@@ -31,8 +31,10 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     buttons: [
         'copy', 'excel', 'pdf'
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
     columnDefs: [
-        { "orderable": false, "targets": 5 },
         { "orderable": false, "targets": 0 }
     ]
 });
@@ -86,21 +88,26 @@ function overrideSearchEmplacement() {
     let $input = $('#tableEmplacement_id_filter input');
     $input.off();
     $input.on('keyup', function (e) {
-        let $printButton = $('.emplacement').find('.printButton');
+        let $printButton = $('.printButton');
         if (e.key === 'Enter') {
             if ($input.val() === '') {
+                $printButton.removeClass('pointer');
                 $printButton.addClass('btn-disabled');
                 $printButton.removeClass('btn-primary');
                 managePrintButtonTooltip(true, $printTag);
             } else {
                 $printButton.removeClass('btn-disabled');
-                $printButton.addClass('btn-primary');
+                if ($printButton.is('button')) {
+                    $printButton.addClass('btn-primary');
+                }
+                $printButton.addClass('pointer');
                 managePrintButtonTooltip(false, $printTag);
             }
             tableEmplacement.search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
             $printButton.addClass('btn-disabled');
             $printButton.removeClass('btn-primary');
+            $printButton.removeClass('pointer');
             managePrintButtonTooltip(true, $printTag);
         }
     });

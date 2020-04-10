@@ -1,15 +1,17 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ typeId }}' data-toggle='modal' data-target='#modalEditType'
-             onclick="editRow($(this), Routing.generate('types_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-    </div>
-
-    <div onclick="checkAndDeleteRow($(this), '#modalDeleteType', 'types_check_delete', '#submitDeleteType')"
-         data-id='{{ typeId }}' data-target='#modalDeleteType' data-toggle='modal'>
-        <div class="btn btn-col-action">
-            <i class='fas fa-trash'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            <div class="d-none">
+                <div class="btn btn-col-action action-on-click" data-id='{{ typeId }}' data-toggle='modal' data-target='#modalEditType'
+                     onclick="editRow($(this), Routing.generate('types_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            </div>
+            <div onclick="checkAndDeleteRow($(this), '#modalDeleteType', 'types_check_delete', '#submitDeleteType')"
+                 data-id='{{ typeId }}' data-target='#modalDeleteType' data-toggle='modal' class="dropdown-item">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
         </div>
     </div>
 </div>

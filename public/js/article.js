@@ -35,13 +35,18 @@ function initTableArticle() {
                 initComplete: function () {
                     hideSpinner($('#spinner'));
                     init();
-                    overrideSearchArticle();
                     hideAndShowColumns(columns);
+                    overrideSearch($('#tableArticle_id_filter input'), tableArticle, function ($input) {
+                        manageArticleAndRefSearch($input);
+                    });
                 },
-                columns: columns.map((column) => ({
-                    ...column,
-                    class: undefined
-                })),
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'Actions' ? 'noVis' : undefined,
+                        title: column.title === 'Actions' ? '' : column.title
+                    }
+                }),
                 columnDefs: [
                     {
                         orderable: false,
@@ -51,6 +56,9 @@ function initTableArticle() {
                 "drawCallback": function (settings) {
                     resizeTable();
                 },
+                rowCallback: function(row, data) {
+                    initActionOnRow(row);
+                }
             });
     });
 }
@@ -200,31 +208,6 @@ function changeStatus(button) {
 
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-}
-
-function overrideSearchArticle() {
-    let $input = $('#tableArticle_id_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        let $printBtn = $('.justify-content-end').find('.printButton');
-        if (e.key === 'Enter') {
-            if ($input.val() === '') {
-                $printBtn.addClass('btn-disabled');
-                $printBtn.removeClass('btn-primary');
-                managePrintButtonTooltip(true, $printTag);
-            } else {
-                $printBtn.removeClass('btn-disabled');
-                $printBtn.addClass('btn-primary');
-                managePrintButtonTooltip(false, $printTag);
-            }
-            tableArticle.search(this.value).draw();
-        } else if (e.key === 'Backspace' && $input.val() === '') {
-            $printBtn.addClass('btn-disabled');
-            $printBtn.removeClass('btn-primary');
-            managePrintButtonTooltip(true, $printTag);
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
 }
 
 function printArticlesBarCodes() {

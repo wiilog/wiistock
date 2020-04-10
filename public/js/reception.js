@@ -43,7 +43,7 @@ $(function () {
             $(thead).find('th').eq(5).attr('title', "n° de réception");
         },
         columns: [
-            {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+            {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis'},
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
@@ -55,6 +55,7 @@ $(function () {
         ],
         rowCallback: function (row, data) {
             $(row).addClass(data.urgence ? 'table-danger' : '');
+            initActionOnRow(row);
         }
     });
 

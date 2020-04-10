@@ -864,7 +864,6 @@ function saveFilters(page, tableSelector, callback) {
     if ($filterDateMaxPicker) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
     }
-
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
@@ -1497,4 +1496,30 @@ function registerDropdownPosition() {
         $(e.target).append(dropdownMenu.detach());
         dropdownMenu.hide();
     });
+}
+
+function initActionOnRow(row) {
+    if ($(row).find('.action-on-click').get(0)) {
+        $(row).addClass('pointer');
+        $(row).find('td:not(.noVis)').click(function () {
+            $(row).find('.action-on-click').get(0).click();
+        })
+    }
+}
+
+function manageArticleAndRefSearch($input) {
+    let $printBtn = $('#printTag');
+    $printBtn.parent().tooltip('dispose');
+    if ($input.val() === '') {
+        $printBtn.parent().addClass('has-tooltip');
+        $printBtn.addClass('btn-disabled');
+        $printBtn.removeClass('btn-primary');
+    } else {
+        $printBtn.parent().removeClass('has-tooltip');
+        $printBtn.removeClass('btn-disabled');
+        if ($printBtn.is('button')) {
+            $printBtn.addClass('btn-primary');
+        }
+    }
+    initTooltips($('.has-tooltip'));
 }

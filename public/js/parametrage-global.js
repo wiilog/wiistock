@@ -9,21 +9,24 @@ let tableDays = $('#tableDays').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Day', 'title': 'Jour'},
         {"data": 'Worked', 'title': 'Travaillé'},
         {"data": 'Times', 'title': 'Horaires de travail'},
         {"data": 'Order', 'title': 'Ordre'},
-        {"data": 'Actions', 'title': 'Actions'},
     ],
     order: [
-        [3, 'asc']
+        [4, 'asc']
     ],
     columnDefs: [
         {
-            'targets': [3],
+            'targets': [0],
             'visible': false
         }
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    }
 });
 
 let modalEditDays = $('#modalEditDays');

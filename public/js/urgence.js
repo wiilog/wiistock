@@ -29,7 +29,7 @@ function initPage() {
         },
         order: [[1, "desc"]],
         columns:[
-            { "data": 'actions', 'title': 'Actions', 'orderable': false },
+            { "data": 'actions', 'title': '', 'orderable': false, className: 'noVis'},
             { "data": 'start', 'name' : 'start', 'title' : $('#dateBeginTranslation').val() },
             { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
             { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
@@ -49,6 +49,9 @@ function initPage() {
             $(thead).find('th').eq(3).attr('title', "numéro de commande");
             $(thead).find('th').eq(5).attr('title', "acheteur");
             $(thead).find('th').eq(9).attr('title', "arrivage");
+        },
+        rowCallback: function(row, data) {
+            initActionOnRow(row);
         },
         columnDefs: [
             {

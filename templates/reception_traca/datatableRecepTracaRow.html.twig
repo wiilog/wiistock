@@ -1,9 +1,14 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
-        <div data-id='{{ recep.id }}' data-target='#modalDeleteRecepTraca' data-toggle='modal'
-             class='btn btn-col-action'
-             onclick="deleteRow($(this), $('#modalDeleteRecepTraca'), $('#submitDeleteRecepTraca'))">
-            <i class='fas fa-trash'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
+                <div data-id='{{ recep.id }}' data-target='#modalDeleteRecepTraca' data-toggle='modal'
+                     class='dropdown-item'
+                     onclick="deleteRow($(this), $('#modalDeleteRecepTraca'), $('#submitDeleteRecepTraca'))">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
 </div>

@@ -10,7 +10,7 @@ let tableChauffeur = $('#tableChauffeur_id').DataTable({
     },
     order: [[1, 'desc']],
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Nom', 'name': 'Nom', 'title': 'Nom' },
         { "data": 'Prénom', 'name': 'Prénom', 'title': 'Prénom' },
         { "data": 'DocumentID', 'name': 'DocumentID', 'title': 'DocumentID' },
@@ -22,6 +22,9 @@ let tableChauffeur = $('#tableChauffeur_id').DataTable({
             "targets" : 0
         },
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
 });
 
 

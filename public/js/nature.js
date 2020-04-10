@@ -10,17 +10,21 @@ let tableNature = $('#tableNatures').DataTable({
     columnDefs: [
         {
             orderable: false,
-            targets: 5
+            targets: 0
         }
     ],
+    order: [1, 'asc'],
     columns:[
+        { "data": 'Actions', 'title' : '', className: 'noVis' },
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'Code', 'title' : 'Code' },
         { "data": 'Quantité par défaut', 'title' : 'Quantité par défaut' },
         { "data": 'Préfixe', 'title' : 'Préfixe' },
         { "data": 'Couleur', 'title' : 'Couleur' },
-        { "data": 'Actions', 'title' : 'Actions' }
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
 });
 
 let modalNewNature = $("#modalNewNature");

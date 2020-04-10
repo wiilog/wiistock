@@ -1,11 +1,6 @@
 <div class="d-flex">
     <div class="dropdown">
-        <a href="#"
-           data-toggle="dropdown"
-           aria-haspopup="true"
-           aria-expanded="false">
-            <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px"/>
-        </a>
+        {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu pointer">
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
                 <div id='edit{{idRefArticle}}' class="dropdown-item d-none">

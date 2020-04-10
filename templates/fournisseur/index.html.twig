@@ -1,41 +1,35 @@
- {% extends 'layout.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}Référentiel / Fournisseurs{% endblock %}
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
 {% block page_content %}
-<h1>Fournisseurs</h1>
-
-<div class="row ">
-
-    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-        <a href="" data-toggle="modal" data-target="#modalNewFournisseur" class="btn btn-primary float-left">
-            <span class="fa fa-plus mr-2"></span>Nouveau Fournisseur
-        </a>
-    {% endif %}
-</div>
-
-<table id="tableFournisseur_id" class="table table-striped table-bordered w-100">
-    <thead>
-        <tr>
-            <th>Nom</th>
-            <th>Code de référence</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-</table>
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row">
+            <h1 class="col align-self-start ml-2">Fournisseurs</h1>
+            <div class="col-auto">
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+                    <a href="" data-toggle="modal" data-target="#modalNewFournisseur" class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>Nouveau Fournisseur
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-12">
+                <table id="tableFournisseur_id" class="table w-100">
+                </table>
+            </div>
+        </div>
+    </div>
 
 
-{% include "fournisseur/modalDeleteFournisseur.html.twig" %}
-{% include "fournisseur/modalEditFournisseur.html.twig" %}
-{% include "fournisseur/modalNewFournisseur.html.twig" %}
-
-
-
-
+    {% include "fournisseur/modalDeleteFournisseur.html.twig" %}
+    {% include "fournisseur/modalEditFournisseur.html.twig" %}
+    {% include "fournisseur/modalNewFournisseur.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/fournisseur.js')}}?{{ date().timestamp }}"> </script>
+    <script src="{{ asset('js/fournisseur.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
 

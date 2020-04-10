@@ -1,36 +1,38 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Export de données{% endblock %}
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
 {% block page_content %}
+    <div class="m-4 datatable-container shadow-lg">
+        <h1>Exports de données</h1>
+        <p class="pl-0"><i class="fa fa-exclamation-triangle mr-2"></i>tâches très gourmandes en ressources serveurs et en temps </p>
+        <br>
 
-    <h1>Exports de données</h1>
-    <p class="pl-0"><i class="fa fa-exclamation-triangle mr-2"></i>tâches très gourmandes en ressources serveurs et en temps </p>
-<br>
+        <div class="row justify-content-center">
+            <label>Références</label>
+        </div>
+        <div class='row justify-content-center'>
+            <div class="btn btn-primary" onclick='initExport($(this), "ref")'>
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+            </div>
+        </div>
 
-<div class="row justify-content-center">
-    <label>Références</label>
-</div>
-<div class='row justify-content-center'>
-    <div class="btn btn-primary" onclick='initExport($(this), "ref")'>
-        <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+        <hr>
+
+        <div class="row justify-content-center">
+            <label>Articles</label>
+        </div>
+
+        <div class='row justify-content-center'>
+            <div class="btn btn-primary" onclick='initExport($(this), "art")'>
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+            </div>
+        </div>
+
+        <hr>
     </div>
-</div>
-
-<hr>
-
-<div class="row justify-content-center">
-    <label>Articles</label>
-</div>
-
-<div class='row justify-content-center'>
-    <div class="btn btn-primary" onclick='initExport($(this), "art")'>
-        <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-    </div>
-</div>
-
-<hr>
-
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

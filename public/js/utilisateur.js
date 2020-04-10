@@ -10,13 +10,16 @@ let tableUser = $('#tableUser_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'title': 'Actions', orderable: false },
+        { "data": 'Actions', 'title': '', orderable: false, className: 'noVis' },
         { "data": "Nom d'utilisateur", 'title': "Nom d'utilisateur" },
         { "data": "Email", 'title': 'Email' },
         { "data": "Dropzone", 'title': 'Drop zone' },
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
         { "data": "Rôle", 'title': 'Rôle', orderable: false },
     ],
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     order: [[1, 'asc']]
 });
 

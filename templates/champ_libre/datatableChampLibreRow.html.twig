@@ -1,15 +1,18 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ idChampLibre }}' data-toggle='modal' data-target='#modalEditChampLibre'
-             onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampLibre'), false, '', false, () => {defaultValueForTypage($('#modalEditChampLibre .typageModif'))})">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-    </div>
-    <div>
-        <div class="btn btn-col-action"
-             onclick="deleteRow($(this), $('#modalDeleteChampLibre'), $('#submitChampLibreDelete'))"
-             data-id={{ idChampLibre }} data-target='#modalDeleteChampLibre' data-toggle='modal'>
-            <i class='fas fa-trash'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            <div class="d-none">
+                <div class="action-on-click" data-id='{{ idChampLibre }}' data-toggle='modal' data-target='#modalEditChampLibre'
+                     onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampLibre'), false, '', false, () => {defaultValueForTypage($('#modalEditChampLibre .typageModif'))})">
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            </div>
+            <div class="dropdown-item"
+                 onclick="deleteRow($(this), $('#modalDeleteChampLibre'), $('#submitChampLibreDelete'))"
+                 data-id={{ idChampLibre }} data-target='#modalDeleteChampLibre' data-toggle='modal'>
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
         </div>
     </div>
 </div>

@@ -12,9 +12,9 @@ let tableType = $('#tableType_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'title': 'Actions' },
-        { "data": 'Label', 'title': 'Libellé' },
-        { "data": "S'applique", 'title': "S'applique à" },
+        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Label', 'title': 'Libellé'},
+        {"data": "S'applique", 'title': "S'applique à"},
     ],
     columnDefs: [
         {
@@ -22,6 +22,9 @@ let tableType = $('#tableType_id').DataTable({
             targets: 0
         }
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
     order: [[2, "asc"]],
 });
 
@@ -47,20 +50,24 @@ let tableChampLibre = $('#tableChamplibre_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    order: [1, 'asc'],
     ajax: {
         "url": urlApiChampLibre,
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'title': 'Actions' },
-        { "data": 'Label', 'title': 'Libellé' },
-        { "data": "S'applique à", 'title': "S'applique à" },
-        { "data": 'Typage', 'title': 'Typage' },
-        { "data": 'Valeur par défaut', 'title': 'Valeur par défaut' },
-        { "data": 'Elements', 'title': 'Éléments' },
-        { "data": 'Obligatoire à la création', 'title': 'Obligatoire à la création' },
-        { "data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification' },
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
+        {"data": 'Label', 'title': 'Libellé'},
+        {"data": "S'applique à", 'title': "S'applique à"},
+        {"data": 'Typage', 'title': 'Typage'},
+        {"data": 'Valeur par défaut', 'title': 'Valeur par défaut'},
+        {"data": 'Elements', 'title': 'Éléments'},
+        {"data": 'Obligatoire à la création', 'title': 'Obligatoire à la création'},
+        {"data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
 });
 
 let $modalNewChampLibre = $("#modalNewChampLibre");
@@ -86,7 +93,7 @@ function askForDeleteConfirmation(data) {
         let submit = $('#submitDeleteType');
 
         let typeId = submit.val();
-        let params = JSON.stringify({ force: true, type: typeId });
+        let params = JSON.stringify({force: true, type: typeId});
 
         submit.on('click', function () {
             $.post(Routing.generate('type_delete'), params, function () {

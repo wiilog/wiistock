@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
     initDateTimePicker('#dateMin, #dateMax');
     initSelect2($('#statut'), 'Statut');
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
@@ -19,24 +19,27 @@ let tableImport = $('#tableImport').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax:{
+    ajax: {
         "url": pathImport,
         "type": "POST"
     },
     columns: [
-        { "data": 'actions', 'title': 'Actions', orderable: false },
-        { "data": 'id', visible: false },
-        { "data": 'status', 'title': 'Statut' },
-        { "data": 'startDate', 'title': 'Date début' },
-        { "data": 'endDate', 'title': 'Date fin' },
-        { "data": 'label', 'title': 'Nom import' },
-        { "data": 'newEntries', 'title': 'Nvx enreg.' },
-        { "data": 'updatedEntries', 'title': 'Mises à jour' },
-        { "data": 'nbErrors', 'title': "Nombre d'erreurs" },
-        { "data": 'user', 'title': 'Utilisateur' },
+        {"data": 'actions', 'title': '', orderable: false, className: 'noVis'},
+        {"data": 'id', visible: false},
+        {"data": 'status', 'title': 'Statut'},
+        {"data": 'startDate', 'title': 'Date début'},
+        {"data": 'endDate', 'title': 'Date fin'},
+        {"data": 'label', 'title': 'Nom import'},
+        {"data": 'newEntries', 'title': 'Nvx enreg.'},
+        {"data": 'updatedEntries', 'title': 'Mises à jour'},
+        {"data": 'nbErrors', 'title': "Nombre d'erreurs"},
+        {"data": 'user', 'title': 'Utilisateur'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
     order: [[1, "desc"]],
-    drawCallback: function() {
+    drawCallback: function () {
         overrideSearch($('#tableImport_filter input'), tableImport);
         initTooltips($('.has-tooltip'));
         initDoubleClick('.status-planifié');
@@ -55,7 +58,7 @@ function displayFirstModal(importId = null) {
     let urlNewImportFirst = Routing.generate('import_new', true);
     initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
 
-    $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function(resp) {
+    $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function (resp) {
         $modalNewImport.find('.modal-body').html(resp);
         if (importId) {
             $inputImportId.val(importId);
@@ -93,8 +96,8 @@ function displayConfirmationModal(importId, data) {
 function openConfirmCancelModal(importId) {
     let $submitCancelImport = $('#submitCancelImport');
     $submitCancelImport.off();
-    $submitCancelImport.on('click', function() {
-        $.post(Routing.generate('import_cancel'), {importId: importId}, function() {
+    $submitCancelImport.on('click', function () {
+        $.post(Routing.generate('import_cancel'), {importId: importId}, function () {
             tableImport.ajax.reload();
         });
     });
@@ -127,7 +130,7 @@ function updateOptions($select) {
 
     if (selectedValues.length > 0) {
         let $optionsToDisable = $tbody.find(selectedValues.join(','));
-        $optionsToDisable.each(function() {
+        $optionsToDisable.each(function () {
             if ($(this).closest('select').val() !== $(this).val()) {
                 $(this).attr('disabled', 'disabled');
             }
@@ -170,8 +173,7 @@ function launchImport(importId, force = false) {
 
             tableImport.ajax.reload();
         });
-    }
-    else {
+    } else {
         alertErrorMsg('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.');
     }
 }

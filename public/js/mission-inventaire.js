@@ -19,19 +19,22 @@ let tableMissions = $('#tableMissionsInv').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[0, 'desc']],
+    order: [[1, 'desc']],
     ajax:{
         "url": pathMissions,
         "type": "POST"
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columns:[
+        { "data": 'Actions', 'title' : '', className: 'noVis' },
         { "data": 'StartDate', 'title' : 'Date de début', 'name' : 'date' },
         { "data": 'EndDate', 'title' : 'Date de fin' },
         { "data": 'Rate', 'title' : 'Taux d\'avancement' },
-        { "data": 'Actions', 'title' : 'Actions' }
     ],
     columnDefs: [
-        {'orderable': false, 'targets': [2, 3]}
+        {'orderable': false, 'targets': [0, 3]}
     ],
 });
 

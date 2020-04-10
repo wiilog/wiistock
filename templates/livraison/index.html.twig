@@ -1,51 +1,62 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Ordres de livraison{% endblock %}
-
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
+{% block page_filter %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        page: 'PAGE_ORDRE_LIVRAISON',
+        tableSelector: '#tableLivraison_id',
+        disabled: filtersDisabled,
+        displayDemandFilter: displayDemandFilter
+    } %}
+{% endblock %}
 {% block page_content %}
     {% set pageFilteredByDemand = (
         (filterDemandId is defined and filterDemandId is not null) and
         (filterDemandValue is defined and filterDemandValue is not null)
         ) %}
-
-    {% block page_filter %}
-        {% include 'filters/filtersDemands.html.twig' with {
-            page: 'PAGE_ORDRE_LIVRAISON',
-            tableSelector: '#tableLivraison_id',
-            disabled: filtersDisabled,
-            displayDemandFilter: displayDemandFilter
-        } %}
-    {% endblock %}
-    <div class="col-12">
-        <h1>Ordres de livraison</h1>
-    </div>
-
-    <div class="col-12">
+    <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
-                <div class="btn btn-primary" onclick="generateCSV('get_ordres_livraison_for_csv', 'ordre-livr')">
-                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                </div>
-            {% endif %}
-            {% if pageFilteredByDemand %}
-                <div class="col-auto">
-                    <a href="{{ path('livraison_index') }}" class='btn btn-primary btn-action'>Voir tous les ordres</a>
-                    <a href="{{ path('demande_show', {'id': filterDemandId}) }}" class='btn btn-action'>Retour à la demande</a>
-                </div>
-            {% endif %}
+            <h1 class="col align-self-start ml-2">Ordres de livraison</h1>
+            <div class="col-auto">
+                {% if pageFilteredByDemand %}
+                    <div class="btn-group split-button-container col-auto">
+                        {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
+                            <div class="btn btn-primary btn-ripple btn-ripple split-button"
+                                 onclick="generateCSV('get_ordres_livraison_for_csv', 'ordre-livr')">
+                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                            </div>
+                        {% endif %}
+                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu mr-5 pointer {{ not hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) ? 'dropdown-single' }}">
+                            <a href="{{ path('livraison_index') }}" class='dropdown-item'>Voir tous les ordres</a>
+                            <a href="{{ path('demande_show', {'id': filterDemandId}) }}" class='dropdown-item'>Retour à la demande</a>
+                        </div>
+                    </div>
+                {% else %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
+                        <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_ordres_livraison_for_csv', 'ordre-livr')">
+                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
         </div>
-    </div>
 
-    <div class="d-none justify-content-center" id="spinner">
-        <div class="spinner-border sizeLoader" role="status">
-            <span class="sr-only">Loading...</span>
+        <div class="col-12">
+            <div class="d-none justify-content-center" id="spinner">
+                <div class="spinner-border sizeLoader" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <table id="tableLivraison_id" class="table w-100">
+            </table>
         </div>
-    </div>
-
-    <div class="col-12 mt-5">
-        <table id="tableLivraison_id" class="table table-striped table-bordered w-100">
-        </table>
     </div>
     {% if pageFilteredByDemand %}
         <input hidden id="filterDemandId" value="{{ filterDemandId }}"/>

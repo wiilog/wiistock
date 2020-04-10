@@ -3,15 +3,19 @@ let tableRoles = $('#tableRoles').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    order: [1, 'asc'],
     ajax:{
         "url": pathRoles,
         "type": "POST"
     },
     columns:[
+        { "data": 'Actions', 'title' : '', className: 'noVis'},
         { "data": 'Nom', 'title' : 'Nom' },
         { "data": 'Actif', 'title' : 'Actif' },
-        { "data": 'Actions', 'title' : 'Actions' }
     ],
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
 });
 
 let modalNewRole = $("#modalNewRole");

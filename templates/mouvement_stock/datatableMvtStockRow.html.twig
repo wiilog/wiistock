@@ -1,9 +1,14 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
-        <div data-id='{{ mvt.id }}' data-target='#modalDeleteMvtStock' data-toggle='modal'
-             class='btn btn-col-action'
-             onclick="deleteRow($(this), $('#modalDeleteMvtStock'), $('#submitDeleteMvtStock'))">
-            <i class='fas fa-trash'></i>
+    <div class="dropdown {{ not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
+                <div data-id='{{ mvt.id }}' data-target='#modalDeleteMvtStock' data-toggle='modal'
+                     class='dropdown-item'
+                     onclick="deleteRow($(this), $('#modalDeleteMvtStock'), $('#submitDeleteMvtStock'))">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
 </div>

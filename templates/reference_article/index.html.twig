@@ -53,7 +53,7 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu mr-5">
+                    <div class="dropdown-menu pointer mr-5">
                         <span class="d-inline-block ml-2 {{ filters | length == 0 ?  "has-tooltip"  :" " }}" tabindex="0" data-toggle="tooltip"
                               title="Veuillez faire une recherche ou renseigner un filtre pour imprimer.">
                             <a class="dropdown-item pl-3 {{ filters | length > 0 ? '' : 'btn-disabled' }}" href="#" id="printTag"
@@ -65,12 +65,12 @@
                         <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
                             <span class="fa fa-search mr-2"></span>Recherche rapide</a>
                         <div class="statut dropdown-item">
-                            <div class="checkbox pl-0">
+                            <div class="checkbox pl-0 pointer">
                                 <input id="toggleActivOrInactiv"
                                        onchange="displayActifOrInactif($(this))"
                                        class="styled"
                                        type="checkbox" {{ wantInactif == false ? 'checked' : '' }}>
-                                <label for="toggleActivOrInactiv">
+                                <label for="toggleActivOrInactiv" class="pointer">
                                     Références actives seulement
                                 </label>
                             </div>
@@ -100,18 +100,18 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu mr-5">
+                    <div class="dropdown-menu pointer mr-5">
                         <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
                             <span class="fa fa-print mr-2"></span>Modifier colonnes</a>
                         <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
                             <span class="fa fa-search mr-2"></span>Recherche rapide</a>
                         <div class="statut dropdown-item">
-                            <div class="checkbox pl-0">
+                            <div class="checkbox pl-0 pointer">
                                 <input id="toggleActivOrInactiv"
                                        onchange="displayActifOrInactif($(this))"
                                        class="styled"
                                        type="checkbox" {{ wantInactif == false ? 'checked' : '' }}>
-                                <label for="toggleActivOrInactiv">
+                                <label for="toggleActivOrInactiv" class="pointer">
                                     Références actives seulement
                                 </label>
                             </div>
@@ -127,7 +127,7 @@
                         <span class="sr-only">Loading...</span>
                     </div>
                 </div>
-                <table id="tableRefArticle_id" class="table designed-table nowrap w-100">
+                <table id="tableRefArticle_id" class="table nowrap w-100">
                 </table>
             </div>
         </div>

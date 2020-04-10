@@ -1,9 +1,14 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
-        <a href='{{ url.show }}'>
-            <div class="btn btn-col-action">
-                <i class='fas fa-eye'></i>
-            </div>
-        </a>
-    {% endif %}
+    <div class="dropdown d-none">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
+                <a href='{{ url.show }}' class="action-on-click">
+                    <div class="btn btn-col-action">
+                        <i class='fas fa-eye'></i>
+                    </div>
+                </a>
+            {% endif %}
+        </div>
+    </div>
 </div>
