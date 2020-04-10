@@ -1,19 +1,21 @@
-{% extends 'base.html.twig' %}
+{% extends 'securite/unique-form-layout.html.twig' %}
 
 {% block title %}Connexion{% endblock %}
 
 {% block body %}
-    {% include 'header.html.twig' %}
+    {{ parent() }}
 
     {% if error %}
-    <div class="alert alert-danger text-center">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-        <strong>Erreur!</strong> {{ error }}</div>
+        <div class="alert alert-danger text-center">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <strong>Erreur!</strong> {{ error }}
+        </div>
     {% endif %}
     {% if info %}
         <div class="alert alert-success text-center">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            {{ info }}</div>
+            {{ info }}
+        </div>
     {% endif %}
 
     <div class="main-form-wrapper mt-3">

@@ -1,9 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'securite/unique-form-layout.html.twig' %}
 
 {% block title %}Créer un compte{% endblock %}
 
 {% block body %}
-    {% include 'header.html.twig' %}
+    {{ parent() }}
 
     <div class="main-form-wrapper mt-3">
         <div class="row">

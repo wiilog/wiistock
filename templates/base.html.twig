@@ -5,7 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{% block title %}FollowGT{% endblock %}</title>
+    {% set titlePrefix = 'FollowGT' %}
+    {% if block("title") is defined %}
+        <title>{{ titlePrefix }} | {{ block("title") }}</title>
+    {% else %}
+        <title>{{ titlePrefix }}</title>
+    {% endif %}
 
     <link rel="shortcut icon" href="{{ asset('img/favicon.ico') }}">
 
@@ -40,9 +45,7 @@
     {% endblock %}
 </head>
 
-
-
-<body {% block classbody %}{% endblock %}>
+<body>
 
     {% block body %}
     {% endblock %}
