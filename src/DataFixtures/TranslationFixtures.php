@@ -29,6 +29,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
      */
     public function load(ObjectManager $manager)
     {
+        $isCurrentClientCEA = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
         $translations = [
             'arrivage' => [
                 'flux - arrivages' => 'flux - arrivages',
@@ -75,10 +76,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Colis' => 'Colis'
             ],
             'reference' => [
-                'references' => $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)
-                    ? 'References CEA' : 'Références',
-                'reference' => $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)
-                    ? 'Reference CEA' : 'Référence'
+                'references' => $isCurrentClientCEA
+                    ? 'References CEA'
+                    : 'Références',
+                'reference' => $isCurrentClientCEA
+                    ? 'Reference CEA'
+                    : 'Référence'
             ]
         ];
 

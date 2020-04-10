@@ -55,7 +55,7 @@
         <div class="col text-right" id='boutonCollecteInf'>
             <a href="{{ path('reference_article_index') }}" data-toggle="modal"
                class="btn btn-primary btn-action ml-auto">
-                    Chercher une {{ 'reference.references'|trans }}
+                    Chercher une {{ 'reference.reference'|trans }}
             </a>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <a href="" data-toggle="modal" data-target="#modalNewArticle"
