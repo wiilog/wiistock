@@ -10,14 +10,11 @@ use App\Entity\FiltreSup;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\CollecteReferenceRepository;
 use App\Repository\MailerServerRepository;
-use App\Repository\MouvementTracaRepository;
-use App\Repository\OrdreCollecteReferenceRepository;
-use App\Repository\OrdreCollecteRepository;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -52,20 +49,6 @@ class OrdreCollecteService
 	 * @var MailerService
 	 */
 	private $mailerService;
-	/**
-	 * @var CollecteReferenceRepository
-	 */
-	private $collecteReferenceRepository;
-
-	/**
-	 * @var OrdreCollecteReferenceRepository
-	 */
-	private $ordreCollecteReferenceRepository;
-
-	/**
-	 * @var OrdreCollecteRepository
-	 */
-	private $ordreCollecteRepository;
 
 	/**
 	 * @var Utilisateur
@@ -82,10 +65,7 @@ class OrdreCollecteService
 
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
-    							OrdreCollecteRepository $ordreCollecteRepository,
-								OrdreCollecteReferenceRepository $ordreCollecteReferenceRepository,
 								MailerServerRepository $mailerServerRepository,
-                                CollecteReferenceRepository $collecteReferenceRepository,
                                 MailerService $mailerService,
                                 MouvementStockService $mouvementStockService,
                                 EntityManagerInterface $entityManager,
@@ -97,9 +77,6 @@ class OrdreCollecteService
 		$this->entityManager = $entityManager;
 		$this->mailerService = $mailerService;
 		$this->mouvementTracaService = $mouvementTracaService;
-		$this->collecteReferenceRepository = $collecteReferenceRepository;
-		$this->ordreCollecteReferenceRepository = $ordreCollecteReferenceRepository;
-		$this->ordreCollecteRepository = $ordreCollecteRepository;
 		$this->user = $tokenStorage->getToken()->getUser();
 		$this->router = $router;
 		$this->mouvementStockService = $mouvementStockService;
@@ -135,6 +112,7 @@ class OrdreCollecteService
 
 		$statutRepository = $em->getRepository(Statut::class);
 		$articleRepository = $em->getRepository(Article::class);
+		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
 
 
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
@@ -166,7 +144,7 @@ class OrdreCollecteService
 
 		// on construit la liste des lignes à transférer vers une nouvelle collecte
 		$rowsToRemove = [];
-		$listOrdreCollecteReference = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
+		$listOrdreCollecteReference = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
 		foreach ($listOrdreCollecteReference as $ordreCollecteReference) {
 			$refArticle = $ordreCollecteReference->getReferenceArticle();
 			if (!in_array($refArticle->getReference(), $listRefRef)) {
@@ -214,7 +192,7 @@ class OrdreCollecteService
 
 			foreach ($rowsToRemove as $mouvement) {
 				if ($mouvement['isRef'] == 1) {
-					$ordreCollecteRef = $this->ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($ordreCollecte, $mouvement['id']);
+					$ordreCollecteRef = $ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($ordreCollecte, $mouvement['id']);
 					$ordreCollecte->removeOrdreCollecteReference($ordreCollecteRef);
 					$newCollecte->addOrdreCollecteReference($ordreCollecteRef);
 				} else {
@@ -242,7 +220,7 @@ class OrdreCollecteService
 			->setDate($date);
 
 		// on modifie la quantité des articles de référence liés à la collecte
-		$collecteReferences = $this->ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
+		$collecteReferences = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
 
 		// cas de mise en stockage
 		if ($demandeCollecte->getStockOrDestruct()) {
@@ -325,6 +303,7 @@ class OrdreCollecteService
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $ordreCollecteRepository = $this->entityManager->getRepository(OrdreCollecte::class);
 
 		if ($demandeCollecteIdFilter) {
 			$filters = [
@@ -334,7 +313,7 @@ class OrdreCollecteService
 		} else {
 			$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ORDRE_COLLECTE, $this->user);
 		}
-		$queryResult = $this->ordreCollecteRepository->findByParamsAndFilters($params, $filters);
+		$queryResult = $ordreCollecteRepository->findByParamsAndFilters($params, $filters);
 
 		$collectes = $queryResult['data'];
 
@@ -375,17 +354,17 @@ class OrdreCollecteService
 		];
 	}
 
-	/**
-	 * @param Utilisateur $user
-	 * @param ReferenceArticle|Article $article
-	 * @param DateTime $date
-	 * @param Emplacement $locationFrom
-	 * @param Emplacement $locationTo
-	 * @param int $quantity
-	 * @param bool $fromNomade
-	 * @param OrdreCollecte $ordreCollecte
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param Utilisateur $user
+     * @param ReferenceArticle|Article $article
+     * @param DateTime $date
+     * @param Emplacement $locationFrom
+     * @param Emplacement $locationTo
+     * @param int $quantity
+     * @param bool $fromNomade
+     * @param OrdreCollecte $ordreCollecte
+     * @throws Exception
+     */
     private function persistMouvementsFromStock(Utilisateur $user,
                                                 $article,
                                                 ?DateTime $date,

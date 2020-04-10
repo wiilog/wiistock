@@ -275,23 +275,31 @@ class MouvementTracaRepository extends EntityRepository
         $locationIds = implode(',', $this->getIdsFromLocations($locations));
         $dropType = str_replace('\'', '\'\'', MouvementTraca::TYPE_DEPOSE);
 
+        $createInnerJoinIsDropFunction = function(string $aliasMouvementTraca) use ($dropType) {
+            return "INNER JOIN statut ON ${aliasMouvementTraca}.type_id = statut.id
+                                         AND statut.code = '${dropType}'";
+        };
+
+        $innerJoinIsDrop = $createInnerJoinIsDropFunction('unique_packs_in_location');
+
         if (!empty($onDateBracket)
             && isset($onDateBracket['minDate'])
             && isset($onDateBracket['maxDate'])) {
             $minDate = $onDateBracket['minDate']->format('Y-m-d H:i:s');
             $maxDate = $onDateBracket['maxDate']->format('Y-m-d H:i:s');
             $locationsInDateBracketClause = "WHERE max_datetime_packs_local.emplacement_id IN (${locationIds})";
+            $locationsInDateBracketInnerJoin = $createInnerJoinIsDropFunction('max_datetime_packs_local');
             $uniquePackInLocationClause = "AND unique_packs_in_location.datetime BETWEEN '${minDate}' AND '${maxDate}'";
         } else {
             $locationsInDateBracketClause = '';
+            $locationsInDateBracketInnerJoin = '';
             $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${locationIds})";
         }
 
         return "
             SELECT unique_packs_in_location.${field}
             FROM mouvement_traca AS unique_packs_in_location
-            INNER JOIN statut on unique_packs_in_location.type_id = statut.id
-                   AND statut.code = '${dropType}'
+            ${innerJoinIsDrop}
             WHERE unique_packs_in_location.id IN (
                     SELECT MAX(unique_packs.id) AS id
                     FROM mouvement_traca AS unique_packs
@@ -299,6 +307,7 @@ class MouvementTracaRepository extends EntityRepository
                         SELECT max_datetime_packs_local.colis         AS colis,
                                MAX(max_datetime_packs_local.datetime) AS datetime
                         FROM mouvement_traca max_datetime_packs_local
+                        ${locationsInDateBracketInnerJoin}
                         ${locationsInDateBracketClause}
                         GROUP BY max_datetime_packs_local.colis) max_datetime_packs ON max_datetime_packs.colis = unique_packs.colis
                                                                                    AND max_datetime_packs.datetime = unique_packs.datetime

@@ -3,10 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\DaysWorked;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method DaysWorked|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,13 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method DaysWorked[]    findAll()
  * @method DaysWorked[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DaysWorkedRepository extends ServiceEntityRepository
+class DaysWorkedRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, DaysWorked::class);
-    }
-
 	/**
 	 * @return DaysWorked[]
 	 */

@@ -3,9 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Chauffeur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Chauffeur|null find($id, $lockMode = null, $lockVersion = null)

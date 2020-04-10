@@ -4,8 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Collecte;
 use App\Entity\Utilisateur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method Collecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Collecte[]    findAll()
  * @method Collecte[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class CollecteRepository extends ServiceEntityRepository
+class CollecteRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Création' => 'date',
@@ -24,11 +23,6 @@ class CollecteRepository extends ServiceEntityRepository
         'Statut' => 'statut',
         'Type' => 'type',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Collecte::class);
-    }
 
     public function findByStatutLabelAndUser($statutLabel, $user)
     {

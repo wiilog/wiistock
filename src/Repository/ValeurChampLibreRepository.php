@@ -425,7 +425,7 @@ class ValeurChampLibreRepository extends EntityRepository
 		$em = $this->getEntityManager()->getConnection();
 		$sql =
 		/** @lang SQL */
-		"SELECT cl.label, temp.valeur
+		"SELECT cl.label, temp.valeur, cl.typage
 		FROM champ_libre cl
 			LEFT JOIN (
 				SELECT vcl.champ_libre_id clid ,vcl.valeur as valeur

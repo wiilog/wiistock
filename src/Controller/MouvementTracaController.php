@@ -13,8 +13,6 @@ use App\Entity\PieceJointe;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ColisRepository;
-use App\Repository\MouvementTracaRepository;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
@@ -91,7 +89,6 @@ class MouvementTracaController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);

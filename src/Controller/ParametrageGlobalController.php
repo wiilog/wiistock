@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
+use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -13,7 +14,6 @@ use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
-use App\Repository\DaysWorkedRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
@@ -261,17 +261,19 @@ class ParametrageGlobalController extends AbstractController
      * @Route("/api", name="days_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
-     * @param DaysWorkedRepository $daysWorkedRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function api(Request $request,
                         UserService $userService,
-                        DaysWorkedRepository $daysWorkedRepository): Response
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
 
             $days = $daysWorkedRepository->findAllOrdered();
             $rows = [];
@@ -300,17 +302,19 @@ class ParametrageGlobalController extends AbstractController
      * @Route("/api-modifier", name="days_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
-     * @param DaysWorkedRepository $daysWorkedRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function apiEdit(Request $request,
                             UserService $userService,
-                            DaysWorkedRepository $daysWorkedRepository): Response
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
 
             $day = $daysWorkedRepository->find($data['id']);
 
@@ -328,19 +332,20 @@ class ParametrageGlobalController extends AbstractController
      * @Route("/modifier", name="days_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
-     * @param DaysWorkedRepository $daysWorkedRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
                          UserService $userService,
-                         DaysWorkedRepository $daysWorkedRepository): Response
+                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
+
             $day = $daysWorkedRepository->find($data['day']);
             $dayName = $day->getDay();
 
@@ -371,8 +376,8 @@ class ParametrageGlobalController extends AbstractController
                 }
             }
 
-            $em->persist($day);
-            $em->flush();
+            $entityManager->persist($day);
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,

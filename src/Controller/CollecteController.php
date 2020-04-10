@@ -19,10 +19,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 
-use App\Repository\OrdreCollecteRepository;
-use App\Repository\CollecteRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\CollecteReferenceRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\ArticleFournisseurService;
@@ -53,21 +50,6 @@ class CollecteController extends AbstractController
 {
 
     /**
-     * @var OrdreCollecteRepository
-     */
-    private $ordreCollecteRepository;
-
-    /**
-     * @var CollecteReferenceRepository
-     */
-    private $collecteReferenceRepository;
-
-    /**
-     * @var CollecteRepository
-     */
-    private $collecteRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -82,7 +64,6 @@ class CollecteController extends AbstractController
      */
     private $userService;
 
-
     /**
      * @var ArticleDataService
      */
@@ -94,19 +75,13 @@ class CollecteController extends AbstractController
     private $collecteService;
 
 
-    public function __construct(OrdreCollecteRepository $ordreCollecteRepository,
-                                RefArticleDataService $refArticleDataService,
-                                CollecteReferenceRepository $collecteReferenceRepository,
-                                CollecteRepository $collecteRepository,
+    public function __construct(RefArticleDataService $refArticleDataService,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
                                 ArticleDataService $articleDataService,
                                 CollecteService $collecteService)
     {
-        $this->ordreCollecteRepository = $ordreCollecteRepository;
-        $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->collecteReferenceRepository = $collecteReferenceRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
@@ -166,11 +141,12 @@ class CollecteController extends AbstractController
         }
 
         $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+        $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
 		$valeursChampLibre = $valeurChampLibreRepository->getByDemandeCollecte($collecte);
 
 		return $this->render('collecte/show.html.twig', [
-            'refCollecte' => $this->collecteReferenceRepository->findByCollecte($collecte),
+            'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
 			'champsLibres' => $valeursChampLibre
@@ -341,7 +317,7 @@ class CollecteController extends AbstractController
      */
     public function addArticle(Request $request,
                                EntityManagerInterface $entityManager,
-                                ArticleFournisseurService $articleFournisseurService): Response
+                               ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -353,13 +329,15 @@ class CollecteController extends AbstractController
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
-            $collecte = $this->collecteRepository->find($data['collecte']);
+            $collecte = $collecteRepository->find($data['collecte']);
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
-                    $collecteReference = $this->collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
+                if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
+                    $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
                     $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantitie']), 0)); // protection contre quantités négatives
                 } else {
                     $collecteReference = new CollecteReference();
@@ -436,18 +414,24 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/modifier-quantite-article", name="collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editArticle(Request $request): Response
+    public function editArticle(Request $request,
+                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $em = $this->getDoctrine()->getManager();
+
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+
 //TODO dans DL et DC, si on modifie une ligne, la réf article n'est pas modifiée dans l'edit
-            $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
+            $collecteReference = $collecteReferenceRepository->find($data['collecteRef']);
             $collecteReference->setQuantite(intval($data['quantite']));
-            $em->flush();
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -456,15 +440,22 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/modifier-quantite-api-article", name="collecte_edit_api_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editApiArticle(Request $request): Response
+    public function editApiArticle(Request $request,
+                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+
             $json = $this->renderView('collecte/modalEditArticleContent.html.twig', [
-                'collecteRef' => $this->collecteReferenceRepository->find($data['id']),
+                'collecteRef' => $collecteReferenceRepository->find($data['id']),
             ]);
 
             return new JsonResponse($json);
@@ -547,8 +538,9 @@ class CollecteController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
-            $collecte = $this->collecteRepository->find($data['id']);
+            $collecte = $collecteRepository->find($data['id']);
 			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
 
 			$typeChampLibre = [];
@@ -671,16 +663,21 @@ class CollecteController extends AbstractController
 
     /**
      * @Route("/supprimer", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $collecte = $this->collecteRepository->find($data['collecte']);
-            $entityManager = $this->getDoctrine()->getManager();
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+
+            $collecte = $collecteRepository->find($data['collecte']);
             foreach ($collecte->getCollecteReferences() as $cr) {
                 $entityManager->remove($cr);
             }
@@ -717,19 +714,25 @@ class CollecteController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-	/**
-	 * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST")
-	 */
-	public function getDemandCollectAutoComplete(Request $request): Response
+    /**
+     * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+	public function getDemandCollectAutoComplete(Request $request,
+                                                 EntityManagerInterface $entityManager): Response
 	{
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
+
 			$search = $request->query->get('term');
 
-			$collectes = $this->collecteRepository->getIdAndLibelleBySearch($search);
+			$collectes = $collecteRepository->getIdAndLibelleBySearch($search);
 
 			return new JsonResponse(['results' => $collectes]);
 		}
