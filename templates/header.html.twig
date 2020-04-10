@@ -1,6 +1,6 @@
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
-<nav class="main-header mt-3">
+<nav class="main-header">
     <div class="col-12">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-2">
@@ -10,7 +10,7 @@
             </div>
 
             {% if not withOnlyLogo %}
-                <div class="header-title text-white col-auto h5 {{ isDashboardExt ? 'ext-title-font' }}">
+                <div class="header-title text-white col-auto h5 user-select-none {{ isDashboardExt ? 'ext-title-font' }}">
                     {% if title is defined and title is not empty %}
                         {{ title }}
                     {% endif %}
