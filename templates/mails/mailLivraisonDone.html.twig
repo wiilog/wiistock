@@ -16,11 +16,7 @@
     <table class="table">
         <thead>
         <tr>
-            {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-                <th class="th">Référence CEA</th>
-            {% else %}
-                <th class="th">Référence</th>
-            {% endif %}
+            <th class="th">{{ 'reference.reference'|trans }}</th>
             <th class="th">Libellé</th>
             <th class="th">Quantité</th>
         </tr>

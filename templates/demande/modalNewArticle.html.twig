@@ -12,11 +12,7 @@
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
                     <label for="reference" class="col-2">
-                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-                            Référence CEA*
-                        {% else %}
-                            Référence*
-                        {% endif %}
+                        {{ 'reference.reference'|trans }}*
                     </label>
                     <div class="form-group col-10 d-flex w-100">
                         <select class="ajax-autocomplete data form-control needed"
