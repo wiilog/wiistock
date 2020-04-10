@@ -1,15 +1,14 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Ordres {{ 'réception.de réception'|trans }}{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersReception.html.twig' with {
         page: 'PAGE_RECEPTION',
         tableSelector: '#tableReception_id'
     } %}
 {% endblock %}
+
 {% block page_content %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}

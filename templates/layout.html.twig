@@ -17,11 +17,9 @@
         {% include 'header.html.twig' %}
 
         <div class="container-fluid {% block pageContainerClass '' %}">
-            {% block page_filter %}
+            {% block page_filter %}{% endblock %}
 
-            {% endblock %}
-            {% block page_content %}
-            {% endblock %}
+            {% block page_content %}{% endblock %}
 
             {% include 'alert/modal-alert.html.twig' %}
         </div>

@@ -1,9 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Réceptions{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersReceptionTraca.html.twig' with {
         'page' : 'PAGE_RCPT_TRACA',
