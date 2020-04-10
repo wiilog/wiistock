@@ -744,7 +744,7 @@ class ArrivageController extends AbstractController
 
             $html = '';
             foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                $html .= $this->renderView('attachment/attachmentLine.html.twig', [
                     'arrivage' => $arrivage,
                     'pjName' => $fileName['name'],
                     'originalName' => $fileName['originalName']
@@ -850,7 +850,7 @@ class ArrivageController extends AbstractController
                     }
                     $fileNames[] = $filename;
                     $file->move($path, $filename);
-                    $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                    $html .= $this->renderView('attachment/attachmentLine.html.twig', [
                         'pjName' => $filename,
                         'originalName' => $file->getClientOriginalName()
                     ]);
@@ -1366,7 +1366,7 @@ class ArrivageController extends AbstractController
 
             $html = '';
             foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                $html .= $this->renderView('attachment/attachmentLine.html.twig', [
                     'litige' => $litige,
                     'pjName' => $fileName['name'],
                     'originalName' => $fileName['originalName']

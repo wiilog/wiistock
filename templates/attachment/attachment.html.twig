@@ -15,6 +15,6 @@
     {% for pj in attachements %}
         {% set pjName = pj.fileName %}
         {% set originalName = pj.originalName %}
-        {% include 'arrivage/attachementLine.html.twig' %}
+        {% include 'attachment/attachment.html.twig' %}
     {% endfor %}
 {% endif %}

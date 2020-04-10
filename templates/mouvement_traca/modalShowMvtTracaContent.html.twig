@@ -36,7 +36,7 @@
         {% for pj in attachments %}
             {% set pjName = pj.fileName %}
             {% set originalName = pj.originalName %}
-            {% include 'arrivage/attachementLine.html.twig' with { 'canRemove': false } %}
+            {% include 'attachment/attachment.html.twig' with { 'canRemove': false } %}
         {% endfor %}
     </div>
 </div>
