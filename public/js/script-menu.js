@@ -18,7 +18,8 @@ $(function () {
                 const subMenuY = $dropdownItem[0].getBoundingClientRect().y;
                 const windowHeight = $(window).height();
 
-                const top = (subMenuY + subMenuHeight > windowHeight)
+                const delta = 20;
+                const top = ((subMenuY + subMenuHeight + delta) > windowHeight)
                     ? `-${subMenuHeight / 2}px`
                     : '0';
 

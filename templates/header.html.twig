@@ -41,6 +41,7 @@
                                             {% include 'menu/menu-item.html.twig' with {
                                                 label: itemMenu.label,
                                                 icon: itemMenu.icon is defined ? itemMenu.icon,
+                                                title: itemMenu.title is defined ? itemMenu.title,
                                                 isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
                                                 showArrow: true
                                             } %}
@@ -50,6 +51,7 @@
                                                 {% include 'menu/menu-item.html.twig' with {
                                                     label: itemMenuSub.label,
                                                     icon: itemMenuSub.icon is defined ? itemMenuSub.icon,
+                                                    title: itemMenuSub.title is defined ? itemMenuSub.title,
                                                     isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
                                                     url: itemMenuSub.url is defined ? itemMenuSub.url : path(itemMenuSub.path)
                                                 } %}
@@ -62,6 +64,7 @@
                                         icon: itemMenu.icon is defined ? itemMenu.icon,
                                         isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
                                         url: itemMenu.url is defined ? itemMenu.url : path(itemMenu.path),
+                                        title: itemMenu.title is defined ? itemMenu.title,
                                         isExtern: itemMenu.url is defined,
                                         arrowPlaceholder: true,
                                         iconPlaceholder: true

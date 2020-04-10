@@ -5,45 +5,47 @@
 {% block body %}
     {{ parent() }}
 
-    {% if error %}
-        <div class="alert alert-danger text-center">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            <strong>Erreur!</strong> {{ error }}
-        </div>
-    {% endif %}
-    {% if info %}
-        <div class="alert alert-success text-center">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            {{ info }}
-        </div>
-    {% endif %}
+    <div class="container-fluid">
+        {% if error %}
+            <div class="alert alert-danger text-center">
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                <strong>Erreur!</strong> {{ error }}
+            </div>
+        {% endif %}
+        {% if info %}
+            <div class="alert alert-success text-center">
+                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                {{ info }}
+            </div>
+        {% endif %}
 
-    <div class="main-form-wrapper mt-3">
-        <div class="row">
-            <div class="box-login datatable-container shadow-lg">
-                <div class="col-md-12 login-header">
-                    Connexion
-                </div>
-                <form class="form-signin " action="{{ path('login') }}" method="post">
-                    <div class="form-group">
-                        <label for="inputEmail" class="form-control-label">Adresse email</label>
-                        <input type="text" id="inputEmail" name="_username" class="form-control"
-                            required="required" autofocus="autofocus">
+        <div class="main-form-wrapper mt-3">
+            <div class="row">
+                <div class="box-login datatable-container shadow-lg">
+                    <div class="col-md-12 login-header">
+                        Connexion
                     </div>
-                    <div class="form-group">
-                        <label for="inputPassword" class="form-control-label">Mot de Passe</label>
-                        <input type="password" name="_password" id="inputPassword" class="form-control" aria-describedby="passwordHelp" required="required">
+                    <form class="form-signin " action="{{ path('login') }}" method="post">
+                        <div class="form-group">
+                            <label for="inputEmail" class="form-control-label">Adresse email</label>
+                            <input type="text" id="inputEmail" name="_username" class="form-control"
+                                required="required" autofocus="autofocus">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword" class="form-control-label">Mot de Passe</label>
+                            <input type="password" name="_password" id="inputPassword" class="form-control" aria-describedby="passwordHelp" required="required">
+                        </div>
+                        <div class="form-group d-flex justify-content-between">
+                            <a class="btn" href="{{ url('register') }}">Créer un compte</a>
+                            <button type="submit" class="btn btn-primary float-left">Connexion</button>
+                        </div>
+                        <a class="btn" href="{{ path('forgotten') }}">Mot de passe oublié ?</a>
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    </form>
+                    <div class="messageChrome">
+                        <span class="fas fa-exclamation-triangle"></span>
+                        Cette application est uniquement compatible avec le navigateur Google Chrome.
                     </div>
-                    <div class="form-group d-flex justify-content-between">
-                        <a class="btn" href="{{ url('register') }}">Créer un compte</a>
-                        <button type="submit" class="btn btn-primary float-left">Connexion</button>
-                    </div>
-                    <a class="btn" href="{{ path('forgotten') }}">Mot de passe oublié ?</a>
-                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-                </form>
-                <div class="messageChrome">
-                    <span class="fas fa-exclamation-triangle"></span>
-                    Cette application est uniquement compatible avec le navigateur Google Chrome.
                 </div>
             </div>
         </div>

@@ -5,25 +5,28 @@
 {% block body %}
     {{ parent() }}
 
-    <div class="main-form-wrapper mt-3">
-        <div class="row">
-            <div class="box-login datatable-container shadow-lg">
-                <div class="login-header">
-                    Créer un compte
-                </div>
-                <div class="form-signin">
-                    {{ form_start(form) }}
-                    {{ form_row(form.username, {'attr': {'autofocus' : true} }) }}
-                    {{ form_row(form.email) }}
-                    {{ form_row(form.plainPassword.first) }}
-                    {{ form_row(form.plainPassword.second) }}
 
-                    <div class="d-flex justify-content-between">
-                        <a class="btn" href="{{ url('login') }}">Retour connexion</a>
-                        <button class="btn btn-primary float-left" type="submit">Enregistrer</button>
+    <div class="container-fluid">
+        <div class="main-form-wrapper mt-3">
+            <div class="row">
+                <div class="box-login datatable-container shadow-lg">
+                    <div class="login-header">
+                        Créer un compte
                     </div>
-                    {{ form_row(form._token) }}
-                    {{ form_end(form, {'render_rest' : false}) }}
+                    <div class="form-signin">
+                        {{ form_start(form) }}
+                        {{ form_row(form.username, {'attr': {'autofocus' : true} }) }}
+                        {{ form_row(form.email) }}
+                        {{ form_row(form.plainPassword.first) }}
+                        {{ form_row(form.plainPassword.second) }}
+
+                        <div class="d-flex justify-content-between">
+                            <a class="btn" href="{{ url('login') }}">Retour connexion</a>
+                            <button class="btn btn-primary float-left" type="submit">Enregistrer</button>
+                        </div>
+                        {{ form_row(form._token) }}
+                        {{ form_end(form, {'render_rest' : false}) }}
+                    </div>
                 </div>
             </div>
         </div>

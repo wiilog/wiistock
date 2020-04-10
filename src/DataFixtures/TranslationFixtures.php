@@ -76,11 +76,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Colis' => 'Colis'
             ],
             'reference' => [
-                'references' => $isCurrentClientCEA
-                    ? 'References CEA'
+                'références' => $isCurrentClientCEA
+                    ? 'Références CEA'
                     : 'Références',
-                'reference' => $isCurrentClientCEA
-                    ? 'Reference CEA'
+                'référence' => $isCurrentClientCEA
+                    ? 'Référence CEA'
                     : 'Référence'
             ]
         ];

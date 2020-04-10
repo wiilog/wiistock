@@ -2,8 +2,8 @@
 {%  set id = (toSplit == true ? 'quantiteFixed' : 'quantite') %}
 
 <div class="form-group w-100 mb-3">
-    <label for="reference">
-        {{ 'reference.reference'|trans }}
+    <label for="reference" title="référence">
+        {{ 'reference.référence'|trans }}
     </label>
     <select disabled class="ajax-autocomplete data form-control" {{ disabled }} value='{{ligneArticle.reference}}' id='referenceEdit'  name='reference'
     onclick="ajaxAutoRefArticleInit($(this))">

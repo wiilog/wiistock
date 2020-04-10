@@ -25,7 +25,7 @@
     {% endif %}
 
     {% set isTranslation = isTranslation is defined and isTranslation %}
-    <span class="label user-select-none" title="{{ isTranslation ? label }}">{{ isTranslation ? label|trans : label }}</span>
+    <span class="label user-select-none" title="{{ isTranslation ? title }}">{{ isTranslation ? label|trans : label }}</span>
 
 {% if isLink %}
     </a>
