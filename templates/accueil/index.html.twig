@@ -1,36 +1,31 @@
 {% extends 'layout.html.twig' %}
 
-{% block classbody %}
-    class='new-body'
-{% endblock  %}
+{% block wrapperClass 'd-flex flex-column' %}
+{% block pageContainerClass 'flex-grow-1 p-0' %}
 
 {% block page_content %}
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
-        <div class="row h-100">
-            <div class="col-12">
-                <div id="carouselIndicators" class="carousel slide">
-                    <ol class="carousel-indicators">
-                        <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
-                        <li data-target="#carouselIndicators" data-slide-to="1"></li>
-                        <li data-target="#carouselIndicators" data-slide-to="2"></li>
-                    </ol>
+        <div id="carouselIndicators" class="carousel slide">
+            <ol class="carousel-indicators">
+                <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselIndicators" data-slide-to="1"></li>
+                <li data-target="#carouselIndicators" data-slide-to="2"></li>
+            </ol>
 
-                    <div class="carousel-inner h-100">
-                        <div class="carousel-item active">
-                            {% include 'accueil/dashboardArrival.html.twig' %}
-                        </div>
-                        <div class="carousel-item">
-                            {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
-                        </div>
-                        <div class="carousel-item">
-                            {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 little-font text-right fixed-bottom z-index-back">
-                            Actualisé le <span class="refreshDate">{{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</span>
-                        </div>
-                    </div>
+            <div class="carousel-inner h-100">
+                <div class="carousel-item active">
+                    {% include 'accueil/dashboardArrival.html.twig' %}
+                </div>
+                <div class="carousel-item">
+                    {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
+                </div>
+                <div class="carousel-item">
+                    {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 little-font text-right fixed-bottom z-index-back">
+                    Actualisé le <span class="refreshDate">{{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</span>
                 </div>
             </div>
         </div>

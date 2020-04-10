@@ -1,14 +1,10 @@
-<div class="row">
-    <div class="col-12 space">
-        {% include 'accueil/dashboardTitle.html.twig' with {isDashboardExt: 0, title: 'Dashboard | RÉCEPTION ARRIVAGE'} %}
-    </div>
-</div>
-<div class="row">
+<input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ARRIVAGE"/>
+<div class="row no-gutters">
     {% if extDashboard is not defined %}
-        <div class="col-12" id="blocIndicators">
+        <div class="col-12 pl-3 pr-3" id="blocIndicators">
             <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
                  aria-expanded="false" aria-controls="indicators">
-                {% include 'svg/plusblanc.svg.twig' with { height: '20px', width: '20px'} %}
+                <span class="icon"></span>
             </div>
             <div class="collapse indicators" id="indicators">
                 <div class="card card-body">
@@ -17,13 +13,12 @@
             </div>
         </div>
     {% endif %}
-    <div class="col-6 space dashboard-box-wrapper half-height">
-        <div class="dashboard-box m-1">
+    <div class="dashboard-box-container col-6 mt-3 pr-3 pl-3 half-height">
+        <div class="dashboard-box">
             <p class="title">Arrivage (UM)</p>
             <div class="points">
-                <i
-                    class="fa fa-question has-tooltip"
-                    title="Nombre {{ 'arrivage.arrivages'|trans }} par jour."></i>
+                <i class="fa fa-question has-tooltip"
+                   title="Nombre {{ 'arrivage.arrivages'|trans }} par jour."></i>
             </div>
             <div class="h-100">
                 <canvas id="chartArrivalUm" width="300" height="90"></canvas>
@@ -42,8 +37,8 @@
             </div>
         </div>
     </div>
-    <div class="col-6 space dashboard-box-wrapper half-height">
-        <div class="dashboard-box m-1">
+    <div class="dashboard-box-container col-6 mt-3 pr-3 pl-3 half-height">
+        <div class="dashboard-box">
             <p class="title">Réceptions (nombre d'associations)</p>
             <div class="points">
                 <i class="fa fa-question has-tooltip"
@@ -66,7 +61,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 space dashboard-box-wrapper half-height">
+    <div class="dashboard-box-container col-6 mt-3 pr-3 pl-3 half-height">
         <div class="dashboard-box justify-content-between m-1">
             <p class="title mb-0 pb-0">Colis en retard</p>
             <div class="points">
@@ -81,7 +76,7 @@
         </div>
     </div>
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) or extDashboard is defined %}
-        <div class="col-6 space dashboard-box-wrapper half-height">
+        <div class="dashboard-box-container col-6 mt-3 pr-3 pl-3 half-height">
             <div id="dashboard-monetary" class="dashboard-box m-1">
                 <p class="title">Fiabilité monétaire</p>
                 <div class="points">

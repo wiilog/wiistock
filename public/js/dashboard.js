@@ -17,6 +17,13 @@ FONT_SIZE_EXT = 40;
 
 
 $(function () {
+
+    refreshPageTitle();
+    const $carouselIndicators = $('#carouselIndicators');
+    $carouselIndicators.on('slid.bs.carousel', () => {
+        refreshPageTitle();
+    });
+
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
@@ -38,7 +45,7 @@ $(function () {
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
         chartColis = chart;
     });
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', null, true, true).then((chart) => {
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', null).then((chart) => {
         chartMonetaryFiability = chart;
     });
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
@@ -73,7 +80,7 @@ $(function () {
         } else if (e.which === 39) {
             activeBtn.next('li').click()
         }
-    })
+    });
 });
 
 function reloadDashboards() {
@@ -95,7 +102,7 @@ function updateCharts() {
     drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival);
     drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival);
     drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, true, true);
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability);
     drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
     drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
 }
@@ -168,14 +175,14 @@ function updateMultipleChartData(chart, chartData, chartColors) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path, chart = null, canHaveNegativValues = false) {
+function drawSimpleChart($canvas, path, chart = null) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
             $.get(Routing.generate(path), function (data) {
                 if (!chart) {
-                    chart = newChart($canvas, false, canHaveNegativValues);
+                    chart = newChart($canvas, false);
                 }
 
                 updateSimpleChartData(
@@ -242,7 +249,7 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) 
                 $('#totalForChart' + chartNumber).text(data.total);
 
                 if (!chart) {
-                    chart = newChart($canvas, true, true);
+                    chart = newChart($canvas, true);
                 }
 
                 updateMultipleChartData(chart, data.data, (data.chartColors || {}));
@@ -270,7 +277,7 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, redForLastData = false, canHaveNegativValues = false) {
+function newChart($canvasId, redForLastData = false) {
     if ($canvasId.length) {
         const fontSize = isDashboardExt()
             ? FONT_SIZE_EXT
@@ -278,14 +285,14 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
         const fontStyle = isDashboardExt()
             ? 'bold'
             : undefined;
+
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
             options: {
                 layout: {
                     padding: {
-                        top: 30,
-                        bottom: canHaveNegativValues ? 30 : 0
+                        top: 30
                     }
                 },
                 tooltips: false,
@@ -490,4 +497,16 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 function isDashboardExt() {
     const $isDashboardExt = $('#isDashboardExt');
     return ($isDashboardExt.length > 0 ? ($isDashboardExt.val() === "1") : false);
+}
+
+function refreshPageTitle() {
+    const $carouselIndicators = $('#carouselIndicators');
+    const $activeCarousel = $carouselIndicators.find('.carousel-item.active').first();
+    const $pageTitle = $activeCarousel.length > 0
+        ? $activeCarousel.find('input.page-title')
+        : $('input.page-title');
+    const pageTitle = $pageTitle.val() || '';
+
+    document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
+    $('nav.main-header .header-title').text(pageTitle);
 }

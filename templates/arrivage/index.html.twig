@@ -2,9 +2,6 @@
 
 {% block title %}{{ 'arrivage.arrivages'|trans }}{% endblock %}
 
-{% block classbody %}
-    class='new-body'
-{% endblock  %}
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
         'page': 'PAGE_ARRIVAGE',
@@ -19,7 +16,13 @@
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
-
+    {% block page_filter %}
+        {% include 'filters/filtersArrivage.html.twig' with {
+            'page': 'PAGE_ARRIVAGE',
+            'tableSelector': '#tableArrivages',
+            'callback': '() => {clicked = true;}'
+        } %}
+    {% endblock %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="d-none justify-content-center" id="spinner">
             <div class="spinner-border sizeLoader" role="status">
@@ -49,7 +52,7 @@
                 </button>
                 <div class="dropdown-menu {{ hasRightToCreate or hasRightToExport ? 'mr-5' : 'dropdown-single' }}">
                     {% if hasRightToCreate
-                    and hasRightToExport %}
+                       and hasRightToExport %}
                         <a href="#" class="dropdown-item"
                            onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV

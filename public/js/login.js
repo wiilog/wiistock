@@ -9,15 +9,12 @@ $(document).ready(function() {
     if (isIOSChrome) {
         // is Google Chrome on IOS
     } else if(
-        isChromium !== null &&
-        typeof isChromium !== "undefined" &&
-        vendorName === "Google Inc." &&
-        isOpera === false &&
-        isIEedge === false
-    ) {
-        $('.messageChrome').addClass('d-none');
-    } else {
-            console.log('IE');
+        isChromium === null ||
+        typeof isChromium === "undefined" ||
+        vendorName !== "Google Inc." ||
+        isOpera !== false ||
+        isIEedge !== false) {
+        $('.messageChrome').addClass('d-block');
         $('.form-signin').addClass('d-none');
     }
 });
