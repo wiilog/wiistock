@@ -1,45 +1,56 @@
-nav.main-header
-    margin: 1rem 1.5rem 0 1.5rem
+.header-wrapper
+    background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark)
+    background-repeat: no-repeat
+    padding-bottom: 6%
+    padding-left: 1rem
+    padding-right: 1rem
 
-    .menu-button
-        display: inline-block
-        cursor: pointer
-        padding: 1rem .5rem
+    & ~ .container-fluid
+        margin-top: -6%
 
-        .icon-menu
-            background-color: $white
-            width: 50px
-            height: 24px
-            display: block
-            -webkit-mask: url('../../public/svg/menu.svg') no-repeat center
-            mask: url('../../public/svg/menu.svg') no-repeat center
+    nav.main-header
+        margin: 1rem 1.5rem 0 1.5rem
 
-        &:hover
-            background-color: $white
+        .menu-button
+            display: inline-block
+            cursor: pointer
+            padding: 1rem .5rem
 
             .icon-menu
-                background-color: $backgroundBodyColorDark !important
+                background-color: $white
+                width: 50px
+                height: 24px
+                display: block
+                -webkit-mask: url('../../public/svg/menu.svg') no-repeat center
+                mask: url('../../public/svg/menu.svg') no-repeat center
 
-    .dropdown-item
-        display: flex
-        align-items: center
-        padding-top: .8rem
-        padding-bottom: .8rem
-        &:active
-            background-color: $backgroundBodyColorLight
+            &:hover
+                background-color: $white
+
+                .icon-menu
+                    background-color: $backgroundBodyColorDark !important
+
+        .dropdown-item
+            display: flex
+            align-items: center
+            padding-top: .8rem
+            padding-bottom: .8rem
+            &:active
+                background-color: $backgroundBodyColorLight
+                .label
+                    color: white
+
+            .arrow-container
+                width: 10px
+                margin-right: 4rem
+
             .label
-                color: white
+                font-size: 1rem
+            .icon-container
+                display: inline-flex
+                margin-right: 1rem
+                img
+                    height: 23px
+                    width: 23px
 
-        .arrow-container
-            width: 10px
-            margin-right: 4rem
-
-        .label
-            font-size: 1rem
-        .icon-container
-            display: inline-flex
-            margin-right: 1rem
-            img
-                height: 23px
-                width: 23px
 

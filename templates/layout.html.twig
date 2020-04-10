@@ -14,10 +14,11 @@
     </div>
 
     <div class="wrapper {% block wrapperClass '' %}">
-        {% include 'header.html.twig' with {title: block('title') is defined ? block('title')} %}
-
-        <div class="container-fluid {% block pageContainerClass '' %}">
+        <div class="header-wrapper">
+            {% include 'header.html.twig' with {title: block('title') is defined ? block('title')} %}
             {% block page_filter %}{% endblock %}
+        </div>
+        <div class="container-fluid {% block pageContainerClass '' %}">
 
             {% block page_content %}{% endblock %}
 

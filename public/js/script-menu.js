@@ -20,7 +20,7 @@ $(function () {
 
                 const top = (subMenuY + subMenuHeight > windowHeight)
                     ? `-${subMenuHeight / 2}px`
-                    : '100%';
+                    : '0';
 
                 $dropdownMenuSub.css('top', top);
                 $dropdownMenuSub.addClass(classShow)
