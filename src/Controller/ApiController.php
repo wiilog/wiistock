@@ -410,18 +410,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $options['fileBag'] = [$signatureFile];
                             }
 
-                            $entityManager->persist(
-                                $mouvementTracaService->persistMouvementTraca(
-                                    $mvt['ref_article'],
-                                    $location,
-                                    $nomadUser,
-                                    $date,
-                                    true,
-                                    $mvt['finished'],
-                                    $type,
-                                    $options
-                                )
+                            $createdMvt = $mouvementTracaService->createMouvementTraca(
+                                $mvt['ref_article'],
+                                $location,
+                                $nomadUser,
+                                $date,
+                                true,
+                                $mvt['finished'],
+                                $type,
+                                $options
                             );
+                            foreach ($createdMvt->getAttachements() as $attachement) {
+                                $entityManager->persist($attachement);
+                            }
+                            $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
 
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
@@ -1156,12 +1158,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+        $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
         if ($rights['inventoryManager']) {
-            $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
-            $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
+            $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
+            $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
         }
         else {
             $refAnomalies = [];
