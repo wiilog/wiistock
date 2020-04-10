@@ -1,15 +1,14 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Références et articles de la mission{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
         'page': 'PAGE_INV_SHOW_MISSION',
         'tableSelector': '#tableMissionInv'
     } %}
 {% endblock %}
+
 {% block page_content %}
 
     <div class="m-4 datatable-container shadow-lg">

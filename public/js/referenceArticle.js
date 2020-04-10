@@ -286,7 +286,7 @@ function initRemove() {
 function removeFilter() {
     let params = JSON.stringify({'filterId': $(this).parents('.filter').find('.filter-id').val()});
     $(this).parents('.filter').tooltip('dispose');
-    $(this).parents('.filter').remove();
+    $(this).parents('.filter').parent().remove();
     $.post(Routing.generate('filter_ref_delete', true), params, function () {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();

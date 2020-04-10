@@ -1,14 +1,14 @@
 {% set disabled = (((disabled is defined) and (disabled == true)) ? 'disabled' : '') %}
 <div class="filterService m-4">
-    <div class="filters filters-container row">
+    <div class="filters filters-container row pt-2">
         <div class="col">
-            <div class="row pt-2">
+            <div class="row">
                 {% block filters %}
                 {% endblock %}
             </div>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary btn-ripple minw-105px col-1"
+            <button class="btn btn-primary btn-ripple minw-105px"
                     tabindex="0"
                     onclick="saveFilters(
                     {{ page }},

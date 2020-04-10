@@ -1,9 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Mouvements{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersMouvementTraca.html.twig' with {
         'page' : 'PAGE_MVT_TRACA',

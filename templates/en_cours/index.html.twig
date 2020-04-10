@@ -1,9 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Traçabilité / Encours{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersEncours.html.twig' with {
         page: 'PAGE_ENCOURS',

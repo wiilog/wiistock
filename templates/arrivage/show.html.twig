@@ -1,8 +1,7 @@
 {% extends "layout.html.twig" %}
+
 {% block title %}{{ 'arrivage.arrivage'|trans }}{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+
 {% block page_content %}
 
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
@@ -15,7 +14,7 @@
         <div class="row mt-3 justify-content-around">
             <div class="{{ displayLitiges ? 'col-6' : 'col-12' }} pr-2 pl-0">
                 <div class="datatable-container shadow-lg">
-                    <div class="d-flex row justify-content-end datatable-toolbox">
+                    <div class="d-flex row justify-content-end datatable-header">
                         <div class="btn-group col-auto">
                             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT'))
                                and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -64,7 +63,7 @@
             {% if displayLitiges %}
                 <div class="col-6 pl-2 pr-0">
                     <div class="datatable-container shadow-lg">
-                        <div class="d-flex row justify-content-end datatable-toolbox">
+                        <div class="d-flex row justify-content-end datatable-header">
                             <div class="col-auto">
                                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                                 <button type="button"

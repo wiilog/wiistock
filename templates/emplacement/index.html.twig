@@ -1,9 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Stock / Emplacements{% endblock %}
-{% block classbody %}
-    class='new-body'
-{% endblock %}
+{% block title %}Stock | Emplacements{% endblock %}
+
 {% block page_content %}
     <div class="m-4 datatable-container shadow-lg">
         <input type="hidden" id="listEmplacementIdToPrint">
@@ -13,10 +11,9 @@
                 <span class="error-msg"></span>
             </div>
         </div>
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Emplacements</h1>
-            <div class="col-auto">
-                <div class="btn-group split-button-container col-auto">
+        <div class="row align-items-center datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group split-button-container">
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button" data-toggle="modal" data-target="#modalNewEmplacement" class="btn btn-primary btn-ripple split-button"
                                 onclick="clearModal('#modalNewEmplacement')">
@@ -49,6 +46,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row">
             <div class="col-12">
                 <table id="tableEmplacement_id" class="table w-100">
                 </table>
