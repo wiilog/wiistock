@@ -1,13 +1,12 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Connexion{% endblock %}
 
 {% block classbody %}
-style='background-image: url({{asset('img/GTXBackAccueil2red.png')}})'
-class='accueil-back'
-{% endblock  %}
+    class='new-body'
+{% endblock %}
 
 {% block body %}
+    {% include 'header.html.twig' %}
 
 {% if error %}
 <div class="alert alert-danger text-center">
@@ -22,7 +21,7 @@ class='accueil-back'
 
 <div class="main-form-wrapper mt-3">
     <div class="row">
-        <div class="box-login login-form box-shadow">
+        <div class="box-login datatable-container shadow-lg">
             <div class="col-md-12 login-header">
                 Connexion
             </div>

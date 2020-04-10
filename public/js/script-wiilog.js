@@ -1482,19 +1482,29 @@ function openSelect2($select2) {
 
 function registerDropdownPosition() {
     let dropdownMenu;
+
+    const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
+
     $(window).on('show.bs.dropdown', function(e) {
-        dropdownMenu = $(e.target).find('.dropdown-menu');
-        $('body').append(dropdownMenu.detach());
-        dropdownMenu.css('display', 'block');
-        dropdownMenu.position({
-            'my': 'right top',
-            'at': 'right bottom',
-            'of': $(e.relatedTarget)
-        })
+        const $target = $(e.target);
+        if (!hasMainHeaderParent($target)) {
+            dropdownMenu = $target.find('.dropdown-menu');
+            $('body').append(dropdownMenu.detach());
+            dropdownMenu.css('display', 'block');
+            dropdownMenu.position({
+                'my': 'right top',
+                'at': 'right bottom',
+                'of': $(e.relatedTarget)
+            });
+        }
     });
+
     $(window).on('hide.bs.dropdown', function(e) {
-        $(e.target).append(dropdownMenu.detach());
-        dropdownMenu.hide();
+        const $target = $(e.target);
+        if (!hasMainHeaderParent($target)) {
+            $target.append(dropdownMenu.detach());
+            dropdownMenu.hide();
+        }
     });
 }
 

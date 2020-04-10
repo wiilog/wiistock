@@ -5,14 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {% set titlePrefix = 'FollowGT' %}
-    {% if block("title") is defined %}
-        <title>{{ titlePrefix }} | {{ block("title") }}</title>
-    {% else %}
-        <title>{{ titlePrefix }}</title>
-    {% endif %}
-
-
+    <title>{% block title %}FollowGT{% endblock %}</title>
 
     <link rel="shortcut icon" href="{{ asset('img/favicon.ico') }}">
 
@@ -104,6 +97,8 @@
 
         {# chart.js #}
         <script src="{{ asset('js/Chart.min.js') }}"></script>
+
+        {# scripts wiilog #}
         <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}
