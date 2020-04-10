@@ -296,6 +296,7 @@ class MouvementTracaController extends AbstractController
             }
 
             $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
+
             $entityManager->flush();
 
             return new JsonResponse();
@@ -494,7 +495,5 @@ class MouvementTracaController extends AbstractController
             $entityManager->persist($attachment);
             $mouvementTraca->addAttachement($attachment);
         }
-        $entityManager->persist($mouvementTraca);
-        $entityManager->flush();
     }
 }

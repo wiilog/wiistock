@@ -1499,7 +1499,6 @@ class ReceptionController extends AbstractController
                     ->setDate($now);
                 $entityManager->persist($mouvementStock);
 
-
                 $entityManager->persist($mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
