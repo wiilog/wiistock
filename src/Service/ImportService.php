@@ -39,6 +39,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
+
 class ImportService
 {
     public const MAX_LINES_FLASH_IMPORT = 100;
@@ -1158,12 +1159,16 @@ class ImportService
      * @param string|null $articleFournisseurReference
      * @param string|null $fournisseurReference
      * @param ReferenceArticle|null $referenceArticle
+     * @param ArticleFournisseurService|null $articleFournisseurService
      * @return ArticleFournisseur|null
      * @throws ImportException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
                                                       ?string $fournisseurReference,
-                                                      ?ReferenceArticle $referenceArticle): ?ArticleFournisseur
+                                                      ?ReferenceArticle $referenceArticle,
+                                                        ?ArticleFournisseurService $articleFournisseurService): ?ArticleFournisseur
     {
         $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
         // liaison article fournisseur
@@ -1180,14 +1185,20 @@ class ImportService
                     );
                 }
                 $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
+                $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                    'fournisseur' => $fournisseur,
+                    'reference' => $articleFournisseurReference,
+                    'article-reference' =>$referenceArticle,
+                    'label' => ($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom())
+                ]);
 
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setFournisseur($fournisseur)
-                    ->setReference($articleFournisseurReference)
-                    ->setReferenceArticle($referenceArticle)
-                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-                $this->em->persist($articleFournisseur);
+//                $articleFournisseur = new ArticleFournisseur();
+//                $articleFournisseur
+//                    ->setFournisseur($fournisseur)
+//                    ->setReference($articleFournisseurReference)
+//                    ->setReferenceArticle($referenceArticle)
+//                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+//                $this->em->persist($articleFournisseur);
 
             } else {
                 // on a réussi à trouver un article fournisseur
@@ -1221,13 +1232,19 @@ class ImportService
                 'fournisseur' => $fournisseur
             ]);
             if (empty($articleFournisseur)) {
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setFournisseur($fournisseur)
-                    ->setReference($referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
-                    ->setReferenceArticle($referenceArticle)
-                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-                $this->em->persist($articleFournisseur);
+                $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                    'label' => $referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom(),
+                    'article-reference' => $referenceArticle,
+                    'reference' => $referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference(),
+                    'fournisseur' =>$fournisseur
+                ]);
+//                $articleFournisseur = new ArticleFournisseur();
+//                $articleFournisseur
+//                    ->setFournisseur($fournisseur)
+//                    ->setReference($referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
+//                    ->setReferenceArticle($referenceArticle)
+//                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
+//                $this->em->persist($articleFournisseur);
             }
         }
 
