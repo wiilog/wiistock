@@ -23,9 +23,8 @@
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
-        <div class="row mb-0">
-            <h1 title="arrivages" class="col align-self-start ml-2">{{ 'arrivage.arrivages'|trans }}</h1>
-            <div class="btn-group split-button-container col-auto align-self-end">
+        <div class="row datatable-header">
+            <div class="btn-group split-button-container col-auto ml-auto">
                 {% if hasRightToCreate %}
                 <button type="button" class="btn btn-primary split-button btn-ripple"
                         data-toggle="modal" data-target="#modalNewArrivage"
