@@ -36,8 +36,11 @@ let tableMvt = $('#tableMvts').DataTable({
     'drawCallback': function() {
         overrideSearch($('#tableMvts_filter input'), tableMvt);
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
         {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},

@@ -16,8 +16,11 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
         "url": pathacheminements,
         "type": "POST",
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },

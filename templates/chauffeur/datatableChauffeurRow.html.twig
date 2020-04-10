@@ -1,17 +1,22 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT'))%}
-        <div data-id='{{ chauffeur.id }}' data-target='#modalEditChauffeur' data-toggle='modal'
-             class='btn btn-col-action'
-             onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'))">
-            <i class='fas fa-pencil-alt'></i>
+    <div class="dropdown {{ not hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
+                <div data-id='{{ chauffeur.id }}' data-target='#modalEditChauffeur' data-toggle='modal'
+                     class='action-on-click d-none'
+                     onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'))">
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
+                <div data-id='{{ chauffeur.id }}' data-target='#modalDeleteChauffeur' data-toggle='modal'
+                     onclick="checkAndDeleteRow($(this), '#modalDeleteChauffeur', 'chauffeur_check_delete', '#submitDeleteChauffeur')"
+                     class="dropdown-item">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
-    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE'))%}
-        <div data-id='{{ chauffeur.id }}' data-target='#modalDeleteChauffeur' data-toggle='modal'
-             onclick="checkAndDeleteRow($(this), '#modalDeleteChauffeur', 'chauffeur_check_delete', '#submitDeleteChauffeur')"
-             class="btn btn-col-action">
-            <i class='fas fa-trash'></i>
-        </div>
-    {% endif %}
+    </div>
 </div>
 

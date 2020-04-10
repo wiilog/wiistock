@@ -1,30 +1,30 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ mvt.id }}' data-target='#modalShowMvtTraca' data-toggle='modal'
-             onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))">
-            <i class='fas fa-eye'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            <div class="dropdown-item" data-id='{{ mvt.id }}' data-target='#modalShowMvtTraca' data-toggle='modal'
+                 onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))">
+                <i class='fas fa-eye mr-2'></i>Voir
+            </div>
+
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                <div data-id='{{ mvt.id }}' data-target='#modalEditMvtTraca' data-toggle='modal'
+                     class="d-none action-on-click"
+                     onclick="editRow($(this), Routing.generate('mvt_traca_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), true)">
+                    <i class='fas fa-pencil-alt mr-2'></i>Modifier
+                </div>
+            {% endif %}
+
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
+                <div class="dropdown-item">
+                    <div data-id='{{ mvt.id }}' data-target='#modalDeleteMvtTraca' data-toggle='modal'
+                         onclick="deleteRow($(this), $('#modalDeleteMvtTraca'), $('#submitDeleteMvtTraca'))">
+                        <i class='fas fa-trash mr-2'></i>Supprimer
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
-
-    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ mvt.id }}' data-target='#modalEditMvtTraca' data-toggle='modal'
-                 onclick="editRow($(this), Routing.generate('mvt_traca_api_edit', true), $('#modalEditMvtTraca'), $('#submitEditMvtTraca'), true)">
-                <i class='fas fa-pencil-alt'></i>
-            </div>
-        </div>
-    {% endif %}
-
-    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
-        <div>
-            <div data-id='{{ mvt.id }}' data-target='#modalDeleteMvtTraca' data-toggle='modal'
-                 class='btn btn-col-action'
-                 onclick="deleteRow($(this), $('#modalDeleteMvtTraca'), $('#submitDeleteMvtTraca'))">
-                <i class='fas fa-trash'></i>
-            </div>
-        </div>
-    {% endif %}
-
 </div>
 
 

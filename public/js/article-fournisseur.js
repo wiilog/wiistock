@@ -13,11 +13,14 @@ let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', title: 'Actions'},
+        {"data": 'Actions', title: '', className: 'noVis'},
         {"data": 'Code Fournisseur', title: 'Code Fournisseur'},
         {"data": 'Référence', title: 'Référence'},
         {"data": 'Article de référence', title: 'Article de référence'},
     ],
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columnDefs: [
         {"orderable": false, "targets": 0}
     ]

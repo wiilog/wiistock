@@ -1,23 +1,28 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Création de nouveau champ libre{% endblock %}
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
 {% block page_content %}
-    <h1>Liste des champs libres pour la catégorie {{ type.category.label|upper }} / type {{type.label|upper}} </h1>
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row">
+            <h1 class="col align-self-start ml-2">Liste des champs libres pour la catégorie {{ type.category.label|upper }} /
+                type {{ type.label|upper }} </h1>
+            <div class="col-auto">
+                <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary btn-ripple"
+                   onclick="clearModal('#modalNewChampLibre')">
+                    <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
+                </a>
+            </div>
 
-    <input id="cl-type-id" type="hidden" value="{{ type.id }}"/>
-
-    <div>
-        <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary" onclick="clearModal('#modalNewChampLibre')">
-            <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
-        </a>
+            <div class="col-12">
+                <table id="tableChamplibre_id" class="table w-100">
+                </table>
+            </div>
+        </div>
+        <input id="cl-type-id" type="hidden" value="{{ type.id }}"/>
     </div>
-
-    <table id="tableChamplibre_id" class="table table-striped table-bordered w-100">
-    </table>
-
-    <a href="{{ path('champ_libre_index') }}" class="btn">Retour à la liste</a>
-
 
     {% include "champ_libre/modalNewChampLibre.html.twig" %}
     {% include "champ_libre/modalDeleteChampLibre.html.twig" %}
@@ -26,5 +31,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/champLibre.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -1,55 +1,90 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Demandes de livraison{% endblock %}
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
+{% block page_filter %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        'page': 'PAGE_DEM_LIVRAISON',
+        'tableSelector': '#table_demande',
+        'callback': 'callbackSaveFilter'
+    } %}
+{% endblock %}
 {% block page_content %}
 
-    {% block page_filter %}
-        {% include 'filters/filtersDemands.html.twig' with {
-            'page': 'PAGE_DEM_LIVRAISON',
-            'tableSelector': '#table_demande',
-            'callback': 'callbackSaveFilter'
-        } %}
-    {% endblock %}
+
+    {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
     <input type="text" value="" id="dateMinFilter" hidden>
     <input type="text" value="" id="dateMaxFilter" hidden>
     <input type="text" value="" id="statutFilter" hidden>
     <input type="text" value="" id="userFilter" hidden>
     <input type="text" value="" id="typeFilter" hidden>
-    <div class="col-12">
-        <h1>Demandes de livraison</h1>
-    </div>
-    <div class="col-12">
-        {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
-            <div>
-                <a href="{{ path('demande_index') }}" class='btn btn-primary btn-action'>Voir toutes les
-                    demandes</a>
-                <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='btn btn-action btn-primary'>Retour à la
-                    réception</a>
-            </div>
-        {% else %}
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
-                     onclick='initNewLivraisonEditor("#modalNewDemande")'>
-                    <span class="fa fa-plus mr-2"></span>Nouvelle demande
-                </div>
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-                <div class="btn btn-primary" onclick="generateCSV('get_demandes_for_csv', 'dem-livr')">
-                    <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
-                </div>
-            {% endif %}
-        {% endif %}
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row">
+            <h1 class="col align-self-start ml-2">Demandes de livraison</h1>
+            <div class="col-auto">
+                {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
+                    <div class="btn-group split-button-container col-auto">
+                        <div class="btn btn-primary btn-ripple split-button">
+                            <a href="{{ path('demande_index') }}">Voir toutes les
+                                demandes</a>
+                        </div>
+                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu mr-5">
+                            <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la
+                                réception</a>
+                        </div>
+                    </div>
+                {% else %}
+                    {% if hasRightCreate and hasRightExport %}
+                        <div class="btn-group split-button-container col-auto">
+                            <div class="btn btn-primary btn-ripple split-button"
+                                 data-toggle="modal" data-target="#modalNewDemande"
+                                 onclick='initNewLivraisonEditor("#modalNewDemande")'>
+                                <span class="fa fa-plus mr-2"></span>Nouvelle demande
+                            </div>
+                            <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu mr-5 pointer">
+                                <div class="dropdown-item" onclick="generateCSV('get_demandes_for_csv', 'dem-livr')">
+                                    <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        {% if hasRightCreate %}
+                            <div class="btn btn-primary btn-ripple"
+                                 data-toggle="modal" data-target="#modalNewDemande"
+                                 onclick='initNewLivraisonEditor("#modalNewDemande")'>
+                                <span class="fa fa-plus mr-2"></span>Nouvelle demande
+                            </div>
+                        {% endif %}
+                        {% if hasRightExport %}
+                            <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_demandes_for_csv', 'dem-livr')">
+                                <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
 
-    </div>
-    <div class="d-none justify-content-center" id="spinner">
-        <div class="spinner-border sizeLoader" role="status">
-            <span class="sr-only">Loading...</span>
+            </div>
+            <div class="d-none justify-content-center" id="spinner">
+                <div class="spinner-border sizeLoader" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <div class="mt-5 col-12">
+                <table id="table_demande" class="table w-100">
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="mt-5 col-12">
-        <table id="table_demande" class="table table-striped table-bordered w-100">
-        </table>
     </div>
     <input type="hidden" value="{{ receptionFilter }}" id="receptionFilter">
     {% include "demande/modalNewDemande.html.twig" %}

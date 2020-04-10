@@ -322,7 +322,7 @@ class ImportController extends AbstractController
         $importId = (int)$request->request->get('importId');
         $import = $em->getRepository(Import::class)->find($importId);
 
-        if ($import) {
+        if ($import && $import->getStatus()->getNom() === Import::STATUS_DRAFT) {
             $em->remove($import);
             $em->flush();
         }

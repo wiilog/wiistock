@@ -16,6 +16,7 @@ $(function() {
     initSelect2($('#statut'), 'Statut');
     initSelect2($('#litigeOrigin'), 'Origine');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+    registerDropdownPosition();
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -33,9 +34,9 @@ $(function() {
 function initDatatableLitiges() {
     let pathLitiges = Routing.generate('litige_api', true);
     tableLitiges = $('#tableLitiges').DataTable({
-        responsive: true,
         serverSide: true,
         processing: true,
+        scrollX: true,
         language: {
             url: "/js/i18n/dataTableLanguage.json",
         },
@@ -54,7 +55,7 @@ function initDatatableLitiges() {
             overrideSearch($('#tableLitiges_filter input'), tableLitiges);
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': 'Actions', 'orderable': false},
+            {"data": 'actions', 'name': 'Actions', 'title': '', 'orderable': false, className: 'noVis'},
             {"data": 'type', 'name': 'Type', 'title': 'Type'},
             {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
@@ -73,16 +74,17 @@ function initDatatableLitiges() {
             $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
             $(thead).find('th').eq(4).attr('title', "n° de réception");
         },
-        dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
+        dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-3 ml-3"f><"col-2 mr-4"l>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
         buttons: [
             {
                 extend: 'colvis',
                 columns: ':not(.noVis)',
-                className: 'dt-btn'
+                className: 'dt-btn d-none'
             },
         ],
         rowCallback: function (row, data) {
             $(row).addClass(data.urgence ? 'table-danger' : '');
+            initActionOnRow(row);
         },
         initComplete: function() {
             let $btnColvis = $('#tableLitiges_wrapper').first('.buttons-colvis');

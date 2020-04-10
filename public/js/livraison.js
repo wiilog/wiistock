@@ -44,11 +44,14 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
         },
         "type": "POST"
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     'drawCallback': function() {
         overrideSearch($('#tableLivraison_id_filter input'), tableLivraison);
     },
     columns: [
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
+        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},

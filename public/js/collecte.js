@@ -21,11 +21,14 @@ let table = $('#tableCollecte_id').DataTable({
             'filterStatus': $('#filterStatus').val()
         },
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     drawCallback: function() {
         overrideSearch($('#tableCollecte_id_filter input'), table);
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Création', 'name': 'Création', 'title': 'Création'},
         {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
         {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},

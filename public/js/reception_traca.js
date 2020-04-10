@@ -33,6 +33,9 @@ let tableRecep = $('#tableRecepts').DataTable({
             }
         }
     ],
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -47,7 +50,7 @@ let tableRecep = $('#tableRecepts').DataTable({
         }
     ],
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: ['noVis']},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "Arrivage", 'name': 'Arrivage', 'title': $('#arrTranslation').val()},
         {"data": 'Réception', 'name': 'Réception', 'title': $('#recTranslation').val()},

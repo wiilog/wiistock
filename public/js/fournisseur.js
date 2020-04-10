@@ -7,21 +7,28 @@ let tableFournisseur = $('#tableFournisseur_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax:{
+    order: [[1, 'desc']],
+    ajax: {
         "url": pathFournisseur,
         "type": "POST"
-    }, 
-        columns: [
-        { "data": 'Nom' },
-        { "data": 'Code de référence' },
-        { "data": 'Actions' },
+    },
+    columns: [
+        {"data": 'Actions', title: '', className: 'noVis'},
+        {"data": 'Nom', title: 'Nom'},
+        {"data": 'Code de référence', title: 'Code de référence'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
     columnDefs: [
-    { "orderable": false, "targets": 2 }
-]
+        {
+            "orderable": false,
+            "targets": 0
+        }
+    ]
 });
 
-let modalNewFournisseur = $("#modalNewFournisseur"); 
+let modalNewFournisseur = $("#modalNewFournisseur");
 let submitNewFournisseur = $("#submitNewFournisseur");
 let urlNewFournisseur = Routing.generate('fournisseur_new', true);
 InitialiserModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, tableFournisseur, displayErrorFournisseur, false);
@@ -34,7 +41,7 @@ InitialiserModal(ModalDeleteFournisseur, SubmitDeleteFournisseur, urlDeleteFourn
 let modalModifyFournisseur = $('#modalEditFournisseur');
 let submitModifyFournisseur = $('#submitEditFournisseur');
 let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
-InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur,  tableFournisseur);
+InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur, tableFournisseur);
 
 function displayErrorFournisseur(data) {
     let modal = $('#modalNewFournisseur');

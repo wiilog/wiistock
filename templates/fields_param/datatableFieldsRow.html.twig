@@ -1,9 +1,8 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ fieldId }}' data-toggle='modal' data-target='#modalEditFields'
+    <div class="d-none">
+        <div class="action-on-click" data-id='{{ fieldId }}' data-toggle='modal' data-target='#modalEditFields'
              onclick="clearErrorMsg($('#submitEditFields')), editRow($(this), Routing.generate('fields_api_edit', true), $('#modalEditFields'), $('#submitEditFields'))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
-
 </div>

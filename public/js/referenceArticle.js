@@ -157,30 +157,14 @@ function initTableRefArticle() {
                     }
                 },
                 rowCallback: function (row, data) {
-                    $(row).addClass('pointer');
-                    $(row).find('td:not(.noVis)').click(function() {
-                        $(row).find('.action-on-click').get(0).click();
-                    });
+                    initActionOnRow(row);
                 },
                 initComplete: function () {
                     hideSpinner($('#spinner'));
                     initRemove();
                     hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function ($input) {
-                        let $printBtn = $('#printTag');
-                        $printBtn.parent().tooltip('dispose');
-                        if ($input.val() === '') {
-                            $printBtn.parent().addClass('has-tooltip');
-                            $printBtn.addClass('btn-disabled');
-                            $printBtn.removeClass('btn-primary');
-                        } else {
-                            $printBtn.parent().removeClass('has-tooltip');
-                            $printBtn.removeClass('btn-disabled');
-                            if ($printBtn.is('button')) {
-                                $printBtn.addClass('btn-primary');
-                            }
-                        }
-                        initTooltips($('.has-tooltip'));
+                        manageArticleAndRefSearch($input);
                     });
                 },
                 length: 10,

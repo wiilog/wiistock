@@ -7,11 +7,14 @@ let table = $('#tableAnomalies').DataTable({
         "url": path,
         "type": "POST"
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columns:[
+        { "data": 'Actions', 'title' : '', className: 'noVis', orderable: false, visible: false },
         { "data": 'reference', 'title' : 'Référence' },
         { "data": 'libelle', 'title' : 'Libellé' },
         { "data": 'quantite', 'title' : 'Quantité' },
-        { "data": 'Actions', 'title' : 'Actions' },
     ],
 });
 

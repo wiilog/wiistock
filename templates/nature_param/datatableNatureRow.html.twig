@@ -1,15 +1,18 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ natureId }}' data-toggle='modal' data-target='#modalEditNature'
-             onclick="clearErrorMsg($('#submitEditNature')), editRow($(this), Routing.generate('nature_api_edit', true), $('#modalEditNature'), $('#submitEditNature'))">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-    </div>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            <div class="d-none">
+                <div class="action-on-click" data-id='{{ natureId }}' data-toggle='modal' data-target='#modalEditNature'
+                     onclick="clearErrorMsg($('#submitEditNature')), editRow($(this), Routing.generate('nature_api_edit', true), $('#modalEditNature'), $('#submitEditNature'))">
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            </div>
 
-    <div onclick="checkAndDeleteRow($(this), '#modalDeleteNature', 'nature_check_delete', '#submitDeleteNature')"
-         data-id='{{ natureId }}' data-target='#modalDeleteNature' data-toggle='modal'>
-        <div class="btn btn-col-action">
-            <i class='fas fa-trash'></i>
+            <div onclick="checkAndDeleteRow($(this), '#modalDeleteNature', 'nature_check_delete', '#submitDeleteNature')"
+                 data-id='{{ natureId }}' data-target='#modalDeleteNature' data-toggle='modal' class="dropdown-item">
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
         </div>
     </div>
 </div>

@@ -1,65 +1,116 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Stock / Articles{% endblock %}
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
 {% block page_content %}
-
-    <h1>Articles</h1>
-    <div class='d-flex justify-content-end'>
-        <div class="dropleft">
-            <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                 aria-expanded="false">
-                <i class="fas fa-cog"></i>
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row">
+            <h1 class="col align-self-start ml-2">Articles</h1>
+            <div id="alerts">
+                <div class="alert alert-danger text-center d-none">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    <span class="error-msg"></span>
+                </div>
             </div>
-            <div class="dropdown-menu pointer" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">Modifier
-                    colonnes</a>
-                <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">Recherche rapide</a>
-
-                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-                    <div class="statut dropdown-item" >
-                        Articles actifs seulement
-                        <label class="switch">
-                            <input class="checkbox" type="checkbox" {{ activeOnly ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
-                            <span class="slider round"></span>
-                        </label>
+            <div class="btn-group split-button-container col-auto">
+                {% if hasRightToCreate and hasRightToExport %}
+                    <button type="button"
+                            class="btn btn-primary split-button btn-ripple"
+                            data-toggle="modal"
+                            data-target="#modalNewArticle"
+                            onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
+                        <span class="fa fa-plus mr-2"></span>Nouvel article
+                    </button>
+                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu pointer mr-5">
+                        <span class="d-inline-block ml-2 has-tooltip" tabindex="0" data-toggle="tooltip"
+                              title="Veuillez faire une recherche pour imprimer.">
+                            <a class="dropdown-item pl-3 btn-disabled" href="#" id="printTag"
+                               onclick="printArticlesBarCodes()"><span class="fa fa-print mr-2"></span>
+                            Impression des étiquettes</a>
+                        </span>
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
+                            <span class="fa fa-print mr-2"></span>Modifier colonnes</a>
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
+                            <span class="fa fa-search mr-2"></span>Recherche rapide</a>
+                        <div class="statut dropdown-item">
+                            <div class="checkbox pl-0 pointer">
+                                <input id="toggleActivOrInactiv"
+                                       onchange="displayActifOrInactif($(this))"
+                                       class="styled"
+                                       type="checkbox" {{ activeOnly ? 'checked' : '' }}>
+                                <label for="toggleActivOrInactiv" class="pointer">
+                                    Articles actifs seulement
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    {% if hasRightToCreate %}
+                        <button type="button"
+                                class="btn btn-primary split-button btn-ripple"
+                                data-toggle="modal"
+                                data-target="#modalNewArticle"
+                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
+                            <span class="fa fa-plus mr-2"></span>Nouvel article
+                        </button>
+                    {% elseif hasRightToExport %}
+                        <span class="d-inline-block has-tooltip"
+                              tabindex="0" data-toggle="tooltip"
+                              title="Veuillez faire une recherche pour imprimer.">
+                            <button type="button"
+                                    class="btn btn-primary split-button btn-ripple printButton btn-disabled"
+                                    id="printTag"
+                                    onclick="printArticlesBarCodes()">
+                            <span class="fa fa-plus mr-2"></span>Impression des étiquettes
+                            </button>
+                        </span>
+                    {% endif %}
+                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu pointer {{ not hasRightToExport and not hasRightToCreate ? 'dropdown-single' : 'mr-5'}}">
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
+                            <span class="fa fa-print mr-2"></span>Modifier colonnes</a>
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
+                            <span class="fa fa-search mr-2"></span>Recherche rapide</a>
+                        <div class="statut dropdown-item">
+                            <div class="checkbox pl-0 pointer">
+                                <input id="toggleActivOrInactiv"
+                                       onchange="displayActifOrInactif($(this))"
+                                       class="styled"
+                                       type="checkbox" {{ activeOnly ? 'checked' : '' }}>
+                                <label for="toggleActivOrInactiv" class="pointer">
+                                    Articles actifs seulement
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 {% endif %}
             </div>
-        </div>
-        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
-            <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
-                 onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
-                <i class="fa fa-plus mr-2"></i>Nouvel article
+            <div class="col-12">
+                <div class="d-flex justify-content-center" id="spinner">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <table id="tableArticle_id" class="table w-100">
+                </table>
             </div>
-        {% endif %}
-        <span class="d-inline-block m-2" tabindex="0" title="Veuillez faire une recherche ou renseigner un filtre pour imprimer.">
-            <div id="printTag" class="btn btn-disabled m-0 printButton"
-                 onclick="printArticlesBarCodes()">
-                <i class="fas fa-print"></i> Imprimer les étiquettes
-            </div>
-        </span>
-    </div>
-
-    <input type="hidden" id="listArticleIdToPrint">
-
-    <div id="alerts">
-        <div class="alert alert-danger text-center d-none">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            <span class="error-msg"></span>
         </div>
     </div>
-    <div class="d-flex justify-content-center" id="spinner">
-        <div class="spinner-border sizeLoader" role="status">
-            <span class="sr-only">Loading...</span>
-        </div>
-    </div>
-    <table id="tableArticle_id" class="table table-striped table-bordered w-100">
-    </table>
 
     {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
     <input type="hidden" class='statutVisible' name="statutVisible" value="{{ statutVisible }}">
-{#TODO#}
+    {#TODO#}
     {% include "article/modalEditArticle.html.twig" %}
     {% include "article/modalShowArticle.html.twig" %}
     {% include "article/modalNewArticle.html.twig" %}
@@ -67,7 +118,7 @@
     {% include "article/modalRapidSearch.html.twig" %}
     {% include "article/modalColumnVisible.html.twig" %}
     <div class="d-none" id="barcodes"></div>
-
+    <input type="hidden" id="listArticleIdToPrint">
 {% endblock %}
 
 {% block javascripts %}

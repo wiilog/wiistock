@@ -2,36 +2,60 @@
 
 {% block title %}Demandes de manutention{% endblock %}
 
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
+{% block page_filter %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        'page': 'PAGE_MANUT',
+        'tableSelector': '#tableManutention_id',
+        'callback': 'callbackSaveFilter'
+    } %}
+{% endblock %}
 {% block page_content %}
 
-    {% block page_filter %}
-        {% include 'filters/filtersDemands.html.twig' with {
-            'page': 'PAGE_MANUT',
-            'tableSelector': '#tableManutention_id',
-            'callback': 'callbackSaveFilter'
-        } %}
-    {% endblock %}
-    <div class="col-12">
-        <h1>Demandes de manutention</h1>
-    </div>
-    <div class="col-12">
-        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-            <a href="" data-toggle="modal" data-target="#modalNewManutention" class="btn btn-primary"
-               onclick='initNewManutentionEditor("#modalNewManutention")'>
-                <span class="fa fa-plus mr-2"></span>Nouvelle demande
-            </a>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="btn btn-primary" onclick="generateCSV('get_manutentions_for_csv', 'manutentions')">
-                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-            </div>
-        {% endif %}
-    </div>
 
-    <div class="col-12">
-        <table id="tableManutention_id" class="table table-striped table-bordered w-100">
-        </table>
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row">
+            <h1 class="col align-self-start ml-2">Demandes de manutention</h1>
+            <div class="col-auto">
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                    <div class="btn-group split-button-container col-auto">
+                        <div class="btn btn-primary btn-ripple split-button"
+                             data-toggle="modal" data-target="#modalNewManutention"
+                             onclick='initNewManutentionEditor("#modalNewManutention")'>
+                            <span class="fa fa-plus mr-2"></span>Nouvelle demande
+                        </div>
+                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu mr-5 pointer">
+                            <div class="dropdown-item" onclick="generateCSV('get_manutentions_for_csv', 'manutentions')">
+                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                        <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_manutentions_for_csv', 'manutentions')">
+                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                        </div>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                        <a href="" data-toggle="modal" data-target="#modalNewManutention" class="btn btn-primary btn-ripple"
+                           onclick='initNewManutentionEditor("#modalNewManutention")'>
+                            <span class="fa fa-plus mr-2"></span>Nouvelle demande
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="col-12">
+                <table id="tableManutention_id" class="table w-100">
+                </table>
+            </div>
+        </div>
     </div>
     {% include "manutention/modalDeleteManutention.html.twig" %}
     {% include "manutention/modalEditManutention.html.twig" %}
@@ -40,7 +64,7 @@
     {% include "manutention/modalShowManutention.html.twig" %}
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/manutention.js') }}?{{ date().timestamp }}"></script>
-{% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="{{ asset('js/manutention.js') }}?{{ date().timestamp }}"></script>
+    {% endblock %}

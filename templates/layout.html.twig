@@ -333,11 +333,11 @@
     <div class="wrapper" class="accueil-back">
 
         <div class="container-fluid">
+            {% block page_filter %}
+
+            {% endblock %}
             {% block page_content %}
 
-                {% block page_filter %}
-
-                {% endblock %}
             {% endblock %}
 
             {% include 'alert/modal-alert.html.twig' %}

@@ -20,6 +20,9 @@ let tableManutention = $('#tableManutention_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     ajax: {
         "url": pathManut,
         "type": "POST",
@@ -31,7 +34,7 @@ let tableManutention = $('#tableManutention_id').DataTable({
         overrideSearch($('#tableManutention_id_filter input'), tableManutention);
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },

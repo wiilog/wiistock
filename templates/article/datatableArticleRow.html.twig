@@ -1,41 +1,40 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-    <div>
-        <div class="btn btn-col-action" data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
-            onclick="editRow($(this), Routing.generate('article_api_edit', true), $('#modalEditArticle'),
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="d-none">
+                    <div class="btn btn-col-action action-on-click" data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
+                         onclick="editRow($(this), Routing.generate('article_api_edit', true), $('#modalEditArticle'),
             $('#submitEditArticle'), true)">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-   </div>
-
-    <div>
-        <div class="btn btn-col-action"
-            onclick="checkAndDeleteRow($(this), '#modalDeleteArticle', 'article_check_delete', '#submitDeleteArticle')"
-            data-id='{{ articleId }}' data-target='#modalDeleteArticle' data-toggle='modal'>
-            <i class='fas fa-trash'></i>
-        </div>
-
-    </div>
-    {% else %}
-    <div>
-        <div class="btn btn-col-action" data-id='{{ articleId }}' data-target='#modalShowArticle' data-toggle='modal'
-            onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
-            <i class='fas fa-eye'></i>
-        </div>
-    </div>
-    {% endif %}
-    <div>
-        <a class="btn btn-col-action"
-           href="{{ path('article_single_bar_code_print', {article: articleId}) }}">
-            <i class="fas fa-print"></i>
-        </a>
-    </div>
-    {% if demandeId is not null %}
-    <div>
-        <div class="btn btn-col-action" data-id='{{articleId}}'
-             onclick='redirectToDemandeLivraison({{ demandeId }})'>
-            <i class="fas fa-external-link-alt"></i>
+                        <i class='fas fa-pencil-alt'></i>
+                    </div>
+                </div>
+            {% else %}
+                <div class="d-none">
+                    <div class="btn btn-col-action action-on-click" data-id='{{ articleId }}' data-target='#modalShowArticle' data-toggle='modal'
+                         onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+                        <i class='fas fa-eye'></i>
+                    </div>
+                </div>
+            {% endif %}
+            <a class="dropdown-item"
+               href="{{ path('article_single_bar_code_print', {article: articleId}) }}">
+                <i class="fas fa-print mr-2"></i>Imprimer
+            </a>
+            {% if demandeId is not null %}
+                <div class="btn btn-col-action dropdown-item" data-id='{{ articleId }}'
+                     onclick='redirectToDemandeLivraison({{ demandeId }})'>
+                    <i class="fas fa-external-link-alt mr-2"></i>Accéder à la demande
+                </div>
+            {% endif %}
+            {% if  hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
+            <div class="dropdown-item"
+                 onclick="checkAndDeleteRow($(this), '#modalDeleteArticle', 'article_check_delete', '#submitDeleteArticle')"
+                 data-id='{{ articleId }}' data-target='#modalDeleteArticle' data-toggle='modal'>
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
 </div>

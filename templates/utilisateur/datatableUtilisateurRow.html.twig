@@ -1,14 +1,19 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ idUser }}' data-toggle='modal' data-target='#modalEditUser'
-        onclick="editRowUser($(this))">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-    </div>
-    <div onclick="checkAndDeleteRow($(this), '#modalDeleteUser', 'user_check_delete', '#submitDeleteUser')"
-         data-id='{{ idUser }}' data-target='#modalDeleteUser' data-toggle='modal'>
-        <div class="btn btn-col-action">
-            <i class='fas fa-trash'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu pointer">
+            <div class="d-none">
+                <div class="btn btn-col-action action-on-click" data-id='{{ idUser }}' data-toggle='modal' data-target='#modalEditUser'
+                     onclick="editRowUser($(this))">
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            </div>
+            <div onclick="checkAndDeleteRow($(this), '#modalDeleteUser', 'user_check_delete', '#submitDeleteUser')"
+                 data-id='{{ idUser }}' data-target='#modalDeleteUser' data-toggle='modal'>
+                <div class="dropdown-item">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            </div>
         </div>
     </div>
 </div>

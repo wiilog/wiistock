@@ -1,19 +1,25 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Paramétrage des natures de colis{% endblock %}
-
+{% block classbody %}
+    class='new-body'
+{% endblock %}
 {% block page_content %}
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row">
+            <h1 class="col align-self-start ml-2">Natures des colis</h1>
+            <div class="col-auto">
+                <a href="" data-toggle="modal" data-target="#modalNewNature" class="btn btn-primary btn-ripple">
+                    <span class="fa fa-plus mr-2"></span>Nouvelle nature
+                </a>
+            </div>
 
-    <h1>Natures des colis</h1>
-
-    <div class='col-12 mb-5'>
-        <a href="" data-toggle="modal" data-target="#modalNewNature" class="btn btn-primary">
-            <span class="fa fa-plus mr-2"></span>Nouvelle nature
-        </a>
+            <div class="col-12">
+                <table id="tableNatures" class="table w-100">
+                </table>
+            </div>
+        </div>
     </div>
-
-    <table id="tableNatures" class="table table-striped table-bordered w-100">
-    </table>
 
     {% include 'nature_param/modalNewNature.html.twig' %}
     {% include 'nature_param/modalEditNature.html.twig' %}

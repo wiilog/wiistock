@@ -9,18 +9,20 @@ $(function () {
             "type": "POST"
         },
         columns: [
+            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Categorie', 'title': 'Catégorie'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut litige traité'},
             {"data": 'NotifToBuyer', 'title': 'Envoi de mails'},
             {"data": 'Order', 'title': 'Ordre'},
-            {"data": 'Actions', 'title': 'Actions'}
         ],
         order: [
-            [0, 'asc'],
-            [5, 'asc']
+            [6, 'asc']
         ],
+        rowCallback: function (row, data) {
+            initActionOnRow(row);
+        },
     });
 
     let modalNewStatus = $("#modalNewStatus");

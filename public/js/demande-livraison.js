@@ -1,4 +1,47 @@
 $('.select2').select2();
+//DEMANDE
+
+let pathDemande = Routing.generate('demande_api', true);
+let tableDemande = $('#table_demande').DataTable({
+    serverSide: true,
+    processing: true,
+    language: {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    order: [[1, 'desc']],
+    ajax: {
+        "url": pathDemande,
+        "type": "POST",
+        'data' : {
+            'filterStatus': $('#filterStatus').val(),
+            'filterReception': $('#receptionFilter').val()
+        },
+    },
+    'drawCallback': function() {
+        overrideSearch($('#table_demande_filter input'), tableDemande);
+    },
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
+    columns: [
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
+        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
+        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
+        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
+        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
+    ],
+    columnDefs: [
+        {
+            type: "customDate",
+            targets: 1
+        },
+        {
+            orderable: false,
+            targets: 0
+        }
+    ],
+});
 
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
@@ -42,46 +85,6 @@ let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
 let pathEditArticle = Routing.generate('demande_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
-
-//DEMANDE
-let pathDemande = Routing.generate('demande_api', true);
-let tableDemande = $('#table_demande').DataTable({
-    serverSide: true,
-    processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    order: [[1, 'desc']],
-    ajax: {
-        "url": pathDemande,
-        "type": "POST",
-        'data' : {
-            'filterStatus': $('#filterStatus').val(),
-            'filterReception': $('#receptionFilter').val()
-        },
-    },
-    'drawCallback': function() {
-        overrideSearch($('#table_demande_filter input'), tableDemande);
-    },
-    columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
-        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
-    ],
-    columnDefs: [
-        {
-            type: "customDate",
-            targets: 1
-        },
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
-});
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {

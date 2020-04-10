@@ -33,7 +33,7 @@ let tableMvt = $('#tableMvts').DataTable({
         overrideSearch($('#tableMvts_filter input'), tableMvt);
     },
     columns: [
-        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'actions', 'name': 'Actions', 'title': ''},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": 'from', 'name': 'from', 'title': 'Issu de'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
