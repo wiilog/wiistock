@@ -17,7 +17,7 @@ class SpecificService
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
 
-	public function isCurrentClientNameFunction(string $clientName)
+	public function isCurrentClientNameFunction(string $clientName): bool
 	{
 		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
 	}

@@ -3,11 +3,7 @@
 
 <div class="form-group w-100 mb-3">
     <label for="reference">
-        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-            Référence CEA
-        {% else %}
-            Référence
-        {% endif %}
+        {{ 'reference.reference'|trans }}
     </label>
     <select disabled class="ajax-autocomplete data form-control" {{ disabled }} value='{{ligneArticle.reference}}' id='referenceEdit'  name='reference'
     onclick="ajaxAutoRefArticleInit($(this))">

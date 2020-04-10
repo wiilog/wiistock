@@ -30,11 +30,7 @@
                                     <a href="{{ path('reference_article_index') }}" data-toggle="modal"
                                        class="dropdown-item">
                                         <i class="fa fa-search mr-2"></i>
-                                        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-                                            Chercher une référence CEA
-                                        {% else %}
-                                            Chercher une référence
-                                        {% endif %}
+                                        Chercher une {{ 'reference.reference'|trans }}
                                     </a>
                                 </div>
                             {% endif %}

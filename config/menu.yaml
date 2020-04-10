@@ -102,7 +102,8 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::STOCK
                         action: App\Entity\Action::DISPLAY_ARTI
-                -   label: 'Référence' # TODO menu spécifique CEA : reference CEA
+                -   label: 'reference.reference'
+                    isTranslation: true
                     path: 'reference_article_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
