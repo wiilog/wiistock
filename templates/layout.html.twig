@@ -28,9 +28,3 @@
     </div>
 
 {% endblock %}
-
-
-{% block javascripts %}
-    {{ parent() }}
-    <script src = "{{ asset('js/menu.js')}}?{{ date().timestamp }}"></script>
-{% endblock %}
