@@ -275,7 +275,7 @@ class DemandeController extends AbstractController
                     [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'champsLibres' => $valeurChampLibreRepository->getByDemandeLivraison($demande)
+                        'champsLibres' => $valeurChampLibreRepository->getByDemandeLivraison($demande),
                     ]
                 ),
                 'status' => true

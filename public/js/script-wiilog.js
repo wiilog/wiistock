@@ -1487,6 +1487,8 @@ function registerDropdownPosition() {
 
     $(window).on('show.bs.dropdown', function(e) {
         const $target = $(e.target);
+        dropdownMenu = $target.find('.dropdown-menu');
+        let parentModal = $target.parents('.modal');
         if (!hasMainHeaderParent($target)) {
             dropdownMenu = $target.find('.dropdown-menu');
             $('body').append(dropdownMenu.detach());
@@ -1496,6 +1498,9 @@ function registerDropdownPosition() {
                 'at': 'right bottom',
                 'of': $(e.relatedTarget)
             });
+            if (parentModal.length > 0) {
+                dropdownMenu.css('z-index', (parentModal.first().css('z-index') || 0) + 1)
+            }
         }
     });
 

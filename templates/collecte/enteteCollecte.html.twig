@@ -1,13 +1,67 @@
-<div class='row'>
+<div class="row">
+    <div class="col-auto">
+        <h1><span>Demande de collecte n° {{ collecte.numero }}</span></h1>
+    </div>
+    <div class="col-auto ml-auto">
+        <div class="btn-group split-button-container col-auto align-self-end">
+            {% if modifiable %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                    <button type="button" data-id='{{ collecte.id }}' data-target='#modalEditCollecte' data-toggle='modal'
+                            onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
+                            class="btn btn-primary btn-ripple ml-auto split-button">
+                        Modifier
+                    </button>
+                {% endif %}
+                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+                <div class="dropdown-menu mr-5 pointer">
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                        <a href="#" onclick="validateCollecte({{ collecte.id }})"
+                           class="dropdown-item"><i class="fa fa-check mr-2"></i>Valider</a>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+                        <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
+                           data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
+                           class="dropdown-item">
+                            <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
+                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu pointer dropdown-single">
+                        {% if collecte.ordresCollecte|length > 1 %}
+                            <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
+                               class="dropdown-item">
+                                <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de collecte
+                            </a>
+                        {% else %}
+                            <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte[0].id }) }}"
+                               class="dropdown-item">
+                                <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de collecte
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="row">
     <div class="col-6">
         <p><strong> Demandeur : </strong> {{ collecte.demandeur.username }}</p>
         <p><strong> Date de demande : </strong>{{ collecte.date ? collecte.date|date('d/m/Y H:i') : '' }}</p>
-        <p><strong> Date de validation : </strong>{{ collecte.validationDate ? collecte.validationDate|date('d/m/Y H:i') : ''}}</p>
+        <p><strong> Date de validation : </strong>{{ collecte.validationDate ? collecte.validationDate|date('d/m/Y H:i') : '' }}</p>
         <p><strong> Destination : </strong>
             {% if collecte.stockOrDestruct == 1 %}
-            Mise en stock
+                Mise en stock
             {% else %}
-            Destruction
+                Destruction
             {% endif %}
     </div>
     <div class="col-6">
@@ -33,7 +87,8 @@
     <div class="col-12">
         <p><strong> Commentaire : </strong></p>
         <div class="commentOverflow">
-            <p>{{collecte.commentaire|raw}}</p>
+            <p>{{ collecte.commentaire|raw }}</p>
         </div>
     </div>
 </div>
+

@@ -56,13 +56,16 @@ let tableArticle = $('#table-lignes').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
     ],
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columnDefs: [
         {
             orderable: false,

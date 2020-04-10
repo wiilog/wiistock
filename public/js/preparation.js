@@ -2,7 +2,7 @@ $('.select2').select2();
 
 let prepaHasBegun = false;
 
-$(function() {
+$(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statut');
 
@@ -20,8 +20,7 @@ $(function() {
     if (filterDemandId && filterDemandValue) {
         let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');
-    }
-    else {
+    } else {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_PREPA);
@@ -41,15 +40,15 @@ let table = $('#table_id').DataTable({
     order: [[3, 'desc']],
     ajax: {
         url: path,
-        'data' : {
+        'data': {
             'filterDemand': $('#filterDemandId').val()
         },
         "type": "POST"
     },
-    'drawCallback': function() {
+    'drawCallback': function () {
         overrideSearch($('#table_id_filter input'), table);
     },
-    rowCallback: function(row, data) {
+    rowCallback: function (row, data) {
         initActionOnRow(row);
     },
     columns: [
@@ -101,7 +100,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
     },
     ajax: pathArticle,
     columns: [
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
@@ -109,6 +108,9 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
     order: [[1, "asc"]],
     columnDefs: [
         {'orderable': false, 'targets': [0]}
@@ -128,7 +130,7 @@ function startPicking($button) {
             },
             dom: 'fltir',
             'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
-            'columnDefs' : [
+            'columnDefs': [
                 {'orderable': false, 'targets': [3]}
             ]
         });
@@ -147,7 +149,7 @@ function submitSplitting(submit) {
     let articlesChosen = {};
     let quantityToZero = false;
     let maxExceeded = false;
-    for(const input of $inputs) {
+    for (const input of $inputs) {
         const $input = $(input);
         const inputValue = $input.val() !== '' ? Number($input.val()) : '';
         const inputMax = $input.attr('max') !== '' ? Number($input.attr('max')) : 0;
@@ -158,13 +160,11 @@ function submitSplitting(submit) {
                 let id = $input.data('id');
                 articlesChosen[id] = inputValue;
                 $input.removeClass('is-invalid');
-            }
-            else {
+            } else {
                 maxExceeded = true;
                 $input.addClass('is-invalid');
             }
-        }
-        else if (inputValueInit > 0) {
+        } else if (inputValueInit > 0) {
             quantityToZero = true;
             $input.addClass('is-invalid');
             break;
@@ -173,14 +173,11 @@ function submitSplitting(submit) {
 
     if (maxExceeded) {
         $('#modalSplitting').find('.error-msg').html("Vous avez trop sélectionné pour un article.");
-    }
-    else if ($('#remainingQuantity').val() < 0) {
+    } else if ($('#remainingQuantity').val() < 0) {
         $('#modalSplitting').find('.error-msg').html("Vous avez prélevé une quantité supérieure à celle demandée.");
-    }
-    else if (quantityToZero) {
+    } else if (quantityToZero) {
         $('#modalSplitting').find('.error-msg').html("Vous ne pouvez pas renseigner de quantité inférieure à 1 pour cet article.");
-    }
-    else if (Object.keys(articlesChosen).length > 0) {
+    } else if (Object.keys(articlesChosen).length > 0) {
         let path = Routing.generate('submit_splitting', true);
         let params = {
             'articles': articlesChosen,
@@ -195,8 +192,7 @@ function submitSplitting(submit) {
                 tableArticle.ajax.reload();
             }
         });
-    }
-    else {
+    } else {
         $('#modalSplitting').find('.error-msg').html("Vous devez sélectionner une quantité pour enregistrer.");
     }
 }
@@ -205,7 +201,7 @@ function updateRemainingQuantity() {
     let $inputs = $('#tableSplittingArticles').find('.input');
 
     let totalQuantityTaken = 0;
-    $inputs.each(function() {
+    $inputs.each(function () {
         if ($(this).val() != '') {
             totalQuantityTaken += parseFloat($(this).val()) - $(this).data('value-init');
         } else {
@@ -324,6 +320,7 @@ function finishPrepa() {
         $('#btnFinishPrepa').click();
     }
 }
+
 function printPrepaBarCodes() {
     const lengthPrintButton = $('.print-button').length;
 
@@ -335,8 +332,7 @@ function printPrepaBarCodes() {
             },
             true
         );
-    }
-    else {
+    } else {
         alertErrorMsg("Il n'y a aucun article à imprimer.");
     }
 }

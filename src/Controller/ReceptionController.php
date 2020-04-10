@@ -767,7 +767,8 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
 				$json = [
 					'entete' => $this->renderView('reception/enteteReception.html.twig', [
-						'reception' => $reception,
+                        'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
+                        'reception' => $reception,
 						'valeurChampLibreTab' => $valeurChampLibreTab,
 						'typeChampsLibres' => $champsLibres,
 						'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)

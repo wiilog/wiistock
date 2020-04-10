@@ -29,11 +29,11 @@
                 </div>
             {% endif %}
             {% if  hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
-            <div class="dropdown-item"
-                 onclick="checkAndDeleteRow($(this), '#modalDeleteArticle', 'article_check_delete', '#submitDeleteArticle')"
-                 data-id='{{ articleId }}' data-target='#modalDeleteArticle' data-toggle='modal'>
-                <i class='fas fa-trash mr-2'></i>Supprimer
-            </div>
+                <div class="dropdown-item"
+                     onclick="checkAndDeleteRow($(this), '#modalDeleteArticle', 'article_check_delete', '#submitDeleteArticle')"
+                     data-id='{{ articleId }}' data-target='#modalDeleteArticle' data-toggle='modal'>
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
             {% endif %}
         </div>
     </div>

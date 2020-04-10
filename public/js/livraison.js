@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-$(function() {
+$(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
@@ -16,8 +16,7 @@ $(function() {
     if (filterDemandId && filterDemandValue) {
         let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');
-    }
-    else {
+    } else {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);
@@ -44,10 +43,10 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
         },
         "type": "POST"
     },
-    rowCallback: function(row, data) {
+    rowCallback: function (row, data) {
         initActionOnRow(row);
     },
-    'drawCallback': function() {
+    'drawCallback': function () {
         overrideSearch($('#tableLivraison_id_filter input'), tableLivraison);
     },
     columns: [
@@ -101,15 +100,18 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    },
     order: [[1, "asc"]],
     columnDefs: [
-        {orderable:false, targets: [0]}
+        {orderable: false, targets: [0]}
     ]
 });
 

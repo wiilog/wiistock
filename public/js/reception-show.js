@@ -12,11 +12,12 @@ $(function () {
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
     InitiliserPageModals();
-    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function(){
+    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function () {
         if ($(this).val() === '' || $(this).val() < 0) {
             $(this).val('');
         }
     });
+    registerDropdownPosition();
 });
 
 function InitiliserPageModals() {
@@ -67,7 +68,6 @@ function InitPageDataTable() {
 
     return {
         tableArticle: $('#tableArticle_id').DataTable({
-            responsive: true,
             "lengthMenu": [5, 10, 25],
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
@@ -80,16 +80,17 @@ function InitPageDataTable() {
                     const dNoneClass = 'd-none';
                     if (hasBarCodeToPrint) {
                         $printButton.removeClass(dNoneClass);
-                    }
-                    else {
+                        $('.print').removeClass(dNoneClass)
+                    } else {
                         $printButton.addClass(dNoneClass);
+                        $('.print').addClass(dNoneClass)
                     }
                     return data;
                 }
             },
             order: [[5, "desc"], [1, "desc"]],
             columns: [
-                {"data": 'Actions', 'title': 'Actions'},
+                {"data": 'Actions', 'title': '', className: 'noVis'},
                 {"data": 'Référence', 'title': 'Référence'},
                 {"data": 'Commande', 'title': 'Commande'},
                 {"data": 'A recevoir', 'title': 'A recevoir'},
@@ -110,10 +111,10 @@ function InitPageDataTable() {
                         initTooltips($row);
                     }
                 }
+                initActionOnRow(row);
             }
         }),
         tableLitigesReception: $('#tableReceptionLitiges').DataTable({
-            responsive: true,
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
             },
@@ -124,7 +125,7 @@ function InitPageDataTable() {
                 "type": "POST",
             },
             columns: [
-                {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
+                {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis'},
                 {"data": 'type', 'name': 'type', 'title': 'Type'},
                 {"data": 'status', 'name': 'status', 'title': 'Statut'},
                 {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
@@ -148,6 +149,7 @@ function InitPageDataTable() {
             ],
             rowCallback: function (row, data) {
                 $(row).addClass(data.urgence ? 'table-danger' : '');
+                initActionOnRow(row);
             }
         })
     };
@@ -160,7 +162,7 @@ function initEditReception() {
 
 function initDateTimePickerReception() {
     initDateTimePicker('#dateCommande, #dateAttendue');
-    $('.date-cl').each(function() {
+    $('.date-cl').each(function () {
         initDateTimePicker('#' + $(this).attr('id'));
     });
 }
@@ -171,7 +173,8 @@ function displayErrorReception(data) {
     displayError($modal, msg, data);
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {
+}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -231,7 +234,10 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">'
+        dom: '<"top">rt<"bottom"lp><"clear">',
+        rowCallback: function (row, data) {
+            initActionOnRow(row);
+        }
     });
 }
 
@@ -254,23 +260,27 @@ function initDatatableConditionnement() {
                 }
             },
         },
+        rowCallback: function(row, data) {
+            initActionOnRow(row);
+        },
+        order: [1, 'asc'],
         columns: [
+            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
             {"data": 'Code barre', 'name': 'Code barre', 'title': 'Code article'},
             {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
             {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
             {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
             {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
-            {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
         ],
         aoColumnDefs: [{
             'sType': 'natural',
             'bSortable': true,
-            'aTargets': [0]
+            'aTargets': [1]
         }],
         columnDefs: [
             {
                 orderable: false,
-                targets: 5
+                targets: 0
             }
         ]
     });
@@ -497,8 +507,11 @@ function initNewLigneReception() {
     }
     initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
     initSelect2($('.select2-type'));
-    initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route:  'get_user'});
-    initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {route: 'get_ref_article_reception', param: {reception: $('#receptionId').val()}});
+    initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route: 'get_user'});
+    initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
+        route: 'get_ref_article_reception',
+        param: {reception: $('#receptionId').val()}
+    });
     if ($('#locationDemandeLivraison').length > 0) {
         initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
@@ -516,7 +529,7 @@ function initNewLigneReception() {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(success) {
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function (success) {
                 if (success) {
                     const $printButton = $('#buttonPrintMultipleBarcodes');
                     if ($printButton.length > 0) {
@@ -611,8 +624,7 @@ function createHandlerAddLigneArticleResponse($modal) {
     return (data) => {
         if (data.errorMsg) {
             alertErrorMsg(data.errorMsg, true);
-        }
-        else {
+        } else {
             alertSuccessMsg('La référence a été ajoutée à la réception', true);
             $modal.find('.close').click();
             clearModal($modal);

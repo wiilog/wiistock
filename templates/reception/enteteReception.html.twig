@@ -1,71 +1,126 @@
-<input type="hidden" id="numCommandeReception" value="{{ reception.reference }}"/>
-<div class='col-4'>
-    <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
+<div class="row">
+    <div class="col">
+        <h1 title="réception">{{ 'réception.réception'|trans }} {{ reception.numeroReception }}</h1>
+        <input id="receptionId" value="{{ reception.id }}" type="hidden">
+    </div>
+    <div class="col text-right">
+        <div class="btn-group split-button-container">
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                <button type="button" data-target='#modalNewLigneReception' data-toggle='modal'
+                        onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
+                        class="btn btn-primary btn-ripple ml-auto split-button" title="réception">
+                    {{ 'réception.réception'|trans }}</button>
+            {% endif %}
+            <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu mr-5 pointer">
+                {% if modifiable %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                        <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
+                           class="dropdown-item"
+                           onclick="editRow(
+                           $(this),
+                           Routing.generate('api_reception_edit', true),
+                           $('#modalEditReception'),
+                           $('#submitEditReception'),
+                           true,
+                           '.editor-container-edit',
+                           false,
+                           initEditReception
+                       )">
+                            <i class="fa fa-edit mr-2"></i>Modifier
+                        </a>
+                        <div class="dropdown-item" onclick="finishReception({{ reception.id }}, false)">
+                            <i class="mr-2 fa fa-flag"></i>Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
+                        </div>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0 %}
+                        <a href="{{ path('demande_index', {'reception': reception.id }) }}" class="btn btn-primary btn-action ml-auto">
+                            <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes</a>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
+                        <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
+                           class="dropdown-item"
+                           onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
+                            <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
-{% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
-    <div class="col-4">
-        <p><strong title="n° de réception">{{ 'réception.n° de réception'|trans }} :</strong> {{ reception.numeroReception }}</p>
+<div class="row">
+    <input type="hidden" id="numCommandeReception" value="{{ reception.reference }}"/>
+    <div class='col-4'>
+        <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
     </div>
-{% endif %}
-{% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+    {% if fieldsParam|isFieldRequired('numeroReception', 'displayed') %}
+        <div class="col-4">
+            <p><strong title="n° de réception">{{ 'réception.n° de réception'|trans }} :</strong> {{ reception.numeroReception }}</p>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
+        <div class="col-4">
+            <p><strong>Fournisseur :</strong> {{ reception.fournisseur ? reception.fournisseur.nom : '' }}</p>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
+        <div class="col-4">
+            <p><strong>Transporteur :</strong> {{ reception.transporteur ? reception.transporteur.label : '' }}</p>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('emplacement', 'displayed') %}
+        <div class="col-4">
+            <p><strong>Emplacement :</strong> {{ reception.location ? reception.location.label : '' }}</p>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('dateCommande', 'displayed') %}
+        <div class="col-4">
+            <p><strong>Date commande :</strong> {{ reception.dateCommande ? reception.dateCommande| date('d/m/Y') : ' ' }}</p>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('numCommande', 'displayed') %}
+        <div class="col-4">
+            <p><strong>Numéro de commande :</strong> {{ reception.reference ? reception.reference : ' ' }}</p>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayed') %}
+        <div class="col-4">
+            <p><strong>Date attendue :</strong> {{ reception.dateAttendue ? reception.dateAttendue | date('d/m/Y') : ' ' }}</p>
+        </div>
+    {% endif %}
     <div class="col-4">
-        <p><strong>Fournisseur :</strong> {{ reception.fournisseur ? reception.fournisseur.nom : '' }}</p>
+        <p><strong>Date de création :</strong>
+            {{ reception.date ? reception.date| date('d/m/Y H:i') : ' ' }}</p>
     </div>
-{% endif %}
-{% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
     <div class="col-4">
-        <p><strong>Transporteur :</strong> {{ reception.transporteur ? reception.transporteur.label : '' }}</p>
+        <p><strong title="de réception">Date de fin {{ 'réception.de réception'|trans }}
+                :</strong> {{ reception.dateFinReception ? reception.dateFinReception | date('d/m/Y H:i') : ' ' }}</p>
     </div>
-{% endif %}
-{% if fieldsParam|isFieldRequired('emplacement', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Emplacement :</strong> {{ reception.location ? reception.location.label : '' }}</p>
-    </div>
-{% endif %}
-{% if fieldsParam|isFieldRequired('dateCommande', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Date commande :</strong> {{ reception.dateCommande ? reception.dateCommande| date('d/m/Y') : ' ' }}</p>
-    </div>
-{% endif %}
-{% if fieldsParam|isFieldRequired('numCommande', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Numéro de commande :</strong> {{ reception.reference ? reception.reference : ' ' }}</p>
-    </div>
-{% endif %}
-{% if fieldsParam|isFieldRequired('dateAttendue', 'displayed') %}
-    <div class="col-4">
-        <p><strong>Date attendue :</strong> {{ reception.dateAttendue ? reception.dateAttendue | date('d/m/Y') : ' ' }}</p>
-    </div>
-{% endif %}
-<div class="col-4">
-    <p><strong>Date de création :</strong>
-        {{ reception.date ? reception.date| date('d/m/Y H:i') : ' ' }}</p>
-</div>
-<div class="col-4">
-    <p><strong title="de réception">Date de fin {{ 'réception.de réception'|trans }}
-            :</strong> {{ reception.dateFinReception ? reception.dateFinReception | date('d/m/Y H:i') : ' ' }}</p>
-</div>
-{% for typeChampLibre in typeChampsLibres %}
-    <div class="col-4">
-        {% set value = null %}
+    {% for typeChampLibre in typeChampsLibres %}
+        <div class="col-4">
+            {% set value = null %}
             {% if typeChampLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                 {% set value = (typeChampLibre.valeurChampLibre and typeChampLibre.valeurChampLibre.valeur == 1) ? 'oui' : 'non' %}
-            {% elseif typeChampLibre.typage == 'list multiple' and typeChampLibre.valeurChampLibre is not null%}
+            {% elseif typeChampLibre.typage == 'list multiple' and typeChampLibre.valeurChampLibre is not null %}
                 {% set value = typeChampLibre.valeurChampLibre.valeur | replace({';' : ','}) %}
             {% elseif typeChampLibre.valeurChampLibre is not null %}
                 {% set value = typeChampLibre.valeurChampLibre.valeur %}
             {% endif %}
-        {% if value is not null %}
-        <p><strong>{{ typeChampLibre.label|capitalize }} :</strong> {{ value }}</p>
+            {% if value is not null %}
+                <p><strong>{{ typeChampLibre.label|capitalize }} :</strong> {{ value }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <div class="col-12">
+        {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
+            <p><strong>Commentaire :</strong></p>
+            <div class="commentOverflow">
+                <p>{{ reception.commentaire|raw }}</p>
+            </div>
         {% endif %}
     </div>
-{% endfor %}
-
-<div class="col-12">
-    {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
-        <p><strong>Commentaire :</strong></p>
-        <div class="commentOverflow">
-            <p>{{ reception.commentaire|raw }}</p>
-        </div>
-    {% endif %}
 </div>

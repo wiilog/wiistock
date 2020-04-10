@@ -70,8 +70,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
             "targets": [0]
         }
     ],
+    rowCallback: function(row, data) {
+        initActionOnRow(row);
+    },
     columns: [
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
