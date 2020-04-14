@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Mouvements{% endblock %}
+{% block title %}Traçabilité | Mouvements{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersMouvementTraca.html.twig' with {
@@ -15,7 +15,7 @@
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Mouvements</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             {% if hasRightCreate and hasRightExport %}
                 <div class="btn-group split-button-container col-auto align-self-end">
                     <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary btn-ripple split-button"

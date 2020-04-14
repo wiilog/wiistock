@@ -12,10 +12,10 @@
 {% block page_content %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Demandes de collecte</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div class='col-auto'>
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple"
+                    <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple mb-3"
                        onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
                         <span class="fa fa-plus mr-2"></span>Nouvelle collecte
                     </a>

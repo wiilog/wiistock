@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}{{ 'urgences.urgences'|trans }}{% endblock %}
+{% block title %}Traçabilité | {{ 'urgences.urgences'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersUrgence.html.twig' with {
@@ -13,9 +13,9 @@
     <div class="m-4 datatable-container shadow-lg">
 
         <div class="row">
-            <h1 class="col align-self-start ml-2" title="urgences">{{ 'urgences.urgences'|trans }}</h1>
+            <h1 class="col align-self-start ml-2" title="urgences"></h1>
             <div class="col-auto">
-                <a href="" data-toggle="modal" data-target="#modalNewUrgence" class="btn btn-primary btn-ripple">
+                <a href="" data-toggle="modal" data-target="#modalNewUrgence" class="btn btn-primary btn-ripple mb-3">
                     <span class="fa fa-plus mr-2"></span><span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
                 </a>
             </div>

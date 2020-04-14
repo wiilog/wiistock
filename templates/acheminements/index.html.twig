@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Acheminements{% endblock %}
+{% block title %}Traçabilité | Acheminements{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -13,10 +13,10 @@
 
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Acheminements</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div class="col-auto">
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
-                    <button type="button" data-toggle="modal" data-target="#modalNewAcheminements" class="btn btn-primary btn-ripple"
+                    <button type="button" data-toggle="modal" data-target="#modalNewAcheminements" class="btn btn-primary btn-ripple mb-3 mr-3"
                        onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
                         <span class="fa fa-plus mr-2"></span>Nouvel acheminement
                     </button>
