@@ -1,9 +1,0 @@
-<p class="attachement">
-    <input class="data" hidden name="files[]" value="{{ pj.id }}">
-    <a target="_blank" href="/uploads/attachements/{{ pjName }}">
-        <i class="fa fa-file mr-2"></i>{{ originalName }}
-    </a>
-    {% if canRemove is not defined or canRemove == true %}
-        <i class="fa fa-times red pointer" onclick="removeAttachement($(this))"></i>
-    {% endif %}
-</p>
