@@ -17,6 +17,7 @@
     <input type="hidden" id="dateMaxFilter">
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
+
     <div class="m-4 datatable-container shadow-lg">
         <div class="d-none justify-content-center" id="spinner">
             <div class="spinner-border sizeLoader" role="status">
@@ -24,44 +25,50 @@
             </div>
         </div>
         <div class="row datatable-header">
-            <div class="btn-group split-button-container col-auto ml-auto">
-                {% if hasRightToCreate %}
-                <button type="button" class="btn btn-primary split-button btn-ripple"
-                        data-toggle="modal" data-target="#modalNewArrivage"
-                        data-backdrop="static" data-keyboard="false"
-                        onclick="initNewArrivageEditor('#modalNewArrivage')"><span class="fa fa-plus mr-2"></span>
-                    {{ 'arrivage.nouvel arrivage'|trans }}
-                </button>
-                {% elseif hasRightToExport %}
-                    <button type="button" class="btn btn-primary split-button btn-ripple"
-                            onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
-                        <span class="fa fa-file-csv mr-2"></span>
-                        Exporter au format CSV
-                    </button>
-                {% endif %}
-                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false">
-                    <span class="fa fa-angle-down"></span>
-                </button>
-                <div class="dropdown-menu {{ hasRightToCreate or hasRightToExport ? 'mr-5' : 'dropdown-single' }}">
-                    {% if hasRightToCreate
-                       and hasRightToExport %}
-                        <a href="#" class="dropdown-item"
-                           onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                        </a>
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    {% if hasRightToCreate %}
+                        <button type="button" class="btn btn-primary split-button btn-ripple"
+                                data-toggle="modal" data-target="#modalNewArrivage"
+                                data-backdrop="static" data-keyboard="false"
+                                onclick="initNewArrivageEditor('#modalNewArrivage')"><span
+                                    class="fa fa-plus mr-2"></span>
+                            {{ 'arrivage.nouvel arrivage'|trans }}
+                        </button>
+                    {% elseif hasRightToExport %}
+                        <button type="button" class="btn btn-primary split-button btn-ripple"
+                                onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
+                            <span class="fa fa-file-csv mr-2"></span>
+                            Exporter au format CSV
+                        </button>
                     {% endif %}
-                    <a href="#" class="dropdown-item" onclick="$('.buttons-colvis').click();">
-                        <i class="fa fa-cog mr-2"></i>Gestion des colonnes
-                    </a>
+                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple"
+                            data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu {{ hasRightToCreate or hasRightToExport ? 'mr-5' : 'dropdown-single' }}">
+                        {% if hasRightToCreate and hasRightToExport %}
+                            <a href="#" class="dropdown-item"
+                               onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
+                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                            </a>
+                        {% endif %}
+                        <a href="#" class="dropdown-item" onclick="$('.buttons-colvis').click();">
+                            <i class="fa fa-cog mr-2"></i>Gestion des colonnes
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        <table id="tableArrivages" class="table w-100">
-        </table>
+
+        <div class="row">
+            <div class="col-12">
+                <table id="tableArrivages" class="table w-100"></table>
+            </div>
+        </div>
     </div>
-    <div hidden id="barcodes"></div>
-    <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
+
     <input id="redirect" value="{{ redirect }}" hidden>
     <input id="pageLengthForArrivage" value="{{ pageLengthForArrivage }}" hidden>
 

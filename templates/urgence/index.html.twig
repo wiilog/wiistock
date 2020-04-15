@@ -11,29 +11,34 @@
 
 {% block page_content %}
     <div class="m-4 datatable-container shadow-lg">
-
-        <div class="row">
-            <h1 class="col align-self-start ml-2" title="urgences"></h1>
-            <div class="col-auto">
-                <a href="" data-toggle="modal" data-target="#modalNewUrgence" class="btn btn-primary btn-ripple mb-3">
-                    <span class="fa fa-plus mr-2"></span><span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
-                </a>
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <a href="" data-toggle="modal" data-target="#modalNewUrgence"
+                       class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>
+                        <span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
+                    </a>
+                </div>
             </div>
+        </div>
+        <div class="row">
             <div class="col-12">
                 <table id="tableUrgences" class="table w-100">
                 </table>
             </div>
-            {% include 'urgence/modalNewUrgence.html.twig' %}
-            {% include 'urgence/modalDeleteUrgence.html.twig' %}
-            {% include 'urgence/modalEditUrgence.html.twig' %}
         </div>
     </div>
+
     <input hidden id="dateBeginTranslation" value="{{ 'urgences.date de début'|trans }}">
     <input hidden id="dateEndTranslation" value="{{ 'urgences.date de fin'|trans }}">
     <input hidden id="numComTranslation" value="{{ 'urgences.numéro de commande'|trans }}">
     <input hidden id="buyerTranslation" value="{{ 'urgences.acheteur'|trans }}">
     <input hidden id="arrivalTranslation" value="{{ "arrivage.arrivage"|trans }}">
 
+    {% include 'urgence/modalNewUrgence.html.twig' %}
+    {% include 'urgence/modalDeleteUrgence.html.twig' %}
+    {% include 'urgence/modalEditUrgence.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
