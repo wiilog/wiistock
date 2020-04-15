@@ -1,9 +1,9 @@
-<div class="row">
+<div class="row align-items-center datatable-header">
     <div class="col-auto">
-        <h1><span>Ordre de collecte n°{{ collecte.numero }}</span></h1>
+        <h1 class="my-0"><span>Ordre de collecte n°{{ collecte.numero }}</span></h1>
     </div>
     <div class="col-auto ml-auto">
-        <div class="btn-group split-button-container col-auto align-self-end">
+        <div class="btn-group">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
                 <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-ripple split-button">
                     Aller vers la demande de collecte
