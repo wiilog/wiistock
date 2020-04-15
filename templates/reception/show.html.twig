@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{ 'réception.réception'|trans }}{% endblock %}
+{% block title %}Ordre | {{ 'réception.réception'|trans }} | Détails{% endblock %}
 {% block page_content %}
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
     <div class="m-4">
