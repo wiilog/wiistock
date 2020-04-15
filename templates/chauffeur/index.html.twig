@@ -1,12 +1,12 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Chauffeurs{% endblock %}
+{% block title %}Referentiel | Chauffeurs{% endblock %}
 
 {% block page_content %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Chauffeurs</h1>
-            <div class="col-auto">
+            <h1 class="col align-self-start ml-2"></h1>
+            <div class="col-auto mb-3">
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href=""
                        data-toggle="modal"

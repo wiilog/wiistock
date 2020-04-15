@@ -1,36 +1,35 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Paramétrage inventaire{% endblock %}
+{% block title %}Paramétrage | Inventaire{% endblock %}
 
 {% block page_content %}
-    <h1>Paramétrage de l'inventaire</h1>
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="col-auto mb-3">
 
+            <a href="" data-toggle="modal" data-target="#modalNewCategorie" class="btn btn-primary">
+                <span class="fa fa-plus mr-2"></span>Nouvelle catégorie
+            </a>
+            <a href="" data-toggle="modal" data-target="#modalNewFrequency" class="btn btn-primary">
+                <span class="fa fa-plus mr-2"></span>Nouvelle fréquence
+            </a>
+            <div data-toggle="modal" data-target="#modalShowFrequencies" class="btn btn-primary" id="showFrequencies">
+                <span class="fa fa-list mr-2"></span>Liste fréquences
+            </div>
+            <div class="btn btn-primary">
+                <label for="importExcel" class="pointer" data-toggle="tootlip"
+                       data-title="charger un fichier .csv avec en colonne 1 les références, en colonne 2 les catégories">
+                    <span class="fas fa-folder-open mr-2"></span>Import excel
+                </label>
+                <input type="file" id="importExcel" class="d-none" onchange="importFile()">
+            </div>
+            <div onclick="downloadModele()" class="btn btn-primary">
+                <span class="far fa-file-excel mr-2"></span>Modèle d'import
+            </div>
+        </div>
 
-    <div class="row">
-
-        <a href="" data-toggle="modal" data-target="#modalNewCategorie" class="btn btn-primary">
-            <span class="fa fa-plus mr-2"></span>Nouvelle catégorie
-        </a>
-        <a href="" data-toggle="modal" data-target="#modalNewFrequency" class="btn btn-primary">
-            <span class="fa fa-plus mr-2"></span>Nouvelle fréquence
-        </a>
-        <div data-toggle="modal" data-target="#modalShowFrequencies" class="btn btn-primary" id="showFrequencies">
-            <span class="fa fa-list mr-2"></span>Liste fréquences
-        </div>
-        <div class="btn btn-primary">
-            <label for="importExcel" class="pointer" data-toggle="tootlip" data-title="charger un fichier .csv avec en colonne 1 les références, en colonne 2 les catégories">
-                <span class="fas fa-folder-open mr-2"></span>Import excel
-            </label>
-            <input type="file" id="importExcel" class="d-none" onchange="importFile()">
-        </div>
-        <div onclick="downloadModele()" class="btn btn-primary">
-            <span class="far fa-file-excel mr-2"></span>Modèle d'import
-        </div>
+        <table id="tableCategories" class="table table-striped table-bordered w-100">
+        </table>
     </div>
-
-    <table id="tableCategories" class="table table-striped table-bordered w-100">
-    </table>
-
     {% include 'inventaire_param/modalNewCategory.html.twig' %}
     {% include 'inventaire_param/modalEditCategory.html.twig' %}
     {% include 'inventaire_param/modalDeleteCategory.html.twig' %}
