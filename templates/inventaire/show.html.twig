@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Références et articles de la mission{% endblock %}
+{% block title %}Stock | Inventaire | Références et articles{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
@@ -10,13 +10,14 @@
 {% endblock %}
 
 {% block page_content %}
-
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Références et articles de la mission</h1>
-            <div class="col-auto">
-                <div class="btn-group split-button-container col-auto">
-                    <button type="button" data-toggle="modal" data-target="#modalAddToMission" class="btn btn-primary btn-ripple split-button"
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <button type="button"
+                            data-toggle="modal"
+                            data-target="#modalAddToMission"
+                            class="btn btn-primary btn-ripple split-button"
                             onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete-refArticle'), 'reference'), ajaxAutoArticlesInit($('.ajax-autocomplete-article'))">
                         <span class="fa fa-plus mr-2"></span>Ajouter des références ou des articles
                     </button>
@@ -31,6 +32,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row">
             <div class="col-12">
                 <div class="d-none justify-content-center" id="spinner">
                     <div class="spinner-border sizeLoader" role="status">
@@ -43,10 +46,8 @@
         </div>
     </div>
     <input value="{{ missionId }}" id="missionId" hidden/>
-
     {% include 'inventaire/modalAddToMission.html.twig' %}
 {% endblock %}
-
     {% block javascripts %}
         {{ parent() }}
         <script src="{{ asset('js/mission-inventaire-show.js') }}?{{ date().timestamp }}"></script>

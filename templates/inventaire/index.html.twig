@@ -12,16 +12,21 @@
 {% block page_content %}
 
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto">
-                <div class="btn-group split-button-container col-auto">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
                     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
-                    <button type="button" data-toggle="modal" data-target="#modalNewMission" class="btn btn-primary btn-ripple split-button">
+                    <button type="button"
+                            data-toggle="modal"
+                            data-target="#modalNewMission"
+                            class="btn btn-primary btn-ripple split-button">
                         <span class="fa fa-plus mr-2"></span>Nouvelle mission
                     </button>
                     {% endif %}
-                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                    <button type="button"
+                            class="btn btn-primary split-button-dropdown btn-ripple"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
@@ -37,9 +42,10 @@
                 </div>
             </div>
         </div>
-        <div class="col-12">
-            <table id="tableMissionsInv" class="table w-100">
-            </table>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableMissionsInv" class="table w-100"></table>
+            </div>
         </div>
     </div>
     {% include 'inventaire/modalNewMissionInv.html.twig' %}

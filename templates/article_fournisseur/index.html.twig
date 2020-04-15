@@ -4,20 +4,23 @@
 
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto m-3">
-                <button type="button" data-toggle="modal" data-target="#modalNewArticleFournisseur"
-                   onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))"
-                   class="btn btn-primary btn-ripple">
-                    <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
-                </button>
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <button type="button"
+                            data-toggle="modal"
+                            data-target="#modalNewArticleFournisseur"
+                            onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))"
+                            class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
+                    </button>
+                </div>
             </div>
         </div>
-
-        <div class="col-12">
-            <table id="tableArticleFournisseur" class="table w-100">
-            </table>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableArticleFournisseur" class="table w-100"></table>
+            </div>
         </div>
     </div>
     <div>

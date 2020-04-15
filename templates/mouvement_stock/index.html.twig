@@ -10,23 +10,20 @@
 
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto">
-                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
-                    <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_mouvements_stock_for_csv', 'mvts-stock')">
-                        <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
-                    </div>
-                {% endif %}
-            </div>
-            <div class="col-12 mt-5">
-                <div class="d-none justify-content-center" id="spinner">
-                    <div class="spinner-border sizeLoader" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
+                        <button class="btn btn-primary btn-ripple" onclick="generateCSV('get_mouvements_stock_for_csv', 'mvts-stock')">
+                            <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
+                        </button>
+                    {% endif %}
                 </div>
-                <table id="tableMvts" class="table w-100">
-                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableMvts" class="table w-100"></table>
             </div>
         </div>
     </div>
