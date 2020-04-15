@@ -81,10 +81,14 @@ class OrdreCollecteRepository extends EntityRepository
             ->addSelect('oc.numero as number')
             ->addSelect('pc.label as location_from')
             ->addSelect('dc.stockOrDestruct as forStock')
+            ->addSelect('demandeur.username as requester')
+            ->addSelect('typeDemandeCollecte.label as type')
             ->leftJoin('oc.demandeCollecte', 'dc')
+            ->leftJoin('dc.demandeur', 'demandeur')
             ->leftJoin('dc.pointCollecte', 'pc')
-            ->leftJoin('oc.statut', 's');
-    }
+            ->leftJoin('oc.statut', 's')
+            ->leftJoin('dc.type', 'typeDemandeCollecte');
+	}
 
     public function findByParamsAndFilters($params, $filters)
     {

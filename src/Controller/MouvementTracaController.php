@@ -24,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -101,11 +102,13 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function new(Request $request,
+                        MouvementTracaService $mouvementTracaService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -129,7 +132,7 @@ class MouvementTracaController extends AbstractController
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $colisStr,
                     $emplacement,
                     $operator,
@@ -139,13 +142,14 @@ class MouvementTracaController extends AbstractController
                     $post->getInt('type'),
                     ['commentaire' => $commentaire]
                 );
+                $entityManager->persist($createdMvt);
+                $createdMouvements[] = $createdMvt;
             } else {
                 $colisArray = explode(',', $colisStr);
                 foreach ($colisArray as $colis) {
                     $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
                     $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-
-                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                         $colis,
                         $emplacementPrise,
                         $operator,
@@ -155,7 +159,9 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
-                    $createdMouvements[] = $this->mouvementTracaService->persistMouvementTraca(
+                    $entityManager->persist($createdMvt);
+                    $createdMouvements[] = $createdMvt;
+                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                         $colis,
                         $emplacementDepose,
                         $operator,
@@ -165,6 +171,8 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
+                    $entityManager->persist($createdMvt);
+                    $createdMouvements[] = $createdMvt;
                 }
             }
 
@@ -177,7 +185,7 @@ class MouvementTracaController extends AbstractController
                     );
                 }
                 foreach ($createdMouvements as $mouvement) {
-                    $this->attachmentService->addAttachements($fileNames, $mouvement);
+                    $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
                 }
             }
 
@@ -287,7 +295,8 @@ class MouvementTracaController extends AbstractController
                 }
             }
 
-			$this->attachmentService->addAttachements($request->files, $mvt);
+            $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
+
             $entityManager->flush();
 
             return new JsonResponse();
@@ -472,5 +481,19 @@ class MouvementTracaController extends AbstractController
             ]);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @param MouvementTraca $mouvementTraca
+     * @param AttachmentService $attachmentService
+     * @param FileBag|array $files
+     * @param EntityManagerInterface $entityManager
+     */
+    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager) {
+        $attachments = $attachmentService->createAttachements($files);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $mouvementTraca->addAttachement($attachment);
+        }
     }
 }

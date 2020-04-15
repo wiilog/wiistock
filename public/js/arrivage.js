@@ -1,6 +1,7 @@
 let onFlyFormOpened = {};
 let clicked = false;
 $('.select2').select2();
+let pageLength;
 
 $(function () {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
@@ -16,11 +17,15 @@ $(function () {
         displayFiltersSup(data);
         initFilterDateToday();
     }, 'json');
-
+    pageLength = Number($('#pageLengthForArrivage').val());
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-    $('select[name="tableArrivages_length"]').on('change', function () {
-        $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify($(this).val()));
+    $('select[name="tableArrivages_length"]').on('change', function() {
+        let newValue = Number($(this).val());
+        if (newValue && newValue !== pageLength) {
+            $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
+            pageLength = newValue;
+        }
     });
 });
 
@@ -28,7 +33,7 @@ let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     serverSide: true,
     processing: true,
-    pageLength: $('#pageLengthForArrivage').val(),
+    pageLength: Number($('#pageLengthForArrivage').val()),
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },

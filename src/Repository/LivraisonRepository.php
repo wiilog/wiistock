@@ -63,19 +63,22 @@ class LivraisonRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT l.id,
-                         l.numero as number,
-                         dest.label as location
+                    l.numero as number,
+                    dest.label as location,
+                    t.label as type,
+                    user.username as requester   
 			FROM App\Entity\Livraison l
 			JOIN l.statut s
 			JOIN l.preparation preparation
 			JOIN preparation.demande demande
 			JOIN demande.destination dest
 			JOIN demande.type t
+			JOIN demande.utilisateur user
 			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.id IN (:type)"
 		)->setParameters([
 			'statusLabel' => $statusLabel,
 			'user' => $user,
-            'type' => $typeUser
+            'type' => $typeUser,
 		]);
 
 		return $query->execute();

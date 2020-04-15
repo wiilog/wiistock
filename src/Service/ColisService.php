@@ -89,7 +89,7 @@ Class ColisService
             for ($i = 0; $i < $number; $i++) {
                 $colis = $this->persistColis($arrivage, $nature);
                 if ($defaultEmpForMvt) {
-                    $mouvementDepose = $this->mouvementTracaService->persistMouvementTraca(
+                    $mouvementDepose = $this->mouvementTracaService->createMouvementTraca(
                         $colis->getCode(),
                         $defaultEmpForMvt,
                         $user,

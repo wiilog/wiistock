@@ -207,7 +207,7 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage(),
+            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId
         ]);
@@ -319,11 +319,8 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $entityManager->persist($arrivage);
-            $entityManager->flush();
 
-            $attachmentService->addAttachements($request->files, $arrivage);
-
+            $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -600,9 +597,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, $arrivage);
-
-            $entityManager->flush();
+            $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
 
             $champLibreKey = array_keys($post->all());
             foreach ($champLibreKey as $champ) {
@@ -744,7 +739,7 @@ class ArrivageController extends AbstractController
 
             $html = '';
             foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                $html .= $this->renderView('attachment/attachmentLine.html.twig', [
                     'arrivage' => $arrivage,
                     'pjName' => $fileName['name'],
                     'originalName' => $fileName['originalName']
@@ -850,7 +845,7 @@ class ArrivageController extends AbstractController
                     }
                     $fileNames[] = $filename;
                     $file->move($path, $filename);
-                    $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                    $html .= $this->renderView('attachment/attachmentLine.html.twig', [
                         'pjName' => $filename,
                         'originalName' => $file->getClientOriginalName()
                     ]);
@@ -1065,11 +1060,7 @@ class ArrivageController extends AbstractController
                 $entityManager->persist($histo);
             }
 
-            $entityManager->persist($litige);
-            $entityManager->flush();
-
-            $this->attachmentService->addAttachements($request->files, $litige);
-            $entityManager->flush();
+            $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
             $this->sendMailToAcheteurs($litige);
 
@@ -1326,7 +1317,7 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, $litige);
+            $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
 
             $response = $this->getResponseReloadArrivage($entityManager, $request->query->get('reloadArrivage'));
@@ -1366,7 +1357,7 @@ class ArrivageController extends AbstractController
 
             $html = '';
             foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                $html .= $this->renderView('attachment/attachmentLine.html.twig', [
                     'litige' => $litige,
                     'pjName' => $fileName['name'],
                     'originalName' => $fileName['originalName']
@@ -1580,6 +1571,22 @@ class ArrivageController extends AbstractController
         }
 
         return $response;
+    }
+
+    /**
+     * @param Arrivage|Litige $entity
+     * @param AttachmentService $attachmentService
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     */
+    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+        $attachments = $attachmentService->createAttachements($request->files);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $entity->addAttachement($attachment);
+        }
+        $entityManager->persist($entity);
+        $entityManager->flush();
     }
 
 }
