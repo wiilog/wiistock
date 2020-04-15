@@ -6,13 +6,14 @@
             <div class="col-2">
                 <a href="{{ path('accueil') }}">
                     <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
+                    <span class="web-version small">{{ web_version }}</span>
                 </a>
             </div>
 
             {% if not withOnlyLogo %}
                 <div class="header-title text-white col-auto h5 user-select-none {{ isDashboardExt ? 'ext-title-font' }}">
                     {% if title is defined and title is not empty %}
-                        {{ title }}
+                        <h5>{{ title }}</h5>
                     {% endif %}
                 </div>
                 {% if not isDashboardExt
