@@ -3,62 +3,64 @@
 {% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
-<div class="p-5">
+<div class="m-4">
     <div class="row">
-        <div class="zone-entete datatable-container shadow-lg">
-            {% include "collecte/enteteCollecte.html.twig" %}
-        </div>
-    </div>
-    <div class="row mt-3 justify-content-around">
-        <div class="col-12 pr-0 pl-0">
-            <div class="datatable-container shadow-lg">
-                <div class="d-flex row justify-content-end datatable-toolbox">
-                    <div class="btn-group col-auto">
-                        {% if modifiable %}
-                            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                                <button type="button" data-toggle="modal" data-target="#modalNewArticle"
-                                        onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
-                                        class="btn btn-primary split-button btn-ripple">
-                                    <span class="fa fa-plus mr-2"></span>Ajouter article
-                                </button>
-                                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown"
-                                        aria-haspopup="true"
-                                        aria-expanded="false">
-                                    <span class="fa fa-angle-down"></span>
-                                </button>
-                                <div class="dropdown-menu mr-5 pointer">
-                                    <a href="{{ path('reference_article_index') }}" data-toggle="modal"
-                                       class="dropdown-item" title="référence">
-                                        <i class="fa fa-search mr-2"></i>
-                                        Chercher une {{ 'reference.référence'|trans }}
-                                    </a>
-                                </div>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
-                <table id="tableArticle_id" class="table"></table>
+        <div class="col-12">
+            <div class="zone-entete datatable-container">
+                {% include "collecte/enteteCollecte.html.twig" %}
             </div>
         </div>
-        <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
-        <div class="d-none" id="barcodes"></div>
+    </div>
+    <div class="mt-3 datatable-container">
+        {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+            <div class="row justify-content-end datatable-header">
+                <div class="col-auto">
+                    <div class="btn-group">
+                        <button type="button" data-toggle="modal" data-target="#modalNewArticle"
+                                onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
+                                class="btn btn-primary split-button btn-ripple">
+                            <span class="fa fa-plus mr-2"></span>Ajouter article
+                        </button>
+                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu mr-5 pointer">
+                            <a href="{{ path('reference_article_index') }}" data-toggle="modal"
+                               class="dropdown-item" title="référence">
+                                <i class="fa fa-search mr-2"></i>
+                                Chercher une {{ 'reference.référence'|trans }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table id="tableArticle_id" class="table"></table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+    <div class="d-none" id="barcodes"></div>
 
-        {% include "collecte/modalNewArticle.html.twig" %}
-        {% include "collecte/modalDeleteArticle.html.twig" %}
-        {% include "collecte/modalEditArticle.html.twig" %}
-        {% include "collecte/modalDeleteCollecte.html.twig" %}
-        {% include "collecte/modalEditCollecte.html.twig" %}
-        {% include 'collecte/modalCannotValidate.html.twig' %}
-        {% include 'reference_article/modalShowRefArticle.html.twig' %}
-        {% include 'article/modalShowArticle.html.twig' %}
+    {% include "collecte/modalNewArticle.html.twig" %}
+    {% include "collecte/modalDeleteArticle.html.twig" %}
+    {% include "collecte/modalEditArticle.html.twig" %}
+    {% include "collecte/modalDeleteCollecte.html.twig" %}
+    {% include "collecte/modalEditCollecte.html.twig" %}
+    {% include 'collecte/modalCannotValidate.html.twig' %}
+    {% include 'reference_article/modalShowRefArticle.html.twig' %}
+    {% include 'article/modalShowArticle.html.twig' %}
+{% endblock %}
 
-        {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = {{ collecte.id }};
+    </script>
+    <script src="{{ asset('js/collecte.js') }}?{{ date().timestamp }}"></script>
 
-        {% block javascripts %}
-            {{ parent() }}
-            <script>
-                let id = {{ collecte.id }};
-            </script>
-            <script src="{{ asset('js/collecte.js') }}?{{ date().timestamp }}"></script>
-
-        {% endblock %}
+{% endblock %}

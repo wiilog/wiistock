@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Mouvements de stock{% endblock %}
+{% block title %}Stock | Mouvements de stock{% endblock %}
 {% block page_filter %}
     {% include 'filters/filtersMouvementStock.html.twig' with {
         'page': 'PAGE_MVT_STOCK',
@@ -9,9 +9,9 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="m-4 datatable-container shadow-lg">
+    <div class="m-4 datatable-container">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Mouvements de stock</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div class="col-auto">
                 {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
                     <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_mouvements_stock_for_csv', 'mvts-stock')">

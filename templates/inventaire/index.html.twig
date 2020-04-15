@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Missions d'inventaire{% endblock %}
+{% block title %}Stock | Inventaire{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
@@ -11,9 +11,9 @@
 
 {% block page_content %}
 
-    <div class="m-4 datatable-container shadow-lg">
+    <div class="m-4 datatable-container">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Missions d'inventaire</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div class="col-auto">
                 <div class="btn-group split-button-container col-auto">
                     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}

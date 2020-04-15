@@ -1,23 +1,25 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Préparation{% endblock %}
+{% block title %}Ordre | Préparation | Détails{% endblock %}
 
 {% block page_content %}
-    <div class="p-5">
+    <div class="m-4">
         <div class="row">
-            <div class="zone-entete datatable-container shadow-lg">
-                {% include 'preparation/entete.html.twig' %}
+            <div class="col-12">
+                <div class="zone-entete datatable-container">
+                    {% include 'preparation/entete.html.twig' %}
+                </div>
             </div>
         </div>
-        <div class="row mt-3 justify-content-around">
-            <div class="col-12 pr-0 pl-0">
-                <div class="datatable-container shadow-lg">
-                    <table id="tableArticle_id" class="table w-100">
-                    </table>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="datatable-container">
+                    <table id="tableArticle_id" class="table w-100"></table>
                 </div>
             </div>
         </div>
     </div>
+
     <button class="btn" id="startSplitting" data-target='#modalSplitting' data-toggle='modal' hidden></button>
     <input hidden id="prepa-id" value="{{ preparation.id }}">
 

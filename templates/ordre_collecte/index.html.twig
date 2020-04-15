@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordres de collecte{% endblock %}
+{% block title %}Ordre | collecte{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersOrderCollect.html.twig' with {
@@ -13,14 +13,13 @@
     {% set pageFilteredByDemand = (
         (filterDemandId is defined and filterDemandId is not null) and
         (filterDemandValue is defined and filterDemandValue is not null)
-        ) %}
+    ) %}
 
-    <div class="m-4 datatable-container shadow-lg">
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Ordres de collecte</h1>
-            <div class="col-auto">
+    <div class="m-4 datatable-container">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
                 {% if pageFilteredByDemand %}
-                    <div class="btn-group split-button-container col-auto">
+                    <div class="btn-group mr-3">
                         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
                             <div class="btn btn-primary btn-ripple btn-ripple split-button"
                                  onclick="generateCSV('get_ordres_collecte_for_csv', 'ordre-coll')">
@@ -45,15 +44,16 @@
                 {% endif %}
             </div>
         </div>
-
-        <div class="col-12">
-            <div class="d-none justify-content-center" id="spinner">
-                <div class="spinner-border sizeLoader" role="status">
-                    <span class="sr-only">Loading...</span>
+        <div class="row">
+            <div class="col-12">
+                <div class="d-none justify-content-center" id="spinner">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
+                <table id="tableCollecte" class="table w-100">
+                </table>
             </div>
-            <table id="tableCollecte" class="table w-100">
-            </table>
         </div>
     </div>
     {% if pageFilteredByDemand %}

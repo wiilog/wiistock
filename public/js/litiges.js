@@ -74,7 +74,7 @@ function initDatatableLitiges() {
             $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
             $(thead).find('th').eq(4).attr('title', "n° de réception");
         },
-        dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-3 ml-3"f><"col-2 mr-4"l>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
+        dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
         buttons: [
             {
                 extend: 'colvis',

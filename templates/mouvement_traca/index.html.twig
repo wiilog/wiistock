@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Mouvements{% endblock %}
+{% block title %}Traçabilité | Mouvements{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersMouvementTraca.html.twig' with {
@@ -8,65 +8,77 @@
         'tableSelector' : '#tableMvts'
     } %}
 {% endblock %}
-{% block page_content %}
 
+{% block page_content %}
     {% set isSafran = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-    <div class="m-4 datatable-container shadow-lg">
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Mouvements</h1>
-            {% if hasRightCreate and hasRightExport %}
-                <div class="btn-group split-button-container col-auto align-self-end">
-                    <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary btn-ripple split-button"
-                            data-backdrop="static" data-keyboard="false"
-                            onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))"><span class="fa fa-plus mr-2"></span>
-                        Nouveau mouvement
-                    </button>
-                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu mr-5">
-                        <div class="dropdown-item pointer" onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+    <div class="m-4 datatable-container">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    {% if hasRightCreate and hasRightExport %}
+                        <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca"
+                                class="btn btn-primary btn-ripple split-button"
+                                data-backdrop="static" data-keyboard="false"
+                                onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))"><span
+                                    class="fa fa-plus mr-2"></span>
+                            Nouveau mouvement
+                        </button>
+                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple"
+                                data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu mr-5">
+                            <div class="dropdown-item pointer"
+                                 onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                            </div>
                         </div>
                     </div>
-                </div>
-            {% else %}
-                <div class="col-auto">
+                {% else %}
                     {% if hasRightCreate %}
-                        <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca" class="btn btn-primary btn-ripple"
+                        <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca"
+                                class="btn btn-primary btn-ripple"
                                 data-backdrop="static" data-keyboard="false"
                                 onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))">
                             <i class="fa fa-plus mr-2"></i>
                             Nouveau mouvement
                         </button>
                     {% elseif hasRightExport %}
-                        <button type="button" class="btn btn-primary btn-ripple" onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                        <button type="button" class="btn btn-primary btn-ripple"
+                                onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </button>
                     {% endif %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="d-none justify-content-center" id="spinner">
-            <div class="spinner-border sizeLoader" role="status">
-                <span class="sr-only">Loading...</span>
+                {% endif %}
             </div>
         </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableMvts" class="table w-100"></table>
+            </div>
+            <div class="d-none justify-content-center" id="spinner">
+                <div class="spinner-border sizeLoader" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-auto">
+        <div class="col-12 ">
 
-        <div class="col-12 mt-5">
-            <table id="tableMvts" class="table w-100">
-            </table>
+        </div>
         </div>
     </div>
+
     {% include "mouvement_traca/modalNewMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalShowMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalEditMvtTraca.html.twig" %}
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
-    <input type="text" hidden id="redirectAfterTrackingMovementCreation" value="{{ redirectAfterTrackingMovementCreation }}">
+    <input type="text" hidden id="redirectAfterTrackingMovementCreation"
+           value="{{ redirectAfterTrackingMovementCreation }}">
+
 {% endblock %}
 
 {% block javascripts %}

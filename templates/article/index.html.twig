@@ -1,20 +1,20 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Stock / Articles{% endblock %}
+{% block title %}Stock | Articles{% endblock %}
 
 {% block page_content %}
     {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
-    <div class="m-4 datatable-container shadow-lg">
+    <div class="m-4 datatable-container">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Articles</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div id="alerts">
                 <div class="alert alert-danger text-center d-none">
                     <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
                     <span class="error-msg"></span>
                 </div>
             </div>
-            <div class="btn-group split-button-container col-auto">
+            <div class="btn-group split-button-container col-auto mb-3">
                 {% if hasRightToCreate and hasRightToExport %}
                     <button type="button"
                             class="btn btn-primary split-button btn-ripple"

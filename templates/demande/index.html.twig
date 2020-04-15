@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demandes de livraison{% endblock %}
+{% block title %}Demande | Livraison{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
@@ -10,8 +10,6 @@
     } %}
 {% endblock %}
 {% block page_content %}
-
-
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
     <input type="text" value="" id="dateMinFilter" hidden>
@@ -19,28 +17,26 @@
     <input type="text" value="" id="statutFilter" hidden>
     <input type="text" value="" id="userFilter" hidden>
     <input type="text" value="" id="typeFilter" hidden>
-    <div class="m-4 datatable-container shadow-lg">
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Demandes de livraison</h1>
-            <div class="col-auto">
+
+    <div class="m-4 datatable-container">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
                 {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
-                    <div class="btn-group split-button-container col-auto">
+                    <div class="btn-group">
                         <div class="btn btn-primary btn-ripple split-button">
-                            <a href="{{ path('demande_index') }}">Voir toutes les
-                                demandes</a>
+                            <a href="{{ path('demande_index') }}">Voir toutes les demandes</a>
                         </div>
                         <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
                         <div class="dropdown-menu mr-5">
-                            <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la
-                                réception</a>
+                            <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la réception</a>
                         </div>
                     </div>
                 {% else %}
                     {% if hasRightCreate and hasRightExport %}
-                        <div class="btn-group split-button-container col-auto">
+                        <div class="btn-group">
                             <div class="btn btn-primary btn-ripple split-button"
                                  data-toggle="modal" data-target="#modalNewDemande"
                                  onclick='initNewLivraisonEditor("#modalNewDemande")'>
@@ -73,12 +69,14 @@
                 {% endif %}
 
             </div>
+        </div>
+        <div class="row">
             <div class="d-none justify-content-center" id="spinner">
                 <div class="spinner-border sizeLoader" role="status">
                     <span class="sr-only">Loading...</span>
                 </div>
             </div>
-            <div class="mt-5 col-12">
+            <div class="col-12">
                 <table id="table_demande" class="table w-100">
                 </table>
             </div>
