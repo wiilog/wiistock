@@ -9,12 +9,10 @@
     } %}
 {% endblock %}
 {% block page_content %}
-
-
-    <div class="datatable-container shadow-lg">
-        <div class="row justify-content-between">
-            <h1 class="col align-self-start"></h1>
-                <div class="btn-group split-button-container col-auto">
+    <div class="m-4 datatable-container shadow-lg">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group mr-3">
                     <div class="btn btn-primary btn-ripple split-button" onclick="generateCSV('get_litiges_for_csv', 'litiges')">
                         <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                     </div>
@@ -28,7 +26,7 @@
                         </a>
                     </div>
                 </div>
-
+            </div>
         </div>
         <div class="row">
             <div class="col-12">
