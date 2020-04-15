@@ -10,14 +10,11 @@
     } %}
 {% endblock %}
 {% block page_content %}
-
-
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div>
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-                    <div class="btn-group split-button-container col-auto">
+                    <div class="btn-group">
                         <div class="btn btn-primary btn-ripple split-button"
                              data-toggle="modal" data-target="#modalNewManutention"
                              onclick='initNewManutentionEditor("#modalNewManutention")'>
@@ -47,10 +44,10 @@
                     {% endif %}
                 {% endif %}
             </div>
-
+        </div>
+        <div class="row">
             <div class="col-12">
-                <table id="tableManutention_id" class="table w-100">
-                </table>
+                <table id="tableManutention_id" class="table w-100"></table>
             </div>
         </div>
     </div>

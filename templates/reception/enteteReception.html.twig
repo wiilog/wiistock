@@ -1,10 +1,10 @@
-<div class="row">
-    <div class="col">
-        <h1 title="réception">{{ 'réception.réception'|trans }} {{ reception.numeroReception }}</h1>
+<div class="row align-items-center datatable-header">
+    <div class="col-auto">
+        <h1 class="my-0" title="réception">{{ 'réception.réception'|trans }} {{ reception.numeroReception }}</h1>
         <input id="receptionId" value="{{ reception.id }}" type="hidden">
     </div>
-    <div class="col text-right">
-        <div class="btn-group split-button-container">
+    <div class="col-auto ml-auto">
+        <div class="btn-group">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                 <button type="button" data-target='#modalNewLigneReception' data-toggle='modal'
                         onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
@@ -21,15 +21,15 @@
                         <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
                            class="dropdown-item"
                            onclick="editRow(
-                           $(this),
-                           Routing.generate('api_reception_edit', true),
-                           $('#modalEditReception'),
-                           $('#submitEditReception'),
-                           true,
-                           '.editor-container-edit',
-                           false,
-                           initEditReception
-                       )">
+                               $(this),
+                               Routing.generate('api_reception_edit', true),
+                               $('#modalEditReception'),
+                               $('#submitEditReception'),
+                               true,
+                               '.editor-container-edit',
+                               false,
+                               initEditReception
+                           )">
                             <i class="fa fa-edit mr-2"></i>Modifier
                         </a>
                         <div class="dropdown-item" onclick="finishReception({{ reception.id }}, false)">

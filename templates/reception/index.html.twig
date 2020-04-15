@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordre | {{ 'réception.de réception'|trans }}{% endblock %}
+{% block title %}Ordre | {{ 'réception.réception'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersReception.html.twig' with {
@@ -13,11 +13,10 @@
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
                 {% if hasRightCreate and hasRightExport %}
-                    <div class="btn-group split-button-container col-auto align-self-end">
+                    <div class="btn-group">
                         <button type="button" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary btn-ripple split-button"
                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                             <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
@@ -46,15 +45,17 @@
                 {% endif %}
             </div>
         </div>
-        <div class="col-12 mt-5">
-            <div class="d-none justify-content-center" id="spinnerReception">
-                <div class="spinner-border sizeLoader" role="status">
-                    <span class="sr-only">Loading...</span>
+        <div class="row">
+            <div class="col-12">
+                <div class="d-none justify-content-center" id="spinnerReception">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
-            </div>
 
-            <table id="tableReception_id" class="table w-100">
-            </table>
+                <table id="tableReception_id" class="table w-100">
+                </table>
+            </div>
         </div>
     </div>
     {% include "reception/modalNewReception.html.twig" %}
