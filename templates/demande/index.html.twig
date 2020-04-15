@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | livraison{% endblock %}
+{% block title %}Demande | Livraison{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
@@ -24,16 +24,14 @@
                 {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
                     <div class="btn-group">
                         <div class="btn btn-primary btn-ripple split-button">
-                            <a href="{{ path('demande_index') }}">Voir toutes les
-                                demandes</a>
+                            <a href="{{ path('demande_index') }}">Voir toutes les demandes</a>
                         </div>
                         <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
                         <div class="dropdown-menu mr-5">
-                            <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la
-                                réception</a>
+                            <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la réception</a>
                         </div>
                     </div>
                 {% else %}

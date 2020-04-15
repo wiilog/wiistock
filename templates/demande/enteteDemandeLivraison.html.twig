@@ -1,9 +1,9 @@
-<div class="row">
+<div class="row datatable-header align-items-center">
     <div class="col-auto">
-        <h1><span>Demande de livraison n° {{ demande.numero }}</span></h1>
+        <h1 class="my-0"><span>Demande de livraison n° {{ demande.numero }}</span></h1>
     </div>
     <div class="col-auto ml-auto">
-        <div class="btn-group split-button-container col-auto align-self-end">
+        <div class="btn-group">
             {% if modifiable %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                     <button type="button"
