@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordres de collecte{% endblock %}
+{% block title %}Ordre | collecte{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersOrderCollect.html.twig' with {
@@ -17,8 +17,8 @@
 
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Ordres de collecte</h1>
-            <div class="col-auto">
+            <h1 class="col align-self-start ml-2"></h1>
+            <div class="col-auto m-3">
                 {% if pageFilteredByDemand %}
                     <div class="btn-group split-button-container col-auto">
                         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}

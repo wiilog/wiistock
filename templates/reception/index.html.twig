@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordres {{ 'réception.de réception'|trans }}{% endblock %}
+{% block title %}Ordre | {{ 'réception.de réception'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersReception.html.twig' with {
@@ -14,7 +14,7 @@
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Ordres <span title="de réception">{{ 'réception.de réception'|trans }}</span></h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div class="col-auto">
                 {% if hasRightCreate and hasRightExport %}
                     <div class="btn-group split-button-container col-auto align-self-end">
