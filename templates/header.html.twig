@@ -11,7 +11,7 @@
             </div>
 
             {% if not withOnlyLogo %}
-                <div class="header-title text-white col-auto h5 user-select-none {{ isDashboardExt ? 'ext-title-font' }}">
+                <div class="header-title text-white col-auto h5 user-select-none my-0 {{ isDashboardExt ? 'ext-title-font' }}">
                     {% if title is defined and title is not empty %}
                         <h5>{{ title }}</h5>
                     {% endif %}
@@ -20,7 +20,7 @@
                       and app.user is defined
                       and app.user
                       and app.user.username is defined %}
-                    <div class="text-white col-auto h5 ml-auto">
+                    <div class="text-white col-auto h6 my-0 ml-auto">
                         <span>{{app.user.username}}</span>
                     </div>
                     <div class="text-white col-auto dropdown dropleft">
