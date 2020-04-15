@@ -10,8 +10,6 @@
     } %}
 {% endblock %}
 {% block page_content %}
-
-
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
     <input type="text" value="" id="dateMinFilter" hidden>
@@ -19,7 +17,8 @@
     <input type="text" value="" id="statutFilter" hidden>
     <input type="text" value="" id="userFilter" hidden>
     <input type="text" value="" id="typeFilter" hidden>
-    <div class="m-4 datatable-container shadow-lg">
+
+    <div class="m-4 datatable-container">
         <div class="row datatable-header">
             <div class="col-auto ml-auto">
                 {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
