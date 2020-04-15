@@ -59,11 +59,13 @@ class PreparationRepository extends ServiceEntityRepository
             ->select('p.id')
             ->addSelect('p.numero as number')
             ->addSelect('dest.label as destination')
+            ->addSelect('user.username as requester')
             ->addSelect('t.label as type')
             ->join('p.statut', 's')
             ->join('p.demande', 'd')
             ->join('d.destination', 'dest')
             ->join('d.type', 't')
+            ->join('d.utilisateur', 'user')
             ->andWhere('s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)')
             ->andWhere('t.id IN (:type)')
             ->setParameters([
