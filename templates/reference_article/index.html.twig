@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Référentiel / Articles de référence{% endblock %}
+{% block title %}Stock | Articles de référence{% endblock %}
 
 {% block page_filter %}
     <div class="filterService m-4 pt-2">
@@ -29,9 +29,7 @@
     {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col" title="référence">
-                {{ 'reference.références'|trans }}
-            </h1>
+            <h1 class="col" title="référence"></h1>
             <div id="alerts">
                 <div class="alert alert-danger text-center d-none">
                     <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>

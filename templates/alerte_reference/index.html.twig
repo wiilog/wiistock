@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Alertes{% endblock %}
+{% block title %}Stock | Alertes{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAlerte.html.twig' with {'page': 'PAGE_ALERTE', tableSelector: '#tableAlerte_id'} %}
@@ -9,7 +9,7 @@
 {% block page_content %}
     <div class="m-4 datatable-container shadow-lg">
         <div class="row">
-            <h1 class="col align-self-start ml-2">Liste des alertes</h1>
+            <h1 class="col align-self-start ml-2"></h1>
             <div class="col-12">
                 <table id="tableAlerte_id" class="table w-100">
                 </table>
