@@ -207,7 +207,7 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage(),
+            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId
         ]);
