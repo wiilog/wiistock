@@ -1483,6 +1483,7 @@ function registerDropdownPosition() {
     let dropdownMenu;
 
     const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
+    const isThreeDotsInRow = ($target) => ($target.parents('.noVis').length > 0);
 
     $(window).on('show.bs.dropdown', function(e) {
         const $target = $(e.target);
@@ -1497,6 +1498,9 @@ function registerDropdownPosition() {
                 'at': 'right bottom',
                 'of': $(e.relatedTarget)
             });
+            if (isThreeDotsInRow($target)) {
+                dropdownMenu.addClass('ml-3');
+            }
             if (parentModal.length > 0) {
                 dropdownMenu.css('z-index', (parentModal.first().css('z-index') || 0) + 1)
             }
@@ -1508,6 +1512,9 @@ function registerDropdownPosition() {
         if (!hasMainHeaderParent($target)) {
             $target.append(dropdownMenu.detach());
             dropdownMenu.hide();
+        }
+        if (isThreeDotsInRow($target)) {
+            dropdownMenu.removeClass('ml-3');
         }
     });
 }

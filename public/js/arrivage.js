@@ -12,7 +12,7 @@ $(function () {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
-
+    registerDropdownPosition();
     $.post(path, params, function (data) {
         displayFiltersSup(data);
         initFilterDateToday();
