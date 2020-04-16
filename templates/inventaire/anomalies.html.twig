@@ -1,19 +1,19 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Anomalies{% endblock %}
+{% block title %}Stock | Inventaire | Anomalies{% endblock %}
 
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Anomalies</h1>
-            <div class="col-auto">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
                 <a href="{{ path ('inventory_mission_index') }}" class="btn btn-primary btn-ripple">
                     Retour aux missions
                 </a>
             </div>
+        </div>
+        <div class="row">
             <div class="col-12">
-                <table id="tableAnomalies" class="table w-100">
-                </table>
+                <table id="tableAnomalies" class="table w-100"></table>
             </div>
         </div>
     </div>

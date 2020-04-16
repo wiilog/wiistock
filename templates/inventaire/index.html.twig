@@ -10,18 +10,17 @@
 {% endblock %}
 
 {% block page_content %}
-
     <div class="m-4 datatable-container">
         <div class="row datatable-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) %}
-                    <button type="button"
-                            data-toggle="modal"
-                            data-target="#modalNewMission"
-                            class="btn btn-primary btn-ripple split-button">
-                        <span class="fa fa-plus mr-2"></span>Nouvelle mission
-                    </button>
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalNewMission"
+                                class="btn btn-primary btn-ripple split-button">
+                            <span class="fa fa-plus mr-2"></span>Nouvelle mission
+                        </button>
                     {% endif %}
                     <button type="button"
                             class="btn btn-primary split-button-dropdown btn-ripple"
@@ -30,8 +29,7 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu {{ not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER'))
-                    ? 'dropdown-single' : 'mr-5' }}">
+                    <div class="dropdown-menu {{ not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::INVENTORY_MANAGER')) ? 'dropdown-single' : 'mr-5' }}">
                         <a href="{{ path('inventory_entry_index') }}" class="dropdown-item">
                             <span class="fa fa-clipboard-list mr-2"></span>Voir les saisies
                         </a>

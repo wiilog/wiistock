@@ -10,17 +10,17 @@
 
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row datatable-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
+            <div class="row datatable-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
                         <button class="btn btn-primary btn-ripple" onclick="generateCSV('get_mouvements_stock_for_csv', 'mvts-stock')">
                             <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                         </button>
-                    {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
         <div class="row">
             <div class="col-12">
                 <table id="tableMvts" class="table w-100"></table>
