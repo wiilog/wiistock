@@ -1521,19 +1521,41 @@ function initActionOnRow(row) {
     }
 }
 
-function manageArticleAndRefSearch($input) {
-    let $printBtn = $('#printTag');
-    $printBtn.parent().tooltip('dispose');
+function manageArticleAndRefSearch($input, $printButton) {
     if ($input.val() === '') {
-        $printBtn.parent().addClass('has-tooltip');
-        $printBtn.addClass('btn-disabled');
-        $printBtn.removeClass('btn-primary');
+        if ($printButton.is('button')) {
+            $printButton
+                .addClass('btn-disabled')
+                .removeClass('btn-primary');
+            managePrintButtonTooltip(true, $printButton.parent());
+        }
+        else {
+            $printButton
+                .removeClass('pointer')
+                .addClass('disabled')
+                .removeClass('has-tooltip');
+            managePrintButtonTooltip(true, $printButton);
+        }
+
+        managePrintButtonTooltip(true, $printButton);
     } else {
-        $printBtn.parent().removeClass('has-tooltip');
-        $printBtn.removeClass('btn-disabled');
-        if ($printBtn.is('button')) {
-            $printBtn.addClass('btn-primary');
+
+        if ($printButton.is('button')) {
+            $printButton
+                .addClass('btn-primary')
+                .removeClass('btn-disabled');
+            managePrintButtonTooltip(false, $printButton.parent());
+        }
+        else {
+            $printButton
+                .removeClass('disabled')
+                .addClass('pointer')
+                .removeClass('has-tooltip');
+            managePrintButtonTooltip(false, $printButton);
         }
     }
-    initTooltips($('.has-tooltip'));
+}
+
+function closeDropdownMenu($dropdownItem) {
+    $dropdownItem.parents().removeClass('show');
 }

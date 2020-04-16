@@ -32,12 +32,11 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
 
-                    <div class="dropdown-menu mr-5"
-                         onclick="event.stopPropagation()">
+                    <div class="dropdown-menu mr-5">
                         <div tabindex="0"
                              id="btnPrint"
-                             class="dropdown-item printButton user-select-none disabled"
-                             onclick="printLocationsBarCodes($(this))"
+                             class="dropdown-item printButton user-select-none disabled has-tooltip"
+                             onclick="printLocationsBarCodes($(this), event)"
                              title="Veuillez faire une recherche pour imprimer.">
                             <i class="fas fa-print"></i> Imprimer les étiquettes
                         </div>

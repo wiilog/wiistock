@@ -4,7 +4,7 @@ let $printTag ;
 $(function () {
     $printTag = $('#printTag');
     initTableArticle();
-    managePrintButtonTooltip(true, $printTag);
+    managePrintButtonTooltip(true, $printTag.is('button') ? $printTag.parent() : $printTag);
 });
 
 function initTableArticle() {
@@ -37,7 +37,7 @@ function initTableArticle() {
                     init();
                     hideAndShowColumns(columns);
                     overrideSearch($('#tableArticle_id_filter input'), tableArticle, function ($input) {
-                        manageArticleAndRefSearch($input);
+                        manageArticleAndRefSearch($input, $('#printTag'));
                     });
                 },
                 columns: columns.map(function (column) {
@@ -210,23 +210,31 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function printArticlesBarCodes() {
-    let listArticles = $("#listArticleIdToPrint").val();
-    const length = tableArticle.page.info().length;
+function printArticlesBarCodes($button, event) {
+    if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {
+        if ($button.hasClass('dropdown-item')) {
+            closeDropdownMenu($button);
+        }
 
-    if (length > 0) {
-        window.location.href = Routing.generate(
-            'article_print_bar_codes',
-            {
-                length,
-                listArticles: listArticles,
-                start: tableArticle.page.info().start
-            },
-            true
-        );
+        let listArticles = $("#listArticleIdToPrint").val();
+        const length = tableArticle.page.info().length;
+
+        if (length > 0) {
+            window.location.href = Routing.generate(
+                'article_print_bar_codes',
+                {
+                    length,
+                    listArticles: listArticles,
+                    start: tableArticle.page.info().start
+                },
+                true
+            );
+        } else {
+            alertErrorMsg("Il n'y a aucun article à imprimer");
+        }
     }
     else {
-        alertErrorMsg("Il n'y a aucun article à imprimer");
+        event.stopPropagation();
     }
 }
 

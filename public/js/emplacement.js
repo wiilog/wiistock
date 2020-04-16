@@ -94,13 +94,14 @@ function overrideSearchEmplacement() {
                 $printButton
                     .addClass('user-select-none')
                     .addClass('disabled')
+                    .addClass('has-tooltip')
                     .removeClass('pointer');
                 managePrintButtonTooltip(true, $printButton);
             } else {
-                console.log('pointer ')
                 $printButton
                     .removeClass('user-select-none')
                     .removeClass('disabled')
+                    .removeClass('has-tooltip')
                     .addClass('pointer');
                 managePrintButtonTooltip(false, $printButton);
             }
@@ -109,6 +110,7 @@ function overrideSearchEmplacement() {
             $printButton
                 .addClass('user-select-none')
                 .addClass('disabled')
+                .addClass('has-tooltip')
                 .removeClass('pointer');
             managePrintButtonTooltip(true, $printButton);
         }
@@ -116,8 +118,8 @@ function overrideSearchEmplacement() {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function printLocationsBarCodes($button) {
-    if (!$button.parent().hasClass('disabled')) {
+function printLocationsBarCodes($button, event) {
+    if (!$button.hasClass('disabled')) {
         closeDropdownMenu($button);
         window.location.href = Routing.generate('print_locations_bar_codes', {
             listEmplacements: $("#listEmplacementIdToPrint").val(),
@@ -125,8 +127,7 @@ function printLocationsBarCodes($button) {
             start: tableEmplacement.page.info().start
         }, true);
     }
-}
-
-function closeDropdownMenu($dropdownItem) {
-    $dropdownItem.parents().removeClass('show');
+    else {
+        event.stopPropagation();
+    }
 }
