@@ -4,9 +4,11 @@
 let $printTag;
 $(function () {
     $printTag = $('#printTag');
-    initTooltips($('.has-tooltip'));
+    managePrintButtonTooltip(true, $printTag.is('button') ? $printTag.parent() : $printTag);
     if ($('#filters').find('.filter').length <= 0) {
         $('#noFilters').removeClass('d-none');
+    } else {
+        managePrintButtonTooltip(false, $printTag.is('button') ? $printTag.parent() : $printTag);
     }
     registerDropdownPosition();
 });
@@ -164,7 +166,7 @@ function initTableRefArticle() {
                     initRemove();
                     hideAndShowColumns(columns);
                     overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function ($input) {
-                        manageArticleAndRefSearch($input);
+                        manageArticleAndRefSearch($input, $('#printTag'));
                     });
                 },
                 length: 10,
@@ -262,13 +264,18 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
-    $printTag.removeClass('btn-disabled');
     if ($printTag.is('button')) {
         $printTag.addClass('btn-primary');
+        $printTag.removeClass('btn-disabled');
+        $printTag.addClass('pointer');
+    } else {
+        $printTag.removeClass('disabled');
+        $printTag.addClass('pointer');
     }
+    managePrintButtonTooltip(false, $printTag.is('button') ? $printTag.parent() : $printTag);
     $('#noFilters').addClass('d-none');
-    $printTag.parent().removeClass('has-tooltip');
-    $printTag.parent().tooltip('dispose');
+    $printTag.removeClass('has-tooltip');
+    $printTag.tooltip('dispose');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
     initTooltips($('.has-tooltip'));
@@ -291,11 +298,21 @@ function removeFilter() {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();
     });
-    if ($('#filters').find('.filter').length <= 0) {
-        $('#printTag').addClass('btn-disabled');
-        $printTag.parent().addClass('has-tooltip');
-        initTooltips($('.has-tooltip'));
-        $('#noFilters').removeClass('d-none');
+    if ($('#filters').find('.filter').length <= 0 && $('#tableRefArticle_id_filter input').val() === '') {
+        if ($printTag.is('button')) {
+            $printTag
+                .addClass('btn-disabled')
+                .removeClass('btn-primary');
+            managePrintButtonTooltip(true, $printTag.parent());
+        }
+        else {
+            $printTag
+                .removeClass('pointer')
+                .addClass('disabled')
+                .addClass('has-tooltip');
+            managePrintButtonTooltip(true, $printTag);
+        }
+        $printTag.removeClass('d-none');
     }
 }
 
@@ -551,19 +568,23 @@ function saveRapidSearch() {
     });
 }
 
-function printReferenceArticleBarCode() {
-    if (tableRefArticle.data().count() > 0) {
-        window.location.href = Routing.generate(
-            'reference_article_bar_codes_print',
-            {
-                length: tableRefArticle.page.info().length,
-                start: tableRefArticle.page.info().start,
-                search: $('#tableRefArticle_id_filter input').val()
-            },
-            true
-        );
+function printReferenceArticleBarCode($button, event) {
+    if (!$button.hasClass('disabled')) {
+        if (tableRefArticle.data().count() > 0) {
+            window.location.href = Routing.generate(
+                'reference_article_bar_codes_print',
+                {
+                    length: tableRefArticle.page.info().length,
+                    start: tableRefArticle.page.info().start,
+                    search: $('#tableRefArticle_id_filter input').val()
+                },
+                true
+            );
+        } else {
+            alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
+        }
     } else {
-        alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
+        event.stopPropagation();
     }
 }
 

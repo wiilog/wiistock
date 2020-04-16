@@ -1529,7 +1529,7 @@ function initActionOnRow(row) {
 }
 
 function manageArticleAndRefSearch($input, $printButton) {
-    if ($input.val() === '') {
+    if ($input.val() === '' && $('#filters').find('.filter').length <= 0) {
         if ($printButton.is('button')) {
             $printButton
                 .addClass('btn-disabled')
@@ -1540,7 +1540,7 @@ function manageArticleAndRefSearch($input, $printButton) {
             $printButton
                 .removeClass('pointer')
                 .addClass('disabled')
-                .removeClass('has-tooltip');
+                .addClass('has-tooltip');
             managePrintButtonTooltip(true, $printButton);
         }
 

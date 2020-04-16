@@ -50,13 +50,14 @@
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu pointer mr-5">
-                            <span class="d-inline-block ml-2 {{ filters | length == 0 ?  "has-tooltip" : " " }}" tabindex="0" data-toggle="tooltip"
-                                  title="Veuillez faire une recherche ou renseigner un filtre pour imprimer.">
-                                <a class="dropdown-item pl-3 {{ filters | length > 0 ? '' : 'btn-disabled' }}" href="#" id="printTag"
-                                   onclick="printReferenceArticleBarCode()"><span class="fa fa-print mr-2"></span>
-                                Impression des étiquettes</a>
-                            </span>
+                        <div class="dropdown-menu mr-5">
+                            <div class="dropdown-item has-tooltip {{ filters | length > 0 ? 'pointer' : 'disabled user-select-none' }}"
+                                 id="printTag"
+                                 tabindex="0"
+                                 title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
+                                 onclick="printReferenceArticleBarCode($(this), event)"><span class="fa fa-print mr-2"></span>
+                                Impression des étiquettes
+                            </div>
                             <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
                                 <span class="fa fa-cog mr-2"></span>Modifier colonnes</a>
                             <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
@@ -82,16 +83,16 @@
                                 <span class="fa fa-plus mr-2"></span>Nouvel article de référence
                             </button>
                         {% elseif hasRightToExport %}
-                            <span class="d-inline-block {{ filters | length == 0 ?  "has-tooltip"  :" " }}"
-                                  tabindex="0" data-toggle="tooltip"
-                                  title="Veuillez faire une recherche ou renseigner un filtre pour imprimer.">
+                            <div tabindex="0"
+                                 title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
+                                 data-toggle="tooltip">
                                 <button type="button"
                                         class="btn btn-primary split-button btn-ripple printButton {{ filters | length > 0 ? '' : 'btn-disabled' }}"
                                         id="printTag"
-                                        onclick="printReferenceArticleBarCode()">
-                                <span class="fa fa-plus mr-2"></span>Impression des étiquettes
+                                        onclick="printReferenceArticleBarCode($(this), event)">
+                                    <span class="fa fa-print mr-2"></span>Impression des étiquettes
                                 </button>
-                            </span>
+                            </div>
                         {% endif %}
                         <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
@@ -99,7 +100,7 @@
                         </button>
                         <div class="dropdown-menu pointer mr-5">
                             <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
-                                <span class="fa fa-print mr-2"></span>Modifier colonnes</a>
+                                <span class="fa fa-cog mr-2"></span>Modifier colonnes</a>
                             <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
                                 <span class="fa fa-search mr-2"></span>Recherche rapide</a>
                             <div class="statut dropdown-item">
