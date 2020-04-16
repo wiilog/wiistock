@@ -1,12 +1,11 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Referentiel | Chauffeurs{% endblock %}
+{% block title %}Référentiel | Chauffeurs{% endblock %}
 
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto mb-3">
+        <div class="row datatable-header">
+            <div class="col-auto ml-auto">
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                     <a href=""
                        data-toggle="modal"
@@ -16,6 +15,8 @@
                     </a>
                 {% endif %}
             </div>
+        </div>
+        <div class="row">
             <div class="col-12">
                 <table id="tableChauffeur_id" class="table w-100">
                 </table>
