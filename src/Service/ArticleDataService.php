@@ -744,9 +744,11 @@ class ArticleDataService
                 $res = !empty($cl) ? 'Oui' : 'Non';
                 break;
             case ChampLibre::TYPE_DATE:
+                $cl = str_replace('/', '-', $cl);
                 $res = !empty($cl) ? (new DateTime($cl))->format('d/m/Y') : null;
                 break;
             case ChampLibre::TYPE_DATETIME:
+                $cl = str_replace('/', '-', $cl);
                 $res = !empty($cl) ? (new DateTime($cl))->format('d/m/Y H:i') : null;
                 break;
             case ChampLibre::TYPE_LIST_MULTIPLE:
