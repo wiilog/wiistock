@@ -1555,7 +1555,3 @@ function manageArticleAndRefSearch($input, $printButton) {
         }
     }
 }
-
-function closeDropdownMenu($dropdownItem) {
-    $dropdownItem.parents().removeClass('show');
-}

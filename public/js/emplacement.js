@@ -120,7 +120,6 @@ function overrideSearchEmplacement() {
 
 function printLocationsBarCodes($button, event) {
     if (!$button.hasClass('disabled')) {
-        closeDropdownMenu($button);
         window.location.href = Routing.generate('print_locations_bar_codes', {
             listEmplacements: $("#listEmplacementIdToPrint").val(),
             length: tableEmplacement.page.info().length,

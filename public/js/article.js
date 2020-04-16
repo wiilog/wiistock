@@ -212,10 +212,6 @@ function changeStatus(button) {
 
 function printArticlesBarCodes($button, event) {
     if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {
-        if ($button.hasClass('dropdown-item')) {
-            closeDropdownMenu($button);
-        }
-
         let listArticles = $("#listArticleIdToPrint").val();
         const length = tableArticle.page.info().length;
 

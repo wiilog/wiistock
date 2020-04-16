@@ -43,7 +43,7 @@
                         <div class="statut dropdown-item">
                             <div class="checkbox pl-0 pointer filters-container">
                                 {% set checked = active ? 'checked' : '' %}
-                                <input onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id'); closeDropdownMenu($(this));"
+                                <input onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id')"
                                        class="styled filter-checkbox"
                                        id="actifInactif"
                                        name="statut"
