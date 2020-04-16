@@ -22,6 +22,7 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
@@ -236,6 +237,7 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $refArticle
      * @param string[] $data
+     * @param Utilisateur $user
      * @return RedirectResponse
      * @throws DBALException
      * @throws LoaderError
@@ -243,7 +245,7 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function editRefArticle($refArticle, $data)
+    public function editRefArticle($refArticle, $data, Utilisateur $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -292,7 +294,14 @@ class RefArticleDataService
             }
 
             if (isset($data['categorie'])) $refArticle->setCategory($category);
-            if (isset($data['urgence'])) $refArticle->setIsUrgent($data['urgence']);
+            if (isset($data['urgence'])) {
+                if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
+                    $refArticle->setUserThatTriggeredEmergency($user);
+                } else if (!$data['urgence']) {
+                    $refArticle->setUserThatTriggeredEmergency(null);
+                }
+                $refArticle->setIsUrgent($data['urgence']);
+            }
             if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
             if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
@@ -393,6 +402,7 @@ class RefArticleDataService
     /**
      * @param array $data
      * @param ReferenceArticle $referenceArticle
+     * @param Utilisateur $user
      * @return bool
      * @throws DBALException
      * @throws LoaderError
@@ -400,7 +410,7 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function addRefToDemand($data, $referenceArticle)
+    public function addRefToDemand($data, $referenceArticle, Utilisateur $user)
     {
         $resp = true;
 
@@ -423,7 +433,7 @@ class RefArticleDataService
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
             }
-            $this->editRefArticle($referenceArticle, $data);
+            $this->editRefArticle($referenceArticle, $data, $user);
 
             // cas gestion quantité par article
         } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {

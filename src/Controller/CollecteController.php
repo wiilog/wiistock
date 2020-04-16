@@ -372,7 +372,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
 
-                $this->refArticleDataService->editRefArticle($refArticle, $data);
+                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA
                 $fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');

@@ -481,20 +481,35 @@ class ArticleDataService
 			$rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticle->getId());
 			$toInsert->setReceptionReferenceArticle($rra);
 			$entityManager->flush();
-			$mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
-                'article' => $toInsert,
-                'title' => 'Votre article urgent a bien été réceptionné.',
-            ]);
 			// gestion des urgences
 			if ($refArticle->getIsUrgent()) {
-				// on envoie un mail aux demandeurs
-				$this->mailerService->sendMail(
-					'FOLLOW GT // Article urgent réceptionné', $mailContent,
-					$demande ? $demande->getUtilisateur() ? $demande->getUtilisateur()->getEmail() : '' : ''
-				);
-				// on retire l'urgence
-				$refArticle->setIsUrgent(false);
-                $refArticle->setEmergencyComment('');
+                $mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
+                    'article' => $toInsert,
+                    'title' => 'Votre article urgent a bien été réceptionné.',
+                ]);
+                $destinataires = '';
+                if ($refArticle->getUserThatTriggeredEmergency()) {
+                    if ($demande && $demande->getUtilisateur()) {
+                        $destinataires = [
+                            $refArticle->getUserThatTriggeredEmergency()->getEmail(),
+                            $demande->getUtilisateur()->getEmail()
+                        ];
+                    } else {
+                        $destinataires = $refArticle->getUserThatTriggeredEmergency()->getEmail();
+                    }
+                } else {
+                    if ($demande && $demande->getUtilisateur()) {
+                        $destinataires = $demande->getUtilisateur()->getEmail();
+                    }
+                }
+                // on envoie un mail aux demandeurs
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                    $destinataires
+                );
+                // on retire l'urgence
+                $refArticle->setIsUrgent(false);
+                $refArticle->setUserThatTriggeredEmergency(null);
             }
 		}
         $entityManager->flush();

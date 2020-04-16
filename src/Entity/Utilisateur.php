@@ -213,6 +213,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $dropzone;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="userThatTriggeredEmergency")
+     */
+    private $referencesEmergenciesTriggered;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -236,6 +241,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->acheminementsRequester = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
         $this->litiges = new ArrayCollection();
+        $this->referencesEmergenciesTriggered = new ArrayCollection();
     }
 
     public function getId()
@@ -1115,6 +1121,38 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setDropzone(?Emplacement $dropzone): self
     {
         $this->dropzone = $dropzone;
+
+        return $this;
+    }
+
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferencesEmergenciesTriggered(): Collection
+    {
+        return $this->referencesEmergenciesTriggered;
+    }
+
+    public function addReferencesEmergenciesTriggered(ReferenceArticle $referencesEmergenciesTriggered): self
+    {
+        if (!$this->referencesEmergenciesTriggered->contains($referencesEmergenciesTriggered)) {
+            $this->referencesEmergenciesTriggered[] = $referencesEmergenciesTriggered;
+            $referencesEmergenciesTriggered->setUserThatTriggeredEmergency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReferencesEmergenciesTriggered(ReferenceArticle $referencesEmergenciesTriggered): self
+    {
+        if ($this->referencesEmergenciesTriggered->contains($referencesEmergenciesTriggered)) {
+            $this->referencesEmergenciesTriggered->removeElement($referencesEmergenciesTriggered);
+            // set the owning side to null (unless already changed)
+            if ($referencesEmergenciesTriggered->getUserThatTriggeredEmergency() === $this) {
+                $referencesEmergenciesTriggered->setUserThatTriggeredEmergency(null);
+            }
+        }
 
         return $this;
     }

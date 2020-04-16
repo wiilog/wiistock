@@ -187,6 +187,10 @@ class ReferenceArticle
      */
     private $mouvementTracas;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="referencesEmergenciesTriggered")
+     */
+    private $userThatTriggeredEmergency;
 
     public function __construct()
     {
@@ -859,6 +863,18 @@ class ReferenceArticle
                 $mouvementTraca->setReferenceArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUserThatTriggeredEmergency(): ?Utilisateur
+    {
+        return $this->userThatTriggeredEmergency;
+    }
+
+    public function setUserThatTriggeredEmergency(?Utilisateur $userThatTriggeredEmergency): self
+    {
+        $this->userThatTriggeredEmergency = $userThatTriggeredEmergency;
 
         return $this;
     }
