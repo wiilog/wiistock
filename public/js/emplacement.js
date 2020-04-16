@@ -1,5 +1,4 @@
 $('.select2').select2();
-let $printTag ;
 let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
@@ -55,8 +54,8 @@ let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
 InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), true, false);
 
 $(function () {
-    $printTag = $('#btnPrint');
-    managePrintButtonTooltip(true, $printTag);
+    const $printButton = $('#btnPrint');
+    managePrintButtonTooltip(true, $printButton);
 });
 
 function checkAndDeleteRowEmplacement(icon) {
@@ -89,35 +88,45 @@ function overrideSearchEmplacement() {
     $input.off();
     $input.on('keyup', function (e) {
         let $printButton = $('.printButton');
+
         if (e.key === 'Enter') {
             if ($input.val() === '') {
-                $printButton.removeClass('pointer');
-                $printButton.addClass('btn-disabled');
-                $printButton.removeClass('btn-primary');
-                managePrintButtonTooltip(true, $printTag);
+                $printButton
+                    .addClass('user-select-none')
+                    .addClass('disabled')
+                    .removeClass('pointer');
+                managePrintButtonTooltip(true, $printButton);
             } else {
-                $printButton.removeClass('btn-disabled');
-                if ($printButton.is('button')) {
-                    $printButton.addClass('btn-primary');
-                }
-                $printButton.addClass('pointer');
-                managePrintButtonTooltip(false, $printTag);
+                console.log('pointer ')
+                $printButton
+                    .removeClass('user-select-none')
+                    .removeClass('disabled')
+                    .addClass('pointer');
+                managePrintButtonTooltip(false, $printButton);
             }
             tableEmplacement.search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
-            $printButton.addClass('btn-disabled');
-            $printButton.removeClass('btn-primary');
-            $printButton.removeClass('pointer');
-            managePrintButtonTooltip(true, $printTag);
+            $printButton
+                .addClass('user-select-none')
+                .addClass('disabled')
+                .removeClass('pointer');
+            managePrintButtonTooltip(true, $printButton);
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function printLocationsBarCodes() {
-    window.location.href = Routing.generate('print_locations_bar_codes', {
-        listEmplacements: $("#listEmplacementIdToPrint").val(),
-        length: tableEmplacement.page.info().length,
-        start: tableEmplacement.page.info().start
-    }, true);
+function printLocationsBarCodes($button) {
+    if (!$button.parent().hasClass('disabled')) {
+        closeDropdownMenu($button);
+        window.location.href = Routing.generate('print_locations_bar_codes', {
+            listEmplacements: $("#listEmplacementIdToPrint").val(),
+            length: tableEmplacement.page.info().length,
+            start: tableEmplacement.page.info().start
+        }, true);
+    }
+}
+
+function closeDropdownMenu($dropdownItem) {
+    $dropdownItem.parents().removeClass('show');
 }

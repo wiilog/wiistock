@@ -4,19 +4,19 @@
 
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row datatable-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="row datatable-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
                         <a href="" data-toggle="modal"
                            data-target="#modalNewFournisseur"
                            class="btn btn-primary btn-ripple">
                             <span class="fa fa-plus mr-2"></span>Nouveau Fournisseur
                         </a>
-                    {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
 
         <div class="row">
             <div class="col-12">

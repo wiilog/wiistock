@@ -14,7 +14,6 @@
         <div class="row datatable-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
-
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button"
                                 data-toggle="modal"
@@ -33,21 +32,19 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
 
-                    <div class="dropdown-menu mr-5">
-                    <span class="d-inline-block ml-2"
-                          tabindex="0"
-                          title="Veuillez faire une recherche pour imprimer.">
-                        <div data-toggle="modal"
+                    <div class="dropdown-menu mr-5"
+                         onclick="event.stopPropagation()">
+                        <div tabindex="0"
                              id="btnPrint"
-                             class="dropdown-item btn-disabled printButton"
-                             onclick="printLocationsBarCodes()">
+                             class="dropdown-item printButton user-select-none disabled"
+                             onclick="printLocationsBarCodes($(this))"
+                             title="Veuillez faire une recherche pour imprimer.">
                             <i class="fas fa-print"></i> Imprimer les étiquettes
                         </div>
-                    </span>
                         <div class="statut dropdown-item">
                             <div class="checkbox pl-0 pointer filters-container">
                                 {% set checked = active ? 'checked' : '' %}
-                                <input onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id')"
+                                <input onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id'); closeDropdownMenu($(this));"
                                        class="styled filter-checkbox"
                                        id="actifInactif"
                                        name="statut"

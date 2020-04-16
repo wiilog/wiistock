@@ -1443,8 +1443,7 @@ function initTooltips($elements) {
 
 function managePrintButtonTooltip(active, $button) {
     if ($button) {
-        let $printTagParent = $button.parent();
-        $printTagParent.tooltip(
+        $button.tooltip(
             active ? undefined : 'dispose'
         )
     }
