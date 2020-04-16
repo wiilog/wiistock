@@ -657,7 +657,7 @@ class DemandeController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
-            $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle);
+            $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle, $this->getUser());
 
             if ($resp === 'article') {
                 $this->articleDataService->editArticle($data);
