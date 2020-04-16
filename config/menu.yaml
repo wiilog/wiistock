@@ -217,6 +217,7 @@ parameters:
                         action: App\Entity\Action::DISPLAY_IMPORT
                 -   label: 'Documentation'
                     url: 'https://wiilog.fr/doc/'
+                    isExtern: 'true'
 
         -   label: 'Déconnexion'
             icon: 'deco'

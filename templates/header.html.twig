@@ -54,7 +54,8 @@
                                                     icon: itemMenuSub.icon is defined ? itemMenuSub.icon,
                                                     title: itemMenuSub.title is defined ? itemMenuSub.title,
                                                     isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
-                                                    url: itemMenuSub.url is defined ? itemMenuSub.url : path(itemMenuSub.path)
+                                                    url: itemMenuSub.url is defined ? itemMenuSub.url : path(itemMenuSub.path),
+                                                    isExtern: itemMenuSub.isExtern is defined
                                                 } %}
                                             {% endfor %}
                                         </div>
