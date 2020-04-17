@@ -50,6 +50,7 @@ $(function () {
     initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
     initDisplaySelect2Multiple('#locationDemandeLivraison','#locationDemandeLivraisonValue');
     $('#locationArrivageDest').on('change', editArrivageDestination);
+    $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
     // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });
