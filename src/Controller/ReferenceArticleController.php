@@ -1183,9 +1183,15 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/export-donnees", name="exports_params")
+     * @param UserService $userService
+     * @return RedirectResponse|Response
      */
-    public function renderParams()
+    public function renderParams(UserService $userService)
     {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_EXPO)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('exports/exportsMenu.html.twig');
     }
 
