@@ -10,9 +10,9 @@
     } %}
 {% endblock %}
 {% block page_content %}
-    <div class="m-4 datatable-container">
+    <div class="m-4 wii-page-card">
         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-            <div class="row datatable-header">
+            <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple mb-3"
                        onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>

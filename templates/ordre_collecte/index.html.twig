@@ -16,9 +16,9 @@
     ) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
 
-    <div class="m-4 datatable-container">
+    <div class="m-4 wii-page-card">
         {% if hasRightExport or pageFilteredByDemand %}
-            <div class="row datatable-header">
+            <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
                         {% if hasRightExport %}

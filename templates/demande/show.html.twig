@@ -7,17 +7,17 @@
     <div class="m-4">
         <div class="row">
             <div class="col-12">
-                <div class="zone-entete datatable-container">
+                <div class="zone-entete wii-page-card">
                     {% include "demande/enteteDemandeLivraison.html.twig" %}
                 </div>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-12">
-                <div class="datatable-container">
+                <div class="wii-page-card">
                     {% if modifiable %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                            <div class="row datatable-header">
+                            <div class="row wii-page-card-header">
                                 <div class="col-auto ml-auto">
                                     <div class="btn-group" id="boutonCollecteInf">
                                         <button type="button"

@@ -10,8 +10,8 @@
     } %}
 {% endblock %}
 {% block page_content %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
                     <div class="btn-group">
