@@ -11,16 +11,17 @@
 {% endblock %}
 {% block page_content %}
     <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class='col-auto'>
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="row datatable-header">
+                <div class="col-auto ml-auto">
                     <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple mb-3"
                        onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
                         <span class="fa fa-plus mr-2"></span>Nouvelle collecte
                     </a>
-                {% endif %}
+                </div>
             </div>
+        {% endif %}
+        <div class="row">
             <div class="col-12">
                 <table id="tableCollecte_id" class="table w-100">
                 </table>

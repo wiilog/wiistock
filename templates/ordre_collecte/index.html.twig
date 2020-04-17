@@ -14,39 +14,36 @@
         (filterDemandId is defined and filterDemandId is not null) and
         (filterDemandValue is defined and filterDemandValue is not null)
     ) %}
+    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
 
     <div class="m-4 datatable-container">
-        <div class="row datatable-header">
-            <div class="col-auto ml-auto">
-                {% if pageFilteredByDemand %}
-                    <div class="btn-group mr-3">
-                        {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
+        {% if hasRightExport or pageFilteredByDemand %}
+            <div class="row datatable-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        {% if hasRightExport %}
                             <div class="btn btn-primary btn-ripple btn-ripple split-button"
                                  onclick="generateCSV('get_ordres_collecte_for_csv', 'ordre-coll')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
                         {% endif %}
-                        <button type="button"
-                                class="btn btn-primary split-button-dropdown btn-ripple"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu mr-5 pointer {{ not hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) ? 'dropdown-single' }}">
-                            <a href="{{ path('ordre_collecte_index') }}" class='dropdown-item'>Voir tous les ordres</a>
-                            <a href="{{ path('collecte_show', {'id': filterDemandId}) }}" class='dropdown-item'>Retour à la demande</a>
-                        </div>
+                        {% if pageFilteredByDemand %}
+                            <button type="button"
+                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right pointer">
+                                <a href="{{ path('ordre_collecte_index') }}" class='dropdown-item'>Voir tous les ordres</a>
+                                <a href="{{ path('collecte_show', {'id': filterDemandId}) }}" class='dropdown-item'>Retour à la demande</a>
+                            </div>
+                        {% endif %}
                     </div>
-                {% else %}
-                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
-                        <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_ordres_collecte_for_csv', 'ordre-coll')">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                        </div>
-                    {% endif %}
-                {% endif %}
+                </div>
             </div>
-        </div>
+        {% endif %}
         <div class="row">
             <div class="col-12">
                 <div class="d-none justify-content-center" id="spinner">

@@ -229,7 +229,7 @@ function printArticlesBarCodes($button, event) {
             alertErrorMsg("Il n'y a aucun article à imprimer");
         }
     }
-    else {
+    else if (event) {
         event.stopPropagation();
     }
 }

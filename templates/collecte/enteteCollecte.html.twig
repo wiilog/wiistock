@@ -12,11 +12,14 @@
                         Modifier
                     </button>
                 {% endif %}
-                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
                         aria-expanded="false">
                     <span class="fa fa-angle-down"></span>
                 </button>
-                <div class="dropdown-menu mr-5 pointer">
+                <div class="dropdown-menu dropdown-menu-right pointer">
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a href="#" onclick="validateCollecte({{ collecte.id }})"
                            class="dropdown-item"><i class="fa fa-check mr-2"></i>Valider</a>
@@ -30,11 +33,14 @@
                 </div>
             {% else %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
-                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                    <button type="button"
+                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu pointer dropdown-single">
+                    <div class="dropdown-menu dropdown-menu-right pointer">
                         {% if collecte.ordresCollecte|length > 1 %}
                             <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
                                class="dropdown-item">
