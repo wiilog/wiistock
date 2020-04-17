@@ -42,7 +42,10 @@ class MenuExtension extends AbstractExtension
                 else {
                     $subWithRight = $this->getMenuSubConfigFunction($item['sub']);
                     if (!empty($subWithRight)) {
-                        $menuConfigWithRight[] = $item;
+                        $menuConfigWithRight[] = array_merge(
+                            $item,
+                            ['sub' => $subWithRight]
+                        );
                     }
                 }
             }

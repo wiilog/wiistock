@@ -9,30 +9,40 @@
     } %}
 {% endblock %}
 {% block page_content %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary btn-ripple split-button"
-                            data-target='#modalNewAssociation' data-toggle='modal'><span
-                                class="fa fa-bullseye mr-2"></span>
-                        Association / BR
-                    </button>
-                    <button type="button"
-                            class="btn btn-primary split-button-dropdown btn-ripple"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu mr-5">
-                        <div class="dropdown-item pointer" onclick="customExport()">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter
-                        </div>
+    <div class="m-4 wii-page-card">
+        {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
+        {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+        {% if hasRightCreate and hasRightExport %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        {% if hasRightCreate %}
+                            <button type="button"
+                                    class="btn btn-primary btn-ripple {{ hasRightExport ? 'split-button' }}"
+                                    data-target='#modalNewAssociation'
+                                    data-toggle='modal'>
+                                <span class="fa fa-bullseye mr-2"></span>
+                                Association / BR
+                            </button>
+                        {% endif %}
+                        {% if hasRightExport %}
+                            <button type="button"
+                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <div class="dropdown-item pointer" onclick="customExport()">
+                                    <i class="fa fa-file-csv mr-2"></i>Exporter
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
 
         <div class="row">
             <div class="col-12">

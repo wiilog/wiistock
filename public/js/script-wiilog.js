@@ -1443,8 +1443,7 @@ function initTooltips($elements) {
 
 function managePrintButtonTooltip(active, $button) {
     if ($button) {
-        let $printTagParent = $button.parent();
-        $printTagParent.tooltip(
+        $button.tooltip(
             active ? undefined : 'dispose'
         )
     }
@@ -1529,19 +1528,58 @@ function initActionOnRow(row) {
     }
 }
 
-function manageArticleAndRefSearch($input) {
-    let $printBtn = $('#printTag');
-    $printBtn.parent().tooltip('dispose');
-    if ($input.val() === '') {
-        $printBtn.parent().addClass('has-tooltip');
-        $printBtn.addClass('btn-disabled');
-        $printBtn.removeClass('btn-primary');
+function initActionOnCell(cell) {
+    $(cell).click(function() {
+        $cell.parent('tr').find('.action-on-click').get(0).click();
+    });
+}
+
+
+function showOrHideColumn(check, concernedTable, concernedTableColumns) {
+
+    let columnName = check.data('name');
+
+    let column = concernedTable.column(columnName + ':name');
+
+    column.visible(!column.visible());
+
+    concernedTableColumns.find('th, td').removeClass('hide');
+    concernedTableColumns.find('th, td').addClass('display');
+    check.toggleClass('data');
+    initActionOnCell(column);
+}
+
+function manageArticleAndRefSearch($input, $printButton) {
+    if ($input.val() === '' && $('#filters').find('.filter').length <= 0) {
+        if ($printButton.is('button')) {
+            $printButton
+                .addClass('btn-disabled')
+                .removeClass('btn-primary');
+            managePrintButtonTooltip(true, $printButton.parent());
+        }
+        else {
+            $printButton
+                .removeClass('pointer')
+                .addClass('disabled')
+                .addClass('has-tooltip');
+            managePrintButtonTooltip(true, $printButton);
+        }
+
+        managePrintButtonTooltip(true, $printButton);
     } else {
-        $printBtn.parent().removeClass('has-tooltip');
-        $printBtn.removeClass('btn-disabled');
-        if ($printBtn.is('button')) {
-            $printBtn.addClass('btn-primary');
+
+        if ($printButton.is('button')) {
+            $printButton
+                .addClass('btn-primary')
+                .removeClass('btn-disabled');
+            managePrintButtonTooltip(false, $printButton.parent());
+        }
+        else {
+            $printButton
+                .removeClass('disabled')
+                .addClass('pointer')
+                .removeClass('has-tooltip');
+            managePrintButtonTooltip(false, $printButton);
         }
     }
-    initTooltips($('.has-tooltip'));
 }

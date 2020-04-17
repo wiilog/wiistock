@@ -1,27 +1,30 @@
-<div class="row align-items-center datatable-header">
+<div class="row align-items-center wii-page-card-header">
     <div class="col-auto">
         <h1 class="my-0"><span>Ordre de collecte n°{{ collecte.numero }}</span></h1>
     </div>
     <div class="col-auto ml-auto">
         <div class="btn-group">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
-                <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-ripple split-button">
+                <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}"
+                   class="btn btn-primary btn-ripple split-button">
                     Aller vers la demande de collecte
                 </a>
             {% endif %}
             {% if not finished %}
-                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
                         aria-expanded="false">
                     <span class="fa fa-angle-down"></span>
                 </button>
-                <div class="dropdown-menu mr-5 pointer">
+                <div class="dropdown-menu dropdown-menu-right pointer">
                     <div hidden data-toggle="modal" data-target="#modalFinishCollecte" id="btnModalFinishCollecte"></div>
-                    <div
-                        class="dropdown-item"
+                    <div class="dropdown-item"
                         {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
-                        onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
-                    {% else %}
-                        onclick="checkIfRowSelected(() => finishCollecte(true))"
+                            onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
+                        {% else %}
+                            onclick="checkIfRowSelected(() => finishCollecte(true))"
                         {% endif %}>
                         <i class='fas fa-check mr-2'></i>Finir la collecte
                     </div>

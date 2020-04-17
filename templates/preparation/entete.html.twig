@@ -1,14 +1,17 @@
-<div class="row align-items-center datatable-header">
+<div class="row align-items-center wii-page-card-header">
     <div class="col-auto">
         <h1 class="my-0"><span>Préparation n°{{ preparation.numero }}</span></h1>
     </div>
     <div class="col-auto ml-auto">
         <div class="btn-group">
-            <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+            <button type="button"
+                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
                     aria-expanded="false">
                 <span class="fa fa-angle-down"></span>
             </button>
-            <div class="dropdown-menu dropdown-single pointer">
+            <div class="dropdown-menu dropdown-menu-right pointer">
                 {% if isPrepaEditable %}
                     <button hidden id="btnFinishPrepa" data-toggle="modal" data-target="#modalSubmitPreparation"></button>
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}

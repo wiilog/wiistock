@@ -18,13 +18,13 @@
     <input type="hidden" id="statutFilter">
     <input type="hidden" id="usersFilter">
 
-    <div class="m-4 datatable-container">
+    <div class="m-4 wii-page-card">
         <div class="d-none justify-content-center" id="spinner">
             <div class="spinner-border sizeLoader" role="status">
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
-        <div class="row datatable-header">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     {% if hasRightToCreate %}
@@ -47,13 +47,13 @@
                         </button>
                     {% endif %}
                     <button type="button"
-                            class="btn btn-primary split-button-dropdown btn-ripple"
+                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                             data-toggle="dropdown"
                             aria-haspopup="true"
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu {{ hasRightToCreate or hasRightToExport ? 'mr-5' : 'dropdown-single' }}">
+                    <div class="dropdown-menu dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a href="#"
                                class="dropdown-item"

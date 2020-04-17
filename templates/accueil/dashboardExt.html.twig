@@ -1,10 +1,12 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div class="wrapper pl-0 degrade">
+<div class="wrapper pl-0 bg-primary-followgt">
     <div class="container-fluid">
         <input type="hidden" id="isDashboardExt" value="1"/>
-        {% include 'header.html.twig' with { 'isDashboardExt': 1 } %}
+        <div class="header-container header-ext">
+            {% include 'header.html.twig' with { 'isDashboardExt': 1 } %}
+        </div>
         {% if page == 'quai' %}
             {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
         {% elseif page == 'admin' %}

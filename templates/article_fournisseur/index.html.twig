@@ -3,20 +3,22 @@
 {% block title %}Stock | Articles fournisseurs {% endblock %}
 
 {% block page_content %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    <button type="button"
-                            data-toggle="modal"
-                            data-target="#modalNewArticleFournisseur"
-                            onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))"
-                            class="btn btn-primary btn-ripple">
-                        <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
-                    </button>
+    <div class="m-4 wii-page-card">
+        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalNewArticleFournisseur"
+                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))"
+                                class="btn btn-primary btn-ripple">
+                            <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
         <div class="row">
             <div class="col-12">
                 <table id="tableArticleFournisseur" class="table w-100"></table>

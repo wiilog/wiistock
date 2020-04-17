@@ -18,19 +18,22 @@
     <input type="text" value="" id="userFilter" hidden>
     <input type="text" value="" id="typeFilter" hidden>
 
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
                     <div class="btn-group">
                         <div class="btn btn-primary btn-ripple split-button">
                             <a href="{{ path('demande_index') }}">Voir toutes les demandes</a>
                         </div>
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                        <button type="button"
+                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu mr-5">
+                        <div class="dropdown-menu dropdown-menu-right">
                             <a href="{{ path('reception_show', {'id': receptionFilter}) }}" class='dropdown-item pointer'>Retour à la réception</a>
                         </div>
                     </div>
@@ -42,11 +45,14 @@
                                  onclick='initNewLivraisonEditor("#modalNewDemande")'>
                                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
                             </div>
-                            <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                            <button type="button"
+                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
                                     aria-expanded="false">
                                 <span class="fa fa-angle-down"></span>
                             </button>
-                            <div class="dropdown-menu mr-5 pointer">
+                            <div class="dropdown-menu dropdown-menu-right pointer">
                                 <div class="dropdown-item" onclick="generateCSV('get_demandes_for_csv', 'dem-livr')">
                                     <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                                 </div>
@@ -55,13 +61,15 @@
                     {% else %}
                         {% if hasRightCreate %}
                             <div class="btn btn-primary btn-ripple"
-                                 data-toggle="modal" data-target="#modalNewDemande"
+                                 data-toggle="modal"
+                                 data-target="#modalNewDemande"
                                  onclick='initNewLivraisonEditor("#modalNewDemande")'>
                                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
                             </div>
                         {% endif %}
                         {% if hasRightExport %}
-                            <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_demandes_for_csv', 'dem-livr')">
+                            <div class="btn btn-primary btn-ripple"
+                                 onclick="generateCSV('get_demandes_for_csv', 'dem-livr')">
                                 <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                             </div>
                         {% endif %}

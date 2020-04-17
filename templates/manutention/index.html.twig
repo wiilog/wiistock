@@ -10,21 +10,25 @@
     } %}
 {% endblock %}
 {% block page_content %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
                     <div class="btn-group">
                         <div class="btn btn-primary btn-ripple split-button"
-                             data-toggle="modal" data-target="#modalNewManutention"
+                             data-toggle="modal"
+                             data-target="#modalNewManutention"
                              onclick='initNewManutentionEditor("#modalNewManutention")'>
                             <span class="fa fa-plus mr-2"></span>Nouvelle demande
                         </div>
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                        <button type="button"
+                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu mr-5 pointer">
+                        <div class="dropdown-menu dropdown-menu-right pointer">
                             <div class="dropdown-item" onclick="generateCSV('get_manutentions_for_csv', 'manutentions')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>

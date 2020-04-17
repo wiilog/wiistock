@@ -1,18 +1,25 @@
 .d-flex nav.main-header
     flex: 1
 
-.header-wrapper
-    background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark)
+.header-container
     background-repeat: no-repeat
     padding-bottom: 6%
     padding-left: 1rem
     padding-right: 1rem
+
+    &:not(.header-ext)
+        @extend .bg-primary-followgt
 
     .web-version
         color: white
         bottom: 5px
         position: absolute
         right: 35px
+
+    &.header-ext
+        .web-version
+            font-size: 2.5rem
+            right: 3rem
 
     & ~ .container-fluid
         margin-top: -6%

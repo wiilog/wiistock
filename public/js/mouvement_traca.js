@@ -41,7 +41,7 @@ let tableMvt = $('#tableMvts').DataTable({
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
-        {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
+        {"data": 'origin', 'name': 'origin', 'title': 'Issu de', className: 'noVis'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": "reference", 'name': 'reference', 'title': 'Référence'},

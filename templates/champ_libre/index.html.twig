@@ -3,22 +3,25 @@
 {% block title %}Paramétrage | Champs libres{% endblock %}
 
 {% block page_content %}
-    <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto mb-3">
-                <a href="{{ path('types_param_index') }}" class="btn btn-primary btn-ripple">
-                    <span class="fa fa-plus mr-2"></span>Aller vers la création d'un type
-                </a>
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <a href="{{ path('types_param_index') }}" class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>Aller vers la création d'un type
+                    </a>
+                </div>
             </div>
+        </div>
 
+        <div class="row">
             <div class="col-12">
                 <table id="tableType_id" class="table -table w-100">
                 </table>
             </div>
         </div>
-    </div>
 
+    </div>
 
     {% include "champ_libre/modalNewType.html.twig" %}
     {% include "champ_libre/modalDeleteType.html.twig" %}

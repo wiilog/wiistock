@@ -9,7 +9,7 @@ let tableDays = $('#tableDays').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Day', 'title': 'Jour'},
         {"data": 'Worked', 'title': 'Travaillé'},
         {"data": 'Times', 'title': 'Horaires de travail'},
@@ -17,12 +17,6 @@ let tableDays = $('#tableDays').DataTable({
     ],
     order: [
         [4, 'asc']
-    ],
-    columnDefs: [
-        {
-            'targets': [0],
-            'visible': false
-        }
     ],
     rowCallback: function (row, data) {
         initActionOnRow(row);
@@ -56,6 +50,7 @@ $(function () {
     initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
     initDisplaySelect2Multiple('#locationDemandeLivraison','#locationDemandeLivraisonValue');
     $('#locationArrivageDest').on('change', editArrivageDestination);
+    $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
     // config tableau de bord : transporteurs
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 });

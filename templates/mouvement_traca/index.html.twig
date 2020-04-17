@@ -13,48 +13,50 @@
     {% set isSafran = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    {% if hasRightCreate and hasRightExport %}
-                        <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca"
-                                class="btn btn-primary btn-ripple split-button"
-                                data-backdrop="static" data-keyboard="false"
-                                onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))"><span
-                                    class="fa fa-plus mr-2"></span>
-                            Nouveau mouvement
-                        </button>
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple"
-                                data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu mr-5">
-                            <div class="dropdown-item pointer"
-                                 onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
-                        </div>
+    <div class="m-4 wii-page-card">
+        {% if hasRightCreate and hasRightExport %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        {% if hasRightCreate %}
+                            <button type="button"
+                                    data-toggle="modal"
+                                    data-target="#modalNewMvtTraca"
+                                    class="btn btn-primary btn-ripple {{ hasRightExport ? 'split-button' }}"
+                                    data-backdrop="static"
+                                    data-keyboard="false"
+                                    onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))">
+                                <i class="fa fa-plus mr-2"></i>
+                                Nouveau mouvement
+                            </button>
+                        {% endif %}
+                        {% if hasRightExport %}
+                            {% if hasRightCreate %}
+                                <button type="button"
+                                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <div class="dropdown-item pointer"
+                                         onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                                        <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                    </div>
+                                </div>
+                            {% else %}
+                                <button type="button"
+                                        class="btn btn-primary btn-ripple"
+                                        onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                </button>
+                            {% endif %}
+                        {% endif %}
                     </div>
-                {% else %}
-                    {% if hasRightCreate %}
-                        <button type="button" data-toggle="modal" data-target="#modalNewMvtTraca"
-                                class="btn btn-primary btn-ripple"
-                                data-backdrop="static" data-keyboard="false"
-                                onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))">
-                            <i class="fa fa-plus mr-2"></i>
-                            Nouveau mouvement
-                        </button>
-                    {% elseif hasRightExport %}
-                        <button type="button" class="btn btn-primary btn-ripple"
-                                onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                        </button>
-                    {% endif %}
-                {% endif %}
+                </div>
             </div>
-        </div>
+        {% endif %}
         <div class="row">
             <div class="col-12">
                 <table id="tableMvts" class="table w-100"></table>

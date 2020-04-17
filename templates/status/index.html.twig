@@ -3,18 +3,18 @@
 {% block title %}Paramétrage | Statuts litiges{% endblock %}
 
 {% block page_content %}
-    <div class="m-4 datatable-container">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto mb-3">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
                 <a href="" data-toggle="modal" data-target="#modalNewStatus" class="btn btn-primary btn-ripple">
                     <span class="fa fa-plus mr-2"></span>Nouveau statut
                 </a>
             </div>
+        </div>
 
+        <div class="row">
             <div class="col-12">
-                <table id="tableStatus" class="table w-100">
-                </table>
+                <table id="tableStatus" class="table w-100"></table>
             </div>
         </div>
     </div>

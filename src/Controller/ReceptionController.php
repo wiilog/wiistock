@@ -382,6 +382,7 @@ class ReceptionController extends AbstractController
             }
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
@@ -666,6 +667,7 @@ class ReceptionController extends AbstractController
 
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
@@ -902,6 +904,7 @@ class ReceptionController extends AbstractController
 
             $json = [
                 'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab,
                     'typeChampsLibres' => $champsLibres,
