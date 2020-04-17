@@ -249,20 +249,6 @@ function saveRapidSearch() {
     });
 }
 
-function showOrHideColumn(check) {
-
-    let columnName = check.data('name');
-
-    let column = tableArticle.column(columnName + ':name');
-
-    column.visible(!column.visible());
-
-    let tableRefArticleColumn = $('#tableArticle_id_wrapper');
-    tableRefArticleColumn.find('th, td').removeClass('hide');
-    tableRefArticleColumn.find('th, td').addClass('display');
-    check.toggleClass('data');
-}
-
 function displayActifOrInactif(select){
     let activeOnly = select.is(':checked');
     let path = Routing.generate('article_actif_inactif');

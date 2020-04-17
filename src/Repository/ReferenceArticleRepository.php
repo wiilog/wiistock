@@ -167,7 +167,8 @@ class ReferenceArticleRepository extends EntityRepository
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
-
+            'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
+            'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
         ];
 
         $qb
@@ -229,13 +230,21 @@ class ReferenceArticleRepository extends EntityRepository
                         ->select('ra' . $index . '.id')
                         ->from('App\Entity\ReferenceArticle', 'ra' . $index)
                         ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
-                        ->andWhere("vcl$index.champLibre = :$champLibreLabelAlias")
+                        ->where("vcl$index.champLibre = :$champLibreLabelAlias")
                         ->setParameter($champLibreLabelAlias, $filter['champLibre']);
                     switch ($filter['typage']) {
                         case ChampLibre::TYPE_BOOL:
-                            $value = $filter['value'] == 1 ? '1' : '0';
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.valeur = ' . $value);
+                            if ($filter['value'] === "1") {
+                                $qbSub
+                                    ->andWhere('vcl' . $index . '.valeur = 1');
+                            } else {
+                                $forbiddenIds = $this->array_values_recursive($qbSub->getQuery()->getResult());
+                                $qbSub = $em->createQueryBuilder()
+                                    ->select('raWithoutCL' . $index . '.id')
+                                    ->from('App\Entity\ReferenceArticle', 'raWithoutCL' . $index)
+                                    ->where('raWithoutCL' . $index . '.id NOT IN (:ids)')
+                                    ->setParameter('ids', $forbiddenIds, Connection::PARAM_STR_ARRAY);
+                            }
                             break;
                         case ChampLibre::TYPE_TEXT:
                             $qbSub
@@ -1119,5 +1128,18 @@ class ReferenceArticleRepository extends EntityRepository
             'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
         ]);
         return $query->execute();
+    }
+
+    private function array_values_recursive($array) {
+        $flat = [];
+        foreach($array as $value) {
+            if (is_array($value)) {
+                $flat = array_merge($flat, $this->array_values_recursive($value));
+            }
+            else {
+                $flat[] = $value;
+            }
+        }
+        return $flat;
     }
 }

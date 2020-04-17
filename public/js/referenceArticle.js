@@ -212,20 +212,6 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     "searching": false
 });
 
-function showOrHideColumn(check) {
-
-    let columnName = check.data('name');
-
-    let column = tableRefArticle.column(columnName + ':name');
-
-    column.visible(!column.visible());
-
-    let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
-    tableRefArticleColumn.find('th, td').removeClass('hide');
-    tableRefArticleColumn.find('th, td').addClass('display');
-    check.toggleClass('data');
-}
-
 function hideAndShowColumns(columns) {
     tableRefArticle.columns().every(function (index) {
         this.visible(columns[index].class !== 'hide');
@@ -329,7 +315,7 @@ function displayFilterValue(elem) {
     let label = '';
     let datetimepicker = false;
     switch (type) {
-        case 'boolean':
+        case 'booleen':
             label = 'Oui / Non';
             type = 'checkbox';
             break;

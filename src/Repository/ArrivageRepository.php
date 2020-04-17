@@ -336,7 +336,7 @@ class ArrivageRepository extends EntityRepository
                             ->addSelect('count(col2.id) as hidden nbum')
                             ->leftJoin('a.colis', 'col2')
                             ->orderBy('nbum', $order)
-                            ->groupBy('col2.arrivage');
+                            ->groupBy('col2.arrivage, a');
                     } else if ($column === 'statut') {
                         $orderStatut = $order;
                     } else {
