@@ -508,5 +508,5 @@ function refreshPageTitle() {
     const pageTitle = $pageTitle.val() || '';
 
     document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
-    $('nav.main-header .header-title').text(pageTitle);
+    $('.main-header .header-title').text(pageTitle);
 }

@@ -1,7 +1,9 @@
 $(function () {
     const classShow = 'show';
-    $('.menu-button').on('click', function () {
-        $('.dropdown-menu-sub').removeClass(classShow);
+    const classActive = 'active';
+    $('#main-nav .menu-button').on('click', function () {
+        $('#main-nav .dropdown-menu-sub').removeClass(classShow);
+        $('#main-nav .dropdown-item').removeClass(classActive);
     });
 
     $('.dropdown-item-sub').on('click', function () {
@@ -24,7 +26,8 @@ $(function () {
                     : '0';
 
                 $dropdownMenuSub.css('top', top);
-                $dropdownMenuSub.addClass(classShow)
+                $dropdownMenuSub.addClass(classShow);
+                $dropdownItem.addClass(classActive);
             }
         }
     });
