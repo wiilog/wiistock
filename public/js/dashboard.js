@@ -14,8 +14,6 @@ let chartSecondForAdmin;
 FONT_SIZE_DEFAULT = 18;
 FONT_SIZE_EXT = 40;
 
-
-
 $(function () {
 
     refreshPageTitle();
@@ -506,9 +504,20 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val() ;
-    const words = pageTitle.split('|');
+
     document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 
-    $('.main-header .header-title').prepend('<span>').text(words[0]);
-    $('<span class="bold">').appendTo('nav.main-header .header-title').text("| "+ words[1]);
+    const words = pageTitle.split('|');
+
+    if (words && words.length > 0) {
+        const $titleContainer = $('<span/>');
+        for(let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+            if ($titleContainer.children().length > 0) {
+                $titleContainer.append(' | ')
+            }
+            const className = (wordIndex === (words.length - 1)) ? 'bold' : undefined;
+            $titleContainer.append($('<span/>', {class: className, text: words[wordIndex]}));
+        }
+        $('.main-header .header-title').html($titleContainer);
+    }
 }
