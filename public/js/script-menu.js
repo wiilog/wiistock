@@ -10,6 +10,7 @@ $(function () {
         const $dropdownItem = $(this);
         const $dropdownSub = $dropdownItem.siblings('.dropdown-menu-sub');
         const isAlreadyShown = $dropdownSub.is('.show');
+        $dropdownItem.removeClass(classActive);
         $('.dropdown-menu-sub').removeClass(classShow);
 
         if (!isAlreadyShown) {
