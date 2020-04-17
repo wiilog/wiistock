@@ -35,7 +35,7 @@ let tableMvt = $('#tableMvts').DataTable({
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': ''},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": 'from', 'name': 'from', 'title': 'Issu de'},
+        {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
         {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
         {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
