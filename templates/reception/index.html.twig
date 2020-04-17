@@ -17,15 +17,21 @@
             <div class="col-auto ml-auto">
                 {% if hasRightCreate and hasRightExport %}
                     <div class="btn-group">
-                        <button type="button" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary btn-ripple split-button"
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalNewReception"
+                                class="btn btn-primary btn-ripple split-button"
                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                             <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
                         </button>
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                        <button type="button"
+                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu mr-5 pointer">
+                        <div class="dropdown-menu dropdown-menu-right pointer">
                             <div class="dropdown-item" onclick="generateCSV('get_receptions_for_csv', '{{ 'réception.réceptions'|trans }}')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
@@ -33,7 +39,8 @@
                     </div>
                 {% else %}
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
-                        <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_receptions_for_csv', '{{ 'réception.réceptions'|trans }}')">
+                        <div class="btn btn-primary btn-ripple"
+                             onclick="generateCSV('get_receptions_for_csv', '{{ 'réception.réceptions'|trans }}')">
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </div>
                     {% endif %}

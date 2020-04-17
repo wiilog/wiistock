@@ -18,20 +18,24 @@
                             <div class="btn-group">
                                 {% if modifiable %}
                                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                                        <button type="button" data-toggle="modal" data-target="#modalAddLigneArticle"
-                                                class="btn btn-primary btn-ripple ml-auto split-button"
+                                        <button type="button"
+                                                data-toggle="modal"
+                                                data-target="#modalAddLigneArticle"
+                                                class="btn btn-primary btn-ripple split-button"
                                                 onclick="initNewArticleEditor('#modalAddLigneArticle'),
                                                 ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
                                             <span class="fa fa-plus mr-2"></span>Ajouter <span title="article">{{ 'réception.article'|trans }}</span>
                                         </button>
                                     {% endif %}
                                 {% endif %}
-                                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple d-none print" data-toggle="dropdown"
+                                <button type="button"
+                                        class="btn btn-primary btn-ripple d-none print dropdown-toggle dropdown-toggle-split"
+                                        data-toggle="dropdown"
                                         aria-haspopup="true"
                                         aria-expanded="false">
                                     <span class="fa fa-angle-down"></span>
                                 </button>
-                                <div class="dropdown-menu mr-5 pointer">
+                                <div class="dropdown-menu dropdown-menu-right pointer">
                                     <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
                                        id="buttonPrintMultipleBarcodes"
                                        class="dropdown-item d-none print">
