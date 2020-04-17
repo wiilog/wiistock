@@ -18,17 +18,20 @@
                     <div class="btn-group">
                         <button type="button" data-toggle="modal" data-target="#modalNewArticle"
                                 onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
-                                class="btn btn-primary split-button btn-ripple">
+                                class="btn btn-primary btn-ripple split-button">
                             <span class="fa fa-plus mr-2"></span>Ajouter article
                         </button>
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown"
+                        <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu mr-5 pointer">
-                            <a href="{{ path('reference_article_index') }}" data-toggle="modal"
-                               class="dropdown-item" title="référence">
+                        <div class="dropdown-menu pointer dropdown-menu-right">
+                            <a href="{{ path('reference_article_index') }}"
+                               data-toggle="modal"
+                               class="dropdown-item"
+                               title="référence">
                                 <i class="fa fa-search mr-2"></i>
                                 Chercher une {{ 'reference.référence'|trans }}
                             </a>

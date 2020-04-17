@@ -26,11 +26,14 @@
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                        <button type="button"
+                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu mr-5 pointer {{ not hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) ? 'dropdown-single' }}">
+                        <div class="dropdown-menu dropdown-menu-right pointer">
                             <a href="{{ path('livraison_index') }}" class='dropdown-item'>Voir tous les ordres</a>
                             <a href="{{ path('demande_show', {'id': filterDemandId}) }}" class='dropdown-item'>Retour à la demande</a>
                         </div>

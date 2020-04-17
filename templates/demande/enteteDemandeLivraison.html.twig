@@ -15,11 +15,14 @@
                         Modifier
                     </button>
                 {% endif %}
-                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
                         aria-expanded="false">
                     <span class="fa fa-angle-down"></span>
                 </button>
-                <div class="dropdown-menu mr-5 pointer">
+                <div class="dropdown-menu dropdown-menu-right pointer">
                     {% if demande.reception is not empty %}
                         {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
                             <a href="{{ path('reception_show', {'id': demande.reception.id }) }}"
@@ -43,11 +46,14 @@
                     {% endif %}
                 </div>
             {% elseif demande.preparations is not empty %}
-                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
                         aria-expanded="false">
                     <span class="fa fa-angle-down"></span>
                 </button>
-                <div class="dropdown-menu dropdown-single">
+                <div class="dropdown-menu dropdown-menu-right pointer">
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')) %}
                         {% if demande.preparations|length > 1 %}
                             <a href="{{ path('preparation_index', {'demandId': demande.id }) }}"

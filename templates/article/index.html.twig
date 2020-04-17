@@ -17,7 +17,7 @@
             </div>
             <div class="col-auto">
                 <div class="btn-group">
-                    {% if hasRightToCreate and hasRightToExport %}
+                    {% if hasRightToCreate %}
                         <button type="button"
                                 class="btn btn-primary split-button btn-ripple"
                                 data-toggle="modal"
@@ -25,76 +25,57 @@
                                 onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
                             <span class="fa fa-plus mr-2"></span>Nouvel article
                         </button>
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu pointer mr-5">
-                            <span class="d-inline-block ml-2 has-tooltip" tabindex="0" data-toggle="tooltip"
-                                  title="Veuillez faire une recherche pour imprimer.">
-                                <a class="dropdown-item pl-3 btn-disabled" href="#" id="printTag"
-                                   onclick="printArticlesBarCodes()"><span class="fa fa-print mr-2"></span>
-                                Impression des étiquettes</a>
-                            </span>
-                            <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
-                                <span class="fa fa-print mr-2"></span>Modifier colonnes</a>
-                            <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
-                                <span class="fa fa-search mr-2"></span>Recherche rapide</a>
-                            <div class="statut dropdown-item">
-                                <div class="checkbox pl-0 pointer">
-                                    <input id="toggleActivOrInactiv"
-                                           onchange="displayActifOrInactif($(this))"
-                                           class="styled"
-                                           type="checkbox" {{ activeOnly ? 'checked' : '' }}>
-                                    <label for="toggleActivOrInactiv" class="pointer">
-                                        Articles actifs seulement
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        {% if hasRightToCreate %}
+                    {% elseif hasRightToExport %}
+                        <div tabindex="0"
+                             data-toggle="tooltip"
+                             title="Veuillez faire une recherche pour imprimer.">
                             <button type="button"
-                                    class="btn btn-primary split-button btn-ripple"
-                                    data-toggle="modal"
-                                    data-target="#modalNewArticle"
-                                    onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
-                                <span class="fa fa-plus mr-2"></span>Nouvel article
+                                    class="btn btn-primary split-button btn-ripple printButton btn-disabled"
+                                    id="printTag"
+                                    onclick="printArticlesBarCodes($(this))">
+                                <span class="fa fa-print mr-2"></span>Impression des étiquettes
                             </button>
-                        {% elseif hasRightToExport %}
-                            <span class="d-inline-block has-tooltip"
-                                  tabindex="0" data-toggle="tooltip"
-                                  title="Veuillez faire une recherche pour imprimer.">
-                                <button type="button"
-                                        class="btn btn-primary split-button btn-ripple printButton btn-disabled"
-                                        id="printTag"
-                                        onclick="printArticlesBarCodes()">
-                                <span class="fa fa-plus mr-2"></span>Impression des étiquettes
-                                </button>
-                            </span>
-                        {% endif %}
-                        <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu pointer {{ not hasRightToExport and not hasRightToCreate ? 'dropdown-single' : 'mr-5'}}">
-                            <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
-                                <span class="fa fa-cog mr-2"></span>Modifier colonnes</a>
-                            <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
-                                <span class="fa fa-search mr-2"></span>Recherche rapide</a>
-                            <div class="statut dropdown-item">
-                                <div class="checkbox pl-0 pointer">
-                                    <input id="toggleActivOrInactiv"
-                                           onchange="displayActifOrInactif($(this))"
-                                           class="styled"
-                                           type="checkbox" {{ activeOnly ? 'checked' : '' }}>
-                                    <label for="toggleActivOrInactiv" class="pointer">
-                                        Articles actifs seulement
-                                    </label>
-                                </div>
-                            </div>
                         </div>
                     {% endif %}
+
+                    <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        {% if hasRightToCreate and hasRightToExport %}
+                            <div class="dropdown-item user-select-none disabled has-tooltip"
+                                 tabindex="0"
+                                 id="printTag"
+                                 onclick="printArticlesBarCodes($(this), event)"
+                                 title="Veuillez faire une recherche pour imprimer.">
+                                <span class="fa fa-print mr-2"></span>Impression des étiquettes
+                            </div>
+                        {% endif %}
+                        <a class="dropdown-item"
+                           data-toggle="modal"
+                           data-target="#modalColumnVisible"
+                           href="#">
+                            <span class="fas fa-cog mr-2"></span>Modifier colonnes
+                        </a>
+                        <a class="dropdown-item"
+                           data-toggle="modal"
+                           data-target="#modalRapidSearch"
+                           href="#">
+                            <span class="fa fa-search mr-2"></span>Recherche rapide
+                        </a>
+                        <div class="statut dropdown-item">
+                            <div class="checkbox pl-0 pointer">
+                                <input id="toggleActivOrInactiv"
+                                       onchange="displayActifOrInactif($(this))"
+                                       class="styled"
+                                       type="checkbox" {{ activeOnly ? 'checked' : '' }}>
+                                <label for="toggleActivOrInactiv" class="pointer">
+                                    Articles actifs seulement
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

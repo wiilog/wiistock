@@ -1,42 +1,52 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Referentiel | Emplacements{% endblock %}
+{% block title %}Référentiel | Emplacements{% endblock %}
 
 {% block page_content %}
-    <div class="m-4 wii-page-card">
-        <input type="hidden" id="listEmplacementIdToPrint">
-        <div id="alerts">
-            <div class="alert alert-danger text-center d-none">
-                <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                <span class="error-msg"></span>
-            </div>
+    <input type="hidden" id="listEmplacementIdToPrint">
+    <div id="alerts">
+        <div class="alert alert-danger text-center d-none">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            <span class="error-msg"></span>
         </div>
-        <div class="row align-items-center wii-page-card-header">
+    </div>
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <div class="btn-group split-button-container">
+                <div class="btn-group">
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                        <button type="button" data-toggle="modal" data-target="#modalNewEmplacement" class="btn btn-primary btn-ripple split-button"
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalNewEmplacement"
+                                class="btn btn-primary btn-ripple split-button"
                                 onclick="clearModal('#modalNewEmplacement')">
                             <span class="fa fa-plus mr-2"></span>Nouvel emplacement
                         </button>
                     {% endif %}
-                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+
+                    <button type="button"
+                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu mr-5">
-                    <span class="d-inline-block ml-2" tabindex="0" title="Veuillez faire une recherche pour imprimer.">
-                        <div data-toggle="modal" id="btnPrint" class="dropdown-item btn-disabled printButton"
-                             onclick="printLocationsBarCodes()">
+
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <div tabindex="0"
+                             id="btnPrint"
+                             class="dropdown-item printButton user-select-none disabled has-tooltip"
+                             onclick="printLocationsBarCodes($(this), event)"
+                             title="Veuillez faire une recherche pour imprimer.">
                             <i class="fas fa-print"></i> Imprimer les étiquettes
                         </div>
-                    </span>
                         <div class="statut dropdown-item">
                             <div class="checkbox pl-0 pointer filters-container">
                                 {% set checked = active ? 'checked' : '' %}
                                 <input onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id')"
                                        class="styled filter-checkbox"
-                                       id="actifInactif" name="statut"
+                                       id="actifInactif"
+                                       name="statut"
                                        type="checkbox" {{ checked }}>
                                 <label for="actifInactif" class="pointer">
                                     Statut emplacement actif
@@ -47,6 +57,7 @@
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="col-12">
                 <table id="tableEmplacement_id" class="table w-100">
@@ -58,6 +69,7 @@
     {% include "emplacement/modalDeleteEmplacement.html.twig" %}
     {% include "emplacement/modalEditEmplacement.html.twig" %}
     {% include "emplacement/modalNewEmplacement.html.twig" %}
+
     <div class="d-none" id="barcodes"></div>
 
 {% endblock %}

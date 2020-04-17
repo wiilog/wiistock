@@ -4,10 +4,11 @@
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <div class="row">
-            <div class="col"></div>
-            <div class="col-auto mb-3">
-                <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
                         aria-expanded="false">
                     <span class="fa fa-angle-down"></span>
                 </button>
@@ -34,8 +35,12 @@
                 </div>
             </div>
         </div>
-        <table id="tableCategories" class="table w-100">
-        </table>
+
+        <div class="row">
+            <div class="col-12">
+                <table id="tableCategories" class="table w-100"> </table>
+            </div>
+        </div>
     </div>
     {% include 'inventaire_param/modalNewCategory.html.twig' %}
     {% include 'inventaire_param/modalEditCategory.html.twig' %}

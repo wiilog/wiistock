@@ -12,38 +12,52 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-3 justify-content-around">
+        <div class="row mt-3">
             <div class="col-12">
                 <div class="wii-page-card">
-                    <div class="d-flex row justify-content-end wii-page-card-header">
-                        <div class="btn-group col-auto" id="boutonCollecteInf">
-                            {% if modifiable %}
-                                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                                    <button type="button" data-toggle="modal" data-target="#modalNewArticle"
-                                            onclick="clearModal('#modalNewArticle')"
-                                            class="btn btn-primary split-button btn-ripple">
-                                        <span class="fa fa-plus mr-2"></span>Ajouter article
-                                    </button>
-                                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown"
-                                            aria-haspopup="true"
-                                            aria-expanded="false">
-                                        <span class="fa fa-angle-down"></span>
-                                    </button>
-                                    <div class="dropdown-menu mr-5 pointer">
-                                        <a href="{{ path('reference_article_index') }}" data-toggle="modal"
-                                           class="dropdown-item" title="référence">
-                                            <i class="fa fa-search mr-2"></i>
-                                            Chercher une Chercher une {{ 'reference.référence'|trans }}
-                                        </a>
+                    {% if modifiable %}
+                        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                            <div class="row wii-page-card-header">
+                                <div class="col-auto ml-auto">
+                                    <div class="btn-group" id="boutonCollecteInf">
+                                        <button type="button"
+                                                data-toggle="modal"
+                                                data-target="#modalNewArticle"
+                                                onclick="clearModal('#modalNewArticle')"
+                                                class="btn btn-primary split-button btn-ripple">
+                                            <span class="fa fa-plus mr-2"></span>Ajouter article
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true"
+                                                aria-expanded="false">
+                                            <span class="fa fa-angle-down"></span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right pointer">
+                                            <a href="{{ path('reference_article_index') }}"
+                                               data-toggle="modal"
+                                               class="dropdown-item"
+                                               title="référence">
+                                                <i class="fa fa-search mr-2"></i>
+                                                Chercher une Chercher une {{ 'reference.référence'|trans }}
+                                            </a>
+                                        </div>
                                     </div>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                     <input id="demande-id" type="hidden" value="{{ demande.id }}"/>
 
-                    <table id="table-lignes" data-id="{{ demande.id }}" class="table w-100">
-                    </table>
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="table-lignes"
+                                   data-id="{{ demande.id }}"
+                                   class="table w-100">
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

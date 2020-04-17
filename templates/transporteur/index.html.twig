@@ -1,28 +1,30 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Referentiel | Transporteurs{% endblock %}
+{% block title %}Référentiel | Transporteurs{% endblock %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <div class="row">
-            <h1 class="col align-self-start ml-2"></h1>
-            <div class="col-auto mb-3">
-                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                    <a href="" data-toggle="modal" data-target="#modalNewTransporteur"
-                       class="btn btn-primary btn-ripple" onclick="clearModal('#modalNewChauffeur')">
-                        <span class="fa fa-plus mr-2"></span>Nouveau transporteur
-                    </a>
-                {% endif %}
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        <a href="" data-toggle="modal" data-target="#modalNewTransporteur"
+                           class="btn btn-primary btn-ripple" onclick="clearModal('#modalNewChauffeur')">
+                            <span class="fa fa-plus mr-2"></span>Nouveau transporteur
+                        </a>
+                    </div>
+                </div>
             </div>
+        {% endif %}
+        <div class="row">
             <div class="col-12">
-                <table id="tableTransporteur_id" class="table w-100">
-                </table>
+                <table id="tableTransporteur_id" class="table w-100"></table>
             </div>
         </div>
     </div>
+
     {% include "transporteur/modalDeleteTransporteur.html.twig" %}
     {% include "transporteur/modalEditTransporteur.html.twig" %}
-
     {% include "transporteur/modalNewTransporteur.html.twig" %}
 
 {% endblock %}
