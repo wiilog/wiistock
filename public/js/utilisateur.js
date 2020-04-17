@@ -15,7 +15,7 @@ let tableUser = $('#tableUser_id').DataTable({
         { "data": "Email", 'title': 'Email' },
         { "data": "Dropzone", 'title': 'Drop zone' },
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
-        { "data": "Rôle", 'title': 'Rôle', orderable: false },
+        { "data": "Rôle", 'title': 'Rôle', orderable: false, className: 'noVis' },
     ],
     rowCallback: function(row, data) {
         initActionOnRow(row);
