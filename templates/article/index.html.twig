@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Stock | Articles{% endblock %}
+{% block title %}Stock | {{ 'réception.articles' |trans }}{% endblock %}
 
 {% block page_content %}
     {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}

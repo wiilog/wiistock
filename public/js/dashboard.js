@@ -505,8 +505,10 @@ function refreshPageTitle() {
     const $pageTitle = $activeCarousel.length > 0
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
-    const pageTitle = $pageTitle.val() || '';
-
+    const pageTitle = $pageTitle.val() ;
+    const words = pageTitle.split('|');
     document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
-    $('nav.main-header .header-title').text(pageTitle);
+
+    $('nav.main-header .header-title').prepend('<span>').text(words[0]);
+    $('<span class="bold">').appendTo('nav.main-header .header-title').text("| "+ words[1]);
 }

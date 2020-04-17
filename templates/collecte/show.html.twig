@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande de collecte{% endblock %}
+{% block title %}Demande de collecte | Détails{% endblock %}
 
 {% block page_content %}
 <div class="m-4">
@@ -11,6 +11,7 @@
             </div>
         </div>
     </div>
+</div>
     <div class="mt-3 datatable-container">
         {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
             <div class="row justify-content-end datatable-header">
