@@ -19,7 +19,7 @@
         or (icon is defined and icon is not empty)  %}
         <span class="icon-container user-select-none">
             {% if icon is defined and icon is not empty %}
-                <img alt="" src="{{ asset('svg/' ~ icon ~ '.svg') }}"/>
+                <span class="wii-icon wii-icon-{{ icon }}"></span>
             {% endif %}
         </span>
     {% endif %}

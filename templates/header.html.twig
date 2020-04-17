@@ -1,6 +1,6 @@
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
-<nav class="main-header">
+<div class="main-header">
     <div class="col-12">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-2">
@@ -31,7 +31,7 @@
                     <div class="text-white col-auto h6 my-0 ml-auto">
                         <span>{{app.user.username}}</span>
                     </div>
-                    <div class="text-white col-auto dropdown dropleft">
+                    <nav id="main-nav" class="text-white col-auto dropdown dropleft">
                         <div class="menu-button rounded pointer"
                              data-toggle="dropdown"
                              aria-haspopup="true"
@@ -82,9 +82,9 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
-                    </div>
+                    </nav>
                 {% endif %}
             {% endif %}
         </div>
     </div>
-</nav>
+</div>

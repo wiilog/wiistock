@@ -509,6 +509,6 @@ function refreshPageTitle() {
     const words = pageTitle.split('|');
     document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 
-    $('nav.main-header .header-title').prepend('<span>').text(words[0]);
+    $('.main-header .header-title').prepend('<span>').text(words[0]);
     $('<span class="bold">').appendTo('nav.main-header .header-title').text("| "+ words[1]);
 }
