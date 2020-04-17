@@ -308,7 +308,7 @@ function displayFilterValue(elem) {
     let label = '';
     let datetimepicker = false;
     switch (type) {
-        case 'boolean':
+        case 'booleen':
             label = 'Oui / Non';
             type = 'checkbox';
             break;
