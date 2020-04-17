@@ -4,12 +4,14 @@
 let $printTag;
 $(function () {
     $printTag = $('#printTag');
-    managePrintButtonTooltip(true, $printTag.is('button') ? $printTag.parent() : $printTag);
+    let activeFilter;
     if ($('#filters').find('.filter').length <= 0) {
         $('#noFilters').removeClass('d-none');
+        activeFilter = true;
     } else {
-        managePrintButtonTooltip(false, $printTag.is('button') ? $printTag.parent() : $printTag);
+        activeFilter = false;
     }
+    managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
     registerDropdownPosition();
 });
 
@@ -298,21 +300,23 @@ function removeFilter() {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();
     });
-    if ($('#filters').find('.filter').length <= 0 && $('#tableRefArticle_id_filter input').val() === '') {
-        if ($printTag.is('button')) {
-            $printTag
-                .addClass('btn-disabled')
-                .removeClass('btn-primary');
-            managePrintButtonTooltip(true, $printTag.parent());
+    if ($('#filters').find('.filter').length <= 0) {
+        $('#noFilters').removeClass('d-none');
+        if ($('#tableRefArticle_id_filter input').val() === '') {
+            if ($printTag.is('button')) {
+                $printTag
+                    .addClass('btn-disabled')
+                    .removeClass('btn-primary');
+                managePrintButtonTooltip(true, $printTag.parent());
+            } else {
+                $printTag
+                    .removeClass('pointer')
+                    .addClass('disabled')
+                    .addClass('has-tooltip');
+                managePrintButtonTooltip(true, $printTag);
+            }
+            $printTag.removeClass('d-none');
         }
-        else {
-            $printTag
-                .removeClass('pointer')
-                .addClass('disabled')
-                .addClass('has-tooltip');
-            managePrintButtonTooltip(true, $printTag);
-        }
-        $printTag.removeClass('d-none');
     }
 }
 
@@ -583,7 +587,8 @@ function printReferenceArticleBarCode($button, event) {
         } else {
             alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
         }
-    } else {
+    }
+    else {
         event.stopPropagation();
     }
 }
