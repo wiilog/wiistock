@@ -31,11 +31,13 @@
                     </a>
                 </button>
             {% endif %}
-            <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown" aria-haspopup="true"
+            <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
                     aria-expanded="false">
                 <span class="fa fa-angle-down"></span>
             </button>
-            <div class="dropdown-menu mr-5 pointer">
+            <div class="dropdown-menu dropdown-menu-right pointer">
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                     <a class="dropdown-item"
                        id="printArrivageBtn"

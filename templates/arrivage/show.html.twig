@@ -18,43 +18,39 @@
                     <div class="row justify-content-end datatable-header">
                         <div class="col-auto">
                             <div class="btn-group">
-                                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT'))
-                                   and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-                                    <button type="button" data-toggle="modal"
+                                {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                                {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+                                {% if hasRightEdit %}
+                                    <button type="button"
+                                            data-toggle="modal"
                                             data-target="#modalAddColis"
-                                            class="btn btn-primary split-button btn-ripple"
+                                            class="btn btn-primary btn-ripple {{ hasRightEdit ? 'split-button' }}"
                                             id="btnModalAddColis">
                                         <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                     </button>
-                                    <button type="button" class="btn btn-primary split-button-dropdown btn-ripple" data-toggle="dropdown"
-                                            aria-haspopup="true"
-                                            aria-expanded="false">
-                                        <span class="fa fa-angle-down"></span>
-                                    </button>
-                                    <div class="dropdown-menu mr-5 pointer">
-                                        <a class="dropdown-item"
-                                           id="printColisBtn"
+                                {% endif %}
+                                {% if hasRightExport %}
+                                    {% if hasRightEdit %}
+                                        <button type="button"
+                                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true"
+                                                aria-expanded="false">
+                                            <span class="fa fa-angle-down"></span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right pointer">
+                                            <a class="dropdown-item"
+                                               id="printColisBtn"
+                                               href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
+                                                <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <a id="printColisBtn"
+                                           class="btn btn-primary btn-ripple"
                                            href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
                                             <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                         </a>
-                                    </div>
-                                {% else %}
-                                    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-                                        <button type="button"
-                                                data-toggle="modal"
-                                                data-target="#modalAddColis"
-                                                class="btn btn-primary btn-ripple" id="btnModalAddColis">
-                                            <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
-                                        </button>
-                                    {% endif %}
-                                    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-                                        <button class="btn btn-primary btn-ripple">
-                                            <a
-                                                id="printColisBtn"
-                                                href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
-                                                <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
-                                            </a>
-                                        </button>
                                     {% endif %}
                                 {% endif %}
                             </div>
