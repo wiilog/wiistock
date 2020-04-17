@@ -100,24 +100,24 @@ parameters:
         -   label: 'Stock'
             icon: 'stock'
             sub:
-                -   label: 'Article'
+                -   label: 'Articles'
                     path: 'article_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
                         action: App\Entity\Action::DISPLAY_ARTI
-                -   label: 'reference.référence'
+                -   label: 'reference.références'
                     title: Référence
                     isTranslation: true
                     path: 'reference_article_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
                         action: App\Entity\Action::DISPLAY_REFE
-                -   label: 'Article fournisseur'
+                -   label: 'Articles fournisseurs'
                     path: 'article_fournisseur_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
                         action: App\Entity\Action::DISPLAY_ARTI_FOUR
-                -   label: 'Mouvement de stock'
+                -   label: 'Mouvements de stock'
                     path: 'mouvement_stock_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
@@ -127,7 +127,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::STOCK
                         action: App\Entity\Action::DISPLAY_INVE
-                -   label: 'Alerte'
+                -   label: 'Alertes'
                     path: 'alerte_index'
                     rights:
                         menu: App\Entity\Menu::STOCK
@@ -136,22 +136,22 @@ parameters:
         -   label: 'Référentiel'
             icon: 'referentiel'
             sub:
-                -   label: 'Fournisseur'
+                -   label: 'Fournisseurs'
                     path: 'fournisseur_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_FOUR
-                -   label: 'Emplacement'
+                -   label: 'Emplacements'
                     path: 'emplacement_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_EMPL
-                -   label: 'Chauffeur'
+                -   label: 'Chauffeurs'
                     path: 'chauffeur_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_CHAU
-                -   label: 'Transporteur'
+                -   label: 'Transporteurs'
                     path: 'transporteur_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
