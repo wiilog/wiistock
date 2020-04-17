@@ -33,7 +33,7 @@ class ReferenceArticleRepository extends EntityRepository
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
-        'QuantiteStock' => 'quantiteStock',
+        'Quantité stock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
@@ -209,14 +209,14 @@ class ReferenceArticleRepository extends EntityRepository
                             switch ($field) {
                                 case 'type_id':
                                     $qb
-                                        ->leftJoin('ra.type', 't')
-                                        ->andWhere('t.label = :typeLabel')
+                                        ->leftJoin('ra.type', 'tFilter')
+                                        ->andWhere('tFilter.label = :typeLabel')
                                         ->setParameter('typeLabel', $filter['value']);
                                     break;
                                 case 'emplacement_id':
                                     $qb
-                                        ->leftJoin('ra.emplacement', 'e')
-                                        ->andWhere('e.label = :emplacementLabel')
+                                        ->leftJoin('ra.emplacement', 'eFilter')
+                                        ->andWhere('eFilter.label = :emplacementLabel')
                                         ->setParameter('emplacementLabel', $filter['value']);
                                     break;
                             }
@@ -437,9 +437,10 @@ class ReferenceArticleRepository extends EntityRepository
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
             $qb
-                ->addSelect('(CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END) as vsort')
+                ->addSelect('MAX((CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END)) as vsort')
                 ->leftJoin('ra.valeurChampsLibres', 'vclra')
                 ->leftJoin('vclra.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
+                ->groupBy('ra')
                 ->orderBy('vsort', $needCLOrder[0])
                 ->setParameters($paramsQuery);
         }
