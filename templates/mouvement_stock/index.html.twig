@@ -9,9 +9,9 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="m-4 datatable-container">
+    <div class="m-4 wii-page-card">
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
-            <div class="row datatable-header">
+            <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
                         <button class="btn btn-primary btn-ripple" onclick="generateCSV('get_mouvements_stock_for_csv', 'mvts-stock')">
