@@ -27,7 +27,7 @@
 
 {% endblock %}
 
-    {% block javascripts %}
-        {{ parent() }}
-        <script src="{{ asset('js/nature.js') }}?{{ date().timestamp }}"></script>
-    {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/nature.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}
