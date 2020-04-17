@@ -28,8 +28,9 @@ let tableRecep = $('#tableRecepts').DataTable({
     buttons: [
         {
             extend: 'csv',
+            fieldSeparator: ';',
             exportOptions: {
-                columns: [0, 1, 2, 3]
+                columns: [1, 2, 3, 4]
             }
         }
     ],
