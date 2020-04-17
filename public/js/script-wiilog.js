@@ -1529,6 +1529,28 @@ function initActionOnRow(row) {
     }
 }
 
+function initActionOnCell(cell) {
+    $(cell).click(function() {
+        $cell.parent('tr').find('.action-on-click').get(0).click();
+    });
+}
+
+
+function showOrHideColumn(check, concernedTable, concernedTableColumns) {
+
+    let columnName = check.data('name');
+
+    let column = concernedTable.column(columnName + ':name');
+
+    column.visible(!column.visible());
+
+    concernedTableColumns.find('th, td').removeClass('hide');
+    concernedTableColumns.find('th, td').addClass('display');
+    check.toggleClass('data');
+    initActionOnCell(column);
+}
+
+
 function manageArticleAndRefSearch($input) {
     let $printBtn = $('#printTag');
     $printBtn.parent().tooltip('dispose');
