@@ -3,16 +3,19 @@ let tableCategories = $('#tableCategories').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    ajax:{
+    ajax: {
         "url": pathCategories,
         "type": "POST"
     },
-    columns:[
-        { "data": 'Label', 'title' : 'Label' },
-        { "data": 'Frequence', 'title' : 'Fréquence' },
-        { "data": 'Permanent', 'title' : 'Permanent' },
-        { "data": 'Actions', 'title' : 'Actions' }
+    columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Label', 'title': 'Label'},
+        {"data": 'Frequence', 'title': 'Fréquence'},
+        {"data": 'Permanent', 'title': 'Permanent'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    }
 });
 
 let modalNewCategorie = $("#modalNewCategorie");
@@ -64,8 +67,7 @@ function importFile() {
     let fileToSend = files[0];
     let fileName = $('#importExcel')[0].files[0]['name'];
     let extension = fileName.split('.').pop();
-    if (extension == "csv")
-    {
+    if (extension == "csv") {
         formData.append('file', fileToSend);
         $.ajax({
             url: path,
@@ -76,12 +78,9 @@ function importFile() {
             cache: false,
             dataType: "json",
             success: function (data) {
-                if (data.success == true)
-                {
+                if (data.success == true) {
                     alertSuccessMsg("Les catégories ont bien été modifiées.");
-                }
-                else if (data.success == false)
-                {
+                } else if (data.success == false) {
                     let exportedFilenmae = 'log-error.txt';
                     let pathFile = '../uploads/log/';
                     let pathWithFileName = pathFile.concat(data.nameFile);
@@ -106,15 +105,19 @@ let tableFrequencies = $('#tableFrequencies').DataTable({
     },
     searching: false,
     info: false,
-    ajax:{
+    ajax: {
         "url": pathFrequencies,
         "type": "POST"
     },
-    columns:[
-        { "data": 'Label', 'title' : 'Label' },
-        { "data": 'NbMonths', 'title' : 'Nombre de mois' },
-        { "data": 'Actions', 'title' : 'Actions' }
+    order: [2, 'asc'],
+    columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
+        {"data": 'Label', 'title': 'Label'},
+        {"data": 'NbMonths', 'title': 'Nombre de mois'},
     ],
+    rowCallback: function (row, data) {
+        initActionOnRow(row);
+    }
 });
 
 let ModalNewFrequency = $("#modalNewFrequency");
@@ -176,7 +179,7 @@ function downloadModele() {
     });
 
     $('body').append($link);
-    $link.on('click', function (e)  {
+    $link.on('click', function (e) {
         e.preventDefault();  //stop the browser from following
         window.location.href = $link.attr('href');
     });
