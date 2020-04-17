@@ -14,13 +14,13 @@
                 <div class="header-title text-white col-auto h5 user-select-none my-0 {{ isDashboardExt ? 'ext-title-font' }}">
                     {% if title is defined and title is not empty %}
                         <h5>
-                        {% for sub_title in title|split('|') %}
-                            {% if loop.index == (title|split('|')|length) %}
-                                  <span class="bold" >{{ sub_title }}</span>
-                            {% else %}
-                                {{ sub_title }} |
-                            {% endif %}
-                        {% endfor %}
+                            {% for subTitle in title|split('|') %}
+                                {% if loop.last %}
+                                      <span class="bold" >{{ subTitle }}</span>
+                                {% else %}
+                                    {{ subTitle }} |
+                                {% endif %}
+                            {% endfor %}
                         </h5>
                     {% endif %}
                 </div>

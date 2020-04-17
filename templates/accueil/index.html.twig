@@ -3,6 +3,8 @@
 {% block wrapperClass 'd-flex flex-column' %}
 {% block pageContainerClass 'flex-grow-1 p-0' %}
 
+{% block title %}Dashboard | RÉCEPTION ARRIVAGE{% endblock %}
+
 {% block page_content %}
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
         <div id="carouselIndicators" class="carousel slide">
