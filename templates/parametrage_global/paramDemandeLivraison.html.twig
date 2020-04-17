@@ -32,8 +32,7 @@
         <div class="form-group col-4">
             <div class="w-100">
                 <label for="livraisonLocation" class="d-block">Emplacement de livraison par défaut</label>
-                <select class="form-control ajax-autocomplete-location d-block" id="locationDemandeLivraison"
-                        onchange="editDemandeLivraisonDestination($(this))">
+                <select class="form-control ajax-autocomplete-location d-block" id="locationDemandeLivraison">
                 </select>
             </div>
             <input hidden id="locationDemandeLivraisonValue" data-id="{{ livraisonLocation ? livraisonLocation.id }}" data-text="{{ livraisonLocation ? livraisonLocation.text }}">
