@@ -6,14 +6,14 @@
 <div class="m-4">
     <div class="row">
         <div class="col-12">
-            <div class="zone-entete datatable-container">
+            <div class="zone-entete wii-page-card">
                 {% include "collecte/enteteCollecte.html.twig" %}
             </div>
         </div>
     </div>
-    <div class="mt-3 datatable-container">
+    <div class="mt-3 wii-page-card">
         {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-            <div class="row justify-content-end datatable-header">
+            <div class="row justify-content-end wii-page-card-header">
                 <div class="col-auto">
                     <div class="btn-group">
                         <button type="button" data-toggle="modal" data-target="#modalNewArticle"

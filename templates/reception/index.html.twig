@@ -12,8 +12,8 @@
 {% block page_content %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EXPORT')) %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% if hasRightCreate and hasRightExport %}
                     <div class="btn-group">

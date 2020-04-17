@@ -13,8 +13,8 @@
     {% set isSafran = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
-    <div class="m-4 datatable-container">
-        <div class="row datatable-header">
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     {% if hasRightCreate and hasRightExport %}

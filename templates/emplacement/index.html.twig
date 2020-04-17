@@ -3,7 +3,7 @@
 {% block title %}Referentiel | Emplacements{% endblock %}
 
 {% block page_content %}
-    <div class="m-4 datatable-container">
+    <div class="m-4 wii-page-card">
         <input type="hidden" id="listEmplacementIdToPrint">
         <div id="alerts">
             <div class="alert alert-danger text-center d-none">
@@ -11,7 +11,7 @@
                 <span class="error-msg"></span>
             </div>
         </div>
-        <div class="row align-items-center datatable-header">
+        <div class="row align-items-center wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group split-button-container">
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
