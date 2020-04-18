@@ -97,8 +97,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        const id = 0;
-    </script>
     <script src="{{ asset('js/demande-livraison.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

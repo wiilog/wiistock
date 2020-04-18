@@ -68,6 +68,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>let id = 0;</script>
     <script src="{{ asset('js/preparation.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

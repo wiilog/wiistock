@@ -30,9 +30,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id;
-    </script>
-
     <script src="{{ asset('js/champLibre.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
