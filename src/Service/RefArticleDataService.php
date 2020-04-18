@@ -26,7 +26,6 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
@@ -52,11 +51,6 @@ class RefArticleDataService
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
 
     /**
      * @var Twig_Environment
@@ -87,8 +81,7 @@ class RefArticleDataService
     private $valeurChampLibreService;
 
 
-    public function __construct(DemandeRepository $demandeRepository,
-                                RouterInterface $router,
+    public function __construct(RouterInterface $router,
                                 UserService $userService,
                                 ValeurChampLibreService $valeurChampLibreService,
                                 EntityManagerInterface $entityManager,
@@ -104,7 +97,6 @@ class RefArticleDataService
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->demandeRepository = $demandeRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 

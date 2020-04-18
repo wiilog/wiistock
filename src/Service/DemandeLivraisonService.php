@@ -69,8 +69,7 @@ class DemandeLivraisonService
                                 TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                DemandeRepository $demandeRepository)
+                                Twig_Environment $templating)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->receptionRepository = $receptionRepository;
@@ -78,12 +77,14 @@ class DemandeLivraisonService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->demandeRepository = $demandeRepository;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
     {
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $demandeRepository = $this->entityManager->getRepository(Demande::class);
+
         if ($statusFilter) {
             $filters = [
                 [
@@ -92,10 +93,9 @@ class DemandeLivraisonService
 				]
             ];
         } else {
-            $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
         }
-        $queryResult = $this->demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
 
         $demandeArray = $queryResult['data'];
 
@@ -137,6 +137,7 @@ class DemandeLivraisonService
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $demandeRepository = $this->entityManager->getRepository(Demande::class);
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -162,7 +163,7 @@ class DemandeLivraisonService
         $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
         $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
 
-        $lastNumero = $this->demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
+        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
         $lastCpt = (int)substr($lastNumero, -4, 4);
         $i = $lastCpt + 1;
         $cpt = sprintf('%04u', $i);

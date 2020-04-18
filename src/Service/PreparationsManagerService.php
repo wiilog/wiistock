@@ -14,8 +14,6 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\DemandeRepository;
-use App\Repository\PreparationRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -60,32 +58,18 @@ class PreparationsManagerService
     private $router;
 
     /**
-     * @var PreparationRepository
-     */
-    private $preparationRepository;
-
-    /**
      * @var Security
      */
     private $security;
 
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    public function __construct(DemandeRepository $demandeRepository,
-                                Security $security,
-                                PreparationRepository $preparationRepository,
+    public function __construct(Security $security,
                                 RouterInterface $router,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager)
     {
-        $this->demandeRepository = $demandeRepository;
         $this->security = $security;
-        $this->preparationRepository = $preparationRepository;
         $this->router = $router;
         $this->templating = $templating;
         $this->entityManager = $entityManager;
@@ -516,6 +500,7 @@ class PreparationsManagerService
     public function getDataForDatatable($params = null, $filterDemande = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $preparationRepository = $this->entityManager->getRepository(Preparation::class);
 
         if ($filterDemande) {
             $filters = [
@@ -529,7 +514,7 @@ class PreparationsManagerService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PREPA, $this->security->getUser());
         }
 
-        $queryResult = $this->preparationRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $preparationRepository->findByParamsAndFilters($params, $filters);
 
         $preparations = $queryResult['data'];
 

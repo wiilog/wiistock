@@ -21,12 +21,6 @@ use App\Entity\Reception;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 
-use App\Repository\DemandeRepository;
-use App\Repository\LivraisonRepository;
-use App\Repository\PreparationRepository;
-use App\Repository\ManutentionRepository;
-use App\Repository\ReceptionRepository;
-use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
@@ -47,57 +41,15 @@ class UserService
      */
     private $user;
 
-     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
+	private $entityManager;
 
-
-	/**
-	 * @var DemandeRepository
-	 */
-	private $demandeRepository;
-
-	/**
-	 * @var LivraisonRepository
-	 */
-	private $livraisonRepository;
-
-	/**
-	 * @var ManutentionRepository
-	 */
-	private $manutentionRepository;
-
-	/**
-	 * @var PreparationRepository
-	 */
-	private $preparationRepository;
-
-	/**
-	 * @var ReceptionRepository
-	 */
-	private $receptionRepository;
-	private $em;
-
-    public function __construct(ReceptionRepository $receptionRepository,
-                                DemandeRepository $demandeRepository,
-                                LivraisonRepository $livraisonRepository,
-                                ManutentionRepository $manutentionRepository,
-                                PreparationRepository $preparationRepository,
-                                Twig_Environment $templating,
-                                EntityManagerInterface $em,
-                                UtilisateurRepository $utilisateurRepository,
+    public function __construct(Twig_Environment $templating,
+                                EntityManagerInterface $entityManager,
                                 Security $security)
     {
         $this->user = $security->getUser();
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->templating = $templating;
-        $this->demandeRepository = $demandeRepository;
-        $this->livraisonRepository = $livraisonRepository;
-        $this->manutentionRepository = $manutentionRepository;
-        $this->preparationRepository = $preparationRepository;
-        $this->receptionRepository = $receptionRepository;
-        $this->em = $em;
+        $this->entityManager = $entityManager;
     }
 
     public function getUserRole($user = null)
@@ -115,7 +67,7 @@ class UserService
 
         $role = $this->getUserRole($user);
 		$actions = $role ? $role->getActions() : [];
-		$actionRepository = $this->em->getRepository(Action::class);
+		$actionRepository = $this->entityManager->getRepository(Action::class);
         $thisAction = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
 
         if ($thisAction) {
@@ -129,9 +81,11 @@ class UserService
 
     public function getDataForDatatable($params = null)
     {
+        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
+
         $data = $this->getUtilisateurDataByParams($params);
-        $data['recordsTotal'] = (int)$this->utilisateurRepository->countAll();
-        $data['recordsFiltered'] = (int)$this->utilisateurRepository->countAll();
+        $data['recordsTotal'] = (int) $utilisateurRepository->countAll();
+        $data['recordsFiltered'] = (int) $utilisateurRepository->countAll();
         return $data;
     }
 
@@ -144,7 +98,8 @@ class UserService
 	 */
     public function getUtilisateurDataByParams($params = null)
     {
-        $utilisateurs = $this->utilisateurRepository->findByParams($params);
+        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $utilisateurs = $utilisateurRepository->findByParams($params);
 
         $rows = [];
         foreach ($utilisateurs as $utilisateur) {
@@ -163,7 +118,7 @@ class UserService
     public function dataRowUtilisateur($utilisateur)
     {
         $idUser = $utilisateur->getId();
-        $roleRepository = $this->em->getRepository(Role::class);
+        $roleRepository = $this->entityManager->getRepository(Role::class);
         $roles = $roleRepository->findAll();
 
 		$row = [
@@ -186,8 +141,8 @@ class UserService
 	{
 		$response = false;
 
-        $parametreRoleRepository = $this->em->getRepository(ParametreRole::class);
-        $parametreRepository = $this->em->getRepository(Parametre::class);
+        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
+        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
 
 		$role = $this->user->getRole();
 		$param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
@@ -209,13 +164,13 @@ class UserService
      */
 	public function isUsedByDemandsOrOrders($user)
 	{
-	    $collecteRepository = $this->em->getRepository(Collecte::class);
-	    $demandeRepository = $this->em->getRepository(Demande::class);
-	    $livraisonRepository = $this->em->getRepository(Livraison::class);
-	    $ordreCollecteRepository = $this->em->getRepository(OrdreCollecte::class);
-	    $manutentionRepository = $this->em->getRepository(Manutention::class);
-	    $preparationRepository = $this->em->getRepository(Preparation::class);
-	    $receptionRepository = $this->em->getRepository(Reception::class);
+	    $collecteRepository = $this->entityManager->getRepository(Collecte::class);
+	    $demandeRepository = $this->entityManager->getRepository(Demande::class);
+	    $livraisonRepository = $this->entityManager->getRepository(Livraison::class);
+	    $ordreCollecteRepository = $this->entityManager->getRepository(OrdreCollecte::class);
+	    $manutentionRepository = $this->entityManager->getRepository(Manutention::class);
+	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
+	    $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
 		$nbDemandesLivraison = $demandeRepository->countByUser($user);
 		$nbDemandesCollecte = $collecteRepository->countByUser($user);

@@ -5,11 +5,10 @@ namespace App\Repository;
 use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Demande[]    findAll()
  * @method Demande[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DemandeRepository extends ServiceEntityRepository
+class DemandeRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Date' => 'date',
@@ -26,11 +25,6 @@ class DemandeRepository extends ServiceEntityRepository
         'Numéro' => 'numero',
         'Type' => 'type',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Demande::class);
-    }
 
     public function findByUserAndNotStatus($user, $status)
     {

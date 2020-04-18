@@ -14,7 +14,6 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\PreparationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
@@ -33,7 +32,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
 use App\Entity\Demande;
-use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -46,21 +44,10 @@ use Twig\Error\SyntaxError;
  */
 class PreparationController extends AbstractController
 {
-
     /**
      * @var LivraisonRepository
      */
     private $livraisonRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
-     * @var PreparationRepository
-     */
-    private $preparationRepository;
 
     /**
      * @var UserService
@@ -92,14 +79,10 @@ class PreparationController extends AbstractController
                                 SpecificService $specificService,
                                 LivraisonRepository $livraisonRepository,
                                 ArticleDataService $articleDataService,
-                                PreparationRepository $preparationRepository,
-                                DemandeRepository $demandeRepository,
                                 UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
-        $this->preparationRepository = $preparationRepository;
-        $this->demandeRepository = $demandeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->specificService = $specificService;
@@ -184,6 +167,7 @@ class PreparationController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $preparation = new Preparation();
             $entityManager = $this->getDoctrine()->getManager();
@@ -194,7 +178,7 @@ class PreparationController extends AbstractController
             $preparation->setStatut($statut);
 
             foreach ($data as $key) {
-                $demande = $this->demandeRepository->find($key);
+                $demande = $demandeRepository->find($key);
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->addPreparation($preparation)
@@ -252,8 +236,9 @@ class PreparationController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
 
-        $demandeLivraison = $demandId ? $this->demandeRepository->find($demandId) : null;
+        $demandeLivraison = $demandId ? $demandeRepository->find($demandId) : null;
 
         return $this->render('preparation/index.html.twig', [
             'filterDemandId' => isset($demandeLivraison) ? $demandId : null,
@@ -285,19 +270,19 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/api_article/{prepaId}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api_article/{preparation}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param $prepaId
+     * @param Preparation $preparation
      * @return Response
      */
-    public function apiLignePreparation(Request $request, $prepaId): Response
+    public function apiLignePreparation(Request $request,
+                                        Preparation $preparation): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $preparation = $this->preparationRepository->find($prepaId);
             $demande = $preparation->getDemande();
             $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
             $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
@@ -642,8 +627,12 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/infos", name="get_ordres_prepa_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function getOrdrePrepaIntels(Request $request): Response
+    public function getOrdrePrepaIntels(Request $request,
+                                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
@@ -652,7 +641,9 @@ class PreparationController extends AbstractController
             $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
             $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-            $preparations = $this->preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $preparationRepository = $entityManager->getRepository(Preparation::class);
+
+            $preparations = $preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [
                 'numéro',

@@ -14,7 +14,6 @@ use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
-use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
@@ -137,27 +136,27 @@ class ParametrageGlobalController extends AbstractController
      * @param Request $request
      * @param UserService $userService
      * @param AttachmentService $attachmentService
+     * @param EntityManagerInterface $entityManager
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
      * @return Response
      * @throws NonUniqueResultException
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  UserService $userService,
                                                  AttachmentService $attachmentService,
-                                                 ParametrageGlobalRepository $parametrageGlobalRepository,
-                                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
+                                                 EntityManagerInterface $entityManager,
+                                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
         $data = $request->request->all();
-        $em = $this->getDoctrine()->getManager();
+        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
 
         $dimensions = $dimensionsEtiquettesRepository->findOneDimension();
         if (!$dimensions) {
             $dimensions = new DimensionsEtiquettes();
-            $em->persist($dimensions);
+            $entityManager->persist($dimensions);
         }
         $dimensions
             ->setHeight(intval($data['height']))
@@ -168,7 +167,7 @@ class ParametrageGlobalController extends AbstractController
         if (empty($parametrageGlobal)) {
             $parametrageGlobal = new ParametrageGlobal();
             $parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-            $em->persist($parametrageGlobal);
+            $entityManager->persist($parametrageGlobal);
         }
         $parametrageGlobal->setValue($data['param-bl-etiquette']);
 
@@ -178,7 +177,7 @@ class ParametrageGlobalController extends AbstractController
         if (empty($parametrageGlobal128)) {
             $parametrageGlobal128 = new ParametrageGlobal();
             $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-            $em->persist($parametrageGlobal128);
+            $entityManager->persist($parametrageGlobal128);
         }
         $parametrageGlobal128->setValue($data['param-type-etiquette']);
 
@@ -187,7 +186,7 @@ class ParametrageGlobalController extends AbstractController
         if (empty($parametrageGlobalCL)) {
             $parametrageGlobalCL = new ParametrageGlobal();
             $parametrageGlobalCL->setLabel(ParametrageGlobal::CL_USED_IN_LABELS);
-            $em->persist($parametrageGlobalCL);
+            $entityManager->persist($parametrageGlobalCL);
         }
         $parametrageGlobalCL->setValue($data['param-cl-etiquette']);
 
@@ -199,11 +198,11 @@ class ParametrageGlobalController extends AbstractController
                 $parametrageGlobalLogo = new ParametrageGlobal();
                 $parametrageGlobalLogo
                     ->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
-                $em->persist($parametrageGlobalLogo);
+                $entityManager->persist($parametrageGlobalLogo);
             }
             $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
         }
-        $em->flush();
+        $entityManager->flush();
 
         return new JsonResponse($data);
     }

@@ -10,7 +10,6 @@ use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
-use App\Repository\DimensionsEtiquettesRepository;
 
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
@@ -52,20 +51,13 @@ Class AcheminementsController extends AbstractController
      */
     private $acheminementsService;
 
-    /**
-     * @var DimensionsEtiquettesRepository
-     */
-    private $dimensionsEtiquettesRepository;
-
     public function __construct(UserService $userService,
                                 UtilisateurRepository $utilisateurRepository,
-                                AcheminementsService $acheminementsService,
-                                DimensionsEtiquettesRepository $dimensionsEtiquettesRepository)
+                                AcheminementsService $acheminementsService)
     {
         $this->userService = $userService;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->acheminementsService = $acheminementsService;
-        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
     }
 
 

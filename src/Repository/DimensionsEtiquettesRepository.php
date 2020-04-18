@@ -3,9 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\DimensionsEtiquettes;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method DimensionsEtiquettes|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,15 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method DimensionsEtiquettes[]    findAll()
  * @method DimensionsEtiquettes[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DimensionsEtiquettesRepository extends ServiceEntityRepository
+class DimensionsEtiquettesRepository extends EntityRepository
 {
-	private $parametrageGlobalRepository;
-
-    public function __construct(ManagerRegistry $registry,
-                                ParametrageGlobalRepository $parametrageGlobalRepository) {
-        parent::__construct($registry, DimensionsEtiquettes::class);
-        $this->parametrageGlobalRepository = $parametrageGlobalRepository;
-    }
 
 	/**
 	 * @return DimensionsEtiquettes|null

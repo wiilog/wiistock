@@ -6,12 +6,12 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\DemandeRepository;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
@@ -39,14 +39,12 @@ class LivraisonController extends AbstractController
 {
     /**
      * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
-     * @param DemandeRepository $demandeRepository
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @param string|null $demandId
      * @return Response
      */
-    public function index(DemandeRepository $demandeRepository,
-                          UserService $userService,
+    public function index(UserService $userService,
                           EntityManagerInterface $entityManager,
                           string $demandId = null): Response {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
@@ -55,6 +53,7 @@ class LivraisonController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
 
         $filterDemand = $demandId
             ? $demandeRepository->find($demandId)

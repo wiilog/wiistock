@@ -26,7 +26,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 
 use App\Service\CSVExportService;
@@ -66,11 +65,6 @@ class ReferenceArticleController extends AbstractController
      * @var LivraisonRepository
      */
     private $livraisonRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
 
     /**
      * @var FiltreRefRepository
@@ -126,7 +120,6 @@ class ReferenceArticleController extends AbstractController
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
                                 LivraisonRepository $livraisonRepository,
-                                DemandeRepository $demandeRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
@@ -134,7 +127,6 @@ class ReferenceArticleController extends AbstractController
                                 CSVExportService $CSVExportService,
                                 ValeurChampLibreService $valeurChampLibreService)
     {
-        $this->demandeRepository = $demandeRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -303,7 +295,6 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -974,13 +965,14 @@ class ReferenceArticleController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
                 $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
                 $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
+                $demandes = $demandeRepository->findByStatutAndUser($statutD, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
@@ -1334,10 +1326,10 @@ class ReferenceArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
-
+            $demandes = $demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
             $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
             if ($data['typeDemande'] === 'livraison' && $demandes) {

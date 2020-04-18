@@ -19,10 +19,8 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\DemandeRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\PreparationRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArticleDataService;
@@ -58,16 +56,6 @@ class DemandeController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
-     * @var PreparationRepository
-     */
-    private $preparationRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -99,8 +87,6 @@ class DemandeController extends AbstractController
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
-                                PreparationRepository $preparationRepository,
-                                DemandeRepository $demandeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
@@ -108,12 +94,10 @@ class DemandeController extends AbstractController
                                 DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
-        $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
-        $this->preparationRepository = $preparationRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->demandeLivraisonService = $demandeLivraisonService;
     }
@@ -488,15 +472,18 @@ class DemandeController extends AbstractController
     /**
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $demande = $this->demandeRepository->find($data['demandeId']);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
+
+            $demande = $demandeRepository->find($data['demandeId']);
             $preparations = $demande->getPreparations();
-            $entityManager = $this->getDoctrine()->getManager();
+
             if ($preparations->count() === 0) {
                 foreach ($demande->getArticles() as $article) {
                     $article->setDemande(null);
@@ -997,18 +984,20 @@ class DemandeController extends AbstractController
     /**
      * @Route("/autocomplete", name="get_demandes", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param DemandeRepository $demandeRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function getDemandesAutoComplete(Request $request,
-                                            DemandeRepository $demandeRepository): Response
+                                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
+            $demandeRepository = $entityManager->getRepository(Demande::class);
             $search = $request->query->get('term');
+
             return new JsonResponse([
                 'results' => $demandeRepository->getIdAndLibelleBySearch($search)
             ]);

@@ -6,12 +6,11 @@ use App\Entity\FiltreSup;
 use App\Entity\Preparation;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Preparation[]    findAll()
  * @method Preparation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PreparationRepository extends ServiceEntityRepository
+class PreparationRepository extends EntityRepository
 {
 	const DtToDbLabels = [
 		'Numéro' => 'numero',
@@ -28,11 +27,6 @@ class PreparationRepository extends ServiceEntityRepository
 		'Opérateur' => 'user',
 		'Type' => 'type'
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Preparation::class);
-    }
 
     public function getByDemande($id)
     {

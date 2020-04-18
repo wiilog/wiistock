@@ -4,7 +4,6 @@ namespace App\Twig;
 
 use App\Service\SpecificService;
 use App\Service\UserService;
-use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 
