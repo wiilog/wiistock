@@ -105,4 +105,18 @@ class DaysWorkedRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function getWorkedTimeForEachDaysWorked() {
+        return array_reduce(
+            $this->findAllOrdered(),
+            function (array $carry, DaysWorked $daysWorked) {
+                $times = $daysWorked->getTimes();
+                $worked = $daysWorked->getWorked();
+                if ($worked && !empty($times)) {
+                    $carry[strtolower($daysWorked->getDay())] = $daysWorked->getTimes();
+                }
+                return $carry;
+            },
+            []);
+    }
+
 }
