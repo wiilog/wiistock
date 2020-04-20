@@ -40,9 +40,14 @@ class EnCoursController extends AbstractController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 		$natureRepository = $entityManager->getRepository(Nature::class);
 
+        $minLocationFilter = 1;
+        $maxLocationFilter = 10;
+
         return $this->render('en_cours/index.html.twig', [
             'emplacements' => $emplacementRepository->findWhereArticleIs(),
 			'natures' => $natureRepository->findAll(),
+            'minLocationFilter' => $minLocationFilter,
+            'maxLocationFilter' => $maxLocationFilter,
 			'multiple' => true
         ]);
     }
