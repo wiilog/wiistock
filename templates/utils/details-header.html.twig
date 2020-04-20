@@ -1,0 +1,23 @@
+{% if data|length > 0 %}
+    <div class="row details-header">
+        {% for datum in data %}
+            {% set isRaw = (datum.isRaw is defined and datum.isRaw) %}
+            {% set isScrollable = (datum.isScrollable is defined and datum.isScrollable) %}
+            {% set bgLight = (datum.bgLight is defined and datum.bgLight) %}
+            <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-2 col-md-3 col-sm-4 col-6' }} mt-3">
+                <div class="row">
+                    <div class="col-12 text-wii-grey">{{ datum.label }}</div>
+                    <div class="col-12 text-wii-black">
+                        {% if isScrollable %}
+                            <div class="scrollable-details bg-light">
+                                {{ isRaw ? datum.value|raw : datum.value }}
+                            </div>
+                        {% else %}
+                            {{ isRaw ? datum.value|raw : datum.value }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

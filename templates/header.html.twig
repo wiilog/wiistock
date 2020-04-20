@@ -11,19 +11,17 @@
             </div>
 
             {% if not withOnlyLogo %}
-                <div class="header-title text-white col-auto h5 user-select-none my-0 {{ isDashboardExt ? 'ext-title-font' }}">
-                    {% if title is defined and title is not empty %}
-                        <h5>
-                            {% for subTitle in title|split('|') %}
-                                {% if loop.last %}
-                                      <span class="bold" >{{ subTitle }}</span>
-                                {% else %}
-                                    {{ subTitle }} |
-                                {% endif %}
-                            {% endfor %}
-                        </h5>
-                    {% endif %}
-                </div>
+                {% if title is defined and title is not empty %}
+                <H5 class="header-title text-white col-auto h5 user-select-none my-0 {{ isDashboardExt ? 'ext-title-font' }}">
+                    {% for subTitle in title|split('|') %}
+                        {% if loop.last %}
+                              <span class="bold" >{{ subTitle }}</span>
+                        {% else %}
+                            {{ subTitle }} |
+                        {% endif %}
+                    {% endfor %}
+                </H5>
+                {% endif %}
                 {% if not isDashboardExt
                       and app.user is defined
                       and app.user

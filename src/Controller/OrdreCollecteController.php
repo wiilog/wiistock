@@ -97,10 +97,13 @@ class OrdreCollecteController extends AbstractController
     /**
      * @Route("/voir/{id}", name="ordre_collecte_show",  methods={"GET","POST"})
      * @param OrdreCollecte $ordreCollecte
+     * @param OrdreCollecteService $ordreCollecteService
      * @param UserService $userService
      * @return Response
      */
-    public function show(OrdreCollecte $ordreCollecte, UserService $userService): Response
+    public function show(OrdreCollecte $ordreCollecte,
+                         OrdreCollecteService $ordreCollecteService,
+                         UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
             return $this->redirectToRoute('access_denied');
@@ -108,7 +111,8 @@ class OrdreCollecteController extends AbstractController
 
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
-            'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
+            'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
+            'detailsConfig' => $ordreCollecteService->getHeaderDetailsConfig($ordreCollecte)
         ]);
     }
 
@@ -145,7 +149,8 @@ class OrdreCollecteController extends AbstractController
 
             $data = $this->renderView('ordre_collecte/enteteOrdreCollecte.html.twig', [
                 'collecte' => $ordreCollecte,
-                'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
+                'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
+                'detailsConfig' => $ordreCollecteService->getHeaderDetailsConfig($ordreCollecte)
             ]);
             return new JsonResponse($data);
         }

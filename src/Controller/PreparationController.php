@@ -369,12 +369,32 @@ class PreparationController extends AbstractController
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
+        $demande = $preparation->getDemande();
+        $destination = $demande ? $demande->getDestination() : null;
+        $operator = $preparation ? $preparation->getUtilisateur() : null;
+        $requester = $demande ? $demande->getUtilisateur() : null;
+        $comment = $preparation->getCommentaire();
+
         return $this->render('preparation/show.html.twig', [
-            'demande' => $preparation->getDemande(),
+            'demande' => $demande,
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'articles' => $articleRepository->getIdRefLabelAndQuantity(),
+            'headerConfig' => [
+                [ 'label' => 'Numéro', 'value' => $preparation->getNumero() ],
+                [ 'label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : '' ],
+                [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
+                [ 'label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : '' ],
+                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ],
+            ]
         ]);
     }
 

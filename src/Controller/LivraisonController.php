@@ -207,11 +207,34 @@ class LivraisonController extends AbstractController
 
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
+        $demande = $livraison->getDemande();
+
+        $utilisateurPreparation = $livraison->getPreparation() ? $livraison->getPreparation()->getUtilisateur() : null;
+        $demandeur = $demande ? $demande->getUtilisateur() : null;
+        $destination = $demande ? $demande->getDestination() : null;
+        $dateLivraison = $livraison->getDateFin();
+        $comment = $demande->getCommentaire();
+
         return $this->render('livraison/show.html.twig', [
-            'demande' => $livraison->getDemande(),
+            'demande' => $demande,
             'livraison' => $livraison,
             'preparation' => $preparationRepository->find($livraison->getPreparation()->getId()),
-            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE)
+            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE),
+            'headerConfig' => [
+                [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
+                [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
+                [ 'label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : '' ],
+                [ 'label' => 'Demandeur', 'value' => $demandeur ? $demandeur->getUsername() : '' ],
+                [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
+                [ 'label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : '' ],
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ],
+            ]
         ]);
     }
 
@@ -225,7 +248,6 @@ class LivraisonController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            PreparationsManagerService $preparationsManager,
