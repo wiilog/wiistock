@@ -15,6 +15,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -82,7 +83,7 @@ class EnCoursController extends AbstractController
             $filtersParam ? explode(',', $filtersParam) : []
         );
 
-		return new JsonResponse($enCoursService->getEnCoursForEmplacement($emplacement, $natureIds));
+		return new JsonResponse($enCoursService->getEnCours($emplacement, $natureIds));
     }
 
 
@@ -91,22 +92,19 @@ class EnCoursController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param EnCoursService $enCoursService
      * @return JsonResponse
-     * @throws DBALException
+     * @throws Exception
      */
     public function apiForRetard(EntityManagerInterface $entityManager,
                                  EnCoursService $enCoursService): Response {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $retards = [];
-        foreach ($emplacementRepository->findWhereArticleIs() as $emplacementArray) {
-            $emplacement = $emplacementRepository->find($emplacementArray['id']);
-            $enCours = $enCoursService->getEnCoursForEmplacement($emplacement, [], true);
-            if (!empty($enCours['data'] )) {
-                array_push(
-                    $retards,
-                    ...($enCours['data'])
-                );
-            }
-        }
+
+        $locationArrayWithPack = $emplacementRepository->findWhereArticleIs();
+        $locationIdWithPack = array_map(function($emplacementArray) {
+            return $emplacementArray['id'];
+        }, $locationArrayWithPack);
+        $locationWithPack = $emplacementRepository->findBy(['id' => $locationIdWithPack]);
+        $retards = $enCoursService->getEnCours($locationWithPack, [], true);
+
         return new JsonResponse([
             'data' => $retards
         ]);

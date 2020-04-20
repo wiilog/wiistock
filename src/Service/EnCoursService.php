@@ -140,25 +140,37 @@ class EnCoursService
     }
 
     /**
-     * @param Emplacement $emplacement
+     * @param Emplacement[]|Emplacement
      * @param array $natures
+     * @param bool $onlyLate
      * @return array
-     * @throws DBALException
      * @throws Exception
      */
-    public function getEnCoursForEmplacement(Emplacement $emplacement, array $natures = [], bool $onlyLate = false): array {
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false): array {
         $success = true;
+        $locations = array_reduce(
+            is_array($locations) ? $locations : [$locations],
+            function(array $acc, Emplacement $location) {
+                $acc[$location->getId()] = $location;
+                return $acc;
+            },
+            []
+        );
         $emplacementInfo = [];
         $colisRepository = $this->entityManager->getRepository(Colis::class);
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $packIntelList = empty($natures)
-            ? $mouvementTracaRepository->getLastOnLocations([$emplacement])
-            : $colisRepository->getPackIntelOnLocations([$emplacement], $natures);
+            ? $mouvementTracaRepository->getLastOnLocations($locations)
+            : $colisRepository->getPackIntelOnLocations($locations, $natures);
 
         foreach ($packIntelList as $packIntel) {
             $dateMvt = $packIntel['lastTrackingDateTime'];
+            $currentLocationId = $packIntel['currentLocationId'];
+            $currentLocation = $locations[(int) $currentLocationId];
+
             $movementAge = $this->getTrackingMovementAge($dateMvt);
-            $dateMaxTime = $emplacement->getDateMaxTime();
+            $dateMaxTime = $currentLocation->getDateMaxTime();
+
             if ($dateMaxTime) {
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $isLate = $timeInformation['countDownLateTimespan'] < 0;
@@ -168,7 +180,7 @@ class EnCoursService
                         'delay' => $timeInformation['ageTimespan'],
                         'date' => $dateMvt->format('d/m/Y H:i:s'),
                         'late' => $isLate,
-                        'emp' => $emplacement->getLabel()
+                        'emp' => $currentLocation->getLabel()
                 ];
                 }
             }
