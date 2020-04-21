@@ -192,11 +192,6 @@ class ReferenceArticle
      */
     private $mouvementTracas;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="referencesEmergenciesTriggered")
-     */
-    private $userThatTriggeredEmergency;
-
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
