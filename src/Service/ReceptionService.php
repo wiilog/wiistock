@@ -4,9 +4,12 @@
 namespace App\Service;
 
 
+use App\Entity\ChampLibre;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
-use App\Entity\Utilisateur;
+use App\Entity\ValeurChampLibre;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -17,31 +20,28 @@ use Twig\Error\SyntaxError;
 
 class ReceptionService
 {
-    /**
-     * @var Twig_Environment
-     */
     private $templating;
-
-    /**
-     * @var RouterInterface
-     */
     private $router;
-
-    /**
-     * @var Utilisateur
-     */
     private $user;
-
     private $entityManager;
+    private $fieldsParamService;
+    private $stringService;
+    private $translator;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
+                                FieldsParamService $fieldsParamService,
+                                StringService $stringService,
+                                TranslatorInterface $translator,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+        $this->stringService = $stringService;
+        $this->fieldsParamService = $fieldsParamService;
         $this->router = $router;
+        $this->translator = $translator;
         $this->user = $tokenStorage->getToken()->getUser();
     }
 
@@ -94,5 +94,103 @@ class ReceptionService
                 'urgence' => $reception->getEmergencyTriggered()
         ];
         return $row;
+    }
+
+    public function getHeaderDetailsConfig(Reception $reception): array {
+
+        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+
+        $status = $reception->getStatut();
+        $provider = $reception->getFournisseur();
+        $carrier = $reception->getTransporteur();
+        $location = $reception->getLocation();
+        $dateCommande = $reception->getDateCommande();
+        $dateAttendue = $reception->getDateAttendue();
+        $dateEndReception = $reception->getDateFinReception();
+        $creationDate = $reception->getDate();
+        $reference = $reception->getReference();
+        $comment = $reception->getCommentaire();
+
+
+        $detailsChampLibres = $reception
+            ->getValeurChampLibre()
+            ->map(function (ValeurChampLibre $valeurChampLibre) {
+                $champLibre = $valeurChampLibre->getChampLibre();
+                $value = (
+                    ($champLibre->getTypage() === ChampLibre::TYPE_BOOL) ? (($valeurChampLibre->getValeur() == 1) ? 'oui' : 'non') :
+                    ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) ? str_replace(';', ',', $valeurChampLibre->getValeur() ?? '') :
+                    $valeurChampLibre->getValeur()
+                );
+                return [
+                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
+                    'value' => $value
+                ];
+            })
+            ->toArray();
+
+
+        $config = [
+            [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+            [
+                'label' => $this->translator->trans('réception.n° de réception'),
+                'title' => 'n° de réception',
+                'value' => $reception->getNumeroReception(),
+                'show' => [ 'fieldName' => 'numeroReception', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Fournisseur',
+                'value' => $provider ? $provider->getNom() : '',
+                'show' => [ 'fieldName' => 'fournisseur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Transporteur',
+                'value' => $carrier ? $carrier->getLabel() : '',
+                'show' => [ 'fieldName' => 'transporteur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Emplacement',
+                'value' => $location ? $location->getLabel() : '',
+                'show' => [ 'fieldName' => 'emplacement', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Date commande',
+                'value' => $dateCommande ? $dateCommande->format('d/m/Y') : '',
+                'show' => [ 'fieldName' => 'dateCommande', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Numéro de commande',
+                'value' => $reference ?: '',
+                'show' => [ 'fieldName' => 'numCommande', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Date attendue',
+                'value' => $dateAttendue ? $dateAttendue->format('d/m/Y') : '',
+                'show' => [ 'fieldName' => 'dateAttendue', 'action' => 'displayed' ]
+            ],
+            [ 'label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i') : '' ],
+            [ 'label' => 'Date de fin', 'value' => $dateEndReception ? $dateEndReception->format('d/m/Y H:i') : '' ],
+        ];
+
+        $configFiltered =  array_filter($config, function ($fieldConfig) use ($fieldsParam) {
+            return (
+                !isset($fieldConfig['show'])
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], $fieldConfig['show']['action'])
+            );
+        });
+
+        return array_merge(
+            $configFiltered,
+            $detailsChampLibres,
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+                ? [[
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ]]
+                : []
+        );
     }
 }

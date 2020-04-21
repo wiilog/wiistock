@@ -1,0 +1,18 @@
+<div class="wii-page-card">
+    {% block showHiddenInputs %}{% endblock %}
+    <div class="row align-items-center wii-page-card-header mb-0">
+        <div class="col-auto">
+            <h5 class="my-0 h5" title="{% block showTitleTooltip '' %}">{% block showTitle '' %}</h5>
+        </div>
+
+        {% set showActionsBlock = block('showActions') %}
+        {% if showActionsBlock is defined and showActionsBlock is not empty %}
+            <div class="col-auto ml-auto">
+                {{ showActionsBlock|raw }}
+            </div>
+        {% endif %}
+    </div>
+    {% if showDetails is defined %}
+        {% include 'utils/show-header-details.html.twig' with {data: showDetails} %}
+    {% endif %}
+</div>

@@ -285,11 +285,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(EntityManagerInterface $entityManager,
+                         ReceptionService $receptionService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -297,7 +299,6 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -357,36 +358,12 @@ class ReceptionController extends AbstractController
                     $em->flush();
                 }
             }
-            $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-            $champsLibres = [];
-
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-            foreach ($listTypes as $type) {
-                $listChampLibreReception = $champLibreRepository->findByType($type['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
             $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                'entete' => $this->renderView('reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres,
-                    'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+                    'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
                 ])
             ];
             return new JsonResponse($json);
@@ -610,11 +587,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function removeArticle(EntityManagerInterface $entityManager,
+                                  ReceptionService $receptionService,
                                   Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -622,10 +601,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
@@ -640,38 +616,12 @@ class ReceptionController extends AbstractController
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
-            $type = $reception->getType();
-
-            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-            $champsLibres = [];
-
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-            foreach ($listTypes as $type) {
-                $listChampLibreReception = $champLibreRepository->findByType($type['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
 
             $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                'entete' => $this->renderView('reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres,
-                    'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+                    'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
                 ])
             ];
             $entityManager->flush();
@@ -683,11 +633,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function addArticle(EntityManagerInterface $entityManager,
+                               ReceptionService $receptionService,
                                Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
@@ -695,11 +647,8 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
             $refArticleId = (int)$contentData['referenceArticle'];
@@ -741,40 +690,18 @@ class ReceptionController extends AbstractController
                 $entityManager->persist($receptionReferenceArticle);
                 $entityManager->flush();
 
-                $type = $reception->getType();
-                $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-                $champsLibres = [];
-                $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-                foreach ($listTypes as $oneType) {
-                    $listChampLibreReception = $champLibreRepository->findByType($oneType['id']);
-
-                    foreach ($listChampLibreReception as $champLibre) {
-                        $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                        $champsLibres[] = [
-                            'id' => $champLibre->getId(),
-                            'label' => $champLibre->getLabel(),
-                            'typage' => $champLibre->getTypage(),
-                            'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                            'defaultValue' => $champLibre->getDefaultValue(),
-                            'valeurChampLibre' => $valeurChampLibre,
-                        ];
-                    }
-                }
                 if ($refArticle->getIsUrgent()) {
                     $reception->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
                 $entityManager->flush();
-				$json = [
-					'entete' => $this->renderView('reception/enteteReception.html.twig', [
+
+                $json = [
+					'entete' => $this->renderView('reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
-						'valeurChampLibreTab' => $valeurChampLibreTab,
-						'typeChampsLibres' => $champsLibres,
-						'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+                        'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
 					])
 				];
 			}
@@ -823,11 +750,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editArticle(EntityManagerInterface $entityManager,
+                                ReceptionService $receptionService,
                                 Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
@@ -835,14 +764,10 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
@@ -879,36 +804,12 @@ class ReceptionController extends AbstractController
 
             $reception->setStatut($statut);
             $entityManager->flush();
-            $type = $reception->getType();
-
-            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-            $champsLibres = [];
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-            foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $champLibreRepository->findByType($oneType['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
 
             $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                'entete' => $this->renderView('reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres,
-                    'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+                    'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
                 ])
             ];
             return new JsonResponse($json);
@@ -920,12 +821,14 @@ class ReceptionController extends AbstractController
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param GlobalParamService $globalParamService
+     * @param ReceptionService $receptionService
      * @param Reception $reception
      * @return Response
      * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
                          GlobalParamService $globalParamService,
+                         ReceptionService $receptionService,
                          Reception $reception): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
@@ -982,19 +885,16 @@ class ReceptionController extends AbstractController
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'type' => $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION),
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-            'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
-            'valeurChampLibreTab' => $valeurChampLibreTab,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
-            'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
-            'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION),
             'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
+
+            'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
         ]);
     }
 

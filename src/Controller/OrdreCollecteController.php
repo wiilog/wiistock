@@ -147,7 +147,7 @@ class OrdreCollecteController extends AbstractController
                 );
             }
 
-            $data = $this->renderView('ordre_collecte/enteteOrdreCollecte.html.twig', [
+            $data = $this->renderView('ordre-collecte-show-header.html.twig', [
                 'collecte' => $ordreCollecte,
                 'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
                 'detailsConfig' => $ordreCollecteService->getHeaderDetailsConfig($ordreCollecte)

@@ -5,8 +5,12 @@
     <div class="m-4">
         <div class="row">
             <div class="col-12">
-                <div class="zone-entete wii-page-card">
-                    {% include "reception/enteteReception.html.twig" %}
+                <div class="zone-entete">
+                    {% include "reception/reception-show-header.html.twig" with {
+                        showDetails: detailsHeader,
+                        modifiable: modifiable,
+                        reception: reception
+                    } %}
                 </div>
             </div>
         </div>
@@ -85,9 +89,6 @@
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
     <button class="btn" id="finishReception" data-target='#modalFinishReception' data-toggle='modal' hidden></button>
     <input type="number" id="ligneSelected" value="-1" hidden></button>
-
-    <div class="d-none" id="barcodes">
-    </div>
 
 
     {% include "reception/modalDeleteReception.html.twig" %}
