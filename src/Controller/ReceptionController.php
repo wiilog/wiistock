@@ -363,7 +363,7 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
+                    'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
             ];
             return new JsonResponse($json);
@@ -621,7 +621,7 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
+                    'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
             ];
             $entityManager->flush();
@@ -701,7 +701,7 @@ class ReceptionController extends AbstractController
 					'entete' => $this->renderView('reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
-                        'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
+                        'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
 					])
 				];
 			}
@@ -806,10 +806,10 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
 
             $json = [
-                'entete' => $this->renderView('reception-show-header.html.twig', [
+                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
+                    'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
             ];
             return new JsonResponse($json);
@@ -894,7 +894,7 @@ class ReceptionController extends AbstractController
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
             'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
 
-            'detailsHeader' => $receptionService->getHeaderDetailsConfig($reception)
+            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
         ]);
     }
 

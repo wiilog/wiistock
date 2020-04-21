@@ -639,7 +639,7 @@ class ArrivageController extends AbstractController
             $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
             $response = [
-                'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+                'entete' => $this->renderView('arrivage-show-header.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                     'fieldsParam' => $fieldsParam,
@@ -931,16 +931,18 @@ class ArrivageController extends AbstractController
      * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
      *
      * @param EntityManagerInterface $entityManager
+     * @param ArrivageDataService $arrivageDataService
      * @param Arrivage $arrivage
      * @param bool $printColis
      * @param bool $printArrivage
      *
      * @return JsonResponse
      *
-     * @throws NonUniqueResultException
      * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
+                         ArrivageDataService $arrivageDataService,
                          Arrivage $arrivage,
                          bool $printColis = false,
                          bool $printArrivage = false): Response
@@ -996,7 +998,8 @@ class ArrivageController extends AbstractController
                 'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                 'fieldsParam' => $fieldsParam,
                 'champsLibres' => $champsLibres,
-                'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR)
+                'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
             ]);
     }
 
@@ -1005,6 +1008,7 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function newLitige(Request $request,
@@ -1560,7 +1564,7 @@ class ArrivageController extends AbstractController
                 }
 
                 $response = [
-                    'entete' => $this->renderView('arrivage/enteteArrivage.html.twig', [
+                    'entete' => $this->renderView('arrivage-show-header.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
                         'fieldsParam' => $fieldsParam,

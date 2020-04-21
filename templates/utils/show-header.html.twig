@@ -5,7 +5,7 @@
             <h5 class="my-0 h5" title="{% block showTitleTooltip '' %}">{% block showTitle '' %}</h5>
         </div>
 
-        {% set showActionsBlock = block('showActions') %}
+        {% set showActionsBlock = block('showActions') is defined ? block('showActions') %}
         {% if showActionsBlock is defined and showActionsBlock is not empty %}
             <div class="col-auto ml-auto">
                 {{ showActionsBlock|raw }}
@@ -14,5 +14,16 @@
     </div>
     {% if showDetails is defined %}
         {% include 'utils/show-header-details.html.twig' with {data: showDetails} %}
+    {% endif %}
+
+    {% set urgenceBlock = block('showUrgence') is defined ? block('showUrgence') %}
+    {% if urgenceBlock|trim is not empty %}
+        <div class="urgence-row row">
+            <div class="col-12 mt-3 text-center">
+                <span class="h3 my-0">
+                    {{ urgenceBlock|raw }}
+                </span>
+            </div>
+        </div>
     {% endif %}
 </div>

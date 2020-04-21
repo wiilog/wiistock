@@ -27,16 +27,19 @@ class ReceptionService
     private $fieldsParamService;
     private $stringService;
     private $translator;
+    private $valeurChampLibreService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FieldsParamService $fieldsParamService,
                                 StringService $stringService,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 TranslatorInterface $translator,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
+        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
         $this->fieldsParamService = $fieldsParamService;
@@ -96,8 +99,7 @@ class ReceptionService
         return $row;
     }
 
-    public function getHeaderDetailsConfig(Reception $reception): array {
-
+    public function createHeaderDetailsConfig(Reception $reception): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
@@ -112,16 +114,11 @@ class ReceptionService
         $reference = $reception->getReference();
         $comment = $reception->getCommentaire();
 
-
         $detailsChampLibres = $reception
             ->getValeurChampLibre()
             ->map(function (ValeurChampLibre $valeurChampLibre) {
                 $champLibre = $valeurChampLibre->getChampLibre();
-                $value = (
-                    ($champLibre->getTypage() === ChampLibre::TYPE_BOOL) ? (($valeurChampLibre->getValeur() == 1) ? 'oui' : 'non') :
-                    ($champLibre->getTypage() === ChampLibre::TYPE_LIST_MULTIPLE) ? str_replace(';', ',', $valeurChampLibre->getValeur() ?? '') :
-                    $valeurChampLibre->getValeur()
-                );
+                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
                 return [
                     'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
                     'value' => $value

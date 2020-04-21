@@ -3,13 +3,19 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\ChampLibre;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\PieceJointe;
 use App\Entity\Urgence;
+use App\Entity\Utilisateur;
+use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -25,17 +31,30 @@ class ArrivageDataService
     private $mailerService;
     private $entityManager;
     private $specificService;
+    private $stringService;
+    private $translator;
+    private $valeurChampLibreService;
+    private $fieldsParamService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
                                 MailerService $mailerService,
                                 SpecificService $specificService,
+                                StringService $stringService,
+                                ValeurChampLibreService $valeurChampLibreService,
+                                FieldsParamService $fieldsParamService,
+                                TranslatorInterface $translator,
                                 Twig_Environment $templating,
                                 EntityManagerInterface $entityManager,
                                 Security $security)
     {
 
         $this->templating = $templating;
+        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->fieldsParamService = $fieldsParamService;
+        $this->translator = $translator;
+        $this->stringService = $stringService;
+        $this->stringService = $stringService;
         $this->router = $router;
         $this->entityManager = $entityManager;
         $this->userService = $userService;
@@ -293,5 +312,113 @@ class ArrivageDataService
         }
 
         return $alertConfigs;
+    }
+
+    public function createHeaderDetailsConfig(Arrivage $arrivage): array {
+        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        $provider = $arrivage->getFournisseur();
+        $carrier = $arrivage->getTransporteur();
+        $driver = $arrivage->getChauffeur();
+        $numeroCommandeList = $arrivage->getNumeroCommandeList();
+        $status = $arrivage->getStatut();
+        $destinataire = $arrivage->getDestinataire();
+        $buyers = $arrivage->getAcheteurs();
+        $comment = $arrivage->getCommentaire();
+        $attachments = $arrivage->getAttachements();
+
+        $detailsChampLibres = $arrivage
+            ->getValeurChampLibre()
+            ->map(function (ValeurChampLibre $valeurChampLibre) {
+                $champLibre = $valeurChampLibre->getChampLibre();
+                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
+                return [
+                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
+                    'value' => $value
+                ];
+            })
+            ->toArray();
+
+        $config = [
+            [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+            [
+                'label' => 'Fournisseur',
+                'value' => $provider ? $provider->getNom() : '',
+                'show' => [ 'fieldName' => 'fournisseur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Transporteur',
+                'value' => $carrier ? $carrier->getLabel() : '',
+                'show' => [ 'fieldName' => 'transporteur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Chauffeur',
+                'value' => $driver ? $driver->getNom() : '',
+                'show' => [ 'fieldName' => 'chauffeur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'N° tracking transporteur',
+                'value' => $arrivage->getNoTracking(),
+                'show' => [ 'fieldName' => 'noTracking', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'N° commandes / BL',
+                'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : '',
+                'show' => [ 'fieldName' => 'numeroCommandeList', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.destinataire'),
+                'labelTitle' => 'destinataire',
+                'value' => $destinataire ? $destinataire->getUsername() : '',
+                'show' => [ 'fieldName' => 'destinataire', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.acheteurs'),
+                'labelTitle' => 'acheteurs',
+                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
+                'show' => [ 'fieldName' => 'acheteurs', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.douane'),
+                'labelTitle' => 'douane',
+                'value' => $arrivage->getDuty() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'duty', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.congelé'),
+                'labelTitle' => 'congelé',
+                'value' => $arrivage->getFrozen() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'frozen', 'action' => 'displayed' ]
+            ]
+        ];
+
+        $configFiltered =  array_filter($config, function ($fieldConfig) use ($fieldsParam) {
+            return (
+                !isset($fieldConfig['show'])
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], $fieldConfig['show']['action'])
+            );
+        });
+
+        return array_merge(
+            $configFiltered,
+            $detailsChampLibres,
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+                ? [[
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true
+            ]]
+                : [],
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+                ? [[
+                    'label' => 'Pièces jointes',
+                    'value' => $attachments->toArray(),
+                    'isAttachments' => true
+                ]]
+                : []
+        );
     }
 }
