@@ -5,7 +5,9 @@ namespace App\Service;
 
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
+use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
+use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -32,14 +34,20 @@ class CollecteService
     private $user;
 
     private $entityManager;
+    private $stringService;
+    private $valeurChampLibreService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
+                                StringService $stringService,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+        $this->stringService = $stringService;
+        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
     }
@@ -109,5 +117,52 @@ class CollecteService
                 ]),
             ];
         return $row;
+    }
+
+
+    public function createHeaderDetailsConfig(Collecte $collecte): array {
+        $requester = $collecte->getDemandeur();
+        $status = $collecte->getStatut();
+        $date = $collecte->getDate();
+        $validationDate = $collecte->getValidationDate();
+        $pointCollecte = $collecte->getPointCollecte();
+        $object = $collecte->getObjet();
+        $type = $collecte->getType();
+        $comment = $collecte->getCommentaire();
+
+        $detailsChampLibres = $collecte
+            ->getValeurChampLibre()
+            ->map(function (ValeurChampLibre $valeurChampLibre) {
+                $champLibre = $valeurChampLibre->getChampLibre();
+                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
+                return [
+                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
+                    'value' => $value
+                ];
+            })
+            ->toArray();
+
+        return array_merge(
+            [
+                [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y H:i') : '' ],
+                [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
+                [ 'label' => 'Destination', 'value' => $collecte->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
+                [ 'label' => 'Objet', 'value' => $object ],
+                [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
+                [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
+            ],
+            $detailsChampLibres,
+            [
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ]
+            ]
+        );
     }
 }

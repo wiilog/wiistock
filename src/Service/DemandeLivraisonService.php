@@ -8,6 +8,7 @@ use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\OrdreCollecte;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\Statut;
@@ -37,11 +38,6 @@ class DemandeLivraisonService
     private $router;
 
     /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
@@ -62,11 +58,15 @@ class DemandeLivraisonService
     private $user;
 
     private $entityManager;
+    private $stringService;
+    private $valeurChampLibreService;
 
     public function __construct(UtilisateurRepository $utilisateurRepository,
                                 ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 TokenStorageInterface $tokenStorage,
+                                StringService $stringService,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
@@ -75,6 +75,8 @@ class DemandeLivraisonService
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
+        $this->stringService = $stringService;
+        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -218,5 +220,49 @@ class DemandeLivraisonService
 			];
         }
         return $data;
+    }
+
+    public function createHeaderDetailsConfig(Demande $demande): array {
+        $status = $demande->getStatut();
+        $requester = $demande->getUtilisateur();
+        $destination = $demande->getDestination();
+        $date = $demande->getDate();
+        $validationDate = !$demande->getPreparations()->isEmpty() ? $demande->getPreparations()->last()->getDate() : null;
+        $type = $demande->getType();
+        $comment = $demande->getCommentaire();
+
+
+        $detailsChampLibres = $demande
+            ->getValeurChampLibre()
+            ->map(function (ValeurChampLibre $valeurChampLibre) {
+                $champLibre = $valeurChampLibre->getChampLibre();
+                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
+                return [
+                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
+                    'value' => $value
+                ];
+            })
+            ->toArray();
+
+        return array_merge(
+            [
+                [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+                [ 'label' => 'Destination', 'value' => $destination ? $destination->getLabel() : '' ],
+                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
+                [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
+                [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
+            ],
+            $detailsChampLibres,
+            [
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ]
+            ]
+        );
     }
 }

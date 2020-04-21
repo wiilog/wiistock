@@ -105,12 +105,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function compareStock(Request $request,
+                                 DemandeLivraisonService $demandeLivraisonService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -177,19 +179,21 @@ class DemandeController extends AbstractController
                 }
             }
 
-            return $this->finish($request, $entityManager);
+            return $this->finish($request, $demandeLivraisonService, $entityManager);
         }
         throw new NotFoundHttpException('404');
     }
 
     /**
      * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function finish(Request $request,
+                           DemandeLivraisonService $demandeLivraisonService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -198,7 +202,6 @@ class DemandeController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['demande']);
@@ -255,11 +258,11 @@ class DemandeController extends AbstractController
             //renvoi de l'en-tête avec modification
             $data = [
                 'entete' => $this->renderView(
-                    'demande/enteteDemandeLivraison.html.twig',
+                    'demande/demande-show-header.html.twig',
                     [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'champsLibres' => $valeurChampLibreRepository->getByDemandeLivraison($demande),
+                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
                     ]
                 ),
                 'status' => true
@@ -330,11 +333,13 @@ class DemandeController extends AbstractController
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
+                         DemandeLivraisonService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -391,10 +396,10 @@ class DemandeController extends AbstractController
                 }
 
                 $response = [
-                    'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+                    'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'champsLibres' => $valeurChampLibreRepository->getByDemandeLivraison($demande)
+                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
                     ]),
                 ];
 
@@ -527,22 +532,20 @@ class DemandeController extends AbstractController
     /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param DemandeLivraisonService $demandeLivraisonService
      * @param Demande $demande
      * @return Response
      */
     public function show(EntityManagerInterface $entityManager,
+                         DemandeLivraisonService $demandeLivraisonService,
                          Demande $demande): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
-
-        $valeursChampLibre = $valeurChampLibreRepository->getByDemandeLivraison($demande);
 
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
@@ -550,9 +553,8 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'emplacements' => $emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
-            'champsLibres' => $valeursChampLibre
+            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
         ]);
     }
 

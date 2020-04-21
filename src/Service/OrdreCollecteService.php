@@ -415,7 +415,7 @@ class OrdreCollecteService
         }
     }
 
-    public function getHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
+    public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
         $demande = $ordreCollecte->getDemandeCollecte();
         $requester = $demande ? $demande->getDemandeur() : null;
         $pointCollecte = $demande ? $demande->getPointCollecte() : null;
@@ -427,8 +427,8 @@ class OrdreCollecteService
             [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($ordreCollecte->getStatut()->getNom()) : '' ],
             [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
             [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
-            [ 'label' => 'Destination', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
-            [ 'label' => 'Point de collecte', 'value' => $demande->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
+            [ 'label' => 'Destination', 'value' => $demande->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
+            [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
             [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
             [
                 'label' => 'Commentaire',
