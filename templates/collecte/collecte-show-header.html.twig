@@ -5,11 +5,13 @@
 {% block showActions %}
     <div class="btn-group">
         {% if modifiable %}
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                <button type="button" data-id='{{ collecte.id }}' data-target='#modalEditCollecte' data-toggle='modal'
-                        onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
-                        class="btn btn-primary btn-ripple ml-auto split-button">
-                    Modifier
+            {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+            {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+            {% if hasRightEdit %}
+                <button type="button"
+                        onclick="validateCollecte({{ collecte.id }})"
+                        class="btn btn-primary btn-ripple split-button">
+                    Valider
                 </button>
             {% endif %}
             <button type="button"
@@ -20,11 +22,16 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-menu-right pointer">
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                    <a href="#" onclick="validateCollecte({{ collecte.id }})"
-                       class="dropdown-item"><i class="fa fa-check mr-2"></i>Valider</a>
+                {% if hasRightEdit %}
+                    <a  data-id='{{ collecte.id }}'
+                        data-target='#modalEditCollecte'
+                        data-toggle='modal'
+                        onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
+                        class="dropdown-item">
+                        <i class="fa fa-pen mr-2"></i>Modifier
+                    </a>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRightDelete %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
                        data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
                        class="dropdown-item">
