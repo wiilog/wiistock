@@ -1468,9 +1468,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             if (!empty($location)) {
-                $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
                 $resData['success'] = true;
-                $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
+                $resData['trackingDrops'] = [];
+                // TODO AB : mettre en place la pagination si volume de données tro volumineux
+//                $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                // $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
             }
             else {
                 $resData['success'] = true;
