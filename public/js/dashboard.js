@@ -9,13 +9,12 @@ let chartColis;
 let chartMonetaryFiability;
 let chartFirstForAdmin;
 let chartSecondForAdmin;
+let width = document.body.clientWidth;
+let FONT_SIZE = Math.floor(width/100);
+const dashboardChartsData = {};
 
-
-FONT_SIZE_DEFAULT = 18;
-FONT_SIZE_EXT = 40;
 
 $(function () {
-
     refreshPageTitle();
     const $carouselIndicators = $('#carouselIndicators');
     $carouselIndicators.on('slid.bs.carousel', () => {
@@ -60,7 +59,7 @@ $(function () {
 
     initTooltips($('.has-tooltip'));
 
-    let reloadFrequency = 1000 * 60 * 15;
+    let reloadFrequency = 1000 * 60 * 15; // 15min
     setInterval(reloadDashboards, reloadFrequency);
 
     let $indicators = $('#indicators');
@@ -79,13 +78,23 @@ $(function () {
             activeBtn.next('li').click()
         }
     });
+
+    $(window).resize(function () {
+        width = document.body.clientWidth;
+        let newFontSize = Math.floor(width/100);
+        if(newFontSize !== FONT_SIZE) {
+            FONT_SIZE = newFontSize;
+            updateCharts(true);
+        }
+    });
 });
+
 
 function reloadDashboards() {
     if (datatableColis) {
         datatableColis.ajax.reload();
     }
-    updateCharts();
+    updateCharts(false);
     updateCarriers();
     refreshIndicatorsReceptionDock();
     refreshIndicatorsReceptionAdmin();
@@ -94,15 +103,15 @@ function reloadDashboards() {
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
 
-function updateCharts() {
-    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm);
-    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep);
-    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival);
-    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival);
-    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability);
-    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
-    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
+function updateCharts(preferCacheData = false) {
+    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCacheData);
+    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCacheData);
+    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCacheData);
+    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCacheData);
+    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCacheData);
+    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCacheData);
+    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCacheData);
+    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCacheData);
 }
 
 function updateSimpleChartData(
@@ -173,31 +182,59 @@ function updateMultipleChartData(chart, chartData, chartColors) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path, chart = null) {
+function drawSimpleChart($canvas, path, chart, preferCacheData = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
-            $.get(Routing.generate(path), function (data) {
-                if (!chart) {
-                    chart = newChart($canvas, false);
-                }
-
-                updateSimpleChartData(
-                    chart,
-                    data.data || data,
-                    data.data && data.label,
-                    {
-                        data: data.subCounters,
-                        label: data.subLabel
-                    });
+            if (!preferCacheData){
+                $.get(Routing.generate(path), function (data) {
+                    dashboardChartsData[$canvas.attr('id')] = data;
+                    chart = createAndUpdateSimpleChart($canvas, chart, data);
+                    resolve(chart);
+                });
+            } else {
+                const data = dashboardChartsData[$canvas.attr('id')];
+                chart = createAndUpdateSimpleChart($canvas, chart, data, true);
                 resolve(chart);
-            });
+            }
         }
     });
 }
 
-function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
+function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false) {
+    if (forceCreation || !chart) {
+        chart = newChart($canvas, false);
+    }
+
+    if (data){
+        updateSimpleChartData(
+            chart,
+            data.data || data,
+            data.data && data.label,
+            {
+                data: data.subCounters,
+                label: data.subLabel
+            }
+        );
+    }
+
+    return chart;
+}
+
+function createAndUpdateMultipleCharts($canvas, chart, data, forceCreation = false) {
+    if (forceCreation || !chart) {
+        chart = newChart($canvas, true);
+    }
+
+    if (data) {
+        updateMultipleChartData(chart, data.data, (data.chartColors || {}));
+    }
+    return chart;
+}
+
+
+function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData= false) {
     return new Promise(function (resolve) {
         if ($button.length == 0) {
             resolve();
@@ -206,55 +243,60 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
             let $rangeBtns = $dashboardBox.find('.range-buttons');
             let $firstDay = $rangeBtns.find('.firstDay');
             let $lastDay = $rangeBtns.find('.lastDay');
-
             let $canvas = $dashboardBox.find('canvas');
+            if (!preferCacheData) {
+                let params = {
+                    'firstDay': $firstDay.data('day'),
+                    'lastDay': $lastDay.data('day'),
+                    'beforeAfter': beforeAfter
+                };
+                $.get(Routing.generate(path), params, function (data) {
+                    $firstDay.text(data.firstDay);
+                    $firstDay.data('day', data.firstDayData);
+                    $lastDay.text(data.lastDay);
+                    $lastDay.data('day', data.lastDayData);
+                    $rangeBtns.removeClass('d-none');
 
-            let params = {
-                'firstDay': $firstDay.data('day'),
-                'lastDay': $lastDay.data('day'),
-                'beforeAfter': beforeAfter
-            };
-            $.get(Routing.generate(path), params, function (data) {
-                $firstDay.text(data.firstDay);
-                $firstDay.data('day', data.firstDayData);
-                $lastDay.text(data.lastDay);
-                $lastDay.data('day', data.lastDayData);
+                    const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
+                        previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
+                        return previous;
+                    }, {});
 
-                $rangeBtns.removeClass('d-none');
+                    dashboardChartsData[$canvas.attr('id')] = chartData;
+                    chart = createAndUpdateSimpleChart($canvas, chart, chartData);
+                    resolve(chart);
+                });
+            } else {
+                const chartData = dashboardChartsData[$canvas.attr('id')];
 
-                if (!chart) {
-                    chart = newChart($canvas);
-                }
-
-                const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
-                    previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
-                    return previous;
-                }, {});
-                updateSimpleChartData(chart, chartData);
+                chart = createAndUpdateSimpleChart($canvas, chart, chartData, true);
                 resolve(chart);
-            });
+            }
         }
     });
 }
 
-function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) {
+function drawMultipleBarChart($canvas, path, params, chartNumber, chart ,preferCacheData = false ) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
-            $.get(Routing.generate(path, params), function (data) {
-                $('#empForChart' + chartNumber).text(data.location);
-                $('#totalForChart' + chartNumber).text(data.total);
+            if (!preferCacheData) {
+                $.get(Routing.generate(path, params), function (data) {
+                    $('#empForChart' + chartNumber).text(data.location);
+                    $('#totalForChart' + chartNumber).text(data.total);
+                    dashboardChartsData[$canvas.attr('id')] = data;
 
-                if (!chart) {
-                    chart = newChart($canvas, true);
-                }
-
-                updateMultipleChartData(chart, data.data, (data.chartColors || {}));
+                    chart = createAndUpdateMultipleCharts($canvas, chart, data);
+                    resolve(chart);
+                });
+            }
+            else {
+                data = dashboardChartsData[$canvas.attr('id')];
+                chart = createAndUpdateMultipleCharts($canvas, chart, data, true);
                 resolve(chart);
-            });
-        }
-    });
+            }
+        }});
 }
 
 function goToFilteredDemande(type, filter) {
@@ -277,9 +319,7 @@ function goToFilteredDemande(type, filter) {
 
 function newChart($canvasId, redForLastData = false) {
     if ($canvasId.length) {
-        const fontSize = isDashboardExt()
-            ? FONT_SIZE_EXT
-            : FONT_SIZE_DEFAULT;
+        const fontSize = FONT_SIZE;
         const fontStyle = isDashboardExt()
             ? 'bold'
             : undefined;
@@ -440,7 +480,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     //   * fontWeight XXpx fontFamily
     //   * XXpx fontFamily
     const fontSizeMatch = (ctx.font || '').match(/(\d+)px(?:\s|$)/);
-    const fontSize = Number((fontSizeMatch && fontSizeMatch[1]) || FONT_SIZE_DEFAULT);
+    const fontSize =  FONT_SIZE;
 
     const figurePaddingHorizontal = 8;
     const figurePaddingVertical = 4;
@@ -503,7 +543,7 @@ function refreshPageTitle() {
     const $pageTitle = $activeCarousel.length > 0
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
-    const pageTitle = $pageTitle.val() ;
+    const pageTitle = $pageTitle.val();
 
     document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 
@@ -511,7 +551,7 @@ function refreshPageTitle() {
 
     if (words && words.length > 0) {
         const $titleContainer = $('<span/>');
-        for(let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
             if ($titleContainer.children().length > 0) {
                 $titleContainer.append(' | ')
             }

@@ -1,9 +1,8 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ADMINISTRATIVE"/>
 <div class="col-12">
-    <div class="row">
-        <div class="col-12 mt-3 {{ isDashboardExt ? 'mb-3' }}">
+        <div class="col-12  {{ isDashboardExt ? ' '}}">
             <div class="row">
-                <div class="col-9 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} third-height">
+                <div class="col-9 dashboard-box-container third-height">
                     <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
                         <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
                             Entrées à effectuer
@@ -26,7 +25,7 @@
                 <div class="col-3 d-flex flex-column justify-content-between">
                     <div>
                         <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} side-panels">
-                            <div class="dashboard-box {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                            <div class="dashboard-box justify-content-around">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -36,12 +35,12 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-0' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-3 mb-0 mt-2' }}">
                                     Nombre de lignes à traiter
                                 </p>
-                                <div class="text-center mb-1 {{ isDashboardExt ? ' ' : 'mb-1' }}">
-                                    <p id="totalForChart1" class="figure bold {{ isDashboardExt ? 'big-font mb-5' : ' ' }}"></p>
-                                </div>
+                                <div class="text-center ">
+                                    <p id="totalForChart1" class="figure bold {{ isDashboardExt ? 'big-font pb-0' : ' ' }}"></p>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -69,9 +68,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 mt-3 {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }}">
+        <div class="col-12 mt-2 {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }}">
             <div class="row">
-                <div class="col-9 dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} third-height">
+                <div class="col-9 dashboard-box-container  third-height">
                     <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
                         <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
                             Entrées à effectuer
@@ -92,9 +91,9 @@
                     </div>
                 </div>
                 <div class="col-3 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} side-panels">
-                            <div class="dashboard-box {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                    <div class="justify-content-between">
+                        <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext mb-2': ' mb-2'}} side-panels ">
+                            <div class="dashboard-box justify-content-around">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -104,18 +103,18 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-3 mb-0 mt-2' }}">
                                     Nombre de lignes à traiter
                                 </p>
-                                <div class="text-center mb-1">
-                                    <div id="totalForChart2" class="figure bold {{ isDashboardExt ? 'big-font mb-5' : ' ' }}"></div>
+                                <div class="text-center">
+                                    <div id="totalForChart2" class="figure bold {{ isDashboardExt ? 'big-font pb-0' : ' ' }}"></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
                         <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} side-panels">
-                            <div class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                            <div class="dashboard-box justify-content-around">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -124,7 +123,7 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-3 mb-0 mt-2' }}">
                                     Prochain emplacement à traiter
                                 </p>
                                 <div class="d-flex align-items-center justify-content-center"
@@ -137,7 +136,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 mt-3 {{ isDashboardExt ? 'mb-3' }}">
+        <div class="col-12 mt-4 px-0">
             <div class="row">
                 <div class="col-3">
                     <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
