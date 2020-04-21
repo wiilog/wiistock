@@ -532,7 +532,6 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
@@ -617,33 +616,11 @@ class ArrivageController extends AbstractController
                 }
             }
 
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
-            $champsLibres = [];
-            foreach ($listTypes as $type) {
-                $listChampsLibres = $champLibreRepository->findByType($type['id']);
-
-                foreach ($listChampsLibres as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
-
-            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
             $response = [
-                'entete' => $this->renderView('arrivage-show-header.html.twig', [
+                'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                    'fieldsParam' => $fieldsParam,
-                    'champsLibres' => $champsLibres
+                    'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
                 ]),
                 'alertConfigs' => [
                     $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, [])
@@ -964,26 +941,8 @@ class ArrivageController extends AbstractController
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-        $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
-        $champsLibres = [];
-        foreach ($listTypes as $type) {
-            $listChampsLibres = $champLibreRepository->findByType($type['id']);
-
-            foreach ($listChampsLibres as $champLibre) {
-                $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
-
-                $champsLibres[] = [
-                    'id' => $champLibre->getId(),
-                    'label' => $champLibre->getLabel(),
-                    'typage' => $champLibre->getTypage(),
-                    'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                    'defaultValue' => $champLibre->getDefaultValue(),
-                    'valeurChampLibre' => $valeurChampLibre,
-                ];
-            }
-        }
 
         return $this->render("arrivage/show.html.twig",
             [
@@ -997,7 +956,6 @@ class ArrivageController extends AbstractController
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                 'fieldsParam' => $fieldsParam,
-                'champsLibres' => $champsLibres,
                 'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
                 'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
             ]);
@@ -1006,12 +964,14 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
      * @param Request $request
+     * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function newLitige(Request $request,
+                              ArrivageDataService $arrivageDataService,
                               EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1068,7 +1028,7 @@ class ArrivageController extends AbstractController
 
             $this->sendMailToAcheteurs($litige);
 
-            $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $request->query->get('reloadArrivage'));
+            $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
             $response = $arrivageResponse ? $arrivageResponse : [];
 
             return new JsonResponse($response);
@@ -1224,10 +1184,14 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/modifier-litige", name="litige_edit_arrivage",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param ArrivageDataService $arrivageDataService
+     * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws Exception
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function editLitige(Request $request,
+                               ArrivageDataService $arrivageDataService,
                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1324,7 +1288,7 @@ class ArrivageController extends AbstractController
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
 
-            $response = $this->getResponseReloadArrivage($entityManager, $request->query->get('reloadArrivage'));
+            $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
 
             return new JsonResponse($response);
         }
@@ -1524,51 +1488,27 @@ class ArrivageController extends AbstractController
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param ArrivageDataService $arrivageDataService
      * @param $reloadArrivageId
      * @return array|null
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
+                                               ArrivageDataService $arrivageDataService,
                                                $reloadArrivageId): ?array
     {
         $response = null;
         if (isset($reloadArrivageId)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 
             $arrivageToReload = $arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
-                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-                $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARRIVAGE);
-                $champsLibres = [];
-                foreach ($listTypes as $type) {
-                    $listChampsLibres = $champLibreRepository->findByType($type['id']);
-
-                    foreach ($listChampsLibres as $champLibre) {
-                        $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivageToReload, $champLibre);
-
-                        $champsLibres[] = [
-                            'id' => $champLibre->getId(),
-                            'label' => $champLibre->getLabel(),
-                            'typage' => $champLibre->getTypage(),
-                            'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                            'defaultValue' => $champLibre->getDefaultValue(),
-                            'valeurChampLibre' => $valeurChampLibre,
-                        ];
-                    }
-                }
-
                 $response = [
-                    'entete' => $this->renderView('arrivage-show-header.html.twig', [
+                    'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
-                        'fieldsParam' => $fieldsParam,
-                        'champsLibres' => $champsLibres
+                        'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivageToReload)
                     ]),
                 ];
             }

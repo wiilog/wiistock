@@ -52,7 +52,7 @@
             <a href="" class="dropdown-item" data-target='#modalNewAssociation' data-toggle='modal'>
                 <i class="fa fa-bullseye mr-2"></i>Association/BR
             </a>
-            {% if (canBeDeleted) %}
+            {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) %}
                     <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
                        class="dropdown-item"
