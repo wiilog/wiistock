@@ -197,9 +197,9 @@ class ArrivageDataService
      * @return array
      * @throws NonUniqueResultException
      */
-    public function createArrivalAlertConfig(   Arrivage $arrivage,
-                                                bool $askQuestion,
-                                                array $urgences = []): array
+    public function createArrivalAlertConfig(Arrivage $arrivage,
+                                             bool $askQuestion,
+                                             array $urgences = []): array
     {
         $isArrivalUrgent = count($urgences);
 
