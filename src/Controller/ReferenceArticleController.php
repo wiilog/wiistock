@@ -376,6 +376,7 @@ class ReferenceArticleController extends AbstractController
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($this->getUser());
             }
+
             if ($data['limitSecurity']) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
@@ -877,8 +878,8 @@ class ReferenceArticleController extends AbstractController
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
-					$json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
-					if ($json === 'article') {
+                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
+                    if ($json === 'article') {
 						$this->articleDataService->editArticle($data);
 						$json = true;
 					}

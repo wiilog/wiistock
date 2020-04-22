@@ -7,6 +7,7 @@ use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\PieceJointe;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
@@ -72,8 +73,9 @@ class ArrivageDataService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Exception
      */
-    public function getDataForDatatable($params = null, $userId)
+    public function getDataForDatatable($params, $userId)
     {
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -117,7 +119,7 @@ class ArrivageDataService
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
-        $row = [
+        return [
             'id' => $arrivage->getId(),
             'NumeroArrivage' => $arrivage->getNumeroArrivage() ?? '',
             'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
@@ -140,8 +142,6 @@ class ArrivageDataService
                 ['url' => $url, 'arrivage' => $arrivage]
             )
         ];
-
-        return $row;
     }
 
     /**
@@ -214,6 +214,7 @@ class ArrivageDataService
      * @param bool $askQuestion
      * @param Urgence[] $urgences
      * @return array
+     * @throws NonUniqueResultException
      */
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
@@ -252,6 +253,7 @@ class ArrivageDataService
         } else {
             $numeroCommande = null;
         }
+        $parametrageGlobalRepository =$this->entityManager->getRepository(ParametrageGlobal::class);
 
         return [
             'autoHide' => (!$askQuestion && !$isArrivalUrgent),
@@ -262,6 +264,7 @@ class ArrivageDataService
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
+            'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
             'arrivalId' => $arrivage->getId()
@@ -274,12 +277,12 @@ class ArrivageDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NonUniqueResultException
      */
     public function processEmergenciesOnArrival(Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
-
         $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
         if (!empty($numeroCommandeList)) {
