@@ -49,13 +49,14 @@ class Import
 
 	const FIELD_PK = [
 	    self::ENTITY_ART_FOU => 'reference',
-        self::ENTITY_ART => 'reference',
+        self::ENTITY_ART => 'barCode',
         self::ENTITY_FOU => 'codeReference',
         self::ENTITY_REF => 'reference'
     ];
 
 	const FIELDS_ENTITY = [
         'reference' => 'référence',
+        'barCode' => 'code barre',
         'quantite' => 'quantité',
         'label' => 'libellé',
         'libelle' => 'libellé',

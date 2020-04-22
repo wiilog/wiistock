@@ -353,7 +353,7 @@ class ImportService
                                     int $rowIndex): array
     {
         try {
-            $this->em->transactional(function () use ($dataToCheck, $row, $headers, $colChampsLibres, $refToUpdate, &$stats, $rowIndex) {
+            $this->em->transactional(function () use ($dataToCheck, $row, $headers, $colChampsLibres, &$refToUpdate, &$stats, $rowIndex) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
 
                 switch ($this->currentImport->getEntity()) {

@@ -1,106 +1,112 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ARRIVAGE"/>
-<div class="row no-gutters">
-    {% if extDashboard is not defined %}
-        <div class="col-12 pl-3 pr-3" id="blocIndicators">
-            <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
-                 aria-expanded="false" aria-controls="indicators">
-                <span class="icon"></span>
-            </div>
-            <div class="collapse indicators" id="indicators">
-                <div class="card card-body">
-                    {% include 'accueil/dashboardIndicatorsList.html.twig' %}
+<div class="col-12">
+    <div class="row">
+        {% if extDashboard is not defined %}
+            <div class="col-12 pl-3 pr-3" id="blocIndicators">
+                <div class="plus-btn" id="btnIndicators" data-toggle="collapse" data-target="#indicators"
+                     aria-expanded="false" aria-controls="indicators">
+                    <span class="icon"></span>
+                </div>
+                <div class="collapse indicators" id="indicators">
+                    <div class="card card-body">
+                        {% include 'accueil/dashboardIndicatorsList.html.twig' %}
+                    </div>
                 </div>
             </div>
-        </div>
-    {% endif %}
-    <div class="dashboard-box-container col-6 pr-3 pl-3 half-height">
-        <div class="dashboard-box">
-            <p class="title">Arrivage (UM)</p>
-            <div class="points">
-                <i class="fa fa-question has-tooltip"
-                   title="Nombre {{ 'arrivage.arrivages'|trans }} par jour."></i>
-            </div>
-            <div class="h-100">
-                <canvas id="chartArrivalUm" width="300" height="90"></canvas>
-            </div>
-            <div class="range-buttons d-none">
-                <div class="arrow-chart"
-                     onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
-                    <i class="fas fa-chevron-left pointer"></i>
-                </div>
-                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                <div class="arrow-chart"
-                     onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
-                    <i class="fas fa-chevron-right pointer"></i>
-                </div>
-            </div>
-        </div>
+        {% endif %}
     </div>
-    <div class="dashboard-box-container col-6 pr-3 pl-3 half-height">
-        <div class="dashboard-box">
-            <p class="title">Réceptions (nombre d'associations)</p>
-            <div class="points">
-                <i class="fa fa-question has-tooltip"
-                   title="Nombre réceptions de traçabilité par jour."></i>
-            </div>
-            <div class="h-100">
-                <canvas id="chartAssocRecep" width="300" height="90"></canvas>
-            </div>
-            <div class="range-buttons d-none">
-                <div class="arrow-chart"
-                     onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
-                    <i class="fas fa-chevron-left pointer"></i>
-                </div>
-                <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
-                <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
-                <div class="arrow-chart"
-                     onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
-                    <i class="fas fa-chevron-right pointer"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="dashboard-box-container col-6 mt-1 pr-3 pl-3 half-height">
-        <div class="dashboard-box justify-content-between">
-            <p class="title mb-0 pb-0">Colis en retard</p>
-            <div class="points">
-                <i class="fa fa-question has-tooltip"
-                   title="{{ 'arrivage.colis'|trans }} ayant dépassé le délai de présence sur son emplacement (paramétrable sur chaque emplacement).">
-                </i>
-            </div>
-            <div class="dashboard-box-content pt-0 pb-0">
-                <table class="table retards-table w-100">
-                </table>
-            </div>
-        </div>
-    </div>
-    {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) or extDashboard is defined %}
-        <div class="dashboard-box-container col-6 mt-1 pr-3 pl-3 half-height">
-            <div id="dashboard-monetary" class="dashboard-box">
-                <p class="title">Fiabilité monétaire</p>
+    <div class="row">
+        <div class="dashboard-box-container col-6 pr-2 half-height">
+            <div class="dashboard-box">
+                <p class="title">Arrivage (UM)</p>
                 <div class="points">
-                    <i
-                        class="fa fa-question has-tooltip"
-                        title="Somme des quantités corrigées suite à un inventaire *
-                        prix unitaire de la référence/de l'article pour les 6 derniers mois"></i>
+                    <i class="fa fa-question has-tooltip"
+                       title="Nombre {{ 'arrivage.arrivages'|trans }} par jour."></i>
                 </div>
                 <div class="h-100">
-                    <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
+                    <canvas id="chartArrivalUm" width="300" height="90"></canvas>
                 </div>
                 <div class="range-buttons d-none">
                     <div class="arrow-chart"
-                         onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'before', chartMonetaryFiability)">
+                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'before', chartArrivalUm)">
                         <i class="fas fa-chevron-left pointer"></i>
                     </div>
                     <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
                     <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
                     <div class="arrow-chart"
-                         onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'after', chartMonetaryFiability)">
+                         onclick="drawChartWithHisto($(this), 'get_arrival_um_statistics', 'after', chartArrivalUm)">
                         <i class="fas fa-chevron-right pointer"></i>
                     </div>
                 </div>
             </div>
         </div>
-    {% endif %}
+        <div class="dashboard-box-container col-6 pl-2 half-height">
+            <div class="dashboard-box">
+                <p class="title">Réceptions (nombre d'associations)</p>
+                <div class="points">
+                    <i class="fa fa-question has-tooltip"
+                       title="Nombre réceptions de traçabilité par jour."></i>
+                </div>
+                <div class="h-100">
+                    <canvas id="chartAssocRecep" width="300" height="90"></canvas>
+                </div>
+                <div class="range-buttons d-none">
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'before', chartAssoRecep)">
+                        <i class="fas fa-chevron-left pointer"></i>
+                    </div>
+                    <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                    <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                    <div class="arrow-chart"
+                         onclick="drawChartWithHisto($(this), 'get_asso_recep_statistics', 'after', chartAssoRecep)">
+                        <i class="fas fa-chevron-right pointer"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="dashboard-box-container col-6 pr-2 half-height">
+            <div class="dashboard-box justify-content-between">
+                <p class="title mb-0 pb-0">Colis en retard</p>
+                <div class="points">
+                    <i class="fa fa-question has-tooltip"
+                       title="{{ 'arrivage.colis'|trans }} ayant dépassé le délai de présence sur son emplacement (paramétrable sur chaque emplacement).">
+                    </i>
+                </div>
+                <div class="dashboard-box-content pt-0 pb-0">
+                    <table class="table retards-table w-100">
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDIC_INV_MONETAIRE')) or extDashboard is defined %}
+            <div class="dashboard-box-container col-6 pl-2 half-height">
+                <div id="dashboard-monetary" class="dashboard-box">
+                    <p class="title">Fiabilité monétaire</p>
+                    <div class="points">
+                        <i
+                            class="fa fa-question has-tooltip"
+                            title="Somme des quantités corrigées suite à un inventaire *
+                            prix unitaire de la référence/de l'article pour les 6 derniers mois"></i>
+                    </div>
+                    <div class="h-100">
+                        <canvas id="chartMonetaryFiability" width="300" height="90"></canvas>
+                    </div>
+                    <div class="range-buttons d-none">
+                        <div class="arrow-chart"
+                             onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'before', chartMonetaryFiability)">
+                            <i class="fas fa-chevron-left pointer"></i>
+                        </div>
+                        <span class="firstDay" data-day="{{ firstDayOfWeek }}"></span> -
+                        <span class="lastDay" data-day="{{ lastDayOfWeek }}"></span>
+                        <div class="arrow-chart"
+                             onclick="drawChartWithHisto($(this), 'get_monetary_fiability_statistics', 'after', chartMonetaryFiability)">
+                            <i class="fas fa-chevron-right pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </div>
