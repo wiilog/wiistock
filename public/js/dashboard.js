@@ -9,22 +9,16 @@ let chartColis;
 let chartMonetaryFiability;
 let chartFirstForAdmin;
 let chartSecondForAdmin;
-let width = document.body.clientWidth;
-let FONT_SIZE = Math.floor(width/100);
+let currentChartsFontSize;
 const dashboardChartsData = {};
 
-
 $(function () {
-    refreshPageTitle();
-    const $carouselIndicators = $('#carouselIndicators');
-    $carouselIndicators.on('slid.bs.carousel', () => {
-        refreshPageTitle();
-    });
-
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
+    currentChartsFontSize = calculateChartsFontSize();
+
     //// charts monitoring réception arrivage
     drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
         chartArrivalUm = chart;
@@ -80,12 +74,17 @@ $(function () {
     });
 
     $(window).resize(function () {
-        width = document.body.clientWidth;
-        let newFontSize = Math.floor(width/100);
-        if(newFontSize !== FONT_SIZE) {
-            FONT_SIZE = newFontSize;
+        let newFontSize = calculateChartsFontSize();
+        if(newFontSize !== currentChartsFontSize) {
+            currentChartsFontSize = newFontSize;
             updateCharts(true);
         }
+    });
+
+    refreshPageTitle();
+    const $carouselIndicators = $('#carouselIndicators');
+    $carouselIndicators.on('slid.bs.carousel', () => {
+        refreshPageTitle();
     });
 });
 
@@ -319,7 +318,7 @@ function goToFilteredDemande(type, filter) {
 
 function newChart($canvasId, redForLastData = false) {
     if ($canvasId.length) {
-        const fontSize = FONT_SIZE;
+        const fontSize = currentChartsFontSize;
         const fontStyle = isDashboardExt()
             ? 'bold'
             : undefined;
@@ -446,13 +445,13 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
         counter = data;
     }
     if (counter > 0 && needsRedColorIfPositiv) {
-        $counterCountainer.find('.counter').addClass('red');
+        $counterCountainer.find('.dashboard-stats').addClass('red');
         $counterCountainer.find('.fas').addClass('red fa-exclamation-triangle');
     } else {
-        $counterCountainer.find('.counter').removeClass('red');
+        $counterCountainer.find('.dashboard-stats').removeClass('red');
         $counterCountainer.find('.fas').removeClass('red fa-exclamation-triangle');
     }
-    $counterCountainer.find('.counter').text(counter);
+    $counterCountainer.find('.dashboard-stats').text(counter);
 }
 
 function updateCarriers() {
@@ -476,11 +475,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     ctx.shadowColor = '#999';
 
 
-    // cxt.font format :
-    //   * fontWeight XXpx fontFamily
-    //   * XXpx fontFamily
-    const fontSizeMatch = (ctx.font || '').match(/(\d+)px(?:\s|$)/);
-    const fontSize =  FONT_SIZE;
+    const fontSize = currentChartsFontSize;
 
     const figurePaddingHorizontal = 8;
     const figurePaddingVertical = 4;
@@ -560,4 +555,9 @@ function refreshPageTitle() {
         }
         $('.main-header .header-title').html($titleContainer);
     }
+}
+
+function calculateChartsFontSize() {
+    let width = document.body.clientWidth;
+    return Math.floor(width / 100);
 }

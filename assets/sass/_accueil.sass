@@ -23,56 +23,54 @@
 .dashboard-box-container
     &.side-panels
         height: 15vh
+        .dashboard-ext &
+            height: 14.5vh
 
     &.fourth-height
         height: 16vh
+        .dashboard-ext &
+            height: 18vh
 
     &.third-height
         height: 31vh
+        .dashboard-ext &
+            height: 30vh
 
     &.half-height
         height: 38vh
-
-    &.dashboard-box-container-ext
-        &.fourth-height
-            height: 18vh
-
-        &.third-height
-            height: 30vh
-
-        &.half-height
+        .dashboard-ext &
             height: 41vh
-
-    &:not(:first-child)
-        padding-left: 16px
 
     .dashboard-box
         border-radius: 8px
         display: flex
         flex-direction: column
-        justify-content: center
+        justify-content: space-between
         box-shadow: 2px 2px 3px grey
         height: 100%
         position: relative
         background: $white
         padding: .5rem
 
-        .dashboard-box-ext
-            padding: 1rem
+        &.dashboard-stats-container
+            .dashboard-ext &
+                padding-left: 2px
+                padding-right: 2px
 
         &.dashboard-box-list
             .title
                 margin-bottom: 1.5rem
-
             li
                 line-height: 1.5
 
         .title
-            line-height: 1
-            font-size: 1.35rem
-            margin-bottom: .5rem
-            padding: 0px
+            line-height: .9
+            font-size: 2.5vh
+            margin-bottom: .3rem
+            padding: 0
             color: $blackDashboard
+            .dashboard-ext &
+                font-weight: bold
 
         .location-label
             line-height: 1
@@ -101,6 +99,24 @@
         .dataTables_wrapper, span
             font-size: .8em
 
+        .dashboard-stats
+            font-weight: bold
+            color: $blueNeon
+            cursor: default
+            //font-size: 9vh
+            font-size: 3vw
+            line-height: 0.8
+
+            &.dashboard-stats-counter
+                font-size: 3vw
+                .dashboard-ext &
+                    font-size: 8vh
+
+            &.dashboard-stats-label
+                font-size: 2.5vw
+                .dashboard-ext &
+                    font-size: 7.5vh
+
         .dashboard-box-content
             padding: 10px
             height: 100%
@@ -122,13 +138,6 @@
                 align-items: center
                 display: flex
                 justify-content: center
-
-.figure
-    font-weight: bold
-    color: $blueNeon
-    cursor: default
-    font-size: 9vh
-    line-height: 0.8
 
 .home-card
     background-color: $lightGrey
@@ -212,7 +221,3 @@
 .lh
     line-height: 1em
     margin-bottom: 0
-
-.padding-vec
-    padding-top: 1.5vh
-    padding-bottom: 1.5vh

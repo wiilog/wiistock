@@ -1,10 +1,11 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ADMINISTRATIVE"/>
 <div class="col-12">
-        <div class="col-12  {{ isDashboardExt ? ' '}}">
+    <div class="row">
+        <div class="col-12 {{ isDashboardExt ? 'mt-3'}}">
             <div class="row">
-                <div class="col-9 dashboard-box-container third-height">
-                    <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
-                        <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                <div class="col-9 dashboard-box-container third-height {{ not isDashboardExt ? 'pr-2'}}">
+                    <div class="dashboard-box">
+                        <p class="title {{ isDashboardExt ? 'bold' }}">
                             Entrées à effectuer
                             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                                 Composant
@@ -22,10 +23,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-3 d-flex flex-column justify-content-between">
+                <div class="col-3 d-flex flex-column justify-content-between {{ not isDashboardExt ? 'pl-2'}}">
                     <div>
-                        <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} side-panels">
-                            <div class="dashboard-box justify-content-around">
+                        <div class="dashboard-box-container side-panels">
+                            <div class="dashboard-box dashboard-stats-container">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -35,18 +36,18 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-3 mb-0 mt-2' }}">
+                                <p class="text-center title">
                                     Nombre de lignes à traiter
                                 </p>
-                                <div class="text-center ">
-                                    <p id="totalForChart1" class="figure bold {{ isDashboardExt ? 'big-font pb-0' : ' ' }}"></p>
-                            </div>
+                                <div class="text-center">
+                                    <p id="totalForChart1" class="dashboard-stats dashboard-stats-counter bold"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} side-panels">
-                            <div class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                        <div class="dashboard-box-container side-panels">
+                            <div class="dashboard-box dashboard-stats-container text-center">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -55,12 +56,12 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-0' }}">
+                                <p class="text-center title {{ not isDashboardExt ? 'px-3' }}">
                                     Prochain emplacement à traiter
                                 </p>
                                 <div class="d-flex align-items-center justify-content-center"
                                      style="height: inherit;">
-                                    <div class="display-font figure counter" id="empForChart1"></div>
+                                    <div class="dashboard-stats dashboard-stats-label" id="empForChart1"></div>
                                 </div>
                             </div>
                         </div>
@@ -68,11 +69,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 mt-2 {{ isDashboardExt ? 'dashboard-box-container-ext mb-3' }}">
+        <div class="col-12 mt-3">
             <div class="row">
-                <div class="col-9 dashboard-box-container  third-height">
-                    <div class="dashboard-box {{ isDashboardExt ? 'dashboard-box-ext' }}">
-                        <p class="title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                <div class="col-9 dashboard-box-container third-height {{ not isDashboardExt ? 'pr-2'}}">
+                    <div class="dashboard-box">
+                        <p class="title">
                             Entrées à effectuer
                             {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
                                 Méca
@@ -90,10 +91,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-3 d-flex flex-column justify-content-between">
-                    <div class="justify-content-between">
-                        <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext mb-2': ' mb-2'}} side-panels ">
-                            <div class="dashboard-box justify-content-around">
+                <div class="col-3 d-flex flex-column justify-content-between {{ not isDashboardExt ? 'pl-2'}}">
+                    <div>
+                        <div class="dashboard-box-container side-panels ">
+                            <div class="dashboard-box dashboard-stats-container">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -103,18 +104,18 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-3 mb-0 mt-2' }}">
+                                <p class="text-center title">
                                     Nombre de lignes à traiter
                                 </p>
                                 <div class="text-center">
-                                    <div id="totalForChart2" class="figure bold {{ isDashboardExt ? 'big-font pb-0' : ' ' }}"></p>
+                                    <p id="totalForChart2" class="dashboard-stats dashboard-stats-counter bold"></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} side-panels">
-                            <div class="dashboard-box justify-content-around">
+                        <div class="dashboard-box-container side-panels">
+                            <div class="dashboard-box dashboard-stats-container">
                                 {% if not isDashboardExt %}
                                     <div class="points">
                                         <i class="fa fa-question has-tooltip"
@@ -123,12 +124,12 @@
                                         </i>
                                     </div>
                                 {% endif %}
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font pt-3 mb-0 mt-2' }}">
+                                <p class="text-center title {{ not isDashboardExt ? 'px-3' }}">
                                     Prochain emplacement à traiter
                                 </p>
                                 <div class="d-flex align-items-center justify-content-center"
                                      style="height: inherit;">
-                                    <p class="display-font figure" id="empForChart2"></p>
+                                    <p class="dashboard-stats dashboard-stats-label" id="empForChart2"></p>
                                 </div>
                             </div>
                         </div>
@@ -136,63 +137,63 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 mt-4 px-0">
+        <div class="col-12 mt-3">
             <div class="row">
-                <div class="col-3">
-                    <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
-                        <div id="remaining-urgences-box-admin" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
-                            <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                <div class="col-3 {{ not isDashboardExt ? 'pr-2'}}">
+                    <div class="dashboard-box-container fourth-height">
+                        <div id="remaining-urgences-box-admin" class="dashboard-box dashboard-stats-container text-center">
+                            <p class="text-center title">
                                 Urgences à recevoir
                             </p>
                             <div class="align-items-end justify-content-center">
-                                <p class="figure counter  {{ isDashboardExt ? 'big-font' }}"></p>
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-3">
-                    <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
-                        <div id="encours-urgence-box" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                <div class="col-3 {{ not isDashboardExt ? 'px-2'}}">
+                    <div class="dashboard-box-container dashboard-stats-container fourth-height">
+                        <div id="encours-urgence-box" class="dashboard-box text-center">
                             <div>
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                                <p class="text-center title">
                                     <i class="fas"></i>
                                     Urgences à traiter
                                     <i class="fas"></i>
                                 </p>
-                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' }}"></div>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
                             </div>
                             <div class="align-items-center">
-                                <p class="figure counter  {{ isDashboardExt ? 'big-font' }}"></p>
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-3 ">
-                    <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
-                        <div id="encours-litige-box" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                <div class="col-3 {{ not isDashboardExt ? 'px-2'}}">
+                    <div class="dashboard-box-container dashboard-stats-container fourth-height">
+                        <div id="encours-litige-box" class="dashboard-box text-center">
                             <div>
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                                <p class="text-center title">
                                     Lignes en litiges
                                 </p>
-                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' }}"></div>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
                             </div>
                             <div class="align-items-center">
-                                <p class="figure counter  {{ isDashboardExt ? 'big-font' }}"></p>
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-3">
-                    <div class="dashboard-box-container {{ isDashboardExt ? 'dashboard-box-container-ext' }} fourth-height">
-                        <div id="encours-clearance-box-admin" class="dashboard-box text-center {{ isDashboardExt ? 'justify-content-between dashboard-box-ext' : 'justify-content-around' }}">
+                <div class="col-3 {{ not isDashboardExt ? 'pl-2'}}">
+                    <div class="dashboard-box-container dashboard-stats-container fourth-height">
+                        <div id="encours-clearance-box-admin" class="dashboard-box text-center">
                             <div>
-                                <p class="text-center title {{ isDashboardExt ? 'bold ext-title-font' }}">
+                                <p class="text-center title">
                                     Colis en attente de dédouanement
                                 </p>
-                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' }}"></div>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
                             </div>
                             <div class="align-items-center">
-                                <p class="figure counter {{ isDashboardExt ? 'big-font' }}"></p>
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
                             </div>
                         </div>
                     </div>
