@@ -159,23 +159,23 @@ class ImportController extends AbstractController
                     ];
                     $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
-                    $fieldsToHide = ['id', 'barCode', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
+                    $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
                         'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
                         'quantiteReservee'];
                     $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                     switch ($entity) {
                         case Import::ENTITY_ART:
                             $categoryCL = CategorieCL::ARTICLE;
-                            $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+                            $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement', 'barCode'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_REF:
                             $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut'];
+                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_ART_FOU:
-                            $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
+                            $fieldsToAdd = ['référence article de référence', 'référence fournisseur', 'reference'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }

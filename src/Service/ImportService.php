@@ -518,9 +518,9 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('prixUnitaire', Import::ENTITY_ART),
                         'value' => isset($corresp['prixUnitaire']) ? $corresp['prixUnitaire'] : null,
                     ],
-                    'reference' => [
-                        'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_ART),
-                        'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
+                    'barCode' => [
+                        'needed' => $this->fieldIsNeeded('barCode', Import::ENTITY_ART),
+                        'value' => isset($corresp['barCode']) ? $corresp['barCode'] : null,
                     ],
                     'articleFournisseurReference' => [
                         'needed' => $this->fieldIsNeeded('articleFournisseurReference', Import::ENTITY_ART),
@@ -876,11 +876,11 @@ class ImportService
                                          int $rowIndex): ReferenceArticle
     {
         $refArticle = null;
-        if (!empty($data['reference'])) {
+        if (!empty($data['barCode'])) {
             $articleRepository = $this->em->getRepository(Article::class);
-            $article = $articleRepository->findOneBy(['reference' => $data['reference']]);
+            $article = $articleRepository->findOneBy(['barCode' => $data['barCode']]);
             if (!$article) {
-                $this->throwError('La référence donnée est invalide.');
+                $this->throwError('Le code barre donné est invalide.');
             }
             $isNewEntity = false;
             $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
