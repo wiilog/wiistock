@@ -939,7 +939,11 @@ class ArticleController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
-        $refData[] = $this->CSVExportService->escapeCSV($article->getReference());
+        $articleFournisseur = $article->getArticleFournisseur();
+        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+        $refReferenceArticle = $referenceArticle ? $referenceArticle->getReference() : '';
+
+        $refData[] = $this->CSVExportService->escapeCSV($refReferenceArticle);
         $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
         $refData[] = $this->CSVExportService->escapeCSV($article->getQuantite());
         $refData[] = $article->getType() ? $this->CSVExportService->escapeCSV($article->getType()->getLabel()) : '';
