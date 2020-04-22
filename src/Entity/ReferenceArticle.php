@@ -192,7 +192,6 @@ class ReferenceArticle
      */
     private $mouvementTracas;
 
-
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();

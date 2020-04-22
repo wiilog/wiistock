@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Colis;
 use App\Entity\Collecte;
+use App\Entity\DaysWorked;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiabilityByReference;
@@ -361,6 +362,9 @@ class AccueilController extends AbstractController
 		$emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $colisRepository = $entityManager->getRepository(Colis::class);
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
@@ -398,11 +402,11 @@ class AccueilController extends AbstractController
             }
 
             $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
+                                                                 use ($daysWorked, $enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    $date = $enCoursService->getTrackingMovementAge($pack['firstTrackingDateTime']);
+                    $date = $enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime']);
                     $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)

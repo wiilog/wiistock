@@ -12,7 +12,6 @@ use DateInterval;
 use DatePeriod;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
@@ -140,25 +139,41 @@ class EnCoursService
     }
 
     /**
-     * @param Emplacement $emplacement
+     * @param Emplacement[]|Emplacement
      * @param array $natures
+     * @param bool $onlyLate
      * @return array
-     * @throws DBALException
      * @throws Exception
      */
-    public function getEnCoursForEmplacement(Emplacement $emplacement, array $natures = [], bool $onlyLate = false): array {
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false): array {
         $success = true;
+        $locations = array_reduce(
+            is_array($locations) ? $locations : [$locations],
+            function(array $acc, Emplacement $location) {
+                $acc[$location->getId()] = $location;
+                return $acc;
+            },
+            []
+        );
         $emplacementInfo = [];
         $colisRepository = $this->entityManager->getRepository(Colis::class);
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
+
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+
         $packIntelList = empty($natures)
-            ? $mouvementTracaRepository->getLastOnLocations([$emplacement])
-            : $colisRepository->getPackIntelOnLocations([$emplacement], $natures);
+            ? $mouvementTracaRepository->getLastOnLocations($locations)
+            : $colisRepository->getPackIntelOnLocations($locations, $natures);
 
         foreach ($packIntelList as $packIntel) {
             $dateMvt = $packIntel['lastTrackingDateTime'];
-            $movementAge = $this->getTrackingMovementAge($dateMvt);
-            $dateMaxTime = $emplacement->getDateMaxTime();
+            $currentLocationId = $packIntel['currentLocationId'];
+            $currentLocation = $locations[(int) $currentLocationId];
+
+            $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt);
+            $dateMaxTime = $currentLocation->getDateMaxTime();
+
             if ($dateMaxTime) {
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $isLate = $timeInformation['countDownLateTimespan'] < 0;
@@ -168,7 +183,7 @@ class EnCoursService
                         'delay' => $timeInformation['ageTimespan'],
                         'date' => $dateMvt->format('d/m/Y H:i:s'),
                         'late' => $isLate,
-                        'emp' => $emplacement->getLabel()
+                        'emp' => $currentLocation->getLabel()
                 ];
                 }
             }
@@ -181,28 +196,14 @@ class EnCoursService
     }
 
     /**
+     * @param array $workedDays [<english day label ('l' format)> => <nb time worked>]
      * @param DateTime $movementDate
      * @return DateInterval
      * @throws Exception
      */
-    public function getTrackingMovementAge(DateTime $movementDate): DateInterval
+    public function getTrackingMovementAge(array $workedDays, DateTime $movementDate): DateInterval
     {
-        $daysWorkedRepository = $this->entityManager->getRepository(DaysWorked::class);
-
-        $daysWorked = array_reduce(
-            $daysWorkedRepository->findAllOrdered(),
-            function (array $carry, DaysWorked $daysWorked) {
-                $times = $daysWorked->getTimes();
-                $worked = $daysWorked->getWorked();
-                if ($worked && !empty($times)) {
-                    $carry[strtolower($daysWorked->getDay())] = $daysWorked->getTimes();
-                }
-                return $carry;
-            },
-            []);
-
-
-        if (count($daysWorked) > 0) {
+        if (count($workedDays) > 0) {
             $now = new DateTime("now", new DateTimeZone('Europe/Paris'));
             $nowIncluding = (clone $now)->setTime(23, 59, 59);
             $interval = DateInterval::createFromDateString('1 day');
@@ -214,7 +215,7 @@ class EnCoursService
             foreach ($period as $day) {
                 $dayLabel = strtolower($day->format('l'));
 
-                if (isset($daysWorked[$dayLabel])) {
+                if (isset($workedDays[$dayLabel])) {
                     $periodsWorked = array_merge(
                         $periodsWorked,
                         array_map(
@@ -247,7 +248,7 @@ class EnCoursService
 
                                 return $calculatedInterval;
                             },
-                            explode(';', $daysWorked[$dayLabel])
+                            explode(';', $workedDays[$dayLabel])
                         )
                     );
                 }

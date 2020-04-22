@@ -19,22 +19,38 @@ $(function () {
 
 function loadPage() {
     let idLocationsToDisplay = $('#emplacement').val();
-    let noFilter = (idLocationsToDisplay.length === 0);
+    const $message = $('.error-msg');
+    const locationFiltersCounter = idLocationsToDisplay.length;
 
-    $('.block-encours').each(function () {
-        const $blockEncours = $(this);
-        const $tableEncours = $blockEncours.find('.encours-table');
-
-        if (noFilter
-            || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
-            $blockEncours.removeClass('d-none');
-            loadEncoursDatatable($tableEncours);
+    const min = Number($('#encours-min-location-filter').val());
+    const max = Number($('#encours-max-location-filter').val());
+    if (locationFiltersCounter < min || locationFiltersCounter > max) {
+        $('.block-encours').addClass('d-none');
+        $message.removeClass('d-none');
+        if (locationFiltersCounter < min) {
+            $message.text('Vous devez sélectionner au moins un emplacement dans les filtres')
         }
-        else {
-            $blockEncours.addClass('d-none');
+        else { // locationFiltersCounter > max
+            $message.text(`Le nombre maximum d\'emplacements dans les filtres est de ${max}`)
         }
+    }
+    else {
+        $message.addClass('d-none');
 
-    });
+        $('.block-encours').each(function () {
+            const $blockEncours = $(this);
+            const $tableEncours = $blockEncours.find('.encours-table');
+
+            if (locationFiltersCounter === 0
+                || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
+                $blockEncours.removeClass('d-none');
+                loadEncoursDatatable($tableEncours);
+            } else {
+                $blockEncours.addClass('d-none');
+            }
+
+        });
+    }
 }
 
 function loadEncoursDatatable($table) {
