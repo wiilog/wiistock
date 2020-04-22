@@ -34,33 +34,23 @@ class FournisseurDataService
         $this->router = $router;
     }
 
-
-    public function getDataForDatatable($params = null)
-    {
-        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
-
-        $data = $this->getFournisseurDataByParams($params);
-        $data['recordsTotal'] = $data['recordsFiltered'] = (int)$fournisseurRepository->countAll();
-        return $data;
-    }
-
     /**
      * @param null $params
      * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getFournisseurDataByParams($params = null)
     {
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
-        $fournisseurs = $fournisseurRepository->findByParams($params);
+        $fournisseursData = $fournisseurRepository->getByParams($params);
 
-        $rows = [];
-        foreach ($fournisseurs as $fournisseur) {
-            $rows[] = $this->dataRowFournisseur($fournisseur);
-        }
-        return ['data' => $rows];
+        $fournisseursData['data'] = array_map(
+            function($fournisseur) {
+                return $this->dataRowFournisseur($fournisseur);
+            },
+            $fournisseursData['data']
+        );
+
+        return $fournisseursData;
     }
 
     /**
@@ -75,13 +65,13 @@ class FournisseurDataService
         $fournisseurId = $fournisseur->getId();
         $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $fournisseurId]);
         $row = [
-               "Nom" => $fournisseur->getNom(),
-               "Code de référence" => $fournisseur->getCodeReference(),
-               'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
-                             'url' => $url,
-                             'fournisseurId' => $fournisseurId
-                    ]),
-                    ];
+            "Nom" => $fournisseur->getNom(),
+            "Code de référence" => $fournisseur->getCodeReference(),
+            'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
+                'url' => $url,
+                'fournisseurId' => $fournisseurId
+            ]),
+        ];
         return $row;
     }
 }

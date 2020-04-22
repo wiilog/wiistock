@@ -4,6 +4,8 @@ let pathFournisseur = Routing.generate('fournisseur_api');
 let tableFournisseur = $('#tableFournisseur_id').DataTable({
     processing: true,
     serverSide: true,
+    paging: true,
+    scrollX: true,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },

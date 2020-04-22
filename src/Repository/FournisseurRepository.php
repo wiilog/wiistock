@@ -88,39 +88,53 @@ class FournisseurRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParams($params = null)
+    public function getByParams($params = null)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
-        $qb
-            ->select('a')
-            ->from('App\Entity\Fournisseur', 'a');
+        $qb->from('App\Entity\Fournisseur', 'fournisseur');
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $qb
-                        ->orderBy('a.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                        ->orderBy('fournisseur.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
                 }
             }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.nom LIKE :value OR a.codeReference LIKE :value')
+                        ->andWhere('fournisseur.nom LIKE :value OR fournisseur.codeReference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
         }
 
-        $query = $qb->getQuery();
+        $queryCountFilterd = $qb
+            ->select('COUNT(fournisseur)')
+            ->getQuery();
 
-        return $query->getResult();
+        $countFilterd = $queryCountFilterd->getSingleScalarResult();
+
+        if (!empty($params)) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+
+        $query = $qb
+            ->select('fournisseur')
+            ->getQuery();
+
+        return [
+            'recordsTotal' => (int) $this->countAll(),
+            'recordsFiltered' => (int) $countFilterd,
+            'data' => $query->getResult()
+        ];
     }
 
     public function countAll()

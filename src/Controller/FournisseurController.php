@@ -58,7 +58,7 @@ class FournisseurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->fournisseurDataService->getDataForDatatable($request->request);
+            $data = $this->fournisseurDataService->getFournisseurDataByParams($request->request);
 
             return new JsonResponse($data);
         }

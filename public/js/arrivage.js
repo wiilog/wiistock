@@ -95,10 +95,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
             columns: ':not(.noVis)',
             className: 'd-none'
         },
-        // {
-        //     extend: 'csv',
-        //     className: 'dt-btn'
-        // }
+
     ],
     "lengthMenu": [10, 25, 50, 100],
 });
