@@ -129,26 +129,25 @@ class CollecteController extends AbstractController
     /**
      * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
      * @param Collecte $collecte
+     * @param CollecteService $collecteService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function show(Collecte $collecte,
+                         CollecteService $collecteService,
                          EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
         $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-
-		$valeursChampLibre = $valeurChampLibreRepository->getByDemandeCollecte($collecte);
 
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-			'champsLibres' => $valeursChampLibre
+            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte)
 		]);
     }
 
@@ -577,11 +576,13 @@ class CollecteController extends AbstractController
     /**
      * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param CollecteService $collecteService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
+                         CollecteService $collecteService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -640,10 +641,10 @@ class CollecteController extends AbstractController
 				}
 
 				$response = [
-					'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
+					'entete' => $this->renderView('collecte/collecte-show-header.html.twig', [
 						'collecte' => $collecte,
 						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-						'champsLibres' => $valeurChampLibreRepository->getByDemandeCollecte($collecte)
+                        'showDetails' => $collecteService->createHeaderDetailsConfig($collecte)
 					]),
 				];
 			} else {

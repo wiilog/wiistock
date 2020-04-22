@@ -7,8 +7,14 @@
     <div class="m-4">
         <div class="row">
             <div class="col-12">
-                <div class="zone-entete wii-page-card">
-                    {% include "arrivage/enteteArrivage.html.twig" %}
+                <div class="zone-entete">
+                    {% include "arrivage/arrivage-show-header.html.twig" with {
+                        arrivage: arrivage,
+                        printColis: printColis,
+                        printArrivage: printArrivage,
+                        canBeDeleted: canBeDeleted,
+                        showDetails: showDetails
+                    } %}
                 </div>
             </div>
         </div>

@@ -62,6 +62,7 @@ class OrdreCollecteService
 
 	private $mouvementTracaService;
 	private $mouvementStockService;
+	private $stringService;
 
     public function __construct(RouterInterface $router,
     							TokenStorageInterface $tokenStorage,
@@ -70,9 +71,11 @@ class OrdreCollecteService
                                 MouvementStockService $mouvementStockService,
                                 EntityManagerInterface $entityManager,
                                 MouvementTracaService $mouvementTracaService,
+                                StringService $stringService,
                                 Twig_Environment $templating)
 	{
 	    $this->mailerServerRepository = $mailerServerRepository;
+	    $this->stringService = $stringService;
 		$this->templating = $templating;
 		$this->entityManager = $entityManager;
 		$this->mailerService = $mailerService;
@@ -410,5 +413,30 @@ class OrdreCollecteService
             // On fini le mouvement de stock
             $this->mouvementStockService->finishMouvementStock($mouvementStock, $deposeDate, $locationTo);
         }
+    }
+
+    public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
+        $demande = $ordreCollecte->getDemandeCollecte();
+        $requester = $demande ? $demande->getDemandeur() : null;
+        $pointCollecte = $demande ? $demande->getPointCollecte() : null;
+        $dateCollecte = $ordreCollecte->getDate();
+        $comment = $demande->getCommentaire();
+
+        return [
+            [ 'label' => 'Numéro', 'value' => $ordreCollecte->getNumero() ],
+            [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($ordreCollecte->getStatut()->getNom()) : '' ],
+            [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
+            [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+            [ 'label' => 'Destination', 'value' => $demande->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
+            [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
+            [ 'label' => 'Date de collecte', 'value' => $dateCollecte ? $dateCollecte->format('d/m/Y H:i') : '' ],
+            [
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true
+            ]
+        ];
     }
 }

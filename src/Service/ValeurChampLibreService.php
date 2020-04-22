@@ -36,6 +36,27 @@ class ValeurChampLibreService {
         return $formattedValue;
     }
 
+    public function formatValeurChampLibreForShow(ValeurChampLibre $valeurChampLibre): ?string {
+        $typage = $valeurChampLibre->getChampLibre()->getTypage();
+        $value = $valeurChampLibre->getValeur();
+
+        if ($typage === ChampLibre::TYPE_BOOL) {
+            $formattedValue = (($value == 1) ? 'oui' : 'non');
+        }
+        else if ($typage === ChampLibre::TYPE_LIST_MULTIPLE
+            && !empty($value)) {
+            $formattedValue = str_replace(';', ',', $value);
+        }
+        else {
+            $formattedValue = $this->formatValeurChampLibreForDatatable([
+                'valeur' => $value,
+                'typage' => $typage
+            ]);
+        }
+
+        return $formattedValue;
+    }
+
     public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): ?string {
         $typage = $valeurChampLibre->getChampLibre()->getTypage();
         $value = $valeurChampLibre->getValeur();

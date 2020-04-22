@@ -7,8 +7,12 @@
     <div class="m-4">
         <div class="row">
             <div class="col-12">
-                <div class="zone-entete wii-page-card">
-                    {% include "demande/enteteDemandeLivraison.html.twig" %}
+                <div class="zone-entete">
+                    {% include "demande/demande-show-header.html.twig" with {
+                        demande: demande,
+                        modifiable: modifiable,
+                        showDetails: showDetails
+                    } %}
                 </div>
             </div>
         </div>
@@ -17,9 +21,9 @@
                 <div class="wii-page-card">
                     {% if modifiable %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                            <div class="row wii-page-card-header">
+                            <div class="row wii-page-card-header" id="boutonCollecteInf">
                                 <div class="col-auto ml-auto">
-                                    <div class="btn-group" id="boutonCollecteInf">
+                                    <div class="btn-group" >
                                         <button type="button"
                                                 data-toggle="modal"
                                                 data-target="#modalNewArticle"
@@ -40,7 +44,7 @@
                                                class="dropdown-item"
                                                title="référence">
                                                 <i class="fa fa-search mr-2"></i>
-                                                Chercher une Chercher une {{ 'reference.référence'|trans }}
+                                                Chercher une {{ 'reference.référence'|trans }}
                                             </a>
                                         </div>
                                     </div>

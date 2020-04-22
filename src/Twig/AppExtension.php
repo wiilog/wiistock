@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Service\FieldsParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use Twig\TwigFilter;
@@ -10,22 +11,18 @@ use Twig\Extension\AbstractExtension;
 
 class AppExtension extends AbstractExtension
 {
-    /**
-     * @var UserService
-     */
     private $userService;
-
-	/**
-	 * @var SpecificService
-	 */
     private $specificService;
+    private $fieldsParamService;
 
 
     public function __construct(SpecificService $specificService,
+                                FieldsParamService $fieldsParamService,
                                 UserService $userService)
     {
         $this->userService = $userService;
         $this->specificService = $specificService;
+        $this->fieldsParamService = $fieldsParamService;
     }
 
     public function getFunctions()
@@ -62,6 +59,6 @@ class AppExtension extends AbstractExtension
 	}
 
 	public function isFieldRequiredFunction(array $config, string $fieldName, string $action): bool {
-        return isset($config[$fieldName]) && isset($config[$fieldName][$action]) && $config[$fieldName][$action];
+        return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
     }
 }

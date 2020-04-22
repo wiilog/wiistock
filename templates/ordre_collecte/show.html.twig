@@ -6,8 +6,11 @@
     <div class="m-4">
         <div class="row">
             <div class="col-12">
-                <div class="zone-entete wii-page-card">
-                    {% include 'ordre_collecte/enteteOrdreCollecte.html.twig' %}
+                <div class="zone-entete">
+                    {% include 'ordre_collecte/ordre-collecte-show-header.html.twig' with {
+                        showDetails: detailsConfig,
+                        collecte: collecte
+                    } %}
                 </div>
             </div>
         </div>

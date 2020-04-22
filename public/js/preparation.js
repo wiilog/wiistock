@@ -317,7 +317,7 @@ function finishPrepa() {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
     } else {
         clearEmplacementModal();
-        $('#btnFinishPrepa').click();
+        $('#modalSubmitPreparation').modal('show');
     }
 }
 

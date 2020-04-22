@@ -6,8 +6,14 @@
     <div class="m-4">
         <div class="row">
             <div class="col-12">
-                <div class="zone-entete wii-page-card">
-                    {% include 'livraison/entete.html.twig' %}
+                <div class="zone-entete">
+                    {% include 'livraison/livraison-show-header.html.twig' with {
+                        livraison: livraison,
+                        showDetails: headerConfig,
+                        finished: finished,
+                        demande: demande,
+                        preparation: preparation,
+                    } %}
                 </div>
             </div>
         </div>
