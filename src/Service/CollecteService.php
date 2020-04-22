@@ -5,7 +5,6 @@ namespace App\Service;
 
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
-use App\Entity\OrdreCollecte;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\EntityManagerInterface;

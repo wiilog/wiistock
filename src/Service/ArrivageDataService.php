@@ -3,10 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
-use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
-use App\Entity\PieceJointe;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
