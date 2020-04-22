@@ -3,9 +3,10 @@ let arrivageUrgentLoading = false;
 function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
-        const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
+        const {autoHide, message, modalType, arrivalId, iconType, autoPrint} = alertConfig;
         const nextAlertConfigs = alertConfigs.slice(1, alertConfigs.length);
-        if (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0) {
+
+        if (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0 && autoPrint) {
             printArrival(response);
         }
         const buttonConfigs = [
@@ -132,8 +133,7 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         clearModal($modalNewArrivage);
     }
     else {
-        const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
-        window.location.href = arrivalShowUrl;
+        window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage)
     }
 }
 
