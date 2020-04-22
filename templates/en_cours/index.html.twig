@@ -10,10 +10,13 @@
 {% endblock %}
 {% block page_content %}
     <div class="m-4">
+        <input type="hidden" id="encours-min-location-filter" value="{{ minLocationFilter }}"/>
+        <input type="hidden" id="encours-max-location-filter" value="{{ maxLocationFilter }}">
         <div class="row">
             <div class="col-auto ml-auto"><h2 class="text-white">Actualisé le {{ "now"|date("d/m/Y à H:i", "Europe/Paris") }}</h2></div>
         </div>
         <div class="row">
+            <div class="col-12 text-center text-danger error-msg d-none"></div>
             {% if emplacements is empty %}
                 <div class="col-12">Veuillez paramétrer le délai maximum de vos emplacements pour visualiser leurs encours.</div>
             {% endif %}
