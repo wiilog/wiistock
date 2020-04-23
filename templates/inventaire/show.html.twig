@@ -11,7 +11,7 @@
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <div class="row wii-page-card-header">
+        <div class="row wii-page-card-header mb-0">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     <button type="button"
@@ -36,24 +36,36 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div class="m-4">
         <div class="row">
             <div class="col-6">
-                <div class="d-none justify-content-center" id="spinner">
-                    <div class="spinner-border sizeLoader" role="status">
-                        <span class="sr-only">Loading...</span>
+                <div class="wii-page-card">
+                    <div class="wii-page-card-header">
+                        <h5 class="h5 m-0">Articles</h5>
                     </div>
+                    <div class="d-none justify-content-center">
+                        <div class="spinner-border sizeLoader" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                    <table id="tableMissionInvArticle" class="table w-100">
+                    </table>
                 </div>
-                <table id="tableMissionInvArticle" class="table w-100">
-                </table>
             </div>
             <div class="col-6">
-                <div class="d-none justify-content-center" id="spinner">
-                    <div class="spinner-border sizeLoader" role="status">
-                        <span class="sr-only">Loading...</span>
+                <div class="wii-page-card">
+                    <div class="wii-page-card-header">
+                        <h5 class="h5 m-0">Références Articles</h5>
                     </div>
+                    <div class="d-none justify-content-center">
+                        <div class="spinner-border sizeLoader" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                    <table id="tableMissionInvReferenceArticle" class="table w-100">
+                    </table>
                 </div>
-                <table id="tableMissionInvReferenceArticle" class="table w-100">
-                </table>
             </div>
         </div>
     </div>

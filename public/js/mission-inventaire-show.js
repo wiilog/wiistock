@@ -20,6 +20,7 @@ let tableMission = $('#tableMissionInvArticle').DataTable({
         url: "/js/i18n/dataTableLanguage.json",
     },
     order: [[3, 'desc']],
+    scrollX: true,
     ajax:{
         "url": pathApiArticle,
         "type": "POST",
@@ -47,6 +48,7 @@ let tableMission2 = $('#tableMissionInvReferenceArticle').DataTable({
         url: "/js/i18n/dataTableLanguage.json",
     },
     order: [[3, 'desc']],
+    scrollX: true,
     ajax:{
         "url": pathApiReferenceArticle,
         "type": "POST",
