@@ -65,20 +65,25 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <div class="dropdown-item has-tooltip {{ filters | length > 0 ? 'pointer' : 'disabled user-select-none' }}"
                                  id="printTag"
                                  tabindex="0"
                                  title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
-                                 onclick="printReferenceArticleBarCode($(this), event)"><span class="fa fa-print mr-2"></span>
+                                 onclick="printReferenceArticleBarCode($(this), event)">
+                                <span class="fa fa-print mr-2"></span>
                                 Impression des étiquettes
                             </div>
                         {% endif %}
                         <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
-                            <span class="fa fa-cog mr-2"></span>Modifier colonnes</a>
+                            <span class="fa fa-cog mr-2"></span>
+                            Gestion des colonnes
+                        </a>
                         <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
-                            <span class="fa fa-search mr-2"></span>Recherche rapide</a>
+                            <span class="fa fa-search mr-2"></span>
+                            Recherche rapide
+                        </a>
                         <div class="statut dropdown-item">
                             <div class="checkbox pl-0 pointer">
                                 <input id="toggleActivOrInactiv"

@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="dropdown-item" data-id='{{ mvt.id }}' data-target='#modalShowMvtTraca' data-toggle='modal'
                  onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))">
                 <i class='fas fa-eye mr-2'></i>Voir

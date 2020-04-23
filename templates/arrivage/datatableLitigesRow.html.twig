@@ -6,7 +6,7 @@
            aria-expanded="false">
             <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px"/>
         </a>
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
                 <a class="dropdown-item"
                    data-toggle='modal'

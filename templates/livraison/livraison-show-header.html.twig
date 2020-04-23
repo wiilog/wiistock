@@ -11,7 +11,7 @@
                 aria-expanded="false">
             <span class="fa fa-angle-down"></span>
         </button>
-        <div class="dropdown-menu dropdown-menu-right">
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
             {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
                 {% if not finished %}
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}

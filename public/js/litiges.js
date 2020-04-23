@@ -59,11 +59,11 @@ function initDatatableLitiges() {
             {"data": 'type', 'name': 'Type', 'title': 'Type'},
             {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
-            {"data": 'buyers', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+            {"data": 'buyers', 'name': 'Acheteur', 'title': 'Acheteur'},
             {"data": 'numCommandeBl', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'N°_ligne', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-            {"data": 'references', 'name': 'Références', 'title': 'Références', 'orderable': false},
+            {"data": 'references', 'name': 'Référence', 'title': 'Référence', 'orderable': false},
             {"data": 'lastHistoric', 'name': 'Dernier_historique', 'title': 'Dernier historique', 'orderable': false},
             {"data": 'creationDate', 'name': 'Créé_le', 'title': 'Créé le'},
             {"data": 'updateDate', 'name': 'Modifié_le', 'title': 'Modifié le'},
@@ -72,7 +72,7 @@ function initDatatableLitiges() {
         ],
         headerCallback: function(thead) {
             $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-            $(thead).find('th').eq(4).attr('title', "n° de réception");
+            $(thead).find('th').eq(3).attr('title', "n° de réception");
         },
         dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
         buttons: [

@@ -20,7 +20,8 @@
                                 data-target="#modalNewEmplacement"
                                 class="btn btn-primary btn-ripple split-button"
                                 onclick="clearModal('#modalNewEmplacement')">
-                            <span class="fa fa-plus mr-2"></span>Nouvel emplacement
+                            <span class="fa fa-plus mr-2"></span>
+                            Nouvel emplacement
                         </button>
                     {% endif %}
 
@@ -32,13 +33,14 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
 
-                    <div class="dropdown-menu dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         <div tabindex="0"
                              id="btnPrint"
                              class="dropdown-item printButton user-select-none disabled has-tooltip"
                              onclick="printLocationsBarCodes($(this), event)"
                              title="Veuillez faire une recherche pour imprimer.">
-                            <i class="fas fa-print"></i> Imprimer les étiquettes
+                            <i class="fas fa-print mr-2"></i>
+                            Imprimer les étiquettes
                         </div>
                         <div class="statut dropdown-item">
                             <div class="checkbox pl-0 pointer filters-container">

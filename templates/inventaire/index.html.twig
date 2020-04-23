@@ -19,7 +19,8 @@
                                 data-toggle="modal"
                                 data-target="#modalNewMission"
                                 class="btn btn-primary btn-ripple split-button">
-                            <span class="fa fa-plus mr-2"></span>Nouvelle mission
+                            <span class="fa fa-plus mr-2"></span>
+                            Nouvelle mission
                         </button>
                     {% endif %}
                     <button type="button"
@@ -29,12 +30,14 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         <a href="{{ path('inventory_entry_index') }}" class="dropdown-item">
-                            <span class="fa fa-clipboard-list mr-2"></span>Voir les saisies
+                            <span class="fa fa-clipboard-list mr-2" style="padding: 0 3px"></span>
+                            Voir les saisies
                         </a>
                         <a href="{{ path('show_anomalies') }}" class="dropdown-item">
-                            <span class="fa fa-exclamation-triangle mr-2"></span>Gérer les anomalies
+                            <span class="fa fa-exclamation-triangle mr-2"></span>
+                            Gérer les anomalies
                         </a>
                     </div>
                 </div>

@@ -69,7 +69,7 @@ class UrgenceRepository extends ServiceEntityRepository
      * @param DateTime $dateStart
      * @param DateTime $dateEnd
      * @param Fournisseur|null $provider
-     * @param string|null $numeroCommande
+     * @param string|null $numeroPoste
      * @param array $urgenceIdsExcluded
      * @return int
      * @throws NoResultException
@@ -78,7 +78,7 @@ class UrgenceRepository extends ServiceEntityRepository
     public function countUrgenceMatching(DateTime $dateStart,
                                          DateTime $dateEnd,
                                          ?Fournisseur $provider,
-                                         ?string $numeroCommande,
+                                         ?string $numeroPoste,
                                          array $urgenceIdsExcluded = []): int {
 
         $queryBuilder = $this->createQueryBuilder('u');
@@ -93,12 +93,12 @@ class UrgenceRepository extends ServiceEntityRepository
                 'u.dateEnd BETWEEN :dateStart AND :dateEnd'
             ))
             ->andWhere('u.provider = :provider')
-            ->andWhere('u.commande = :commande')
+            ->andWhere('u.postNb = :postNb')
             ->setParameters([
                 'dateStart' => $dateStart,
                 'dateEnd' => $dateEnd,
                 'provider' => $provider,
-                'commande' => $numeroCommande,
+                'postNb' => $numeroPoste,
             ]);
 
         if (!empty($urgenceIdsExcluded)) {

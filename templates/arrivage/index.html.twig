@@ -42,7 +42,7 @@
                         <button type="button"
                                 class="btn btn-primary split-button btn-ripple"
                                 onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
-                            <span class="fa fa-file-csv mr-2"></span>
+                            <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
                     {% endif %}
@@ -53,12 +53,12 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <a href="#"
                                class="dropdown-item"
                                onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>Exporter au format CSV
                             </a>
                         {% endif %}
                         <a href="#" class="dropdown-item" onclick="$('.buttons-colvis').click();">

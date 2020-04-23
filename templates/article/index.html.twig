@@ -23,7 +23,8 @@
                                 data-toggle="modal"
                                 data-target="#modalNewArticle"
                                 onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete'), 'article'), clearNewArticleContent($('#submitNewArticle'))">
-                            <span class="fa fa-plus mr-2"></span>Nouvel article
+                            <span class="fa fa-plus mr-2"></span>
+                            Nouvel article
                         </button>
                     {% elseif hasRightToExport %}
                         <div tabindex="0"
@@ -33,7 +34,8 @@
                                     class="btn btn-primary split-button btn-ripple printButton btn-disabled"
                                     id="printTag"
                                     onclick="printArticlesBarCodes($(this))">
-                                <span class="fa fa-print mr-2"></span>Impression des étiquettes
+                                <span class="fa fa-print mr-2"></span>
+                                Impression des étiquettes
                             </button>
                         </div>
                     {% endif %}
@@ -42,27 +44,30 @@
                             aria-expanded="false">
                         <span class="fa fa-angle-down"></span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
                             <div class="dropdown-item user-select-none disabled has-tooltip"
                                  tabindex="0"
                                  id="printTag"
                                  onclick="printArticlesBarCodes($(this), event)"
                                  title="Veuillez faire une recherche pour imprimer.">
-                                <span class="fa fa-print mr-2"></span>Impression des étiquettes
+                                <span class="fa fa-print mr-2"></span>
+                                Impression des étiquettes
                             </div>
                         {% endif %}
                         <a class="dropdown-item"
                            data-toggle="modal"
                            data-target="#modalColumnVisible"
                            href="#">
-                            <span class="fas fa-cog mr-2"></span>Modifier colonnes
+                            <span class="fas fa-cog mr-2"></span>
+                            Gestion des colonnes
                         </a>
                         <a class="dropdown-item"
                            data-toggle="modal"
                            data-target="#modalRapidSearch"
                            href="#">
-                            <span class="fa fa-search mr-2"></span>Recherche rapide
+                            <span class="fa fa-search mr-2"></span>
+                            Recherche rapide
                         </a>
                         <div class="statut dropdown-item">
                             <div class="checkbox pl-0 pointer">

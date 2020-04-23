@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown dropright {{ not modifiable ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if modifiable %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <div class="d-none">

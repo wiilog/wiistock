@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
                 <div class="action-on-click" data-id='{{ categoryId }}' data-toggle='modal' data-target='#modalEditCategory'
                      onclick="editRow($(this), Routing.generate('category_api_edit', true), $('#modalEditCategory'), $('#submitEditCategory'))">

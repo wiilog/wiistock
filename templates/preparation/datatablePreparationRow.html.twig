@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown dropright d-none">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')) %}
                 <a href='{{ url.show }}' class="action-on-click">
                     <div class="btn btn-col-action">

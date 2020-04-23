@@ -1,3 +1,7 @@
 .dropdown-menu
     .dropdown-item.disabled.has-tooltip
         pointer-events: inherit !important
+
+.dropdown-menu.dropdown-follow-gt
+    & > .dropdown-item:not(.disabled)
+        color: $backgroundBodyColorDark

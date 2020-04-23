@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown">
         {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             <a class="dropdown-item"
                 href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
                 <i class='fas fa-print mr-2'></i>Imprimer

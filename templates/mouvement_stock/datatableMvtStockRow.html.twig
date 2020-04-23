@@ -1,7 +1,7 @@
 <div class="d-flex">
     <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
                 <div data-id='{{ mvt.id }}' data-target='#modalDeleteMvtStock' data-toggle='modal'
                      class='dropdown-item'

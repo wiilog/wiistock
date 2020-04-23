@@ -208,6 +208,9 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
+     * @param InventoryMission $mission
+     * @param Request $request
+     * @return Response
      */
     public function entryApi(InventoryMission $mission, Request $request): Response
     {

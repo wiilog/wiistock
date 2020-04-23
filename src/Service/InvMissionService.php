@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 
@@ -108,7 +109,7 @@ class InvMissionService
 		return $row;
 	}
 
-    public function getDataForOneMissionDatatable($mission, $params = null)
+    public function getDataForOneMissionDatatable(InventoryMission $mission, ParameterBag $params = null)
     {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);

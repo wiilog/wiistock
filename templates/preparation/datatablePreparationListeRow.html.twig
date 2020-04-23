@@ -3,7 +3,7 @@
     {% set path = isRef ? 'reference_article_show' : 'article_show' %}
     <div class="dropdown dropright {{ not isPrepaEditable ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu pointer">
+        <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
                 <div class="action-on-click" data-barcode='{{ barcode }}' data-target='{{ target }}' data-toggle='modal' data-id="{{ artOrRefId }}"
                      onclick="showRow($(this), Routing.generate('{{ path }}', true), $('{{ target }}'))">
