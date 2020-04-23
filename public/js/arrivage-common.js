@@ -19,7 +19,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             arrivageUrgentLoading = true;
                             $modal.find('.modal-footer-wrapper').addClass('d-none');
                             loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
+                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, alertConfig.postNb, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
                         }
                     }
                     else {
@@ -76,12 +76,12 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
     }
 }
 
-function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation, isCreation, arrivalsDatatable) {
+function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseCreation, isCreation, arrivalsDatatable) {
     const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
     $.ajax({
         type: 'PATCH',
         url: patchArrivalUrgentUrl,
-        data: {numeroCommande},
+        data: {numeroCommande, postNb},
         success: (secondResponse) => {
             arrivageUrgentLoading = false;
             if (secondResponse.success) {

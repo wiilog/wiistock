@@ -354,6 +354,8 @@ class ArrivageController extends AbstractController
             }
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+
+            $entityManager->flush();
             if ($sendMail) {
                 $arrivageDataService->sendArrivalEmails($arrivage);
             }
@@ -466,12 +468,14 @@ class ArrivageController extends AbstractController
      * )
      *
      * @param Arrivage $arrival
+     * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
      *
      * @return Response
      *
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -482,12 +486,14 @@ class ArrivageController extends AbstractController
     {
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $numeroCommande = $request->request->get('numeroCommande');
+        $postNb = $request->request->get('postNb');
 
         $urgencesMatching = !empty($numeroCommande)
             ? $urgenceRepository->findUrgencesMatching(
                 $arrival->getDate(),
                 $arrival->getFournisseur(),
                 $numeroCommande,
+                $postNb,
                 true
             )
             : [];
@@ -496,9 +502,8 @@ class ArrivageController extends AbstractController
 
         if ($success) {
             $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
+            $entityManager->flush();
         }
-
-        $entityManager->flush();
 
         $response = [
             'success' => $success,
@@ -622,7 +627,7 @@ class ArrivageController extends AbstractController
                     'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
                 ]),
                 'alertConfigs' => [
-                    $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient, [])
+                    $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient)
                 ]
             ];
             return new JsonResponse($response);

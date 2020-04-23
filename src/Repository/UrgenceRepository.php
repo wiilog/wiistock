@@ -36,12 +36,14 @@ class UrgenceRepository extends ServiceEntityRepository
      * @param DateTime $arrivalDate
      * @param Fournisseur $arrivalProvider
      * @param string $numeroCommande
+     * @param string|null $postNb
      * @param bool $excludeTriggered
      * @return Urgence[]
      */
     public function findUrgencesMatching(DateTime $arrivalDate,
                                          ?Fournisseur $arrivalProvider,
                                          ?string $numeroCommande,
+                                         ?string $postNb,
                                          $excludeTriggered = false): array {
         $res = [];
         if (!empty($arrivalProvider)
@@ -53,6 +55,12 @@ class UrgenceRepository extends ServiceEntityRepository
                 ->setParameter('date', $arrivalDate)
                 ->setParameter('provider', $arrivalProvider)
                 ->setParameter('numeroCommande', $numeroCommande);
+
+            if (!empty($postNb)) {
+                $queryBuilder
+                    ->andWhere('u.postNb = :postNb')
+                    ->setParameter('postNb', $postNb);
+            }
 
             if ($excludeTriggered) {
                 $queryBuilder->andWhere('u.lastArrival IS NULL');
@@ -69,6 +77,7 @@ class UrgenceRepository extends ServiceEntityRepository
      * @param DateTime $dateStart
      * @param DateTime $dateEnd
      * @param Fournisseur|null $provider
+     * @param string|null $numeroCommande
      * @param string|null $numeroPoste
      * @param array $urgenceIdsExcluded
      * @return int
@@ -78,6 +87,7 @@ class UrgenceRepository extends ServiceEntityRepository
     public function countUrgenceMatching(DateTime $dateStart,
                                          DateTime $dateEnd,
                                          ?Fournisseur $provider,
+                                         ?string $numeroCommande,
                                          ?string $numeroPoste,
                                          array $urgenceIdsExcluded = []): int {
 
@@ -93,13 +103,18 @@ class UrgenceRepository extends ServiceEntityRepository
                 'u.dateEnd BETWEEN :dateStart AND :dateEnd'
             ))
             ->andWhere('u.provider = :provider')
-            ->andWhere('u.postNb = :postNb')
-            ->setParameters([
-                'dateStart' => $dateStart,
-                'dateEnd' => $dateEnd,
-                'provider' => $provider,
-                'postNb' => $numeroPoste,
-            ]);
+            ->andWhere('u.commande = :commande')
+
+            ->setParameter('dateStart', $dateStart)
+            ->setParameter('dateEnd', $dateEnd)
+            ->setParameter('provider', $provider)
+            ->setParameter('commande', $numeroCommande);
+
+        if (!empty($numeroPoste)) {
+            $queryBuilder
+                ->andWhere('u.postNb = :postNb')
+                ->setParameter('postNb', $numeroPoste);
+        }
 
         if (!empty($urgenceIdsExcluded)) {
             $queryBuilder
