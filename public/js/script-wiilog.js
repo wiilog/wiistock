@@ -1586,3 +1586,8 @@ function manageArticleAndRefSearch($input, $printButton) {
         }
     }
 }
+
+function toggleInputRadioOnRow(tr) {
+    const $row = $(tr);
+    $row.find('input[type="checkbox"]').trigger('click');
+}
