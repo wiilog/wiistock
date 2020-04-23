@@ -12,8 +12,8 @@ $(function() {
 });
 
 let mission = $('#missionId').val();
-let pathMission = Routing.generate('inv_entry_api', { id: mission}, true);
-let tableMission = $('#tableMissionInv').DataTable({
+let pathApiArticle = Routing.generate('inv_entry_article_api', { id: mission}, true);
+let tableMission = $('#tableMissionInvArticle').DataTable({
     processing: true,
     serverSide: true,
     language: {
@@ -21,11 +21,38 @@ let tableMission = $('#tableMissionInv').DataTable({
     },
     order: [[3, 'desc']],
     ajax:{
-        "url": pathMission,
+        "url": pathApiArticle,
         "type": "POST",
     },
     'drawCallback': function() {
-        overrideSearch($('#tableMissionInv_filter input'), tableMission);
+        overrideSearch($('#tableMissionInvArticle_filter input'), tableMission);
+    },
+    'rowCallback': function(row, data) {
+        if (data.EmptyLocation) alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+    },
+    columns:[
+        { "data": 'Ref', 'title' : 'Reférence' },
+        { "data": 'Label', 'title' : 'Libellé' },
+        { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
+        { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
+        { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
+    ],
+});
+
+let pathApiReferenceArticle = Routing.generate('inv_entry_reference_article_api', { id: mission}, true);
+let tableMission2 = $('#tableMissionInvReferenceArticle').DataTable({
+    processing: true,
+    serverSide: true,
+    language: {
+        url: "/js/i18n/dataTableLanguage.json",
+    },
+    order: [[3, 'desc']],
+    ajax:{
+        "url": pathApiReferenceArticle,
+        "type": "POST",
+    },
+    'drawCallback': function() {
+        overrideSearch($('#tableMissionInvReferenceArticle_filter input'), tableMission2);
     },
     'rowCallback': function(row, data) {
         if (data.EmptyLocation) alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');

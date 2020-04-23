@@ -5,7 +5,7 @@
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
         'page': 'PAGE_INV_SHOW_MISSION',
-        'tableSelector': '#tableMissionInv'
+        'tableSelector': '#tableMissionInvArticle, #tableMissionInvReferenceArticle'
     } %}
 {% endblock %}
 
@@ -37,13 +37,22 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="col-6">
                 <div class="d-none justify-content-center" id="spinner">
                     <div class="spinner-border sizeLoader" role="status">
                         <span class="sr-only">Loading...</span>
                     </div>
                 </div>
-                <table id="tableMissionInv" class="table w-100">
+                <table id="tableMissionInvArticle" class="table w-100">
+                </table>
+            </div>
+            <div class="col-6">
+                <div class="d-none justify-content-center" id="spinner">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <table id="tableMissionInvReferenceArticle" class="table w-100">
                 </table>
             </div>
         </div>

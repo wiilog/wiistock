@@ -207,15 +207,27 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/donnees/api/{id}", name="inv_entry_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/donnees_article/api/{id}", name="inv_entry_article_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function entryApi(InventoryMission $mission, Request $request): Response
+    public function entryApiArticle(InventoryMission $mission, Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request);
+        $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request, true);
+        return new JsonResponse($data);
+    }
+    /**
+     * @Route("/donnees_reference_article/api/{id}", name="inv_entry_reference_article_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function entryApiReferenceArticle(InventoryMission $mission, Request $request): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request, false);
         return new JsonResponse($data);
     }
 
