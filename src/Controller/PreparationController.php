@@ -416,7 +416,6 @@ class PreparationController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-
         $demande = $preparation->getDemande();
         if ($demande->getPreparations()->count() === 1) {
             $demande
@@ -693,7 +692,6 @@ class PreparationController extends AbstractController
 
             $data = [];
             $data[] = $headers;
-
             foreach ($preparations as $preparation) {
                 $this->buildInfos($preparation, $data);
             }
@@ -707,7 +705,6 @@ class PreparationController extends AbstractController
     private function buildInfos(Preparation $preparation, &$data)
     {
         $demande = $preparation->getDemande();
-
         $dataPrepa =
             [
                 $preparation->getNumero() ?? '',
@@ -717,10 +714,10 @@ class PreparationController extends AbstractController
                 $demande->getType() ? $demande->getType()->getLabel() : '',
             ];
 
-        foreach ($demande->getLigneArticle() as $ligneArticle) {
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $referenceArticle = $ligneArticle->getReference();
 
-            if ($ligneArticle->getQuantitePrelevee() > 0) {
+            if ($ligneArticle->getQuantite() > 0) {
                 $data[] = array_merge($dataPrepa, [
                     $referenceArticle->getReference() ?? '',
                     $referenceArticle->getLibelle() ?? '',
@@ -731,12 +728,12 @@ class PreparationController extends AbstractController
             }
         }
 
-        foreach ($demande->getArticles() as $article) {
+    foreach ($preparation->getArticles() as $article) {
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
             $reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
-            if ($article->getQuantitePrelevee() > 0) {
+            if ($article->getQuantite() > 0) {
                 $data[] = array_merge($dataPrepa, [
                     $reference,
                     $article->getLabel() ?? '',
