@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 28/03/2019
- * Time: 16:34
- */
 
 namespace App\Service;
 
@@ -512,7 +506,7 @@ class RefArticleDataService
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
-            'QuantiteStock' => $quantity,
+            'Quantité stock' => $quantity,
             'typeQuantite' => $referenceArticle['typeQuantite'],
             'Type' => $referenceArticle['type'],
             'Date d\'alerte' => $referenceArticle['dateEmergencyTriggered']->format('d/m/Y H:i'),
@@ -547,8 +541,6 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
     {
@@ -560,8 +552,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -575,8 +565,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
     {
