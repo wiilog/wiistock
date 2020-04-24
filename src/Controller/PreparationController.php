@@ -423,9 +423,10 @@ class PreparationController extends AbstractController
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
         }
 
+        $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         foreach ($preparation->getArticles() as $article) {
             $article->setPreparation(null);
-            $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF));
+            $article->setStatut($statutActifArticle);
             if ($article->getQuantiteAPrelever()) {
                 $article->setQuantite($article->getQuantiteAPrelever());
                 $article->setQuantiteAPrelever(0);
@@ -437,8 +438,16 @@ class PreparationController extends AbstractController
 
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
-            if ($refArticle->getQuantiteReservee() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $ligneArticlePreparation->getQuantite());
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $quantiteReservee = $refArticle->getQuantiteReservee();
+                $quantiteAPrelever = $ligneArticlePreparation->getQuantite();
+                $newQuantiteReservee = ($quantiteReservee - $quantiteAPrelever);
+                $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+
+                $newQuantiteReservee = $refArticle->getQuantiteReservee();
+                $quantiteStock = $refArticle->getQuantiteStock();
+                $newQuantiteDisponible = ($quantiteStock - $newQuantiteReservee);
+                $refArticle->setQuantiteDisponible($newQuantiteDisponible > 0 ? $newQuantiteDisponible : 0);
             }
             else {
                 $refToUpdate[] = $refArticle;
@@ -447,11 +456,15 @@ class PreparationController extends AbstractController
         }
 
         $entityManager->remove($preparation);
+
+        // il faut que la preparation soit supprimée avant une maj des articles
         $entityManager->flush();
 
         foreach ($refToUpdate as $reference) {
             $refArticleDataService->updateRefArticleQuantities($reference);
         }
+
+        $entityManager->flush();
 
         return $this->redirectToRoute('preparation_index');
     }

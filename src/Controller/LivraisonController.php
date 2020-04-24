@@ -245,7 +245,6 @@ class LivraisonController extends AbstractController
      * @param PreparationsManagerService $preparationsManager
      * @param UserService $userService
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
