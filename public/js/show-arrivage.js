@@ -147,6 +147,7 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
     ],
     rowCallback: function (row, data) {
         $(row).addClass(data.urgence ? 'table-danger' : '');
+        initActionOnRow(row);
     },
     order: [[1, 'desc']],
 });

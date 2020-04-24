@@ -8,11 +8,11 @@
         </a>
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
-                <a class="dropdown-item"
+                <a class="d-none action-on-click"
                    data-toggle='modal'
                    data-target='#modalEditLitige'
                    onclick="editRowLitigeArrivage($(this), openTableHisto, {{ arrivageId }}, {{ litigeId }})">
-                    <i class='fas fa-pencil-alt mr-2'></i>Modifier
+                    Modifier
                 </a>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DELETE')) %}
