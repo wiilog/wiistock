@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Repository\UrgenceRepository;
+use App\Service\SpecificService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -79,6 +80,7 @@ class UrgencesController extends AbstractController
      * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param SpecificService $specificService
      * @param UrgenceService $urgenceService
      * @return Response
      * @throws NoResultException
@@ -86,6 +88,7 @@ class UrgencesController extends AbstractController
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
+                        SpecificService $specificService,
                         UrgenceService $urgenceService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -101,16 +104,19 @@ class UrgencesController extends AbstractController
 
         $response = [];
 
+        $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+
         $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
             $urgence->getDateStart(),
             $urgence->getDateEnd(),
             $urgence->getProvider(),
-            $urgence->getCommande()
+            $urgence->getCommande(),
+            $isSEDCurrentClient ? $urgence->getPostNb() : null
         );
 
         if ($sameUrgentCounter > 0) {
             $response['success'] = false;
-            $response['message'] = "Une urgence sur la même période, avec le même fournisseur et le même numéro de commande existe déjà.";
+            $response['message'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);
         }
         else {
             $entityManager->persist($urgence);
@@ -169,6 +175,7 @@ class UrgencesController extends AbstractController
     /**
      * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param SpecificService $specificService
      * @param EntityManagerInterface $entityManager
      * @param UrgenceService $urgenceService
      * @return Response
@@ -176,6 +183,7 @@ class UrgencesController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
+                         SpecificService $specificService,
                          EntityManagerInterface $entityManager,
                          UrgenceService $urgenceService): Response
     {
@@ -190,18 +198,21 @@ class UrgencesController extends AbstractController
         $response = [];
 
         if ($urgence) {
+            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+
             $urgenceService->updateUrgence($urgence, $data);
             $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
                 $urgence->getDateStart(),
                 $urgence->getDateEnd(),
                 $urgence->getProvider(),
                 $urgence->getCommande(),
+                $isSEDCurrentClient ? $urgence->getPostNb() : null,
                 [$urgence->getId()]
             );
 
             if ($sameUrgentCounter > 0) {
                 $response['success'] = false;
-                $response['message'] = "Une urgence sur la même période, avec le même fournisseur et le même numéro de commande existe déjà.";
+                $response['message'] = $this->getErrorMessageForDuplicate($isSEDCurrentClient);;
             }
             else {
                 $entityManager->flush();
@@ -243,4 +254,9 @@ class UrgencesController extends AbstractController
 
 		return new JsonResponse(['delete' => $delete, 'html' => $html]);
 	}
+
+	private function getErrorMessageForDuplicate(bool $isSEDCurrentClient): string {
+        $suffixErrorMessage = $isSEDCurrentClient ? ', le même numéro de commande et le même numéro de poste existe déjà' : ' et le même numéro de commande existe déjà';
+        return "Une urgence sur la même période, avec le même fournisseur$suffixErrorMessage.";
+    }
 }
