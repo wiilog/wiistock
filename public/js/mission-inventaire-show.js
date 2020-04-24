@@ -1,7 +1,7 @@
 $(function() {
     initDateTimePicker();
 
-    const {tableArticle, tableRefArticle} = initPage();
+    const {tableArticle, tableRefArticle} = initPageElements();
 
     initSearchDate(tableArticle);
     initSearchDate(tableRefArticle);
