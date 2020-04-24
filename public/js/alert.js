@@ -16,7 +16,7 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
     columns: [
         { "data": 'Label', 'title': 'Libellé' },
         { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'QuantiteStock', 'title': 'Quantité en stock' },
+        { "data": 'Quantité stock', 'title': 'Quantité en stock' },
         { "data": 'typeQuantite', 'title': 'Type quantité' },
         { "data": 'Type', 'title': 'Type' },
         { "data": 'Date d\'alerte', 'title': 'Date d\'alerte' },

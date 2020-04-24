@@ -533,8 +533,6 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param bool $onFinish
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function updateRefArticlesQuantities(Preparation $preparation, $onFinish = true) {
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {

@@ -184,9 +184,14 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min || isNaN(val)) {
+            if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
+            } else if (!isNaN(val)) {
+                $(this).removeClass('is-invalid');
+            }
+            if ($(this).is(':disabled') === true) {
+                $(this).removeClass('is-invalid');
             }
         }
     });
@@ -270,6 +275,8 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
 
                 let min = elem.attr('min');
                 let max = elem.attr('max');
+
+                console.log(min, max)
 
                 if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
                     if (min > max) {
