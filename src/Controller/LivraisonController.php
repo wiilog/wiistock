@@ -323,7 +323,6 @@ class LivraisonController extends AbstractController
 
             $data = [];
             $data[] = $headers;
-
             foreach ($livraisons as $livraison) {
                 $this->buildInfos($livraison, $data);
             }
