@@ -36,6 +36,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use App\Service\ValeurChampLibreService;
 
 /**
  * @Route("/article")
@@ -75,13 +76,19 @@ class ArticleController extends AbstractController
 	 */
 	private $paramGlobalRepository;
 
+    /**
+     * @var ValeurChampLibreService
+     */
+    private $valeurChampLibreService;
+
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
-                                CSVExportService $CSVExportService)
+                                CSVExportService $CSVExportService,
+                                ValeurChampLibreService $ValeurChampLibreService )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
@@ -90,6 +97,7 @@ class ArticleController extends AbstractController
         $this->userService = $userService;
         $this->templating = $templating;
         $this->CSVExportService = $CSVExportService;
+        $this->valeurChampLibreService = $ValeurChampLibreService;
     }
 
     /**
@@ -124,12 +132,6 @@ class ArticleController extends AbstractController
             'typage' => 'text'
 
         ];
-//        $champF[] = [
-//            'label' => 'Référence',
-//            'id' => 0,
-//            'typage' => 'text'
-//
-//        ];
         $champF[] = [
             'label' => 'Référence article',
             'id' => 0,
@@ -361,12 +363,6 @@ class ArticleController extends AbstractController
                     "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
 				],
-//				[
-//					"title" => 'Référence',
-//					"data" => 'Référence',
-//					'name' => 'Référence',
-//					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-//				],
 				[
 					"title" => 'Référence article',
 					"data" => 'Référence article',
@@ -933,7 +929,7 @@ class ArticleController extends AbstractController
     public function buildInfos(EntityManagerInterface $entityManager,
                                Article $article,
                                $listTypes,
-                               $headers)
+                               $headers )
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -958,7 +954,9 @@ class ArticleController extends AbstractController
             $listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                if ($valeurChampRefArticle) {
+                    $champsLibres[$champLibre->getLabel()] = $this->valeurChampLibreService->formatValeurChampLibreForExport($valeurChampRefArticle);
+                }
             }
         }
         foreach ($headers as $type) {
