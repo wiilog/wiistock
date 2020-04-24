@@ -202,7 +202,6 @@ class ArrivageDataService
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
-            $this->entityManager->flush();
             $this->sendArrivalEmails($arrivage, $emergencies);
         }
     }
@@ -222,6 +221,7 @@ class ArrivageDataService
 
         if ($askQuestion && $isArrivalUrgent) {
             $numeroCommande = $urgences[0]->getCommande();
+            $postNb = $urgences[0]->getPostNb();
 
             $posts = array_map(
                 function (Urgence $urgence) {
@@ -234,13 +234,15 @@ class ArrivageDataService
 
             if ($nbPosts == 0) {
                 $msgSedUrgent = "L'arrivage est-il urgent sur la commande $numeroCommande ?";
-            } else {
+            }
+            else {
                 if ($nbPosts == 1) {
                     $msgSedUrgent = "
                         Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
 					    L'avez-vous reçu dans cet arrivage ?
 					";
-                } else {
+                }
+                else {
                     $postsStr = implode(', ', $posts);
                     $msgSedUrgent = "
                         Les postes <span class=\"bold\">$postsStr</span> sont urgents sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
@@ -248,10 +250,12 @@ class ArrivageDataService
                     ";
                 }
             }
-        } else {
-            $numeroCommande = null;
         }
-        $parametrageGlobalRepository =$this->entityManager->getRepository(ParametrageGlobal::class);
+        else {
+            $numeroCommande = null;
+            $postNb = null;
+        }
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         return [
             'autoHide' => (!$askQuestion && !$isArrivalUrgent),
@@ -265,6 +269,7 @@ class ArrivageDataService
             'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
+            'postNb' => $postNb,
             'arrivalId' => $arrivage->getId()
         ];
     }
@@ -291,6 +296,7 @@ class ArrivageDataService
                     $arrival->getDate(),
                     $arrival->getFournisseur(),
                     $numeroCommande,
+                    null,
                     $isSEDCurrentClient
                 );
 
@@ -298,11 +304,14 @@ class ArrivageDataService
                     if (!$isSEDCurrentClient) {
                         $this->setArrivalUrgent($arrival, $urgencesMatching);
                     } else {
-                        $alertConfigs[] = $this->createArrivalAlertConfig(
-                            $arrival,
-                            $isSEDCurrentClient,
-                            $urgencesMatching
-                        );
+                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
+                            return $this->createArrivalAlertConfig(
+                                $arrival,
+                                $isSEDCurrentClient,
+                                [$urgence]
+                            );
+                        }, $urgencesMatching);
+                        array_push($alertConfigs, ...$currentAlertConfig);
                     }
                 }
             }
