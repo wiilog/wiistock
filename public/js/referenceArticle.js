@@ -143,55 +143,46 @@ $(function () {
 
 function initTableRefArticle() {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-        tableRefArticle = $('#tableRefArticle_id')
-            .on('error.dt', (a, b, c, d) => {
-                console.log(a, b, c, d)
-            })
-            .DataTable({
-                processing: true,
-                serverSide: true,
-                paging: true,
-                scrollX: true,
-                order: [[1, 'asc']],
-                ajax: {
-                    'url': url,
-                    'type': 'POST',
-                    'dataSrc': function (json) {
-                        return json.data;
-                    }
-                },
-                rowCallback: function (row, data) {
-                    initActionOnRow(row);
-                },
-                initComplete: function () {
-                    hideSpinner($('#spinner'));
-                    initRemove();
-                    hideAndShowColumns(columns);
-                    overrideSearch($('#tableRefArticle_id_filter input'), tableRefArticle, function ($input) {
-                        manageArticleAndRefSearch($input, $('#printTag'));
-                    });
-                },
-                length: 10,
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title
-                    }
-                }),
-                columnDefs: [
-                    {
-                        orderable: false,
-                        targets: 0
-                    }
-                ],
-                language: {
-                    url: "/js/i18n/dataTableLanguage.json",
-                },
-                "drawCallback": function (settings) {
-                    resizeTable();
-                },
-            });
+        let tableRefArticleConfig = {
+            processing: true,
+            serverSide: true,
+            paging: true,
+            scrollX: true,
+            order: [[1, 'asc']],
+            ajax: {
+                'url': url,
+                'type': 'POST',
+                'dataSrc': function (json) {
+                    return json.data;
+                }
+            },
+            length: 10,
+            columns: columns.map(function (column) {
+                return {
+                    ...column,
+                    class: column.title === 'Actions' ? 'noVis' : undefined,
+                    title: column.title === 'Actions' ? '' : column.title
+                }
+            }),
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                }
+            ],
+            drawConfig: {
+                needsResize: true
+            },
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            isArticleOrRefSpecifConfig: {
+                columns,
+                tableFilter: 'tableRefArticle_id_filter'
+            }
+        };
+        tableRefArticle = initDataTable('tableRefArticle_id', tableRefArticleConfig);
+        initRemove();
     });
 }
 
@@ -211,12 +202,6 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     "info": false,
     "searching": false
 });
-
-function hideAndShowColumns(columns) {
-    tableRefArticle.columns().every(function (index) {
-        this.visible(columns[index].class !== 'hide');
-    });
-}
 
 function showDemande(bloc) {
     let $livraisonShow = $('#livraisonShow');
@@ -573,8 +558,7 @@ function printReferenceArticleBarCode($button, event) {
         } else {
             alertErrorMsg('Les filtres et/ou la recherche n\'ont donnés aucun résultats, il est donc impossible de les imprimer.', true);
         }
-    }
-    else {
+    } else {
         event.stopPropagation();
     }
 }

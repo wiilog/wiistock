@@ -20,7 +20,7 @@ $(function () {
     pageLength = Number($('#pageLengthForArrivage').val());
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-    $('select[name="tableArrivages_length"]').on('change', function() {
+    $('select[name="tableArrivages_length"]').on('change', function () {
         let newValue = Number($(this).val());
         if (newValue && newValue !== pageLength) {
             $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
@@ -30,13 +30,10 @@ $(function () {
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
-let tableArrivage = $('#tableArrivages').DataTable({
+let tableArrivageConfig = {
     serverSide: true,
     processing: true,
     pageLength: Number($('#pageLengthForArrivage').val()),
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[1, "desc"]],
     scrollX: true,
     ajax: {
@@ -45,10 +42,6 @@ let tableArrivage = $('#tableArrivages').DataTable({
         'data': {
             'clicked': () => clicked,
         }
-    },
-    drawCallback: function (resp) {
-        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
-        hideColumns(tableArrivage, resp.json.columnsToHide);
     },
     columns: [
         {"data": 'Actions', 'name': 'actions', 'title': ''},
@@ -84,11 +77,18 @@ let tableArrivage = $('#tableArrivages').DataTable({
         $(thead).find('th').eq(8).attr('title', "destinataire");
         $(thead).find('th').eq(9).attr('title', "acheteurs");
     },
-    "rowCallback": function (row, data) {
-        if (data.urgent === true) $(row).addClass('table-danger');
-        initActionOnRow(row);
+    domConfig: {
+        needsFullDomOverride: true
     },
-    dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
+    rowConfig: {
+        needsDangerColor: true,
+        needsRowClickAction: true
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+        needsColumnHide: true,
+        filterId: 'tableArrivages_filter'
+    },
     buttons: [
         {
             extend: 'colvis',
@@ -98,7 +98,9 @@ let tableArrivage = $('#tableArrivages').DataTable({
 
     ],
     "lengthMenu": [10, 25, 50, 100],
-});
+};
+
+let tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
 
 function listColis(elem) {
     let arrivageId = elem.data('id');

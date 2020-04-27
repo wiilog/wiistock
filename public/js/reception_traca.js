@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-$(function() {
+$(function () {
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -14,14 +14,18 @@ $(function() {
 });
 
 let pathRecep = Routing.generate('reception_traca_api', true);
-let tableRecep = $('#tableRecepts').DataTable({
+let tableRecepConfig = {
     serverSide: true,
     "processing": true,
     "order": [[1, "desc"]],
-    'drawCallback': function() {
-        overrideSearch($('#tableRecepts_filter input'), tableRecep);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableRecepts_filter'
     },
-    headerCallback: function(thead) {
+    rowConfig: {
+        needsRowClickAction: true
+    },
+    headerCallback: function (thead) {
         $(thead).find('th').eq(2).attr('title', "arrivage");
         $(thead).find('th').eq(3).attr('title', "réception");
     },
@@ -34,12 +38,6 @@ let tableRecep = $('#tableRecepts').DataTable({
             }
         }
     ],
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
-    },
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathRecep,
         "type": "POST"
@@ -57,38 +55,14 @@ let tableRecep = $('#tableRecepts').DataTable({
         {"data": 'Réception', 'name': 'Réception', 'title': $('#recTranslation').val()},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
-});
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableRecep.column('date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin === "" && dateMax === "")
-            ||
-            (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
+};
+let tableRecep = initDataTable('tableRecepts', tableRecepConfig);
 
 let modalDeleteReception = $('#modalDeleteRecepTraca');
 let submitDeleteReception = $('#submitDeleteRecepTraca');
 let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
 InitialiserModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, tableRecep);
 
-let customExport = function() {
+let customExport = function () {
     tableRecep.button('.buttons-csv').trigger();
 };
