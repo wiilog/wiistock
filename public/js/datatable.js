@@ -126,13 +126,13 @@ function toggleInputRadioOnRow(tr) {
 }
 
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval}) {
-    let dtDefaultValue = 'lfrtip';
+    let dtDefaultValue = '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r';
     return needsFullDomOverride
-        ? '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r'
+        ? '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"f><"col-2">>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r'
         : needsPartialDomOverride
             ? '<"top">rt<"bottom"lp><"clear">'
             : needsPaginationRemoval
-                ? 'fltir'
+                ? '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8">>r'
                 : needsMinimalDomOverride
                     ? 'tr'
                     : dtDefaultValue;
@@ -168,6 +168,7 @@ function getAppropriateDrawCallback({response, needsSearchOverride, needsColumnH
     if (needsResize) resizeTable(table);
     if (needsEmplacementSearchOverride) overrideSearchSpecifEmplacement(filterId);
     if (hasCallback) callback();
+    renderDtInfo();
 }
 
 function initDataTable(dtId, {domConfig, rowConfig, drawConfig, isArticleOrRefSpecifConfig, ...config}) {
@@ -195,6 +196,11 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, isArticleOrRefSp
         ...config
     });
     return datatableToReturn;
+}
+
+function renderDtInfo() {
+    let $blocInfo = $('.dataTables_info');
+    $blocInfo.html(' -  &nbsp;' + $blocInfo.html());
 }
 
 function resizeTable(table) {

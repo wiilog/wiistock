@@ -1,7 +1,7 @@
 $('.select2').select2();
 
 let pathCollecte = Routing.generate('collecte_api', true);
-let table = $('#tableCollecte_id').DataTable({
+let collecteTableConfig = {
     processing: true,
     serverSide: true,
     order: [[1, 'desc']],
@@ -11,9 +11,6 @@ let table = $('#tableCollecte_id').DataTable({
             "targets": [0]
         }
     ],
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathCollecte,
         "type": "POST",
@@ -21,11 +18,12 @@ let table = $('#tableCollecte_id').DataTable({
             'filterStatus': $('#filterStatus').val()
         },
     },
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
-    drawCallback: function() {
-        overrideSearch($('#tableCollecte_id_filter input'), table);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableCollecte_id_filter'
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
@@ -37,7 +35,9 @@ let table = $('#tableCollecte_id').DataTable({
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Type', 'name': 'Type', 'title': 'Type'},
     ]
-});
+};
+let table = initDataTable('tableCollecte_id', collecteTableConfig);
+
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");

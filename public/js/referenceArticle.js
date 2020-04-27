@@ -179,7 +179,7 @@ function initTableRefArticle() {
             isArticleOrRefSpecifConfig: {
                 columns,
                 tableFilter: 'tableRefArticle_id_filter'
-            }
+            },
         };
         tableRefArticle = initDataTable('tableRefArticle_id', tableRefArticleConfig);
         initRemove();
