@@ -132,7 +132,7 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
         : needsPartialDomOverride
             ? '<"top">rt<"bottom"lp><"clear">'
             : needsPaginationRemoval
-                ? '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8">>r'
+                ? '<"row mb-2"<"col-2"f>>t<"row mt-2"<"col-auto mt-2"l><"col-2 pl-0"i>>r'
                 : needsMinimalDomOverride
                     ? 'tr'
                     : dtDefaultValue;
@@ -163,12 +163,13 @@ function overrideSearch($input, table, callback = null) {
 }
 
 function getAppropriateDrawCallback({response, needsSearchOverride, needsColumnHide, needsResize, needsEmplacementSearchOverride, hasCallback, callback, table, filterId}) {
-    if (needsSearchOverride) overrideSearch($('#' + filterId + ' input'), table);
+    let $searchInput = $('#' + filterId + ' input');
+    if (needsSearchOverride) overrideSearch($searchInput, table);
     if (needsColumnHide) hideColumns(table, response.json.columnsToHide);
     if (needsResize) resizeTable(table);
     if (needsEmplacementSearchOverride) overrideSearchSpecifEmplacement(filterId);
     if (hasCallback) callback();
-    renderDtInfo();
+    renderDtInfo($(table.table().container()));
 }
 
 function initDataTable(dtId, {domConfig, rowConfig, drawConfig, isArticleOrRefSpecifConfig, ...config}) {
@@ -198,8 +199,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, isArticleOrRefSp
     return datatableToReturn;
 }
 
-function renderDtInfo() {
-    let $blocInfo = $('.dataTables_info');
+function renderDtInfo($table) {
+    let $blocInfo = $table.find('.dataTables_info');
     $blocInfo.html(' -  &nbsp;' + $blocInfo.html());
 }
 
