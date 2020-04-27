@@ -218,6 +218,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $referencesEmergenciesTriggered;
 
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $columnsVisibleForLitige;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1154,6 +1159,22 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @param mixed $columnsVisibleForLitige
+     */
+    public function setColumnsVisibleForLitige($columnsVisibleForLitige): void
+    {
+        $this->columnsVisibleForLitige = $columnsVisibleForLitige;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getColumnsVisibleForLitige()
+    {
+        return $this->columnsVisibleForLitige;
     }
 
 }

@@ -24,8 +24,12 @@
                         <span class="fa fa-angle-down"></span>
                     </button>
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                        <a href="#" class="dropdown-item" onclick="$('.buttons-colvis').click();">
-                            <i class="fa fa-cog mr-2"></i>Gestion des colonnes
+                        <a class="dropdown-item"
+                           data-toggle="modal"
+                           data-target="#modalColumnVisibleLitige"
+                           href="#">
+                            <span class="fas fa-cog mr-2"></span>
+                            Gestion des colonnes
                         </a>
                     </div>
                 </div>
@@ -45,6 +49,7 @@
     </div>
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig' %}
+    {% include 'litige/modalColumnVisible.html.twig' with { champs: champs }%}
     <input hidden id="transNoArrivage" value="{{ "arrivage.n° d'arrivage"|trans }}">
     <input hidden id="transNoReception" value="{{ "réception.n° de réception"|trans }}">
     <input hidden id="isCollins" value="{{ isCollins }}">

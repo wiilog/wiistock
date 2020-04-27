@@ -15,6 +15,7 @@ use App\Entity\LitigeHistoric;
 
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
@@ -116,13 +117,40 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
+
+        $user = $this->getUser();
+        $fieldsInTab = [
+            ["key" => 'actions', 'name' => 'Actions'],
+            ["key" => 'type', 'name' => 'Type'],
+            ["key" => 'arrivalNumber', 'name' => 'N° d\'arrivage'],
+            ["key" => 'receptionNumber', 'name' => 'N° de réception'],
+            ["key" => 'buyers', 'name' => 'Acheteur'],
+            ["key" => 'numCommandeBl', 'name' => 'N° commande / BL'],
+            ["key" => 'command', 'name' => 'N° ligne'],
+            ["key" => 'provider', 'name' => 'Fournisseur'],
+            ["key" => 'references', 'name' => 'Référence'],
+            ["key" => 'lastHistorique', 'name' => 'Dernier historique'],
+            ["key" => 'creationDate', 'name' => 'Créé le'],
+            ["key" => 'updateDate', 'name' => 'Modifié le'],
+            ["key" => 'status', 'name' => 'Statut'],
+        ];
+        $fieldsCl =[];
+        $champs = array_merge($fieldsInTab,$fieldsCl);
+
+        $columnsToHide = $columnHiddenRepository->findOneBy([
+            'page' => ColumnHidden::PAGE_LITIGE,
+            'user' => $this->getUser()
+        ]);
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
-			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)
+			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
+            'champs' => $champs,
+            'columnsVisibles' => $user->getColumnsVisibleForLitige(),
 		]);
     }
 
@@ -403,6 +431,45 @@ class LitigeController extends AbstractController
 		}
 		throw new NotFoundHttpException('404');
 	}
+
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $champs = $data['values'];
+            $user = $this->getUser();
+            /** @var $user Utilisateur */
+            $user->setColumnsVisibleForLitige($champs);
+            $entityManager->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $user = $this->getUser();     ;
+
+        return new JsonResponse($user->getColumnsVisibleForLitige());
+    }
 
 	/**
 	 * @Route("/colonnes-cachees", name="save_column_hidden_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

@@ -234,9 +234,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                                 msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
                             }
                         } else if (typeof (min) == 'undefined') {
-                            msg += ' doit être inférieure à ' + max + ".<br>";
+                            msg += ' doit être inférieure ou égal à ' + max + ".<br>";
                         } else if (typeof (max) == 'undefined') {
-                            msg += ' doit être supérieure à ' + min + ".<br>";
+                            msg += ' doit être supérieure ou égal à ' + min + ".<br>";
                         } else if (min < 1) {
                             msg += ' ne peut pas être rempli'
                         }
@@ -1541,7 +1541,6 @@ function initActionOnCell(cell) {
 function showOrHideColumn(check, concernedTable, concernedTableColumns) {
 
     let columnName = check.data('name');
-
     let column = concernedTable.column(columnName + ':name');
 
     column.visible(!column.visible());
