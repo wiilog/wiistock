@@ -17,20 +17,18 @@ $(function() {
 });
 
 let pathMvt = Routing.generate('mouvement_stock_api', true);
-let tableMvt = $('#tableMvts').DataTable({
+let tableMvtStockConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[1, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableMvts_filter input'), tableMvt);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableMvts_filter'
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': ''},
@@ -49,7 +47,8 @@ let tableMvt = $('#tableMvts').DataTable({
             targets: [0, 2]
         }
     ]
-});
+};
+let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
 
 let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');
