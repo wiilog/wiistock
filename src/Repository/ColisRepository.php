@@ -47,6 +47,7 @@ class ColisRepository extends EntityRepository
     /**
      * @param array $locations
      * @param array $naturesFilter
+     * @param int|null $limit
      * @return array Array of [
      *      'natureId' => int,
      *      'natureLabel' => string,
@@ -58,7 +59,7 @@ class ColisRepository extends EntityRepository
      * ]
      * @throws DBALException
      */
-    public function getPackIntelOnLocations(array $locations, array $naturesFilter = []): array {
+    public function getPackIntelOnLocations(array $locations, array $naturesFilter = [], ?int $limit = null): array {
         $queryBuilder = $this->createPacksOnLocationsQueryBuilder($locations, $naturesFilter)
             ->select('nature.id as natureId')
             ->addSelect('nature.label as natureLabel')
@@ -67,7 +68,11 @@ class ColisRepository extends EntityRepository
             ->addSelect('currentLocation.id AS currentLocationId')
             ->addSelect('currentLocation.label AS currentLocationLabel')
             ->addSelect('colis.code AS code');
-
+        if (isset($limit)) {
+            $queryBuilder
+                ->orderBy('firstTracking.datetime', 'ASC')
+                ->setMaxResults($limit);
+        }
         return $queryBuilder
             ->getQuery()
             ->getResult();

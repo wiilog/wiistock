@@ -1,5 +1,5 @@
 let datatableColis;
-let datatableLoading = false;
+let currentDashboard;
 
 let chartArrivalUm;
 let chartAssoRecep;
@@ -18,43 +18,18 @@ $(function () {
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
-
-    //// charts monitoring réception arrivage
-    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
-        chartArrivalUm = chart;
-    });
-    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics').then((chart) => {
-        chartAssoRecep = chart;
-    });
-    //// charts monitoring réception quai
-    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics').then((chart) => {
-        chartDailyArrival = chart;
-    });
-    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics').then((chart) => {
-        chartWeeklyArrival = chart;
-    });
-    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
-        chartColis = chart;
-    });
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', null).then((chart) => {
-        chartMonetaryFiability = chart;
-    });
-    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
-        chartFirstForAdmin = chart;
-    });
-    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2).then((chart) => {
-        chartSecondForAdmin = chart;
-    });
-
-    loadRetards();
-    refreshIndicatorsReceptionDock();
-    refreshIndicatorsReceptionAdmin();
-    updateCarriers();
+    currentDashboard = window.location.href.includes('admin')
+        ? 'adminDashboard'
+        : window.location.href.includes('quai')
+            ? 'dockDashboard'
+            : 'arrivalDashboard';
+    hideCarouselTargetOverlay();
+    loadProperData();
 
     initTooltips($('.has-tooltip'));
 
     let reloadFrequency = 1000 * 60 * 15; // 15min
-    setInterval(reloadDashboards, reloadFrequency);
+    setInterval(reloadData, reloadFrequency);
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
@@ -64,53 +39,158 @@ $(function () {
         $indicators.fadeOut();
     });
 
-    $(document).on('keydown', function(e) {
-        let activeBtn = $('#carouselIndicators').find('[data-slide-to].active');
-        if (e.which === 37) {
-            activeBtn.prev('li').click()
-        } else if (e.which === 39) {
-            activeBtn.next('li').click()
+    $(document).on('keydown', function (e) {
+        if (!$('.carousel-indicators').hasClass('d-none')) {
+            let activeBtn = $('#carouselIndicators').find('[data-slide-to].active');
+            if (e.which === 37) {
+                activeBtn.prev('li').click()
+            } else if (e.which === 39) {
+                activeBtn.next('li').click()
+            }
         }
     });
 
     $(window).resize(function () {
         let newFontSize = calculateChartsFontSize();
-        if(newFontSize !== currentChartsFontSize) {
+        if (newFontSize !== currentChartsFontSize) {
             currentChartsFontSize = newFontSize;
-            updateCharts(true);
+            resizeCharts();
         }
     });
 
     refreshPageTitle();
     const $carouselIndicators = $('#carouselIndicators');
+    $carouselIndicators.on('slide.bs.carousel', (event) => {
+        let $newlyActivScreen = $(event.relatedTarget);
+        currentDashboard = $newlyActivScreen.attr('id');
+        hideCarouselTargetOverlay();
+        showSpinner();
+    });
     $carouselIndicators.on('slid.bs.carousel', () => {
+        loadProperData();
         refreshPageTitle();
     });
 });
 
+function hideCarouselTargetOverlay() {
+    let $carouselIndicators = $('.carousel-indicators');
+    let $carouselContainer = $('#' + currentDashboard);
+    $carouselIndicators.addClass('d-none');
+    $carouselContainer.addClass('d-none');
+}
 
-function reloadDashboards() {
-    if (datatableColis) {
-        datatableColis.ajax.reload();
+function showSpinner() {
+    let $spinner = $('.spinner-grow');
+    $spinner.removeClass('d-none');
+}
+
+function showCarouselOverlayAndHideSpinner() {
+    let $spinner = $('.spinner-grow');
+    let $carouselIndicators = $('.carousel-indicators');
+    let $carouselContainer = $('#' + currentDashboard);
+    $spinner.addClass('d-none');
+    $carouselIndicators.removeClass('d-none');
+    $carouselContainer.removeClass('d-none');
+}
+
+function loadProperData(preferCache = false) {
+    switch (currentDashboard) {
+        case 'arrivalDashboard':
+            loadArrivalDashboard(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+                resizeDatatable();
+            });
+            break;
+        case 'dockDashboard':
+            loadDockDashboard(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+            });
+            break;
+        case 'adminDashboard':
+            loadAdminDashboard(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+            });
+            break;
+        default:
+            break;
     }
-    updateCharts(false);
-    updateCarriers();
-    refreshIndicatorsReceptionDock();
-    refreshIndicatorsReceptionAdmin();
+}
 
+function resizeDatatable() {
+    datatableColis.columns.adjust().draw();
+}
+
+function loadArrivalDashboard(preferCache) {
+    return new Promise(function (resolve) {
+        drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCache).then((chart) => {
+            chartArrivalUm = chart;
+            drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCache).then((chart) => {
+                chartAssoRecep = chart;
+                drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCache).then((chart) => {
+                    chartMonetaryFiability = chart;
+                    if (!preferCache) {
+                        loadRetards().then(() => {
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        });
+    });
+}
+
+function loadDockDashboard(preferCache) {
+    return new Promise(function (resolve) {
+        drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCache).then((chart) => {
+            chartDailyArrival = chart;
+            drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCache).then((chart) => {
+                chartWeeklyArrival = chart;
+                drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCache).then((chart) => {
+                    chartColis = chart;
+                    if (!preferCache) {
+                        refreshIndicatorsReceptionDock().then(() => {
+                            updateCarriers().then(() => {
+                                resolve();
+                            });
+                        });
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        });
+    });
+}
+
+function loadAdminDashboard(preferCache) {
+    return new Promise(function (resolve) {
+        drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache).then((chart) => {
+            chartFirstForAdmin = chart;
+            drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache).then((chart) => {
+                chartSecondForAdmin = chart;
+                if (!preferCache) {
+                    refreshIndicatorsReceptionAdmin().then(() => {
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            });
+        });
+    });
+}
+
+
+function reloadData() {
+    loadProperData();
     let now = new Date();
     $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
 }
 
-function updateCharts(preferCacheData = false) {
-    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCacheData);
-    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCacheData);
-    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCacheData);
-    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCacheData);
-    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCacheData);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCacheData);
-    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCacheData);
-    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCacheData);
+function resizeCharts() {
+    loadProperData(true);
 }
 
 function updateSimpleChartData(
@@ -165,11 +245,11 @@ function updateMultipleChartData(chart, chartData, chartColors) {
                 dataset = {
                     label: subKey,
                     backgroundColor: (chartColors
-                        ? (
-                            (chartColors && chartColors[subKey])
-                            || (`#${((1 << 24) * Math.random() | 0).toString(16)}`)
-                        )
-                        : '#a3d1ff'
+                            ? (
+                                (chartColors && chartColors[subKey])
+                                || (`#${((1 << 24) * Math.random() | 0).toString(16)}`)
+                            )
+                            : '#a3d1ff'
                     ),
                     data: []
                 };
@@ -186,7 +266,7 @@ function drawSimpleChart($canvas, path, chart, preferCacheData = false) {
         if ($canvas.length == 0) {
             resolve();
         } else {
-            if (!preferCacheData){
+            if (!preferCacheData) {
                 $.get(Routing.generate(path), function (data) {
                     dashboardChartsData[$canvas.attr('id')] = data;
                     chart = createAndUpdateSimpleChart($canvas, chart, data);
@@ -206,7 +286,7 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false)
         chart = newChart($canvas, false);
     }
 
-    if (data){
+    if (data) {
         updateSimpleChartData(
             chart,
             data.data || data,
@@ -233,7 +313,7 @@ function createAndUpdateMultipleCharts($canvas, chart, data, forceCreation = fal
 }
 
 
-function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData= false) {
+function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData = false) {
     return new Promise(function (resolve) {
         if ($button.length == 0) {
             resolve();
@@ -275,7 +355,7 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, pr
     });
 }
 
-function drawMultipleBarChart($canvas, path, params, chartNumber, chart ,preferCacheData = false ) {
+function drawMultipleBarChart($canvas, path, params, chartNumber, chart, preferCacheData = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
@@ -289,13 +369,13 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart ,preferC
                     chart = createAndUpdateMultipleCharts($canvas, chart, data);
                     resolve(chart);
                 });
-            }
-            else {
+            } else {
                 data = dashboardChartsData[$canvas.attr('id')];
                 chart = createAndUpdateMultipleCharts($canvas, chart, data, true);
                 resolve(chart);
             }
-        }});
+        }
+    });
 }
 
 function goToFilteredDemande(type, filter) {
@@ -339,7 +419,7 @@ function newChart($canvasId, redForLastData = false) {
                     labels: {
                         fontSize,
                         fontStyle,
-                        filter: function(item) {
+                        filter: function (item) {
                             return Boolean(item && item.text);
                         }
                     }
@@ -379,57 +459,68 @@ function newChart($canvasId, redForLastData = false) {
 }
 
 function loadRetards() {
-    const $retardsTable = $('.retards-table');
-
-    if (!datatableLoading) {
-        datatableLoading = true;
+    return new Promise(function (resolve) {
         if (datatableColis) {
-            datatableColis.destroy();
+            datatableColis.ajax.reload();
+            resolve();
+        } else {
+            const $retardsTable = $('.retards-table');
+            datatableColis = $retardsTable.DataTable({
+                responsive: true,
+                dom: 'tr',
+                paging: false,
+                scrollCollapse: true,
+                scrollY: '22vh',
+                processing: true,
+                "language": {
+                    url: "/js/i18n/dataTableLanguage.json",
+                },
+                ajax: {
+                    "url": Routing.generate('api_retard', true),
+                    "type": "GET",
+                },
+                initComplete: () => {
+                    resolve();
+                },
+                order: [[2, 'desc']],
+                columns: [
+                    {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                    {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+                    {
+                        "data": 'delay',
+                        'name': 'delay',
+                        'title': 'Délai',
+                        render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)
+                    },
+                    {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+                ]
+            });
         }
-        datatableColis = $retardsTable.DataTable({
-            responsive: true,
-            dom: 'tr',
-            paging: false,
-            scrollCollapse: true,
-            scrollY: '18vh',
-            processing: true,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            ajax: {
-                "url": Routing.generate('api_retard', true),
-                "type": "GET",
-            },
-            initComplete: () => {
-                datatableLoading = false;
-            },
-            order: [[2, 'desc']],
-            columns: [
-                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
-                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
-            ]
-        });
-    }
+    });
 }
 
 function refreshIndicatorsReceptionDock() {
-    $.get(Routing.generate('get_indicators_reception_dock'), function(data) {
-        refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
-        refreshCounter($('#encours-dock-box'), data.enCoursDock);
-        refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
-        refreshCounter($('#encours-cleared-box'), data.enCoursCleared);
-        refreshCounter($('#encours-dropzone-box'), data.enCoursDropzone);
+    return new Promise(function (resolve) {
+        $.get(Routing.generate('get_indicators_reception_dock'), function (data) {
+            refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
+            refreshCounter($('#encours-dock-box'), data.enCoursDock);
+            refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
+            refreshCounter($('#encours-cleared-box'), data.enCoursCleared);
+            refreshCounter($('#encours-dropzone-box'), data.enCoursDropzone);
+            resolve();
+        });
     });
 }
 
 function refreshIndicatorsReceptionAdmin() {
-    $.get(Routing.generate('get_indicators_reception_admin', true), function(data) {
-        refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
-        refreshCounter($('#encours-litige-box'), data.enCoursLitige);
-        refreshCounter($('#encours-urgence-box'), data.enCoursUrgence, true);
-        refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
+    return new Promise(function (resolve) {
+        $.get(Routing.generate('get_indicators_reception_admin', true), function (data) {
+            refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
+            refreshCounter($('#encours-litige-box'), data.enCoursLitige);
+            refreshCounter($('#encours-urgence-box'), data.enCoursUrgence, true);
+            refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
+            resolve();
+        });
     });
 }
 
@@ -440,8 +531,7 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
         $counterCountainer.find('.location-label').text('(' + label + ')');
-    }
-    else {
+    } else {
         counter = data;
     }
     if (counter > 0 && needsRedColorIfPositiv) {
@@ -455,13 +545,16 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
 }
 
 function updateCarriers() {
-    $.get(Routing.generate('get_daily_carriers_statistics'), function(data) {
-        const $container = $('#statistics-arrival-carriers');
-        $container.empty();
-        const cssClass = `${isDashboardExt() ? 'medium-font' : ''} m-0`;
-        $container.append(
-            ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: cssClass}))))
-        );
+    return new Promise(function (resolve) {
+        $.get(Routing.generate('get_daily_carriers_statistics'), function (data) {
+            const $container = $('#statistics-arrival-carriers');
+            $container.empty();
+            const cssClass = `${isDashboardExt() ? 'medium-font' : ''} m-0`;
+            $container.append(
+                ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: cssClass}))))
+            );
+            resolve();
+        });
     });
 }
 
@@ -527,6 +620,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
         }
     });
 }
+
 function isDashboardExt() {
     const $isDashboardExt = $('#isDashboardExt');
     return ($isDashboardExt.length > 0 ? ($isDashboardExt.val() === "1") : false);

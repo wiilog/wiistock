@@ -177,10 +177,11 @@ class MouvementTracaRepository extends EntityRepository
     /**
      * Retourne les mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param Emplacement[]|int[] $locations
+     * @param int $limit
      * @return array[]
      * @throws DBALException
      */
-    public function getLastOnLocations(array $locations): array
+    public function getLastOnLocations(array $locations, ?int $limit = null): array
     {
         $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
 
@@ -192,7 +193,11 @@ class MouvementTracaRepository extends EntityRepository
             ->join('tracking.emplacement', 'currentLocation')
             ->where('tracking.id IN (:trackingIds)')
             ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY);
-
+        if (isset($limit)) {
+            $queryBuilder
+                ->orderBy('tracking.datetime', 'ASC')
+                ->setMaxResults($limit);
+        }
         return $queryBuilder
             ->getQuery()
             ->getResult();
