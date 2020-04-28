@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
@@ -16,6 +15,7 @@ use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
+use App\Service\CSVExportService;
 use App\Service\MouvementTracaService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -331,34 +331,34 @@ class MouvementTracaController extends AbstractController
     }
 
     /**
-     * @Route("/mouvement-traca-infos", name="get_mouvements_traca_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
-    public function getMouvementIntels(Request $request,
-                                       EntityManagerInterface $entityManager): Response
+    public function getMouvementTracaCsv(Request $request,
+                                         CSVExportService $CSVExportService,
+                                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        }
+        catch(\Throwable $throwable) {}
+
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            $colisRepository = $entityManager->getRepository(Colis::class);
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+            $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
 
-            $mouvements = $mouvementTracaRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-            foreach ($mouvements as $mouvement) {
-                $date = $mouvement->getDatetime();
-                if ($dateTimeMin >= $date || $dateTimeMax <= $date) {
-                    array_splice($mouvements, array_search($mouvement, $mouvements), 1);
-                }
-            }
-
-            $headers = [
+            array_unshift($mouvements, [
                 'date',
                 'colis',
                 'emplacement',
@@ -369,49 +369,36 @@ class MouvementTracaController extends AbstractController
                 'origine',
                 'numéro de commande',
                 'urgence'
-            ];
-            $data = [];
-            $data[] = $headers;
+            ]);
 
-            foreach ($mouvements as $mouvement) {
-                $mouvementData = [];
+            return $CSVExportService->createCsvResponse(
+                'export_mouvement_traca.csv',
+                $mouvements,
+                function ($mouvement, bool $isFirstRow) use ($attachmentsNameByMouvementTraca) {
+                    if (!$isFirstRow) {
+                        $row = [];
+                        $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
+                        $row[] = $mouvement['colis'];
+                        $row[] = $mouvement['locationLabel'] ?: '';
+                        $row[] = $mouvement['typeName'] ?: '';
+                        $row[] = $mouvement['operatorUsername'] ?: '';
+                        $row[] = strip_tags($mouvement['commentaire']);
+                        $row[] = $attachmentsNameByMouvementTraca[(int) $mouvement['id']] ?? '';
 
-                $mouvementData[] = $mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '';
-                $mouvementData[] = $mouvement->getColis();
-                $mouvementData[] = $mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '';
-                $mouvementData[] = $mouvement->getType() ? $mouvement->getType()->getNom() : '';
-                $mouvementData[] = $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '';
-                $mouvementData[] = strip_tags($mouvement->getCommentaire());
-
-                $attachments = $mouvement->getAttachements() ? $mouvement->getAttachements()->toArray() : [];
-                $attachmentsNames = [];
-                foreach ($attachments as $attachment) {
-                    $attachmentsNames[] = $attachment->getOriginalName();
+                        $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
+                        $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
+                            ? implode(', ', $mouvement['numeroCommandeListArrivage'])
+                            : ($mouvement['referenceReception'] ?: '');
+                        $row[] = !empty($mouvement['isUrgent']) ? 'oui' : 'non';
+                    }
+                    else {
+                        $row = $mouvement;
+                    }
+                    return $row;
                 }
-                $mouvementData[] = implode(", ", $attachmentsNames);
-                $mouvementData[] =
-                    $mouvement->getArrivage()
-                        ? $mouvement->getArrivage()->getNumeroArrivage()
-                        : ($mouvement->getReception()
-                        ? $mouvement->getReception()->getNumeroReception()
-                        : '');
-                $mouvementData[] =
-                    $mouvement->getArrivage()
-                        ? $mouvement->getArrivage()->getNumeroCommandeList()
-                        : ($mouvement->getReception()
-                        ? $mouvement->getReception()->getReference()
-                        : '');
-                $colis = $colisRepository->findOneBy(['code' => $mouvement->getColis()]);
-                if ($colis) {
-                    $arrivage = $colis->getArrivage();
-                    $mouvementData[] = ($arrivage->getIsUrgent() ? 'oui' : 'non');
-                } else {
-                    $mouvementData[] = 'non';
-                }
-                $data[] = $mouvementData;
-            }
-            return new JsonResponse($data);
-        } else {
+            );
+        }
+        else {
             throw new NotFoundHttpException('404');
         }
     }
