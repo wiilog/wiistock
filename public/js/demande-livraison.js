@@ -44,11 +44,8 @@ let tableDemande = initDataTable('table_demande', tableDemandeConfig);
 
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
-let tableArticle = $('#table-lignes').DataTable({
+let tableArticleConfig = {
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[1, "desc"]],
     ajax: {
         "url": pathArticle,
@@ -62,8 +59,8 @@ let tableArticle = $('#table-lignes').DataTable({
         {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
     ],
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
     columnDefs: [
         {
@@ -71,7 +68,8 @@ let tableArticle = $('#table-lignes').DataTable({
             targets: 0
         }
     ],
-});
+};
+let tableArticle = initDataTable('table-lignes', tableArticleConfig);
 
 let modalNewArticle = $("#modalNewArticle");
 let submitNewArticle = $("#submitNewArticle");

@@ -1,9 +1,6 @@
 $(function () {
     let pathStatus = Routing.generate('status_param_api', true);
-    let tableStatus = $('#tableStatus').DataTable({
-        "language": {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableStatusConfig = {
         ajax: {
             "url": pathStatus,
             "type": "POST"
@@ -20,10 +17,11 @@ $(function () {
         order: [
             [6, 'asc']
         ],
-        rowCallback: function (row, data) {
-            initActionOnRow(row);
+        rowConfig: {
+            needsRowClickAction: true,
         },
-    });
+    };
+    let tableStatus = initDataTable('tableStatus', tableStatusConfig);
 
     let modalNewStatus = $("#modalNewStatus");
     let submitNewStatus = $("#submitNewStatus");

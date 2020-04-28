@@ -55,10 +55,7 @@ let urlModifyCollecte = Routing.generate('collecte_edit', true);
 InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
 
 let pathAddArticle = Routing.generate('collecte_article_api', {'id': id}, true);
-let tableArticle = $('#tableArticle_id').DataTable({
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArticleConfig = {
     ajax: {
         "url": pathAddArticle,
         "type": "POST"
@@ -70,8 +67,8 @@ let tableArticle = $('#tableArticle_id').DataTable({
             "targets": [0]
         }
     ],
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
     columns: [
         {"data": 'Actions', 'title': '', className: 'noVis'},
@@ -80,7 +77,8 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'}
     ],
-});
+};
+let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {

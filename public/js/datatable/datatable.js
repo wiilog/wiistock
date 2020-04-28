@@ -125,8 +125,9 @@ function toggleInputRadioOnRow(tr) {
     $row.find('input[type="checkbox"]').trigger('click');
 }
 
-function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval}) {
+function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
     let dtDefaultValue = '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r';
+    let dtDefaultValueWithoutInfos = '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-8"p>>r';
     return needsFullDomOverride
         ? '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"f><"col-2">>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r'
         : needsPartialDomOverride
@@ -135,16 +136,21 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
                 ? '<"row mb-2"<"col-2"f>>t<"row mt-2"<"col-auto mt-2"l><"col-2 pl-0"i>>r'
                 : needsMinimalDomOverride
                     ? 'tr'
-                    : dtDefaultValue;
+                    : removeInfo
+                        ? dtDefaultValueWithoutInfos
+                        : dtDefaultValue;
 }
 
-function getAppropriateRowCallback({needsDangerColor, needsRowClickAction}) {
+function getAppropriateRowCallback({needsDangerColor, dataToCheck, needsRowClickAction, callback}) {
     return function (row, data) {
-        if (needsDangerColor && data.urgent === true) {
+        if (needsDangerColor && data[dataToCheck] === true) {
             $(row).addClass('table-danger');
         }
         if (needsRowClickAction) {
             initActionOnRow(row);
+        }
+        if (callback) {
+            callback(row, data);
         }
     }
 }
@@ -172,7 +178,7 @@ function getAppropriateDrawCallback({response, needsSearchOverride, needsColumnH
     renderDtInfo($(table.table().container()));
 }
 
-function initDataTable(dtId, {domConfig, rowConfig, drawConfig, isArticleOrRefSpecifConfig, ...config}) {
+function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, isArticleOrRefSpecifConfig, ...config}) {
     let datatableToReturn = null;
     let $tableDom = $('#' + dtId);
     $tableDom.addClass('wii-table');
@@ -193,6 +199,9 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, isArticleOrRefSp
         },
         initComplete: () => {
             articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
+            if (initCompleteCallback) {
+                initCompleteCallback();
+            }
         },
         ...config
     });
@@ -211,7 +220,7 @@ function resizeTable(table) {
 }
 
 function overrideSearchSpecifEmplacement(filterId) {
-    let $input = $('#' + filterId + 'input');
+    let $input = $('#' + filterId + ' input');
     $input.off();
     $input.on('keyup', function (e) {
         let $printButton = $('.printButton');

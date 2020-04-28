@@ -194,14 +194,12 @@ function resizeTable() {
 }
 
 //COLUMN VISIBLE
-let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableColumnVisibleConfig = {
     "paging": false,
     "info": false,
     "searching": false
-});
+};
+let tableColumnVisible = initDataTable('tableColumnVisible_id', tableColumnVisibleConfig);
 
 function showDemande(bloc) {
     let $livraisonShow = $('#livraisonShow');
@@ -581,10 +579,7 @@ function displayActifOrInactif(select) {
 
 function initDatatableMovements(id) {
     let pathRefMouvements = Routing.generate('ref_mouvements_api', {'id': id}, true);
-    let tableRefMouvements = $('#tableMouvements').DataTable({
-        "language": {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableRefMvtOptions = {
         ajax: {
             "url": pathRefMouvements,
             "type": "POST"
@@ -597,7 +592,8 @@ function initDatatableMovements(id) {
             {"data": 'Type', 'title': 'Type'},
             {"data": 'Operator', 'title': 'Opérateur'}
         ],
-    });
+    };
+    let tableRefMouvements = initDataTable('tableMouvements', tableRefMvtOptions);
 }
 
 function showRowMouvements(button) {

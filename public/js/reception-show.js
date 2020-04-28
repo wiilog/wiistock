@@ -65,44 +65,44 @@ function InitiliserPageModals() {
 function InitPageDataTable() {
     let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
-
-    return {
-        tableArticle: $('#tableArticle_id').DataTable({
-            "lengthMenu": [5, 10, 25],
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            ajax: {
-                "url": pathAddArticle,
-                "type": "POST",
-                dataSrc: ({data, hasBarCodeToPrint}) => {
-                    const $printButton = $('#buttonPrintMultipleBarcodes');
-                    const dNoneClass = 'd-none';
-                    if (hasBarCodeToPrint) {
-                        $printButton.removeClass(dNoneClass);
-                        $('.print').removeClass(dNoneClass)
-                    } else {
-                        $printButton.addClass(dNoneClass);
-                        $('.print').addClass(dNoneClass)
-                    }
-                    return data;
+    let tableArticleConfig = {
+        "lengthMenu": [5, 10, 25],
+        ajax: {
+            "url": pathAddArticle,
+            "type": "POST",
+            dataSrc: ({data, hasBarCodeToPrint}) => {
+                const $printButton = $('#buttonPrintMultipleBarcodes');
+                const dNoneClass = 'd-none';
+                if (hasBarCodeToPrint) {
+                    $printButton.removeClass(dNoneClass);
+                    $('.print').removeClass(dNoneClass)
+                } else {
+                    $printButton.addClass(dNoneClass);
+                    $('.print').addClass(dNoneClass)
                 }
-            },
-            order: [[5, "desc"], [1, "desc"]],
-            columns: [
-                {"data": 'Actions', 'title': '', className: 'noVis'},
-                {"data": 'Référence', 'title': 'Référence'},
-                {"data": 'Commande', 'title': 'Commande'},
-                {"data": 'A recevoir', 'title': 'A recevoir'},
-                {"data": 'Reçu', 'title': 'Reçu'},
-                {"data": 'Urgence', 'title': 'Urgence'},
-                {"data": 'Comment', 'title': 'Comment', visible: false},
-            ],
-            columnDefs: [
-                {"orderable": false, "targets": 0},
-                {"visible": false, "targets": 5}
-            ],
-            rowCallback: function (row, data) {
+                return data;
+            }
+        },
+        domConfig: {
+            removeInfo: true
+        },
+        order: [[5, "desc"], [1, "desc"]],
+        columns: [
+            {"data": 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Référence', 'title': 'Référence'},
+            {"data": 'Commande', 'title': 'Commande'},
+            {"data": 'A recevoir', 'title': 'A recevoir'},
+            {"data": 'Reçu', 'title': 'Reçu'},
+            {"data": 'Urgence', 'title': 'Urgence'},
+            {"data": 'Comment', 'title': 'Comment', visible: false},
+        ],
+        columnDefs: [
+            {"orderable": false, "targets": 0},
+            {"visible": false, "targets": 5}
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+            callback: (row, data) => {
                 if (data.Urgence) {
                     const $row = $(row);
                     $row.addClass('table-danger');
@@ -111,47 +111,50 @@ function InitPageDataTable() {
                         initTooltips($row);
                     }
                 }
-                initActionOnRow(row);
             }
-        }),
-        tableLitigesReception: $('#tableReceptionLitiges').DataTable({
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
+        },
+    };
+    let tableLitigeConfig = {
+        "lengthMenu": [5, 10, 25],
+        scrollX: true,
+        ajax: {
+            "url": pathLitigesReception,
+            "type": "POST",
+        },
+        columns: [
+            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": 'status', 'name': 'status', 'title': 'Statut'},
+            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
+        ],
+        columnDefs: [
+            {
+                "type": "customDate",
+                "targets": [4, 5],
+                "visible": false
             },
-            "lengthMenu": [5, 10, 25],
-            scrollX: true,
-            ajax: {
-                "url": pathLitigesReception,
-                "type": "POST",
-            },
-            columns: [
-                {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis'},
-                {"data": 'type', 'name': 'type', 'title': 'Type'},
-                {"data": 'status', 'name': 'status', 'title': 'Statut'},
-                {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
-                {"data": 'date', 'name': 'date', 'title': 'Date'},
-                {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
-            ],
-            columnDefs: [
-                {
-                    "type": "customDate",
-                    "targets": [4, 5],
-                    "visible": false
-                },
-                {
-                    orderable: false,
-                    targets: 0
-                }
-            ],
-            order: [
-                [5, 'desc'],
-                [4, 'desc'],
-            ],
-            rowCallback: function (row, data) {
-                $(row).addClass(data.urgence ? 'table-danger' : '');
-                initActionOnRow(row);
+            {
+                orderable: false,
+                targets: 0
             }
-        })
+        ],
+        order: [
+            [5, 'desc'],
+            [4, 'desc'],
+        ],
+        domConfig: {
+            removeInfo: true
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+            needsDangerColor: true
+        },
+    };
+    return {
+        tableArticle: initDataTable('tableArticle_id', tableArticleConfig),
+        tableLitigesReception: initDataTable('tableReceptionLitiges', tableLitigeConfig)
     };
 }
 
@@ -221,10 +224,7 @@ function getCommentAndAddHisto() {
 
 function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    tableHistoLitige = $('#tableHistoLitige').DataTable({
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
             "type": "POST"
@@ -234,21 +234,21 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">',
-        rowCallback: function (row, data) {
-            initActionOnRow(row);
-        }
-    });
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        domConfig: {
+            needsPartialDomOverride: true
+        },
+    };
+    tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 
 function initDatatableConditionnement() {
     let pathArticle = Routing.generate('article_by_reception_api', true);
-    let tableFromArticle = $('#tableArticleInner_id').DataTable({
+    let tableFromArticleConfig = {
         info: false,
         paging: false,
-        "language": {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         searching: false,
         destroy: true,
         ajax: {
@@ -260,8 +260,8 @@ function initDatatableConditionnement() {
                 }
             },
         },
-        rowCallback: function(row, data) {
-            initActionOnRow(row);
+        rowConfig: {
+            needsRowClickAction: true,
         },
         order: [1, 'asc'],
         columns: [
@@ -283,7 +283,8 @@ function initDatatableConditionnement() {
                 targets: 0
             }
         ]
-    });
+    };
+    let tableFromArticle = initDataTable('tableArticleInner_id', tableFromArticleConfig);
 
     let statutVisible = $("#statutVisible").val();
     if (!statutVisible) {

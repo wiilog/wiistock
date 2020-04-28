@@ -1,14 +1,11 @@
 let path = Routing.generate('inv_anomalies_api', true);
-let table = $('#tableAnomalies').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableConfig = {
     ajax:{
         "url": path,
         "type": "POST"
     },
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
     columns:[
         { "data": 'Actions', 'title' : '', className: 'noVis', orderable: false, visible: false },
@@ -16,7 +13,8 @@ let table = $('#tableAnomalies').DataTable({
         { "data": 'libelle', 'title' : 'Libellé' },
         { "data": 'quantite', 'title' : 'Quantité' },
     ],
-});
+};
+let table = initDataTable('tableAnomalies', tableConfig);
 
 function showModalAnomaly($button) {
     let ref = $button.data('ref');
