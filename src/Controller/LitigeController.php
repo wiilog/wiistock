@@ -117,7 +117,6 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
 
         $user = $this->getUser();
         $fieldsInTab = [
@@ -138,10 +137,6 @@ class LitigeController extends AbstractController
         $fieldsCl =[];
         $champs = array_merge($fieldsInTab,$fieldsCl);
 
-        $columnsToHide = $columnHiddenRepository->findOneBy([
-            'page' => ColumnHidden::PAGE_LITIGE,
-            'user' => $this->getUser()
-        ]);
 
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
@@ -162,17 +157,10 @@ class LitigeController extends AbstractController
 			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
 				return $this->redirectToRoute('access_denied');
 			}
-
+            $user = $this->getUser();
 			$data = $this->litigeService->getDataForDatatable($request->request);
-			$columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
-
-			$columnsToHide = $columnHiddenRepository->findOneBy([
-				'page' => ColumnHidden::PAGE_LITIGE,
-				'user' => $this->getUser()
-			]);
-
-			$data['columnHidden'] = $columnsToHide ? $columnsToHide->getValue() : [];
-
+            $columnVisible = $user->getColumnsVisibleForLitige();
+            $data['visible'] = $columnVisible;
 			return new JsonResponse($data);
 		}
 		throw new NotFoundHttpException('404');
@@ -440,11 +428,12 @@ class LitigeController extends AbstractController
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() ) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $champs = $data['values'];
+            $data = json_decode($request->getContent(), true);
+            $champs = array_keys($data);
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $user->setColumnsVisibleForLitige($champs);
@@ -470,38 +459,4 @@ class LitigeController extends AbstractController
 
         return new JsonResponse($user->getColumnsVisibleForLitige());
     }
-
-	/**
-	 * @Route("/colonnes-cachees", name="save_column_hidden_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @return Response
-	 */
-	public function saveColumnHidden(Request $request): Response
-	{
-		$em = $this->getDoctrine()->getManager();
-
-		$columns = $request->request->all();
-		$value = [];
-
-		foreach ($columns as $columnName => $display) {
-			if ($display == 'false') $value[] =  $columnName;
-		}
-
-		$columnHiddenRepository = $em->getRepository(ColumnHidden::class);
-		$columnHidden = $columnHiddenRepository->findOneBy(['user' => $this->getUser()]);
-
-		if (!$columnHidden) {
-			$columnHidden = new ColumnHidden();
-			$columnHidden
-				->setUser($this->getUser())
-				->setPage(ColumnHidden::PAGE_LITIGE);
-			$em->persist($columnHidden);
-			$em->flush();
-		}
-
-		$columnHidden->setValue($value);
-		$em->flush();
-
-		return new JsonResponse();
-	}
 }

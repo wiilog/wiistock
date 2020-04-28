@@ -25,7 +25,7 @@
                                 {{ champ.name | capitalize }}
                             </td>
                             <td>
-                                <div class="checkbox d-inline-block pointer" onclick="initColVisParam(this)">
+                                <div class="checkbox d-inline-block pointer no-data" onclick="initColVisParam(this)">
                                     {% set checked = (champ.key  in columnsVisibles ? 'checked' : '') %}
                                     <input class="visible-column-litige-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.key }}"
@@ -45,7 +45,7 @@
             </div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-primary" id="submitColumnVisibleLitige" onclick="saveVisibleColumns()">Enregistrer</div>
+                <div class="btn btn-primary" id="submitColumnVisibleLitige">Enregistrer</div>
             </div>
         </div>
     </div>

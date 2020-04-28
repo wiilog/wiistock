@@ -9,6 +9,9 @@ let urlEditLitige = Routing.generate('litige_edit', true);
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
+let modalColumnVisible = $('#modalColumnVisibleLitige');
+let submitColumnVisible = $('#submitColumnVisibleLitige');
+let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
 
 $(function() {
     initDateTimePicker();
@@ -29,6 +32,7 @@ $(function() {
     InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
     initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
     InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
+    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
 function initDatatableLitiges() {
@@ -48,8 +52,8 @@ function initDatatableLitiges() {
                 "url": pathLitiges,
                 "type": "POST",
                 'dataSrc': function (json) {
-                    json.columnHidden.forEach(element => {
-                        tableLitiges.column(element).visible(false);
+                    json.visible.forEach(element => {
+                        tableLitiges.column(element).visible(true);
                     });
                     return json.data;
                 }
@@ -191,22 +195,6 @@ function getCommentAndAddHisto()
     $.post(path, JSON.stringify(dataComment), function () {
         tableHistoLitige.ajax.reload();
         commentLitige.val('');
-    });
-}
-
-function saveVisibleColumns(){
-    let visibleColumns = $('#modalColumnVisibleLitige .visible-column-litige-input:checked')
-        .toArray()
-        .map((input) => {
-            return $(input).attr('name');
-        });
-    const body = {
-        values: visibleColumns
-    }
-    let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
-
-    $.post(urlColumnVisible, JSON.stringify(body), function () {
-        $('#modalColumnVisibleLitige').modal('hide');
     });
 }
 

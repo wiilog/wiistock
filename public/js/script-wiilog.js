@@ -158,7 +158,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
+        if (!$(this).hasClass("no-data")) {
+            Data[$(this).attr("name")] = $(this).is(':checked');
+        }
     });
     $("div[name='id']").each(function () {
         Data[$(this).attr("name")] = $(this).attr('value');

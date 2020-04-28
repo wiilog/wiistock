@@ -27,7 +27,6 @@ use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\LivraisonRepository;
-
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -275,6 +274,12 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {
@@ -1026,10 +1031,11 @@ class ReferenceArticleController extends AbstractController
      */
     public function saveColumnVisible(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() ) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $data = json_decode($request->getContent(), true);
             $champs = array_keys($data);
             $user  = $this->getUser();
             /** @var $user Utilisateur */
