@@ -601,7 +601,9 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
         // on recupère le select2 après l'initialisation de select2
         $select2Selection = getSelect2Selection();
         $select2Selection.on('focus', function() {
-            $self.select2('open');
+            if (!isMultiple) {
+                $self.select2('open');
+            }
         });
     });
 }

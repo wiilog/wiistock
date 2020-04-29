@@ -198,7 +198,21 @@ Class GlobalParamService
 			ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
 			ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
 			ParametrageGlobal::DASHBOARD_LOCATIONS_1,
-			ParametrageGlobal::DASHBOARD_LOCATIONS_2
+            ParametrageGlobal::DASHBOARD_LOCATIONS_2,
+            ParametrageGlobal::DASHBOARD_PACKAGING_1,
+            ParametrageGlobal::DASHBOARD_PACKAGING_2,
+            ParametrageGlobal::DASHBOARD_PACKAGING_3,
+            ParametrageGlobal::DASHBOARD_PACKAGING_4,
+            ParametrageGlobal::DASHBOARD_PACKAGING_5,
+            ParametrageGlobal::DASHBOARD_PACKAGING_6,
+            ParametrageGlobal::DASHBOARD_PACKAGING_7,
+            ParametrageGlobal::DASHBOARD_PACKAGING_8,
+            ParametrageGlobal::DASHBOARD_PACKAGING_9,
+            ParametrageGlobal::DASHBOARD_PACKAGING_10,
+            ParametrageGlobal::DASHBOARD_PACKAGING_11,
+            ParametrageGlobal::DASHBOARD_PACKAGING_12,
+            ParametrageGlobal::DASHBOARD_PACKAGING_13,
+            ParametrageGlobal::DASHBOARD_PACKAGING_14,
 		];
 
 		$resp = [];

@@ -882,6 +882,20 @@ class ParametrageGlobalController extends AbstractController
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
                 ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
                 ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
+                ParametrageGlobal::DASHBOARD_PACKAGING_1 => 'packaging1',
+                ParametrageGlobal::DASHBOARD_PACKAGING_2 => 'packaging2',
+                ParametrageGlobal::DASHBOARD_PACKAGING_3 => 'packaging3',
+                ParametrageGlobal::DASHBOARD_PACKAGING_4 => 'packaging4',
+                ParametrageGlobal::DASHBOARD_PACKAGING_5 => 'packaging5',
+                ParametrageGlobal::DASHBOARD_PACKAGING_6 => 'packaging6',
+                ParametrageGlobal::DASHBOARD_PACKAGING_7 => 'packaging7',
+                ParametrageGlobal::DASHBOARD_PACKAGING_8 => 'packaging8',
+                ParametrageGlobal::DASHBOARD_PACKAGING_9 => 'packaging9',
+                ParametrageGlobal::DASHBOARD_PACKAGING_10 => 'packaging10',
+                ParametrageGlobal::DASHBOARD_PACKAGING_11 => 'packaging11',
+                ParametrageGlobal::DASHBOARD_PACKAGING_12 => 'packaging12',
+                ParametrageGlobal::DASHBOARD_PACKAGING_13 => 'packaging13',
+                ParametrageGlobal::DASHBOARD_PACKAGING_14 => 'packaging14',
             ];
 
             foreach ($listMultipleSelect as $labelParam => $selectId) {
