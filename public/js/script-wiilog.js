@@ -1214,6 +1214,7 @@ let dlFile = function (csv, filename) {
     // !!! remove a special char (first param is not empty) !!!
     // Fix temporaire en attendant d'exporter en server side !
     csv = csv.replace('﻿', '');
+    csv = csv.replace("﻿", '');
     $.post(Routing.generate('get_encodage'), function (usesUTF8) {
         let encoding = usesUTF8 ? 'utf-8' : 'windows-1252';
         let d = new Date();
