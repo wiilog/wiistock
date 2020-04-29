@@ -105,7 +105,7 @@ class ColisRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
         $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForPacksOnLocations($locations, $onDateBracket);
-        $lastTrackingForColis = $mouvementTracaRepository->getIdForPacksOnLocations($locations, $onDateBracket);
+        $lastTrackingForColis = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket);
 
         $queryBuilder = $this
             ->createQueryBuilder('colis')

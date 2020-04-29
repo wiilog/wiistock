@@ -502,6 +502,23 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
+     *     "/statistiques/monitoring-emballage",
+     *     name="get_indicators_monitoring_packaging",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param DashboardService $dashboardService
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
+        $response = $dashboardService->getDataForMonitoringPackagingDashboard();
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @Route(
      *     "/statistiques/reception-quai",
      *     name="get_indicators_reception_dock",
      *     options={"expose"=true},

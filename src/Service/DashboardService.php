@@ -29,26 +29,28 @@ class DashboardService
     private $entityManager;
 
     public function __construct(EnCoursService $enCoursService,
-								EntityManagerInterface $entityManager) {
+                                EntityManagerInterface $entityManager)
+    {
         $this->entityManager = $entityManager;
         $this->enCoursService = $enCoursService;
     }
 
-    public function getWeekAssoc($firstDay, $lastDay, $beforeAfter) {
+    public function getWeekAssoc($firstDay, $lastDay, $beforeAfter)
+    {
         $receptionTracaRepository = $this->entityManager->getRepository(ReceptionTraca::class);
 
-		if ($beforeAfter == 'after') {
-			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
-			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
-		} elseif ($beforeAfter == 'before') {
-			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
-			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
-		}
+        if ($beforeAfter == 'after') {
+            $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
+            $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
+        } elseif ($beforeAfter == 'before') {
+            $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
+            $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
+        }
         $firstDayTime = strtotime(str_replace("/", "-", $firstDay));
         $lastDayTime = strtotime(str_replace("/", "-", $lastDay));
 
         $rows = [];
-        $secondInADay = 60*60*24;
+        $secondInADay = 60 * 60 * 24;
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
             $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
@@ -74,13 +76,13 @@ class DashboardService
         $arrivalHistoryRepository = $this->entityManager->getRepository(ArrivalHistory::class);
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
 
-		if ($beforeAfter == 'after') {
-			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
-			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
-		} else if ($beforeAfter == 'before') {
-			$firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
-			$lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
-		}
+        if ($beforeAfter == 'after') {
+            $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
+            $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' +7 days'));
+        } else if ($beforeAfter == 'before') {
+            $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' -7 days'));
+            $lastDay = date("d/m/Y", strtotime(str_replace("/", "-", $lastDay) . ' -7 days'));
+        }
 
         $firstDayTime = strtotime(str_replace("/", "-", $firstDay));
         $lastDayTime = strtotime(str_replace("/", "-", $lastDay));
@@ -127,7 +129,8 @@ class DashboardService
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function getDataForReceptionAdminDashboard() {
+    public function getDataForReceptionAdminDashboard()
+    {
         return $this->getCounters([
             'enCoursUrgence' => ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
             'enCoursLitige' => ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
@@ -140,14 +143,40 @@ class DashboardService
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function getDataForReceptionDockDashboard() {
+    public function getDataForMonitoringPackagingDashboard()
+    {
+        return $this->getCounters([
+            'packaging1' => ParametrageGlobal::DASHBOARD_PACKAGING_1,
+            'packaging2' => ParametrageGlobal::DASHBOARD_PACKAGING_2,
+            'packaging3' => ParametrageGlobal::DASHBOARD_PACKAGING_3,
+            'packaging4' => ParametrageGlobal::DASHBOARD_PACKAGING_4,
+            'packaging5' => ParametrageGlobal::DASHBOARD_PACKAGING_5,
+            'packaging6' => ParametrageGlobal::DASHBOARD_PACKAGING_6,
+            'packaging7' => ParametrageGlobal::DASHBOARD_PACKAGING_7,
+            'packaging8' => ParametrageGlobal::DASHBOARD_PACKAGING_8,
+            'packaging9' => ParametrageGlobal::DASHBOARD_PACKAGING_9,
+            'packaging10' => ParametrageGlobal::DASHBOARD_PACKAGING_10,
+            'packaging11' => [
+                ParametrageGlobal::DASHBOARD_PACKAGING_11,
+                '2:00'
+            ],
+        ]);
+    }
+
+    /**
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getDataForReceptionDockDashboard()
+    {
         return $this->getCounters([
             'enCoursDock' => ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
             'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
             'enCoursCleared' => ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
             'enCoursDropzone' => ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES
         ]);
-	}
+    }
 
     /**
      * @param array $counterConfig
@@ -155,12 +184,21 @@ class DashboardService
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-	private function getCounters(array $counterConfig): array {
+    private function getCounters(array $counterConfig): array
+    {
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
+        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $locationCounter = array_reduce(
             array_keys($counterConfig),
-            function (array $carry, string $key) use ($counterConfig) {
-                $carry[$key] = $this->getDashboardCounter($counterConfig[$key]);
+            function (array $carry, string $key) use ($counterConfig, $daysWorked) {
+                $delay = is_array($counterConfig[$key])
+                    ? $counterConfig[$key][1]
+                    : '24:00';
+                $param = is_array($counterConfig[$key])
+                    ? $counterConfig[$key][0]
+                    : $counterConfig[$key];
+                $carry[$key] = $this->getDashboardCounter($param, false, [], $daysWorked, $delay);
                 return $carry;
             },
             []);
@@ -174,19 +212,35 @@ class DashboardService
      * @param string $paramName
      * @param bool $isPack
      * @param DateTime[]|null $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
+     * @param array $daysWorked
+     * @param string|null $delay
      * @return array|null
      * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function getDashboardCounter(string $paramName,
                                         bool $isPack = false,
-                                        array $onDateBracket = []): ?array {
+                                        array $onDateBracket = [],
+                                        array $daysWorked = [],
+                                        ?string $delay = null): ?array
+    {
         $colisRepository = $this->entityManager->getRepository(Colis::class);
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $locations = $this->findEmplacementsParam($paramName);
         if (!empty($locations)) {
             $response = [];
+            $response['delay'] = null;
+            if (!$isPack && $delay) {
+                $lastEnCours = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket, 'datetime', 1);
+                if (!empty($lastEnCours[0])) {
+                    $lastEnCoursDateTime = new DateTime($lastEnCours[0], new DateTimeZone('Europe/Paris'));
+                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime);
+                    $timeInformation = $this->enCoursService->getTimeInformation($date, $delay);
+                    $response['delay'] = $timeInformation['countDownLateTimespan'];
+                }
+            }
             $response['count'] = 0;
             $response['label'] = array_reduce(
                 $locations,
@@ -197,15 +251,15 @@ class DashboardService
             );
             $response['count'] = $isPack
                 ? $colisRepository->countPacksOnLocations($locations, $onDateBracket)
-                : count($mouvementTracaRepository->getIdForPacksOnLocations($locations, $onDateBracket));
-        }
-        else {
+                : count($mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket));
+        } else {
             $response = null;
         }
         return $response;
     }
 
-	private function findEmplacementsParam(string $paramName): ?array {
+    private function findEmplacementsParam(string $paramName): ?array
+    {
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
@@ -225,7 +279,8 @@ class DashboardService
      * @return array ['d/m' => integer]
      * @throws Exception
      */
-    public function getDailyObjectsStatistics(callable $getCounter): array {
+    public function getDailyObjectsStatistics(callable $getCounter): array
+    {
         $daysWorkedRepository = $this->entityManager->getRepository(DaysWorked::class);
 
         $daysToReturn = [];
@@ -271,7 +326,8 @@ class DashboardService
      * @return array [('S' . weekNumber) => integer]
      * @throws Exception
      */
-    public function getWeeklyObjectsStatistics(callable $getCounter): array {
+    public function getWeeklyObjectsStatistics(callable $getCounter): array
+    {
         $daysWorkedRepository = $this->entityManager->getRepository(DaysWorked::class);
 
         $weekCountersToReturn = [];
@@ -280,7 +336,7 @@ class DashboardService
         $daysWorkedInWeek = $daysWorkedRepository->countDaysWorked();
 
         if ($daysWorkedInWeek > 0) {
-            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1  ; $weekIndex--) {
+            for ($weekIndex = ($nbWeeksToReturn - 2); $weekIndex >= -1; $weekIndex--) {
                 $dateMin = new DateTime("monday $weekIndex weeks ago");
                 $dateMin->setTime(0, 0, 0);
                 $dateMax = new DateTime("sunday $weekIndex weeks ago");
@@ -324,8 +380,9 @@ class DashboardService
      * @return array
      * @throws NonUniqueResultException
      * @throws Exception
-*/
-    public function getDailyArrivalCarriers(): array {
+     */
+    public function getDailyArrivalCarriers(): array
+    {
         $transporteurRepository = $this->entityManager->getRepository(Transporteur::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $carriersParams = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_CARRIER_DOCK);

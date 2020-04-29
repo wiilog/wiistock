@@ -40,7 +40,8 @@ class MouvementTracaRepository extends EntityRepository
         'operateur' => 'user',
     ];
 
-    private static function AddMobileTrackingMovementSelect(QueryBuilder $queryBuilder, bool $preferDate = false): QueryBuilder {
+    private static function AddMobileTrackingMovementSelect(QueryBuilder $queryBuilder, bool $preferDate = false): QueryBuilder
+    {
         return $queryBuilder
             ->select('mouvementTraca.colis AS ref_article')
             ->addSelect('mouvementTracaType.nom AS type')
@@ -160,16 +161,17 @@ class MouvementTracaRepository extends EntityRepository
      * Retourne les ids de mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
      * @param Emplacement[]|int[] $locations
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
+     * @param string $field
+     * @param int|null $limit
      * @return int[]
      * @throws DBALException
      */
-    public function getIdForPacksOnLocations(array $locations, array $onDateBracket = []): array
+    public function getForPacksOnLocations(array $locations, array $onDateBracket = [], string $field = 'id', ?int $limit = null): array
     {
         $connection = $this->getEntityManager()->getConnection();
-
         return !empty($locations)
             ? $connection
-                ->executeQuery($this->createSQLQueryPacksOnLocation($locations, 'id', $onDateBracket), [])
+                ->executeQuery($this->createSQLQueryPacksOnLocation($locations, $field, $onDateBracket, $limit), [])
                 ->fetchAll(FetchMode::COLUMN)
             : [];
     }
@@ -183,7 +185,7 @@ class MouvementTracaRepository extends EntityRepository
      */
     public function getLastOnLocations(array $locations, ?int $limit = null): array
     {
-        $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
+        $trackingIdsToGet = $this->getForPacksOnLocations($locations);
 
         $queryBuilder = $this->createQueryBuilder('tracking')
             ->addSelect('tracking.datetime AS lastTrackingDateTime')
@@ -211,7 +213,7 @@ class MouvementTracaRepository extends EntityRepository
      */
     public function getLastTrackingMovementsOnLocations(array $locations): array
     {
-        $trackingIdsToGet = $this->getIdForPacksOnLocations($locations);
+        $trackingIdsToGet = $this->getForPacksOnLocations($locations);
 
         $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'), true)
             ->join('mouvementTraca.emplacement', 'location')
@@ -269,8 +271,7 @@ class MouvementTracaRepository extends EntityRepository
             $queryResult = $connection
                 ->executeQuery($sqlQuery, [])
                 ->fetchAll(FetchMode::COLUMN);
-        }
-        else {
+        } else {
             $queryResult = [];
         }
 
@@ -282,20 +283,27 @@ class MouvementTracaRepository extends EntityRepository
      * @param array $locations
      * @param string $field
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]
+     * @param int|null $limit
      * @return string
      */
-    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id', array $onDateBracket = []): string
+    private function createSQLQueryPacksOnLocation(array $locations, string $field = 'id', array $onDateBracket = [], ?int $limit = null): string
     {
         $locationIds = implode(',', $this->getIdsFromLocations($locations));
         $dropType = str_replace('\'', '\'\'', MouvementTraca::TYPE_DEPOSE);
 
-        $createInnerJoinIsDropFunction = function(string $aliasMouvementTraca) use ($dropType) {
+        $createInnerJoinIsDropFunction = function (string $aliasMouvementTraca) use ($dropType) {
             return "INNER JOIN statut ON ${aliasMouvementTraca}.type_id = statut.id
                                          AND statut.code = '${dropType}'";
         };
 
+        $createLimitFunction = function (string $aliasMouvementTraca) use ($limit, $field) {
+            return "ORDER BY ${aliasMouvementTraca}.${field} ASC LIMIT " . $limit;
+        };
+        $limitAndOrderClause = '';
         $innerJoinIsDrop = $createInnerJoinIsDropFunction('unique_packs_in_location');
-
+        if (isset($limit)) {
+            $limitAndOrderClause = $createLimitFunction('unique_packs_in_location');
+        }
         if (!empty($onDateBracket)
             && isset($onDateBracket['minDate'])
             && isset($onDateBracket['maxDate'])) {
@@ -309,7 +317,6 @@ class MouvementTracaRepository extends EntityRepository
             $locationsInDateBracketInnerJoin = '';
             $uniquePackInLocationClause = "AND unique_packs_in_location.emplacement_id IN (${locationIds})";
         }
-
         return "
             SELECT unique_packs_in_location.${field}
             FROM mouvement_traca AS unique_packs_in_location
@@ -328,6 +335,7 @@ class MouvementTracaRepository extends EntityRepository
                     GROUP BY unique_packs.colis
               )
               ${uniquePackInLocationClause}
+              ${limitAndOrderClause}
         ";
     }
 
