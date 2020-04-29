@@ -145,20 +145,20 @@ function fillPackagingCard(cardId, data) {
     let $container = $('#' + cardId);
     $container.find('.location-label').html(data ? data.label : '-');
     $container.find('.dashboard-stats-counter').html(data && data.count ? data.count : '-');
+    let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
+    let $titleDelayValue = $container.find('.dashboard-stats-delay');
     if (data && data.delay < 0) {
-        let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
-        let $titleDelayValue = $container.find('.dashboard-stats-delay');
         $titleDelayContainer.html('Retard : ');
         $titleDelayContainer.addClass('red');
         $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
         $titleDelayValue.addClass('red');
     } else if (data && data.delay > 0) {
-        let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
-        let $titleDelayValue = $container.find('.dashboard-stats-delay');
         $titleDelayContainer.html('A traiter sous : ');
         $titleDelayContainer.removeClass('red');
         $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
         $titleDelayValue.removeClass('red');
+    } else {
+        $titleDelayValue.html('-');
     }
     return data && $container.hasClass('contribute-to-total') ? data.count : 0;
 }
