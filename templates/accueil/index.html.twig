@@ -15,6 +15,7 @@
                 <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
                 <li data-target="#carouselIndicators" data-slide-to="1"></li>
                 <li data-target="#carouselIndicators" data-slide-to="2"></li>
+                <li data-target="#carouselIndicators" data-slide-to="3"></li>
             </ol>
 
             <div class="carousel-inner h-100">
@@ -26,6 +27,9 @@
                 </div>
                 <div class="carousel-item" id="adminDashboard">
                     {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
+                </div>
+                <div class="carousel-item" id="packagingDashboard">
+                    {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
                 </div>
             </div>
             <div class="row">

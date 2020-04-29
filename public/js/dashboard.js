@@ -22,7 +22,9 @@ $(function () {
         ? 'adminDashboard'
         : window.location.href.includes('quai')
             ? 'dockDashboard'
-            : 'arrivalDashboard';
+            : window.location.href.includes('emballage')
+                ? 'packagingDashboard'
+                : 'arrivalDashboard';
     hideCarouselTargetOverlay();
     loadProperData();
 
@@ -111,6 +113,11 @@ function loadProperData(preferCache = false) {
                 showCarouselOverlayAndHideSpinner();
             });
             break;
+        case 'packagingDashboard':
+            loadPackagingData().then(() => {
+                showCarouselOverlayAndHideSpinner();
+            });
+            break;
         default:
             break;
     }
@@ -118,6 +125,42 @@ function loadProperData(preferCache = false) {
 
 function resizeDatatable() {
     datatableColis.columns.adjust().draw();
+}
+
+function loadPackagingData() {
+    return new Promise(function (resolve) {
+        let total = 0;
+        let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
+        $.get(pathForPackagingData, function (response) {
+            Object.keys(response).forEach((key) => {
+                total += fillPackagingCard(key, response[key]);
+            });
+            $('#packagingTotal').find('.dashboard-stats-counter').html(total);
+            resolve();
+        });
+    });
+}
+
+function fillPackagingCard(cardId, data) {
+    let $container = $('#' + cardId);
+    $container.find('.location-label').html(data ? data.label : '-');
+    $container.find('.dashboard-stats-counter').html(data && data.count ? data.count : '-');
+    if (data && data.delay < 0) {
+        let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
+        let $titleDelayValue = $container.find('.dashboard-stats-delay');
+        $titleDelayContainer.html('Retard : ');
+        $titleDelayContainer.addClass('red');
+        $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
+        $titleDelayValue.addClass('red');
+    } else if (data && data.delay > 0) {
+        let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
+        let $titleDelayValue = $container.find('.dashboard-stats-delay');
+        $titleDelayContainer.html('A traiter sous : ');
+        $titleDelayContainer.removeClass('red');
+        $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
+        $titleDelayValue.removeClass('red');
+    }
+    return data && $container.hasClass('contribute-to-total') ? data.count : 0;
 }
 
 function loadArrivalDashboard(preferCache) {

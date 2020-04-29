@@ -297,7 +297,7 @@ class MouvementTracaRepository extends EntityRepository
         };
 
         $createLimitFunction = function (string $aliasMouvementTraca) use ($limit, $field) {
-            return "ORDER BY ${aliasMouvementTraca}.${field} ASC LIMIT " . $limit;
+            return "ORDER BY ${aliasMouvementTraca}.${field} DESC LIMIT " . $limit;
         };
         $limitAndOrderClause = '';
         $innerJoinIsDrop = $createInnerJoinIsDropFunction('unique_packs_in_location');

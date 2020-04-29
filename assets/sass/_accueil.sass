@@ -45,7 +45,14 @@
         height: 31vh
         .dashboard-ext &
             height: 30vh
-
+    &.third-row-height
+        height: 22vh
+        .dashboard-ext &
+            height: 26vh
+    &.fourth-row-height
+        height: 15.5vh
+        .dashboard-ext &
+            height: 13vh
     &.half-height
         height: 38vh
         .dashboard-ext &
@@ -62,10 +69,7 @@
         background: $white
         padding: .5rem
 
-        &.dashboard-stats-container
-            .dashboard-ext &
-                padding-left: 2px
-                padding-right: 2px
+
 
         &.dashboard-box-list
             .title
@@ -110,23 +114,30 @@
         .dataTables_wrapper, span
             font-size: .8em
 
-        .dashboard-stats
-            font-weight: bold
-            color: $blueNeon
-            cursor: default
-            //font-size: 9vh
-            font-size: 3vw
-            line-height: 0.8
 
-            &.dashboard-stats-counter
+        &.dashboard-stats-container
+            .dashboard-ext &
+                padding-left: 2px
+                padding-right: 2px
+
+            .dashboard-stats
+                font-weight: bold
+                color: $blueNeon
+                cursor: default
+                //font-size: 9vh
                 font-size: 3vw
-                .dashboard-ext &
-                    font-size: 8vh
+                line-height: 0.8
+                &.dashboard-stats-delay
+                    font-size: 3vh
+                &.dashboard-stats-counter
+                    font-size: 3vw
+                    .dashboard-ext &
+                        font-size: 8vh
 
-            &.dashboard-stats-label
-                font-size: 2.5vw
-                .dashboard-ext &
-                    font-size: 7.5vh
+                &.dashboard-stats-label
+                    font-size: 2.5vw
+                    .dashboard-ext &
+                        font-size: 7.5vh
 
         .dashboard-box-content
             padding: 10px
@@ -232,3 +243,8 @@
 .lh
     line-height: 1em
     margin-bottom: 0
+
+.fourth-width
+    width: 80% !important
+    padding-left: 15px
+    padding-right: 15px
