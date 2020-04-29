@@ -34,6 +34,7 @@ use App\Repository\UtilisateurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
+use App\Service\CSVExportService;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -846,63 +847,79 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getArrivageIntels(Request $request,
-                                      EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function getArrivageCSV(Request $request,
+                                   CSVExportService $CSVExportService,
+                                   EntityManagerInterface $entityManager): Response {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        }
+        catch(\Throwable $throwable) {}
+
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
-
-            $arrivages = $arrivageRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-            $headers = [];
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'douane', 'congelé', 'statut', 'commentaire', 'date', 'utilisateur']);
+            array_unshift($arrivals, [
+                'n° arrivage',
+                'destinataire',
+                'fournisseur',
+                'transporteur',
+                'chauffeur',
+                'n° tracking transporteur',
+                'n° commande/BL',
+                'acheteurs',
+                'douane',
+                'congelé',
+                'statut',
+                'commentaire',
+                'date',
+                'utilisateur'
+            ]);
 
-            $data = [];
-            $data[] = $headers;
-
-            /** @var Arrivage $arrivage */
-            foreach ($arrivages as $arrivage) {
-                $arrivageData = [];
-
-                $arrivageData[] = $arrivage->getNumeroArrivage() ?? ' ';
-                $arrivageData[] = $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : ' ';
-                $arrivageData[] = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : ' ';
-                $arrivageData[] = $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : ' ';
-                $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
-                $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
-
-                $numeroCommmandeList = $arrivage->getNumeroCommandeList();
-                $arrivageData[] = !empty($numeroCommmandeList) ? implode(' / ', $numeroCommmandeList) : '';
-
-                $acheteurs = $arrivage->getAcheteurs();
-                $acheteurData = [];
-                foreach ($acheteurs as $acheteur) {
-                    $acheteurData[] = $acheteur->getUsername();
+            return $CSVExportService->createCsvResponse(
+                'export.csv',
+                $arrivals,
+                function ($arrival, bool $isFirstRow) use ($buyersByArrival) {
+                    if (!$isFirstRow) {
+                        $arrivalId = (int) $arrival['id'];
+                        $row = [];
+                        $row[] = $arrival['numeroArrivage'] ?: '';
+                        $row[] = $arrival['recipientUsername'] ?: '';
+                        $row[] = $arrival['fournisseurName'] ?: '';
+                        $row[] = $arrival['transporteurLabel'] ?: '';
+                        $row[] = (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
+                            ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
+                            : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: '');
+                        $row[] = $arrival['noTracking'] ?: '';
+                        $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
+                        $row[] = $buyersByArrival[$arrivalId] ?? '';
+                        $row[] = $arrival['duty'] ? 'oui' : 'non';
+                        $row[] = $arrival['frozen'] ? 'oui' : 'non';
+                        $row[] = $arrival['statusName'] ?: '';
+                        $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
+                        $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
+                        $row[] = $arrival['userUsername'] ?: '';
+                    }
+                    else {
+                        $row = $arrival;
+                    }
+                    return $row;
                 }
-                $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getDuty() ? 'oui' : 'non';
-                $arrivageData[] = $arrivage->getFrozen() ? 'oui' : 'non';
-                $arrivageData[] = $arrivage->getStatut()->getNom();
-                $arrivageData[] = strip_tags($arrivage->getCommentaire());
-                $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
-                $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
-
-                $data[] = $arrivageData;
-            }
-            return new JsonResponse($data);
+            );
         } else {
             throw new NotFoundHttpException('404');
         }

@@ -57,7 +57,7 @@ class PieceJointeRepository extends ServiceEntityRepository
 
         return array_reduce($result, function ($acc, $attachment) {
             $mouvementTracaId = (int) $attachment['mouvementTracaId'];
-            if (!empty($acc[$mouvementTracaId])) {
+            if (empty($acc[$mouvementTracaId])) {
                 $acc[$mouvementTracaId] = '';
             }
             else {

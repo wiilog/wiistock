@@ -382,9 +382,8 @@ class MouvementTracaController extends AbstractController
                         $row[] = $mouvement['locationLabel'] ?: '';
                         $row[] = $mouvement['typeName'] ?: '';
                         $row[] = $mouvement['operatorUsername'] ?: '';
-                        $row[] = strip_tags($mouvement['commentaire']);
+                        $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
                         $row[] = $attachmentsNameByMouvementTraca[(int) $mouvement['id']] ?? '';
-
                         $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
                         $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
                             ? implode(', ', $mouvement['numeroCommandeListArrivage'])

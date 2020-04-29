@@ -1624,6 +1624,7 @@ function saveExportFile(routeName, params = null) {
             .join('&');
 
         window.location.href = `${path}?${joinedData}`;
+        hideSpinner($spinner);
     }
     else {
         warningEmptyDatesForCsv();

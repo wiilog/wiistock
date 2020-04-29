@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
