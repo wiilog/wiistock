@@ -1,6 +1,13 @@
+$('.select2').select2();
+
+let modalColumnVisible = $('#modalColumnVisibleArrivage');
+let submitColumnVisible = $('#submitColumnVisibleArrivage');
+let modalEditArrivage = $('#modalEditArrivage');
+let submitEditArrivage = $('#submitEditArrivage');
+let urlEditArrivage = Routing.generate('arrivage_edit', true);
+let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
 let onFlyFormOpened = {};
 let clicked = false;
-$('.select2').select2();
 let pageLength;
 
 $(function () {
@@ -8,8 +15,8 @@ $(function () {
     initSelect2($('#statut'), 'Statut');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
-
-    // filtres enregistrés en base pour chaque utilisateur
+    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+    initModalWithAttachments(modalEditArrivage, submitEditArrivage, urlEditArrivage, tableArrivage);
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     registerDropdownPosition();
@@ -29,75 +36,89 @@ $(function () {
     });
 });
 
-let pathArrivage = Routing.generate('arrivage_api', true);
-let tableArrivage = $('#tableArrivages').DataTable({
-    serverSide: true,
-    processing: true,
-    pageLength: Number($('#pageLengthForArrivage').val()),
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    order: [[1, "desc"]],
-    scrollX: true,
-    ajax: {
-        "url": pathArrivage,
-        "type": "POST",
-        'data': {
-            'clicked': () => clicked,
-        }
-    },
-    drawCallback: function (resp) {
-        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
-        hideColumns(tableArrivage, resp.json.columnsToHide);
-    },
-    columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': ''},
-        {"data": 'Date', 'name': 'date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
-        {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
-        {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
-        {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
-        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
-        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
-        {"data": 'Duty', 'name': 'duty', 'title': 'Douane'},
-        {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
-        {"data": 'url', 'name': 'url', 'title': 'url', visible: false},
-    ],
-    columnDefs: [
-        {
-            targets: [0, 16],
-            className: 'noVis'
+let pathGetColumnVisibles = Routing.generate('get_column_visible_for_arrivage', true);
+let tableArrivage ;
+$.get(pathGetColumnVisibles, function (columnVisibles) {
+    let pathArrivage = Routing.generate('arrivage_api', true);
+        tableArrivage = $('#tableArrivages').DataTable({
+        serverSide: true,
+        processing: true,
+        pageLength: Number($('#pageLengthForArrivage').val()),
+        language: {
+            url: "/js/i18n/dataTableLanguage.json",
         },
-        {
-            orderable: false,
-            targets: [0]
-        }
-    ],
-    headerCallback: function (thead) {
-        $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-        $(thead).find('th').eq(8).attr('title', "destinataire");
-        $(thead).find('th').eq(9).attr('title', "acheteurs");
-    },
-    "rowCallback": function (row, data) {
-        if (data.urgent === true) $(row).addClass('table-danger');
-        initActionOnRow(row);
-    },
-    dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
-    buttons: [
-        {
-            extend: 'colvis',
-            columns: ':not(.noVis)',
-            className: 'd-none'
+        order: [[1, "desc"]],
+        scrollX: true,
+        ajax: {
+            "url": pathArrivage,
+            "type": "POST",
+            'data': {
+                'clicked': () => clicked,
+            },
+            'dataSrc': function (json) {
+                json.visible.forEach(element => {
+                    tableArrivage.column(element).visible(true);
+                });
+                return json.data;
+            }
         },
-
-    ],
-    "lengthMenu": [10, 25, 50, 100],
+        drawCallback: function (resp) {
+            overrideSearch($('#tableArrivages_filter input'), tableArrivage);
+        },
+        columns: [
+            {"data": 'Actions', 'name': 'actions', 'title': ''},
+            {"data": 'Date', 'name': 'date', 'title': 'Date'},
+            {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
+            {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
+            {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
+            {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
+            {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
+            {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
+            {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
+            {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
+            {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
+            {"data": 'Duty', 'name': 'duty', 'title': 'Douane'},
+            {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
+            {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
+            {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+            {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
+            {"data": 'url', 'name': 'url', 'title': 'url'},
+        ],
+        columnDefs: [
+            {
+                targets: 0,
+                className: 'noVis'
+            },
+            {
+                orderable: false,
+                targets: [0]
+            }
+        ],
+        headerCallback: function (thead) {
+            $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
+            $(thead).find('th').eq(8).attr('title', "destinataire");
+            $(thead).find('th').eq(9).attr('title', "acheteurs");
+        },
+        "rowCallback": function (row, data) {
+            if (data.urgent === true) $(row).addClass('table-danger');
+            initActionOnRow(row);
+        },
+        dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
+        buttons: [
+            {
+                extend: 'colvis',
+                columns: ':not(.noVis)',
+                className: 'd-none'
+            },
+        ],
+        "lengthMenu": [10, 25, 50, 100],
+        initComplete: function () {
+            hideAndShowColumns(columnVisibles);
+        }
+    });
+    tableArrivage.on('responsive-resize', function (e, datatable) {
+        datatable.columns.adjust().responsive.recalc();
+    });
 });
 
 function listColis(elem) {
@@ -110,10 +131,6 @@ function listColis(elem) {
         modal.find('.modal-body').html(data);
     }, 'json');
 }
-
-tableArrivage.on('responsive-resize', function (e, datatable) {
-    datatable.columns.adjust().responsive.recalc();
-});
 
 let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
@@ -141,4 +158,14 @@ function initNewArrivageEditor(modal) {
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
     initFreeSelect2($('.select2-free'));
+}
+
+function hideAndShowColumns(columns) {
+    tableArrivage.columns().every(function() {
+        this.visible(false);
+    });
+
+    for(const columnName of columns) {
+        tableArrivage.column(`${columnName}:name`).visible(true);
+    }
 }

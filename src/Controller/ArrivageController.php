@@ -59,7 +59,6 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-
 /**
  * @Route("/arrivage")
  */
@@ -188,6 +187,25 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $user = $this->getUser();
+        $champs = [
+            ["key" => 'actions', 'label' => 'Actions'],
+            ["key" => 'date', 'label' => 'date'],
+            ["key" => 'numeroArrivage', 'label' => 'numeroArrivage'],
+            ["key" => 'transporteur', 'label' => 'transporteur'],
+            ["key" => 'chauffeur', 'label' => 'chauffeur'],
+            ["key" => 'noTracking', 'label' => 'noTracking'],
+            ["key" => 'NumeroCommandeList', 'label' => 'NumeroCommandeList'],
+            ["key" => 'fournisseur', 'label' => 'fournisseur'],
+            ["key" => 'destinataire', 'label' => 'destinataire'],
+            ["key" => 'acheteurs', 'label' => 'acheteurs'],
+            ["key" => 'NbUM', 'label' => 'NbUM'],
+            ["key" => 'duty', 'label' => 'duty'],
+            ["key" => 'frozen', 'label' => 'frozen'],
+            ["key" => 'Statut', 'label' => 'Statut'],
+            ["key" => 'Utilisateur', 'label' => 'Utilisateur'],
+            ["key" => 'urgent', 'label' => 'urgent'],
+        ];
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -208,7 +226,9 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId
+            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
+            'champs' => $champs,
+            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
         ]);
     }
 
@@ -232,9 +252,8 @@ class ArrivageController extends AbstractController
             $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
-
-            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            $data['columnsToHide'] = $fieldsParam;
+            $user = $this->getUser();
+            $data['visible'] = $user->getColumnsVisibleForArrivage();
 
             return new JsonResponse($data);
         }
@@ -520,7 +539,9 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
+     *
      * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -1537,4 +1558,49 @@ class ArrivageController extends AbstractController
         $entityManager->flush();
     }
 
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() ) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $data = json_decode($request->getContent(), true);
+
+            $champs = array_keys($data);
+            $user = $this->getUser();
+            // idée nul il faut que je valide l'affiche ou non de actions automatiquement en amont dans le jquery
+            // si j'ai une checkbox au moins de cochée affiché actions sinon ne pas l'afficher
+//            if ((!empty($champs) and !in_array( "actions", $champs))) {
+//                array_unshift($champs, "actions");
+//            }
+            /** @var $user Utilisateur */
+            $user->setColumnsVisibleForArrivage($champs);
+            $entityManager->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $user = $this->getUser();     ;
+
+        return new JsonResponse($user->getColumnsVisibleForArrivage());
+    }
 }

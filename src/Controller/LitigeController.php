@@ -36,6 +36,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
@@ -74,6 +75,11 @@ class LitigeController extends AbstractController
 	 */
 	private $litigeService;
 
+    /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
 	/**
 	 * @param LitigeService $litigeService
 	 * @param PieceJointeRepository $pieceJointeRepository
@@ -89,6 +95,7 @@ class LitigeController extends AbstractController
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 TransporteurRepository $transporteurRepository,
+                                TranslatorInterface $translator,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
@@ -98,6 +105,7 @@ class LitigeController extends AbstractController
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->pieceJointeRepository = $pieceJointeRepository;
 		$this->litigeService = $litigeService;
+        $this->translator = $translator;
 	}
 
     /**
@@ -120,19 +128,19 @@ class LitigeController extends AbstractController
 
         $user = $this->getUser();
         $fieldsInTab = [
-            ["key" => 'actions', 'name' => 'Actions'],
-            ["key" => 'type', 'name' => 'Type'],
-            ["key" => 'arrivalNumber', 'name' => 'N° d\'arrivage'],
-            ["key" => 'receptionNumber', 'name' => 'N° de réception'],
-            ["key" => 'buyers', 'name' => 'Acheteur'],
-            ["key" => 'numCommandeBl', 'name' => 'N° commande / BL'],
-            ["key" => 'command', 'name' => 'N° ligne'],
-            ["key" => 'provider', 'name' => 'Fournisseur'],
-            ["key" => 'references', 'name' => 'Référence'],
-            ["key" => 'lastHistorique', 'name' => 'Dernier historique'],
-            ["key" => 'creationDate', 'name' => 'Créé le'],
-            ["key" => 'updateDate', 'name' => 'Modifié le'],
-            ["key" => 'status', 'name' => 'Statut'],
+            ["key" => 'actions', 'label' => 'Actions'],
+            ["key" => 'type', 'label' => 'Type'],
+            ["key" => 'arrivalNumber', 'label' => $this->translator->trans("arrivage.n° d''arrivage")],
+            ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
+            ["key" => 'buyers', 'label' => 'Acheteur'],
+            ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],
+            ["key" => 'command', 'label' => 'N° ligne'],
+            ["key" => 'provider', 'label' => 'Fournisseur'],
+            ["key" => 'references', 'label' => 'Référence'],
+            ["key" => 'lastHistorique', 'label' => 'Dernier historique'],
+            ["key" => 'creationDate', 'label' => 'Créé le'],
+            ["key" => 'updateDate', 'label' => 'Modifié le'],
+            ["key" => 'status', 'label' => 'Statut'],
         ];
         $fieldsCl =[];
         $champs = array_merge($fieldsInTab,$fieldsCl);
@@ -276,6 +284,7 @@ class LitigeController extends AbstractController
                 $litigeData[] = $referencesStr;
 
                 $articles = $litige->getArticles();
+
                 /** @var Article $firstArticle */
                 $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
                 $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
@@ -422,8 +431,10 @@ class LitigeController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
@@ -446,8 +457,10 @@ class LitigeController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
      */
     public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response

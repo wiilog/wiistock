@@ -81,14 +81,8 @@ function initDatatableLitiges() {
                 $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
                 $(thead).find('th').eq(3).attr('title', "n° de réception");
             },
-            dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
-            buttons: [
-                {
-                    extend: 'colvis',
-                    columns: ':not(.noVis)',
-                    className: 'dt-btn d-none'
-                },
-            ],
+            dom: '<"row"<"col">><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
+
 
             rowCallback: function (row, data) {
                 $(row).addClass(data.urgence ? 'table-danger' : '');
@@ -96,22 +90,8 @@ function initDatatableLitiges() {
             },
 
             initComplete: function () {
-                let $btnColvis = $('#tableLitiges_wrapper').first('.buttons-colvis');
-                $btnColvis.one('click', initColVisParam);
                 hideAndShowColumns(columnVisibles);
             }
-        });
-    });
-}
-
-function initColVisParam() {
-    let $buttons = $(this).find('.buttons-columnVisibility');
-
-    $buttons.on('click', function() {
-        let data = {};
-        $buttons.each((index, elem) => {
-            let $elem = $(elem);
-            data[$elem.data('cv-idx')] = $elem.hasClass('active');
         });
     });
 }

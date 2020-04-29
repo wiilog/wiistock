@@ -22,10 +22,10 @@
                     {% for champ in champs %}
                         <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
                             <td>
-                                {{ champ.name | capitalize }}
+                                {{ champ.label | capitalize }}
                             </td>
                             <td>
-                                <div class="checkbox d-inline-block pointer no-data" onclick="initColVisParam(this)">
+                                <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
                                     {% set checked = (champ.key  in columnsVisibles ? 'checked' : '') %}
                                     <input class="visible-column-litige-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                            name="{{ champ.key }}"
@@ -33,8 +33,8 @@
                                            type="checkbox"
                                            id="column_visible_litige_input_{{ champ.key }}"
                                             {{ checked }}
-                                           data-column="{{ i }}" data-name="{{ champ.key }}">
-                                    <label for="column_visible_litige_input{{ champ.key }}" class="pointer"></label>
+                                           data-column="{{ i }}" data-name="{{ champ.key }}"/>
+                                    <label for="column_visible_litige_input_{{ champ.key }}" class="pointer"></label>
                                 </div>
                             </td>
                         </tr>
