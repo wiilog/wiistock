@@ -28,30 +28,30 @@ class CSVExportService {
             : '';
     }
 
-    public function createCsvResponse(string $fileName, array $data, callable $mapper = null): Response {
+    public function createCsvResponse(string $fileName, array $data, array $csvHeader = null, callable $flatMapper = null): Response {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
 
         $tmpCsvFileName = tempnam('', 'export_csv_');
         $tmpCsvFile = fopen($tmpCsvFileName, 'w');
 
-        $index = 0;
+        if (isset($csvHeader)) {
+            $this->putCSVFile($tmpCsvFile, $csvHeader, $wantsUFT8);
+        }
 
         foreach ($data as $row) {
-            if (isset($mapper)) {
-                $row = $mapper($row, $index === 0);
+            if (isset($flatMapper)) {
+                $rows = $flatMapper($row);
+
+                foreach ($rows as $subRows) {
+                    $this->putCSVFile($tmpCsvFile, $subRows, $wantsUFT8);
+                }
             }
-
-            $encodedRow = !$wantsUFT8
-                ? array_map('utf8_decode', $row)
-                : $row;
-
-            fputcsv($tmpCsvFile, $encodedRow, ';');
-
-            if ($index === 0) {
-                $index++;
+            else {
+                $this->putCSVFile($tmpCsvFile, $row, $wantsUFT8);
             }
         }
+
         fclose($tmpCsvFile);
 
         $response = new BinaryFileResponse($tmpCsvFileName);
@@ -59,5 +59,13 @@ class CSVExportService {
         $response->deleteFileAfterSend(true);
 
         return $response;
+    }
+
+    private function putCSVFile($file, $row, bool $wantsUFT8) {
+        $encodedRow = !$wantsUFT8
+            ? array_map('utf8_decode', $row)
+            : $row;
+
+        fputcsv($file, $encodedRow, ';');
     }
 }

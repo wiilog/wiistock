@@ -873,7 +873,7 @@ class ArrivageController extends AbstractController
             $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
 
             // en-têtes champs fixes
-            array_unshift($arrivals, [
+            $csvHeader = [
                 'n° arrivage',
                 'destinataire',
                 'fournisseur',
@@ -888,36 +888,32 @@ class ArrivageController extends AbstractController
                 'commentaire',
                 'date',
                 'utilisateur'
-            ]);
+            ];
 
             return $CSVExportService->createCsvResponse(
                 'export.csv',
                 $arrivals,
-                function ($arrival, bool $isFirstRow) use ($buyersByArrival) {
-                    if (!$isFirstRow) {
-                        $arrivalId = (int) $arrival['id'];
-                        $row = [];
-                        $row[] = $arrival['numeroArrivage'] ?: '';
-                        $row[] = $arrival['recipientUsername'] ?: '';
-                        $row[] = $arrival['fournisseurName'] ?: '';
-                        $row[] = $arrival['transporteurLabel'] ?: '';
-                        $row[] = (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
-                            ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
-                            : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: '');
-                        $row[] = $arrival['noTracking'] ?: '';
-                        $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
-                        $row[] = $buyersByArrival[$arrivalId] ?? '';
-                        $row[] = $arrival['duty'] ? 'oui' : 'non';
-                        $row[] = $arrival['frozen'] ? 'oui' : 'non';
-                        $row[] = $arrival['statusName'] ?: '';
-                        $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
-                        $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
-                        $row[] = $arrival['userUsername'] ?: '';
-                    }
-                    else {
-                        $row = $arrival;
-                    }
-                    return $row;
+                $csvHeader,
+                function ($arrival) use ($buyersByArrival) {
+                    $arrivalId = (int) $arrival['id'];
+                    $row = [];
+                    $row[] = $arrival['numeroArrivage'] ?: '';
+                    $row[] = $arrival['recipientUsername'] ?: '';
+                    $row[] = $arrival['fournisseurName'] ?: '';
+                    $row[] = $arrival['transporteurLabel'] ?: '';
+                    $row[] = (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
+                        ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
+                        : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: '');
+                    $row[] = $arrival['noTracking'] ?: '';
+                    $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
+                    $row[] = $buyersByArrival[$arrivalId] ?? '';
+                    $row[] = $arrival['duty'] ? 'oui' : 'non';
+                    $row[] = $arrival['frozen'] ? 'oui' : 'non';
+                    $row[] = $arrival['statusName'] ?: '';
+                    $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
+                    $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
+                    $row[] = $arrival['userUsername'] ?: '';
+                    return [$row];
                 }
             );
         } else {

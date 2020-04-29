@@ -358,7 +358,7 @@ class MouvementTracaController extends AbstractController
             $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
             $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
 
-            array_unshift($mouvements, [
+            $csvHeader = [
                 'date',
                 'colis',
                 'emplacement',
@@ -369,31 +369,27 @@ class MouvementTracaController extends AbstractController
                 'origine',
                 'numéro de commande',
                 'urgence'
-            ]);
+            ];
 
             return $CSVExportService->createCsvResponse(
                 'export_mouvement_traca.csv',
                 $mouvements,
-                function ($mouvement, bool $isFirstRow) use ($attachmentsNameByMouvementTraca) {
-                    if (!$isFirstRow) {
-                        $row = [];
-                        $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
-                        $row[] = $mouvement['colis'];
-                        $row[] = $mouvement['locationLabel'] ?: '';
-                        $row[] = $mouvement['typeName'] ?: '';
-                        $row[] = $mouvement['operatorUsername'] ?: '';
-                        $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
-                        $row[] = $attachmentsNameByMouvementTraca[(int) $mouvement['id']] ?? '';
-                        $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
-                        $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
-                            ? implode(', ', $mouvement['numeroCommandeListArrivage'])
-                            : ($mouvement['referenceReception'] ?: '');
-                        $row[] = !empty($mouvement['isUrgent']) ? 'oui' : 'non';
-                    }
-                    else {
-                        $row = $mouvement;
-                    }
-                    return $row;
+                $csvHeader,
+                function ($mouvement) use ($attachmentsNameByMouvementTraca) {
+                    $row = [];
+                    $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
+                    $row[] = $mouvement['colis'];
+                    $row[] = $mouvement['locationLabel'] ?: '';
+                    $row[] = $mouvement['typeName'] ?: '';
+                    $row[] = $mouvement['operatorUsername'] ?: '';
+                    $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
+                    $row[] = $attachmentsNameByMouvementTraca[(int) $mouvement['id']] ?? '';
+                    $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
+                    $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
+                        ? implode(', ', $mouvement['numeroCommandeListArrivage'])
+                        : ($mouvement['referenceReception'] ?: '');
+                    $row[] = !empty($mouvement['isUrgent']) ? 'oui' : 'non';
+                    return [$row];
                 }
             );
         }
