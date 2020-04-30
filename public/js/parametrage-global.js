@@ -62,12 +62,12 @@ function initSelect2ValuesForDashboard() {
     initDisplaySelect2Multiple('#packaging6','#packagingLocation6');
     initDisplaySelect2Multiple('#packaging7','#packagingLocation7');
     initDisplaySelect2Multiple('#packaging8','#packagingLocation8');
-    initDisplaySelect2Multiple('#packaging9','#packagingLocation9');
-    initDisplaySelect2Multiple('#packaging10','#packagingLocation10');
-    initDisplaySelect2Multiple('#packaging11','#packagingLocation11');
-    initDisplaySelect2Multiple('#packaging12','#packagingLocation12');
-    initDisplaySelect2Multiple('#packaging13','#packagingLocation13');
-    initDisplaySelect2Multiple('#packaging14','#packagingLocation14');
+    initDisplaySelect2Multiple('#packagingRPA','#packagingLocationRPA');
+    initDisplaySelect2Multiple('#packagingLitige','#packagingLocationLitige');
+    initDisplaySelect2Multiple('#packagingUrgence','#packagingLocationUrgence');
+    initDisplaySelect2Multiple('#packagingDSQR','#packagingLocationDSQR');
+    initDisplaySelect2Multiple('#packagingDestinationGT','#packagingLocationDestinationGT');
+    initDisplaySelect2Multiple('#packagingOrigineGT','#packagingLocationOrigineGT');
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
 }
 

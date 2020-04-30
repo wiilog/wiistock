@@ -14,7 +14,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_1')] %}
-            <input hidden id="packagingLocation1" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation1" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
@@ -25,7 +25,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_2')] %}
-            <input hidden id="packagingLocation2" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation2" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
@@ -36,7 +36,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_3')] %}
-            <input hidden id="packagingLocation3" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation3" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
@@ -47,7 +47,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_4')] %}
-            <input hidden id="packagingLocation4" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation4" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
@@ -58,7 +58,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_5')] %}
-            <input hidden id="packagingLocation5" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation5" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
@@ -69,7 +69,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_6')] %}
-            <input hidden id="packagingLocation6" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation6" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
@@ -80,7 +80,7 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_7')] %}
-            <input hidden id="packagingLocation7" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation7" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
     </div>
     <div class="col-5 offset-1">
@@ -93,73 +93,73 @@
                 </div>
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_8')] %}
-            <input hidden id="packagingLocation8" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            <input type="hidden" id="packagingLocation8" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packaging9" class="d-block">Emplacement RPA</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packaging9">
+                    <label for="packagingRPA" class="d-block">Emplacement RPA</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingRPA">
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_9')] %}
-            <input hidden id="packagingLocation9" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_RPA')] %}
+            <input type="hidden" id="packagingLocationRPA" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packaging10" class="d-block">Emplacement Litige</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packaging10">
+                    <label for="packagingLitige" class="d-block">Emplacement Litige</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingLitige">
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_10')] %}
-            <input hidden id="packagingLocation10" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE')] %}
+            <input type="hidden" id="packagingLocationLitige" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packaging11" class="d-block">Emplacement Urgence</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packaging11" multiple>
+                    <label for="packagingUrgence" class="d-block">Emplacement Urgence</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingUrgence" multiple>
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_11')] %}
-            <input hidden id="packagingLocation11" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE')] %}
+            <input type="hidden" id="packagingLocationUrgence" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packaging12" class="d-block">Emplacements DSQR</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packaging12" multiple>
+                    <label for="packagingDSQR" class="d-block">Emplacements DSQR</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingDSQR" multiple>
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_12')] %}
-            <input hidden id="packagingLocation12" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_DSQR')] %}
+            <input type="hidden" id="packagingLocationDSQR" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packaging13" class="d-block">Emplacement destination traités par GT</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packaging13" multiple>
+                    <label for="packagingDestinationGT" class="d-block">Emplacement destination traités par GT</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingDestinationGT" multiple>
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_13')] %}
-            <input hidden id="packagingLocation13" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT')] %}
+            <input type="hidden" id="packagingLocationDestinationGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packaging14" class="d-block">Emplacement origine traités par GT</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packaging14" multiple>
+                    <label for="packagingOrigineGT" class="d-block">Emplacement origine traités par GT</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingOrigineGT" multiple>
                     </select>
                 </div>
             </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_14')] %}
-            <input hidden id="packagingLocation14" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT')] %}
+            <input type="hidden" id="packagingLocationOrigineGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
     </div>
 

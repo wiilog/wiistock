@@ -207,12 +207,12 @@ Class GlobalParamService
             ParametrageGlobal::DASHBOARD_PACKAGING_6,
             ParametrageGlobal::DASHBOARD_PACKAGING_7,
             ParametrageGlobal::DASHBOARD_PACKAGING_8,
-            ParametrageGlobal::DASHBOARD_PACKAGING_9,
-            ParametrageGlobal::DASHBOARD_PACKAGING_10,
-            ParametrageGlobal::DASHBOARD_PACKAGING_11,
-            ParametrageGlobal::DASHBOARD_PACKAGING_12,
-            ParametrageGlobal::DASHBOARD_PACKAGING_13,
-            ParametrageGlobal::DASHBOARD_PACKAGING_14,
+            ParametrageGlobal::DASHBOARD_PACKAGING_RPA,
+            ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE,
+            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE,
+            ParametrageGlobal::DASHBOARD_PACKAGING_DSQR,
+            ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT,
+            ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT,
 		];
 
 		$resp = [];

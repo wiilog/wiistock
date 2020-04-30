@@ -126,75 +126,78 @@ class DashboardService
 
     /**
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function getDataForReceptionAdminDashboard()
-    {
-        return $this->getCounters([
-            'enCoursUrgence' => ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
-            'enCoursLitige' => ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
-            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN
-        ]);
-    }
-
-    /**
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function getDataForMonitoringPackagingDashboard()
-    {
-        return $this->getCounters([
-            'packaging1' => ParametrageGlobal::DASHBOARD_PACKAGING_1,
-            'packaging2' => ParametrageGlobal::DASHBOARD_PACKAGING_2,
-            'packaging3' => ParametrageGlobal::DASHBOARD_PACKAGING_3,
-            'packaging4' => ParametrageGlobal::DASHBOARD_PACKAGING_4,
-            'packaging5' => ParametrageGlobal::DASHBOARD_PACKAGING_5,
-            'packaging6' => ParametrageGlobal::DASHBOARD_PACKAGING_6,
-            'packaging7' => ParametrageGlobal::DASHBOARD_PACKAGING_7,
-            'packaging8' => ParametrageGlobal::DASHBOARD_PACKAGING_8,
-            'packaging9' => ParametrageGlobal::DASHBOARD_PACKAGING_9,
-            'packaging10' => ParametrageGlobal::DASHBOARD_PACKAGING_10,
-            'packaging11' => [
-                ParametrageGlobal::DASHBOARD_PACKAGING_11,
-                '2:00'
-            ],
-        ]);
-    }
-
-    /**
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getDataForReceptionDockDashboard()
     {
-        return $this->getCounters([
+        $locationCounter = $this->getLocationCounters([
             'enCoursDock' => ParametrageGlobal::DASHBOARD_LOCATION_DOCK,
             'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_DOCK,
             'enCoursCleared' => ParametrageGlobal::DASHBOARD_LOCATION_AVAILABLE,
             'enCoursDropzone' => ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES
+        ]);
+
+        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
+        return array_merge(
+            $locationCounter,
+            ['urgenceCount' => $urgenceRepository->countUnsolved()]
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getDataForReceptionAdminDashboard()
+    {
+        $locationCounter = $this->getLocationCounters([
+            'enCoursUrgence' => ParametrageGlobal::DASHBOARD_LOCATION_URGENCES,
+            'enCoursLitige' => ParametrageGlobal::DASHBOARD_LOCATION_LITIGES,
+            'enCoursClearance' => ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN
+        ]);
+
+        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
+
+        return array_merge(
+            $locationCounter,
+            ['urgenceCount' => $urgenceRepository->countUnsolved()]
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getDataForMonitoringPackagingDashboard()
+    {
+        $defaultDelay = '24:00';
+        $urgenceDelay = '2:00';
+        return $this->getLocationCounters([
+            'packaging1' => [ParametrageGlobal::DASHBOARD_PACKAGING_1, $defaultDelay],
+            'packaging2' => [ParametrageGlobal::DASHBOARD_PACKAGING_2, $defaultDelay],
+            'packaging3' => [ParametrageGlobal::DASHBOARD_PACKAGING_3, $defaultDelay],
+            'packaging4' => [ParametrageGlobal::DASHBOARD_PACKAGING_4, $defaultDelay],
+            'packaging5' => [ParametrageGlobal::DASHBOARD_PACKAGING_5, $defaultDelay],
+            'packaging6' => [ParametrageGlobal::DASHBOARD_PACKAGING_6, $defaultDelay],
+            'packaging7' => [ParametrageGlobal::DASHBOARD_PACKAGING_7, $defaultDelay],
+            'packaging8' => [ParametrageGlobal::DASHBOARD_PACKAGING_8, $defaultDelay],
+            'packagingRPA' => [ParametrageGlobal::DASHBOARD_PACKAGING_RPA, $defaultDelay],
+            'packagingLitige' => [ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE, $defaultDelay],
+            'packagingUrgence' => [ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE, $urgenceDelay]
         ]);
     }
 
     /**
      * @param array $counterConfig
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
-    private function getCounters(array $counterConfig): array
+    private function getLocationCounters(array $counterConfig): array
     {
-        $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
         $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-        $locationCounter = array_reduce(
+        return array_reduce(
             array_keys($counterConfig),
             function (array $carry, string $key) use ($counterConfig, $daysWorked) {
                 $delay = is_array($counterConfig[$key])
                     ? $counterConfig[$key][1]
-                    : '24:00';
+                    : null;
                 $param = is_array($counterConfig[$key])
                     ? $counterConfig[$key][0]
                     : $counterConfig[$key];
@@ -202,10 +205,6 @@ class DashboardService
                 return $carry;
             },
             []);
-        return array_merge(
-            $locationCounter,
-            ['urgenceCount' => $urgenceRepository->countUnsolved()]
-        );
     }
 
     /**
@@ -215,9 +214,6 @@ class DashboardService
      * @param array $daysWorked
      * @param string|null $delay
      * @return array|null
-     * @throws DBALException
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function getDashboardCounter(string $paramName,
