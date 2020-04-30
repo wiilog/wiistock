@@ -36,7 +36,6 @@ let tableImportConfig = {
         needsRowClickAction: true
     },
     drawConfig: {
-        hasCallback: true,
         callback: () => {
             initTooltips($('.has-tooltip'));
             initDoubleClick('.status-planifié');
