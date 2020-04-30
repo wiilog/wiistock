@@ -1,6 +1,10 @@
-<div class="row justify-content-center">
+<div class="row">
     <div class="col-auto">
         <h2 class="bold">Monitoring Emballage</h2>
+        <a href="{{ path('dashboard_ext', { 'page': 'emballage', 'token': dashboardToken}) }}" target="_blank" class="btn btn-primary border-radius-light mb-2">
+            Dashboard monitoring emballage
+            <i class="fas fa-share-square mr-2"></i>
+        </a>
     </div>
 </div>
 <div class="row">
@@ -162,5 +166,4 @@
             <input type="hidden" id="packagingLocationOrigineGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
     </div>
-
 </div>

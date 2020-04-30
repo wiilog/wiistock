@@ -57,7 +57,7 @@ class AccueilController extends AbstractController
      *     name="dashboard_ext",
      *     methods={"GET"},
      *     requirements={
-     *         "page" = "(quai)|(admin)",
+     *         "page" = "(quai)|(admin)|(emballage)",
      *         "token" = "%dashboardToken%"
      *     }
      * )
