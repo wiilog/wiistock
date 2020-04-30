@@ -9,57 +9,49 @@ $(function () {
 
 function initTableArticle() {
     $.post(Routing.generate('article_api_columns'), function (columns) {
-        tableArticle = $('#tableArticle_id')
-            .on('error.dt', function (e, settings, techNote, message) {
-                console.log('An error has been reported by DataTables: ', message);
-            }).DataTable({
-                serverSide: true,
-                processing: true,
-                paging: true,
-                scrollX: true,
-                order: [[1, 'asc']],
-                "language": {
-                    url: "/js/i18n/dataTableLanguage.json",
-                },
-                ajax: {
-                    "url": pathArticle,
-                    "type": "POST",
-                    'dataSrc': function (json) {
-                        $('#listArticleIdToPrint').val(json.listId);
-                        if (!$(".statutVisible").val()) {
-                            tableArticle.column('Statut:name').visible(false);
-                        }
-                        return json.data;
+        let tableArticleConfig = {
+            serverSide: true,
+            processing: true,
+            paging: true,
+            scrollX: true,
+            order: [[1, 'asc']],
+            ajax: {
+                "url": pathArticle,
+                "type": "POST",
+                'dataSrc': function (json) {
+                    $('#listArticleIdToPrint').val(json.listId);
+                    if (!$(".statutVisible").val()) {
+                        tableArticle.column('Statut:name').visible(false);
                     }
-                },
-                initComplete: function () {
-                    hideSpinner($('#spinner'));
-                    init();
-                    hideAndShowColumns(columns);
-                    overrideSearch($('#tableArticle_id_filter input'), tableArticle, function ($input) {
-                        manageArticleAndRefSearch($input, $('#printTag'));
-                    });
-                },
-                columns: columns.map(function (column) {
-                    return {
-                        ...column,
-                        class: column.title === 'Actions' ? 'noVis' : undefined,
-                        title: column.title === 'Actions' ? '' : column.title
-                    }
-                }),
-                columnDefs: [
-                    {
-                        orderable: false,
-                        targets: 0
-                    }
-                ],
-                "drawCallback": function (settings) {
-                    resizeTable();
-                },
-                rowCallback: function(row, data) {
-                    initActionOnRow(row);
+                    return json.data;
                 }
-            });
+            },
+            columns: columns.map(function (column) {
+                return {
+                    ...column,
+                    class: column.title === 'Actions' ? 'noVis' : undefined,
+                    title: column.title === 'Actions' ? '' : column.title
+                }
+            }),
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                }
+            ],
+            drawConfig: {
+                needsResize: true
+            },
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            isArticleOrRefSpecifConfig: {
+                columns,
+                tableFilter: 'tableArticle_id_filter'
+            }
+        };
+        tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
+        init();
     });
 }
 
@@ -67,12 +59,6 @@ let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
 };
-
-function hideAndShowColumns(columns) {
-    tableArticle.columns().every(function(index) {
-        this.visible(columns[index].class !== 'hide');
-    });
-}
 
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));

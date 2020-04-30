@@ -27,12 +27,9 @@ $(function () {
 });
 
 let pathLivraison = Routing.generate('livraison_api');
-let tableLivraison = $('#tableLivraison_id').DataTable({
+let tableLiraisonConfig = {
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [
         [3, "desc"]
     ],
@@ -43,11 +40,12 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
         },
         "type": "POST"
     },
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
-    'drawCallback': function () {
-        overrideSearch($('#tableLivraison_id_filter input'), tableLivraison);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableLivraison_id_filter'
     },
     columns: [
         {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
@@ -63,38 +61,11 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
             targets: 0
         }
     ],
-});
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableLivraison.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
+};
+let tableLivraison = initDataTable('tableLivraison_id', tableLiraisonConfig);
 
 let pathArticle = Routing.generate('livraison_article_api', {'id': id});
-let tableArticle = $('#tableArticle_id').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArticleConfig = {
     ajax: {
         'url': pathArticle,
         "type": "POST"
@@ -106,14 +77,15 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
     order: [[1, "asc"]],
     columnDefs: [
         {orderable: false, targets: [0]}
     ]
-});
+};
+let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 let modalDeleteLivraison = $('#modalDeleteLivraison');
 let submitDeleteLivraison = $('#submitDeleteLivraison');

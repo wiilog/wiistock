@@ -1,9 +1,6 @@
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
-let tableDays = $('#tableDays').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableDaysConfig = {
     ajax: {
         "url": pathDays,
         "type": "POST"
@@ -18,10 +15,11 @@ let tableDays = $('#tableDays').DataTable({
     order: [
         [4, 'asc']
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     }
-});
+};
+let tableDays = initDataTable('tableDays', tableDaysConfig);
 
 let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');

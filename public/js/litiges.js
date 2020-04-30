@@ -10,7 +10,7 @@ let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
 
-$(function() {
+$(function () {
     initDateTimePicker();
     initSelect2($('#carriers'), 'Transporteurs');
     initSelect2($('#statut'), 'Statut');
@@ -21,7 +21,7 @@ $(function() {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
-    $.post(path, params, function(data) {
+    $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
 
@@ -33,13 +33,10 @@ $(function() {
 
 function initDatatableLitiges() {
     let pathLitiges = Routing.generate('litige_api', true);
-    tableLitiges = $('#tableLitiges').DataTable({
+    let tableLitigesConfig = {
         serverSide: true,
         processing: true,
         scrollX: true,
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         order: [11, 'desc'],
         ajax: {
             "url": pathLitiges,
@@ -51,8 +48,9 @@ function initDatatableLitiges() {
                 return json.data;
             }
         },
-        'drawCallback': function() {
-            overrideSearch($('#tableLitiges_filter input'), tableLitiges);
+        drawConfig: {
+            needsSearchOverride: true,
+            filterId: 'tableLitiges_filter'
         },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', 'orderable': false, className: 'noVis'},
@@ -70,11 +68,13 @@ function initDatatableLitiges() {
             {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
-        headerCallback: function(thead) {
+        headerCallback: function (thead) {
             $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
             $(thead).find('th').eq(3).attr('title', "n° de réception");
         },
-        dom: '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"l><"col-3"f>>t<"row mt-2 justify-content-between"<"col-2"i><"col-8"p>>r',
+        domConfig: {
+            needsFullDomOverride: true
+        },
         buttons: [
             {
                 extend: 'colvis',
@@ -82,31 +82,34 @@ function initDatatableLitiges() {
                 className: 'dt-btn d-none'
             },
         ],
-        rowCallback: function (row, data) {
-            $(row).addClass(data.urgence ? 'table-danger' : '');
-            initActionOnRow(row);
+        rowConfig: {
+            needsDangerColor: true,
+            needsRowClickAction: true,
+            dataToCheck: 'urgence'
         },
-        initComplete: function() {
+        initCompleteCallback: () => {
             let $btnColvis = $('#tableLitiges_wrapper').first('.buttons-colvis');
             $btnColvis.one('click', initColVisParam);
         }
-    });
+    };
+    tableLitiges = initDataTable('tableLitiges', tableLitigesConfig);
 }
 
 function initColVisParam() {
     let $buttons = $(this).find('.buttons-columnVisibility');
 
-    $buttons.on('click', function() {
+    $buttons.on('click', function () {
         let data = {};
         $buttons.each((index, elem) => {
             let $elem = $(elem);
             data[$elem.data('cv-idx')] = $elem.hasClass('active');
         });
-       $.post(Routing.generate('save_column_hidden_for_litiges'), data);
+        $.post(Routing.generate('save_column_hidden_for_litiges'), data);
     });
 }
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {
+}, isArrivage, arrivageOrReceptionId, litigeId) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
     let path = Routing.generate(route, true);
     let $modal = $('#modalEditLitige');
@@ -156,13 +159,11 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 }
 
 let tableHistoLitige;
+
 function openTableHisto() {
 
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    tableHistoLitige = $('#tableHistoLitige').DataTable({
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
             "type": "POST"
@@ -172,12 +173,14 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">'
-    });
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    };
+    tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 
-function getCommentAndAddHisto()
-{
+function getCommentAndAddHisto() {
     let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();

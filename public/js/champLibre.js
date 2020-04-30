@@ -3,10 +3,7 @@ $('.select2').select2();
 //TYPE
 
 const urlApiType = Routing.generate('type_api', true);
-let tableType = $('#tableType_id').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let typeTableConfig = {
     ajax: {
         "url": urlApiType,
         "type": "POST"
@@ -22,11 +19,12 @@ let tableType = $('#tableType_id').DataTable({
             targets: 0
         }
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
     order: [[2, "asc"]],
-});
+};
+let tableType = initDataTable('tableType_id', typeTableConfig);
 
 let dataModalTypeNew = $("#modalNewType");
 let ButtonSubmitTypeNew = $("#submitTypeNew");
@@ -46,10 +44,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 
 //CHAMPS LIBRE
 const urlApiChampLibre = Routing.generate('champ_libre_api', {'id': $('#cl-type-id').val()}, true);
-let tableChampLibre = $('#tableChamplibre_id').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableChampLibreConfig = {
     order: [1, 'asc'],
     ajax: {
         "url": urlApiChampLibre,
@@ -65,10 +60,11 @@ let tableChampLibre = $('#tableChamplibre_id').DataTable({
         {"data": 'Obligatoire à la création', 'title': 'Obligatoire à la création'},
         {"data": 'Obligatoire à la modification', 'title': 'Obligatoire à la modification'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
-});
+};
+let tableChampLibre = initDataTable('tableChamplibre_id', tableChampLibreConfig);
 
 let $modalNewChampLibre = $("#modalNewChampLibre");
 let $submitChampLibreNew = $("#submitChampLibreNew");

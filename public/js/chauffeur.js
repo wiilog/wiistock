@@ -1,9 +1,5 @@
 let pathChauffeur = Routing.generate('chauffeur_api', true);
-let tableChauffeur = $('#tableChauffeur_id').DataTable({
-
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableChauffeurConfig = {
     ajax: {
         "url": pathChauffeur,
         "type": "POST"
@@ -22,11 +18,11 @@ let tableChauffeur = $('#tableChauffeur_id').DataTable({
             "targets" : 0
         },
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
-});
-
+};
+let tableChauffeur = initDataTable('tableChauffeur_id', tableChauffeurConfig);
 
 let modalNewChauffeur = $("#modalNewChauffeur");
 let submitNewChauffeur = $("#submitNewChauffeur");

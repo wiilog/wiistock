@@ -1,8 +1,5 @@
 let pathCategories = Routing.generate('invParam_api', true);
-let tableCategories = $('#tableCategories').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableCategoriesConfig = {
     ajax: {
         "url": pathCategories,
         "type": "POST"
@@ -13,10 +10,11 @@ let tableCategories = $('#tableCategories').DataTable({
         {"data": 'Frequence', 'title': 'Fréquence'},
         {"data": 'Permanent', 'title': 'Permanent'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
-    }
-});
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+};
+let tableCategories = initDataTable('tableCategories', tableCategoriesConfig);
 
 let modalNewCategorie = $("#modalNewCategorie");
 let submitNewCategorie = $("#submitNewCategorie");
@@ -99,10 +97,7 @@ function importFile() {
 }
 
 let pathFrequencies = Routing.generate('invParamFrequencies_api', true);
-let tableFrequencies = $('#tableFrequencies').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableFrequenciesConfig = {
     searching: false,
     info: false,
     ajax: {
@@ -115,10 +110,12 @@ let tableFrequencies = $('#tableFrequencies').DataTable({
         {"data": 'Label', 'title': 'Label'},
         {"data": 'NbMonths', 'title': 'Nombre de mois'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
-    }
-});
+    rowConfig: {
+        needsRowClickAction: true
+    },
+};
+
+let tableFrequencies = initDataTable('tableFrequencies', tableFrequenciesConfig);
 
 let ModalNewFrequency = $("#modalNewFrequency");
 let SubmitNewFrequency = $("#submitNewFrequency");

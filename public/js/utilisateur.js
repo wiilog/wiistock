@@ -1,10 +1,7 @@
 let urlUtilisateur = Routing.generate('user_api', true);
-let tableUser = $('#tableUser_id').DataTable({
+let tableUserConfig = {
     processing: true,
     serverSide: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": urlUtilisateur,
         "type": "POST"
@@ -17,11 +14,12 @@ let tableUser = $('#tableUser_id').DataTable({
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
         { "data": "Rôle", 'title': 'Rôle', orderable: false, className: 'noVis' },
     ],
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
     order: [[1, 'asc']]
-});
+};
+let tableUser = initDataTable('tableUser_id', tableUserConfig);
 
 let modalNewUser = $("#modalNewUser");
 let submitNewUser = $("#submitNewUser");
