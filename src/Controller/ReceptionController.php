@@ -37,6 +37,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
+use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\MailerService;
@@ -1707,102 +1708,106 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/receptions-infos", name="get_receptions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function getReceptionIntels(EntityManagerInterface $entityManager,
-                                       Request $request): Response
+    public function getReceptionCSV(EntityManagerInterface $entityManager,
+                                    CSVExportService $CSVExportService,
+                                    Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        }
+        catch(\Throwable $throwable) {}
 
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $receptions = $receptionRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
 
-            $headers = [];
-            $headers = array_merge($headers,
-                [
-                    $this->translationService->getTranslation('réception', 'n° de réception'),
-                    'n° de commande',
-                    'fournisseur',
-                    'utilisateur',
-                    'statut',
-                    'date de création',
-                    'date de fin',
-                    'commentaire',
-                    'quantité à recevoir',
-                    'quantité reçue',
-                    'référence',
-                    'libellé',
-                    'quantité stock',
-                    'type',
-                    'code-barre reference',
-                    'code-barre article',
-                ]);
+            $csvHeader = [
+                $this->translationService->getTranslation('réception', 'n° de réception'),
+                'n° de commande',
+                'fournisseur',
+                'utilisateur',
+                'statut',
+                'date de création',
+                'date de fin',
+                'commentaire',
+                'quantité à recevoir',
+                'quantité reçue',
+                'référence',
+                'libellé',
+                'quantité stock',
+                'type',
+                'code-barre reference',
+                'code-barre article',
+            ];
 
-            $data = [];
-            $data[] = $headers;
+            return $CSVExportService->createCsvResponse(
+                'export.csv',
+                $receptions,
+                $csvHeader,
+                function ($reception) {
+                    $rows = [];
+                    if ($reception['articleId'] || $reception['referenceArticleId']) {
+                        if ($reception['referenceArticleId']) {
+                            $row = $this->serializeReception($reception);
 
-            foreach ($receptions as $reception) {
-                $this->buildInfos($reception, $data);
-            }
-            return new JsonResponse($data);
+                            $row[] = $reception['referenceArticleReference'] ?: '';
+                            $row[] = $reception['referenceArticleLibelle'] ?: '';
+                            $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
+                            $row[] = $reception['referenceArticleTypeLabel'] ?: '';
+                            $row[] = $reception['referenceArticleBarcode'] ?: '';
+
+                            $rows[] = $row;
+                        }
+
+                        if ($reception['articleId']) {
+                            $row = $this->serializeReception($reception);
+
+                            $row[] = $reception['articleReference'] ?: '';
+                            $row[] = $reception['articleLabel'] ?: '';
+                            $row[] = $reception['articleQuantity'] ?: '';
+                            $row[] = $reception['articleTypeLabel'] ?: '';
+                            $row[] = $reception['articleReferenceArticleBarcode'] ?: '';
+                            $row[] = $reception['articleBarcode'] ?: '';
+
+                            $rows[] = $row;
+                        }
+                    }
+                    else {
+                        $rows[] = $this->serializeReception($reception);
+                    }
+                    return $rows;
+                }
+            );
+
         } else {
             throw new NotFoundHttpException('404');
         }
     }
 
-    private function buildInfos(Reception $reception, &$data)
-    {
-        foreach ($reception->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-            $data[] = [
-                $reception->getNumeroReception() ?? '',
-                $reception->getReference() ?? '',
-                $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
-                $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
-                $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
-                $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
-                strip_tags($reception->getCommentaire()),
-                $receptionReferenceArticle->getQuantiteAR(),
-                $receptionReferenceArticle->getQuantite(),
-                $referenceArticle->getReference(),
-                $referenceArticle->getLibelle(),
-                $referenceArticle->getQuantiteStock(),
-                $referenceArticle->getType() ? $referenceArticle->getType()->getLabel() : '',
-                $referenceArticle->getBarCode(),
-                '',
-            ];
-            $articles = $receptionReferenceArticle->getArticles();
-            foreach ($articles as $article) {
-                $data[] = [
-                    $reception->getNumeroReception() ?? '',
-                    $reception->getReference() ?? '',
-                    $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
-                    $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
-                    $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                    $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
-                    $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
-                    strip_tags($reception->getCommentaire()),
-                    $receptionReferenceArticle->getQuantiteAR(),
-                    $receptionReferenceArticle->getQuantite(),
-                    $article->getReference(),
-                    $article->getLabel(),
-                    $article->getQuantite(),
-                    $article->getType() ? $article->getType()->getLabel() : '',
-                    $article->getArticleFournisseur()->getReferenceArticle()->getBarCode(),
-                    $article->getBarCode(),
-                ];
-            }
-        }
+    private function serializeReception(array $reception): array {
+        return [
+            $reception['numeroReception'] ?: '',
+            $reception['reference'] ?: '',
+            $reception['providerName'] ?: '',
+            $reception['userUsername'] ?: '',
+            $reception['statusName'] ?: '',
+            $reception['date'] ? $reception['date']->format('d/m/Y H:i') : '',
+            $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
+            $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
+            $reception['receptionRefArticleQuantiteAR'] ?: '',
+            $reception['receptionRefArticleQuantite'] ?: ''
+        ];
     }
 
     /**

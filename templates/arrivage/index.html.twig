@@ -42,7 +42,7 @@
                     {% elseif hasRightToExport %}
                         <button type="button"
                                 class="btn btn-primary split-button btn-ripple"
-                                onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
+                                onclick="saveExportFile('get_arrivages_csv')">
                             <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
                         </button>
@@ -56,19 +56,13 @@
                     </button>
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
-                            <a href="#"
-                               class="dropdown-item"
-                               onclick="generateCSV('get_arrivages_for_csv', '{{ 'arrivage.arrivages'|trans }}')">
-                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                Exporter au format CSV
+                            <a class="dropdown-item pointer"
+                               onclick="saveExportFile('get_arrivages_csv')">
+                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>Exporter au format CSV
                             </a>
                         {% endif %}
-                        <a class="dropdown-item"
-                           data-toggle="modal"
-                           data-target="#modalColumnVisibleArrivage"
-                           href="#">
-                            <span class="fas fa-cog mr-2"></span>
-                            Gestion des colonnes
+                        <a class="dropdown-item pointer" onclick="$('.buttons-colvis').click();">
+                            <i class="fa fa-cog mr-2"></i>Gestion des colonnes
                         </a>
                     </div>
                 </div>

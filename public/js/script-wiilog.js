@@ -546,7 +546,8 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
 
                                                 if (!$nextField.data('select2')) {
                                                     $nextField.select2('open');
-                                                } else {
+                                                }
+                                                else {
                                                     $nextField.trigger('focus');
                                                 }
                                             }
@@ -1390,4 +1391,44 @@ function registerDropdownPosition() {
             dropdownMenu.removeClass('ml-3');
         }
     });
+}
+
+function saveExportFile(routeName, params = null) {
+    const $spinner = $('#spinner');
+    loadSpinner($spinner);
+
+    const path = Routing.generate(routeName, true);
+
+    const filtersData = {};
+    $('.filterService input').each(function () {
+        const $input = $(this);
+        const name = $input.attr('name');
+        const val = $input.val();
+        if (name && val) {
+            filtersData[name] = val;
+        }
+    });
+
+    const data = {
+        ...filtersData,
+        ...(params || {})
+    }
+
+    if (data.dateMin && data.dateMax) {
+        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+        const dataKeys = Object.keys(data);
+
+        const joinedData = dataKeys
+            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+            .join('&');
+
+        window.location.href = `${path}?${joinedData}`;
+        hideSpinner($spinner);
+    }
+    else {
+        warningEmptyDatesForCsv();
+        hideSpinner($spinner);
+    }
 }

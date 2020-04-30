@@ -45,4 +45,28 @@ class PieceJointeRepository extends ServiceEntityRepository
 		return $query->getResult();
 	}
 
+	public function getNameGroupByMouvements() {
+        $queryBuilder = $this->createQueryBuilder('attachment')
+            ->select('mouvementTraca.id AS mouvementTracaId')
+            ->addSelect('attachment.originalName')
+            ->join('attachment.mouvementTraca', 'mouvementTraca');
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return array_reduce($result, function ($acc, $attachment) {
+            $mouvementTracaId = (int) $attachment['mouvementTracaId'];
+            if (empty($acc[$mouvementTracaId])) {
+                $acc[$mouvementTracaId] = '';
+            }
+            else {
+                $acc[$mouvementTracaId] .= ', ';
+            }
+
+            $acc[$mouvementTracaId] .= $attachment['originalName'];
+            return $acc;
+        }, []);
+    }
+
 }
