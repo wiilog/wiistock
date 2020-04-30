@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -14,6 +15,7 @@ use Doctrine\DBAL\FetchMode;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
 
@@ -86,22 +88,44 @@ class MouvementTracaRepository extends EntityRepository
      * @return MouvementTraca[]
      * @throws Exception
      */
-    public function findByDates($dateMin, $dateMax)
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax)
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT m
-            FROM App\Entity\MouvementTraca m
-            WHERE m.datetime BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
+        $queryBuilder = $this->createQueryBuilder('mouvementTraca')
+            ->select('mouvementTraca.id')
+            ->addSelect('mouvementTraca.datetime')
+            ->addSelect('mouvementTraca.colis')
+            ->addSelect('location.label as locationLabel')
+            ->addSelect('type.nom as typeName')
+            ->addSelect('operator.username as operatorUsername')
+            ->addSelect('mouvementTraca.commentaire')
+            ->addSelect('arrivage.numeroArrivage')
+            ->addSelect('arrivage.numeroCommandeList AS numeroCommandeListArrivage')
+            ->addSelect('arrivage2.isUrgent')
+            ->addSelect('reception.numeroReception')
+            ->addSelect('reception.reference AS referenceReception')
+
+            ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
+
+            ->leftJoin('mouvementTraca.emplacement', 'location')
+            ->leftJoin('mouvementTraca.type', 'type')
+            ->leftJoin('mouvementTraca.operateur', 'operator')
+            ->leftJoin('mouvementTraca.arrivage', 'arrivage')
+            ->leftJoin('mouvementTraca.reception', 'reception')
+            ->leftJoin(Colis::class, 'colis', Join::WITH, 'colis.code = mouvementTraca.colis')
+            ->leftJoin('colis.arrivage', 'arrivage2')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
     /**

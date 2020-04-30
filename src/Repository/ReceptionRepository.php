@@ -86,21 +86,56 @@ class ReceptionRepository extends ServiceEntityRepository
      * @param DateTime $dateMax
      * @return Reception[]|null
      */
-    public function findByDates($dateMin, $dateMax)
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax)
     {
-		$dateMax = $dateMax->format('Y-m-d H:i:s');
-		$dateMin = $dateMin->format('Y-m-d H:i:s');
+        $queryBuilder = $this->createQueryBuilder('reception')
+            ->select('reception.id')
+            ->addSelect('article.id AS articleId')
+            ->addSelect('referenceArticle.id AS referenceArticleId')
+            ->addSelect('reception.numeroReception')
+            ->addSelect('reception.reference')
+            ->addSelect('provider.nom AS providerName')
+            ->addSelect('user.username AS userUsername')
+            ->addSelect('status.nom AS statusName')
+            ->addSelect('reception.date')
+            ->addSelect('reception.dateFinReception')
+            ->addSelect('reception.commentaire')
+            ->addSelect('receptionReferenceArticle.quantiteAR AS receptionRefArticleQuantiteAR')
+            ->addSelect('receptionReferenceArticle.quantite AS receptionRefArticleQuantite')
+            ->addSelect('referenceArticle.reference AS referenceArticleReference')
+            ->addSelect('referenceArticle.libelle AS referenceArticleLibelle')
+            ->addSelect('referenceArticle.quantiteStock AS referenceArticleQuantiteStock')
+            ->addSelect('referenceArticleType.label AS referenceArticleTypeLabel')
+            ->addSelect('referenceArticle.barCode AS referenceArticleBarcode')
+            ->addSelect('article.reference AS articleReference')
+            ->addSelect('article.label AS articleLabel')
+            ->addSelect('article.quantite AS articleQuantity')
+            ->addSelect('articleType.label AS articleTypeLabel')
+            ->addSelect('articleReferenceArticle.barCode AS articleReferenceArticleBarcode')
+            ->addSelect('article.barCode as articleBarcode')
 
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT r
-            FROM App\Entity\Reception r
-            WHERE r.date BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
+            ->where('reception.date BETWEEN :dateMin AND :dateMax')
+
+            ->leftJoin('reception.fournisseur', 'provider')
+            ->leftJoin('reception.utilisateur', 'user')
+            ->leftJoin('reception.statut', 'status')
+            ->leftJoin('reception.receptionReferenceArticles', 'receptionReferenceArticle')
+            ->leftJoin('receptionReferenceArticle.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.type', 'referenceArticleType')
+            ->leftJoin('receptionReferenceArticle.articles', 'article')
+            ->leftJoin('article.type', 'articleType')
+            ->leftJoin('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
     public function findByParamAndFilters($params, $filters)

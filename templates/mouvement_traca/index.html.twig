@@ -41,14 +41,14 @@
                                 </button>
                                 <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                     <div class="dropdown-item pointer"
-                                         onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                                         onclick="saveExportFile('get_mouvements_traca_csv')">
                                         <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                                     </div>
                                 </div>
                             {% else %}
                                 <button type="button"
                                         class="btn btn-primary btn-ripple"
-                                        onclick="generateCSV('get_mouvements_traca_for_csv', 'mvts-traca')">
+                                        onclick="saveExportFile('get_mouvements_traca_csv')">
                                     <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                                 </button>
                             {% endif %}
