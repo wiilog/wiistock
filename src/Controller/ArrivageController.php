@@ -40,6 +40,7 @@ use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\StatutService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;
@@ -56,10 +57,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-
 
 /**
  * @Route("/arrivage")
@@ -169,11 +170,13 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @param StatutService $statutService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
+                          TranslatorInterface $translator,
                           StatutService $statutService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -189,6 +192,24 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $user = $this->getUser();
+        $champs = [
+            ["key" => 'date', 'label' => 'Date'],
+            ["key" => 'numeroArrivage', 'label' => $translator->trans('arrivage.n° d\'arrivage')],
+            ["key" => 'transporteur', 'label' => 'Transporteur'],
+            ["key" => 'chauffeur', 'label' => 'Chauffeur'],
+            ["key" => 'noTracking', 'label' => 'N° tracking transporteur'],
+            ["key" => 'NumeroCommandeList', 'label' => 'N° commande / BL'],
+            ["key" => 'fournisseur', 'label' => 'Fournisseur'],
+            ["key" => 'destinataire', 'label' => $translator->trans('arrivage.destinataire')],
+            ["key" => 'acheteurs', 'label' => $translator->trans('arrivage.acheteurs')],
+            ["key" => 'NbUM', 'label' => 'Nb UM'],
+            ["key" => 'duty', 'label' => 'Douane'],
+            ["key" => 'frozen', 'label' => 'Congelé'],
+            ["key" => 'Statut', 'label' => 'Statut'],
+            ["key" => 'Utilisateur', 'label' => 'Utilisateur'],
+            ["key" => 'urgent', 'label' => 'Urgent'],
+        ];
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -209,7 +230,9 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId
+            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
+            'champs' => $champs,
+            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
         ]);
     }
 
@@ -233,9 +256,8 @@ class ArrivageController extends AbstractController
             $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
-
-            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            $data['columnsToHide'] = $fieldsParam;
+            $user = $this->getUser();
+            $data['visible'] = $user->getColumnsVisibleForArrivage();
 
             return new JsonResponse($data);
         }
@@ -521,7 +543,9 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
+     *
      * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -1553,4 +1577,45 @@ class ArrivageController extends AbstractController
         $entityManager->flush();
     }
 
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() ) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $data = json_decode($request->getContent(), true);
+
+            $champs = array_keys($data);
+            $user = $this->getUser();
+            /** @var $user Utilisateur */
+            $champs[] = "actions";
+            $user->setColumnsVisibleForArrivage($champs);
+            $entityManager->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $user = $this->getUser();     ;
+
+        return new JsonResponse($user->getColumnsVisibleForArrivage());
+    }
 }

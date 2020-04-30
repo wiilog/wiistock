@@ -154,7 +154,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
+        if (!$(this).hasClass("no-data")) {
+            Data[$(this).attr("name")] = $(this).is(':checked');
+        }
     });
     $("div[name='id']").each(function () {
         Data[$(this).attr("name")] = $(this).attr('value');
@@ -230,9 +232,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                                 msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
                             }
                         } else if (typeof (min) == 'undefined') {
-                            msg += ' doit être inférieure à ' + max + ".<br>";
+                            msg += ' doit être inférieure ou égal à ' + max + ".<br>";
                         } else if (typeof (max) == 'undefined') {
-                            msg += ' doit être supérieure à ' + min + ".<br>";
+                            msg += ' doit être supérieure ou égal à ' + min + ".<br>";
                         } else if (min < 1) {
                             msg += ' ne peut pas être rempli'
                         }

@@ -502,10 +502,13 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
+
      * @param Request $request
      * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
+
      * @return Response
+
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -740,10 +743,12 @@ class ArticleController extends AbstractController
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $data = json_decode($request->getContent(), true);
             $champs = array_keys($data);
             $user = $this->getUser();
             /** @var $user Utilisateur */
@@ -757,8 +762,10 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true})
+
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+
      * @return Response
      */
     public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response
@@ -971,11 +978,14 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
+
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param ArticleDataService $articleDataService
+
      * @return Response
+
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError

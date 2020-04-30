@@ -6,7 +6,8 @@
     {% include 'filters/filtersArrivage.html.twig' with {
         'page': 'PAGE_ARRIVAGE',
         'tableSelector': '#tableArrivages',
-        'callback': '() => {clicked = true;}'
+        'callback': '() => {clicked = true;
+        }'
     } %}
 {% endblock %}
 
@@ -57,11 +58,16 @@
                         {% if hasRightToCreate and hasRightToExport %}
                             <a class="dropdown-item pointer"
                                onclick="saveExportFile('get_arrivages_csv')">
-                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>Exporter au format CSV
+                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                                Exporter au format CSV
                             </a>
                         {% endif %}
-                        <a class="dropdown-item pointer" onclick="$('.buttons-colvis').click();">
-                            <i class="fa fa-cog mr-2"></i>Gestion des colonnes
+                        <a class="dropdown-item pointer"
+                           data-toggle="modal"
+                           data-target="#modalColumnVisibleArrivage"
+                           href="#">
+                            <i class="fa fa-cog mr-2"></i>
+                            Gestion des colonnes
                         </a>
                     </div>
                 </div>
@@ -82,7 +88,7 @@
     {% include "arrivage/modalEditArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
-
+    {% include "arrivage/modalColumnVisible.html.twig" with { champs: champs }%}
     <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans }}">
     <input hidden id="acheteursTranslation" value="{{ "arrivage.acheteurs"|trans }}">
     <input hidden id="destinataireTranslation" value="{{ "arrivage.destinataire"|trans }}">

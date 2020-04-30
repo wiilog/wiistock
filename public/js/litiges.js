@@ -9,6 +9,9 @@ let urlEditLitige = Routing.generate('litige_edit', true);
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete', true);
+let modalColumnVisible = $('#modalColumnVisibleLitige');
+let submitColumnVisible = $('#submitColumnVisibleLitige');
+let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
 
 $(function () {
     initDateTimePicker();
@@ -29,6 +32,7 @@ $(function () {
     InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
     initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
     InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
+    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
 function initDatatableLitiges() {
@@ -41,31 +45,26 @@ function initDatatableLitiges() {
         ajax: {
             "url": pathLitiges,
             "type": "POST",
-            'dataSrc': function (json) {
-                json.columnHidden.forEach(element => {
-                    tableLitiges.column(element).visible(false);
-                });
-                return json.data;
-            }
         },
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableLitiges_filter'
+            filterId: 'tableLitiges_filter',
+            needsColumnShow: true
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', 'orderable': false, className: 'noVis'},
-            {"data": 'type', 'name': 'Type', 'title': 'Type'},
-            {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
-            {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
-            {"data": 'buyers', 'name': 'Acheteur', 'title': 'Acheteur'},
-            {"data": 'numCommandeBl', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
-            {"data": 'command', 'name': 'N°_ligne', 'title': 'N° ligne', 'orderable': false},
-            {"data": 'provider', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-            {"data": 'references', 'name': 'Référence', 'title': 'Référence', 'orderable': false},
-            {"data": 'lastHistoric', 'name': 'Dernier_historique', 'title': 'Dernier historique', 'orderable': false},
-            {"data": 'creationDate', 'name': 'Créé_le', 'title': 'Créé le'},
-            {"data": 'updateDate', 'name': 'Modifié_le', 'title': 'Modifié le'},
-            {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
+            {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
+            {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
+            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
+            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
+            {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
+            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
+            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
+            {"data": 'references', 'name': 'references', 'title': 'Référence', 'orderable': false},
+            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique', 'orderable': false},
+            {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
+            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
+            {"data": 'status', 'name': 'status', 'title': 'Statut'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
         headerCallback: function (thead) {
@@ -87,25 +86,8 @@ function initDatatableLitiges() {
             needsRowClickAction: true,
             dataToCheck: 'urgence'
         },
-        initCompleteCallback: () => {
-            let $btnColvis = $('#tableLitiges_wrapper').first('.buttons-colvis');
-            $btnColvis.one('click', initColVisParam);
-        }
     };
     tableLitiges = initDataTable('tableLitiges', tableLitigesConfig);
-}
-
-function initColVisParam() {
-    let $buttons = $(this).find('.buttons-columnVisibility');
-
-    $buttons.on('click', function () {
-        let data = {};
-        $buttons.each((index, elem) => {
-            let $elem = $(elem);
-            data[$elem.data('cv-idx')] = $elem.hasClass('active');
-        });
-        $.post(Routing.generate('save_column_hidden_for_litiges'), data);
-    });
 }
 
 function editRowLitige(button, afterLoadingEditModal = () => {
@@ -114,7 +96,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     let path = Routing.generate(route, true);
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
-
     let params = {
         litigeId: litigeId,
     };
