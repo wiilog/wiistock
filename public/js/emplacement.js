@@ -1,13 +1,10 @@
 $('.select2').select2();
 let pathEmplacement = Routing.generate("emplacement_api", true);
-let tableEmplacement = $('#tableEmplacement_id').DataTable({
+let tableEmplacementConfig = {
     processing: true,
     serverSide: true,
     "lengthMenu": [10, 25, 50, 100, 1000],
     order: [[1, 'desc']],
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathEmplacement,
         "type": "POST",
@@ -16,8 +13,12 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
             return json.data;
         }
     },
-    'drawCallback': function () {
-        overrideSearchEmplacement();
+    drawConfig: {
+        needsEmplacementSearchOverride: true,
+        filterId: 'tableEmplacement_id_filter'
+    },
+    rowConfig: {
+        needsRowClickAction: true,
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
@@ -30,13 +31,11 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     buttons: [
         'copy', 'excel', 'pdf'
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
-    },
     columnDefs: [
         { "orderable": false, "targets": 0 }
     ]
-});
+};
+let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);
 
 let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
@@ -81,41 +80,6 @@ function displayErrorEmplacement($modal, response) {
     } else {
         $modal.find('.close').click();
     }
-}
-
-function overrideSearchEmplacement() {
-    let $input = $('#tableEmplacement_id_filter input');
-    $input.off();
-    $input.on('keyup', function (e) {
-        let $printButton = $('.printButton');
-
-        if (e.key === 'Enter') {
-            if ($input.val() === '') {
-                $printButton
-                    .addClass('user-select-none')
-                    .addClass('disabled')
-                    .addClass('has-tooltip')
-                    .removeClass('pointer');
-                managePrintButtonTooltip(true, $printButton);
-            } else {
-                $printButton
-                    .removeClass('user-select-none')
-                    .removeClass('disabled')
-                    .removeClass('has-tooltip')
-                    .addClass('pointer');
-                managePrintButtonTooltip(false, $printButton);
-            }
-            tableEmplacement.search(this.value).draw();
-        } else if (e.key === 'Backspace' && $input.val() === '') {
-            $printButton
-                .addClass('user-select-none')
-                .addClass('disabled')
-                .addClass('has-tooltip')
-                .removeClass('pointer');
-            managePrintButtonTooltip(true, $printButton);
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
 }
 
 function printLocationsBarCodes($button, event) {

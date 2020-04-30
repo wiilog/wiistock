@@ -386,21 +386,20 @@ function loadRetards() {
         if (datatableColis) {
             datatableColis.destroy();
         }
-        datatableColis = $retardsTable.DataTable({
+        let datatableColisConfig = {
             responsive: true,
-            dom: 'tr',
+            domConfig: {
+                needsMinimalDomOverride: true
+            },
             paging: false,
             scrollCollapse: true,
             scrollY: '18vh',
             processing: true,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
             ajax: {
                 "url": Routing.generate('api_retard', true),
                 "type": "GET",
             },
-            initComplete: () => {
+            initCompleteCallback: () => {
                 datatableLoading = false;
             },
             order: [[2, 'desc']],
@@ -410,7 +409,8 @@ function loadRetards() {
                 {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
                 {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
             ]
-        });
+        };
+        datatableColis = initDataTable($retardsTable.attr('id'), datatableColisConfig);
     }
 }
 

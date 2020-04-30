@@ -1,8 +1,5 @@
 let pathTypes = Routing.generate('types_param_api', true);
-let tableTypes = $('#tableTypes').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableTypesConfig = {
     order: [1, 'asc'],
     ajax: {
         "url": pathTypes,
@@ -14,10 +11,11 @@ let tableTypes = $('#tableTypes').DataTable({
         {"data": 'Label', 'title': 'Label'},
         {"data": 'Description', 'title': 'Description'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
-});
+};
+let tableTypes = initDataTable('tableTypes', tableTypesConfig);
 
 let modalNewType = $("#modalNewType");
 let submitNewType = $("#submitNewType");

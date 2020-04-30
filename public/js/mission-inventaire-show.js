@@ -20,23 +20,26 @@ $(function() {
 function initPageElements() {
     let mission = $('#missionId').val();
     let pathApiArticle = Routing.generate('inv_entry_article_api', { id: mission}, true);
-    let tableArticle = $('#tableMissionInvArticle').DataTable({
+    let tableArticleConfig = {
         processing: true,
         serverSide: true,
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         order: [[3, 'desc']],
         scrollX: true,
         ajax:{
             "url": pathApiArticle,
             "type": "POST",
+            'dataSrc': function (json) {
+                json.data.some((data) => {
+                    if (data.EmptyLocation) {
+                        alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+                    }
+                });
+                return json.data;
+            }
         },
-        'drawCallback': function() {
-            overrideSearch($('#tableMissionInvArticle_filter input'), tableArticle);
-        },
-        'rowCallback': function(row, data) {
-            if (data.EmptyLocation) alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+        drawConfig: {
+            needsSearchOverride: true,
+            filterId: 'tableMissionInvArticle_filter'
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
@@ -45,26 +48,30 @@ function initPageElements() {
             { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
             { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
         ],
-    });
+    };
+    let tableArticle = initDataTable('tableMissionInvArticle', tableArticleConfig);
 
     let pathApiReferenceArticle = Routing.generate('inv_entry_reference_article_api', { id: mission}, true);
-    let tableRefArticle = $('#tableMissionInvReferenceArticle').DataTable({
+    let tableRefArticleConfig = {
         processing: true,
         serverSide: true,
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         order: [[3, 'desc']],
         scrollX: true,
         ajax:{
             "url": pathApiReferenceArticle,
             "type": "POST",
+            'dataSrc': function (json) {
+                json.data.some((data) => {
+                    if (data.EmptyLocation) {
+                        alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+                    }
+                });
+                return json.data;
+            }
         },
-        'drawCallback': function() {
-            overrideSearch($('#tableMissionInvReferenceArticle_filter input'), tableRefArticle);
-        },
-        'rowCallback': function(row, data) {
-            if (data.EmptyLocation) alertErrorMsg('Il manque un ou plusieurs emplacements : ils n\'apparaîtront pas sur le nomade.');
+        drawConfig: {
+            needsSearchOverride: true,
+            filterId: 'tableMissionInvReferenceArticle_filter'
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
@@ -73,7 +80,8 @@ function initPageElements() {
             { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
             { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
         ],
-    });
+    };
+    let tableRefArticle = initDataTable('tableMissionInvReferenceArticle', tableRefArticleConfig);
 
     let modalAddToMission = $("#modalAddToMission");
     let submitAddToMission = $("#submitAddToMission");

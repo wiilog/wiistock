@@ -1,8 +1,7 @@
 $('.select2').select2();
 
 let pathCollecte = Routing.generate('ordre_collecte_api');
-
-let tableCollecte = $('#tableCollecte').DataTable({
+let tableCollecteConfig = {
     serverSide: true,
     processing: true,
     order: [[3, 'desc']],
@@ -12,21 +11,19 @@ let tableCollecte = $('#tableCollecte').DataTable({
             targets: 0
         }
     ],
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         'url': pathCollecte,
-        'data' : {
-          'filterDemand': $('#filterDemandId').val()
+        'data': {
+            'filterDemand': $('#filterDemandId').val()
         },
         "type": "POST"
     },
-    drawCallback: function() {
-        overrideSearch($('#tableCollecte_filter input'), tableCollecte);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableCollecte_filter'
     },
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
     columns: [
         {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
@@ -36,35 +33,9 @@ let tableCollecte = $('#tableCollecte').DataTable({
         {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
     ],
-});
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableCollecte.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
-$(function() {
+};
+let tableCollecte = initDataTable('tableCollecte', tableCollecteConfig);
+$(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statut');
     ajaxAutoDemandCollectInit($('.ajax-autocomplete-dem-collecte'));

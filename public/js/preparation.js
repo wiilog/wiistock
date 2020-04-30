@@ -31,12 +31,9 @@ $(function () {
 });
 
 let path = Routing.generate('preparation_api');
-let table = $('#table_id').DataTable({
+let tableConfig = {
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[3, 'desc']],
     ajax: {
         url: path,
@@ -45,11 +42,12 @@ let table = $('#table_id').DataTable({
         },
         "type": "POST"
     },
-    'drawCallback': function () {
-        overrideSearch($('#table_id_filter input'), table);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'table_id_filter'
     },
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
     columns: [
         {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
@@ -65,39 +63,12 @@ let table = $('#table_id').DataTable({
             targets: 0
         }
     ],
-});
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = table.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
+};
+let table = initDataTable('table_id', tableConfig);
 
 let pathArticle = Routing.generate('preparation_article_api', {'preparation': $('#prepa-id').val()});
-let tableArticle = $('#tableArticle_id').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+
+let tableArticleConfig = {
     ajax: pathArticle,
     columns: [
         {"data": 'Actions', 'title': '', className: 'noVis'},
@@ -108,15 +79,16 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
     },
     order: [[1, "asc"]],
     columnDefs: [
         {'orderable': false, 'targets': [0]}
     ]
+};
 
-});
+let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 function startPicking($button) {
     let ligneArticleId = $button.attr('value');
@@ -124,19 +96,19 @@ function startPicking($button) {
     let path = Routing.generate('start_splitting', true);
     $.post(path, JSON.stringify(ligneArticleId), function (html) {
         $('#splittingContent').html(html);
-        $('#tableSplittingArticles').DataTable({
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            dom: 'fltir',
+        let tableSplittingArticlesConfig = {
             'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
             'columnDefs': [
                 {'orderable': false, 'targets': [3]}
-            ]
-        });
+            ],
+            domConfig: {
+                needsPaginationRemoval: true
+            }
+        };
+        let tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
         $('#startSplitting').click();
     });
-};
+}
 
 let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
 let modalEditLigneArticle = $("#modalEditLigneArticle");

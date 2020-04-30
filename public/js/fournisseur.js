@@ -1,14 +1,11 @@
 $('.select2').select2();
 
 let pathFournisseur = Routing.generate('fournisseur_api');
-let tableFournisseur = $('#tableFournisseur_id').DataTable({
+let tableFournisseurConfig = {
     processing: true,
     serverSide: true,
     paging: true,
     scrollX: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[1, 'desc']],
     ajax: {
         "url": pathFournisseur,
@@ -19,8 +16,8 @@ let tableFournisseur = $('#tableFournisseur_id').DataTable({
         {"data": 'Nom', title: 'Nom'},
         {"data": 'Code de référence', title: 'Code de référence'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
     columnDefs: [
         {
@@ -28,7 +25,8 @@ let tableFournisseur = $('#tableFournisseur_id').DataTable({
             "targets": 0
         }
     ]
-});
+};
+let tableFournisseur = initDataTable('tableFournisseur_id', tableFournisseurConfig);
 
 let modalNewFournisseur = $("#modalNewFournisseur");
 let submitNewFournisseur = $("#submitNewFournisseur");
