@@ -493,6 +493,7 @@ function newChart($canvasId, redForLastData = false) {
 
 function loadRetards() {
     return new Promise(function (resolve) {
+        const $retardsTable = $('.retards-table');
         if (datatableColis) {
             datatableColis.destroy();
         }
@@ -510,7 +511,6 @@ function loadRetards() {
                 "type": "GET",
             },
             initCompleteCallback: () => {
-                datatableLoading = false;
                 resolve();
             },
             order: [[2, 'desc']],
