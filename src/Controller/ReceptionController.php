@@ -360,10 +360,10 @@ class ReceptionController extends AbstractController
             }
 
             $json = [
-                'entete' => $this->renderView('reception-show-header.html.twig', [
+                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
             ];
             return new JsonResponse($json);
@@ -618,10 +618,10 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
 
             $json = [
-                'entete' => $this->renderView('reception-show-header.html.twig', [
+                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
             ];
             $entityManager->flush();
@@ -698,10 +698,10 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
 
                 $json = [
-					'entete' => $this->renderView('reception-show-header.html.twig', [
+					'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
-                        'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+                        'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
 					])
 				];
 			}
@@ -809,7 +809,7 @@ class ReceptionController extends AbstractController
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
             ];
             return new JsonResponse($json);

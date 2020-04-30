@@ -1130,6 +1130,9 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param Arrivage $arrivage
+     * @return Response
      */
     public function apiArrivageLitiges(Request $request, Arrivage $arrivage): Response
     {

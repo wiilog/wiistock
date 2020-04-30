@@ -147,44 +147,47 @@ class EnCoursService
      */
     public function getEnCours($locations, array $natures = [], bool $onlyLate = false): array {
         $success = true;
-        $locations = array_reduce(
-            is_array($locations) ? $locations : [$locations],
-            function(array $acc, Emplacement $location) {
-                $acc[$location->getId()] = $location;
-                return $acc;
-            },
-            []
-        );
         $emplacementInfo = [];
-        $colisRepository = $this->entityManager->getRepository(Colis::class);
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
-        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
 
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+        if (!empty($locations)) {
+            $locations = array_reduce(
+                is_array($locations) ? $locations : [$locations],
+                function (array $acc, Emplacement $location) {
+                    $acc[$location->getId()] = $location;
+                    return $acc;
+                },
+                []
+            );
+            $colisRepository = $this->entityManager->getRepository(Colis::class);
+            $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+            $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
 
-        $packIntelList = empty($natures)
-            ? $mouvementTracaRepository->getLastOnLocations($locations)
-            : $colisRepository->getPackIntelOnLocations($locations, $natures);
+            $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
-        foreach ($packIntelList as $packIntel) {
-            $dateMvt = $packIntel['lastTrackingDateTime'];
-            $currentLocationId = $packIntel['currentLocationId'];
-            $currentLocation = $locations[(int) $currentLocationId];
+            $packIntelList = empty($natures)
+                ? $mouvementTracaRepository->getLastOnLocations($locations)
+                : $colisRepository->getPackIntelOnLocations($locations, $natures);
 
-            $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt);
-            $dateMaxTime = $currentLocation->getDateMaxTime();
+            foreach ($packIntelList as $packIntel) {
+                $dateMvt = $packIntel['lastTrackingDateTime'];
+                $currentLocationId = $packIntel['currentLocationId'];
+                $currentLocation = $locations[(int)$currentLocationId];
 
-            if ($dateMaxTime) {
-                $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
-                $isLate = $timeInformation['countDownLateTimespan'] < 0;
-                if (!$onlyLate || $isLate) {
-                    $emplacementInfo[] = [
-                        'colis' => $packIntel['code'],
-                        'delay' => $timeInformation['ageTimespan'],
-                        'date' => $dateMvt->format('d/m/Y H:i:s'),
-                        'late' => $isLate,
-                        'emp' => $currentLocation->getLabel()
-                ];
+                $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt);
+                $dateMaxTime = $currentLocation->getDateMaxTime();
+
+                if ($dateMaxTime) {
+                    $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
+                    $isLate = $timeInformation['countDownLateTimespan'] < 0;
+                    if (!$onlyLate || $isLate) {
+                        $emplacementInfo[] = [
+                            'colis' => $packIntel['code'],
+                            'delay' => $timeInformation['ageTimespan'],
+                            'date' => $dateMvt->format('d/m/Y H:i:s'),
+                            'late' => $isLate,
+                            'emp' => $currentLocation->getLabel()
+                        ];
+                    }
                 }
             }
         }

@@ -167,9 +167,11 @@ class MouvementTracaRepository extends EntityRepository
     {
         $connection = $this->getEntityManager()->getConnection();
 
-        return $connection
-            ->executeQuery($this->createSQLQueryPacksOnLocation($locations, 'id', $onDateBracket), [])
-            ->fetchAll(FetchMode::COLUMN);
+        return !empty($locations)
+            ? $connection
+                ->executeQuery($this->createSQLQueryPacksOnLocation($locations, 'id', $onDateBracket), [])
+                ->fetchAll(FetchMode::COLUMN)
+            : [];
     }
 
     /**
@@ -240,27 +242,34 @@ class MouvementTracaRepository extends EntityRepository
     {
         $connection = $this->getEntityManager()->getConnection();
 
-        $locationIds = $this->getIdsFromLocations($locations);
-        $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis', $onDateBracket);
-        $locationIdsStr = implode(',', $locationIds);
-        $sqlQuery = "
-              SELECT MIN(unique_packs.id) AS id
-              FROM mouvement_traca AS unique_packs
-              INNER JOIN (
-                  SELECT mouvement_traca.colis         AS colis,
-                         MIN(mouvement_traca.datetime) AS datetime
-                  FROM mouvement_traca
-                  WHERE mouvement_traca.emplacement_id IN (${locationIdsStr})
-                    AND mouvement_traca.colis          IN (${queryColisOnLocations})
-                  GROUP BY mouvement_traca.colis, mouvement_traca.datetime
-              ) AS min_datetime_packs ON min_datetime_packs.colis = unique_packs.colis
-                                     AND min_datetime_packs.datetime = unique_packs.datetime
-              GROUP BY unique_packs.colis
-        ";
+        if (!empty($locations)) {
+            $locationIds = $this->getIdsFromLocations($locations);
+            $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis', $onDateBracket);
+            $locationIdsStr = implode(',', $locationIds);
+            $sqlQuery = "
+                  SELECT MIN(unique_packs.id) AS id
+                  FROM mouvement_traca AS unique_packs
+                  INNER JOIN (
+                      SELECT mouvement_traca.colis         AS colis,
+                             MIN(mouvement_traca.datetime) AS datetime
+                      FROM mouvement_traca
+                      WHERE mouvement_traca.emplacement_id IN (${locationIdsStr})
+                        AND mouvement_traca.colis          IN (${queryColisOnLocations})
+                      GROUP BY mouvement_traca.colis, mouvement_traca.datetime
+                  ) AS min_datetime_packs ON min_datetime_packs.colis = unique_packs.colis
+                                         AND min_datetime_packs.datetime = unique_packs.datetime
+                  GROUP BY unique_packs.colis
+            ";
 
-        return $connection
-            ->executeQuery($sqlQuery, [])
-            ->fetchAll(FetchMode::COLUMN);
+            $queryResult = $connection
+                ->executeQuery($sqlQuery, [])
+                ->fetchAll(FetchMode::COLUMN);
+        }
+        else {
+            $queryResult = [];
+        }
+
+        return $queryResult;
     }
 
     /**

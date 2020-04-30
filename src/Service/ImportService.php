@@ -1249,7 +1249,6 @@ class ImportService
 
     private function clearEntityManagerAndRetrieveImport()
     {
-        dump('Cleared');
         $this->em->clear();
         $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
     }
