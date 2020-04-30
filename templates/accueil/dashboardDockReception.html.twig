@@ -75,10 +75,13 @@
                             </div>
                         </div>
                         <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'pl-2'}}">
-                            <div id="remaining-urgences-box-dock" class="dashboard-box dashboard-stats-container text-center justify-content-around">
-                                <p class="text-center title">
-                                    Urgences à recevoir
-                                </p>
+                            <div id="encours-dropzone-box" class="dashboard-box dashboard-stats-container text-center justify-content-around">
+                                <div>
+                                    <p class="text-center title">
+                                        Colis à déposer en Drop Zones
+                                    </p>
+                                    <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
+                                </div>
                                 <div class="align-items-center">
                                     <p class="dashboard-stats dashboard-stats-counter"></p>
                                 </div>
@@ -89,16 +92,29 @@
             </div>
             <div class="row mt-3">
                 <div class="col-3  {{ not isDashboardExt ? 'pr-2'}}">
-                    <div class="dashboard-box-container fourth-height">
-                        <div id="encours-dropzone-box" class="dashboard-box dashboard-stats-container text-center justify-content-around">
-                            <div>
-                                <p class="text-center title">
-                                    Colis à déposer en Drop Zones
-                                </p>
-                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
+                    <div class="row h-100">
+                        <div class="col-12">
+                            <div class="dashboard-box-container fourth-row-height pb-1">
+                                <div class="dashboard-box dashboard-stats-container text-center" id="remaining-urgences-box-dock">
+                                    <p class="text-center title mt-1">
+                                        Urgences à recevoir
+                                    </p>
+                                    <div class="align-items-center mt-1">
+                                        <p class="dashboard-stats dashboard-stats-counter"></p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="align-items-center">
-                                <p class="dashboard-stats dashboard-stats-counter"></p>
+                        </div>
+                        <div class="col-12">
+                            <div class="dashboard-box-container fourth-row-height pb-1">
+                                <div class="dashboard-box dashboard-stats-container text-center" id="remaining-daily-urgences-box-dock">
+                                    <p class="text-center title mt-1">
+                                        Urgences du jour
+                                    </p>
+                                    <div class="align-items-center mt-1">
+                                        <p class="dashboard-stats dashboard-stats-counter"></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -122,7 +138,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-2  dashboard-box-container {{ isDashboardExt ? 'mt-3' : 'pl-2'}}">
+        <div class="col-2  dashboard-box-container pl-2">
             <div class="dashboard-box dashboard-box-list">
                 <div class="title {{ not isDashboardExt ? 'pr-3'}}">
                     Suivi des transporteurs

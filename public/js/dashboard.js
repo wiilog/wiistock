@@ -529,6 +529,7 @@ function refreshIndicatorsReceptionDock() {
     return new Promise(function (resolve) {
         $.get(Routing.generate('get_indicators_reception_dock'), function (data) {
             refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
+            refreshCounter($('#remaining-daily-urgences-box-dock'), data.dailyUrgenceCount);
             refreshCounter($('#encours-dock-box'), data.enCoursDock);
             refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
             refreshCounter($('#encours-cleared-box'), data.enCoursCleared);

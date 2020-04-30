@@ -522,8 +522,7 @@ class AccueilController extends AbstractController
      *     "/statistiques/reception-quai",
      *     name="get_indicators_reception_dock",
      *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
+     *     methods="GET"
      * )
      * @param DashboardService $dashboardService
      * @return Response

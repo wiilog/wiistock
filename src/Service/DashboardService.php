@@ -139,6 +139,7 @@ class DashboardService
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
         return array_merge(
             $locationCounter,
+            ['dailyUrgenceCount' => $urgenceRepository->countUnsolved(true)],
             ['urgenceCount' => $urgenceRepository->countUnsolved()]
         );
     }
