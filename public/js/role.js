@@ -1,8 +1,5 @@
 let pathRoles = Routing.generate('role_api', true);
-let tableRoles = $('#tableRoles').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableRolesConfig = {
     order: [1, 'asc'],
     ajax:{
         "url": pathRoles,
@@ -13,10 +10,11 @@ let tableRoles = $('#tableRoles').DataTable({
         { "data": 'Nom', 'title' : 'Nom' },
         { "data": 'Actif', 'title' : 'Actif' },
     ],
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
-    },
-});
+    rowConfig: {
+        needsRowClickAction: true
+    }
+};
+let tableRoles = initDataTable('tableRoles', tableRolesConfig);
 
 let modalNewRole = $("#modalNewRole");
 let submitNewRole = $("#submitNewRole");

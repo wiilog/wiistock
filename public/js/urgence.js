@@ -17,12 +17,9 @@ $(function() {
 
 function initPage() {
     let pathUrgences = Routing.generate('urgence_api', true);
-    let tableUrgence = $('#tableUrgences').DataTable({
+    let tableUrgenceConfig = {
         processing: true,
         serverSide: true,
-        "language": {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         ajax:{
             "url": pathUrgences,
             "type": "POST"
@@ -40,8 +37,9 @@ function initPage() {
             { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : 'N° tracking transporteur' },
             { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val() },
         ],
-        drawCallback: function() {
-            overrideSearch($('#tableUrgences_filter input'), tableUrgence);
+        drawConfig: {
+            needsSearchOverride: true,
+            filterId: 'tableUrgences_filter'
         },
         headerCallback: function(thead) {
             $(thead).find('th').eq(1).attr('title', "date de début");
@@ -50,8 +48,8 @@ function initPage() {
             $(thead).find('th').eq(5).attr('title', "acheteur");
             $(thead).find('th').eq(9).attr('title', "arrivage");
         },
-        rowCallback: function(row, data) {
-            initActionOnRow(row);
+        rowConfig: {
+            needsRowClickAction: true,
         },
         columnDefs: [
             {
@@ -59,7 +57,8 @@ function initPage() {
                 "targets": [1, 2]
             }
         ],
-    });
+    };
+    let tableUrgence = initDataTable('tableUrgences', tableUrgenceConfig);
 
     let modalNewUrgence = $('#modalNewUrgence');
     let submitNewUrgence = $('#submitNewUrgence');

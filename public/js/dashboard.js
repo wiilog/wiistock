@@ -494,41 +494,34 @@ function newChart($canvasId, redForLastData = false) {
 function loadRetards() {
     return new Promise(function (resolve) {
         if (datatableColis) {
-            datatableColis.ajax.reload();
-            resolve();
-        } else {
-            const $retardsTable = $('.retards-table');
-            datatableColis = $retardsTable.DataTable({
-                responsive: true,
-                dom: 'tr',
-                paging: false,
-                scrollCollapse: true,
-                scrollY: '22vh',
-                processing: true,
-                "language": {
-                    url: "/js/i18n/dataTableLanguage.json",
-                },
-                ajax: {
-                    "url": Routing.generate('api_retard', true),
-                    "type": "GET",
-                },
-                initComplete: () => {
-                    resolve();
-                },
-                order: [[2, 'desc']],
-                columns: [
-                    {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-                    {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                    {
-                        "data": 'delay',
-                        'name': 'delay',
-                        'title': 'Délai',
-                        render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)
-                    },
-                    {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
-                ]
-            });
+            datatableColis.destroy();
         }
+        let datatableColisConfig = {
+            responsive: true,
+            domConfig: {
+                needsMinimalDomOverride: true
+            },
+            paging: false,
+            scrollCollapse: true,
+            scrollY: '22vh',
+            processing: true,
+            ajax: {
+                "url": Routing.generate('api_retard', true),
+                "type": "GET",
+            },
+            initCompleteCallback: () => {
+                datatableLoading = false;
+                resolve();
+            },
+            order: [[2, 'desc']],
+            columns: [
+                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
+                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+            ]
+        };
+        datatableColis = initDataTable($retardsTable.attr('id'), datatableColisConfig);
     });
 }
 
@@ -564,7 +557,8 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
         $counterCountainer.find('.location-label').text('(' + label + ')');
-    } else {
+    }
+    else {
         counter = data;
     }
     if (counter > 0 && needsRedColorIfPositiv) {

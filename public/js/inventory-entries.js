@@ -39,19 +39,17 @@ $(function () {
 
 let mission = $('#missionId').val();
 let pathEntry = Routing.generate('entries_api', { id: mission}, true);
-let tableEntries = $('#tableMissionEntries').DataTable({
+let tableEntriesConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax:{
         "url": pathEntry,
         "type": "POST"
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableMissionEntries_filter input'), tableEntries);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableMissionEntries_filter'
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence', 'name': 'reference' },
@@ -61,4 +59,5 @@ let tableEntries = $('#tableMissionEntries').DataTable({
         { "data": 'Operator', 'title' : 'Opérateur', 'name': 'operator' },
         { "data": 'Quantity', 'title' : 'Quantité' }
     ],
-});
+};
+let tableEntries = initDataTable('tableMissionEntries', tableEntriesConfig);

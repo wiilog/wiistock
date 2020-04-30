@@ -1,11 +1,7 @@
 let id = $('#collecte-id').val();
 
 let pathArticle = Routing.generate('ordre_collecte_article_api', {'id': id });
-
-let tableArticle = $('#tableArticle').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArticleConfig = {
     ajax: {
         'url': pathArticle,
         "type": "POST"
@@ -18,10 +14,11 @@ let tableArticle = $('#tableArticle').DataTable({
         { "data": 'Emplacement', 'title': 'Emplacement' },
         { "data": 'Quantité', 'title': 'Quantité' },
     ],
-    rowCallback: function(row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true,
     },
-});
+};
+let tableArticle = initDataTable('tableArticle', tableArticleConfig);
 
 let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
 let modalEditArticle = $("#modalEditArticle");

@@ -30,10 +30,6 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
-$.fn.dataTable.ext.errMode = () => {
-    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
-};
-
 /**
  * Initialise une fenêtre modale
  *
@@ -901,45 +897,6 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
     });
 }
 
-function toggleActiveButton($button, table) {
-    $button.toggleClass('active');
-    $button.toggleClass('not-active');
-
-    let value = $button.hasClass('active') ? 'true' : '';
-    table
-        .columns('Active:name')
-        .search(value)
-        .draw();
-}
-
-function initSearchDate(table) {
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = table.column('date:name').index();
-
-            if (typeof indexDate === "undefined") return true;
-
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin === "" && dateMax === "")
-                ||
-                (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-}
-
 function hideSpinner(div) {
     div.removeClass('d-flex');
     div.addClass('d-none');
@@ -1026,40 +983,6 @@ let addArrivalAssociation = function (span) {
     let $parent = $arrivalInput.parent();
     $arrivalInput.clone().appendTo($parent);
 };
-
-function overrideSearch($input, table, callback = null) {
-    $input.off();
-    $input.on('keyup', function (e) {
-        if (e.key === 'Enter') {
-            table.search(this.value).draw();
-            if (callback) {
-                callback($input);
-            }
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
-
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function () {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function () {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop("checked", true);
-                }
-            }
-        });
-    }
-}
 
 
 function redirectToDemandeLivraison(demandeId) {
@@ -1307,61 +1230,6 @@ function displayFiltersSup(data) {
 }
 
 /**
- * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
- */
-function renderMillisecondsToDelayDatatable(milliseconds, type) {
-    let res;
-
-    if (type === 'display') {
-        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
-        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
-        res = (
-                (hours > 0)
-                    ? `${hours < 10 ? '0' : ''}${hours} h `
-                    : '') +
-            ((minutes === 0 && hours < 1)
-                ? '< 1 min'
-                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
-    } else {
-        res = milliseconds;
-    }
-
-    return res;
-}
-
-function extendsDateSort(name) {
-    $.extend($.fn.dataTableExt.oSort, {
-        [name + "-pre"]: function (date) {
-            const dateSplitted = date.split(' ');
-            const dateDaysParts = dateSplitted[0].split('/');
-            const year = parseInt(dateDaysParts[2]);
-            const month = parseInt(dateDaysParts[1]);
-            const day = parseInt(dateDaysParts[0]);
-
-            const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
-            const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
-            const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
-            const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
-
-            const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
-            return madeDate.getTime();
-        },
-        [name + "-asc"]: function (a, b) {
-            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-        },
-        [name + "-desc"]: function (a, b) {
-            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-        }
-    });
-}
-
-function hideColumns(table, data) {
-    data.forEach(function (col) {
-        table.column(col + ':name').visible(false);
-    })
-}
-
-/**
  *
  * @param {string|undefined} title
  * @param $body jQuery object
@@ -1491,7 +1359,7 @@ function registerDropdownPosition() {
     const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
     const isThreeDotsInRow = ($target) => ($target.parents('.noVis').length > 0);
 
-    $(window).on('show.bs.dropdown', function(e) {
+    $(window).on('show.bs.dropdown', function (e) {
         const $target = $(e.target);
         dropdownMenu = $target.find('.dropdown-menu');
         let parentModal = $target.parents('.modal');
@@ -1513,7 +1381,7 @@ function registerDropdownPosition() {
         }
     });
 
-    $(window).on('hide.bs.dropdown', function(e) {
+    $(window).on('hide.bs.dropdown', function (e) {
         const $target = $(e.target);
         if (!hasMainHeaderParent($target)) {
             $target.append(dropdownMenu.detach());
@@ -1523,74 +1391,4 @@ function registerDropdownPosition() {
             dropdownMenu.removeClass('ml-3');
         }
     });
-}
-
-function initActionOnRow(row) {
-    if ($(row).find('.action-on-click').get(0)) {
-        $(row).addClass('pointer');
-        $(row).find('td:not(.noVis)').click(function () {
-            $(row).find('.action-on-click').get(0).click();
-        })
-    }
-}
-
-function initActionOnCell(cell) {
-    $(cell).click(function() {
-        $cell.parent('tr').find('.action-on-click').get(0).click();
-    });
-}
-
-
-function showOrHideColumn(check, concernedTable, concernedTableColumns) {
-
-    let columnName = check.data('name');
-
-    let column = concernedTable.column(columnName + ':name');
-
-    column.visible(!column.visible());
-
-    concernedTableColumns.find('th, td').removeClass('hide');
-    concernedTableColumns.find('th, td').addClass('display');
-    check.toggleClass('data');
-    initActionOnCell(column);
-}
-
-function manageArticleAndRefSearch($input, $printButton) {
-    if ($input.val() === '' && $('#filters').find('.filter').length <= 0) {
-        if ($printButton.is('button')) {
-            $printButton
-                .addClass('btn-disabled')
-                .removeClass('btn-primary');
-            managePrintButtonTooltip(true, $printButton.parent());
-        }
-        else {
-            $printButton
-                .removeClass('pointer')
-                .addClass('disabled')
-                .addClass('has-tooltip');
-            managePrintButtonTooltip(true, $printButton);
-        }
-
-        managePrintButtonTooltip(true, $printButton);
-    } else {
-
-        if ($printButton.is('button')) {
-            $printButton
-                .addClass('btn-primary')
-                .removeClass('btn-disabled');
-            managePrintButtonTooltip(false, $printButton.parent());
-        }
-        else {
-            $printButton
-                .removeClass('disabled')
-                .addClass('pointer')
-                .removeClass('has-tooltip');
-            managePrintButtonTooltip(false, $printButton);
-        }
-    }
-}
-
-function toggleInputRadioOnRow(tr) {
-    const $row = $(tr);
-    $row.find('input[type="checkbox"]').trigger('click');
 }

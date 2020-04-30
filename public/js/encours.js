@@ -62,13 +62,9 @@ function loadEncoursDatatable($table) {
     }
     else {
         let routeForApi = Routing.generate('en_cours_api', true);
-
-        $table.DataTable({
+        let tableConfig = {
             processing: true,
             responsive: true,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
             ajax: {
                 "url": routeForApi,
                 "type": "POST",
@@ -80,10 +76,15 @@ function loadEncoursDatatable($table) {
                 {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
                 {"data": 'late', 'name': 'late', 'title': 'late', 'visible': false, 'searchable': false},
             ],
-            rowCallback: function (row, data) {
-                $(row).addClass(data.late ? 'table-danger' : '');
+            rowConfig: {
+                needsDangerColor: true,
+                dataToCheck: 'late'
+            },
+            domConfig: {
+                removeInfo: true,
             },
             "order": [[2, "desc"]]
-        });
+        };
+        initDataTable(tableId, tableConfig);
     }
 }

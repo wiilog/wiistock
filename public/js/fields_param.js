@@ -1,9 +1,6 @@
 $(function () {
     $('.table').each(function () {
-        $(this).DataTable({
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
+        let config = {
             ajax: {
                 "url": Routing.generate('fields_param_api', {entityCode: $(this).parent().attr('id')}),
                 "type": "POST"
@@ -15,8 +12,8 @@ $(function () {
                 {"data": 'mustEdit', 'title': 'Obligatoire à la modification'},
                 {"data": 'fieldCode', 'title': 'Champ fixe'},
             ],
-            rowCallback: function (row, data) {
-                initActionOnRow(row);
+            rowConfig: {
+                needsRowClickAction: true,
             },
             order: [[4, "asc"]],
             info: false,
@@ -25,7 +22,8 @@ $(function () {
             columnDefs: [
                 {orderable: false, targets: 0}
             ]
-        });
+        };
+        initDataTable($(this).attr('id'), config);
     });
 });
 

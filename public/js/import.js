@@ -13,12 +13,9 @@ $(function () {
 });
 
 let pathImport = Routing.generate('import_api');
-let tableImport = $('#tableImport').DataTable({
+let tableImportConfig = {
     processing: true,
     serverSide: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathImport,
         "type": "POST"
@@ -35,16 +32,21 @@ let tableImport = $('#tableImport').DataTable({
         {"data": 'nbErrors', 'title': "Nombre d'erreurs"},
         {"data": 'user', 'title': 'Utilisateur'},
     ],
-    rowCallback: function (row, data) {
-        initActionOnRow(row);
+    rowConfig: {
+        needsRowClickAction: true
+    },
+    drawConfig: {
+        hasCallback: true,
+        callback: () => {
+            initTooltips($('.has-tooltip'));
+            initDoubleClick('.status-planifié');
+        },
+        needsSearchOverride: true,
+        filterId: 'tableImport_filter'
     },
     order: [[1, "desc"]],
-    drawCallback: function () {
-        overrideSearch($('#tableImport_filter input'), tableImport);
-        initTooltips($('.has-tooltip'));
-        initDoubleClick('.status-planifié');
-    }
-});
+};
+let tableImport = initDataTable('tableImport', tableImportConfig);
 
 let $modalNewImport = $("#modalNewImport");
 let $submitNewImport = $("#submitNewImport");
