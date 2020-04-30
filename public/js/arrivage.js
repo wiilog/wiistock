@@ -50,12 +50,6 @@ let tableArrivageConfig = {
         'data': {
             'clicked': () => clicked,
         },
-        'dataSrc': function (json) {
-            json.visible.forEach(element => {
-                tableArrivage.column(element).visible(true);
-            });
-            return json.data;
-        }
     },
     columns: [
         {"data": 'Actions', 'name': 'actions', 'title': ''},
@@ -101,7 +95,7 @@ let tableArrivageConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        needsColumnHide: true,
+        needsColumnShow: true,
         filterId: 'tableArrivages_filter'
     },
     buttons: [
@@ -129,6 +123,10 @@ function listColis(elem) {
         modal.find('.modal-body').html(data);
     }, 'json');
 }
+
+tableArrivage.on('responsive-resize', function (e, datatable) {
+    datatable.columns.adjust().responsive.recalc();
+});
 
 let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");

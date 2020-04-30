@@ -45,32 +45,26 @@ function initDatatableLitiges() {
         ajax: {
             "url": pathLitiges,
             "type": "POST",
-            'dataSrc': function (json) {
-                json.columnHidden.forEach(element => {
-                    tableLitiges.column(element).visible(false);
-                });
-                return json.data;
-            }
         },
         drawConfig: {
             needsSearchOverride: true,
             filterId: 'tableLitiges_filter',
-            needsColumnHide: true
+            needsColumnShow: true
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', 'orderable': false, className: 'noVis'},
-            {"data": 'type', 'name': 'Type', 'title': 'Type'},
-            {"data": "arrivalNumber", 'name': "N°_d'arrivage", 'title': $('#transNoArrivage').val()},
-            {"data": 'receptionNumber', 'name': "N°_de_réception", 'title': $('#transNoReception').val()},
-            {"data": 'buyers', 'name': 'Acheteur', 'title': 'Acheteur'},
-            {"data": 'numCommandeBl', 'name': 'N°_commande_/_BL', 'title': 'N° commande / BL'},
-            {"data": 'command', 'name': 'N°_ligne', 'title': 'N° ligne', 'orderable': false},
-            {"data": 'provider', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-            {"data": 'references', 'name': 'Référence', 'title': 'Référence', 'orderable': false},
-            {"data": 'lastHistoric', 'name': 'Dernier_historique', 'title': 'Dernier historique', 'orderable': false},
-            {"data": 'creationDate', 'name': 'Créé_le', 'title': 'Créé le'},
-            {"data": 'updateDate', 'name': 'Modifié_le', 'title': 'Modifié le'},
-            {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
+            {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
+            {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
+            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
+            {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
+            {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
+            {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
+            {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
+            {"data": 'references', 'name': 'references', 'title': 'Référence', 'orderable': false},
+            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique', 'orderable': false},
+            {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
+            {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
+            {"data": 'status', 'name': 'status', 'title': 'Statut'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
         headerCallback: function (thead) {

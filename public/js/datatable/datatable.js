@@ -8,6 +8,13 @@ function hideColumns(table, data) {
     })
 }
 
+function showColumns(table, data) {
+    table.columns().visible(false);
+    data.forEach(function (col) {
+        table.columns(col + ':name').visible(true);
+    })
+}
+
 /**
  * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
  */
@@ -78,7 +85,6 @@ function showOrHideColumn(check, concernedTable, concernedTableColumns) {
     let columnName = check.data('name');
 
     let column = concernedTable.column(columnName + ':name');
-
     column.visible(!column.visible());
 
     concernedTableColumns.find('th, td').removeClass('hide');
@@ -168,10 +174,11 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function getAppropriateDrawCallback({response, needsSearchOverride, needsColumnHide, needsResize, needsEmplacementSearchOverride, hasCallback, callback, table, filterId}) {
+function getAppropriateDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, hasCallback, callback, table, filterId}) {
     let $searchInput = $('#' + filterId + ' input');
     if (needsSearchOverride) overrideSearch($searchInput, table);
     if (needsColumnHide) hideColumns(table, response.json.columnsToHide);
+    if (needsColumnShow) showColumns(table, response.json.visible);
     if (needsResize) resizeTable(table);
     if (needsEmplacementSearchOverride) overrideSearchSpecifEmplacement(filterId);
     if (hasCallback) callback();

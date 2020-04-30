@@ -1594,6 +1594,7 @@ class ArrivageController extends AbstractController
             $champs = array_keys($data);
             $user = $this->getUser();
             /** @var $user Utilisateur */
+            $champs[] = "actions";
             $user->setColumnsVisibleForArrivage($champs);
             $entityManager->flush();
 
