@@ -128,9 +128,8 @@ class LitigeController extends AbstractController
 
         $user = $this->getUser();
         $fieldsInTab = [
-            ["key" => 'actions', 'label' => 'Actions'],
             ["key" => 'type', 'label' => 'Type'],
-            ["key" => 'arrivalNumber', 'label' => $this->translator->trans("arrivage.n° d''arrivage")],
+            ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
             ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
             ["key" => 'buyers', 'label' => 'Acheteur'],
             ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],

@@ -40,6 +40,7 @@ use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\StatutService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;
@@ -56,6 +57,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -168,11 +170,13 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @param StatutService $statutService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
+                          TranslatorInterface $translator,
                           StatutService $statutService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -190,22 +194,21 @@ class ArrivageController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $user = $this->getUser();
         $champs = [
-            ["key" => 'actions', 'label' => 'Actions'],
-            ["key" => 'date', 'label' => 'date'],
-            ["key" => 'numeroArrivage', 'label' => 'numeroArrivage'],
-            ["key" => 'transporteur', 'label' => 'transporteur'],
-            ["key" => 'chauffeur', 'label' => 'chauffeur'],
-            ["key" => 'noTracking', 'label' => 'noTracking'],
-            ["key" => 'NumeroCommandeList', 'label' => 'NumeroCommandeList'],
-            ["key" => 'fournisseur', 'label' => 'fournisseur'],
-            ["key" => 'destinataire', 'label' => 'destinataire'],
-            ["key" => 'acheteurs', 'label' => 'acheteurs'],
-            ["key" => 'NbUM', 'label' => 'NbUM'],
-            ["key" => 'duty', 'label' => 'duty'],
-            ["key" => 'frozen', 'label' => 'frozen'],
+            ["key" => 'date', 'label' => 'Date'],
+            ["key" => 'numeroArrivage', 'label' => $translator->trans('arrivage.n° d\'arrivage')],
+            ["key" => 'transporteur', 'label' => 'Transporteur'],
+            ["key" => 'chauffeur', 'label' => 'Chauffeur'],
+            ["key" => 'noTracking', 'label' => 'N° tracking transporteur'],
+            ["key" => 'NumeroCommandeList', 'label' => 'N° commande / BL'],
+            ["key" => 'fournisseur', 'label' => 'Fournisseur'],
+            ["key" => 'destinataire', 'label' => $translator->trans('arrivage.destinataire')],
+            ["key" => 'acheteurs', 'label' => $translator->trans('arrivage.acheteurs')],
+            ["key" => 'NbUM', 'label' => 'Nb UM'],
+            ["key" => 'duty', 'label' => 'Douane'],
+            ["key" => 'frozen', 'label' => 'Congelé'],
             ["key" => 'Statut', 'label' => 'Statut'],
             ["key" => 'Utilisateur', 'label' => 'Utilisateur'],
-            ["key" => 'urgent', 'label' => 'urgent'],
+            ["key" => 'urgent', 'label' => 'Urgent'],
         ];
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
@@ -1590,11 +1593,6 @@ class ArrivageController extends AbstractController
 
             $champs = array_keys($data);
             $user = $this->getUser();
-            // idée nul il faut que je valide l'affiche ou non de actions automatiquement en amont dans le jquery
-            // si j'ai une checkbox au moins de cochée affiché actions sinon ne pas l'afficher
-//            if ((!empty($champs) and !in_array( "actions", $champs))) {
-//                array_unshift($champs, "actions");
-//            }
             /** @var $user Utilisateur */
             $user->setColumnsVisibleForArrivage($champs);
             $entityManager->flush();

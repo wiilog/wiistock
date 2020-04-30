@@ -24,8 +24,7 @@ final class Version20200426153530 extends AbstractMigration
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE utilisateur ADD columns_visible_for_litige JSON DEFAULT NULL COMMENT \'(DC2Type:json_array)\'');
-
-        $this->addSql("UPDATE `utilisateur` SET `columns_visible_for_litige` = '[]'");
+        $this->addSql('ALTER TABLE utilisateur ADD columns_visible_for_arrivage JSON DEFAULT NULL COMMENT \'(DC2Type:json_array)\'');
 
         $columns = [
             "actions",
@@ -42,7 +41,29 @@ final class Version20200426153530 extends AbstractMigration
             "updateDate",
             "status"
         ];
+        $columnDefaultForLitige = json_encode($columns);
+        $this->addSql("UPDATE `utilisateur` SET `columns_visible_for_litige` = '$columnDefaultForLitige'");
 
+        $champs = [
+            'actions',
+            'date',
+            'numeroArrivage',
+            'transporteur',
+            'chauffeur',
+            'noTracking',
+            'NumeroCommandeList',
+            'fournisseur',
+            'destinataire',
+            'acheteurs',
+            'NbUM',
+            'duty',
+            'frozen',
+            'Statut',
+            'Utilisateur',
+            'urgent',
+        ];
+        $encodedColumnVisibleArrivage = json_encode($champs);
+        $this->addSql("UPDATE utilisateur SET columns_visible_for_arrivage = '$encodedColumnVisibleArrivage'");
         $oldData = $this->connection
             ->executeQuery('SELECT user_id, value FROM column_hidden')
             ->fetchAll();
