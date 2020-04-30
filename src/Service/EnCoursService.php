@@ -144,7 +144,7 @@ class EnCoursService
      * @param bool $onlyLate
      * @param int $limit
      * @return array
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws Exception
      */
     public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limit = null): array {
         $success = true;

@@ -164,72 +164,62 @@ function fillPackagingCard(cardId, data) {
 }
 
 function loadArrivalDashboard(preferCache) {
-    return new Promise(function (resolve) {
-        drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCache).then((chart) => {
-            chartArrivalUm = chart;
-            drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCache).then((chart) => {
-                chartAssoRecep = chart;
-                drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCache).then((chart) => {
-                    chartMonetaryFiability = chart;
-                    if (!preferCache) {
-                        loadRetards().then(() => {
-                            resolve();
-                        });
-                    } else {
-                        resolve();
-                    }
-                });
-            });
+    return Promise
+        .all([
+            drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCache),
+            drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCache),
+            drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCache),
+            ...(!preferCache ? [loadRetards()]: [])
+        ])
+        .then(([chartArrivalUmLocal, chartAssoRecepLocal, chartMonetaryFiabilityLocal]) => {
+            chartArrivalUm = chartArrivalUmLocal;
+            chartAssoRecep = chartAssoRecepLocal;
+            chartMonetaryFiability = chartMonetaryFiabilityLocal;
         });
-    });
 }
 
 function loadDockDashboard(preferCache) {
-    return new Promise(function (resolve) {
-        drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCache).then((chart) => {
-            chartDailyArrival = chart;
-            drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCache).then((chart) => {
-                chartWeeklyArrival = chart;
-                drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCache).then((chart) => {
-                    chartColis = chart;
-                    if (!preferCache) {
-                        refreshIndicatorsReceptionDock().then(() => {
-                            updateCarriers().then(() => {
-                                resolve();
-                            });
-                        });
-                    } else {
-                        resolve();
-                    }
-                });
-            });
+    return Promise
+        .all([
+            drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCache),
+            drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCache),
+            drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCache),
+            ...(
+                !preferCache
+                    ? [
+                        refreshIndicatorsReceptionDock(),
+                        updateCarriers()
+                    ]
+                    : []
+            )
+        ])
+        .then(([chartDailyArrivalLocal, chartWeeklyArrivalLocal, chartColisLocal]) => {
+            chartDailyArrival = chartDailyArrivalLocal;
+            chartWeeklyArrival = chartWeeklyArrivalLocal;
+            chartColis = chartColisLocal;
         });
-    });
 }
 
 function loadAdminDashboard(preferCache) {
-    return new Promise(function (resolve) {
-        drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache).then((chart) => {
-            chartFirstForAdmin = chart;
-            drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache).then((chart) => {
-                chartSecondForAdmin = chart;
-                if (!preferCache) {
-                    refreshIndicatorsReceptionAdmin().then(() => {
-                        resolve();
-                    });
-                } else {
-                    resolve();
-                }
-            });
+    return Promise
+        .all([
+            drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache),
+            drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache),
+            ...(!preferCache ? [refreshIndicatorsReceptionAdmin()]: [])
+        ])
+        .then(([chartFirstForAdminLocal, chartSecondForAdminLocal]) => {
+            chartFirstForAdmin = chartFirstForAdminLocal;
+            chartSecondForAdmin = chartSecondForAdminLocal;
         });
-    });
 }
 
 
 function reloadData() {
     loadProperData();
     let now = new Date();
-    $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
+    const date = ('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
+    const hour =  now.getHours() + ':' + now.getMinutes();
+    $('.refreshDate').text(`${date} à ${hour}`);
 }
 
 function resizeCharts() {
