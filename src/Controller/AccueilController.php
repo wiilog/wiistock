@@ -492,8 +492,6 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
         $response = $dashboardService->getDataForReceptionAdminDashboard();
@@ -509,8 +507,6 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
         $response = $dashboardService->getDataForMonitoringPackagingDashboard();
@@ -526,8 +522,6 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getIndicatorsDockReception(DashboardService $dashboardService): Response
     {

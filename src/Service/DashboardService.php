@@ -16,10 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 
 
@@ -165,12 +162,14 @@ class DashboardService
 
     /**
      * @return array
+     * @throws Exception
      */
     public function getDataForMonitoringPackagingDashboard()
     {
         $defaultDelay = '24:00';
         $urgenceDelay = '2:00';
-        return $this->getLocationCounters([
+
+        $counters = $this->getLocationCounters([
             'packaging1' => [ParametrageGlobal::DASHBOARD_PACKAGING_1, $defaultDelay],
             'packaging2' => [ParametrageGlobal::DASHBOARD_PACKAGING_2, $defaultDelay],
             'packaging3' => [ParametrageGlobal::DASHBOARD_PACKAGING_3, $defaultDelay],
@@ -183,6 +182,25 @@ class DashboardService
             'packagingLitige' => [ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE, $defaultDelay],
             'packagingUrgence' => [ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE, $urgenceDelay]
         ]);
+
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $locationDropIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DSQR);
+        $locationOriginIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT);
+        $locationTargetIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT);
+
+        $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
+                                                      use ($mouvementTracaRepository, $locationDropIds, $locationOriginIds, $locationTargetIds) {
+            return [
+                'drops' => $mouvementTracaRepository->countDropsOnLocations($locationDropIds, $dateMin, $dateMax),
+                'taking' => $mouvementTracaRepository->countMovementsFromInto($locationOriginIds, $locationTargetIds, $dateMin, $dateMax)
+            ];
+        });
+
+        return [
+            'counters' => $counters,
+            'chartData' => $chartData
+        ];
     }
 
     /**
@@ -375,8 +393,6 @@ class DashboardService
 
     /**
      * @return array
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function getDailyArrivalCarriers(): array
     {

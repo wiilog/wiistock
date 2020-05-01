@@ -71,6 +71,11 @@ class MouvementTracaRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
+    /**
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function countAll()
     {
         $em = $this->getEntityManager();
@@ -165,8 +170,7 @@ class MouvementTracaRepository extends EntityRepository
             'date' => $date,
         ]);
 
-        $result = $query->execute();
-        return $result;
+        return $query->execute();
     }
 
     public function getColisById(array $ids)
@@ -271,8 +275,6 @@ class MouvementTracaRepository extends EntityRepository
      */
     public function getFirstIdForPacksOnLocations(array $locations, array $onDateBracket = []): array
     {
-        $connection = $this->getEntityManager()->getConnection();
-
         if (!empty($locations)) {
             $locationIds = $this->getIdsFromLocations($locations);
             $queryColisOnLocations = $this->createSQLQueryPacksOnLocation($locationIds, 'colis', $onDateBracket);
@@ -292,6 +294,7 @@ class MouvementTracaRepository extends EntityRepository
                   GROUP BY unique_packs.colis
             ";
 
+            $connection = $this->getEntityManager()->getConnection();
             $queryResult = $connection
                 ->executeQuery($sqlQuery, [])
                 ->fetchAll(FetchMode::COLUMN);
@@ -570,6 +573,12 @@ class MouvementTracaRepository extends EntityRepository
             ->execute();
     }
 
+    /**
+     * @param $emplacementId
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function countByEmplacement($emplacementId)
     {
         $em = $this->getEntityManager();
@@ -581,6 +590,106 @@ class MouvementTracaRepository extends EntityRepository
             WHERE e.id = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);
         return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param array $locationIds
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countDropsOnLocations(array $locationIds, DateTime $dateMin, DateTime $dateMax): int {
+        if (!empty($locationIds)) {
+            $queryBuilder = $this->createQueryBuilder('mouvementTraca')
+                ->select('COUNT(mouvementTraca)')
+                ->join('mouvementTraca.emplacement', 'location')
+                ->join('mouvementTraca.type', 'type')
+                ->where('location.id IN (:locationIds)')
+                ->andWhere('mouvementTraca.datetime >= :dateMin')
+                ->andWhere('mouvementTraca.datetime <= :dateMax')
+                ->andWhere('type.nom = :deposeNom')
+                ->setParameter('deposeNom', MouvementTraca::TYPE_DEPOSE)
+                ->setParameter('locationIds', $locationIds, Connection::PARAM_STR_ARRAY)
+                ->setParameter('dateMin', $dateMin)
+                ->setParameter('dateMax', $dateMax);
+            $count = $queryBuilder
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            $count = 0;
+        }
+
+        return $count;
+    }
+
+    /**
+     * @param array $fromIds
+     * @param array $intoIds
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return int
+     * @throws DBALException
+     */
+    public function countMovementsFromInto(array $fromIds,
+                                           array $intoIds,
+                                           DateTime $dateMin,
+                                           DateTime $dateMax): int {
+        if (!empty($fromIds) && !empty($intoIds)) {
+            $fromIdsStr = implode(',', $fromIds);
+            $intoIdsStr = implode(',', $intoIds);
+            $dateMinStr = $dateMin->format('Y-m-d H:i:s');
+            $dateMaxStr = $dateMax->format('Y-m-d H:i:s');
+            $takingType = MouvementTraca::TYPE_PRISE;
+            $dropType = MouvementTraca::TYPE_DEPOSE;
+
+            $sqlQuery = "
+                SELECT COUNT(*)
+                FROM (
+                    -- Select prise sur les emplacements données, aux dates données
+                    SELECT mouvement_traca.id,
+                           mouvement_traca.colis,
+                           mouvement_traca.datetime
+                    FROM mouvement_traca
+                    INNER JOIN statut AS type ON mouvement_traca.type_id = type.id
+                    WHERE (
+                        mouvement_traca.emplacement_id IN (${fromIdsStr})
+                        AND mouvement_traca.datetime >= '${dateMinStr}'
+                        AND mouvement_traca.datetime <= '${dateMaxStr}'
+                        AND type.nom = '${takingType}'
+                    )
+                ) AS location_taking
+                INNER JOIN (
+                    -- Select de la dépose effectué apres la prise
+                    SELECT mouvement_traca.id,
+                           mouvement_traca.colis,
+                           mouvement_traca.datetime,
+                           mouvement_traca.emplacement_id
+                    FROM mouvement_traca
+                    INNER JOIN statut AS type ON mouvement_traca.type_id = type.id
+                    WHERE (
+                        type.nom = '${dropType}'
+                        AND mouvement_traca.colis = location_taking.colis
+                        AND mouvement_traca.datetime > location_taking.datetime
+                    )
+                    ORDER BY mouvement_traca.datetime
+                    LIMIT 1
+                -- on prend que les prises qui ont une dépose direct, sur le groupement d'emplacement demandé
+                ) AS location_drop ON location_drop.colis = location_taking.colis
+                                  AND location_drop.emplacement_id IN (${intoIdsStr})
+            ";
+            $connection = $this->getEntityManager()->getConnection();
+            $count = $connection
+                ->executeQuery($sqlQuery, [])
+                ->fetchAll(FetchMode::COLUMN);
+        }
+        else {
+            $count = 0;
+        }
+
+        return $count;
     }
 
     /**

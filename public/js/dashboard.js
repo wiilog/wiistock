@@ -129,12 +129,12 @@ function resizeDatatable() {
 
 function loadPackagingData() {
     return new Promise(function (resolve) {
-        let total = 0;
         let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
-        $.get(pathForPackagingData, function (response) {
-            Object.keys(response).forEach((key) => {
-                total += fillPackagingCard(key, response[key]);
-            });
+        $.get(pathForPackagingData, function ({counters}) {
+            const total = Object
+                .keys(counters)
+                .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0)
+
             $('#packagingTotal').find('.dashboard-stats-counter').html(total);
             resolve();
         });
