@@ -421,7 +421,7 @@ class ArrivageDataService
                 'isRaw' => true,
                 'colClass' => 'col-sm-6 col-12',
                 'isScrollable' => true,
-                'isNeededNotEmpty' => true,
+                'isNeededNotEmpty' => true
             ]]
                 : [],
             $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
@@ -429,7 +429,7 @@ class ArrivageDataService
                     'label' => 'Pièces jointes',
                     'value' => $attachments->toArray(),
                     'isAttachments' => true,
-                    'isNeededNotEmpty' => true,
+                    'isNeededNotEmpty' => true
                 ]]
                 : []
         );

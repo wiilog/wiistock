@@ -7,40 +7,47 @@
             {% set isAttachments = (datum.isAttachments is defined and datum.isAttachments) %}
             {% set bgLight = (datum.bgLight is defined and datum.bgLight) %}
             {% set labelTitle = (datum.title is defined and datum.title is not empty) ? ('title="' ~ datum.title ~ '"') %}
-            {% set neededDisplay =
-                (datum.isNeededNotEmpty is defined
-                and datum.isNeededNotEmpty
-                and (datum.value is not empty and datum.value != '<p><br></p>'))
-                or datum.isNeededNotEmpty is not defined or not datum.isNeededNotEmpty %}
+            {% set neededDisplay = (
+                (datum.isNeededNotEmpty is not defined)
+                or (not datum.isNeededNotEmpty)
+                or (
+                    (datum.value is not empty)
+                    and (datum.value is not null)
+                    and (datum.value != '<p><br></p>')
+                )
+            ) %}
             {% if neededDisplay %}
-            <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-3 col-md-4 col-sm-6 col-12' }} mt-3">
-                <div class="row">
-                    <div class="col-12 text-wii-grey" {{ labelTitle }}>{{ datum.label }}</div>
-                    <div class="col-12 text-wii-black">
-                        {% if isAttachments %}
-                            <div class="scrollable-details bg-light">
-                                {% for attachment in datum.value %}
-                                    <a href="/uploads/attachements/{{ attachment.filename }}"
-                                       target="_blank">
-                                        <i class="fas fa-file"></i> {{ attachment.originalName }}
-                                    </a>
-                                    {% if not loop.last %}
-                                        <br/>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        {% elseif isScrollable %}
-
-                            <div class="scrollable-details bg-light">
-                                {{ isRaw ? datum.value|raw : datum.value }}
-                            </div>
-
-                        {% else %}
-                            {{ isRaw ? datum.value|raw : datum.value }}
-                        {% endif %}
+                <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-3 col-md-4 col-sm-6 col-12' }} mt-3">
+                    <div class="row">
+                        <div class="col-12 text-wii-grey" {{ labelTitle }}>{{ datum.label }}</div>
+                        <div class="col-12 text-wii-black">
+                            {% if isAttachments %}
+                                <div class="scrollable-details bg-light">
+                                    {% for attachment in datum.value %}
+                                        <a href="/uploads/attachements/{{ attachment.filename }}"
+                                           target="_blank">
+                                            <i class="fas fa-file"></i> {{ attachment.originalName }}
+                                        </a>
+                                        {% if not loop.last %}
+                                            <br/>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% elseif isScrollable %}
+                                <div class="scrollable-details bg-light">
+                                    {{ isRaw ? datum.value|raw : datum.value }}
+                                </div>
+                            {% else %}
+                                {% set valueToPrint = (isRaw ? datum.value|raw : datum.value) %}
+                                {% if valueToPrint is not empty %}
+                                    {{ valueToPrint }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
             {% endif %}
         {% endfor %}
     </div>

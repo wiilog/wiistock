@@ -489,8 +489,7 @@ class ImportService
                     ],
                     'commentaire' => [
                         'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_REF),
-                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null,
-                        'isNeededNotEmpty' => true,
+                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null
                     ],
                     'emergencyComment' => [
                         'needed' => $this->fieldIsNeeded('emergencyComment', Import::ENTITY_REF),

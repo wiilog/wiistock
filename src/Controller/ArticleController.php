@@ -172,8 +172,7 @@ class ArticleController extends AbstractController
         $champF[] = [
             'label' => 'Commentaire',
             'id' => 0,
-            'typage' => 'text',
-            'isNeededNotEmpty' => true,
+            'typage' => 'text'
         ];
         $champF[] = [
             'label' => 'Prix unitaire',

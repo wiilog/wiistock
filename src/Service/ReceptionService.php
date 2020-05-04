@@ -185,7 +185,7 @@ class ReceptionService
                     'isRaw' => true,
                     'colClass' => 'col-sm-6 col-12',
                     'isScrollable' => true,
-                    'isNeededNotEmpty' => true,
+                    'isNeededNotEmpty' => true
                 ]]
                 : []
         );
