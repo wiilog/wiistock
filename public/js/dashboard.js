@@ -14,19 +14,30 @@ let chartTreatedPacks;
 let currentChartsFontSize;
 const dashboardChartsData = {};
 
+const DASHBOARD_ARRIVAL_NAME = 'arrivage';
+const DASHBOARD_DOCK_NAME = 'quai';
+const DASHBOARD_ADMIN_NAME = 'admin';
+const DASHBOARD_PACKAGING_NAME = 'emballage';
+const DEFAULT_DASHBOARD = DASHBOARD_ARRIVAL_NAME;
+
+
+
 $(function () {
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
-    currentDashboard = window.location.href.includes('admin')
-        ? 'adminDashboard'
-        : window.location.href.includes('quai')
-            ? 'dockDashboard'
-            : window.location.href.includes('emballage')
-                ? 'packagingDashboard'
-                : 'arrivalDashboard';
+
+    if (!isDashboardExt()) {
+        const knownHash = ([DASHBOARD_ARRIVAL_NAME, DASHBOARD_DOCK_NAME, DASHBOARD_ADMIN_NAME, DASHBOARD_PACKAGING_NAME].indexOf(getUrlHash()) > -1);
+        if (!knownHash) {
+            window.location.hash = DEFAULT_DASHBOARD;
+        }
+
+        setActiveDashboard(getUrlHash());
+    }
+
     hideCarouselTargetOverlay();
     loadProperData();
 
@@ -45,7 +56,7 @@ $(function () {
 
     $(document).on('keydown', function (e) {
         if (!$('.carousel-indicators').hasClass('d-none')) {
-            let activeBtn = $('#carouselIndicators').find('[data-slide-to].active');
+            let activeBtn = $('#carousel-dashboard').find('[data-slide-to].active');
             if (e.which === 37) {
                 activeBtn.prev('li').click()
             } else if (e.which === 39) {
@@ -63,24 +74,25 @@ $(function () {
     });
 
     refreshPageTitle();
-    const $carouselIndicators = $('#carouselIndicators');
-    $carouselIndicators.on('slide.bs.carousel', (event) => {
-        let $newlyActivScreen = $(event.relatedTarget);
-        currentDashboard = $newlyActivScreen.attr('id');
-        hideCarouselTargetOverlay();
+    const $carouselDashboard = $('#carousel-dashboard');
+    // slide during
+    $carouselDashboard.on('slide.bs.carousel', (event) => {
+        hideCarouselTargetOverlay($(event.relatedTarget));
         showSpinner();
     });
-    $carouselIndicators.on('slid.bs.carousel', () => {
+
+    // slide end
+    $carouselDashboard.on('slid.bs.carousel', () => {
+        window.location.hash = $('#carousel-dashboard .carousel-item.active').data('name');
         loadProperData();
         refreshPageTitle();
     });
 });
 
-function hideCarouselTargetOverlay() {
-    let $carouselIndicators = $('.carousel-indicators');
-    let $carouselContainer = $('#' + currentDashboard);
+function hideCarouselTargetOverlay($currentCarouselItem = $('.carousel-item')) {
+    const $carouselIndicators = $('.carousel-indicators');
     $carouselIndicators.addClass('d-none');
-    $carouselContainer.addClass('d-none');
+    $currentCarouselItem.addClass('d-none');
 }
 
 function showSpinner() {
@@ -90,33 +102,35 @@ function showSpinner() {
 
 function showCarouselOverlayAndHideSpinner() {
     let $spinner = $('.spinner-grow');
+    let $carouselContainer = $('.carousel-item');
     let $carouselIndicators = $('.carousel-indicators');
-    let $carouselContainer = $('#' + currentDashboard);
     $spinner.addClass('d-none');
     $carouselIndicators.removeClass('d-none');
     $carouselContainer.removeClass('d-none');
 }
 
 function loadProperData(preferCache = false) {
-    console.log(currentDashboard)
-    switch (currentDashboard) {
-        case 'arrivalDashboard':
+    const displayedDashboard = isDashboardExt()
+        ? $('#dashboard-name').val()
+        : $('.carousel-item.active').data('name');
+    switch (displayedDashboard) {
+        case DASHBOARD_ARRIVAL_NAME:
             loadArrivalDashboard(preferCache).then(() => {
                 showCarouselOverlayAndHideSpinner();
                 resizeDatatable();
             });
             break;
-        case 'dockDashboard':
+        case DASHBOARD_DOCK_NAME:
             loadDockDashboard(preferCache).then(() => {
                 showCarouselOverlayAndHideSpinner();
             });
             break;
-        case 'adminDashboard':
+        case DASHBOARD_ADMIN_NAME:
             loadAdminDashboard(preferCache).then(() => {
                 showCarouselOverlayAndHideSpinner();
             });
             break;
-        case 'packagingDashboard':
+        case DASHBOARD_PACKAGING_NAME:
             loadPackagingData().then(() => {
                 showCarouselOverlayAndHideSpinner();
             });
@@ -187,6 +201,7 @@ function fillPackagingCard(cardId, data) {
 }
 
 function loadArrivalDashboard(preferCache) {
+    console.log(preferCache)
     return Promise
         .all([
             drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCache),
@@ -518,33 +533,42 @@ function loadRetards() {
     return new Promise(function (resolve) {
         const $retardsTable = $('.retards-table');
         if (datatableColis) {
-            datatableColis.destroy();
-        }
-        let datatableColisConfig = {
-            responsive: true,
-            domConfig: {
-                needsMinimalDomOverride: true
-            },
-            paging: false,
-            scrollCollapse: true,
-            scrollY: '22vh',
-            processing: true,
-            ajax: {
-                "url": Routing.generate('api_retard', true),
-                "type": "GET",
-            },
-            initCompleteCallback: () => {
+            datatableColis.ajax.reload(() => {
                 resolve();
-            },
-            order: [[2, 'desc']],
-            columns: [
-                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
-                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
-            ]
-        };
-        datatableColis = initDataTable($retardsTable.attr('id'), datatableColisConfig);
+            });
+        }
+        else {
+            let datatableColisConfig = {
+                responsive: true,
+                domConfig: {
+                    needsMinimalDomOverride: true
+                },
+                paging: false,
+                scrollCollapse: true,
+                scrollY: '22vh',
+                processing: true,
+                ajax: {
+                    "url": Routing.generate('api_retard', true),
+                    "type": "GET",
+                },
+                initCompleteCallback: () => {
+                    resolve();
+                },
+                order: [[2, 'desc']],
+                columns: [
+                    {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                    {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+                    {
+                        "data": 'delay',
+                        'name': 'delay',
+                        'title': 'Délai',
+                        render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)
+                    },
+                    {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+                ]
+            };
+            datatableColis = initDataTable($retardsTable.attr('id'), datatableColisConfig);
+        }
     });
 }
 
@@ -678,8 +702,8 @@ function isDashboardExt() {
 }
 
 function refreshPageTitle() {
-    const $carouselIndicators = $('#carouselIndicators');
-    const $activeCarousel = $carouselIndicators.find('.carousel-item.active').first();
+    const $carouselDashboard = $('#carousel-dashboard');
+    const $activeCarousel = $carouselDashboard.find('.carousel-item.active').first();
     const $pageTitle = $activeCarousel.length > 0
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
@@ -705,4 +729,16 @@ function refreshPageTitle() {
 function calculateChartsFontSize() {
     let width = document.body.clientWidth;
     return Math.floor(width / 120);
+}
+
+function setActiveDashboard(hash) {
+    $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`).addClass('active');
+    $(`#carousel-dashboard .carousel-item[data-name="${hash}"]`).addClass('active');
+}
+
+function getUrlHash() {
+    const hash = (window.location.hash || '');
+    return hash.charAt(0) === '#'
+        ? hash.slice(1)
+        : hash;
 }

@@ -4,6 +4,7 @@
 <div class="wrapper pl-0 bg-primary-followgt">
     <div class="dashboard-ext">
         <input type="hidden" id="isDashboardExt" value="1"/>
+        <input type="hidden" id="dashboard-name" value="{{ page }}"/>
         <div class="header-container header-ext">
             {% include 'header.html.twig' with { 'isDashboardExt': 1 } %}
         </div>
