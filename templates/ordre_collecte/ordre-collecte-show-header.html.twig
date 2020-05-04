@@ -9,7 +9,6 @@
         {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
 
         {% if hasRightFinish %}
-            <div hidden data-toggle="modal" data-target="#modalFinishCollecte" id="btnModalFinishCollecte"></div>
             <div class="btn btn-primary btn-ripple {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
                     {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
                         onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"

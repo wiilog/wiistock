@@ -58,7 +58,7 @@ function checkIfRowSelected(success) {
 }
 
 function openLocationModal() {
-    $('#btnModalFinishCollecte').trigger('click');
+    $('#modalFinishCollecte').modal('show');
 }
 
 function finishCollecte(withoutLocation = false) {
