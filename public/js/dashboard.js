@@ -78,6 +78,7 @@ $(function () {
         if(newFontSize !== currentChartsFontSize) {
             currentChartsFontSize = newFontSize;
             updateCharts(true);
+            reloadDashboards(true);
         }
     });
 
@@ -559,5 +560,5 @@ function refreshPageTitle() {
 
 function calculateChartsFontSize() {
     let width = document.body.clientWidth;
-    return Math.floor(width / 100);
+    return Math.floor(width / 120);
 }
