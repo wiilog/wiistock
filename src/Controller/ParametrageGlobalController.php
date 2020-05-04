@@ -402,8 +402,8 @@ class ParametrageGlobalController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $mailerServer = $mailerServerRepository->findOneMailerServer();
             if (!$mailerServer) {
-                $mailerServerNew = new MailerServer;
-                $em->persist($mailerServerNew);
+                $mailerServer = new MailerServer();
+                $em->persist($mailerServer);
             }
 
             $mailerServer
