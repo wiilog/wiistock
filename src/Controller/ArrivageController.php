@@ -288,8 +288,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-                ->setDuty($data['duty'] == 'true')
-                ->setFrozen($data['frozen'] == 'true')
+                ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
+                ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null);
 
             if (!empty($data['fournisseur'])) {
