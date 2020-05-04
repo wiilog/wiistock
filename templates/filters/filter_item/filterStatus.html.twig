@@ -8,7 +8,7 @@
                     {% else %}
                         {% set selected = '' %}
                     {% endif %}
-                    <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+                    <option class="d-none" value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>
