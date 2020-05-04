@@ -12,23 +12,23 @@
         </div>
         <div id="carouselIndicators" class="carousel slide">
             <ol class="carousel-indicators d-none">
-                <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselIndicators" data-slide-to="0"></li>
                 <li data-target="#carouselIndicators" data-slide-to="1"></li>
                 <li data-target="#carouselIndicators" data-slide-to="2"></li>
-                <li data-target="#carouselIndicators" data-slide-to="3"></li>
+                <li data-target="#carouselIndicators" data-slide-to="3" class="active"></li>
             </ol>
 
             <div class="carousel-inner h-100">
-                <div class="carousel-item active d-none" id="arrivalDashboard">
+                <div class="carousel-item d-none" id="arrivalDashboard">
                     {% include 'accueil/dashboardArrival.html.twig' %}
                 </div>
-                <div class="carousel-item" id="dockDashboard">
+                <div class="carousel-item d-none" id="dockDashboard">
                     {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
                 </div>
-                <div class="carousel-item" id="adminDashboard">
+                <div class="carousel-item d-none" id="adminDashboard">
                     {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
                 </div>
-                <div class="carousel-item" id="packagingDashboard">
+                <div class="carousel-item active d-none" id="packagingDashboard">
                     {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
                 </div>
             </div>

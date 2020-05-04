@@ -9,6 +9,8 @@ let chartColis;
 let chartMonetaryFiability;
 let chartFirstForAdmin;
 let chartSecondForAdmin;
+let chartTreatedPacks;
+
 let currentChartsFontSize;
 const dashboardChartsData = {};
 
@@ -96,6 +98,7 @@ function showCarouselOverlayAndHideSpinner() {
 }
 
 function loadProperData(preferCache = false) {
+    console.log(currentDashboard)
     switch (currentDashboard) {
         case 'arrivalDashboard':
             loadArrivalDashboard(preferCache).then(() => {
@@ -130,12 +133,32 @@ function resizeDatatable() {
 function loadPackagingData() {
     return new Promise(function (resolve) {
         let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
-        $.get(pathForPackagingData, function ({counters}) {
+        $.get(pathForPackagingData, function ({counters, chartData}) {
             const total = Object
                 .keys(counters)
                 .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0)
 
-            $('#packagingTotal').find('.dashboard-stats-counter').html(total);
+            $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
+            // on renomme les champs drops et takings avec un label acceptable pour l'utilisateur
+            chartData = Object.keys(chartData).reduce((acc, key) => {
+                const currentDayData = Object.keys(chartData[key]).reduce((acc, dataKey) => {
+                    const newKey = (
+                        dataKey === 'drops' ? 'OF envoyés par le DSQR' :
+                        (dataKey === 'takings' ? 'OF traités par GT' :
+                        '')
+                    );
+                    return {
+                        ...acc,
+                        [newKey]: chartData[key][dataKey]
+                    };
+                }, {});
+
+                return {
+                    ...acc,
+                    [key]: currentDayData
+                }
+            }, {});
+            chartTreatedPacks = createAndUpdateMultipleCharts($('#chartTreatedPacks'), chartTreatedPacks, {data: chartData}, true);
             resolve();
         });
     });

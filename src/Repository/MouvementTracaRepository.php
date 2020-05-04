@@ -644,46 +644,35 @@ class MouvementTracaRepository extends EntityRepository
             $dateMaxStr = $dateMax->format('Y-m-d H:i:s');
             $takingType = MouvementTraca::TYPE_PRISE;
             $dropType = MouvementTraca::TYPE_DEPOSE;
-
-            $sqlQuery = "
-                SELECT COUNT(*)
-                FROM (
-                    -- Select prise sur les emplacements données, aux dates données
-                    SELECT mouvement_traca.id,
-                           mouvement_traca.colis,
-                           mouvement_traca.datetime
-                    FROM mouvement_traca
-                    INNER JOIN statut AS type ON mouvement_traca.type_id = type.id
-                    WHERE (
-                        mouvement_traca.emplacement_id IN (${fromIdsStr})
-                        AND mouvement_traca.datetime >= '${dateMinStr}'
-                        AND mouvement_traca.datetime <= '${dateMaxStr}'
-                        AND type.nom = '${takingType}'
-                    )
-                ) AS location_taking
-                INNER JOIN (
-                    -- Select de la dépose effectué apres la prise
-                    SELECT mouvement_traca.id,
-                           mouvement_traca.colis,
-                           mouvement_traca.datetime,
-                           mouvement_traca.emplacement_id
-                    FROM mouvement_traca
-                    INNER JOIN statut AS type ON mouvement_traca.type_id = type.id
-                    WHERE (
-                        type.nom = '${dropType}'
-                        AND mouvement_traca.colis = location_taking.colis
-                        AND mouvement_traca.datetime > location_taking.datetime
-                    )
-                    ORDER BY mouvement_traca.datetime
-                    LIMIT 1
-                -- on prend que les prises qui ont une dépose direct, sur le groupement d'emplacement demandé
-                ) AS location_drop ON location_drop.colis = location_taking.colis
-                                  AND location_drop.emplacement_id IN (${intoIdsStr})
-            ";
+            $sqlQuery = (
+                "
+                    SELECT COUNT(DISTINCT(location_taking.id))
+                    FROM mouvement_traca AS location_taking
+                             INNER JOIN statut AS type_taking ON location_taking.type_id = type_taking.id
+                             INNER JOIN (
+                                    SELECT mouvement_traca.emplacement_id,
+                                           mouvement_traca.datetime,
+                                           mouvement_traca.colis,
+                                           mouvement_traca.id
+                                    FROM mouvement_traca
+                                             INNER JOIN statut AS type_drop ON mouvement_traca.type_id = type_drop.id
+                                    WHERE type_drop.nom = '${dropType}'
+                                      AND mouvement_traca.datetime >= '${dateMinStr}'
+                                      AND mouvement_traca.datetime <= '${dateMaxStr}'
+                                    ORDER BY mouvement_traca.datetime
+                            ) AS location_drop ON location_drop.emplacement_id IN (${intoIdsStr})
+                                AND location_drop.datetime >= location_taking.datetime
+                                AND location_drop.colis = location_taking.colis
+                    WHERE location_taking.emplacement_id IN (${fromIdsStr})
+                      AND location_taking.datetime <= '${dateMaxStr}'
+                      AND type_taking.nom = '${takingType}'
+                "
+            );
             $connection = $this->getEntityManager()->getConnection();
-            $count = $connection
+            $countResult = $connection
                 ->executeQuery($sqlQuery, [])
                 ->fetchAll(FetchMode::COLUMN);
+            $count = $countResult[0] ?? 0;
         }
         else {
             $count = 0;

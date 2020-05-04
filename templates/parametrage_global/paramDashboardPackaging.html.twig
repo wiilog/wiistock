@@ -146,17 +146,6 @@
         <div class="form-group w-fit-content">
             <div class="form-group w-450px">
                 <div class="w-100">
-                    <label for="packagingDestinationGT" class="d-block">Emplacement destination traités par GT</label>
-                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingDestinationGT" multiple>
-                    </select>
-                </div>
-            </div>
-            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT')] %}
-            <input type="hidden" id="packagingLocationDestinationGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
-        </div>
-        <div class="form-group w-fit-content">
-            <div class="form-group w-450px">
-                <div class="w-100">
                     <label for="packagingOrigineGT" class="d-block">Emplacement origine traités par GT</label>
                     <select class="form-control ajax-autocomplete-location d-block data" id="packagingOrigineGT" multiple>
                     </select>
@@ -164,6 +153,17 @@
             </div>
             {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT')] %}
             <input type="hidden" id="packagingLocationOrigineGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
+        </div>
+        <div class="form-group w-fit-content">
+            <div class="form-group w-450px">
+                <div class="w-100">
+                    <label for="packagingDestinationGT" class="d-block">Emplacement destination traités par GT</label>
+                    <select class="form-control ajax-autocomplete-location d-block data" id="packagingDestinationGT" multiple>
+                    </select>
+                </div>
+            </div>
+            {% set valueLocation = locations[constant('App\\Entity\\ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT')] %}
+            <input type="hidden" id="packagingLocationDestinationGT" data-id="{{ valueLocation.id }}" data-text="{{ valueLocation.text }}">
         </div>
     </div>
 </div>

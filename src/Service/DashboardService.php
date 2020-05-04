@@ -188,12 +188,15 @@ class DashboardService
         $locationDropIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DSQR);
         $locationOriginIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT);
         $locationTargetIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT);
+        $locationDropIdsArray = !empty($locationDropIds) ? explode(',', $locationDropIds) : [];
+        $locationOriginIdsArray = !empty($locationOriginIds) ? explode(',', $locationOriginIds) : [];
+        $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
 
         $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-                                                      use ($mouvementTracaRepository, $locationDropIds, $locationOriginIds, $locationTargetIds) {
+                                                      use ($mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
             return [
-                'drops' => $mouvementTracaRepository->countDropsOnLocations($locationDropIds, $dateMin, $dateMax),
-                'taking' => $mouvementTracaRepository->countMovementsFromInto($locationOriginIds, $locationTargetIds, $dateMin, $dateMax)
+                'drops' => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
+                'takings' => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
             ];
         });
 
