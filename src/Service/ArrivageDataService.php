@@ -11,6 +11,7 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -71,7 +72,7 @@ class ArrivageDataService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDataForDatatable($params, $userId)
     {
@@ -419,14 +420,16 @@ class ArrivageDataService
                 'value' => $comment ?: '',
                 'isRaw' => true,
                 'colClass' => 'col-sm-6 col-12',
-                'isScrollable' => true
+                'isScrollable' => true,
+                'isNeededNotEmpty' => true,
             ]]
                 : [],
             $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
                 ? [[
                     'label' => 'Pièces jointes',
                     'value' => $attachments->toArray(),
-                    'isAttachments' => true
+                    'isAttachments' => true,
+                    'isNeededNotEmpty' => true,
                 ]]
                 : []
         );

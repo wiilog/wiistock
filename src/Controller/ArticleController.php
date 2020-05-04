@@ -172,7 +172,8 @@ class ArticleController extends AbstractController
         $champF[] = [
             'label' => 'Commentaire',
             'id' => 0,
-            'typage' => 'text'
+            'typage' => 'text',
+            'isNeededNotEmpty' => true,
         ];
         $champF[] = [
             'label' => 'Prix unitaire',
@@ -238,7 +239,8 @@ class ArticleController extends AbstractController
         $champsFText[] = [
             'label' => 'Commentaire',
             'id' => 0,
-            'typage' => 'text'
+            'typage' => 'text',
+            'isNeededNotEmpty' => true,
         ];
         $champsFText[] = [
             'label' => 'Prix unitaire',
@@ -405,6 +407,7 @@ class ArticleController extends AbstractController
 					"data" => 'Commentaire',
 					'name' => 'Commentaire',
 					"class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+                    'isNeededNotEmpty' => true,
 				],
 				[
 					"title" => 'Prix unitaire',
