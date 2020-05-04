@@ -4,13 +4,23 @@
 
 {% block showActions %}
     <div class="btn-group">
-        {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_COLL')) %}
-            <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}"
-               class="btn btn-primary btn-ripple {{ not finished ? 'split-button' }}">
-                Aller vers la demande de collecte
-            </a>
+        {% set hasRightDemandeCollecte = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
+        {% set hasRightDeleteOrdre = (not finished and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE'))) %}
+        {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
+
+        {% if hasRightFinish %}
+            <div hidden data-toggle="modal" data-target="#modalFinishCollecte" id="btnModalFinishCollecte"></div>
+            <div class="btn btn-primary btn-ripple {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
+                    {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
+                        onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
+                    {% else %}
+                        onclick="checkIfRowSelected(() => finishCollecte(true))"
+                    {% endif %}>
+                <i class='fas fa-check mr-2'></i>
+                Finir la collecte
+            </div>
         {% endif %}
-        {% if not finished %}
+        {% if (hasRightDemandeCollecte or hasRightDeleteOrdre) %}
             <button type="button"
                     class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                     data-toggle="dropdown"
@@ -19,20 +29,19 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                <div hidden data-toggle="modal" data-target="#modalFinishCollecte" id="btnModalFinishCollecte"></div>
-                <div class="dropdown-item"
-                    {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
-                        onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
-                    {% else %}
-                        onclick="checkIfRowSelected(() => finishCollecte(true))"
-                    {% endif %}>
-                    <i class='fas fa-check mr-2'></i>Finir la collecte
-                </div>
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
+                {% if hasRightDemandeCollecte %}
+                    <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}"
+                       class="dropdown-item">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        Aller vers la demande de collecte
+                    </a>
+                {% endif %}
+                {% if hasRightDeleteOrdre %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
                        data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
                        class="dropdown-item">
-                        <i class='fas fa-trash mr-2'></i>Supprimer
+                        <i class='fas fa-trash mr-2'></i>
+                        Supprimer
                     </a>
                 {% endif %}
             </div>

@@ -93,7 +93,7 @@ function finishCollecte(withoutLocation = false) {
                     .remove()
                     .draw();
             });
-            table.ajax.reload();
+            tableArticle.ajax.reload();
         });
     } else {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
