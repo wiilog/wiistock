@@ -228,6 +228,7 @@ class OrdreCollecteService
 		// cas de mise en stockage
 		if ($demandeCollecte->getStockOrDestruct()) {
 			foreach ($collecteReferences as $collecteReference) {
+			    /** @var ReferenceArticle $refArticle */
 				$refArticle = $collecteReference->getReferenceArticle();
 
                 if (!$fromNomade) {
@@ -239,7 +240,7 @@ class OrdreCollecteService
                     $refArticle,
                     $date,
                     $demandeCollecte->getPointCollecte(),
-                    $depositLocation,
+                    $refArticle->getEmplacement(),
                     $collecteReference->getQuantite(),
 					$ordreCollecte,
                     $fromNomade
