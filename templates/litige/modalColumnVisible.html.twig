@@ -1,4 +1,4 @@
-<div class="modal fade" id="modalColumnVisible" tabindex="-1" role="dialog"
+<div class="modal fade" id="modalColumnVisibleLitige" tabindex="-1" role="dialog"
      aria-hidden="true" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -9,7 +9,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <table id="tableColumnVisible_id" class="table wii-table" style="width:100%">
+                <table id="tableColumnVisibleLitige_id" class="table wii-table" style="width:100%">
                     <thead>
                     <tr>
                         <th>Champs</th>
@@ -18,7 +18,6 @@
                     </thead>
                     <tbody>
 
-
                     {% set i = 0 %}
                     {% for champ in champs %}
                         <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
@@ -26,14 +25,16 @@
                                 {{ champ.label | capitalize }}
                             </td>
                             <td>
-                                <div class="checkbox d-inline-block pointer" onclick="toggleInputRadioOnRow(this)">
-                                    {% set checked = (champ.label in columnsVisibles ? 'checked' : '') %}
-                                    <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
-                                           name="{{ champ.label }}"
-                                           onclick="showOrHideColumn($(this), tableArticle, $('#tableArticle_id_wrapper'))" type="checkbox"
-                                           id="column_visible_input{{ loop.index }}" {{ checked }}
-                                           data-column="{{ i }}" data-name="{{ champ.label }}">
-                                    <label for="column_visible_input{{ loop.index }}" class="pointer"></label>
+                                <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
+                                    {% set checked = (champ.key  in columnsVisibles ? 'checked' : '') %}
+                                    <input class="visible-column-litige-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
+                                           name="{{ champ.key }}"
+                                           onclick="showOrHideColumn($(this), tableLitiges, $('#tableLitiges_id_wrapper'))"
+                                           type="checkbox"
+                                           id="column_visible_litige_input_{{ champ.key }}"
+                                            {{ checked }}
+                                           data-column="{{ i }}" data-name="{{ champ.key }}"/>
+                                    <label for="column_visible_litige_input_{{ champ.key }}" class="pointer"></label>
                                 </div>
                             </td>
                         </tr>
@@ -41,11 +42,10 @@
                     {% endfor %}
                     </tbody>
                 </table>
-
             </div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-primary" id="submitColumnVisible">Enregistrer</div>
+                <div class="btn btn-primary" id="submitColumnVisibleLitige">Enregistrer</div>
             </div>
         </div>
     </div>

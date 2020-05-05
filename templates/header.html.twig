@@ -1,25 +1,31 @@
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
+{% set titleExists = title is defined and title is not empty %}
+
 <div class="main-header">
     <div class="col-12">
         <div class="row align-items-center {{ withOnlyLogo ? 'justify-content-center' }}">
             <div class="col-2">
-                <a href="{{ path('accueil') }}">
-                    <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
-                    <span class="web-version small">{{ web_version }}</span>
-                </a>
+                <div class="d-flex">
+                    <a class="position-relative" href="{{ path('accueil') }}">
+                        <img src="{{ asset('img/followGTwhite.svg') }}" alt="Follow GT" class="w-100"/>
+                        <span class="web-version small">{{ web_version }}</span>
+                    </a>
+                </div>
             </div>
 
             {% if not withOnlyLogo %}
-                {% if title is defined and title is not empty %}
+                {% if isDashboardExt or titleExists %}
                     <h5 class="header-title text-white col-auto h5 user-select-none my-0 page-title">
-                        {% for subTitle in title|split('|') %}
-                            {% if loop.last %}
-                                  <span class="bold" >{{ subTitle }}</span>
-                            {% else %}
-                                {{ subTitle }} |
-                            {% endif %}
-                        {% endfor %}
+                        {% if titleExists %}
+                            {% for subTitle in title|split('|') %}
+                                {% if loop.last %}
+                                      <span class="bold" >{{ subTitle }}</span>
+                                {% else %}
+                                    {{ subTitle }} |
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
                     </h5>
                 {% endif %}
                 {% if not isDashboardExt

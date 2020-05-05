@@ -1,6 +1,13 @@
+$('.select2').select2();
+
+let modalColumnVisible = $('#modalColumnVisibleArrivage');
+let submitColumnVisible = $('#submitColumnVisibleArrivage');
+let modalEditArrivage = $('#modalEditArrivage');
+let submitEditArrivage = $('#submitEditArrivage');
+let urlEditArrivage = Routing.generate('arrivage_edit', true);
+let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
 let onFlyFormOpened = {};
 let clicked = false;
-$('.select2').select2();
 let pageLength;
 
 $(function () {
@@ -8,8 +15,8 @@ $(function () {
     initSelect2($('#statut'), 'Statut');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
-
-    // filtres enregistrés en base pour chaque utilisateur
+    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+    initModalWithAttachments(modalEditArrivage, submitEditArrivage, urlEditArrivage, tableArrivage);
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     registerDropdownPosition();
@@ -30,6 +37,7 @@ $(function () {
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
+let tableArrivage;
 let tableArrivageConfig = {
     serverSide: true,
     processing: true,
@@ -41,7 +49,7 @@ let tableArrivageConfig = {
         "type": "POST",
         'data': {
             'clicked': () => clicked,
-        }
+        },
     },
     columns: [
         {"data": 'Actions', 'name': 'actions', 'title': ''},
@@ -87,7 +95,7 @@ let tableArrivageConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        needsColumnHide: true,
+        needsColumnShow: true
     },
     buttons: [
         {
@@ -100,8 +108,10 @@ let tableArrivageConfig = {
     "lengthMenu": [10, 25, 50, 100],
 };
 
-let tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
-
+tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
+tableArrivage.on('responsive-resize', function (e, datatable) {
+    datatable.columns.adjust().responsive.recalc();
+});
 function listColis(elem) {
     let arrivageId = elem.data('id');
     let path = Routing.generate('arrivage_list_colis_api', true);

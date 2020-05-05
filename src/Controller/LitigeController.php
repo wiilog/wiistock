@@ -15,6 +15,7 @@ use App\Entity\LitigeHistoric;
 
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
@@ -35,6 +36,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
@@ -73,6 +75,11 @@ class LitigeController extends AbstractController
 	 */
 	private $litigeService;
 
+    /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
 	/**
 	 * @param LitigeService $litigeService
 	 * @param PieceJointeRepository $pieceJointeRepository
@@ -88,6 +95,7 @@ class LitigeController extends AbstractController
                                 LitigeRepository $litigeRepository,
                                 UtilisateurRepository $utilisateurRepository,
                                 TransporteurRepository $transporteurRepository,
+                                TranslatorInterface $translator,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->utilisateurRepository = $utilisateurRepository;
@@ -97,6 +105,7 @@ class LitigeController extends AbstractController
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->pieceJointeRepository = $pieceJointeRepository;
 		$this->litigeService = $litigeService;
+        $this->translator = $translator;
 	}
 
     /**
@@ -117,12 +126,33 @@ class LitigeController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
+        $user = $this->getUser();
+        $fieldsInTab = [
+            ["key" => 'type', 'label' => 'Type'],
+            ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
+            ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
+            ["key" => 'buyers', 'label' => 'Acheteur'],
+            ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],
+            ["key" => 'command', 'label' => 'N° ligne'],
+            ["key" => 'provider', 'label' => 'Fournisseur'],
+            ["key" => 'references', 'label' => 'Référence'],
+            ["key" => 'lastHistorique', 'label' => 'Dernier historique'],
+            ["key" => 'creationDate', 'label' => 'Créé le'],
+            ["key" => 'updateDate', 'label' => 'Modifié le'],
+            ["key" => 'status', 'label' => 'Statut'],
+        ];
+        $fieldsCl =[];
+        $champs = array_merge($fieldsInTab,$fieldsCl);
+
+
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
-			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS)
+			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
+            'champs' => $champs,
+            'columnsVisibles' => $user->getColumnsVisibleForLitige(),
 		]);
     }
 
@@ -134,17 +164,10 @@ class LitigeController extends AbstractController
 			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
 				return $this->redirectToRoute('access_denied');
 			}
-
+            $user = $this->getUser();
 			$data = $this->litigeService->getDataForDatatable($request->request);
-			$columnHiddenRepository = $this->getDoctrine()->getRepository(ColumnHidden::class);
-
-			$columnsToHide = $columnHiddenRepository->findOneBy([
-				'page' => ColumnHidden::PAGE_LITIGE,
-				'user' => $this->getUser()
-			]);
-
-			$data['columnHidden'] = $columnsToHide ? $columnsToHide->getValue() : [];
-
+            $columnVisible = $user->getColumnsVisibleForLitige();
+            $data['visible'] = $columnVisible;
 			return new JsonResponse($data);
 		}
 		throw new NotFoundHttpException('404');
@@ -260,6 +283,7 @@ class LitigeController extends AbstractController
                 $litigeData[] = $referencesStr;
 
                 $articles = $litige->getArticles();
+
                 /** @var Article $firstArticle */
                 $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
                 $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
@@ -404,37 +428,48 @@ class LitigeController extends AbstractController
 		throw new NotFoundHttpException('404');
 	}
 
-	/**
-	 * @Route("/colonnes-cachees", name="save_column_hidden_for_litiges", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-	 * @param Request $request
-	 * @return Response
-	 */
-	public function saveColumnHidden(Request $request): Response
-	{
-		$em = $this->getDoctrine()->getManager();
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() ) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $data = json_decode($request->getContent(), true);
+            $champs = array_keys($data);
+            $user = $this->getUser();
+            /** @var $user Utilisateur */
+            $champs[] = "actions";
+            $user->setColumnsVisibleForLitige($champs);
+            $entityManager->flush();
 
-		$columns = $request->request->all();
-		$value = [];
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
 
-		foreach ($columns as $columnName => $display) {
-			if ($display == 'false') $value[] =  $columnName;
-		}
+    /**
+     * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return Response
+     */
+    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $user = $this->getUser();     ;
 
-		$columnHiddenRepository = $em->getRepository(ColumnHidden::class);
-		$columnHidden = $columnHiddenRepository->findOneBy(['user' => $this->getUser()]);
-
-		if (!$columnHidden) {
-			$columnHidden = new ColumnHidden();
-			$columnHidden
-				->setUser($this->getUser())
-				->setPage(ColumnHidden::PAGE_LITIGE);
-			$em->persist($columnHidden);
-			$em->flush();
-		}
-
-		$columnHidden->setValue($value);
-		$em->flush();
-
-		return new JsonResponse();
-	}
+        return new JsonResponse($user->getColumnsVisibleForLitige());
+    }
 }

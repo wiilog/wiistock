@@ -34,11 +34,13 @@ use App\Repository\UtilisateurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
+use App\Service\CSVExportService;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\StatutService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;
@@ -55,10 +57,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-
 
 /**
  * @Route("/arrivage")
@@ -168,11 +170,13 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @param StatutService $statutService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
+                          TranslatorInterface $translator,
                           StatutService $statutService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -188,6 +192,24 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $user = $this->getUser();
+        $champs = [
+            ["key" => 'date', 'label' => 'Date'],
+            ["key" => 'numeroArrivage', 'label' => $translator->trans('arrivage.n° d\'arrivage')],
+            ["key" => 'transporteur', 'label' => 'Transporteur'],
+            ["key" => 'chauffeur', 'label' => 'Chauffeur'],
+            ["key" => 'noTracking', 'label' => 'N° tracking transporteur'],
+            ["key" => 'NumeroCommandeList', 'label' => 'N° commande / BL'],
+            ["key" => 'fournisseur', 'label' => 'Fournisseur'],
+            ["key" => 'destinataire', 'label' => $translator->trans('arrivage.destinataire')],
+            ["key" => 'acheteurs', 'label' => $translator->trans('arrivage.acheteurs')],
+            ["key" => 'NbUM', 'label' => 'Nb UM'],
+            ["key" => 'duty', 'label' => 'Douane'],
+            ["key" => 'frozen', 'label' => 'Congelé'],
+            ["key" => 'Statut', 'label' => 'Statut'],
+            ["key" => 'Utilisateur', 'label' => 'Utilisateur'],
+            ["key" => 'urgent', 'label' => 'Urgent'],
+        ];
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -208,7 +230,9 @@ class ArrivageController extends AbstractController
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
-            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId
+            'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
+            'champs' => $champs,
+            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
         ]);
     }
 
@@ -232,9 +256,8 @@ class ArrivageController extends AbstractController
             $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
-
-            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-            $data['columnsToHide'] = $fieldsParam;
+            $user = $this->getUser();
+            $data['visible'] = $user->getColumnsVisibleForArrivage();
 
             return new JsonResponse($data);
         }
@@ -288,8 +311,8 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
                 ->setNumeroArrivage($numeroArrivage)
-                ->setDuty($data['duty'] == 'true')
-                ->setFrozen($data['frozen'] == 'true')
+                ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
+                ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null);
 
             if (!empty($data['fournisseur'])) {
@@ -520,7 +543,9 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
+     *
      * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -846,63 +871,75 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
+     * @param CSVExportService $CSVExportService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getArrivageIntels(Request $request,
-                                      EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    public function getArrivageCSV(Request $request,
+                                   CSVExportService $CSVExportService,
+                                   EntityManagerInterface $entityManager): Response {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        }
+        catch(\Throwable $throwable) {}
+
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
+            $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
-
-            $arrivages = $arrivageRepository->findByDates($dateTimeMin, $dateTimeMax);
-
-            $headers = [];
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
-                'n° commande/BL', 'acheteurs', 'douane', 'congelé', 'statut', 'commentaire', 'date', 'utilisateur']);
+            $csvHeader = [
+                'n° arrivage',
+                'destinataire',
+                'fournisseur',
+                'transporteur',
+                'chauffeur',
+                'n° tracking transporteur',
+                'n° commande/BL',
+                'acheteurs',
+                'douane',
+                'congelé',
+                'statut',
+                'commentaire',
+                'date',
+                'utilisateur'
+            ];
 
-            $data = [];
-            $data[] = $headers;
-
-            /** @var Arrivage $arrivage */
-            foreach ($arrivages as $arrivage) {
-                $arrivageData = [];
-
-                $arrivageData[] = $arrivage->getNumeroArrivage() ?? ' ';
-                $arrivageData[] = $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : ' ';
-                $arrivageData[] = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : ' ';
-                $arrivageData[] = $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : ' ';
-                $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
-                $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
-
-                $numeroCommmandeList = $arrivage->getNumeroCommandeList();
-                $arrivageData[] = !empty($numeroCommmandeList) ? implode(' / ', $numeroCommmandeList) : '';
-
-                $acheteurs = $arrivage->getAcheteurs();
-                $acheteurData = [];
-                foreach ($acheteurs as $acheteur) {
-                    $acheteurData[] = $acheteur->getUsername();
+            return $CSVExportService->createCsvResponse(
+                'export.csv',
+                $arrivals,
+                $csvHeader,
+                function ($arrival) use ($buyersByArrival) {
+                    $arrivalId = (int) $arrival['id'];
+                    $row = [];
+                    $row[] = $arrival['numeroArrivage'] ?: '';
+                    $row[] = $arrival['recipientUsername'] ?: '';
+                    $row[] = $arrival['fournisseurName'] ?: '';
+                    $row[] = $arrival['transporteurLabel'] ?: '';
+                    $row[] = (!empty($arrival['chauffeurFirstname']) && !empty($arrival['chauffeurSurname']))
+                        ? $arrival['chauffeurFirstname'] . ' ' . $arrival['chauffeurSurname']
+                        : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: '');
+                    $row[] = $arrival['noTracking'] ?: '';
+                    $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
+                    $row[] = $buyersByArrival[$arrivalId] ?? '';
+                    $row[] = $arrival['duty'] ? 'oui' : 'non';
+                    $row[] = $arrival['frozen'] ? 'oui' : 'non';
+                    $row[] = $arrival['statusName'] ?: '';
+                    $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
+                    $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
+                    $row[] = $arrival['userUsername'] ?: '';
+                    return [$row];
                 }
-                $arrivageData[] = implode(' / ', $acheteurData);
-                $arrivageData[] = $arrivage->getDuty() ? 'oui' : 'non';
-                $arrivageData[] = $arrivage->getFrozen() ? 'oui' : 'non';
-                $arrivageData[] = $arrivage->getStatut()->getNom();
-                $arrivageData[] = strip_tags($arrivage->getCommentaire());
-                $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
-                $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
-
-                $data[] = $arrivageData;
-            }
-            return new JsonResponse($data);
+            );
         } else {
             throw new NotFoundHttpException('404');
         }
@@ -1540,4 +1577,45 @@ class ArrivageController extends AbstractController
         $entityManager->flush();
     }
 
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() ) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $data = json_decode($request->getContent(), true);
+
+            $champs = array_keys($data);
+            $user = $this->getUser();
+            /** @var $user Utilisateur */
+            $champs[] = "actions";
+            $user->setColumnsVisibleForArrivage($champs);
+            $entityManager->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $user = $this->getUser();     ;
+
+        return new JsonResponse($user->getColumnsVisibleForArrivage());
+    }
 }

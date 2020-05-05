@@ -8,6 +8,13 @@ function hideColumns(table, data) {
     })
 }
 
+function showColumns(table, data) {
+    table.columns().visible(false);
+    data.forEach(function (col) {
+        table.columns(col + ':name').visible(true);
+    })
+}
+
 /**
  * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
  */
@@ -74,11 +81,9 @@ function initActionOnCell(cell) {
 
 
 function showOrHideColumn(check, concernedTable, concernedTableColumns) {
-
     let columnName = check.data('name');
 
     let column = concernedTable.column(columnName + ':name');
-
     column.visible(!column.visible());
 
     concernedTableColumns.find('th, td').removeClass('hide');
@@ -168,7 +173,7 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
     let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
@@ -177,6 +182,9 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
     }
     if (needsColumnHide) {
         hideColumns(table, response.json.columnsToHide);
+    }
+    if (needsColumnShow) {
+        showColumns(table, response.json.visible);
     }
     if (needsResize) {
         resizeTable(table);

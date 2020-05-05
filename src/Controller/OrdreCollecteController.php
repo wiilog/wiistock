@@ -147,10 +147,10 @@ class OrdreCollecteController extends AbstractController
                 );
             }
 
-            $data = $this->renderView('ordre-collecte-show-header.html.twig', [
+            $data = $this->renderView('ordre_collecte/ordre-collecte-show-header.html.twig', [
                 'collecte' => $ordreCollecte,
                 'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
-                'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
+                'showDetails' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
             ]);
             return new JsonResponse($data);
         }

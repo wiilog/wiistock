@@ -154,7 +154,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
+        if (!$(this).hasClass("no-data")) {
+            Data[$(this).attr("name")] = $(this).is(':checked');
+        }
     });
     $("div[name='id']").each(function () {
         Data[$(this).attr("name")] = $(this).attr('value');
@@ -230,9 +232,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                                 msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
                             }
                         } else if (typeof (min) == 'undefined') {
-                            msg += ' doit être inférieure à ' + max + ".<br>";
+                            msg += ' doit être inférieure ou égal à ' + max + ".<br>";
                         } else if (typeof (max) == 'undefined') {
-                            msg += ' doit être supérieure à ' + min + ".<br>";
+                            msg += ' doit être supérieure ou égal à ' + min + ".<br>";
                         } else if (min < 1) {
                             msg += ' ne peut pas être rempli'
                         }
@@ -544,7 +546,8 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
 
                                                 if (!$nextField.data('select2')) {
                                                     $nextField.select2('open');
-                                                } else {
+                                                }
+                                                else {
                                                     $nextField.trigger('focus');
                                                 }
                                             }
@@ -595,8 +598,10 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
 
         // on recupère le select2 après l'initialisation de select2
         $select2Selection = getSelect2Selection();
-        $select2Selection.on('focus', function () {
-            $self.select2('open');
+        $select2Selection.on('focus', function() {
+            if (!isMultiple) {
+                $self.select2('open');
+            }
         });
     });
 }
@@ -1136,6 +1141,7 @@ let dlFile = function (csv, filename) {
     // !!! remove a special char (first param is not empty) !!!
     // Fix temporaire en attendant d'exporter en server side !
     csv = csv.replace('﻿', '');
+    csv = csv.replace("﻿", '');
     $.post(Routing.generate('get_encodage'), function (usesUTF8) {
         let encoding = usesUTF8 ? 'utf-8' : 'windows-1252';
         let d = new Date();
@@ -1387,4 +1393,44 @@ function registerDropdownPosition() {
             dropdownMenu.removeClass('ml-3');
         }
     });
+}
+
+function saveExportFile(routeName, params = null) {
+    const $spinner = $('#spinner');
+    loadSpinner($spinner);
+
+    const path = Routing.generate(routeName, true);
+
+    const filtersData = {};
+    $('.filterService input').each(function () {
+        const $input = $(this);
+        const name = $input.attr('name');
+        const val = $input.val();
+        if (name && val) {
+            filtersData[name] = val;
+        }
+    });
+
+    const data = {
+        ...filtersData,
+        ...(params || {})
+    }
+
+    if (data.dateMin && data.dateMax) {
+        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+        const dataKeys = Object.keys(data);
+
+        const joinedData = dataKeys
+            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+            .join('&');
+
+        window.location.href = `${path}?${joinedData}`;
+        hideSpinner($spinner);
+    }
+    else {
+        warningEmptyDatesForCsv();
+        hideSpinner($spinner);
+    }
 }

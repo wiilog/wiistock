@@ -131,6 +131,20 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::DASHBOARD_CARRIER_DOCK => [],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
             ParametrageGlobal::FILE_FOR_LOGO => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_1 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_2 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_3 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_4 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_5 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_6 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_7 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_8 => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_RPA => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => [],
+            ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => [],
         ];
 
 		foreach ($globalParameterLabels as $globalParameterLabel => $values) {

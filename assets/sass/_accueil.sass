@@ -12,6 +12,16 @@
     left: 0
     right: 0
 
+.dashboard-spinner
+    height: 200px
+    width: 200px
+    position: absolute
+    left: 50%
+    top: 50%
+    margin-top: -100px
+    margin-left: -100px
+    color: $blueGT
+
 .alert-danger
     padding: 10px
     text-align: center
@@ -33,9 +43,14 @@
 
     &.third-height
         height: 31vh
+    &.third-row-height
+        height: 22vh
         .dashboard-ext &
-            height: 30vh
-
+            height: 26vh
+    &.fourth-row-height
+        height: 15.5vh
+        &.dashboard-ext
+            height: 16vh
     &.half-height
         height: 38vh
         .dashboard-ext &
@@ -45,17 +60,14 @@
         border-radius: 8px
         display: flex
         flex-direction: column
-        justify-content: space-between
+        justify-content: space-around
         box-shadow: 2px 2px 3px grey
         height: 100%
         position: relative
         background: $white
         padding: .5rem
 
-        &.dashboard-stats-container
-            .dashboard-ext &
-                padding-left: 2px
-                padding-right: 2px
+
 
         &.dashboard-box-list
             .title
@@ -100,23 +112,30 @@
         .dataTables_wrapper, span
             font-size: .8em
 
-        .dashboard-stats
-            font-weight: bold
-            color: $blueNeon
-            cursor: default
-            //font-size: 9vh
-            font-size: 3vw
-            line-height: 0.8
 
-            &.dashboard-stats-counter
+        &.dashboard-stats-container
+            .dashboard-ext &
+                padding-left: 2px
+                padding-right: 2px
+
+            .dashboard-stats
+                font-weight: bold
+                color: $blueNeon
+                cursor: default
+                //font-size: 9vh
                 font-size: 3vw
-                .dashboard-ext &
-                    font-size: 8vh
+                line-height: 0.8
+                &.dashboard-stats-delay
+                    font-size: 3vh
+                &.dashboard-stats-counter
+                    font-size: 3vw
+                    .dashboard-ext &
+                        font-size: 8vh
 
             &.dashboard-stats-label
                 font-size: 2.5vw
                 .dashboard-ext &
-                    font-size: 7.5vh
+                    font-size: 5vh
 
         .dashboard-box-content
             padding: 10px

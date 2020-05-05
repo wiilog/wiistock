@@ -406,8 +406,8 @@ class ParametrageGlobalController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $mailerServer = $mailerServerRepository->findOneMailerServer();
             if (!$mailerServer) {
-                $mailerServerNew = new MailerServer;
-                $em->persist($mailerServerNew);
+                $mailerServer = new MailerServer();
+                $em->persist($mailerServer);
             }
 
             $mailerServer
@@ -882,11 +882,27 @@ class ParametrageGlobalController extends AbstractController
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
                 ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
                 ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
+                ParametrageGlobal::DASHBOARD_PACKAGING_1 => 'packaging1',
+                ParametrageGlobal::DASHBOARD_PACKAGING_2 => 'packaging2',
+                ParametrageGlobal::DASHBOARD_PACKAGING_3 => 'packaging3',
+                ParametrageGlobal::DASHBOARD_PACKAGING_4 => 'packaging4',
+                ParametrageGlobal::DASHBOARD_PACKAGING_5 => 'packaging5',
+                ParametrageGlobal::DASHBOARD_PACKAGING_6 => 'packaging6',
+                ParametrageGlobal::DASHBOARD_PACKAGING_7 => 'packaging7',
+                ParametrageGlobal::DASHBOARD_PACKAGING_8 => 'packaging8',
+                ParametrageGlobal::DASHBOARD_PACKAGING_RPA => 'packagingRPA',
+                ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => 'packagingLitige',
+                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence',
+                ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => 'packagingDSQR',
+                ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => 'packagingDestinationGT',
+                ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => 'packagingOrigineGT',
             ];
 
             foreach ($listMultipleSelect as $labelParam => $selectId) {
                 $listId = $post->get($selectId);
-                $listIdStr = $listId ? is_array($listId) ? implode(',', $listId) : $listId : null;
+                $listIdStr = $listId
+                    ? (is_array($listId) ? implode(',', $listId) : $listId)
+                    : null;
                 $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
                 $param->setValue($listIdStr);
             }
