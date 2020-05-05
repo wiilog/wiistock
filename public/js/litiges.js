@@ -16,8 +16,8 @@ let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
 $(function () {
     initDateTimePicker();
     initSelect2($('#carriers'), 'Transporteurs');
-    initSelect2($('#statut'), 'Statut');
-    initSelect2($('#litigeOrigin'), 'Origine');
+    initSelect2($('#statut'), 'Statuts');
+    initSelect2($('#litigeOrigin'), 'Origines');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
     registerDropdownPosition();
 

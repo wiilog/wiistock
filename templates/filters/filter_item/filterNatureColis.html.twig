@@ -3,7 +3,7 @@
         <div class="input-group w-100 minw-250px">
             <select class="form-control data minw-200px cursor-default filter-select2" name="natures" id="natures" multiple="multiple">
                 {% for nature in natures %}
-                    <option value="{{ nature.id }}">{{ nature.label }}</option>
+                    <option class="d-none" value="{{ nature.id }}">{{ nature.label }}</option>
                 {% endfor %}
             </select>
         </div>
