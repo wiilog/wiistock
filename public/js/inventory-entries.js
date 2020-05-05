@@ -49,7 +49,6 @@ let tableEntriesConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableMissionEntries_filter'
     },
     columns:[
         { "data": 'Ref', 'title' : 'Reférence', 'name': 'reference' },

@@ -88,7 +88,6 @@ let tableArrivageConfig = {
     drawConfig: {
         needsSearchOverride: true,
         needsColumnHide: true,
-        filterId: 'tableArrivages_filter'
     },
     buttons: [
         {

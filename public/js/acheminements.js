@@ -16,6 +16,9 @@ let tableAcheminementsConfig = {
     rowConfig: {
         needsRowClickAction: true
     },
+    drawConfig: {
+        needsSearchOverride: true,
+    },
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },

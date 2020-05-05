@@ -20,7 +20,6 @@ let tableRecepConfig = {
     "order": [[1, "desc"]],
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableRecepts_filter'
     },
     rowConfig: {
         needsRowClickAction: true

@@ -41,7 +41,6 @@ let tableImportConfig = {
             initDoubleClick('.status-planifié');
         },
         needsSearchOverride: true,
-        filterId: 'tableImport_filter'
     },
     order: [[1, "desc"]],
 };

@@ -168,8 +168,8 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsResize, needsEmplacementSearchOverride, callback, table, filterId}) {
-    let $searchInputContainer = $('#' + filterId);
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
+    let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
     if (needsSearchOverride && $searchInput.length > 0) {
@@ -182,7 +182,7 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
         resizeTable(table);
     }
     if (needsEmplacementSearchOverride) {
-        overrideSearchSpecifEmplacement(filterId);
+        overrideSearchSpecifEmplacement($searchInput);
     }
     if (callback) {
         callback();
@@ -193,19 +193,17 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
 function moveSearchInputToHeader($searchInputContainer) {
     const $datatableCard = $searchInputContainer.parents('.wii-page-card');
     const $searchInput = $searchInputContainer.find('input');
-    const $searchInputContainerCol = $searchInputContainer.parent()
+    const $searchInputContainerCol = $searchInputContainer.parent();
     if ($datatableCard.length > 0) {
         const $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
         if ($datatableCardHeader.length > 0) {
             $searchInput.addClass('search-input');
             $datatableCardHeader.prepend($searchInputContainerCol);
             $searchInputContainerCol.removeClass('d-none');
-        }
-        else {
+        } else {
             $searchInputContainerCol.removeClass('d-none');
         }
-    }
-    else {
+    } else {
         $searchInputContainerCol.removeClass('d-none');
     }
 }
@@ -228,14 +226,13 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
                 datatableDrawCallback({
                     table: datatableToReturn,
                     response,
+                    $tableDom,
                     ...(drawConfig || {})
                 })
             },
             initComplete: () => {
-                if (drawConfig && drawConfig.filterId) {
-                    let $searchInputContainer = $('#' + drawConfig.filterId);
-                    moveSearchInputToHeader($searchInputContainer);
-                }
+                let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+                moveSearchInputToHeader($searchInputContainer);
                 articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
@@ -257,8 +254,7 @@ function resizeTable(table) {
         .responsive.recalc();
 }
 
-function overrideSearchSpecifEmplacement(filterId) {
-    let $input = $('#' + filterId + ' input');
+function overrideSearchSpecifEmplacement($input) {
     $input.off();
     $input.on('keyup', function (e) {
         let $printButton = $('.printButton');

@@ -15,7 +15,6 @@ let tableEmplacementConfig = {
     },
     drawConfig: {
         needsEmplacementSearchOverride: true,
-        filterId: 'tableEmplacement_id_filter'
     },
     rowConfig: {
         needsRowClickAction: true,

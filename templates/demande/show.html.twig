@@ -19,6 +19,9 @@
         <div class="row mt-3">
             <div class="col-12">
                 <div class="wii-page-card">
+                    <div class="row mb-2">
+                        <h5 class="col-auto h5">Liste des articles</h5>
+                    </div>
                     {% if modifiable %}
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                             <div class="row wii-page-card-header" id="boutonCollecteInf">

@@ -9,7 +9,6 @@ let tableAlerteConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableAlerte_id_filter'
     },
     columns: [
         { "data": 'Label', 'title': 'Libellé' },

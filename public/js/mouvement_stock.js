@@ -28,7 +28,6 @@ let tableMvtStockConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableMvts_filter'
     },
     columns: [
         {"data": 'actions', 'name': 'Actions', 'title': ''},

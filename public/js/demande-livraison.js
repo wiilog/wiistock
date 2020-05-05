@@ -16,7 +16,6 @@ let tableDemandeConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'table_demande_filter'
     },
     rowConfig: {
         needsRowClickAction: true,

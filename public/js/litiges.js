@@ -50,7 +50,6 @@ function initDatatableLitiges() {
         },
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableLitiges_filter'
         },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', 'orderable': false, className: 'noVis'},

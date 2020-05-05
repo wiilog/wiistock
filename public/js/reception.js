@@ -34,7 +34,6 @@ $(function () {
         },
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableReception_id_filter',
             needsColumnHide: true,
         },
         headerCallback: function(thead) {
