@@ -168,7 +168,8 @@ class DashboardService
     {
         $defaultDelay = '24:00';
         $urgenceDelay = '2:00';
-
+        $dsqrLabel = 'OF envoyés par le DSQR';
+        $gtLabel = 'OF traités par GT';
         $counters = $this->getLocationCounters([
             'packaging1' => [ParametrageGlobal::DASHBOARD_PACKAGING_1, $defaultDelay],
             'packaging2' => [ParametrageGlobal::DASHBOARD_PACKAGING_2, $defaultDelay],
@@ -193,16 +194,20 @@ class DashboardService
         $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
 
         $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-                                                      use ($mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
+                                                      use ($dsqrLabel, $gtLabel, $mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
             return [
-                'drops' => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
-                'takings' => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
+                $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
+                $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
             ];
         });
 
         return [
             'counters' => $counters,
-            'chartData' => $chartData
+            'chartData' => $chartData,
+            'chartColors' => [
+                $dsqrLabel => '#003871',
+                $gtLabel => '#77933C',
+            ]
         ];
     }
 

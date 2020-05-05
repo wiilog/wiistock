@@ -21,7 +21,6 @@ const DASHBOARD_PACKAGING_NAME = 'emballage';
 const DEFAULT_DASHBOARD = DASHBOARD_ARRIVAL_NAME;
 
 
-
 $(function () {
     // config chart js
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -131,7 +130,7 @@ function loadProperData(preferCache = false) {
             });
             break;
         case DASHBOARD_PACKAGING_NAME:
-            loadPackagingData().then(() => {
+            loadPackagingData(preferCache).then(() => {
                 showCarouselOverlayAndHideSpinner();
             });
             break;
@@ -144,37 +143,29 @@ function resizeDatatable() {
     datatableColis.columns.adjust().draw();
 }
 
-function loadPackagingData() {
+function loadPackagingData(preferCache) {
     return new Promise(function (resolve) {
-        let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
-        $.get(pathForPackagingData, function ({counters, chartData}) {
-            const total = Object
-                .keys(counters)
-                .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0)
+        if (preferCache) {
+            const $canvas = $('#chartTreatedPacks');
+            const chartData = dashboardChartsData[$canvas.attr('id')];
+            createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData);
+        } else {
+            let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
+            $.get(pathForPackagingData, function ({counters, chartData, chartColors}) {
+                const total = Object
+                    .keys(counters)
+                    .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0);
 
-            $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
-            // on renomme les champs drops et takings avec un label acceptable pour l'utilisateur
-            chartData = Object.keys(chartData).reduce((acc, key) => {
-                const currentDayData = Object.keys(chartData[key]).reduce((acc, dataKey) => {
-                    const newKey = (
-                        dataKey === 'drops' ? 'OF envoyés par le DSQR' :
-                        (dataKey === 'takings' ? 'OF traités par GT' :
-                        '')
-                    );
-                    return {
-                        ...acc,
-                        [newKey]: chartData[key][dataKey]
-                    };
-                }, {});
-
-                return {
-                    ...acc,
-                    [key]: currentDayData
-                }
-            }, {});
-            chartTreatedPacks = createAndUpdateMultipleCharts($('#chartTreatedPacks'), chartTreatedPacks, {data: chartData}, true);
-            resolve();
-        });
+                $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
+                const $canvas = $('#chartTreatedPacks');
+                dashboardChartsData[$canvas.attr('id')] = {
+                    data: chartData,
+                    chartColors
+                };
+                chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true);
+                resolve();
+            });
+        }
     });
 }
 
@@ -201,13 +192,12 @@ function fillPackagingCard(cardId, data) {
 }
 
 function loadArrivalDashboard(preferCache) {
-    console.log(preferCache)
     return Promise
         .all([
             drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCache),
             drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCache),
             drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCache),
-            ...(!preferCache ? [loadRetards()]: [])
+            ...(!preferCache ? [loadRetards()] : [])
         ])
         .then(([chartArrivalUmLocal, chartAssoRecepLocal, chartMonetaryFiabilityLocal]) => {
             chartArrivalUm = chartArrivalUmLocal;
@@ -243,7 +233,7 @@ function loadAdminDashboard(preferCache) {
         .all([
             drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache),
             drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache),
-            ...(!preferCache ? [refreshIndicatorsReceptionAdmin()]: [])
+            ...(!preferCache ? [refreshIndicatorsReceptionAdmin()] : [])
         ])
         .then(([chartFirstForAdminLocal, chartSecondForAdminLocal]) => {
             chartFirstForAdmin = chartFirstForAdminLocal;
@@ -256,7 +246,7 @@ function reloadData() {
     loadProperData();
     let now = new Date();
     const date = ('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
-    const hour =  now.getHours() + ':' + now.getMinutes();
+    const hour = now.getHours() + ':' + now.getMinutes();
     $('.refreshDate').text(`${date} à ${hour}`);
 }
 
@@ -376,7 +366,6 @@ function createAndUpdateMultipleCharts($canvas, chart, data, forceCreation = fal
     if (forceCreation || !chart) {
         chart = newChart($canvas, true);
     }
-
     if (data) {
         updateMultipleChartData(chart, data.data, (data.chartColors || {}));
     }
@@ -536,8 +525,7 @@ function loadRetards() {
             datatableColis.ajax.reload(() => {
                 resolve();
             });
-        }
-        else {
+        } else {
             let datatableColisConfig = {
                 responsive: true,
                 domConfig: {
@@ -605,8 +593,7 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
         $counterCountainer.find('.location-label').text('(' + label + ')');
-    }
-    else {
+    } else {
         counter = data;
     }
     if (counter > 0 && needsRedColorIfPositiv) {

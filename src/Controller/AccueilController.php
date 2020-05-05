@@ -507,6 +507,7 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
+     * @throws Exception
      */
     public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
         $response = $dashboardService->getDataForMonitoringPackagingDashboard();
