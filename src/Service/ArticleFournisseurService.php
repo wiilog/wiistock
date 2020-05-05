@@ -60,10 +60,23 @@ class ArticleFournisseurService
         if ($generateReference || $countReference === 0) {
             $referencePrefix = $data['reference'];
 
+            if ($generateReference) {
+                $generatedCounter = $countReference;
+                do {
+                    $generatedCounter++;
+                    $generatedReference = ($referencePrefix . '_' . $generatedCounter);
+                    $countReference = $articleFournisseurRepository->countByReference($generatedReference);
+                }
+                while ($countReference > 0);
+            }
+            else {
+                $generatedReference = $referencePrefix;
+            }
+
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
                 ->setFournisseur($fournisseur)
-                ->setReference($generateReference ? ($referencePrefix . '_' . ($countReference + 1)) : $referencePrefix)
+                ->setReference($generatedReference)
                 ->setReferenceArticle($referenceArticle)
                 ->setLabel($label);
         }
