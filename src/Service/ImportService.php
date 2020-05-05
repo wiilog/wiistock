@@ -22,6 +22,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
+use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
@@ -492,7 +493,7 @@ class ImportService
                     ],
                     'commentaire' => [
                         'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_REF),
-                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null,
+                        'value' => isset($corresp['commentaire']) ? $corresp['commentaire'] : null
                     ],
                     'emergencyComment' => [
                         'needed' => $this->fieldIsNeeded('emergencyComment', Import::ENTITY_REF),
@@ -750,7 +751,7 @@ class ImportService
             } catch (Exception $e) {
                 $message = 'La date de dernier inventaire n\'est pas dans un format date.';
                 $this->throwError($message);
-            };
+            }
         }
         if ($isNewEntity) {
             if (empty($data['typeQuantite'])
@@ -931,7 +932,7 @@ class ImportService
         $article->setArticleFournisseur($articleFournisseur);
         if ($isNewEntity) {
             $refReferenceArticle = $refArticle->getReference();
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $formattedDate = $date->format('YmdHis');
             $article->setReference($refReferenceArticle . $formattedDate . $rowIndex);
         }

@@ -24,10 +24,10 @@
                                 <div class="checkbox d-inline-block pointer" onclick="toggleInputRadioOnRow(this)">
                                     {% set checked = (champ.label | capitalize in recherches ? 'checked' : '') %}
                                     <input class="form-check-input"
-                                           id="column_visible_input{{ loop.index }}"
+                                           id="column_search_input{{ loop.index }}"
                                            type="checkbox" {{ checked }} data-name="{{ champ.label  | capitalize}}"
                                            onclick="addToRapidSearch($(this))"/>
-                                    <label for="column_visible_input{{ loop.index }}" class="pointer"></label>
+                                    <label for="column_search_input{{ loop.index }}" class="pointer"></label>
                                 </div>
                             </td>
                         </tr>

@@ -81,7 +81,6 @@ function initActionOnCell(cell) {
 
 
 function showOrHideColumn(check, concernedTable, concernedTableColumns) {
-
     let columnName = check.data('name');
 
     let column = concernedTable.column(columnName + ':name');
