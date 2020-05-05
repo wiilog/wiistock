@@ -17,7 +17,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class Utilisateur implements UserInterface, EquatableInterface
 {
 	const COL_VISIBLE_ARTICLES_DEFAULT = ["Actions", "Libellé", "Référence", "Référence article", "Type", "Quantité", "Emplacement"];
-	const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
+    const COL_VISIBLE_REF_DEFAULT = ["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
+    const COL_VISIBLE_ARR_DEFAULT = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "duty", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
+    const COL_VISIBLE_LIT_DEFAULT = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
 	const SEARCH_DEFAULT = ["Libellé", "Référence"];
 
     /**
@@ -1168,10 +1170,12 @@ class Utilisateur implements UserInterface, EquatableInterface
 
     /**
      * @param mixed $columnsVisibleForLitige
+     * @return Utilisateur
      */
-    public function setColumnsVisibleForLitige($columnsVisibleForLitige): void
+    public function setColumnsVisibleForLitige($columnsVisibleForLitige): Utilisateur
     {
         $this->columnsVisibleForLitige = $columnsVisibleForLitige;
+        return $this;
     }
 
     /**
@@ -1184,10 +1188,12 @@ class Utilisateur implements UserInterface, EquatableInterface
 
     /**
      * @param mixed $columnsVisibleForArrivage
+     * @return Utilisateur
      */
-    public function setColumnsVisibleForArrivage($columnsVisibleForArrivage): void
+    public function setColumnsVisibleForArrivage($columnsVisibleForArrivage): Utilisateur
     {
         $this->columnsVisibleForArrivage = $columnsVisibleForArrivage;
+        return $this;
     }
 
     /**
