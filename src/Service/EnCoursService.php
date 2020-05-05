@@ -139,13 +139,14 @@ class EnCoursService
     }
 
     /**
-     * @param Emplacement[]|Emplacement
+     * @param $locations
      * @param array $natures
      * @param bool $onlyLate
+     * @param int $limit
      * @return array
      * @throws Exception
      */
-    public function getEnCours($locations, array $natures = [], bool $onlyLate = false): array {
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limit = null): array {
         $success = true;
         $emplacementInfo = [];
 
@@ -165,9 +166,8 @@ class EnCoursService
             $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
             $packIntelList = empty($natures)
-                ? $mouvementTracaRepository->getLastOnLocations($locations)
-                : $colisRepository->getPackIntelOnLocations($locations, $natures);
-
+                ? $mouvementTracaRepository->getLastOnLocations($locations, $limit)
+                : $colisRepository->getPackIntelOnLocations($locations, $natures, $limit);
             foreach ($packIntelList as $packIntel) {
                 $dateMvt = $packIntel['lastTrackingDateTime'];
                 $currentLocationId = $packIntel['currentLocationId'];

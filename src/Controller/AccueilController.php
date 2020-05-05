@@ -57,7 +57,7 @@ class AccueilController extends AbstractController
      *     name="dashboard_ext",
      *     methods={"GET"},
      *     requirements={
-     *         "page" = "(quai)|(admin)",
+     *         "page" = "(quai)|(admin)|(emballage)",
      *         "token" = "%dashboardToken%"
      *     }
      * )
@@ -492,8 +492,6 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
         $response = $dashboardService->getDataForReceptionAdminDashboard();
@@ -502,16 +500,29 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques/reception-quai",
-     *     name="get_indicators_reception_dock",
+     *     "/statistiques/monitoring-emballage",
+     *     name="get_indicators_monitoring_packaging",
      *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
+     *     methods="GET"
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
+        $response = $dashboardService->getDataForMonitoringPackagingDashboard();
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @Route(
+     *     "/statistiques/reception-quai",
+     *     name="get_indicators_reception_dock",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param DashboardService $dashboardService
+     * @return Response
      */
     public function getIndicatorsDockReception(DashboardService $dashboardService): Response
     {

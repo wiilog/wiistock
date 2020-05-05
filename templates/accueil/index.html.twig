@@ -3,26 +3,45 @@
 {% block wrapperClass 'd-flex flex-column' %}
 {% block pageContainerClass 'flex-grow-1 p-0' %}
 
-{% block title %}Dashboard | RÉCEPTION ARRIVAGE{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block page_content %}
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
-        <div id="carouselIndicators" class="carousel slide">
+        <div class="spinner-grow dashboard-spinner" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div id="carousel-dashboard" class="carousel slide">
             <ol class="carousel-indicators">
-                <li data-target="#carouselIndicators" data-slide-to="0" class="active"></li>
-                <li data-target="#carouselIndicators" data-slide-to="1"></li>
-                <li data-target="#carouselIndicators" data-slide-to="2"></li>
+                <li data-target="#carousel-dashboard"
+                    data-slide-to="0"
+                    data-name="arrivage"></li>
+                <li data-target="#carousel-dashboard"
+                    data-slide-to="1"
+                    data-name="quai"></li>
+                <li data-target="#carousel-dashboard"
+                    data-slide-to="2"
+                    data-name="admin"></li>
+                <li data-target="#carousel-dashboard"
+                    data-slide-to="3"
+                    data-name="emballage"></li>
             </ol>
 
             <div class="carousel-inner h-100">
-                <div class="carousel-item active">
+                <div class="carousel-item"
+                     data-name="arrivage">
                     {% include 'accueil/dashboardArrival.html.twig' %}
                 </div>
-                <div class="carousel-item">
+                <div class="carousel-item"
+                     data-name="quai">
                     {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
                 </div>
-                <div class="carousel-item">
+                <div class="carousel-item"
+                     data-name="admin">
                     {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
+                </div>
+                <div class="carousel-item"
+                     data-name="emballage">
+                    {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
                 </div>
             </div>
             <div class="row">
@@ -41,5 +60,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src = "{{ asset('js/dashboard.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/dashboard.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
