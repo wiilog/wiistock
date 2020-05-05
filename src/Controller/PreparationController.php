@@ -392,7 +392,8 @@ class PreparationController extends AbstractController
                     'value' => $comment ?: '',
                     'isRaw' => true,
                     'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true
+                    'isScrollable' => true,
+                    'isNeededNotEmpty' => true
                 ],
             ]
         ]);
