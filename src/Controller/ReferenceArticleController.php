@@ -427,7 +427,7 @@ class ReferenceArticleController extends AbstractController
                     if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur. Vous ne pouvez pas le recréer."
+                            'msg' => "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur."
                         ]);
                     }
                 }
