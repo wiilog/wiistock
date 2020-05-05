@@ -226,6 +226,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             console.log('An error has been reported by DataTables: ', message);
         })
         .DataTable({
+            bAutoWidth: false,
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
             },
