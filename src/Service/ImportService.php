@@ -66,6 +66,7 @@ class ImportService
     private $mouvementStockService;
     private $logger;
     private $attachmentService;
+    private $articleFournisseurService;
 
     /** @var Import */
     private $currentImport;
@@ -77,6 +78,7 @@ class ImportService
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
                                 RefArticleDataService $refArticleDataService,
+                                ArticleFournisseurService $articleFournisseurService,
                                 MouvementStockService $mouvementStockService)
     {
 
@@ -89,6 +91,7 @@ class ImportService
         $this->mouvementStockService = $mouvementStockService;
         $this->logger = $logger;
         $this->attachmentService = $attachmentService;
+        $this->articleFournisseurService = $articleFournisseurService;
     }
 
     /**
@@ -1159,7 +1162,6 @@ class ImportService
      * @param string|null $articleFournisseurReference
      * @param string|null $fournisseurReference
      * @param ReferenceArticle|null $referenceArticle
-     * @param ArticleFournisseurService|null $articleFournisseurService
      * @return ArticleFournisseur|null
      * @throws ImportException
      * @throws NoResultException
@@ -1167,8 +1169,7 @@ class ImportService
      */
     private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
                                                       ?string $fournisseurReference,
-                                                      ?ReferenceArticle $referenceArticle,
-                                                        ?ArticleFournisseurService $articleFournisseurService): ?ArticleFournisseur
+                                                      ?ReferenceArticle $referenceArticle): ?ArticleFournisseur
     {
         $articleFournisseurRepository = $this->em->getRepository(ArticleFournisseur::class);
         // liaison article fournisseur
@@ -1185,7 +1186,7 @@ class ImportService
                     );
                 }
                 $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
-                $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
                     'fournisseur' => $fournisseur,
                     'reference' => $articleFournisseurReference,
                     'article-reference' =>$referenceArticle,
@@ -1224,11 +1225,11 @@ class ImportService
                 'fournisseur' => $fournisseur
             ]);
             if (empty($articleFournisseur)) {
-                $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
                     'label' => $referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom(),
                     'article-reference' => $referenceArticle,
                     'reference' => $referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference(),
-                    'fournisseur' =>$fournisseur
+                    'fournisseur' => $fournisseur
                 ]);
             }
         }
