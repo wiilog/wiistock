@@ -2,7 +2,7 @@ $('.select2').select2();
 
 $(function () {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#statut'), 'Statuts');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
     ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
 

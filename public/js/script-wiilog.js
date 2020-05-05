@@ -397,7 +397,7 @@ function toggleLivraisonCollecte($button) {
 
 function initEditorInModal(modal) {
     initEditor(modal + ' .editor-container');
-};
+}
 
 function initEditor(div) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
@@ -420,7 +420,7 @@ function initEditor(div) {
         });
     }
     return null;
-};
+}
 
 //passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div, quill = null) {
@@ -433,7 +433,7 @@ function setCommentaire(div, quill = null) {
     } else if (quill) {
         $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
     }
-};
+}
 
 //FONCTION REFARTICLE
 
@@ -666,11 +666,11 @@ function ajaxAutoUserInit(select, placeholder = '') {
 }
 
 function ajaxAutoDemandCollectInit(select) {
-    initSelect2(select, 'Numéro demande', 3, {route: 'get_demand_collect'});
+    initSelect2(select, 'Numéros de demande', 3, {route: 'get_demand_collect'});
 }
 
 function ajaxAutoDemandesInit(select) {
-    initSelect2(select, 'Numéro demande', 3, {route: 'get_demandes'});
+    initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
 let toggleRequiredChampsLibres = function (select, require) {

@@ -12,7 +12,7 @@ let pageLength;
 
 $(function () {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#statut'), 'Statuts');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
     InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
