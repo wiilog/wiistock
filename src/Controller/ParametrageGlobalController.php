@@ -14,7 +14,6 @@ use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
-use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
@@ -137,27 +136,27 @@ class ParametrageGlobalController extends AbstractController
      * @param Request $request
      * @param UserService $userService
      * @param AttachmentService $attachmentService
+     * @param EntityManagerInterface $entityManager
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param DimensionsEtiquettesRepository $dimensionsEtiquettesRepository
      * @return Response
      * @throws NonUniqueResultException
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  UserService $userService,
                                                  AttachmentService $attachmentService,
-                                                 ParametrageGlobalRepository $parametrageGlobalRepository,
-                                                 DimensionsEtiquettesRepository $dimensionsEtiquettesRepository): Response
+                                                 EntityManagerInterface $entityManager,
+                                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
         $data = $request->request->all();
-        $em = $this->getDoctrine()->getManager();
+        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
 
         $dimensions = $dimensionsEtiquettesRepository->findOneDimension();
         if (!$dimensions) {
             $dimensions = new DimensionsEtiquettes();
-            $em->persist($dimensions);
+            $entityManager->persist($dimensions);
         }
         $dimensions
             ->setHeight(intval($data['height']))
@@ -168,7 +167,7 @@ class ParametrageGlobalController extends AbstractController
         if (empty($parametrageGlobal)) {
             $parametrageGlobal = new ParametrageGlobal();
             $parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-            $em->persist($parametrageGlobal);
+            $entityManager->persist($parametrageGlobal);
         }
         $parametrageGlobal->setValue($data['param-bl-etiquette']);
 
@@ -178,7 +177,7 @@ class ParametrageGlobalController extends AbstractController
         if (empty($parametrageGlobal128)) {
             $parametrageGlobal128 = new ParametrageGlobal();
             $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
-            $em->persist($parametrageGlobal128);
+            $entityManager->persist($parametrageGlobal128);
         }
         $parametrageGlobal128->setValue($data['param-type-etiquette']);
 
@@ -187,7 +186,7 @@ class ParametrageGlobalController extends AbstractController
         if (empty($parametrageGlobalCL)) {
             $parametrageGlobalCL = new ParametrageGlobal();
             $parametrageGlobalCL->setLabel(ParametrageGlobal::CL_USED_IN_LABELS);
-            $em->persist($parametrageGlobalCL);
+            $entityManager->persist($parametrageGlobalCL);
         }
         $parametrageGlobalCL->setValue($data['param-cl-etiquette']);
 
@@ -199,11 +198,11 @@ class ParametrageGlobalController extends AbstractController
                 $parametrageGlobalLogo = new ParametrageGlobal();
                 $parametrageGlobalLogo
                     ->setLabel(ParametrageGlobal::FILE_FOR_LOGO);
-                $em->persist($parametrageGlobalLogo);
+                $entityManager->persist($parametrageGlobalLogo);
             }
             $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
         }
-        $em->flush();
+        $entityManager->flush();
 
         return new JsonResponse($data);
     }
@@ -407,8 +406,8 @@ class ParametrageGlobalController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $mailerServer = $mailerServerRepository->findOneMailerServer();
             if (!$mailerServer) {
-                $mailerServerNew = new MailerServer;
-                $em->persist($mailerServerNew);
+                $mailerServer = new MailerServer();
+                $em->persist($mailerServer);
             }
 
             $mailerServer
@@ -883,11 +882,27 @@ class ParametrageGlobalController extends AbstractController
                 ParametrageGlobal::DASHBOARD_LOCATION_WAITING_CLEARANCE_ADMIN => 'locationWaitingAdmin',
                 ParametrageGlobal::DASHBOARD_LOCATION_LITIGES => 'locationLitiges',
                 ParametrageGlobal::DASHBOARD_LOCATION_URGENCES => 'locationUrgences',
+                ParametrageGlobal::DASHBOARD_PACKAGING_1 => 'packaging1',
+                ParametrageGlobal::DASHBOARD_PACKAGING_2 => 'packaging2',
+                ParametrageGlobal::DASHBOARD_PACKAGING_3 => 'packaging3',
+                ParametrageGlobal::DASHBOARD_PACKAGING_4 => 'packaging4',
+                ParametrageGlobal::DASHBOARD_PACKAGING_5 => 'packaging5',
+                ParametrageGlobal::DASHBOARD_PACKAGING_6 => 'packaging6',
+                ParametrageGlobal::DASHBOARD_PACKAGING_7 => 'packaging7',
+                ParametrageGlobal::DASHBOARD_PACKAGING_8 => 'packaging8',
+                ParametrageGlobal::DASHBOARD_PACKAGING_RPA => 'packagingRPA',
+                ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE => 'packagingLitige',
+                ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE => 'packagingUrgence',
+                ParametrageGlobal::DASHBOARD_PACKAGING_DSQR => 'packagingDSQR',
+                ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT => 'packagingDestinationGT',
+                ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT => 'packagingOrigineGT',
             ];
 
             foreach ($listMultipleSelect as $labelParam => $selectId) {
                 $listId = $post->get($selectId);
-                $listIdStr = $listId ? is_array($listId) ? implode(',', $listId) : $listId : null;
+                $listIdStr = $listId
+                    ? (is_array($listId) ? implode(',', $listId) : $listId)
+                    : null;
                 $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
                 $param->setValue($listIdStr);
             }

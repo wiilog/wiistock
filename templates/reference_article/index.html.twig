@@ -1,78 +1,116 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Référentiel / Articles de référence{% endblock %}
+{% block title %}Stock | {{ 'reference.références'|trans }} {% endblock %}
+
+{% block page_filter %}
+    <div class="filterService m-4 pt-2">
+        <div class="filters filters-container row">
+            <div class="col text-center">
+                <div class="d-none row justify-content-center align-items-center h-100 pb-2" id="noFilters">
+                    <span class="no-filter col-auto">Aucun filtre...</span>
+                </div>
+                <div class="row" id="filters">
+                    {% for filter in filters %}
+                        {% include 'reference_article/oneFilter.html.twig' %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-primary btn-ripple mb-2" data-toggle="modal" data-target="#modalNewFilter">
+                    <i class="fas fa-filter mr-2"></i>Ajouter un filtre
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
 
 {% block page_content %}
-    <h1>
-        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-            Référence CEA
-        {% else %}
-            Référence
-        {% endif %}
-    </h1>
-
-    <div id="alerts">
-        <div class="alert alert-danger text-center d-none">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            <span class="error-msg"></span>
-        </div>
-    </div>
-
-    <div class='d-flex justify-content-end'>
-        <div class="dropleft">
-            <div class="btn btn-primary dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-cog"></i>
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto" title="référence">
+                <div id="alerts">
+                    <div class="alert alert-danger text-center d-none">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        <span class="error-msg"></span>
+                    </div>
+                </div>
             </div>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">Modifier colonnes</a>
-                <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">Recherche rapide</a>
-                <div class="statut dropdown-item" >
-                    Références actives seulement
-                    <label class="switch">
-                        <input class="checkbox" type="checkbox" {{ wantInactif == false ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
-                        <span class="slider round"></span>
-                    </label>
+            <div class="col-auto">
+                <div class="btn-group">
+                    {% if hasRightToCreate %}
+                        <button type="button" class="btn btn-primary split-button btn-ripple"
+                                data-toggle="modal" data-target="#modalNewRefArticle"
+                                data-backdrop="static" data-keyboard="false"
+                                onclick='initNewReferenceArticleEditor("#modalNewRefArticle")'>
+                            <span class="fa fa-plus mr-2"></span>Nouvel article de référence
+                        </button>
+                    {% elseif hasRightToExport %}
+                        <div tabindex="0"
+                             title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
+                             data-toggle="tooltip">
+                            <button type="button"
+                                    class="btn btn-primary split-button btn-ripple printButton {{ filters | length > 0 ? '' : 'btn-disabled' }}"
+                                    id="printTag"
+                                    onclick="printReferenceArticleBarCode($(this), event)">
+                                <span class="fa fa-print mr-2"></span>Impression des étiquettes
+                            </button>
+                        </div>
+                    {% endif %}
+                    <button type="button"
+                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                        {% if hasRightToCreate and hasRightToExport %}
+                            <div class="dropdown-item has-tooltip {{ filters | length > 0 ? 'pointer' : 'disabled user-select-none' }}"
+                                 id="printTag"
+                                 tabindex="0"
+                                 title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
+                                 onclick="printReferenceArticleBarCode($(this), event)">
+                                <span class="fa fa-print mr-2"></span>
+                                Impression des étiquettes
+                            </div>
+                        {% endif %}
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">
+                            <span class="fa fa-cog mr-2"></span>
+                            Gestion des colonnes
+                        </a>
+                        <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">
+                            <span class="fa fa-search mr-2"></span>
+                            Recherche rapide
+                        </a>
+                        <div class="statut dropdown-item">
+                            <div class="checkbox pl-0 pointer">
+                                <input id="toggleActivOrInactiv"
+                                       onchange="displayActifOrInactif($(this))"
+                                       class="styled"
+                                       type="checkbox" {{ wantInactif == false ? 'checked' : '' }}>
+                                <label for="toggleActivOrInactiv" class="pointer">
+                                    Références actives seulement
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
-        <div data-toggle="modal" data-target="#modalNewRefArticle" class="btn btn-action btn-primary"
-                   onclick='initNewReferenceArticleEditor("#modalNewRefArticle")'>
-            <i class="fa fa-plus mr-2"></i>Nouvel article de référence
-        </div>
-        {% endif %}
-        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title= {{ filters | length == 0 ?  "'Veuillez faire une recherche ou renseigner un filtre pour imprimer.'"  :" " }}>
-            <div data-toggle="modal" id="printTag" class="printButton {{ filters | length > 0 ? '' : 'btn-disabled' }} btn btn-action btn-primary"
-                 onclick="printReferenceArticleBarCode()">
-                <i class="fas fa-print"></i> Imprimer les étiquettes
-            </div>
-        </span>
-    </div>
-    <div class="row">
-        <div class="col-1">
-            <div class="btn btn-primary border-radius-light" data-toggle="modal" data-target="#modalNewFilter">
-                <i class="fas fa-filter mr-2"></i>ajouter un filtre
-            </div>
-
-            <div id="filters">
-                {% for filter in filters %}
-                    {% include 'reference_article/oneFilter.html.twig' %}
-                {% endfor %}
-            </div>
-        </div>
-        <div class="col-11">
-            <div class="d-flex justify-content-center" id="spinner">
-                <div class="spinner-border sizeLoader" role="status">
-                    <span class="sr-only">Loading...</span>
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-center" id="spinner">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
                 </div>
-            </div>
-            <div class="mr-3">
-                <table id="tableRefArticle_id" class="table table-striped table-bordered nowrap w-100 mr-3">
+                <table id="tableRefArticle_id" class="table nowrap w-100">
                 </table>
             </div>
         </div>
     </div>
-
     {% include "reference_article/modalDeleteRefArticle.html.twig" %}
     {% include "reference_article/modalEditRefArticle.html.twig" %}
     {% include "reference_article/modalNewRefArticle.html.twig" %}
@@ -92,6 +130,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src = "{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
-    <script src = "{{ asset('js/referenceArticle.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/referenceArticle.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

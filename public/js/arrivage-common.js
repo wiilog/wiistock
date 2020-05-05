@@ -3,9 +3,10 @@ let arrivageUrgentLoading = false;
 function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
-        const {autoHide, message, modalType, arrivalId, iconType} = alertConfig;
+        const {autoHide, message, modalType, arrivalId, iconType, autoPrint} = alertConfig;
         const nextAlertConfigs = alertConfigs.slice(1, alertConfigs.length);
-        if (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0) {
+
+        if (modalType !== 'yes-no-question' && nextAlertConfigs.length === 0 && autoPrint) {
             printArrival(response);
         }
         const buttonConfigs = [
@@ -18,7 +19,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             arrivageUrgentLoading = true;
                             $modal.find('.modal-footer-wrapper').addClass('d-none');
                             loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
+                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, alertConfig.postNb, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
                         }
                     }
                     else {
@@ -75,12 +76,12 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
     }
 }
 
-function setArrivalUrgent(newArrivalId, numeroCommande, arrivalResponseCreation, isCreation, arrivalsDatatable) {
+function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseCreation, isCreation, arrivalsDatatable) {
     const patchArrivalUrgentUrl = Routing.generate('patch_arrivage_urgent', {arrival: newArrivalId});
     $.ajax({
         type: 'PATCH',
         url: patchArrivalUrgentUrl,
-        data: {numeroCommande},
+        data: {numeroCommande, postNb},
         success: (secondResponse) => {
             arrivageUrgentLoading = false;
             if (secondResponse.success) {
@@ -132,8 +133,7 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         clearModal($modalNewArrivage);
     }
     else {
-        const arrivalShowUrl = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
-        window.location.href = arrivalShowUrl;
+        window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage)
     }
 }
 

@@ -1,28 +1,28 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ emplacementId }}' data-toggle='modal' data-target='#modalEditEmplacement'
-                    onclick="editRow($(this), Routing.generate('emplacement_api_edit', true), $('#modalEditEmplacement'), $('#submitEditEmplacement'))">
-                <i class='fas fa-pencil-alt'></i>
-            </div>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="d-none">
+                    <div class="action-on-click" data-id='{{ emplacementId }}' data-toggle='modal' data-target='#modalEditEmplacement'
+                         onclick="editRow($(this), Routing.generate('emplacement_api_edit', true), $('#modalEditEmplacement'), $('#submitEditEmplacement'))">
+                        <i class='fas fa-pencil-alt'></i>
+                    </div>
+                </div>
+            {% endif %}
+            <a class="dropdown-item"
+               href="{{ path('print_single_location_bar_code', {location: emplacementId}) }}">
+                <i class="fas fa-print mr-2"></i>Imprimer
+            </a>
+            {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
+                <div class="dropdown-item"
+                     onclick="checkAndDeleteRowEmplacement($(this))"
+                     data-id='{{ emplacementId }}'
+                     data-target='#modalDeleteEmplacement'
+                     data-toggle='modal'>
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
-
-    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::DELETE')) %}
-        <div>
-            <div class="btn btn-col-action"
-                 onclick="checkAndDeleteRowEmplacement($(this))"
-                 data-id='{{ emplacementId }}'
-                 data-target='#modalDeleteEmplacement'
-                 data-toggle='modal'>
-                <i class='fas fa-trash'></i>
-            </div>
-        </div>
-    {% endif %}
-    <div>
-        <a class="btn btn-col-action"
-           href="{{ path('print_single_location_bar_code', {location: emplacementId}) }}">
-            <i class="fas fa-print"></i>
-        </a>
     </div>
 </div>

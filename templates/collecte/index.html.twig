@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demandes de collecte{% endblock %}
+{% block title %}Demande | Collecte{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
@@ -9,22 +9,24 @@
         'callback': 'callbackSaveFilter'
     } %}
 {% endblock %}
-
 {% block page_content %}
-    <h1>Demandes de collecte</h1>
-
-    <div class='row'>
+    <div class="m-4 wii-page-card">
         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
-            <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary"
-                onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
-                <span class="fa fa-plus mr-2"></span>Nouvelle collecte
-            </a>
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple mb-3"
+                       onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
+                        <span class="fa fa-plus mr-2"></span>Nouvelle collecte
+                    </a>
+                </div>
+            </div>
         {% endif %}
-    </div>
-
-    <div>
-        <table id="tableCollecte_id" class="table table-striped table-bordered w-100">
-        </table>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableCollecte_id" class="table w-100">
+                </table>
+            </div>
+        </div>
     </div>
     {% include "collecte/modalNewCollecte.html.twig" %}
     {% include "collecte/modalEditCollecte.html.twig" %}

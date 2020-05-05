@@ -1,27 +1,34 @@
 $('.select2').select2();
 
 let pathFournisseur = Routing.generate('fournisseur_api');
-let tableFournisseur = $('#tableFournisseur_id').DataTable({
+let tableFournisseurConfig = {
     processing: true,
     serverSide: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax:{
+    paging: true,
+    scrollX: true,
+    order: [[1, 'desc']],
+    ajax: {
         "url": pathFournisseur,
         "type": "POST"
-    }, 
-        columns: [
-        { "data": 'Nom' },
-        { "data": 'Code de référence' },
-        { "data": 'Actions' },
+    },
+    columns: [
+        {"data": 'Actions', title: '', className: 'noVis'},
+        {"data": 'Nom', title: 'Nom'},
+        {"data": 'Code de référence', title: 'Code de référence'},
     ],
+    rowConfig: {
+        needsRowClickAction: true,
+    },
     columnDefs: [
-    { "orderable": false, "targets": 2 }
-]
-});
+        {
+            "orderable": false,
+            "targets": 0
+        }
+    ]
+};
+let tableFournisseur = initDataTable('tableFournisseur_id', tableFournisseurConfig);
 
-let modalNewFournisseur = $("#modalNewFournisseur"); 
+let modalNewFournisseur = $("#modalNewFournisseur");
 let submitNewFournisseur = $("#submitNewFournisseur");
 let urlNewFournisseur = Routing.generate('fournisseur_new', true);
 InitialiserModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, tableFournisseur, displayErrorFournisseur, false);
@@ -34,7 +41,7 @@ InitialiserModal(ModalDeleteFournisseur, SubmitDeleteFournisseur, urlDeleteFourn
 let modalModifyFournisseur = $('#modalEditFournisseur');
 let submitModifyFournisseur = $('#submitEditFournisseur');
 let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
-InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur,  tableFournisseur);
+InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur, tableFournisseur);
 
 function displayErrorFournisseur(data) {
     let modal = $('#modalNewFournisseur');

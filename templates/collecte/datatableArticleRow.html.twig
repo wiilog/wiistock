@@ -1,38 +1,42 @@
 <div class="d-flex">
-    {% if modifiable %}
-        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-            {% if type == 'reference' %}
-                <div>
-                    <div class="btn btn-col-action" data-id='{{ id }}' data-target='#modalEditArticle'
-                         data-toggle='modal'
-                         onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'))">
-                        <i class='fas fa-pencil-alt'></i>
+    <div class="dropdown dropright {{ not modifiable ? 'd-none' }}">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if modifiable %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                    {% if type == 'reference' %}
+                        <div class="d-none">
+                            <div class="action-on-click" data-id='{{ id }}' data-target='#modalEditArticle'
+                                 data-toggle='modal'
+                                 onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+                                <i class='fas fa-pencil-alt'></i>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="dropdown-item"
+                         onclick="deleteRowCollecte($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
+                         data-target='#modalDeleteArticle' data-toggle='modal' data-id='{{ id }}' data-name='{{ name }}'>
+                        <i class='fas fa-trash mr-2'></i>Supprimer
                     </div>
-                </div>
+                {% endif %}
+            {% else %}
+                {% if refArticleId is defined %}
+                    <div class="d-none">
+                        <div class="action-on-click" data-id='{{ refArticleId }}' data-target='#modalShowRefArticle'
+                             data-toggle='modal'
+                             onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
+                            <i class='fas fa-eye'></i>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-none">
+                        <div class="action-on-click" data-id='{{ id }}' data-target='#modalShowArticle' data-toggle='modal'
+                             onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+                            <i class='fas fa-eye'></i>
+                        </div>
+                    </div>
+                {% endif %}
             {% endif %}
-            <div>
-                <div class="btn btn-col-action"
-                     onclick="deleteRowCollecte($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
-                     data-target='#modalDeleteArticle' data-toggle='modal' data-id='{{ id }}' data-name='{{ name }}'>
-                    <i class='fas fa-trash'></i>
-                </div>
-            </div>
-        {% endif %}
-    {% endif %}
-    {% if refArticleId is defined %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ refArticleId }}' data-target='#modalShowRefArticle'
-                 data-toggle='modal'
-                 onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
-                <i class='fas fa-eye'></i>
-            </div>
         </div>
-    {% else %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ id }}' data-target='#modalShowArticle' data-toggle='modal'
-                 onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
-                <i class='fas fa-eye'></i>
-            </div>
-        </div>
-    {% endif %}
+    </div>
 </div>

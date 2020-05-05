@@ -3,13 +3,18 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
+use App\Entity\Utilisateur;
+use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -25,17 +30,30 @@ class ArrivageDataService
     private $mailerService;
     private $entityManager;
     private $specificService;
+    private $stringService;
+    private $translator;
+    private $valeurChampLibreService;
+    private $fieldsParamService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
                                 MailerService $mailerService,
                                 SpecificService $specificService,
+                                StringService $stringService,
+                                ValeurChampLibreService $valeurChampLibreService,
+                                FieldsParamService $fieldsParamService,
+                                TranslatorInterface $translator,
                                 Twig_Environment $templating,
                                 EntityManagerInterface $entityManager,
                                 Security $security)
     {
 
         $this->templating = $templating;
+        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->fieldsParamService = $fieldsParamService;
+        $this->translator = $translator;
+        $this->stringService = $stringService;
+        $this->stringService = $stringService;
         $this->router = $router;
         $this->entityManager = $entityManager;
         $this->userService = $userService;
@@ -53,8 +71,9 @@ class ArrivageDataService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Exception
      */
-    public function getDataForDatatable($params = null, $userId)
+    public function getDataForDatatable($params, $userId)
     {
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -98,7 +117,7 @@ class ArrivageDataService
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
-        $row = [
+        return [
             'id' => $arrivage->getId(),
             'NumeroArrivage' => $arrivage->getNumeroArrivage() ?? '',
             'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
@@ -115,13 +134,12 @@ class ArrivageDataService
             'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
             'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
             'Urgent' => $arrivage->getIsUrgent() ? 'oui' : 'non',
+            'url' => $url,
             'Actions' => $this->templating->render(
                 'arrivage/datatableArrivageRow.html.twig',
                 ['url' => $url, 'arrivage' => $arrivage]
             )
         ];
-
-        return $row;
     }
 
     /**
@@ -184,7 +202,6 @@ class ArrivageDataService
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
-            $this->entityManager->flush();
             $this->sendArrivalEmails($arrivage, $emergencies);
         }
     }
@@ -194,6 +211,7 @@ class ArrivageDataService
      * @param bool $askQuestion
      * @param Urgence[] $urgences
      * @return array
+     * @throws NonUniqueResultException
      */
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
@@ -203,6 +221,7 @@ class ArrivageDataService
 
         if ($askQuestion && $isArrivalUrgent) {
             $numeroCommande = $urgences[0]->getCommande();
+            $postNb = $urgences[0]->getPostNb();
 
             $posts = array_map(
                 function (Urgence $urgence) {
@@ -215,13 +234,15 @@ class ArrivageDataService
 
             if ($nbPosts == 0) {
                 $msgSedUrgent = "L'arrivage est-il urgent sur la commande $numeroCommande ?";
-            } else {
+            }
+            else {
                 if ($nbPosts == 1) {
                     $msgSedUrgent = "
                         Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
 					    L'avez-vous reçu dans cet arrivage ?
 					";
-                } else {
+                }
+                else {
                     $postsStr = implode(', ', $posts);
                     $msgSedUrgent = "
                         Les postes <span class=\"bold\">$postsStr</span> sont urgents sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
@@ -229,9 +250,12 @@ class ArrivageDataService
                     ";
                 }
             }
-        } else {
-            $numeroCommande = null;
         }
+        else {
+            $numeroCommande = null;
+            $postNb = null;
+        }
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         return [
             'autoHide' => (!$askQuestion && !$isArrivalUrgent),
@@ -242,8 +266,10 @@ class ArrivageDataService
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
+            'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
+            'postNb' => $postNb,
             'arrivalId' => $arrivage->getId()
         ];
     }
@@ -254,12 +280,12 @@ class ArrivageDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NonUniqueResultException
      */
     public function processEmergenciesOnArrival(Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
-
         $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
 
         if (!empty($numeroCommandeList)) {
@@ -270,6 +296,7 @@ class ArrivageDataService
                     $arrival->getDate(),
                     $arrival->getFournisseur(),
                     $numeroCommande,
+                    null,
                     $isSEDCurrentClient
                 );
 
@@ -277,11 +304,14 @@ class ArrivageDataService
                     if (!$isSEDCurrentClient) {
                         $this->setArrivalUrgent($arrival, $urgencesMatching);
                     } else {
-                        $alertConfigs[] = $this->createArrivalAlertConfig(
-                            $arrival,
-                            $isSEDCurrentClient,
-                            $urgencesMatching
-                        );
+                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
+                            return $this->createArrivalAlertConfig(
+                                $arrival,
+                                $isSEDCurrentClient,
+                                [$urgence]
+                            );
+                        }, $urgencesMatching);
+                        array_push($alertConfigs, ...$currentAlertConfig);
                     }
                 }
             }
@@ -292,5 +322,113 @@ class ArrivageDataService
         }
 
         return $alertConfigs;
+    }
+
+    public function createHeaderDetailsConfig(Arrivage $arrivage): array {
+        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        $provider = $arrivage->getFournisseur();
+        $carrier = $arrivage->getTransporteur();
+        $driver = $arrivage->getChauffeur();
+        $numeroCommandeList = $arrivage->getNumeroCommandeList();
+        $status = $arrivage->getStatut();
+        $destinataire = $arrivage->getDestinataire();
+        $buyers = $arrivage->getAcheteurs();
+        $comment = $arrivage->getCommentaire();
+        $attachments = $arrivage->getAttachements();
+
+        $detailsChampLibres = $arrivage
+            ->getValeurChampLibre()
+            ->map(function (ValeurChampLibre $valeurChampLibre) {
+                $champLibre = $valeurChampLibre->getChampLibre();
+                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
+                return [
+                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
+                    'value' => $value
+                ];
+            })
+            ->toArray();
+
+        $config = [
+            [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
+            [
+                'label' => 'Fournisseur',
+                'value' => $provider ? $provider->getNom() : '',
+                'show' => [ 'fieldName' => 'fournisseur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Transporteur',
+                'value' => $carrier ? $carrier->getLabel() : '',
+                'show' => [ 'fieldName' => 'transporteur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'Chauffeur',
+                'value' => $driver ? $driver->getNom() : '',
+                'show' => [ 'fieldName' => 'chauffeur', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'N° tracking transporteur',
+                'value' => $arrivage->getNoTracking(),
+                'show' => [ 'fieldName' => 'noTracking', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => 'N° commandes / BL',
+                'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : '',
+                'show' => [ 'fieldName' => 'numeroCommandeList', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.destinataire'),
+                'labelTitle' => 'destinataire',
+                'value' => $destinataire ? $destinataire->getUsername() : '',
+                'show' => [ 'fieldName' => 'destinataire', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.acheteurs'),
+                'labelTitle' => 'acheteurs',
+                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
+                'show' => [ 'fieldName' => 'acheteurs', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.douane'),
+                'labelTitle' => 'douane',
+                'value' => $arrivage->getDuty() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'duty', 'action' => 'displayed' ]
+            ],
+            [
+                'label' => $this->translator->trans('arrivage.congelé'),
+                'labelTitle' => 'congelé',
+                'value' => $arrivage->getFrozen() ? 'oui' : 'non',
+                'show' => [ 'fieldName' => 'frozen', 'action' => 'displayed' ]
+            ]
+        ];
+
+        $configFiltered =  array_filter($config, function ($fieldConfig) use ($fieldsParam) {
+            return (
+                !isset($fieldConfig['show'])
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], $fieldConfig['show']['action'])
+            );
+        });
+
+        return array_merge(
+            $configFiltered,
+            $detailsChampLibres,
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
+                ? [[
+                'label' => 'Commentaire',
+                'value' => $comment ?: '',
+                'isRaw' => true,
+                'colClass' => 'col-sm-6 col-12',
+                'isScrollable' => true
+            ]]
+                : [],
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayed')
+                ? [[
+                    'label' => 'Pièces jointes',
+                    'value' => $attachments->toArray(),
+                    'isAttachments' => true
+                ]]
+                : []
+        );
     }
 }

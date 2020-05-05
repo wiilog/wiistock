@@ -21,6 +21,7 @@ class ValeurChampLibreService {
         if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
             try {
+                $valeurChampLibre['valeur'] = str_replace('T', ' ', $valeurChampLibre['valeur']);
                 $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
                 $hourFormat = ($valeurChampLibre['typage'] === ChampLibre::TYPE_DATETIME) ? ' H:i' : '';
                 $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
@@ -32,6 +33,27 @@ class ValeurChampLibreService {
         else {
             $formattedValue = $valeurChampLibre['valeur'];
         }
+        return $formattedValue;
+    }
+
+    public function formatValeurChampLibreForShow(ValeurChampLibre $valeurChampLibre): ?string {
+        $typage = $valeurChampLibre->getChampLibre()->getTypage();
+        $value = $valeurChampLibre->getValeur();
+
+        if ($typage === ChampLibre::TYPE_BOOL) {
+            $formattedValue = (($value == 1) ? 'oui' : 'non');
+        }
+        else if ($typage === ChampLibre::TYPE_LIST_MULTIPLE
+            && !empty($value)) {
+            $formattedValue = str_replace(';', ',', $value);
+        }
+        else {
+            $formattedValue = $this->formatValeurChampLibreForDatatable([
+                'valeur' => $value,
+                'typage' => $typage
+            ]);
+        }
+
         return $formattedValue;
     }
 

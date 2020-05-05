@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Acheminements{% endblock %}
+{% block title %}Traçabilité | Acheminements{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -10,22 +10,29 @@
 {% endblock %}
 
 {% block page_content %}
-    <h1>Acheminements</h1>
-
-    <div class="row">
-        {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
-            <a href="" data-toggle="modal" data-target="#modalNewAcheminements" class="btn btn-primary" onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
-                <span class="fa fa-plus mr-2"></span>Nouvel acheminement
-            </a>
-        {% endif %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalNewAcheminements"
+                                class="btn btn-primary btn-ripple"
+                                onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
+                            <span class="fa fa-plus mr-2"></span>Nouvel acheminement
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableAcheminement" class="table w-100"></table>
+            </div>
+        </div>
     </div>
 
-    <div>
-        <table id="tableAcheminement" class="table table-striped table-bordered w-100">
-        </table>
-    </div>
-    <div hidden id="barcodes"></div>
-    <div id="barcode"></div>
     {% include "acheminements/modalNewAcheminements.html.twig" %}
     {% include "acheminements/modalEditAcheminements.html.twig" %}
     {% include "acheminements/modalDeleteAcheminements.html.twig" %}

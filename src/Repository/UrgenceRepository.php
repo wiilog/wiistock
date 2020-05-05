@@ -36,13 +36,16 @@ class UrgenceRepository extends ServiceEntityRepository
      * @param DateTime $arrivalDate
      * @param Fournisseur $arrivalProvider
      * @param string $numeroCommande
+     * @param string|null $postNb
      * @param bool $excludeTriggered
      * @return Urgence[]
      */
     public function findUrgencesMatching(DateTime $arrivalDate,
                                          ?Fournisseur $arrivalProvider,
                                          ?string $numeroCommande,
-                                         $excludeTriggered = false): array {
+                                         ?string $postNb,
+                                         $excludeTriggered = false): array
+    {
         $res = [];
         if (!empty($arrivalProvider)
             && !empty($numeroCommande)) {
@@ -53,6 +56,12 @@ class UrgenceRepository extends ServiceEntityRepository
                 ->setParameter('date', $arrivalDate)
                 ->setParameter('provider', $arrivalProvider)
                 ->setParameter('numeroCommande', $numeroCommande);
+
+            if (!empty($postNb)) {
+                $queryBuilder
+                    ->andWhere('u.postNb = :postNb')
+                    ->setParameter('postNb', $postNb);
+            }
 
             if ($excludeTriggered) {
                 $queryBuilder->andWhere('u.lastArrival IS NULL');
@@ -70,6 +79,7 @@ class UrgenceRepository extends ServiceEntityRepository
      * @param DateTime $dateEnd
      * @param Fournisseur|null $provider
      * @param string|null $numeroCommande
+     * @param string|null $numeroPoste
      * @param array $urgenceIdsExcluded
      * @return int
      * @throws NoResultException
@@ -79,7 +89,9 @@ class UrgenceRepository extends ServiceEntityRepository
                                          DateTime $dateEnd,
                                          ?Fournisseur $provider,
                                          ?string $numeroCommande,
-                                         array $urgenceIdsExcluded = []): int {
+                                         ?string $numeroPoste,
+                                         array $urgenceIdsExcluded = []): int
+    {
 
         $queryBuilder = $this->createQueryBuilder('u');
 
@@ -94,12 +106,16 @@ class UrgenceRepository extends ServiceEntityRepository
             ))
             ->andWhere('u.provider = :provider')
             ->andWhere('u.commande = :commande')
-            ->setParameters([
-                'dateStart' => $dateStart,
-                'dateEnd' => $dateEnd,
-                'provider' => $provider,
-                'commande' => $numeroCommande,
-            ]);
+            ->setParameter('dateStart', $dateStart)
+            ->setParameter('dateEnd', $dateEnd)
+            ->setParameter('provider', $provider)
+            ->setParameter('commande', $numeroCommande);
+
+        if (!empty($numeroPoste)) {
+            $queryBuilder
+                ->andWhere('u.postNb = :postNb')
+                ->setParameter('postNb', $numeroPoste);
+        }
 
         if (!empty($urgenceIdsExcluded)) {
             $queryBuilder
@@ -116,14 +132,26 @@ class UrgenceRepository extends ServiceEntityRepository
      * @return mixed
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
-    public function countUnsolved() {
+    public function countUnsolved(bool $daily = false)
+    {
         $queryBuilder = $this->createQueryBuilder('urgence')
             ->select('COUNT(urgence)')
             ->where('urgence.dateStart < :now')
             ->andWhere('urgence.lastArrival IS NULL')
             ->setParameter('now', new DateTime('now', new DateTimeZone('Europe/Paris')));
-
+        if ($daily) {
+            $todayEvening = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $todayEvening->setTime(23, 59, 59, 59);
+            $todayMorning = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $todayMorning->setTime(0, 0, 0, 1);
+            $queryBuilder
+                ->andWhere('urgence.dateEnd < :todayEvening')
+                ->andWhere('urgence.dateEnd > :todayMorning')
+                ->setParameter('todayEvening', $todayEvening)
+                ->setParameter('todayMorning', $todayMorning);
+        }
         return $queryBuilder
             ->getQuery()
             ->getSingleScalarResult();
@@ -140,42 +168,42 @@ class UrgenceRepository extends ServiceEntityRepository
 
         $countTotal = count($qb->getQuery()->getResult());
 
-		// filtres sup
-		foreach ($filters as $filter) {
-			switch ($filter['field']) {
-				case 'commande':
-					$qb->andWhere('u.commande = :commande')
-						->setParameter('commande', $filter['value']);
-					break;
-				case 'dateMin':
-					$qb->andWhere('u.dateEnd >= :dateMin')
-						->setParameter('dateMin', $filter['value'] . " 00:00:00");
-					break;
-				case 'dateMax':
-					$qb->andWhere('u.dateStart <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
-					break;
-			}
-		}
+        // filtres sup
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'commande':
+                    $qb->andWhere('u.commande = :commande')
+                        ->setParameter('commande', $filter['value']);
+                    break;
+                case 'dateMin':
+                    $qb->andWhere('u.dateEnd >= :dateMin')
+                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                    break;
+                case 'dateMax':
+                    $qb->andWhere('u.dateStart <= :dateMax')
+                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                    break;
+            }
+        }
 
         //Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                	$exprBuilder = $qb->expr();
+                    $exprBuilder = $qb->expr();
                     $qb
-						->leftJoin('u.buyer', 'b_search')
-						->leftJoin('u.provider', 'p_search')
-						->leftJoin('u.carrier', 'c_search')
+                        ->leftJoin('u.buyer', 'b_search')
+                        ->leftJoin('u.provider', 'p_search')
+                        ->leftJoin('u.carrier', 'c_search')
                         ->andWhere($exprBuilder->orX(
-                        	'u.commande LIKE :value',
-							'u.postNb LIKE :value',
-							'u.trackingNb LIKE :value',
-							'b_search.username LIKE :value',
-							'p_search.nom LIKE :value',
-							'c_search.label LIKE :value'
-							))
+                            'u.commande LIKE :value',
+                            'u.postNb LIKE :value',
+                            'u.trackingNb LIKE :value',
+                            'b_search.username LIKE :value',
+                            'p_search.nom LIKE :value',
+                            'c_search.label LIKE :value'
+                        ))
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -184,26 +212,26 @@ class UrgenceRepository extends ServiceEntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ??
-						$params->get('columns')[$params->get('order')[0]['column']]['data'];
+                        $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     switch ($column) {
-						case 'provider':
-							$qb
-								->leftJoin('u.provider', 'p_order')
-								->orderBy('p_order.nom', $order);
-							break;
-						case 'carrier':
-							$qb
-								->leftJoin('u.carrier', 'c_order')
-								->orderBy('c_order.label', $order);
-							break;
-						case 'buyer':
-							$qb
-								->leftJoin('u.buyer', 'b_order')
-								->orderBy('b_order.username', $order);
-							break;
-						default:
-							$qb->orderBy('u.' . $column, $order);
-					}
+                        case 'provider':
+                            $qb
+                                ->leftJoin('u.provider', 'p_order')
+                                ->orderBy('p_order.nom', $order);
+                            break;
+                        case 'carrier':
+                            $qb
+                                ->leftJoin('u.carrier', 'c_order')
+                                ->orderBy('c_order.label', $order);
+                            break;
+                        case 'buyer':
+                            $qb
+                                ->leftJoin('u.buyer', 'b_order')
+                                ->orderBy('b_order.username', $order);
+                            break;
+                        default:
+                            $qb->orderBy('u.' . $column, $order);
+                    }
                 }
             }
         }

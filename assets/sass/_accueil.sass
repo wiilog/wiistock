@@ -12,6 +12,16 @@
     left: 0
     right: 0
 
+.dashboard-spinner
+    height: 200px
+    width: 200px
+    position: absolute
+    left: 50%
+    top: 50%
+    margin-top: -100px
+    margin-left: -100px
+    color: $blueGT
+
 .alert-danger
     padding: 10px
     text-align: center
@@ -20,35 +30,44 @@
     min-width: 50%
     min-height: 40%
 
-.dashboard-box-wrapper
+.dashboard-box-container
     &.side-panels
         height: 15vh
+        .dashboard-ext &
+            height: 14.5vh
 
     &.fourth-height
-        height: 18vh
+        height: 16vh
+        .dashboard-ext &
+            height: 18vh
 
     &.third-height
-        height: 33vh
-
+        height: 31vh
+    &.third-row-height
+        height: 22vh
+        .dashboard-ext &
+            height: 26vh
+    &.fourth-row-height
+        height: 15.5vh
+        &.dashboard-ext
+            height: 16vh
     &.half-height
-        height: 41vh
-
-    &:not(:first-child)
-        padding-left: 16px
+        height: 38vh
+        .dashboard-ext &
+            height: 41vh
 
     .dashboard-box
         border-radius: 8px
         display: flex
         flex-direction: column
-        justify-content: center
+        justify-content: space-around
         box-shadow: 2px 2px 3px grey
         height: 100%
         position: relative
         background: $white
         padding: .5rem
 
-        .dashboard-box-ext
-            padding: 1rem
+
 
         &.dashboard-box-list
             .title
@@ -57,11 +76,14 @@
                 line-height: 1.5
 
         .title
-            line-height: 1
-            font-size: 1.35rem
-            margin-bottom: .5rem
-            padding: 0px
+            line-height: .9
+            font-size: 1vw
+            margin-bottom: .3rem
+            padding: 0
             color: $blackDashboard
+            .dashboard-ext &
+                font-size: 2.5vh
+                font-weight: bold
 
         .location-label
             line-height: 1
@@ -90,13 +112,35 @@
         .dataTables_wrapper, span
             font-size: .8em
 
+
+        &.dashboard-stats-container
+            .dashboard-ext &
+                padding-left: 2px
+                padding-right: 2px
+
+            .dashboard-stats
+                font-weight: bold
+                color: $blueNeon
+                cursor: default
+                //font-size: 9vh
+                font-size: 3vw
+                line-height: 0.8
+                &.dashboard-stats-delay
+                    font-size: 3vh
+                &.dashboard-stats-counter
+                    font-size: 3vw
+                    .dashboard-ext &
+                        font-size: 8vh
+
+            &.dashboard-stats-label
+                font-size: 2.5vw
+                .dashboard-ext &
+                    font-size: 5vh
+
         .dashboard-box-content
-            height: 325px
             padding: 10px
-            @media (max-width: $breakpointSmallScreen)
-                height: 220px
-            //&.dashboard-box-content-small
-            //    height: 220px
+            height: 100%
+
             .range-buttons
                 position: absolute
                 margin-left: auto
@@ -114,13 +158,6 @@
                 align-items: center
                 display: flex
                 justify-content: center
-
-.figure
-    font-weight: bold
-    color: $blueNeon
-    cursor: default
-    font-size: 3rem
-    line-height: 0.8
 
 .home-card
     background-color: $lightGrey
@@ -162,11 +199,19 @@
     border-radius: 5px
     cursor: pointer
 
+    .icon
+        background-color: $white
+        width: 20px
+        height: 20px
+        display: block
+        -webkit-mask: url('../../public/svg/plusblanc.svg') no-repeat center
+        mask: url('../../public/svg/plusblanc.svg') no-repeat center
+
     &:hover
         background-color: $white
 
-        svg > path
-            fill: $backgroundBodyColorDark
+        .icon
+            background-color: $backgroundBodyColorDark
 
 .indicators
     position: absolute
@@ -182,13 +227,10 @@
     font-size: .8rem
 
     &:hover
-        background-image: linear-gradient(to right, #2e3192, #1b1464)
+        @extend .bg-primary-followgt
         border-radius: 5px
         color: white
         cursor: pointer !important
-
-.degrade
-    background-image: linear-gradient(-15.7deg, #1b1464, #2e5492)
 
 .space
     @media (max-height: 1800px)
@@ -196,12 +238,6 @@
     @media (min-height: 1801px)
         margin-top: 2.1rem
 
-
 .lh
     line-height: 1em
     margin-bottom: 0
-
-#statistics-arrival-carriers
-    p
-        font-size: 1vw
-

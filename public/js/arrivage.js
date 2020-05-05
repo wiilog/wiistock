@@ -1,38 +1,47 @@
-let onFlyFormOpened = {};
-let clicked = false;
 $('.select2').select2();
 
-$(function() {
+let modalColumnVisible = $('#modalColumnVisibleArrivage');
+let submitColumnVisible = $('#submitColumnVisibleArrivage');
+let modalEditArrivage = $('#modalEditArrivage');
+let submitEditArrivage = $('#submitEditArrivage');
+let urlEditArrivage = Routing.generate('arrivage_edit', true);
+let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
+let onFlyFormOpened = {};
+let clicked = false;
+let pageLength;
+
+$(function () {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2($('#statut'), 'Statut');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
-
-    // filtres enregistrés en base pour chaque utilisateur
+    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+    initModalWithAttachments(modalEditArrivage, submitEditArrivage, urlEditArrivage, tableArrivage);
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
-
+    registerDropdownPosition();
     $.post(path, params, function (data) {
         displayFiltersSup(data);
         initFilterDateToday();
     }, 'json');
-
+    pageLength = Number($('#pageLengthForArrivage').val());
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Destinataires');
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
-    $('select[name="tableArrivages_length"]').on('change', function() {
-        $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify($(this).val()));
+    $('select[name="tableArrivages_length"]').on('change', function () {
+        let newValue = Number($(this).val());
+        if (newValue && newValue !== pageLength) {
+            $.post(Routing.generate('update_user_page_length_for_arrivage'), JSON.stringify(newValue));
+            pageLength = newValue;
+        }
     });
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
-let tableArrivage = $('#tableArrivages').DataTable({
-    responsive: true,
+let tableArrivage;
+let tableArrivageConfig = {
     serverSide: true,
     processing: true,
-    pageLength: $('#pageLengthForArrivage').val(),
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+    pageLength: Number($('#pageLengthForArrivage').val()),
     order: [[1, "desc"]],
     scrollX: true,
     ajax: {
@@ -40,14 +49,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
         "type": "POST",
         'data': {
             'clicked': () => clicked,
-        }
-    },
-    drawCallback: function(resp) {
-        overrideSearch($('#tableArrivages_filter input'), tableArrivage);
-        hideColumns(tableArrivage, resp.json.columnsToHide);
+        },
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'actions', 'title': ''},
         {"data": 'Date', 'name': 'date', 'title': 'Date'},
         {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
         {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
@@ -63,10 +68,11 @@ let tableArrivage = $('#tableArrivages').DataTable({
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
         {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
+        {"data": 'url', 'name': 'url', 'title': 'url', visible: false},
     ],
     columnDefs: [
         {
-            targets: 0,
+            targets: [0, 16],
             className: 'noVis'
         },
         {
@@ -74,36 +80,46 @@ let tableArrivage = $('#tableArrivages').DataTable({
             targets: [0]
         }
     ],
-    headerCallback: function(thead) {
+    headerCallback: function (thead) {
         $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
         $(thead).find('th').eq(8).attr('title', "destinataire");
         $(thead).find('th').eq(9).attr('title', "acheteurs");
     },
-    "rowCallback" : function(row, data) {
-        if (data.urgent === true) $(row).addClass('table-danger');
+    domConfig: {
+        needsFullDomOverride: true
     },
-    dom: '<"row"<"col-4"B><"col-4"l><"col-4"f>>t<"bottom"ip>r',
+    rowConfig: {
+        needsDangerColor: true,
+        needsRowClickAction: true,
+        dataToCheck: 'urgent'
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+        needsColumnShow: true,
+        filterId: 'tableArrivages_filter'
+    },
     buttons: [
         {
             extend: 'colvis',
             columns: ':not(.noVis)',
-            className: 'dt-btn'
+            className: 'd-none'
         },
-        // {
-        //     extend: 'csv',
-        //     className: 'dt-btn'
-        // }
+
     ],
     "lengthMenu": [10, 25, 50, 100],
-});
+};
 
+tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
+tableArrivage.on('responsive-resize', function (e, datatable) {
+    datatable.columns.adjust().responsive.recalc();
+});
 function listColis(elem) {
     let arrivageId = elem.data('id');
     let path = Routing.generate('arrivage_list_colis_api', true);
     let modal = $('#modalListColis');
-    let params = { id: arrivageId };
+    let params = {id: arrivageId};
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
 }

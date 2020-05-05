@@ -1,27 +1,35 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Paramétrage rôles{% endblock %}
+{% block title %}Paramétrage | Rôles{% endblock %}
 
 {% block page_content %}
-
-    <h1>Rôles</h1>
-
-    <div class='col-12 mb-5'>
-        <a href="" data-toggle="modal" data-target="#modalNewRole" class="btn btn-primary">
-            <span class="fa fa-plus mr-2"></span>Nouveau rôle
-        </a>
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <a href=""
+                       data-toggle="modal"
+                       data-target="#modalNewRole"
+                       class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>Nouveau rôle
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableRoles" class="table w-100">
+                </table>
+            </div>
+        </div>
     </div>
-
-    <table id="tableRoles" class="table table-striped table-bordered w-100">
-    </table>
-
     {% include 'role/modalNewRole.html.twig' %}
     {% include 'role/modalEditRole.html.twig' %}
     {% include 'role/modalDeleteRole.html.twig' %}
 
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/role.js') }}?{{ date().timestamp }}"></script>
-{% endblock %}
+        {% block javascripts %}
+            {{ parent() }}
+            <script src="{{ asset('js/role.js') }}?{{ date().timestamp }}"></script>
+        {% endblock %}

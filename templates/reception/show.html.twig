@@ -1,111 +1,94 @@
 {% extends "layout.html.twig" %}
-{% block title %}{{ 'réception.réception'|trans }}{% endblock %}
+{% block title %}Ordre | {{ 'réception.réception'|trans }} | Détails{% endblock %}
 {% block page_content %}
-
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
-
-    <div class="row">
-        <div class="col">
-            <h1 title="réception">{{ 'réception.réception'|trans }}</h1>
-            <input id="receptionId" value="{{ reception.id }}" type="hidden">
+    <div class="m-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include "reception/reception-show-header.html.twig" with {
+                        showDetails: detailsHeader,
+                        modifiable: modifiable,
+                        reception: reception
+                    } %}
+                </div>
+            </div>
         </div>
-        <div class="col text-right">
-            {% if modifiable %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                    <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
-                       class="btn btn-danger btn-action ml-auto"
-                       onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
-                        Supprimer</a>
-                {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0 %}
-                    <a href="{{path('demande_index', {'reception': reception.id }) }}"class="btn btn-primary btn-action ml-auto">
-                        Voir les demandes</a>
-                {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                    <a href="" data-target='#modalNewLigneReception' data-toggle='modal'
-                       onclick='clearModalLigneReception("#modalNewLigneReception"), initNewLigneReception()'
-                       class="btn btn-primary btn-action ml-auto" title="réception">
-                        {{ 'réception.réception'|trans }}</a>
-                {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                    <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
-                       class="btn btn-primary btn-action ml-auto"
-                       onclick="editRow(
-                           $(this),
-                           Routing.generate('api_reception_edit', true),
-                           $('#modalEditReception'),
-                           $('#submitEditReception'),
-                           true,
-                           '.editor-container-edit',
-                           false,
-                           initEditReception
-                       )">
-                        Modifier</a>
-                    <div class="btn btn-primary btn-action ml-auto" onclick="finishReception({{ reception.id }}, false)">
-                        Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
+        <div class="row mt-3">
+            <div class="{{ displayLitiges ? 'col-6' : 'col-12' }}">
+                <div class="wii-page-card">
+                    <div class="row wii-page-card-header">
+                        <div class="col-auto ml-auto">
+                            <div class="btn-group">
+                                {% if modifiable %}
+                                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                                        <button type="button"
+                                                data-toggle="modal"
+                                                data-target="#modalAddLigneArticle"
+                                                class="btn btn-primary btn-ripple split-button"
+                                                onclick="initNewArticleEditor('#modalAddLigneArticle'),
+                                                ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
+                                            <span class="fa fa-plus mr-2"></span>Ajouter <span title="article">{{ 'réception.article'|trans }}</span>
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                                <button type="button"
+                                        class="btn btn-primary btn-ripple d-none print dropdown-toggle dropdown-toggle-split"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
+                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                    <a href="{{ path('reception_bar_codes_print', {reception: reception.id}) }}"
+                                       id="buttonPrintMultipleBarcodes"
+                                       class="dropdown-item d-none print">
+                                        <span class="fa fa-print mr-2"></span>Générer les étiquettes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="tableArticle_id" class="table"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if displayLitiges %}
+                <div class="col-6">
+                    <div class="wii-page-card">
+                        {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
+                            <div class="row wii-page-card-header">
+                                <div class="col-auto ml-auto">
+                                    <button type="button"
+                                            data-id='{{ reception.id }}'
+                                            data-target='#modalNewLitige'
+                                            data-toggle='modal'
+                                            class="btn btn-primary btn-ripple"
+                                            onclick="openNewLitigeModal($(this))">
+                                        <i class="fa fa-plus mr-2"></i>
+                                        Nouveau litige
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-12">
+                                <table id="tableReceptionLitiges" class="table w-100"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endif %}
         </div>
-    </div>
-    <div class="row zone-entete">
-        {% include "reception/enteteReception.html.twig" %}
-    </div>
-
-    <div class="row mt-2">
-        <div class="{{ displayLitiges ? 'col-6' : 'col-12' }}">
-            <div class="text-right mh-60px">
-                {% if modifiable %}
-                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                        <a href="" data-toggle="modal" data-target="#modalAddLigneArticle"
-                           class="btn btn-primary btn-action ml-auto"
-                           onclick="initNewArticleEditor('#modalAddLigneArticle'),
-                           ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
-                            <span class="fa fa-plus mr-2"></span>Ajouter <span title="article">{{ 'réception.article'|trans }}</span>
-                        </a>
-                    {% endif %}
-                {% endif %}
-                {# by default we hide button #}
-                <a href="{{path('reception_bar_codes_print', {reception: reception.id})}}"
-                   id="buttonPrintMultipleBarcodes"
-                   class="btn btn-primary btn-action ml-auto d-none">
-                    <span class="fa"></span>Générer les étiquettes
-                </a>
-            </div>
-            <div>
-                <table id="tableArticle_id" class="table table-striped table-bordered w-100">
-                </table>
-            </div>
-        </div>
-        {% if displayLitiges %}
-            <div class="col-6">
-                <div class="text-right mh-60px">
-                    {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
-                        <a href=""
-                           data-id='{{ reception.id }}'
-                           data-target='#modalNewLitige'
-                           data-toggle='modal'
-                           class="btn btn-primary btn-action ml-auto"
-                           onclick="openNewLitigeModal($(this))">
-                            <i class="fa fa-plus mr-2"></i>
-                            Nouveau litige</a>
-                    {% endif %}
-                </div>
-                <div>
-                    <table id="tableReceptionLitiges" class="table table-striped table-bordered w-100"></table>
-                </div>
-            </div>
-        {% endif %}
     </div>
     <button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'
             hidden></button>
     <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
     <button class="btn" id="finishReception" data-target='#modalFinishReception' data-toggle='modal' hidden></button>
     <input type="number" id="ligneSelected" value="-1" hidden></button>
-    <a href="{{ path('reception_index') }}" class='btn btn-action'>Retour à la liste</a>
-
-    <div class="d-none" id="barcodes">
-    </div>
 
 
     {% include "reception/modalDeleteReception.html.twig" %}
@@ -128,8 +111,8 @@
 {% block javascripts %}
     {{ parent() }}
 
-    <script src="{{asset('js/form-reference-article.js')}}?{{ date().timestamp }}"></script>
-    <script src="{{asset('js/attachments.js')}}?{{ date().timestamp }}"></script>
-    <script src="{{asset('js/reception-show.js')}}?{{ date().timestamp }}"></script>
-    <script src="{{asset('js/form-litiges.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/reception-show.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

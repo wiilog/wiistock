@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
+use App\Entity\Menu;
 use App\Entity\Type;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,10 +27,16 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/", name="champ_libre_index", methods={"GET"})
      * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
      * @return Response
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager,
+                          UserService $userService): Response
     {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CL)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         return $this->render('champ_libre/index.html.twig', [
             'category' => $categoryTypeRepository->findAll(),

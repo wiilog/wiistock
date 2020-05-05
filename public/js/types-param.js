@@ -1,19 +1,21 @@
 let pathTypes = Routing.generate('types_param_api', true);
-let tableTypes = $('#tableTypes').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax:{
+let tableTypesConfig = {
+    order: [1, 'asc'],
+    ajax: {
         "url": pathTypes,
         "type": "POST"
     },
-    columns:[
-        { "data": 'Categorie', 'title' : 'Catégorie' },
-        { "data": 'Label', 'title' : 'Label' },
-        { "data": 'Description', 'title' : 'Description' },
-        { "data": 'Actions', 'title' : 'Actions' }
+    columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
+        {"data": 'Categorie', 'title': 'Catégorie'},
+        {"data": 'Label', 'title': 'Label'},
+        {"data": 'Description', 'title': 'Description'},
     ],
-});
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+};
+let tableTypes = initDataTable('tableTypes', tableTypesConfig);
 
 let modalNewType = $("#modalNewType");
 let submitNewType = $("#submitNewType");

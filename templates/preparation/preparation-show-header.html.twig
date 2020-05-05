@@ -1,0 +1,47 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showTitle ('Préparation n°' ~ preparation.numero) %}
+
+{% block showActions %}
+    <div class="btn-group">
+        {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+            <button type="button"
+                    class="btn btn-primary btn-ripple split-button"
+                    onclick="finishPrepa()">
+                <i class="fa fa-check mr-2"></i>Finir la préparation
+            </button>
+        {% endif %}
+        <button type="button"
+                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
+                <a class="dropdown-item" href=""
+                   data-target='#modalDeletePreparation'
+                   data-toggle='modal'>
+                    <i class="fa fa-trash mr-2"></i>Supprimer
+                </a>
+            {% endif %}
+            <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
+                <i class='fas fa-print'></i> Imprimer les étiquettes
+            </button>
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
+                {% if demande %}
+                    <a href="{{ path('demande_show', {'id': demande.id}) }}"
+                       class="dropdown-item"><i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison
+                    </a>
+                {% endif %}
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
+                {% if livraison is not empty %}
+                    <a href="{{ path('livraison_show', {'id': livraison.id}) }}"
+                       class="dropdown-item"><i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de livraison</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

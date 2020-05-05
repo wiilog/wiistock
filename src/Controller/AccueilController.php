@@ -7,8 +7,10 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Colis;
 use App\Entity\Collecte;
+use App\Entity\DaysWorked;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FiabilityByReference;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
@@ -28,9 +30,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\DemandeRepository;
-use App\Repository\ManutentionRepository;
-use App\Repository\FiabilityByReferenceRepository;
 
 
 /**
@@ -38,37 +37,6 @@ use App\Repository\FiabilityByReferenceRepository;
  */
 class AccueilController extends AbstractController
 {
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
-     * @var ManutentionRepository
-     */
-    private $manutentionRepository;
-
-    /**
-     * @var fiabilityByReferenceRepository
-     */
-    private $fiabilityByReferenceRepository;
-
-    /**
-     * @var DashboardService
-     */
-    private $dashboardService;
-
-    public function __construct(DashboardService $dashboardService,
-                                ManutentionRepository $manutentionRepository,
-                                DemandeRepository $demandeRepository,
-                                FiabilityByReferenceRepository $fiabilityByReferenceRepository)
-    {
-        $this->dashboardService = $dashboardService;
-        $this->demandeRepository = $demandeRepository;
-        $this->manutentionRepository = $manutentionRepository;
-        $this->fiabilityByReferenceRepository = $fiabilityByReferenceRepository;
-    }
 
     /**
      * @Route("/accueil", name="accueil", methods={"GET"})
@@ -89,7 +57,7 @@ class AccueilController extends AbstractController
      *     name="dashboard_ext",
      *     methods={"GET"},
      *     requirements={
-     *         "page" = "(quai)|(admin)",
+     *         "page" = "(quai)|(admin)|(emballage)",
      *         "token" = "%dashboardToken%"
      *     }
      * )
@@ -121,6 +89,8 @@ class AccueilController extends AbstractController
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $collecteRepository = $entityManager->getRepository(Collecte::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $manutentionRepository = $entityManager->getRepository(Manutention::class);
 
         $nbAlerts = $referenceArticleRepository->countAlert();
 
@@ -160,13 +130,13 @@ class AccueilController extends AbstractController
         $nbrDemandeCollecte = $collecteRepository->countByStatut($statutCollecte);
 
         $statutDemandeAT = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-        $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
+        $nbrDemandeLivraisonAT = $demandeRepository->countByStatut($statutDemandeAT);
 
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
-        $nbrDemandeLivraisonP = $this->demandeRepository->countByStatusesId($listStatutDemandeP);
+        $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
         $statutManutAT = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
-        $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
+        $nbrDemandeManutentionAT = $manutentionRepository->countByStatut($statutManutAT);
 
         return [
             'nbAlerts' => $nbAlerts,
@@ -239,10 +209,14 @@ class AccueilController extends AbstractController
 
     /**
      * @Route("/statistiques/graphique-reference", name="graph_ref", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function graphiqueReference(): Response
+    public function graphiqueReference(EntityManagerInterface $entityManager): Response
     {
-        $fiabiliteRef = $this->fiabilityByReferenceRepository->findAll();
+        $fiabilityByReferenceRepository = $entityManager->getRepository(FiabilityByReference::class);
+
+        $fiabiliteRef = $fiabilityByReferenceRepository->findAll();
         $value[] = [];
         foreach ($fiabiliteRef as $reference) {
             $date = $reference->getDate();
@@ -388,6 +362,9 @@ class AccueilController extends AbstractController
 		$emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $colisRepository = $entityManager->getRepository(Colis::class);
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
         $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
@@ -425,11 +402,11 @@ class AccueilController extends AbstractController
             }
 
             $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
+                                                                 use ($daysWorked, $enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    $date = $enCoursService->getTrackingMovementAge($pack['firstTrackingDateTime']);
+                    $date = $enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime']);
                     $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -515,8 +492,6 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
         $response = $dashboardService->getDataForReceptionAdminDashboard();
@@ -525,16 +500,29 @@ class AccueilController extends AbstractController
 
     /**
      * @Route(
-     *     "/statistiques/reception-quai",
-     *     name="get_indicators_reception_dock",
+     *     "/statistiques/monitoring-emballage",
+     *     name="get_indicators_monitoring_packaging",
      *     options={"expose"=true},
-     *     methods="GET",
-     *     condition="request.isXmlHttpRequest()"
+     *     methods="GET"
      * )
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
+        $response = $dashboardService->getDataForMonitoringPackagingDashboard();
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @Route(
+     *     "/statistiques/reception-quai",
+     *     name="get_indicators_reception_dock",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param DashboardService $dashboardService
+     * @return Response
      */
     public function getIndicatorsDockReception(DashboardService $dashboardService): Response
     {
@@ -551,12 +539,14 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
+     * @param DashboardService $dashboardService
      * @return Response
      */
-	public function getAssoRecepStatistics(Request $request): Response
+	public function getAssoRecepStatistics(Request $request,
+                                           DashboardService $dashboardService): Response
 	{
         $query = $request->query;
-        $data = $this->dashboardService->getWeekAssoc(
+        $data = $dashboardService->getWeekAssoc(
             $query->get('firstDay'),
             $query->get('lastDay'),
             $query->get('beforeAfter')
@@ -573,12 +563,14 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
+     * @param DashboardService $dashboardService
      * @return Response
      */
-	public function getArrivalUmStatistics(Request $request): Response
+	public function getArrivalUmStatistics(Request $request,
+                                           DashboardService $dashboardService): Response
 	{
         $query = $request->query;
-        $data = $this->dashboardService->getWeekArrival(
+        $data = $dashboardService->getWeekArrival(
             $query->get('firstDay'),
             $query->get('lastDay'),
             $query->get('beforeAfter')

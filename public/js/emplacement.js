@@ -1,14 +1,10 @@
 $('.select2').select2();
-let $printTag ;
 let pathEmplacement = Routing.generate("emplacement_api", true);
-let tableEmplacement = $('#tableEmplacement_id').DataTable({
+let tableEmplacementConfig = {
     processing: true,
     serverSide: true,
     "lengthMenu": [10, 25, 50, 100, 1000],
     order: [[1, 'desc']],
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathEmplacement,
         "type": "POST",
@@ -17,11 +13,15 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
             return json.data;
         }
     },
-    'drawCallback': function () {
-        overrideSearchEmplacement();
+    drawConfig: {
+        needsEmplacementSearchOverride: true,
+        filterId: 'tableEmplacement_id_filter'
+    },
+    rowConfig: {
+        needsRowClickAction: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
         {"data": 'Description', 'name': 'Description', 'title': 'Description'},
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
@@ -32,10 +32,10 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         'copy', 'excel', 'pdf'
     ],
     columnDefs: [
-        { "orderable": false, "targets": 5 },
         { "orderable": false, "targets": 0 }
     ]
-});
+};
+let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);
 
 let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
@@ -53,8 +53,8 @@ let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
 InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), true, false);
 
 $(function () {
-    $printTag = $('#btnPrint');
-    managePrintButtonTooltip(true, $printTag);
+    const $printButton = $('#btnPrint');
+    managePrintButtonTooltip(true, $printButton);
 });
 
 function checkAndDeleteRowEmplacement(icon) {
@@ -82,35 +82,15 @@ function displayErrorEmplacement($modal, response) {
     }
 }
 
-function overrideSearchEmplacement() {
-    let $input = $('#tableEmplacement_id_filter input');
-    $input.off();
-    $input.on('keyup', function (e) {
-        let $printButton = $('.emplacement').find('.printButton');
-        if (e.key === 'Enter') {
-            if ($input.val() === '') {
-                $printButton.addClass('btn-disabled');
-                $printButton.removeClass('btn-primary');
-                managePrintButtonTooltip(true, $printTag);
-            } else {
-                $printButton.removeClass('btn-disabled');
-                $printButton.addClass('btn-primary');
-                managePrintButtonTooltip(false, $printTag);
-            }
-            tableEmplacement.search(this.value).draw();
-        } else if (e.key === 'Backspace' && $input.val() === '') {
-            $printButton.addClass('btn-disabled');
-            $printButton.removeClass('btn-primary');
-            managePrintButtonTooltip(true, $printTag);
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
-
-function printLocationsBarCodes() {
-    window.location.href = Routing.generate('print_locations_bar_codes', {
-        listEmplacements: $("#listEmplacementIdToPrint").val(),
-        length: tableEmplacement.page.info().length,
-        start: tableEmplacement.page.info().start
-    }, true);
+function printLocationsBarCodes($button, event) {
+    if (!$button.hasClass('disabled')) {
+        window.location.href = Routing.generate('print_locations_bar_codes', {
+            listEmplacements: $("#listEmplacementIdToPrint").val(),
+            length: tableEmplacement.page.info().length,
+            start: tableEmplacement.page.info().start
+        }, true);
+    }
+    else {
+        event.stopPropagation();
+    }
 }

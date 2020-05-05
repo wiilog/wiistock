@@ -1,17 +1,19 @@
 {% extends 'base.html.twig' %}
 
-{% block classbody %}
-    class='new-body'
-{% endblock  %}
-
 {% block body %}
-<div class="wrapper pl-0 degrade">
-    <div class="container-fluid">
+<div class="wrapper pl-0 bg-primary-followgt">
+    <div class="dashboard-ext">
         <input type="hidden" id="isDashboardExt" value="1"/>
+        <input type="hidden" id="dashboard-name" value="{{ page }}"/>
+        <div class="header-container header-ext">
+            {% include 'header.html.twig' with { 'isDashboardExt': 1 } %}
+        </div>
         {% if page == 'quai' %}
             {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
         {% elseif page == 'admin' %}
             {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
+        {% elseif page == 'emballage' %}
+            {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 1 } %}
         {% endif %}
         <div class="row">
             <div class="col-12 little-font text-right fixed-bottom z-index-back">

@@ -27,9 +27,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -67,11 +65,6 @@ class ReferenceArticleController extends AbstractController
      * @var LivraisonRepository
      */
     private $livraisonRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
 
     /**
      * @var FiltreRefRepository
@@ -127,7 +120,6 @@ class ReferenceArticleController extends AbstractController
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
                                 LivraisonRepository $livraisonRepository,
-                                DemandeRepository $demandeRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
@@ -135,7 +127,6 @@ class ReferenceArticleController extends AbstractController
                                 CSVExportService $CSVExportService,
                                 ValeurChampLibreService $valeurChampLibreService)
     {
-        $this->demandeRepository = $demandeRepository;
         $this->filtreRefRepository = $filtreRefRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -284,6 +275,12 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws DBALException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
     {
@@ -304,7 +301,6 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -382,6 +378,11 @@ class ReferenceArticleController extends AbstractController
                 ->setIsUrgent($data['urgence'])
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode());
+
+
+            if ($refArticle->getIsUrgent()) {
+                $refArticle->setUserThatTriggeredEmergency($this->getUser());
+            }
 
             if ($data['limitSecurity']) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
@@ -697,7 +698,7 @@ class ReferenceArticleController extends AbstractController
                 ]);
             }
             if ($refArticle) {
-                $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
+                $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             } else {
                 $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
             }
@@ -886,8 +887,8 @@ class ReferenceArticleController extends AbstractController
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
-					$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
-					if ($json === 'article') {
+                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
+                    if ($json === 'article') {
 						$this->articleDataService->editArticle($data);
 						$json = true;
 					}
@@ -975,13 +976,14 @@ class ReferenceArticleController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $refArticle = $referenceArticleRepository->find($data['id']);
             if ($refArticle) {
                 $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
                 $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
+                $demandes = $demandeRepository->findByStatutAndUser($statutD, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
@@ -1034,10 +1036,11 @@ class ReferenceArticleController extends AbstractController
      */
     public function saveColumnVisible(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() ) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $data = json_decode($request->getContent(), true);
             $champs = array_keys($data);
             $user  = $this->getUser();
             /** @var $user Utilisateur */
@@ -1184,9 +1187,15 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/export-donnees", name="exports_params")
+     * @param UserService $userService
+     * @return RedirectResponse|Response
      */
-    public function renderParams()
+    public function renderParams(UserService $userService)
     {
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_EXPO)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('exports/exportsMenu.html.twig');
     }
 
@@ -1329,10 +1338,10 @@ class ReferenceArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $statutDemande = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
-
+            $demandes = $demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
             $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
 
             if ($data['typeDemande'] === 'livraison' && $demandes) {

@@ -1,27 +1,29 @@
 let pathNature = Routing.generate('nature_param_api', true);
-let tableNature = $('#tableNatures').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax:{
+let tableNatureConfig = {
+    ajax: {
         "url": pathNature,
         "type": "POST"
     },
     columnDefs: [
         {
             orderable: false,
-            targets: 5
+            targets: 0
         }
     ],
-    columns:[
-        { "data": 'Label', 'title' : 'Libellé' },
-        { "data": 'Code', 'title' : 'Code' },
-        { "data": 'Quantité par défaut', 'title' : 'Quantité par défaut' },
-        { "data": 'Préfixe', 'title' : 'Préfixe' },
-        { "data": 'Couleur', 'title' : 'Couleur' },
-        { "data": 'Actions', 'title' : 'Actions' }
+    order: [1, 'asc'],
+    columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Label', 'title': 'Libellé'},
+        {"data": 'Code', 'title': 'Code'},
+        {"data": 'Quantité par défaut', 'title': 'Quantité par défaut'},
+        {"data": 'Préfixe', 'title': 'Préfixe'},
+        {"data": 'Couleur', 'title': 'Couleur'},
     ],
-});
+    rowConfig: {
+        needsRowClickAction: true
+    },
+};
+let tableNature = initDataTable('tableNatures', tableNatureConfig);
 
 let modalNewNature = $("#modalNewNature");
 let submitNewNature = $("#submitNewNature");

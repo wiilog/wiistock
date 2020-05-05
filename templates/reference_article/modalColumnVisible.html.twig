@@ -3,13 +3,13 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Modifier les colonnes</h5>
+                <h5 class="modal-title">Gestion des colonnes</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <table id="tableColumnVisible_id" class="table table-striped table-bordered w-100">
+                <table id="tableColumnVisible_id" class="table wii-table w-100">
                     <thead>
                     <tr>
                         <th>Champs</th>
@@ -21,18 +21,20 @@
 
                     {% set i = 0 %}
                     {% for champ in champs %}
-
-                        <tr>
+                        <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
                             <td>
                                 {{ champ.label | capitalize }}
                             </td>
                             <td>
                                 {% set checked = (champ.label in columnsVisibles ? 'checked' : '') %}
-                                <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
-                                       name="{{ champ.label }}"
-                                       onclick="showOrHideColumn($(this))" type="checkbox"
-                                       id="inlineCheckbox1" {{ checked }}
-                                       data-column="{{ i }}" data-name="{{ champ.label }}">
+                                <div class="checkbox d-inline-block pointer" onclick="toggleInputRadioOnRow(this)">
+                                    <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
+                                           name="{{ champ.label }}"
+                                           onclick="showOrHideColumn($(this), tableRefArticle, $('#tableRefArticle_id_wrapper'))" type="checkbox"
+                                           id="column_visible_input{{ loop.index }}" {{ checked }}
+                                           data-column="{{ i }}" data-name="{{ champ.label }}">
+                                    <label for="column_visible_input{{ loop.index }}" class="pointer"></label>
+                                </div>
                             </td>
                         </tr>
                         {% set i = i + 1 %}

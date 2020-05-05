@@ -6,12 +6,12 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\DemandeRepository;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
@@ -39,14 +39,12 @@ class LivraisonController extends AbstractController
 {
     /**
      * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
-     * @param DemandeRepository $demandeRepository
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @param string|null $demandId
      * @return Response
      */
-    public function index(DemandeRepository $demandeRepository,
-                          UserService $userService,
+    public function index(UserService $userService,
                           EntityManagerInterface $entityManager,
                           string $demandId = null): Response {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
@@ -55,6 +53,7 @@ class LivraisonController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
 
         $filterDemand = $demandId
             ? $demandeRepository->find($demandId)
@@ -208,11 +207,34 @@ class LivraisonController extends AbstractController
 
         $preparationRepository = $entityManager->getRepository(Preparation::class);
 
+        $demande = $livraison->getDemande();
+
+        $utilisateurPreparation = $livraison->getPreparation() ? $livraison->getPreparation()->getUtilisateur() : null;
+        $demandeur = $demande ? $demande->getUtilisateur() : null;
+        $destination = $demande ? $demande->getDestination() : null;
+        $dateLivraison = $livraison->getDateFin();
+        $comment = $demande->getCommentaire();
+
         return $this->render('livraison/show.html.twig', [
-            'demande' => $livraison->getDemande(),
+            'demande' => $demande,
             'livraison' => $livraison,
             'preparation' => $preparationRepository->find($livraison->getPreparation()->getId()),
-            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE)
+            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE),
+            'headerConfig' => [
+                [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
+                [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
+                [ 'label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : '' ],
+                [ 'label' => 'Demandeur', 'value' => $demandeur ? $demandeur->getUsername() : '' ],
+                [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
+                [ 'label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : '' ],
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ],
+            ]
         ]);
     }
 
@@ -223,10 +245,8 @@ class LivraisonController extends AbstractController
      * @param PreparationsManagerService $preparationsManager
      * @param UserService $userService
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
-
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            PreparationsManagerService $preparationsManager,
@@ -302,7 +322,6 @@ class LivraisonController extends AbstractController
 
             $data = [];
             $data[] = $headers;
-
             foreach ($livraisons as $livraison) {
                 $this->buildInfos($livraison, $data);
             }

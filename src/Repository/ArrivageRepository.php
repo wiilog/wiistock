@@ -66,6 +66,39 @@ class ArrivageRepository extends EntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
+     * @return Arrivage[]|null
+     */
+    public function getByDates($dateMin, $dateMax)
+    {
+		return $this->createQueryBuilderByDates($dateMin, $dateMax)
+            ->select('arrivage.id')
+            ->addSelect('arrivage.numeroArrivage')
+            ->addSelect('recipient.username AS recipientUsername')
+            ->addSelect('user.username AS userUsername')
+            ->addSelect('fournisseur.nom AS fournisseurName')
+            ->addSelect('transporteur.label AS transporteurLabel')
+            ->addSelect('chauffeur.nom AS chauffeurSurname')
+            ->addSelect('chauffeur.prenom AS chauffeurFirstname')
+            ->addSelect('arrivage.noTracking')
+            ->addSelect('arrivage.numeroCommandeList')
+            ->addSelect('arrivage.duty')
+            ->addSelect('arrivage.frozen')
+            ->addSelect('status.nom AS statusName')
+            ->addSelect('arrivage.commentaire')
+            ->addSelect('arrivage.date')
+            ->leftJoin('arrivage.destinataire', 'recipient')
+            ->leftJoin('arrivage.fournisseur', 'fournisseur')
+            ->leftJoin('arrivage.transporteur', 'transporteur')
+            ->leftJoin('arrivage.chauffeur', 'chauffeur')
+            ->leftJoin('arrivage.statut', 'status')
+            ->leftJoin('arrivage.utilisateur', 'user')
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
      * @return QueryBuilder
      */
     public function createQueryBuilderByDates($dateMin, $dateMax): QueryBuilder
@@ -336,7 +369,7 @@ class ArrivageRepository extends EntityRepository
                             ->addSelect('count(col2.id) as hidden nbum')
                             ->leftJoin('a.colis', 'col2')
                             ->orderBy('nbum', $order)
-                            ->groupBy('col2.arrivage');
+                            ->groupBy('col2.arrivage, a');
                     } else if ($column === 'statut') {
                         $orderStatut = $order;
                     } else {

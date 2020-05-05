@@ -3,7 +3,7 @@ $('.select2').select2();
 $(function () {
     //fill l'input acheteurs (modalNewLititge)
     let modal = $('#modalNewLitige');
-
+    registerDropdownPosition();
     let inputAcheteurs = $('#acheteursLitigeHidden').val();
     let acheteurs = inputAcheteurs.split(',');
     let $acheteursLitige = modal.find('#acheteursLitige');
@@ -45,18 +45,17 @@ $(function () {
 });
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
-let tableColis = $('#tableColis').DataTable({
-    responsive: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableColisConfig = {
     scrollX: true,
     ajax: {
         "url": pathColis,
         "type": "POST"
     },
+    domConfig: {
+        removeInfo: true
+    },
     columns: [
-        {"data": 'actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'actions', 'name': 'actions', 'title': ''},
         {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
@@ -72,14 +71,13 @@ let tableColis = $('#tableColis').DataTable({
             targets: 0
         }
     ]
-});
+};
+let tableColis = initDataTable('tableColis', tableColisConfig);
+
 let tableHistoLitige;
 function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    tableHistoLitige = $('#tableHistoLitige').DataTable({
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
             "type": "POST"
@@ -96,8 +94,11 @@ function openTableHisto() {
                 "targets": 1
             },
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">',
-    });
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    };
+    tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 extendsDateSort('customDate');
 
@@ -119,11 +120,7 @@ InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) 
 });
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
-let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
-    responsive: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArrivageLitigesConfig = {
     "columnDefs": [
         {
             "targets": 5,
@@ -134,24 +131,30 @@ let tableArrivageLitiges = $('#tableArrivageLitiges').DataTable({
             orderable: false,
         }
     ],
+    domConfig: {
+        removeInfo: true
+    },
     scrollX: true,
     ajax: {
         "url": pathArrivageLitiges,
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'actions', 'title': ''},
         {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
         {"data": 'status', 'name': 'status', 'title': 'Statut'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
         {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
     ],
-    rowCallback: function (row, data) {
-        $(row).addClass(data.urgence ? 'table-danger' : '');
+    rowConfig: {
+        needsDangerColor: true,
+        needsRowClickAction: true,
+        dataToCheck: 'urgence'
     },
     order: [[1, 'desc']],
-});
+};
+let tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLitigesConfig);
 
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');

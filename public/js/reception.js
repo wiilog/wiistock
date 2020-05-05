@@ -14,7 +14,7 @@ $(function () {
 
     // RECEPTION
     let pathTableReception = Routing.generate('reception_api', true);
-    tableReception = $('#tableReception_id').DataTable({
+    let tableReceptionConfig = {
         serverSide: true,
         processing: true,
         order: [[8, "desc"], [1, "desc"]],
@@ -28,22 +28,20 @@ $(function () {
                 "visible": false
             },
         ],
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         ajax: {
             "url": pathTableReception,
             "type": "POST",
         },
-        drawCallback: function (resp) {
-            overrideSearch($('#tableReception_id_filter input'), tableReception);
-            hideColumns(tableReception, resp.json.columnsToHide);
+        drawConfig: {
+            needsSearchOverride: true,
+            filterId: 'tableReception_id_filter',
+            needsColumnHide: true,
         },
         headerCallback: function(thead) {
             $(thead).find('th').eq(5).attr('title', "n° de réception");
         },
         columns: [
-            {"data": 'Actions', 'name': 'actions', 'title': 'Actions'},
+            {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis'},
             {"data": 'Date', 'name': 'date', 'title': 'Date création'},
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
@@ -53,10 +51,13 @@ $(function () {
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
         ],
-        rowCallback: function (row, data) {
-            $(row).addClass(data.urgence ? 'table-danger' : '');
+        rowConfig: {
+            needsDangerColor: true,
+            needsRowClickAction: true,
+            dataToCheck: 'urgence'
         }
-    });
+    };
+    tableReception = initDataTable('tableReception_id', tableReceptionConfig);
 
     let modalReceptionNew = $("#modalNewReception");
     let SubmitNewReception = $("#submitReceptionButton");

@@ -1,13 +1,31 @@
-<div class="btn filter">
-    <input hidden value="{{ filter.id }}" class="filter-id">
-    {% if filter.champFixe is not null %}
-        <i class="fas fa-times float-right"></i>
-        <span class="bold">{{ filter.champFixe | capitalize}}</span><br>
-        <span class="italic">"{{ filter.value }}"</span>
-    {% else %}
-        <i class="fas fa-times float-right"></i>
-        <span class="bold">{{ filter.champLibre.label|capitalize }}</span><br>
-        {% if (filter.value == 'on' or filter.value == '1') %}{% set value = 'oui' %}{% elseif (filter.value == '') %}{% set value = 'non' %}{% else %}{% set value = filter.value %}{% endif %}
-        <span class="italic">"{{ value }}"</span>
-    {% endif %}
+<div class="col-auto pb-2">
+    <div class="btn filter has-tooltip" title="{{ (filter.champFixe ? filter.champFixe : filter.champLibre.label) | capitalize }} : {{ filter.value }}">
+        <input hidden value="{{ filter.id }}" class="filter-id">
+        <div class="row align-items-center">
+            {% if filter.champFixe is not null %}
+                <div class="col">
+                    <span class="bold">
+                        {{ filter.champFixe | capitalize }} : {{ filter.value }}</span><br>
+                </div>
+                <div class="col-auto">
+                    <i class="fas fa-times remove-filter"></i>
+                </div>
+            {% else %}
+                <div class="col">
+                    {% if (filter.value == 'on' or filter.value == '1') %}
+                        {% set value = 'oui' %}
+                    {% elseif (filter.value == '') %}
+                        {% set value = 'non' %}{% else %}
+                        {% set value = filter.value %}
+                    {% endif %}
+                    <span class="bold">
+                        {{ filter.champLibre.label|capitalize }} : {{ value }}</span><br>
+                </div>
+                <div class="col-auto">
+                    <i class="fas fa-times remove-filter"></i>
+                </div>
+
+            {% endif %}
+        </div>
+    </div>
 </div>

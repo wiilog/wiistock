@@ -1,0 +1,69 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showTitle ('Demande de collecte n°' ~ collecte.numero) %}
+
+{% block showActions %}
+    <div class="btn-group">
+        {% if modifiable %}
+            {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+            {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+            {% if hasRightEdit %}
+                <button type="button"
+                        onclick="validateCollecte({{ collecte.id }})"
+                        class="btn btn-primary btn-ripple split-button">
+                    Valider
+                </button>
+            {% endif %}
+            <button type="button"
+                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if hasRightEdit %}
+                    <a  data-id='{{ collecte.id }}'
+                        data-target='#modalEditCollecte'
+                        data-toggle='modal'
+                        onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
+                        class="dropdown-item">
+                        <i class="fa fa-pen mr-2"></i>Modifier
+                    </a>
+                {% endif %}
+                {% if hasRightDelete %}
+                    <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
+                       data-id='{{ collecte.id }}' data-target='#modalDeleteCollecte' data-toggle='modal'
+                       class="dropdown-item">
+                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                {% endif %}
+            </div>
+        {% else %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                    {% if collecte.ordresCollecte|length > 1 %}
+                        <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
+                           class="dropdown-item">
+                            <i class="mr-2 fas fa-external-link-alt"></i>Aller vers les ordres de collecte
+                        </a>
+                    {% else %}
+                        <a href="{{ path('ordre_collecte_show', {'id': collecte.ordresCollecte[0].id }) }}"
+                           class="dropdown-item">
+                            <i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de collecte
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+
+

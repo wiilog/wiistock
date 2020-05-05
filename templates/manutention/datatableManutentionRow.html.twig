@@ -1,25 +1,26 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))%}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ manut.id }}' data-target='#modalEditManutention' data-toggle='modal'
-                 onclick="editRow($(this), Routing.generate('manutention_edit_api', true), $('#modalEditManutention'), $('#submitEditManutention'), true, '.editor-container-edit', false, toggleManutQuill)">
-                <i class='fas fa-pencil-alt'></i>
-            </div>
-        </div>
-        {% if manut.statut.nom != constant('App\\Entity\\Manutention::STATUT_TRAITE') %}
-            <div>
-                <div class="btn btn-col-action" data-id='{{ manut.id }}' data-target='#modalDeleteManutention' data-toggle='modal'
-                     onclick="deleteRow($(this), $('#modalDeleteManutention'), $('#submitDeleteManutention'))">
-                    <i class='fas fa-trash'></i>
+    <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) ? 'd-none'}}">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer ">
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="d-none">
+                    <div class="btn btn-col-action action-on-click" data-id='{{ manut.id }}' data-target='#modalEditManutention' data-toggle='modal'
+                         onclick="editRow($(this), Routing.generate('manutention_edit_api', true), $('#modalEditManutention'), $('#submitEditManutention'), true, '.editor-container-edit', false, toggleManutQuill)">
+                        <i class='fas fa-pencil-alt'></i>
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-    {% else %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ manut.id }}' data-target='#modalShowManutention' data-toggle='modal'
-                 onclick="showRow($(this), Routing.generate('manutention_show', true), $('#modalShowManutention'))">
-                <i class='fas fa-eye'></i>
-            </div>
+                {% if manut.statut.nom != constant('App\\Entity\\Manutention::STATUT_TRAITE') %}
+                    <div class="dropdown-item" data-id='{{ manut.id }}' data-target='#modalDeleteManutention' data-toggle='modal'
+                         onclick="deleteRow($(this), $('#modalDeleteManutention'), $('#submitDeleteManutention'))">
+                        <i class='fas fa-trash mr-2'></i>Supprimer
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="dropdown-item d-none action-on-click" data-id='{{ manut.id }}' data-target='#modalShowManutention' data-toggle='modal'
+                     onclick="showRow($(this), Routing.generate('manutention_show', true), $('#modalShowManutention'))">
+                    <i class='fas fa-eye mr-2'></i>Voir
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
 </div>

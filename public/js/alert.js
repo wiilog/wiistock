@@ -1,22 +1,20 @@
 let pathAlerte = Routing.generate("alerte_ref_api", true);
-let tableAlerte = $('#tableAlerte_id').DataTable({
+let tableAlerteConfig = {
     processing: true,
     serverSide: true,
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[2, "asc"]],
     ajax: {
         "url": pathAlerte,
         "type": "POST",
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableAlerte_id_filter input'), tableAlerte);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableAlerte_id_filter'
     },
     columns: [
         { "data": 'Label', 'title': 'Libellé' },
         { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'QuantiteStock', 'title': 'Quantité en stock' },
+        { "data": 'Quantité stock', 'title': 'Quantité en stock' },
         { "data": 'typeQuantite', 'title': 'Type quantité' },
         { "data": 'Type', 'title': 'Type' },
         { "data": 'Date d\'alerte', 'title': 'Date d\'alerte' },
@@ -31,7 +29,8 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
         },
         { "orderable": false, "targets": 7 },
     ],
-});
+};
+let tableAlerte = initDataTable('tableAlerte_id', tableAlerteConfig);
 
 $(function() {
     let path = Routing.generate('filter_get_by_page');

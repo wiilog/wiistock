@@ -1,28 +1,27 @@
 let pathArticleFournisseur = Routing.generate('article_fournisseur_api');
-let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
-
+let tableArticleFournisseurConfig = {
     processing: true,
     serverSide: true,
-
     order: [[1, 'desc']],
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathArticleFournisseur,
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', title: 'Actions'},
+        {"data": 'Actions', title: '', className: 'noVis'},
         {"data": 'Référence', title: 'Référence'},
         {"data": 'label', title: 'Libellé'},
         {"data": 'Code Fournisseur', title: 'Code Fournisseur'},
         {"data": 'Article de référence', title: 'Article de référence'},
     ],
+    rowConfig: {
+        needsRowClickAction: true,
+    },
     columnDefs: [
         {"orderable": false, "targets": 0}
     ]
-});
+};
+let tableArticleFournisseur = initDataTable('tableArticleFournisseur', tableArticleFournisseurConfig);
 
 let modalNewArticleFournisseur = $("#modalNewArticleFournisseur");
 let submitNewArticleFournisseur = $("#submitNewArticleFournisseur");

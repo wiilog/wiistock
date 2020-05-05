@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 28/03/2019
- * Time: 16:34
- */
 
 namespace App\Service;
 
@@ -22,10 +16,10 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-use App\Repository\DemandeRepository;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
@@ -51,11 +45,6 @@ class RefArticleDataService
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
 
     /**
      * @var Twig_Environment
@@ -86,8 +75,7 @@ class RefArticleDataService
     private $valeurChampLibreService;
 
 
-    public function __construct(DemandeRepository $demandeRepository,
-                                RouterInterface $router,
+    public function __construct(RouterInterface $router,
                                 UserService $userService,
                                 ValeurChampLibreService $valeurChampLibreService,
                                 EntityManagerInterface $entityManager,
@@ -103,7 +91,6 @@ class RefArticleDataService
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->demandeRepository = $demandeRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 
@@ -232,6 +219,7 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $refArticle
      * @param string[] $data
+     * @param Utilisateur $user
      * @return RedirectResponse
      * @throws DBALException
      * @throws LoaderError
@@ -239,7 +227,7 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function editRefArticle($refArticle, $data)
+    public function editRefArticle($refArticle, $data, Utilisateur $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -288,7 +276,14 @@ class RefArticleDataService
             }
 
             if (isset($data['categorie'])) $refArticle->setCategory($category);
-            if (isset($data['urgence'])) $refArticle->setIsUrgent($data['urgence']);
+            if (isset($data['urgence'])) {
+                if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
+                    $refArticle->setUserThatTriggeredEmergency($user);
+                } else if (!$data['urgence']) {
+                    $refArticle->setUserThatTriggeredEmergency(null);
+                }
+                $refArticle->setIsUrgent($data['urgence']);
+            }
             if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
             if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
@@ -320,7 +315,7 @@ class RefArticleDataService
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addArticleReference($refArticle)
-                            ->setChampLibre($champ);
+                            ->setChampLibre($champLibre);
                         $entityManager->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
@@ -390,6 +385,7 @@ class RefArticleDataService
     /**
      * @param array $data
      * @param ReferenceArticle $referenceArticle
+     * @param Utilisateur $user
      * @return bool
      * @throws DBALException
      * @throws LoaderError
@@ -397,7 +393,7 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function addRefToDemand($data, $referenceArticle)
+    public function addRefToDemand($data, $referenceArticle, Utilisateur $user)
     {
         $resp = true;
 
@@ -420,7 +416,7 @@ class RefArticleDataService
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
             }
-            $this->editRefArticle($referenceArticle, $data);
+            $this->editRefArticle($referenceArticle, $data, $user);
 
             // cas gestion quantité par article
         } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -510,7 +506,7 @@ class RefArticleDataService
         $row = [
             'Référence' => ($referenceArticle['reference'] ? $referenceArticle['reference'] : 'Non défini'),
             'Label' => ($referenceArticle['libelle'] ? $referenceArticle['libelle'] : 'Non défini'),
-            'QuantiteStock' => $quantity,
+            'Quantité stock' => $quantity,
             'typeQuantite' => $referenceArticle['typeQuantite'],
             'Type' => $referenceArticle['type'],
             'Date d\'alerte' => $referenceArticle['dateEmergencyTriggered']->format('d/m/Y H:i'),
@@ -545,8 +541,6 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
     {
@@ -558,8 +552,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -573,8 +565,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
     {

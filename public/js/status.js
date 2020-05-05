@@ -1,27 +1,27 @@
 $(function () {
     let pathStatus = Routing.generate('status_param_api', true);
-    let tableStatus = $('#tableStatus').DataTable({
-        "language": {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableStatusConfig = {
         ajax: {
             "url": pathStatus,
             "type": "POST"
         },
         columns: [
+            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Categorie', 'title': 'Catégorie'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut litige traité'},
             {"data": 'NotifToBuyer', 'title': 'Envoi de mails'},
             {"data": 'Order', 'title': 'Ordre'},
-            {"data": 'Actions', 'title': 'Actions'}
         ],
         order: [
-            [0, 'asc'],
-            [5, 'asc']
+            [6, 'asc']
         ],
-    });
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+    };
+    let tableStatus = initDataTable('tableStatus', tableStatusConfig);
 
     let modalNewStatus = $("#modalNewStatus");
     let submitNewStatus = $("#submitNewStatus");

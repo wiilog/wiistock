@@ -1,13 +1,16 @@
-<div class="minw-450px">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <div class="input-group-text">Du</div>
+<div class="col-auto mb-2">
+    <div class="h-100">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Du</div>
+            </div>
+            <input type="text" class="form-control cursor-default filter-date-min filter-input" name="dateMin" id="dateMin"
+                   placeholder="jj/mm/aaaa" {{ disabled }} autocomplete="off">
+            <div class="input-group-prepend input-group-append">
+                <div class="input-group-text">Au</div>
+            </div>
+            <input type="text" class="form-control cursor-default filter-date-max filter-input" name="dateMax" id="dateMax"
+                   placeholder="jj/mm/aaaa" {{ disabled }} autocomplete="off">
         </div>
-        <input type="text" class="form-control cursor-default filter-date-min filter-input" name="dateMin" id="dateMin" placeholder="jj/mm/aaaa" {{ disabled }}>
-
-        <div class="input-group-prepend">
-            <div class="input-group-text">Au</div>
-        </div>
-        <input type="text" class="form-control cursor-default filter-date-max filter-input" name="dateMax" id="dateMax" placeholder="jj/mm/aaaa" {{ disabled }}>
     </div>
 </div>

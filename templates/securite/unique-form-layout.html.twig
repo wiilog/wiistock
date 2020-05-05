@@ -1,0 +1,9 @@
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+    <div class="header-container d-flex">
+        {% include 'header.html.twig' with {
+            withOnlyLogo: 1
+        } %}
+    </div>
+{% endblock %}

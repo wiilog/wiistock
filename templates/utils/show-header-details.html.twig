@@ -1,0 +1,37 @@
+{% if data|length > 0 %}
+    <div class="row details-header">
+        {% for datum in data %}
+            {% set isRaw = (datum.isRaw is defined and datum.isRaw) %}
+            {% set isScrollable = (datum.isScrollable is defined and datum.isScrollable) %}
+            {% set isAttachments = (datum.isAttachments is defined and datum.isAttachments) %}
+            {% set bgLight = (datum.bgLight is defined and datum.bgLight) %}
+            {% set labelTitle = (datum.title is defined and datum.title is not empty) ? ('title="' ~ datum.title ~ '"') %}
+            <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-3 col-md-4 col-sm-6 col-12' }} mt-3">
+                <div class="row">
+                    <div class="col-12 text-wii-grey" {{ labelTitle }}>{{ datum.label }}</div>
+                    <div class="col-12 text-wii-black">
+                        {% if isAttachments %}
+                            <div class="scrollable-details bg-light">
+                                {% for attachment in datum.value %}
+                                    <a href="/uploads/attachements/{{ attachment.filename }}"
+                                       target="_blank">
+                                        <i class="fas fa-file"></i> {{ attachment.originalName }}
+                                    </a>
+                                    {% if not loop.last %}
+                                        <br/>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% elseif isScrollable %}
+                            <div class="scrollable-details bg-light">
+                                {{ isRaw ? datum.value|raw : datum.value }}
+                            </div>
+                        {% else %}
+                            {{ isRaw ? datum.value|raw : datum.value }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

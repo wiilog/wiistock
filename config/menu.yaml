@@ -1,0 +1,224 @@
+parameters:
+    #
+    menu_config:
+        -   label: 'Accueil'
+            icon: 'accueil'
+            path: 'check_last_login'
+
+        -   label: 'Traçabilité'
+            icon: 'traca'
+            sub:
+                -   label: 'arrivage.flux - arrivages'
+                    isTranslation: true
+                    title: 'Flux - Arrivages'
+                    path: 'arrivage_index'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_ARRI
+                -   label: 'Mouvements'
+                    path: 'mvt_traca_index'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_MOUV
+                -   label: 'Acheminements'
+                    path: 'acheminements_index'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_ACHE
+                -   label: 'Association BR'
+                    path: 'reception_traca_index'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_ASSO
+                -   label: 'Encours'
+                    path: 'en_cours'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_ENCO
+                -   label: 'urgences.urgences'
+                    isTranslation: true
+                    title: 'Urgences'
+                    path: 'urgence_index'
+                    rights:
+                        menu: App\Entity\Menu::TRACA
+                        action: App\Entity\Action::DISPLAY_URGE
+
+        -   label: 'Qualité'
+            icon: 'qualite'
+            sub:
+                -   label: 'Litiges'
+                    path: 'litige_index'
+                    rights:
+                        menu: App\Entity\Menu::QUALI
+                        action: App\Entity\Action::DISPLAY_LITI
+
+        -   label: 'Demande'
+            icon: 'demande'
+            sub:
+                -   label: 'Collecte'
+                    path: 'collecte_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_DEM_COLL
+                -   label: 'Livraison'
+                    path: 'demande_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_DEM_LIVR
+                -   label: 'Manutention'
+                    path: 'manutention_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_MANU
+
+        -   label: 'Ordre'
+            icon: 'ordre'
+            sub:
+                -   label: 'Collecte'
+                    path: 'ordre_collecte_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_ORDRE_COLL
+                -   label: 'Livraison'
+                    path: 'livraison_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_ORDRE_LIVR
+                -   label: 'Préparation'
+                    path: 'preparation_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_PREPA
+                -   label: 'réception.réception'
+                    isTranslation: true
+                    title: 'Réception'
+                    path: 'reception_index'
+                    rights:
+                        menu: App\Entity\Menu::ORDRE
+                        action: App\Entity\Action::DISPLAY_RECE
+
+        -   label: 'Stock'
+            icon: 'stock'
+            sub:
+                -   label: 'Articles'
+                    path: 'article_index'
+                    rights:
+                        menu: App\Entity\Menu::STOCK
+                        action: App\Entity\Action::DISPLAY_ARTI
+                -   label: 'reference.références'
+                    title: Référence
+                    isTranslation: true
+                    path: 'reference_article_index'
+                    rights:
+                        menu: App\Entity\Menu::STOCK
+                        action: App\Entity\Action::DISPLAY_REFE
+                -   label: 'Articles fournisseurs'
+                    path: 'article_fournisseur_index'
+                    rights:
+                        menu: App\Entity\Menu::STOCK
+                        action: App\Entity\Action::DISPLAY_ARTI_FOUR
+                -   label: 'Mouvements de stock'
+                    path: 'mouvement_stock_index'
+                    rights:
+                        menu: App\Entity\Menu::STOCK
+                        action: App\Entity\Action::DISPLAY_MOUV_STOC
+                -   label: 'Inventaire'
+                    path: 'inventory_mission_index'
+                    rights:
+                        menu: App\Entity\Menu::STOCK
+                        action: App\Entity\Action::DISPLAY_INVE
+                -   label: 'Alertes'
+                    path: 'alerte_index'
+                    rights:
+                        menu: App\Entity\Menu::STOCK
+                        action: App\Entity\Action::DISPLAY_ALER
+
+        -   label: 'Référentiel'
+            icon: 'referentiel'
+            sub:
+                -   label: 'Fournisseurs'
+                    path: 'fournisseur_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_FOUR
+                -   label: 'Emplacements'
+                    path: 'emplacement_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_EMPL
+                -   label: 'Chauffeurs'
+                    path: 'chauffeur_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_CHAU
+                -   label: 'Transporteurs'
+                    path: 'transporteur_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_TRAN
+
+        -   label: 'Paramétrage'
+            icon: 'parametre'
+            sub:
+                -   label: 'Paramétrage global'
+                    path: 'global_param_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_GLOB
+                -   label: 'Rôles'
+                    path: 'role_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_ROLE
+                -   label: 'Utilisateurs'
+                    path: 'user_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_UTIL
+                -   label: 'Champs libres'
+                    path: 'champ_libre_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_CL
+                -   label: 'Export de données'
+                    path: 'exports_params'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_EXPO
+                -   label: 'Inventaire'
+                    path: 'inventaire_param_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_INVE
+                -   label: 'Types'
+                    path: 'types_param_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_TYPE
+                -   label: 'Statuts litiges'
+                    path: 'status_param_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_STATU_LITI
+                -   label: 'Nature des colis'
+                    path: 'nature_param_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_NATU_COLI
+                -   label: 'Champs fixes'
+                    path: 'fields_param_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_CF
+                -   label: 'Import et mise à jour'
+                    path: 'import_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_IMPORT
+                -   label: 'Documentation'
+                    url: 'https://wiilog.fr/doc/'
+                    isExtern: 'true'
+
+        -   label: 'Déconnexion'
+            icon: 'deco'
+            path: 'logout'

@@ -3,8 +3,6 @@
   text-decoration: none
   background-color: $grey
   color: $white
-  border-radius: 50px
-  margin: .5rem
   &:hover
     background-color: $white
     color: $grey
@@ -13,7 +11,8 @@
     box-shadow: none
 
 // boutons de type Ajouter, Modifier...
-.btn-primary
+.btn-primary,
+.btn-primary.dropdown-toggle
   background-color: $blueGT
   border-color: $blueGT
   &:hover
@@ -90,3 +89,42 @@ button:focus
     border-color: $greenDark !important
     i
       color: $greenDark
+
+.btn-ripple
+    display: inline-block
+    position: relative
+    overflow: hidden
+    transition: all ease-in-out .5s
+    box-shadow: 0.5px 0.5px 3px black
+    &:hover
+        background-color: $blueGT
+        color: $white
+        border-color: $blueGT
+    &:focus
+        background-color: $blueGT
+        color: $white
+        border-color: $blueGT
+        box-shadow: 0.5px 0.5px 3px black
+
+
+.btn-ripple::after
+    content: ""
+    display: block
+    position: absolute
+    top: 0
+    left: 25%
+    height: 100%
+    width: 50%
+    background-color: $white
+    border-radius: 50%
+    opacity: 0
+    pointer-events: none
+    transition: all ease-in-out .8s
+    transform: scale(5, 5)
+
+.btn-ripple:active::after
+    padding: 0
+    margin: 0
+    opacity: .3
+    transition: 0s
+    transform: scale(0, 0)

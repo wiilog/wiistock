@@ -36,6 +36,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use App\Service\ValeurChampLibreService;
 
 /**
  * @Route("/article")
@@ -75,13 +76,19 @@ class ArticleController extends AbstractController
 	 */
 	private $paramGlobalRepository;
 
+    /**
+     * @var ValeurChampLibreService
+     */
+    private $valeurChampLibreService;
+
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
                                 ArticleDataService $articleDataService,
                                 ReceptionRepository $receptionRepository,
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
-                                CSVExportService $CSVExportService)
+                                CSVExportService $CSVExportService,
+                                ValeurChampLibreService $ValeurChampLibreService )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
@@ -90,6 +97,7 @@ class ArticleController extends AbstractController
         $this->userService = $userService;
         $this->templating = $templating;
         $this->CSVExportService = $CSVExportService;
+        $this->valeurChampLibreService = $ValeurChampLibreService;
     }
 
     /**
@@ -124,12 +132,6 @@ class ArticleController extends AbstractController
             'typage' => 'text'
 
         ];
-//        $champF[] = [
-//            'label' => 'Référence',
-//            'id' => 0,
-//            'typage' => 'text'
-//
-//        ];
         $champF[] = [
             'label' => 'Référence article',
             'id' => 0,
@@ -361,12 +363,6 @@ class ArticleController extends AbstractController
                     "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
 
 				],
-//				[
-//					"title" => 'Référence',
-//					"data" => 'Référence',
-//					'name' => 'Référence',
-//					"class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
-//				],
 				[
 					"title" => 'Référence article',
 					"data" => 'Référence article',
@@ -506,10 +502,13 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
+
      * @param Request $request
      * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
+
      * @return Response
+
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -744,10 +743,12 @@ class ArticleController extends AbstractController
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $data = json_decode($request->getContent(), true);
             $champs = array_keys($data);
             $user = $this->getUser();
             /** @var $user Utilisateur */
@@ -761,8 +762,10 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true})
+
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+
      * @return Response
      */
     public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response
@@ -933,13 +936,17 @@ class ArticleController extends AbstractController
     public function buildInfos(EntityManagerInterface $entityManager,
                                Article $article,
                                $listTypes,
-                               $headers)
+                               $headers )
     {
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
-        $refData[] = $this->CSVExportService->escapeCSV($article->getReference());
+        $articleFournisseur = $article->getArticleFournisseur();
+        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+        $refReferenceArticle = $referenceArticle ? $referenceArticle->getReference() : '';
+
+        $refData[] = $this->CSVExportService->escapeCSV($refReferenceArticle);
         $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
         $refData[] = $this->CSVExportService->escapeCSV($article->getQuantite());
         $refData[] = $article->getType() ? $this->CSVExportService->escapeCSV($article->getType()->getLabel()) : '';
@@ -954,7 +961,9 @@ class ArticleController extends AbstractController
             $listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                if ($valeurChampRefArticle) {
+                    $champsLibres[$champLibre->getLabel()] = $this->valeurChampLibreService->formatValeurChampLibreForExport($valeurChampRefArticle);
+                }
             }
         }
         foreach ($headers as $type) {
@@ -969,11 +978,14 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
+
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param ArticleDataService $articleDataService
+
      * @return Response
+
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError

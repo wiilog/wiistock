@@ -1,22 +1,25 @@
 {% set disabled = (((disabled is defined) and (disabled == true)) ? 'disabled' : '') %}
-<div class="row align-items-center filterService">
-    <div class="col">
-        <div class="filters form-row justify-content-center filters-container">
-            {% block filters %}
-            {% endblock %}
+<div class="filterService m-4">
+    <div class="filters filters-container row pt-2">
+        <div class="col">
+            <div class="row">
+                {% block filters %}
+                {% endblock %}
+            </div>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary btn-ripple minw-105px"
+                    tabindex="0"
+                    onclick="saveFilters(
+                    {{ page }},
+                    {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
+                    {{ callback is defined ? callback }}
+                        )">
+                Filtrer
+                <i class="fas fa-filter ml-1"></i>
+            </button>
         </div>
     </div>
-    <div class="col-auto">
-        <button class="btn btn-primary minw-105px"
-                tabindex="0"
-                onclick="saveFilters(
-                {{ page }},
-                {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
-                {{ callback is defined ? callback }}
-                    )">
-            <i class="fas fa-filter mr-2"></i>
-            Filtrer
-        </button>
-    </div>
 </div>
+
 

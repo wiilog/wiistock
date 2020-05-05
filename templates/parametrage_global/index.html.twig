@@ -1,56 +1,57 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Paramétrage global{% endblock %}
+{% block title %}Paramétrage | Paramétrage global{% endblock %}
 
 {% block page_content %}
-    <div class="row mt-4">
-        {% include 'parametrage_global/paramLabels.html.twig' %}
-    </div>
+    <div class="m-4 wii-page-card">
+        <div class="row mt-4">
+            {% include 'parametrage_global/paramLabels.html.twig' %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramExportCsv.html.twig' %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramExportCsv.html.twig' %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramPrefixDemands.html.twig' with paramArrivages %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramPrefixDemands.html.twig' with paramArrivages %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramDemandeLivraison.html.twig' with paramLivraisons  %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramDemandeLivraison.html.twig' with paramLivraisons %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramMailServer.html.twig' %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramMailServer.html.twig' %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramReceptions.html.twig' with paramReceptions %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramReceptions.html.twig' with paramReceptions %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramArrivages.html.twig' with paramArrivages %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramArrivages.html.twig' with paramArrivages %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/modalEditDays.html.twig' %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/modalEditDays.html.twig' %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramTranslations.html.twig' with paramTranslations %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramTranslations.html.twig' with paramTranslations %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramDashboard.html.twig' with paramDashboard %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramDashboard.html.twig' with paramDashboard %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramAppearance.html.twig' %}
-    </div>
+        <div class="row">
+            {% include 'parametrage_global/paramAppearance.html.twig' %}
+        </div>
 
-    <div class="row">
-        {% include 'parametrage_global/paramMvtTraca.html.twig' %}
+        <div class="row">
+            {% include 'parametrage_global/paramMvtTraca.html.twig' %}
+        </div>
     </div>
-
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

@@ -1,16 +1,12 @@
 let pathTransporteur = Routing.generate('transporteur_api', true);
-let tableTransporteur = $('#tableTransporteur_id').DataTable({
-
+let tableTransporteurConfig = {
     order: [[1, 'desc']],
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathTransporteur,
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Label', 'name': 'Label', 'title': 'Nom' },
         { "data": 'Code', 'name': 'Code', 'title': 'Code' },
         { "data": 'Nombre_chauffeurs', 'name': 'Nombre_chauffeurs', 'title': 'Nombre de chauffeurs' },
@@ -21,7 +17,11 @@ let tableTransporteur = $('#tableTransporteur_id').DataTable({
             "targets" : 0
         },
     ],
-});
+    rowConfig: {
+        needsRowClickAction: true
+    }
+};
+let tableTransporteur = initDataTable('tableTransporteur_id', tableTransporteurConfig);
 
 let modalNewTransporteur = $("#modalNewTransporteur");
 let submitNewTransporteur = $("#submitNewTransporteur");

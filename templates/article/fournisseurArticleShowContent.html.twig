@@ -13,12 +13,8 @@
         <input class="form-control needed" type="text" disabled value="{{article.articleFournisseur.label}}">
     </div>
     <div class="form-group col-3">
-        <label for="reference">
-        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-            Référence CEA
-        {% else %}
-            Référence
-        {% endif %}
+        <label for="reference" title="référence">
+            {{ 'reference.référence'|trans }}
         </label>
         <input class="form-control needed" type="text" disabled value="{{article.articleFournisseur.referenceArticle.reference}}">
     </div>

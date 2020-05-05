@@ -9,7 +9,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <table class="table table-striped float-left w-49" id="rapidSearchColumns">
+                <table class="table float-left w-49" id="rapidSearchColumns">
                     <thead>
                     <tr>
                         <th>Champs</th>
@@ -17,23 +17,24 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% set i = 0 %}
                     {% for champ in champsSearch %}
-
-                        <tr>
+                        <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
                             <td>{{ champ.label | capitalize }}</td>
                             <td>
-                                {% set checked = (champ.label | capitalize in recherches ? 'checked' : '') %}
-                                <input class="form-check-input"
-                                       type="checkbox" {{ checked }} data-name="{{ champ.label  | capitalize}}"
-                                       onclick="addToRapidSearch($(this))">
+                                <div class="checkbox d-inline-block pointer" onclick="toggleInputRadioOnRow(this)">
+                                    {% set checked = (champ.label | capitalize in recherches ? 'checked' : '') %}
+                                    <input class="form-check-input"
+                                           id="column_visible_input{{ loop.index }}"
+                                           type="checkbox" {{ checked }} data-name="{{ champ.label  | capitalize}}"
+                                           onclick="addToRapidSearch($(this))"/>
+                                    <label for="column_visible_input{{ loop.index }}" class="pointer"></label>
+                                </div>
                             </td>
                         </tr>
-                        {% set i = i + 1 %}
                     {% endfor %}
                     </tbody>
                 </table>
-                <table class="table table-striped float-right w-49" id="rapidSearch">
+                <table class="table float-right w-49" id="rapidSearch">
                     <thead>
                     <tr>
                         <th>

@@ -1,31 +1,34 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Champs Libre{% endblock %}
+{% block title %}Paramétrage | Champs libres{% endblock %}
 
 {% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    <a href="{{ path('types_param_index') }}" class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>Aller vers la création d'un type
+                    </a>
+                </div>
+            </div>
+        </div>
 
+        <div class="row">
+            <div class="col-12">
+                <table id="tableType_id" class="table -table w-100">
+                </table>
+            </div>
+        </div>
 
-<h1> Groupes de Champs libres</h1>
+    </div>
 
-<div>
-    <a href="{{ path('types_param_index') }}"  class="btn btn-primary">
-        <span class="fa fa-directions mr-2"></span>Aller vers la création d'un type
-    </a>
-</div>
-
-<table id="tableType_id" class="table table-striped table-bordered" style="width:100%">
-</table>
-
-{% include "champ_libre/modalNewType.html.twig" %}
-{% include "champ_libre/modalDeleteType.html.twig" %}
-{% include "champ_libre/modalEditType.html.twig" %}
+    {% include "champ_libre/modalNewType.html.twig" %}
+    {% include "champ_libre/modalDeleteType.html.twig" %}
+    {% include "champ_libre/modalEditType.html.twig" %}
 
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id;
-    </script>
-
-    <script src="{{asset('js/champLibre.js')}}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/champLibre.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

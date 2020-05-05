@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 
@@ -108,27 +109,28 @@ class InvMissionService
 		return $row;
 	}
 
-    public function getDataForOneMissionDatatable($mission, $params = null)
+    public function getDataForOneMissionDatatable(InventoryMission $mission,
+                                                  ParameterBag $params = null,
+                                                  $isArticle = true)
     {
-
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
 		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
 
-		$queryResultRef = $inventoryMissionRepository->findRefByMissionAndParamsAndFilters($mission, $params, $filters);
-        $queryResultArt = $inventoryMissionRepository->findArtByMissionAndParamsAndFilters($mission, $params, $filters);
+		$queryResult = $isArticle
+            ? $inventoryMissionRepository->findArtByMissionAndParamsAndFilters($mission, $params, $filters)
+            : $inventoryMissionRepository->findRefByMissionAndParamsAndFilters($mission, $params, $filters);
 
-        $refArray = $queryResultRef['data'];
-        $artArray = $queryResultArt['data'];
+        $refArray = $queryResult['data'];
 
         $rows = [];
-        foreach ($refArray as $ref) {
-            $rows[] = $this->dataRowRefMission($ref, $mission);
+        foreach ($refArray as $data) {
+            $rows[] = $isArticle
+                ? $this->dataRowArtMission($data, $mission)
+                : $this->dataRowRefMission($data, $mission);
         }
-        foreach ($artArray as $art) {
-            $rows[] = $this->dataRowArtMission($art, $mission);
-        }
+
         $index = intval($params->get('order')[0]['column']);
         if ($rows) {
         	$columnName = array_keys($rows[0])[$index];
@@ -137,8 +139,8 @@ class InvMissionService
 		}
         return [
             'data' => $rows,
-            'recordsTotal' => $queryResultRef['total'] + $queryResultArt['total'],
-            'recordsFiltered' => $queryResultRef['count'] + $queryResultArt['count'],
+            'recordsTotal' => $queryResult['total'],
+            'recordsFiltered' => $queryResult['count'],
         ];
     }
 

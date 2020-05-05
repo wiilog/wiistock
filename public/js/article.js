@@ -4,54 +4,54 @@ let $printTag ;
 $(function () {
     $printTag = $('#printTag');
     initTableArticle();
-    managePrintButtonTooltip(true, $printTag);
+    managePrintButtonTooltip(true, $printTag.is('button') ? $printTag.parent() : $printTag);
 });
 
 function initTableArticle() {
     $.post(Routing.generate('article_api_columns'), function (columns) {
-        tableArticle = $('#tableArticle_id')
-            .on('error.dt', function (e, settings, techNote, message) {
-                console.log('An error has been reported by DataTables: ', message);
-            }).DataTable({
-                serverSide: true,
-                processing: true,
-                paging: true,
-                scrollX: true,
-                order: [[1, 'asc']],
-                "language": {
-                    url: "/js/i18n/dataTableLanguage.json",
-                },
-                ajax: {
-                    "url": pathArticle,
-                    "type": "POST",
-                    'dataSrc': function (json) {
-                        $('#listArticleIdToPrint').val(json.listId);
-                        if (!$(".statutVisible").val()) {
-                            tableArticle.column('Statut:name').visible(false);
-                        }
-                        return json.data;
+        let tableArticleConfig = {
+            serverSide: true,
+            processing: true,
+            paging: true,
+            scrollX: true,
+            order: [[1, 'asc']],
+            ajax: {
+                "url": pathArticle,
+                "type": "POST",
+                'dataSrc': function (json) {
+                    $('#listArticleIdToPrint').val(json.listId);
+                    if (!$(".statutVisible").val()) {
+                        tableArticle.column('Statut:name').visible(false);
                     }
-                },
-                initComplete: function () {
-                    hideSpinner($('#spinner'));
-                    init();
-                    overrideSearchArticle();
-                    hideAndShowColumns(columns);
-                },
-                columns: columns.map((column) => ({
+                    return json.data;
+                }
+            },
+            columns: columns.map(function (column) {
+                return {
                     ...column,
-                    class: undefined
-                })),
-                columnDefs: [
-                    {
-                        orderable: false,
-                        targets: 0
-                    }
-                ],
-                "drawCallback": function (settings) {
-                    resizeTable();
-                },
-            });
+                    class: column.title === 'Actions' ? 'noVis' : undefined,
+                    title: column.title === 'Actions' ? '' : column.title
+                }
+            }),
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                }
+            ],
+            drawConfig: {
+                needsResize: true
+            },
+            rowConfig: {
+                needsRowClickAction: true
+            },
+            isArticleOrRefSpecifConfig: {
+                columns,
+                tableFilter: 'tableArticle_id_filter'
+            }
+        };
+        tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
+        init();
     });
 }
 
@@ -59,12 +59,6 @@ let resetNewArticle = function (element) {
     element.removeClass('d-block');
     element.addClass('d-none');
 };
-
-function hideAndShowColumns(columns) {
-    tableArticle.columns().every(function(index) {
-        this.visible(columns[index].class !== 'hide');
-    });
-}
 
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
@@ -202,48 +196,27 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function overrideSearchArticle() {
-    let $input = $('#tableArticle_id_filter input');
-    $input.off();
-    $input.on('keyup', function(e) {
-        let $printBtn = $('.justify-content-end').find('.printButton');
-        if (e.key === 'Enter') {
-            if ($input.val() === '') {
-                $printBtn.addClass('btn-disabled');
-                $printBtn.removeClass('btn-primary');
-                managePrintButtonTooltip(true, $printTag);
-            } else {
-                $printBtn.removeClass('btn-disabled');
-                $printBtn.addClass('btn-primary');
-                managePrintButtonTooltip(false, $printTag);
-            }
-            tableArticle.search(this.value).draw();
-        } else if (e.key === 'Backspace' && $input.val() === '') {
-            $printBtn.addClass('btn-disabled');
-            $printBtn.removeClass('btn-primary');
-            managePrintButtonTooltip(true, $printTag);
+function printArticlesBarCodes($button, event) {
+    if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {
+        let listArticles = $("#listArticleIdToPrint").val();
+        const length = tableArticle.page.info().length;
+
+        if (length > 0) {
+            window.location.href = Routing.generate(
+                'article_print_bar_codes',
+                {
+                    length,
+                    listArticles: listArticles,
+                    start: tableArticle.page.info().start
+                },
+                true
+            );
+        } else {
+            alertErrorMsg("Il n'y a aucun article à imprimer");
         }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
-
-function printArticlesBarCodes() {
-    let listArticles = $("#listArticleIdToPrint").val();
-    const length = tableArticle.page.info().length;
-
-    if (length > 0) {
-        window.location.href = Routing.generate(
-            'article_print_bar_codes',
-            {
-                length,
-                listArticles: listArticles,
-                start: tableArticle.page.info().start
-            },
-            true
-        );
     }
-    else {
-        alertErrorMsg("Il n'y a aucun article à imprimer");
+    else if (event) {
+        event.stopPropagation();
     }
 }
 
@@ -260,20 +233,6 @@ function saveRapidSearch() {
         $("#modalRapidSearch").find('.close').click();
         tableArticle.search(tableArticle.search()).draw();
     });
-}
-
-function showOrHideColumn(check) {
-
-    let columnName = check.data('name');
-
-    let column = tableArticle.column(columnName + ':name');
-
-    column.visible(!column.visible());
-
-    let tableRefArticleColumn = $('#tableArticle_id_wrapper');
-    tableRefArticleColumn.find('th, td').removeClass('hide');
-    tableRefArticleColumn.find('th, td').addClass('display');
-    check.toggleClass('data');
 }
 
 function displayActifOrInactif(select){

@@ -3,7 +3,7 @@ $('.select2').select2();
 let $submitSearchManut = $('#submitSearchManutention');
 
 let pathManut = Routing.generate('manutention_api', true);
-let tableManutention = $('#tableManutention_id').DataTable({
+let tableManutentionConfig = {
     serverSide: true,
     processing: true,
     order: [[1, 'desc']],
@@ -17,8 +17,12 @@ let tableManutention = $('#tableManutention_id').DataTable({
             "targets" : 0
         }
     ],
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableManutention_id_filter'
     },
     ajax: {
         "url": pathManut,
@@ -27,11 +31,8 @@ let tableManutention = $('#tableManutention_id').DataTable({
             'filterStatus': $('#filterStatus').val()
         },
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableManutention_id_filter input'), tableManutention);
-    },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
@@ -39,13 +40,14 @@ let tableManutention = $('#tableManutention_id').DataTable({
         { "data": 'Date de réalisation', 'name': 'Date de réalisation', 'title': 'Date de réalisation' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
-});
+};
+let tableManutention = initDataTable('tableManutention_id', tableManutentionConfig);
 
 $(function() {
     initDateTimePicker();
     initSelect2($('.filter-select2[name="statut"]'), 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
-
+    registerDropdownPosition();
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
 

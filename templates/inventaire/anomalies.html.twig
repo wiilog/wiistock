@@ -1,20 +1,24 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Anomalies{% endblock %}
+{% block title %}Stock | Inventaire | Anomalies{% endblock %}
 
 {% block page_content %}
-    <h1 class="mb-5">Anomalies</h1>
-
-    <table id="tableAnomalies" class="table table-striped table-bordered w-100">
-    </table>
-
-    <a href="{{ path ('inventory_mission_index') }}" class="btn btn-action">
-        Retour aux missions
-    </a>
-
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <a href="{{ path ('inventory_mission_index') }}" class="btn btn-primary btn-ripple">
+                    Retour aux missions
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableAnomalies" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
     {% include 'inventaire/modalTreatAnomaly.html.twig' %}
 {% endblock %}
-
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/anomalie-inventaire.js') }}?{{ date().timestamp }}"></script>

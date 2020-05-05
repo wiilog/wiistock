@@ -12,11 +12,12 @@ $(function () {
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
     InitiliserPageModals();
-    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function(){
+    $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function () {
         if ($(this).val() === '' || $(this).val() < 0) {
             $(this).val('');
         }
     });
+    registerDropdownPosition();
 });
 
 function InitiliserPageModals() {
@@ -64,44 +65,44 @@ function InitiliserPageModals() {
 function InitPageDataTable() {
     let pathAddArticle = Routing.generate('reception_article_api', {'id': $('input[type="hidden"]#receptionId').val()}, true);
     let pathLitigesReception = Routing.generate('litige_reception_api', {reception: $('#receptionId').val()}, true);
-
-    return {
-        tableArticle: $('#tableArticle_id').DataTable({
-            responsive: true,
-            "lengthMenu": [5, 10, 25],
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            ajax: {
-                "url": pathAddArticle,
-                "type": "POST",
-                dataSrc: ({data, hasBarCodeToPrint}) => {
-                    const $printButton = $('#buttonPrintMultipleBarcodes');
-                    const dNoneClass = 'd-none';
-                    if (hasBarCodeToPrint) {
-                        $printButton.removeClass(dNoneClass);
-                    }
-                    else {
-                        $printButton.addClass(dNoneClass);
-                    }
-                    return data;
+    let tableArticleConfig = {
+        "lengthMenu": [5, 10, 25],
+        ajax: {
+            "url": pathAddArticle,
+            "type": "POST",
+            dataSrc: ({data, hasBarCodeToPrint}) => {
+                const $printButton = $('#buttonPrintMultipleBarcodes');
+                const dNoneClass = 'd-none';
+                if (hasBarCodeToPrint) {
+                    $printButton.removeClass(dNoneClass);
+                    $('.print').removeClass(dNoneClass)
+                } else {
+                    $printButton.addClass(dNoneClass);
+                    $('.print').addClass(dNoneClass)
                 }
-            },
-            order: [[5, "desc"], [1, "desc"]],
-            columns: [
-                {"data": 'Actions', 'title': 'Actions'},
-                {"data": 'Référence', 'title': 'Référence'},
-                {"data": 'Commande', 'title': 'Commande'},
-                {"data": 'A recevoir', 'title': 'A recevoir'},
-                {"data": 'Reçu', 'title': 'Reçu'},
-                {"data": 'Urgence', 'title': 'Urgence'},
-                {"data": 'Comment', 'title': 'Comment', visible: false},
-            ],
-            columnDefs: [
-                {"orderable": false, "targets": 0},
-                {"visible": false, "targets": 5}
-            ],
-            rowCallback: function (row, data) {
+                return data;
+            }
+        },
+        domConfig: {
+            removeInfo: true
+        },
+        order: [[5, "desc"], [1, "desc"]],
+        columns: [
+            {"data": 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Référence', 'title': 'Référence'},
+            {"data": 'Commande', 'title': 'Commande'},
+            {"data": 'A recevoir', 'title': 'A recevoir'},
+            {"data": 'Reçu', 'title': 'Reçu'},
+            {"data": 'Urgence', 'title': 'Urgence'},
+            {"data": 'Comment', 'title': 'Comment', visible: false},
+        ],
+        columnDefs: [
+            {"orderable": false, "targets": 0},
+            {"visible": false, "targets": 5}
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+            callback: (row, data) => {
                 if (data.Urgence) {
                     const $row = $(row);
                     $row.addClass('table-danger');
@@ -111,45 +112,49 @@ function InitPageDataTable() {
                     }
                 }
             }
-        }),
-        tableLitigesReception: $('#tableReceptionLitiges').DataTable({
-            responsive: true,
-            language: {
-                url: "/js/i18n/dataTableLanguage.json",
+        },
+    };
+    let tableLitigeConfig = {
+        "lengthMenu": [5, 10, 25],
+        scrollX: true,
+        ajax: {
+            "url": pathLitigesReception,
+            "type": "POST",
+        },
+        columns: [
+            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": 'status', 'name': 'status', 'title': 'Statut'},
+            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
+        ],
+        columnDefs: [
+            {
+                "type": "customDate",
+                "targets": [4, 5],
+                "visible": false
             },
-            "lengthMenu": [5, 10, 25],
-            scrollX: true,
-            ajax: {
-                "url": pathLitigesReception,
-                "type": "POST",
-            },
-            columns: [
-                {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
-                {"data": 'type', 'name': 'type', 'title': 'Type'},
-                {"data": 'status', 'name': 'status', 'title': 'Statut'},
-                {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
-                {"data": 'date', 'name': 'date', 'title': 'Date'},
-                {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
-            ],
-            columnDefs: [
-                {
-                    "type": "customDate",
-                    "targets": [4, 5],
-                    "visible": false
-                },
-                {
-                    orderable: false,
-                    targets: 0
-                }
-            ],
-            order: [
-                [5, 'desc'],
-                [4, 'desc'],
-            ],
-            rowCallback: function (row, data) {
-                $(row).addClass(data.urgence ? 'table-danger' : '');
+            {
+                orderable: false,
+                targets: 0
             }
-        })
+        ],
+        order: [
+            [5, 'desc'],
+            [4, 'desc'],
+        ],
+        domConfig: {
+            removeInfo: true
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+            needsDangerColor: true
+        },
+    };
+    return {
+        tableArticle: initDataTable('tableArticle_id', tableArticleConfig),
+        tableLitigesReception: initDataTable('tableReceptionLitiges', tableLitigeConfig)
     };
 }
 
@@ -160,7 +165,7 @@ function initEditReception() {
 
 function initDateTimePickerReception() {
     initDateTimePicker('#dateCommande, #dateAttendue');
-    $('.date-cl').each(function() {
+    $('.date-cl').each(function () {
         initDateTimePicker('#' + $(this).attr('id'));
     });
 }
@@ -171,7 +176,8 @@ function displayErrorReception(data) {
     displayError($modal, msg, data);
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {
+}, receptionId, litigeId) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -218,10 +224,7 @@ function getCommentAndAddHisto() {
 
 function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
-    tableHistoLitige = $('#tableHistoLitige').DataTable({
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
+    let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
             "type": "POST"
@@ -231,18 +234,21 @@ function openTableHisto() {
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
         ],
-        dom: '<"top">rt<"bottom"lp><"clear">'
-    });
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        domConfig: {
+            needsPartialDomOverride: true
+        },
+    };
+    tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 
 function initDatatableConditionnement() {
     let pathArticle = Routing.generate('article_by_reception_api', true);
-    let tableFromArticle = $('#tableArticleInner_id').DataTable({
+    let tableFromArticleConfig = {
         info: false,
         paging: false,
-        "language": {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
         searching: false,
         destroy: true,
         ajax: {
@@ -254,26 +260,31 @@ function initDatatableConditionnement() {
                 }
             },
         },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        order: [1, 'asc'],
         columns: [
+            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
             {"data": 'Code barre', 'name': 'Code barre', 'title': 'Code article'},
             {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
             {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
             {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
             {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
-            {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
         ],
         aoColumnDefs: [{
             'sType': 'natural',
             'bSortable': true,
-            'aTargets': [0]
+            'aTargets': [1]
         }],
         columnDefs: [
             {
                 orderable: false,
-                targets: 5
+                targets: 0
             }
         ]
-    });
+    };
+    let tableFromArticle = initDataTable('tableArticleInner_id', tableFromArticleConfig);
 
     let statutVisible = $("#statutVisible").val();
     if (!statutVisible) {
@@ -497,8 +508,11 @@ function initNewLigneReception() {
     }
     initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
     initSelect2($('.select2-type'));
-    initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route:  'get_user'});
-    initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {route: 'get_ref_article_reception', param: {reception: $('#receptionId').val()}});
+    initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route: 'get_user'});
+    initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
+        route: 'get_ref_article_reception',
+        param: {reception: $('#receptionId').val()}
+    });
     if ($('#locationDemandeLivraison').length > 0) {
         initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
@@ -516,7 +530,7 @@ function initNewLigneReception() {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function(success) {
+            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function (success) {
                 if (success) {
                     const $printButton = $('#buttonPrintMultipleBarcodes');
                     if ($printButton.length > 0) {
@@ -611,8 +625,7 @@ function createHandlerAddLigneArticleResponse($modal) {
     return (data) => {
         if (data.errorMsg) {
             alertErrorMsg(data.errorMsg, true);
-        }
-        else {
+        } else {
             alertSuccessMsg('La référence a été ajoutée à la réception', true);
             $modal.find('.close').click();
             clearModal($modal);

@@ -1,30 +1,25 @@
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
-let tableDays = $('#tableDays').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableDaysConfig = {
     ajax: {
         "url": pathDays,
         "type": "POST"
     },
     columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Day', 'title': 'Jour'},
         {"data": 'Worked', 'title': 'Travaillé'},
         {"data": 'Times', 'title': 'Horaires de travail'},
         {"data": 'Order', 'title': 'Ordre'},
-        {"data": 'Actions', 'title': 'Actions'},
     ],
     order: [
-        [3, 'asc']
+        [4, 'asc']
     ],
-    columnDefs: [
-        {
-            'targets': [3],
-            'visible': false
-        }
-    ],
-});
+    rowConfig: {
+        needsRowClickAction: true,
+    }
+};
+let tableDays = initDataTable('tableDays', tableDaysConfig);
 
 let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
@@ -41,6 +36,13 @@ $(function () {
         fileToImagePreview($(this));
     });
     // config tableau de bord : emplacements
+    initSelect2ValuesForDashboard();
+    $('#locationArrivageDest').on('change', editArrivageDestination);
+    $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
+    // config tableau de bord : transporteurs
+});
+
+function initSelect2ValuesForDashboard() {
     initDisplaySelect2Multiple('#locationToTreat', '#locationToTreatValue');
     initDisplaySelect2Multiple('#locationWaitingDock', '#locationWaitingDockValue');
     initDisplaySelect2Multiple('#locationWaitingAdmin', '#locationWaitingAdminValue');
@@ -52,10 +54,22 @@ $(function () {
     initDisplaySelect2Multiple('#locationsSecondGraph', '#locationsSecondGraphValue');
     initDisplaySelect2Multiple('#locationArrivageDest', '#locationArrivageDestValue');
     initDisplaySelect2Multiple('#locationDemandeLivraison','#locationDemandeLivraisonValue');
-    $('#locationArrivageDest').on('change', editArrivageDestination);
-    // config tableau de bord : transporteurs
+    initDisplaySelect2Multiple('#packaging1','#packagingLocation1');
+    initDisplaySelect2Multiple('#packaging2','#packagingLocation2');
+    initDisplaySelect2Multiple('#packaging3','#packagingLocation3');
+    initDisplaySelect2Multiple('#packaging4','#packagingLocation4');
+    initDisplaySelect2Multiple('#packaging5','#packagingLocation5');
+    initDisplaySelect2Multiple('#packaging6','#packagingLocation6');
+    initDisplaySelect2Multiple('#packaging7','#packagingLocation7');
+    initDisplaySelect2Multiple('#packaging8','#packagingLocation8');
+    initDisplaySelect2Multiple('#packagingRPA','#packagingLocationRPA');
+    initDisplaySelect2Multiple('#packagingLitige','#packagingLocationLitige');
+    initDisplaySelect2Multiple('#packagingUrgence','#packagingLocationUrgence');
+    initDisplaySelect2Multiple('#packagingDSQR','#packagingLocationDSQR');
+    initDisplaySelect2Multiple('#packagingDestinationGT','#packagingLocationDestinationGT');
+    initDisplaySelect2Multiple('#packagingOrigineGT','#packagingLocationOrigineGT');
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
-});
+}
 
 function errorEditDays(data) {
     let modal = $("#modalEditDays");

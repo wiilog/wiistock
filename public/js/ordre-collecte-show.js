@@ -1,23 +1,24 @@
 let id = $('#collecte-id').val();
 
 let pathArticle = Routing.generate('ordre_collecte_article_api', {'id': id });
-
-let tableArticle = $('#tableArticle').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArticleConfig = {
     ajax: {
         'url': pathArticle,
         "type": "POST"
     },
+    order: [1, 'asc'],
     columns: [
+        { "data": 'Actions', 'title': '', 'orderable': false, className: 'noVis' },
         { "data": 'Référence', 'title': 'Référence' },
         { "data": 'Libellé', 'title': 'Libellé' },
         { "data": 'Emplacement', 'title': 'Emplacement' },
         { "data": 'Quantité', 'title': 'Quantité' },
-        { "data": 'Actions', 'title': 'Actions', 'orderable': false },
     ],
-});
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+};
+let tableArticle = initDataTable('tableArticle', tableArticleConfig);
 
 let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
 let modalEditArticle = $("#modalEditArticle");
@@ -57,14 +58,14 @@ function checkIfRowSelected(success) {
 }
 
 function openLocationModal() {
-    $('#btnModalFinishCollecte').trigger('click');
+    $('#modalFinishCollecte').modal('show');
 }
 
 function finishCollecte(withoutLocation = false) {
     // on récupère les lignes sélectionnées
     let $table = $('#tableArticle');
-    let $rowsSelected = $table.find('.btn-check.active');
-    let $rowsToDelete = $table.find('.btn-check:not(.active)');
+    let $rowsSelected = $table.find('.dropdown-item.active');
+    let $rowsToDelete = $table.find('.dropdown-item:not(.active)');
     let rowsData = [];
     $rowsSelected.each(function() {
         rowsData.push({
@@ -92,6 +93,7 @@ function finishCollecte(withoutLocation = false) {
                     .remove()
                     .draw();
             });
+            tableArticle.ajax.reload();
         });
     } else {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');

@@ -21,24 +21,25 @@ $(function() {
 });
 
 let pathMvt = Routing.generate('mvt_traca_api', true);
-let tableMvt = $('#tableMvts').DataTable({
+let tableMvtConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[2, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableMvts_filter input'), tableMvt);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableMvts_filter'
+    },
+    rowConfig: {
+        needsRowClickAction: true
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
-        {"data": 'origin', 'name': 'origin', 'title': 'Issu de'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'origin', 'name': 'origin', 'title': 'Issu de', className: 'noVis'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": "reference", 'name': 'reference', 'title': 'Référence'},
@@ -56,7 +57,8 @@ let tableMvt = $('#tableMvts').DataTable({
     headerCallback: function(thead) {
         $(thead).find('th').eq(2).attr('title', "Colis");
     },
-});
+};
+let tableMvt = initDataTable('tableMvts', tableMvtConfig);
 
 $.fn.dataTable.ext.search.push(
     function (settings, data) {

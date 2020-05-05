@@ -26,7 +26,6 @@ use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
-use App\Repository\PreparationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\AttachmentService;
 use App\Service\InventoryService;
@@ -99,11 +98,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $logger;
 
     /**
-     * @var PreparationRepository
-     */
-    private $preparationRepository;
-
-    /**
      * @var LivraisonRepository
      */
     private $livraisonRepository;
@@ -147,7 +141,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param UserService $userService
      * @param InventoryMissionRepository $inventoryMissionRepository
      * @param LivraisonRepository $livraisonRepository
-     * @param PreparationRepository $preparationRepository
      * @param LoggerInterface $logger
      * @param MailerServerRepository $mailerServerRepository
      * @param MailerService $mailerService
@@ -161,7 +154,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 UserService $userService,
                                 InventoryMissionRepository $inventoryMissionRepository,
                                 LivraisonRepository $livraisonRepository,
-                                PreparationRepository $preparationRepository,
                                 LoggerInterface $logger,
                                 MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
@@ -174,7 +166,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
         $this->logger = $logger;
-        $this->preparationRepository = $preparationRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
@@ -410,18 +401,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $options['fileBag'] = [$signatureFile];
                             }
 
-                            $entityManager->persist(
-                                $mouvementTracaService->persistMouvementTraca(
-                                    $mvt['ref_article'],
-                                    $location,
-                                    $nomadUser,
-                                    $date,
-                                    true,
-                                    $mvt['finished'],
-                                    $type,
-                                    $options
-                                )
+                            $createdMvt = $mouvementTracaService->createMouvementTraca(
+                                $mvt['ref_article'],
+                                $location,
+                                $nomadUser,
+                                $date,
+                                true,
+                                $mvt['finished'],
+                                $type,
+                                $options
                             );
+                            foreach ($createdMvt->getAttachements() as $attachement) {
+                                $entityManager->persist($attachement);
+                            }
+                            $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
 
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
@@ -515,12 +508,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
-    public function beginPrepa(Request $request)
+    public function beginPrepa(Request $request,
+                               EntityManagerInterface $entityManager)
     {
         $apiKey = $request->request->get('apiKey');
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
             $id = $request->request->get('id');
-            $preparation = $this->preparationRepository->find($id);
+            $preparationRepository = $entityManager->getRepository(Preparation::class);
+            $preparation = $preparationRepository->find($id);
 
             if (($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) ||
                 ($preparation->getUtilisateur() === $nomadUser)) {
@@ -559,6 +554,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($apiKey)) {
 
             $articleRepository = $entityManager->getRepository(Article::class);
+            $preparationRepository = $entityManager->getRepository(Preparation::class);
 
             $resData = ['success' => [], 'errors' => [], 'data' => []];
 
@@ -567,7 +563,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             // on termine les préparations
             // même comportement que LivraisonController.new()
             foreach ($preparations as $preparationArray) {
-                $preparation = $this->preparationRepository->find($preparationArray['id']);
+                $preparation = $preparationRepository->find($preparationArray['id']);
                 if ($preparation) {
                     // if it has not been begun
                     try {
@@ -668,14 +664,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             if (!empty($insertedPrepasIds)) {
-                $resData['data']['preparations'] = $this->preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
+                $resData['data']['preparations'] = $preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
                 $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
                 $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
             }
 
             $preparationsManager->removeRefMouvements();
             $entityManager->flush();
-        } else {
+        }
+        else {
             $statusCode = Response::HTTP_UNAUTHORIZED;
             $resData['success'] = false;
             $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
@@ -1156,12 +1153,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+        $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
         if ($rights['inventoryManager']) {
-            $refAnomalies = $this->inventoryEntryRepository->getAnomaliesOnRef(true);
-            $artAnomalies = $this->inventoryEntryRepository->getAnomaliesOnArt(true);
+            $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
+            $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
         }
         else {
             $refAnomalies = [];
@@ -1180,7 +1179,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
             /// preparations
-            $preparations = $this->preparationRepository->getAvailablePreparations($user);
+            $preparations = $preparationRepository->getAvailablePreparations($user);
 
             /// collecte
             $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
@@ -1448,9 +1447,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             if (!empty($location)) {
-                $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
                 $resData['success'] = true;
-                $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
+                $resData['trackingDrops'] = [];
+                // TODO AB : mettre en place la pagination si volume de données tro volumineux
+//                $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                // $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
             }
             else {
                 $resData['success'] = true;

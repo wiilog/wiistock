@@ -1,5 +1,5 @@
 let datatableColis;
-let datatableLoading = false;
+let currentDashboard;
 
 let chartArrivalUm;
 let chartAssoRecep;
@@ -9,11 +9,16 @@ let chartColis;
 let chartMonetaryFiability;
 let chartFirstForAdmin;
 let chartSecondForAdmin;
+let chartTreatedPacks;
 
+let currentChartsFontSize;
+const dashboardChartsData = {};
 
-FONT_SIZE_DEFAULT = 18;
-FONT_SIZE_EXT = 40;
-
+const DASHBOARD_ARRIVAL_NAME = 'arrivage';
+const DASHBOARD_DOCK_NAME = 'quai';
+const DASHBOARD_ADMIN_NAME = 'admin';
+const DASHBOARD_PACKAGING_NAME = 'emballage';
+const DEFAULT_DASHBOARD = DASHBOARD_ARRIVAL_NAME;
 
 
 $(function () {
@@ -21,42 +26,24 @@ $(function () {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
-    //// charts monitoring réception arrivage
-    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics').then((chart) => {
-        chartArrivalUm = chart;
-    });
-    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics').then((chart) => {
-        chartAssoRecep = chart;
-    });
-    //// charts monitoring réception quai
-    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics').then((chart) => {
-        chartDailyArrival = chart;
-    });
-    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics').then((chart) => {
-        chartWeeklyArrival = chart;
-    });
-    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics').then((chart) => {
-        chartColis = chart;
-    });
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', null, true, true).then((chart) => {
-        chartMonetaryFiability = chart;
-    });
-    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1).then((chart) => {
-        chartFirstForAdmin = chart;
-    });
-    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2).then((chart) => {
-        chartSecondForAdmin = chart;
-    });
+    currentChartsFontSize = calculateChartsFontSize();
 
-    loadRetards();
-    refreshIndicatorsReceptionDock();
-    refreshIndicatorsReceptionAdmin();
-    updateCarriers();
+    if (!isDashboardExt()) {
+        const knownHash = ([DASHBOARD_ARRIVAL_NAME, DASHBOARD_DOCK_NAME, DASHBOARD_ADMIN_NAME, DASHBOARD_PACKAGING_NAME].indexOf(getUrlHash()) > -1);
+        if (!knownHash) {
+            window.location.hash = DEFAULT_DASHBOARD;
+        }
+
+        setActiveDashboard(getUrlHash());
+    }
+
+    hideCarouselTargetOverlay();
+    loadProperData();
 
     initTooltips($('.has-tooltip'));
 
-    let reloadFrequency = 1000 * 60 * 15;
-    setInterval(reloadDashboards, reloadFrequency);
+    let reloadFrequency = 1000 * 60 * 15; // 15min
+    setInterval(reloadData, reloadFrequency);
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
@@ -66,38 +53,205 @@ $(function () {
         $indicators.fadeOut();
     });
 
-    $(document).on('keydown', function(e) {
-        let activeBtn = $('#carouselIndicators').find('[data-slide-to].active');
-        if (e.which === 37) {
-            activeBtn.prev('li').click()
-        } else if (e.which === 39) {
-            activeBtn.next('li').click()
+    $(document).on('keydown', function (e) {
+        if (!$('.carousel-indicators').hasClass('d-none')) {
+            let activeBtn = $('#carousel-dashboard').find('[data-slide-to].active');
+            if (e.which === 37) {
+                activeBtn.prev('li').click()
+            } else if (e.which === 39) {
+                activeBtn.next('li').click()
+            }
         }
-    })
+    });
+
+    $(window).resize(function () {
+        let newFontSize = calculateChartsFontSize();
+        if (newFontSize !== currentChartsFontSize) {
+            currentChartsFontSize = newFontSize;
+            resizeCharts();
+        }
+    });
+
+    refreshPageTitle();
+    const $carouselDashboard = $('#carousel-dashboard');
+    // slide during
+    $carouselDashboard.on('slide.bs.carousel', (event) => {
+        hideCarouselTargetOverlay($(event.relatedTarget));
+        showSpinner();
+    });
+
+    // slide end
+    $carouselDashboard.on('slid.bs.carousel', () => {
+        window.location.hash = $('#carousel-dashboard .carousel-item.active').data('name');
+        loadProperData();
+        refreshPageTitle();
+    });
 });
 
-function reloadDashboards() {
-    if (datatableColis) {
-        datatableColis.ajax.reload();
-    }
-    updateCharts();
-    updateCarriers();
-    refreshIndicatorsReceptionDock();
-    refreshIndicatorsReceptionAdmin();
-
-    let now = new Date();
-    $('.refreshDate').text(('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' à ' + now.getHours() + ':' + now.getMinutes());
+function hideCarouselTargetOverlay($currentCarouselItem = $('.carousel-item')) {
+    const $carouselIndicators = $('.carousel-indicators');
+    $carouselIndicators.addClass('d-none');
+    $currentCarouselItem.addClass('d-none');
 }
 
-function updateCharts() {
-    drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm);
-    drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep);
-    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival);
-    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival);
-    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis);
-    drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, true, true);
-    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin);
-    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin);
+function showSpinner() {
+    let $spinner = $('.spinner-grow');
+    $spinner.removeClass('d-none');
+}
+
+function showCarouselOverlayAndHideSpinner() {
+    let $spinner = $('.spinner-grow');
+    let $carouselContainer = $('.carousel-item');
+    let $carouselIndicators = $('.carousel-indicators');
+    $spinner.addClass('d-none');
+    $carouselIndicators.removeClass('d-none');
+    $carouselContainer.removeClass('d-none');
+}
+
+function loadProperData(preferCache = false) {
+    const displayedDashboard = isDashboardExt()
+        ? $('#dashboard-name').val()
+        : $('.carousel-item.active').data('name');
+    switch (displayedDashboard) {
+        case DASHBOARD_ARRIVAL_NAME:
+            loadArrivalDashboard(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+                resizeDatatable();
+            });
+            break;
+        case DASHBOARD_DOCK_NAME:
+            loadDockDashboard(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+            });
+            break;
+        case DASHBOARD_ADMIN_NAME:
+            loadAdminDashboard(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+            });
+            break;
+        case DASHBOARD_PACKAGING_NAME:
+            loadPackagingData(preferCache).then(() => {
+                showCarouselOverlayAndHideSpinner();
+            });
+            break;
+        default:
+            break;
+    }
+}
+
+function resizeDatatable() {
+    datatableColis.columns.adjust().draw();
+}
+
+function loadPackagingData(preferCache) {
+    return new Promise(function (resolve) {
+        if (preferCache) {
+            const $canvas = $('#chartTreatedPacks');
+            const chartData = dashboardChartsData[$canvas.attr('id')];
+            createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData);
+        } else {
+            let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
+            $.get(pathForPackagingData, function ({counters, chartData, chartColors}) {
+                const total = Object
+                    .keys(counters)
+                    .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0);
+
+                $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
+                const $canvas = $('#chartTreatedPacks');
+                dashboardChartsData[$canvas.attr('id')] = {
+                    data: chartData,
+                    chartColors
+                };
+                chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true);
+                resolve();
+            });
+        }
+    });
+}
+
+function fillPackagingCard(cardId, data) {
+    let $container = $('#' + cardId);
+    $container.find('.location-label').html(data ? data.label : '-');
+    $container.find('.dashboard-stats-counter').html(data && data.count ? data.count : '-');
+    let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
+    let $titleDelayValue = $container.find('.dashboard-stats-delay');
+    if (data && data.delay < 0) {
+        $titleDelayContainer.html('Retard : ');
+        $titleDelayContainer.addClass('red');
+        $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
+        $titleDelayValue.addClass('red');
+    } else if (data && data.delay > 0) {
+        $titleDelayContainer.html('A traiter sous : ');
+        $titleDelayContainer.removeClass('red');
+        $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
+        $titleDelayValue.removeClass('red');
+    } else {
+        $titleDelayValue.html('-');
+    }
+    return data && $container.hasClass('contribute-to-total') ? data.count : 0;
+}
+
+function loadArrivalDashboard(preferCache) {
+    return Promise
+        .all([
+            drawChartWithHisto($('#chartArrivalUm'), 'get_arrival_um_statistics', 'now', chartArrivalUm, preferCache),
+            drawChartWithHisto($('#chartAssocRecep'), 'get_asso_recep_statistics', 'now', chartAssoRecep, preferCache),
+            drawSimpleChart($('#chartMonetaryFiability'), 'get_monetary_fiability_statistics', chartMonetaryFiability, preferCache),
+            ...(!preferCache ? [loadRetards()] : [])
+        ])
+        .then(([chartArrivalUmLocal, chartAssoRecepLocal, chartMonetaryFiabilityLocal]) => {
+            chartArrivalUm = chartArrivalUmLocal;
+            chartAssoRecep = chartAssoRecepLocal;
+            chartMonetaryFiability = chartMonetaryFiabilityLocal;
+        });
+}
+
+function loadDockDashboard(preferCache) {
+    return Promise
+        .all([
+            drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCache),
+            drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCache),
+            drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCache),
+            ...(
+                !preferCache
+                    ? [
+                        refreshIndicatorsReceptionDock(),
+                        updateCarriers()
+                    ]
+                    : []
+            )
+        ])
+        .then(([chartDailyArrivalLocal, chartWeeklyArrivalLocal, chartColisLocal]) => {
+            chartDailyArrival = chartDailyArrivalLocal;
+            chartWeeklyArrival = chartWeeklyArrivalLocal;
+            chartColis = chartColisLocal;
+        });
+}
+
+function loadAdminDashboard(preferCache) {
+    return Promise
+        .all([
+            drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache),
+            drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache),
+            ...(!preferCache ? [refreshIndicatorsReceptionAdmin()] : [])
+        ])
+        .then(([chartFirstForAdminLocal, chartSecondForAdminLocal]) => {
+            chartFirstForAdmin = chartFirstForAdminLocal;
+            chartSecondForAdmin = chartSecondForAdminLocal;
+        });
+}
+
+
+function reloadData() {
+    loadProperData();
+    let now = new Date();
+    const date = ('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
+    const hour = now.getHours() + ':' + now.getMinutes();
+    $('.refreshDate').text(`${date} à ${hour}`);
+}
+
+function resizeCharts() {
+    loadProperData(true);
 }
 
 function updateSimpleChartData(
@@ -152,11 +306,11 @@ function updateMultipleChartData(chart, chartData, chartColors) {
                 dataset = {
                     label: subKey,
                     backgroundColor: (chartColors
-                        ? (
-                            (chartColors && chartColors[subKey])
-                            || (`#${((1 << 24) * Math.random() | 0).toString(16)}`)
-                        )
-                        : '#a3d1ff'
+                            ? (
+                                (chartColors && chartColors[subKey])
+                                || (`#${((1 << 24) * Math.random() | 0).toString(16)}`)
+                            )
+                            : '#a3d1ff'
                     ),
                     data: []
                 };
@@ -168,31 +322,58 @@ function updateMultipleChartData(chart, chartData, chartColors) {
     chart.update();
 }
 
-function drawSimpleChart($canvas, path, chart = null, canHaveNegativValues = false) {
+function drawSimpleChart($canvas, path, chart, preferCacheData = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
-            $.get(Routing.generate(path), function (data) {
-                if (!chart) {
-                    chart = newChart($canvas, false, canHaveNegativValues);
-                }
-
-                updateSimpleChartData(
-                    chart,
-                    data.data || data,
-                    data.data && data.label,
-                    {
-                        data: data.subCounters,
-                        label: data.subLabel
-                    });
+            if (!preferCacheData) {
+                $.get(Routing.generate(path), function (data) {
+                    dashboardChartsData[$canvas.attr('id')] = data;
+                    chart = createAndUpdateSimpleChart($canvas, chart, data);
+                    resolve(chart);
+                });
+            } else {
+                const data = dashboardChartsData[$canvas.attr('id')];
+                chart = createAndUpdateSimpleChart($canvas, chart, data, true);
                 resolve(chart);
-            });
+            }
         }
     });
 }
 
-function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
+function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false) {
+    if (forceCreation || !chart) {
+        chart = newChart($canvas, false);
+    }
+
+    if (data) {
+        updateSimpleChartData(
+            chart,
+            data.data || data,
+            data.data && data.label,
+            {
+                data: data.subCounters,
+                label: data.subLabel
+            }
+        );
+    }
+
+    return chart;
+}
+
+function createAndUpdateMultipleCharts($canvas, chart, data, forceCreation = false) {
+    if (forceCreation || !chart) {
+        chart = newChart($canvas, true);
+    }
+    if (data) {
+        updateMultipleChartData(chart, data.data, (data.chartColors || {}));
+    }
+    return chart;
+}
+
+
+function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null, preferCacheData = false) {
     return new Promise(function (resolve) {
         if ($button.length == 0) {
             resolve();
@@ -201,53 +382,58 @@ function drawChartWithHisto($button, path, beforeAfter = 'now', chart = null) {
             let $rangeBtns = $dashboardBox.find('.range-buttons');
             let $firstDay = $rangeBtns.find('.firstDay');
             let $lastDay = $rangeBtns.find('.lastDay');
-
             let $canvas = $dashboardBox.find('canvas');
+            if (!preferCacheData) {
+                let params = {
+                    'firstDay': $firstDay.data('day'),
+                    'lastDay': $lastDay.data('day'),
+                    'beforeAfter': beforeAfter
+                };
+                $.get(Routing.generate(path), params, function (data) {
+                    $firstDay.text(data.firstDay);
+                    $firstDay.data('day', data.firstDayData);
+                    $lastDay.text(data.lastDay);
+                    $lastDay.data('day', data.lastDayData);
+                    $rangeBtns.removeClass('d-none');
 
-            let params = {
-                'firstDay': $firstDay.data('day'),
-                'lastDay': $lastDay.data('day'),
-                'beforeAfter': beforeAfter
-            };
-            $.get(Routing.generate(path), params, function (data) {
-                $firstDay.text(data.firstDay);
-                $firstDay.data('day', data.firstDayData);
-                $lastDay.text(data.lastDay);
-                $lastDay.data('day', data.lastDayData);
+                    const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
+                        previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
+                        return previous;
+                    }, {});
 
-                $rangeBtns.removeClass('d-none');
+                    dashboardChartsData[$canvas.attr('id')] = chartData;
+                    chart = createAndUpdateSimpleChart($canvas, chart, chartData);
+                    resolve(chart);
+                });
+            } else {
+                const chartData = dashboardChartsData[$canvas.attr('id')];
 
-                if (!chart) {
-                    chart = newChart($canvas);
-                }
-
-                const chartData = Object.keys(data.data).reduce((previous, currentKeys) => {
-                    previous[currentKeys] = (data.data[currentKeys].count || data.data[currentKeys] || 0);
-                    return previous;
-                }, {});
-                updateSimpleChartData(chart, chartData);
+                chart = createAndUpdateSimpleChart($canvas, chart, chartData, true);
                 resolve(chart);
-            });
+            }
         }
     });
 }
 
-function drawMultipleBarChart($canvas, path, params, chartNumber, chart = null) {
+function drawMultipleBarChart($canvas, path, params, chartNumber, chart, preferCacheData = false) {
     return new Promise(function (resolve) {
         if ($canvas.length == 0) {
             resolve();
         } else {
-            $.get(Routing.generate(path, params), function (data) {
-                $('#empForChart' + chartNumber).text(data.location);
-                $('#totalForChart' + chartNumber).text(data.total);
+            if (!preferCacheData) {
+                $.get(Routing.generate(path, params), function (data) {
+                    $('#empForChart' + chartNumber).text(data.location);
+                    $('#totalForChart' + chartNumber).text(data.total);
+                    dashboardChartsData[$canvas.attr('id')] = data;
 
-                if (!chart) {
-                    chart = newChart($canvas, true, true);
-                }
-
-                updateMultipleChartData(chart, data.data, (data.chartColors || {}));
+                    chart = createAndUpdateMultipleCharts($canvas, chart, data);
+                    resolve(chart);
+                });
+            } else {
+                data = dashboardChartsData[$canvas.attr('id')];
+                chart = createAndUpdateMultipleCharts($canvas, chart, data, true);
                 resolve(chart);
-            });
+            }
         }
     });
 }
@@ -270,22 +456,20 @@ function goToFilteredDemande(type, filter) {
     window.location.href = route;
 }
 
-function newChart($canvasId, redForLastData = false, canHaveNegativValues = false) {
+function newChart($canvasId, redForLastData = false) {
     if ($canvasId.length) {
-        const fontSize = isDashboardExt()
-            ? FONT_SIZE_EXT
-            : FONT_SIZE_DEFAULT;
+        const fontSize = currentChartsFontSize;
         const fontStyle = isDashboardExt()
             ? 'bold'
             : undefined;
+
         const chart = new Chart($canvasId, {
             type: 'bar',
             data: {},
             options: {
                 layout: {
                     padding: {
-                        top: 30,
-                        bottom: canHaveNegativValues ? 30 : 0
+                        top: 30
                     }
                 },
                 tooltips: false,
@@ -295,7 +479,7 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
                     labels: {
                         fontSize,
                         fontStyle,
-                        filter: function(item) {
+                        filter: function (item) {
                             return Boolean(item && item.text);
                         }
                     }
@@ -335,57 +519,70 @@ function newChart($canvasId, redForLastData = false, canHaveNegativValues = fals
 }
 
 function loadRetards() {
-    const $retardsTable = $('.retards-table');
-
-    if (!datatableLoading) {
-        datatableLoading = true;
+    return new Promise(function (resolve) {
+        const $retardsTable = $('.retards-table');
         if (datatableColis) {
-            datatableColis.destroy();
+            datatableColis.ajax.reload(() => {
+                resolve();
+            });
+        } else {
+            let datatableColisConfig = {
+                responsive: true,
+                domConfig: {
+                    needsMinimalDomOverride: true
+                },
+                paging: false,
+                scrollCollapse: true,
+                scrollY: '22vh',
+                processing: true,
+                ajax: {
+                    "url": Routing.generate('api_retard', true),
+                    "type": "GET",
+                },
+                initCompleteCallback: () => {
+                    resolve();
+                },
+                order: [[2, 'desc']],
+                columns: [
+                    {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
+                    {"data": 'date', 'name': 'date', 'title': 'Dépose'},
+                    {
+                        "data": 'delay',
+                        'name': 'delay',
+                        'title': 'Délai',
+                        render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)
+                    },
+                    {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
+                ]
+            };
+            datatableColis = initDataTable($retardsTable.attr('id'), datatableColisConfig);
         }
-        datatableColis = $retardsTable.DataTable({
-            responsive: true,
-            dom: 'tr',
-            paging: false,
-            scrollCollapse: true,
-            scrollY: '18vh',
-            processing: true,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            ajax: {
-                "url": Routing.generate('api_retard', true),
-                "type": "GET",
-            },
-            initComplete: () => {
-                datatableLoading = false;
-            },
-            order: [[2, 'desc']],
-            columns: [
-                {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
-                {"data": 'date', 'name': 'date', 'title': 'Dépose'},
-                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
-                {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
-            ]
-        });
-    }
+    });
 }
 
 function refreshIndicatorsReceptionDock() {
-    $.get(Routing.generate('get_indicators_reception_dock'), function(data) {
-        refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
-        refreshCounter($('#encours-dock-box'), data.enCoursDock);
-        refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
-        refreshCounter($('#encours-cleared-box'), data.enCoursCleared);
-        refreshCounter($('#encours-dropzone-box'), data.enCoursDropzone);
+    return new Promise(function (resolve) {
+        $.get(Routing.generate('get_indicators_reception_dock'), function (data) {
+            refreshCounter($('#remaining-urgences-box-dock'), data.urgenceCount);
+            refreshCounter($('#remaining-daily-urgences-box-dock'), data.dailyUrgenceCount);
+            refreshCounter($('#encours-dock-box'), data.enCoursDock);
+            refreshCounter($('#encours-clearance-box-dock'), data.enCoursClearance);
+            refreshCounter($('#encours-cleared-box'), data.enCoursCleared);
+            refreshCounter($('#encours-dropzone-box'), data.enCoursDropzone);
+            resolve();
+        });
     });
 }
 
 function refreshIndicatorsReceptionAdmin() {
-    $.get(Routing.generate('get_indicators_reception_admin', true), function(data) {
-        refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
-        refreshCounter($('#encours-litige-box'), data.enCoursLitige);
-        refreshCounter($('#encours-urgence-box'), data.enCoursUrgence, true);
-        refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
+    return new Promise(function (resolve) {
+        $.get(Routing.generate('get_indicators_reception_admin', true), function (data) {
+            refreshCounter($('#encours-clearance-box-admin'), data.enCoursClearance);
+            refreshCounter($('#encours-litige-box'), data.enCoursLitige);
+            refreshCounter($('#encours-urgence-box'), data.enCoursUrgence, true);
+            refreshCounter($('#remaining-urgences-box-admin'), data.urgenceCount);
+            resolve();
+        });
     });
 }
 
@@ -396,28 +593,30 @@ function refreshCounter($counterCountainer, data, needsRedColorIfPositiv = false
         const label = data ? data.label : '-';
         counter = data ? data.count : '-';
         $counterCountainer.find('.location-label').text('(' + label + ')');
-    }
-    else {
+    } else {
         counter = data;
     }
     if (counter > 0 && needsRedColorIfPositiv) {
-        $counterCountainer.find('.counter').addClass('red');
+        $counterCountainer.find('.dashboard-stats').addClass('red');
         $counterCountainer.find('.fas').addClass('red fa-exclamation-triangle');
     } else {
-        $counterCountainer.find('.counter').removeClass('red');
+        $counterCountainer.find('.dashboard-stats').removeClass('red');
         $counterCountainer.find('.fas').removeClass('red fa-exclamation-triangle');
     }
-    $counterCountainer.find('.counter').text(counter);
+    $counterCountainer.find('.dashboard-stats').text(counter);
 }
 
 function updateCarriers() {
-    $.get(Routing.generate('get_daily_carriers_statistics'), function(data) {
-        const $container = $('#statistics-arrival-carriers');
-        $container.empty();
-        const cssClass = `${isDashboardExt() ? 'medium-font' : ''} m-0`;
-        $container.append(
-            ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: cssClass}))))
-        );
+    return new Promise(function (resolve) {
+        $.get(Routing.generate('get_daily_carriers_statistics'), function (data) {
+            const $container = $('#statistics-arrival-carriers');
+            $container.empty();
+            const cssClass = `${isDashboardExt() ? 'medium-font' : ''} m-0`;
+            $container.append(
+                ...((data || []).map((carrier) => ($('<li/>', {text: carrier, class: cssClass}))))
+            );
+            resolve();
+        });
     });
 }
 
@@ -431,11 +630,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
     ctx.shadowColor = '#999';
 
 
-    // cxt.font format :
-    //   * fontWeight XXpx fontFamily
-    //   * XXpx fontFamily
-    const fontSizeMatch = (ctx.font || '').match(/(\d+)px(?:\s|$)/);
-    const fontSize = Number((fontSizeMatch && fontSizeMatch[1]) || FONT_SIZE_DEFAULT);
+    const fontSize = currentChartsFontSize;
 
     const figurePaddingHorizontal = 8;
     const figurePaddingVertical = 4;
@@ -487,7 +682,50 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
         }
     });
 }
+
 function isDashboardExt() {
     const $isDashboardExt = $('#isDashboardExt');
     return ($isDashboardExt.length > 0 ? ($isDashboardExt.val() === "1") : false);
+}
+
+function refreshPageTitle() {
+    const $carouselDashboard = $('#carousel-dashboard');
+    const $activeCarousel = $carouselDashboard.find('.carousel-item.active').first();
+    const $pageTitle = $activeCarousel.length > 0
+        ? $activeCarousel.find('input.page-title')
+        : $('input.page-title');
+    const pageTitle = $pageTitle.val();
+
+    document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
+
+    const words = pageTitle.split('|');
+
+    if (words && words.length > 0) {
+        const $titleContainer = $('<span/>');
+        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+            if ($titleContainer.children().length > 0) {
+                $titleContainer.append(' | ')
+            }
+            const className = (wordIndex === (words.length - 1)) ? 'bold' : undefined;
+            $titleContainer.append($('<span/>', {class: className, text: words[wordIndex]}));
+        }
+        $('.main-header .header-title').html($titleContainer);
+    }
+}
+
+function calculateChartsFontSize() {
+    let width = document.body.clientWidth;
+    return Math.floor(width / 120);
+}
+
+function setActiveDashboard(hash) {
+    $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`).addClass('active');
+    $(`#carousel-dashboard .carousel-item[data-name="${hash}"]`).addClass('active');
+}
+
+function getUrlHash() {
+    const hash = (window.location.hash || '');
+    return hash.charAt(0) === '#'
+        ? hash.slice(1)
+        : hash;
 }

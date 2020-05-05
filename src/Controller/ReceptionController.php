@@ -37,6 +37,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
+use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\MailerService;
@@ -135,9 +136,9 @@ class ReceptionController extends AbstractController
      */
     private $paramGlobalRepository;
 
-	/**
-	 * @var MouvementStockService
-	 */
+    /**
+     * @var MouvementStockService
+     */
     private $mouvementStockService;
     private $translationService;
     private $mailerService;
@@ -156,8 +157,8 @@ class ReceptionController extends AbstractController
         FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
-		MouvementStockService $mouvementStockService,
-		TranslationService $translationService
+        MouvementStockService $mouvementStockService,
+        TranslationService $translationService
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -204,7 +205,7 @@ class ReceptionController extends AbstractController
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
 
-			$statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
+            $statusCode = !empty($data['anomalie']) ? ($data['anomalie'] ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE) : Reception::STATUT_EN_ATTENTE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -222,7 +223,7 @@ class ReceptionController extends AbstractController
                     ->setFournisseur($fournisseur);
             }
 
-			if (!empty($data['location'])) {
+            if (!empty($data['location'])) {
                 $location = $emplacementRepository->find(intval($data['location']));
                 $reception
                     ->setLocation($location);
@@ -285,11 +286,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(EntityManagerInterface $entityManager,
+                         ReceptionService $receptionService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -297,7 +300,6 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -312,13 +314,13 @@ class ReceptionController extends AbstractController
             $statut = $statutRepository->find(intval($data['statut']));
             $reception->setStatut($statut);
 
-			$fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
+            $fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
             $reception->setFournisseur($fournisseur);
 
-			$utilisateur = !empty($data['utilisateur']) ? $utilisateurRepository->find($data['utilisateur']) : null;
+            $utilisateur = !empty($data['utilisateur']) ? $utilisateurRepository->find($data['utilisateur']) : null;
             $reception->setUtilisateur($utilisateur);
 
-			$transporteur = !empty($data['transporteur']) ? $transporteurRepository->find($data['transporteur']) : null;
+            $transporteur = !empty($data['transporteur']) ? $transporteurRepository->find($data['transporteur']) : null;
             $reception->setTransporteur($transporteur);
 
             $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
@@ -357,36 +359,13 @@ class ReceptionController extends AbstractController
                     $em->flush();
                 }
             }
-            $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-            $champsLibres = [];
-
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-            foreach ($listTypes as $type) {
-                $listChampLibreReception = $champLibreRepository->findByType($type['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
             $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres,
-					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-			    ])
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
+                ])
             ];
             return new JsonResponse($json);
         }
@@ -469,7 +448,7 @@ class ReceptionController extends AbstractController
             $data = $this->receptionService->getDataForDatatable($request->request);
 
             $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
-			$data['columnsToHide'] = $fieldsParam;
+            $data['columnsToHide'] = $fieldsParam;
 
             return new JsonResponse($data);
         }
@@ -485,7 +464,8 @@ class ReceptionController extends AbstractController
      */
     public function articleApi(EntityManagerInterface $entityManager,
                                Request $request,
-                               $id): Response {
+                               $id): Response
+    {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
                 return $this->redirectToRoute('access_denied');
@@ -568,7 +548,7 @@ class ReceptionController extends AbstractController
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-			'receptionLocation' => $this->globalParamService->getReceptionDefaultLocation()
+            'receptionLocation' => $this->globalParamService->getReceptionDefaultLocation()
         ]);
     }
 
@@ -608,11 +588,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function removeArticle(EntityManagerInterface $entityManager,
+                                  ReceptionService $receptionService,
                                   Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -620,10 +602,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
@@ -638,38 +617,13 @@ class ReceptionController extends AbstractController
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
-            $type = $reception->getType();
-
-            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-            $champsLibres = [];
-
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-            foreach ($listTypes as $type) {
-                $listChampLibreReception = $champLibreRepository->findByType($type['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
 
             $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres,
-					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-				])
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
+                ])
             ];
             $entityManager->flush();
             return new JsonResponse($json);
@@ -680,11 +634,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function addArticle(EntityManagerInterface $entityManager,
+                               ReceptionService $receptionService,
                                Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
@@ -692,11 +648,8 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
             $refArticleId = (int)$contentData['referenceArticle'];
@@ -709,7 +662,7 @@ class ReceptionController extends AbstractController
 
             // On vérifie que le couple (référence, commande) n'est pas déjà utilisé dans la réception
             $refAlreadyExists = $receptionReferenceArticle->filter(function (ReceptionReferenceArticle $receptionReferenceArticle) use ($refArticleId, $commande) {
-            	return (
+                return (
                     $commande === $receptionReferenceArticle->getCommande() &&
                     $refArticleId === $receptionReferenceArticle->getReferenceArticle()->getId()
                 );
@@ -738,39 +691,18 @@ class ReceptionController extends AbstractController
                 $entityManager->persist($receptionReferenceArticle);
                 $entityManager->flush();
 
-                $type = $reception->getType();
-                $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-                $champsLibres = [];
-                $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-                foreach ($listTypes as $oneType) {
-                    $listChampLibreReception = $champLibreRepository->findByType($oneType['id']);
-
-                    foreach ($listChampLibreReception as $champLibre) {
-                        $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                        $champsLibres[] = [
-                            'id' => $champLibre->getId(),
-                            'label' => $champLibre->getLabel(),
-                            'typage' => $champLibre->getTypage(),
-                            'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                            'defaultValue' => $champLibre->getDefaultValue(),
-                            'valeurChampLibre' => $valeurChampLibre,
-                        ];
-                    }
-                }
                 if ($refArticle->getIsUrgent()) {
                     $reception->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
                 }
                 $entityManager->flush();
-				$json = [
-					'entete' => $this->renderView('reception/enteteReception.html.twig', [
-						'reception' => $reception,
-						'valeurChampLibreTab' => $valeurChampLibreTab,
-						'typeChampsLibres' => $champsLibres,
-						'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
+
+                $json = [
+					'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                        'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
+                        'reception' => $reception,
+                        'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
 					])
 				];
 			}
@@ -819,11 +751,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editArticle(EntityManagerInterface $entityManager,
+                                ReceptionService $receptionService,
                                 Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
@@ -831,19 +765,15 @@ class ReceptionController extends AbstractController
         }
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-
-            $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
-			$quantite = $data['quantite'];
+            $quantite = $data['quantite'];
 
             $receptionReferenceArticle
                 ->setCommande($data['commande'])
@@ -855,11 +785,11 @@ class ReceptionController extends AbstractController
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             if ($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
 
-            	// protection quantité reçue <= quantité à recevoir
-				if ($receptionReferenceArticle->getQuantite() && $quantite > $receptionReferenceArticle->getQuantite()) {
-					return new JsonResponse(false);
-				}
-				$receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
+                // protection quantité reçue <= quantité à recevoir
+                if ($receptionReferenceArticle->getQuantite() && $quantite > $receptionReferenceArticle->getQuantite()) {
+                    return new JsonResponse(false);
+                }
+                $receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
             }
 
             if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
@@ -875,37 +805,14 @@ class ReceptionController extends AbstractController
 
             $reception->setStatut($statut);
             $entityManager->flush();
-            $type = $reception->getType();
-
-            $valeurChampLibreTab = empty($type) ? [] : $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-
-            $champsLibres = [];
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-            foreach ($listTypes as $oneType) {
-                $listChampLibreReception = $champLibreRepository->findByType($oneType['id']);
-
-                foreach ($listChampLibreReception as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampLibre,
-                    ];
-                }
-            }
 
             $json = [
-                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                'entete' => $this->renderView('reception/reception-show-header.html.twig', [
+                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
-                    'typeChampsLibres' => $champsLibres,
-					'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION)
-				])
-			];
+                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
+                ])
+            ];
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -915,19 +822,21 @@ class ReceptionController extends AbstractController
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param GlobalParamService $globalParamService
+     * @param ReceptionService $receptionService
      * @param Reception $reception
      * @return Response
      * @throws NonUniqueResultException
      */
     public function show(EntityManagerInterface $entityManager,
                          GlobalParamService $globalParamService,
+                         ReceptionService $receptionService,
                          Reception $reception): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-		$paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
+        $paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -977,20 +886,17 @@ class ReceptionController extends AbstractController
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'type' => $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION),
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-            'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
-            'valeurChampLibreTab' => $valeurChampLibreTab,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
-            'typeChampsLibres' => $champsLibresReception,
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
-			'fieldsParam' => $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION),
-			'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
-		]);
+            'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
+
+            'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
+        ]);
     }
 
     /**
@@ -1080,7 +986,7 @@ class ReceptionController extends AbstractController
                 'reception/conditionnementArticleTemplate.html.twig',
                 [
                     'reception' => [
-                    	'refArticleId' => $refArticle->getId(),
+                        'refArticleId' => $refArticle->getId(),
                         'reference' => $reference,
                         'referenceLabel' => $refArticle->getLibelle(),
                         'commande' => $commande,
@@ -1088,7 +994,7 @@ class ReceptionController extends AbstractController
                     ],
                     'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
                     'champsLibres' => $champsLibres,
-					'references' => $articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
+                    'references' => $articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
                 ]
             ));
             return $response;
@@ -1205,7 +1111,7 @@ class ReceptionController extends AbstractController
                 }
             }
 
-            $this->attachmentService->addAttachements($request->files, $litige);
+            $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
 
             $response = [];
@@ -1282,7 +1188,7 @@ class ReceptionController extends AbstractController
             $entityManager->persist($litige);
             $entityManager->flush();
 
-            $this->attachmentService->addAttachements($request->files, $litige);
+            $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
             $this->sendMailToAcheteurs($litige);
             $response = [];
@@ -1470,35 +1376,36 @@ class ReceptionController extends AbstractController
      * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
      * @param MouvementTracaService $mouvementTracaService
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
     {
-    	$entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->getDoctrine()->getManager();
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
-		$now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-		$receptionLocation = $reception->getLocation();
-		$currentUser = $this->getUser();
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $receptionLocation = $reception->getLocation();
+        $currentUser = $this->getUser();
 
-		foreach ($listReceptionReferenceArticle as $receptionRA) {
+        foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
-			if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock(($referenceArticle->getQuantiteStock() ?? 0) + $receptionRA->getQuantite());
 
                 $mouvementStock = new MouvementStock();
                 $mouvementStock
-					->setUser($currentUser)
-					->setEmplacementTo($receptionLocation)
-					->setQuantity($receptionRA->getQuantite())
-					->setRefArticle($referenceArticle)
-					->setType(MouvementStock::TYPE_ENTREE)
-					->setReceptionOrder($reception)
-					->setDate($now);
-				$entityManager->persist($mouvementStock);
+                    ->setUser($currentUser)
+                    ->setEmplacementTo($receptionLocation)
+                    ->setQuantity($receptionRA->getQuantite())
+                    ->setRefArticle($referenceArticle)
+                    ->setType(MouvementStock::TYPE_ENTREE)
+                    ->setReceptionOrder($reception)
+                    ->setDate($now);
+                $entityManager->persist($mouvementStock);
 
-                $mouvementTracaService->persistMouvementTraca(
+                $entityManager->persist($mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1510,23 +1417,22 @@ class ReceptionController extends AbstractController
                         'mouvementStock' => $mouvementStock,
                         'from' => $reception
                     ]
-                );
-
+                ));
             } else {
-				$articles = $receptionRA->getArticles();
-				foreach ($articles as $article) {
-					$mouvementStock = new MouvementStock();
-					$mouvementStock
-						->setUser($currentUser)
-						->setEmplacementTo($receptionLocation)
-						->setQuantity($article->getQuantite())
-						->setArticle($article)
-						->setType(MouvementStock::TYPE_ENTREE)
-						->setReceptionOrder($reception)
-						->setDate($now);
-					$entityManager->persist($mouvementStock);
+                $articles = $receptionRA->getArticles();
+                foreach ($articles as $article) {
+                    $mouvementStock = new MouvementStock();
+                    $mouvementStock
+                        ->setUser($currentUser)
+                        ->setEmplacementTo($receptionLocation)
+                        ->setQuantity($article->getQuantite())
+                        ->setArticle($article)
+                        ->setType(MouvementStock::TYPE_ENTREE)
+                        ->setReceptionOrder($reception)
+                        ->setDate($now);
+                    $entityManager->persist($mouvementStock);
 
-                    $mouvementTracaService->persistMouvementTraca(
+                    $entityManager->persist($mouvementTracaService->createMouvementTraca(
                         $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
@@ -1538,9 +1444,9 @@ class ReceptionController extends AbstractController
                             'mouvementStock' => $mouvementStock,
                             'from' => $reception
                         ]
-                    );
-				}
-			}
+                    ));
+                }
+            }
         }
 
         $reception
@@ -1672,7 +1578,8 @@ class ReceptionController extends AbstractController
                                          EntityManagerInterface $entityManager,
                                          RefArticleDataService $refArticleDataService,
                                          ArticleDataService $articleDataService,
-                                         PDFGeneratorService $PDFGeneratorService): Response {
+                                         PDFGeneratorService $PDFGeneratorService): Response
+    {
         $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
         $listReceptionReferenceArticle = $receptionReferenceArticleRepository->findByReception($reception);
@@ -1684,8 +1591,7 @@ class ReceptionController extends AbstractController
 
                 if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
-                }
-                else {
+                } else {
                     $articlesReception = $recepRef->getArticles()->toArray();
                     if (!empty($articlesReception)) {
                         array_push(
@@ -1707,8 +1613,7 @@ class ReceptionController extends AbstractController
             $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
             $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
             return new PdfResponse($pdf, $fileName);
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
@@ -1730,14 +1635,14 @@ class ReceptionController extends AbstractController
     public function getReceptionLigneArticleBarCode(Reception $reception,
                                                     ReceptionReferenceArticle $ligneArticle,
                                                     RefArticleDataService $refArticleDataService,
-                                                    PDFGeneratorService $PDFGeneratorService): Response {
+                                                    PDFGeneratorService $PDFGeneratorService): Response
+    {
         if ($reception->getReceptionReferenceArticles()->contains($ligneArticle) && $ligneArticle->getReferenceArticle()) {
             $barcodeConfigs = [$refArticleDataService->getBarcodeConfig($ligneArticle->getReferenceArticle())];
             $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'articles_reception');
             $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs);
             return new PdfResponse($pdf, $fileName);
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
@@ -1803,102 +1708,106 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/receptions-infos", name="get_receptions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
      * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function getReceptionIntels(EntityManagerInterface $entityManager,
-                                       Request $request): Response
+    public function getReceptionCSV(EntityManagerInterface $entityManager,
+                                    CSVExportService $CSVExportService,
+                                    Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$dateMin = $data['dateMin'] . ' 00:00:00';
-			$dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        }
+        catch(\Throwable $throwable) {}
 
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $receptions = $receptionRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
 
-            $headers = [];
-            $headers = array_merge($headers,
-                [
-                    $this->translationService->getTranslation('réception', 'n° de réception'),
-                    'n° de commande',
-                    'fournisseur',
-                    'utilisateur',
-                    'statut',
-                    'date de création',
-                    'date de fin',
-                    'commentaire',
-                    'quantité à recevoir',
-                    'quantité reçue',
-                    'référence',
-                    'libellé',
-                    'quantité stock',
-                    'type',
-                    'code-barre reference',
-                    'code-barre article',
-                ]);
+            $csvHeader = [
+                $this->translationService->getTranslation('réception', 'n° de réception'),
+                'n° de commande',
+                'fournisseur',
+                'utilisateur',
+                'statut',
+                'date de création',
+                'date de fin',
+                'commentaire',
+                'quantité à recevoir',
+                'quantité reçue',
+                'référence',
+                'libellé',
+                'quantité stock',
+                'type',
+                'code-barre reference',
+                'code-barre article',
+            ];
 
-            $data = [];
-            $data[] = $headers;
+            return $CSVExportService->createCsvResponse(
+                'export.csv',
+                $receptions,
+                $csvHeader,
+                function ($reception) {
+                    $rows = [];
+                    if ($reception['articleId'] || $reception['referenceArticleId']) {
+                        if ($reception['referenceArticleId']) {
+                            $row = $this->serializeReception($reception);
 
-            foreach ($receptions as $reception) {
-                $this->buildInfos($reception, $data);
-            }
-            return new JsonResponse($data);
+                            $row[] = $reception['referenceArticleReference'] ?: '';
+                            $row[] = $reception['referenceArticleLibelle'] ?: '';
+                            $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
+                            $row[] = $reception['referenceArticleTypeLabel'] ?: '';
+                            $row[] = $reception['referenceArticleBarcode'] ?: '';
+
+                            $rows[] = $row;
+                        }
+
+                        if ($reception['articleId']) {
+                            $row = $this->serializeReception($reception);
+
+                            $row[] = $reception['articleReference'] ?: '';
+                            $row[] = $reception['articleLabel'] ?: '';
+                            $row[] = $reception['articleQuantity'] ?: '';
+                            $row[] = $reception['articleTypeLabel'] ?: '';
+                            $row[] = $reception['articleReferenceArticleBarcode'] ?: '';
+                            $row[] = $reception['articleBarcode'] ?: '';
+
+                            $rows[] = $row;
+                        }
+                    }
+                    else {
+                        $rows[] = $this->serializeReception($reception);
+                    }
+                    return $rows;
+                }
+            );
+
         } else {
             throw new NotFoundHttpException('404');
         }
     }
 
-    private function buildInfos(Reception $reception, &$data)
-    {
-        foreach ($reception->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-            $data[] = [
-                $reception->getNumeroReception() ?? '',
-                $reception->getReference() ?? '',
-                $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
-                $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
-                $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
-                $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
-                strip_tags($reception->getCommentaire()),
-                $receptionReferenceArticle->getQuantiteAR(),
-                $receptionReferenceArticle->getQuantite(),
-                $referenceArticle->getReference(),
-                $referenceArticle->getLibelle(),
-                $referenceArticle->getQuantiteStock(),
-                $referenceArticle->getType() ? $referenceArticle->getType()->getLabel() : '',
-                $referenceArticle->getBarCode(),
-                '',
-            ];
-            $articles = $receptionReferenceArticle->getArticles();
-            foreach ($articles as $article) {
-                $data[] = [
-                    $reception->getNumeroReception() ?? '',
-                    $reception->getReference() ?? '',
-                    $reception->getFournisseur() ? $reception->getFournisseur()->getNom() : '',
-                    $reception->getUtilisateur() ? $reception->getUtilisateur()->getUsername() : '',
-                    $reception->getStatut() ? $reception->getStatut()->getNom() : '',
-                    $reception->getDate() ? $reception->getDate()->format('d/m/Y H:i') : '',
-                    $reception->getDateFinReception() ? $reception->getDateFinReception()->format('d/m/Y H:i') : '',
-                    strip_tags($reception->getCommentaire()),
-                    $receptionReferenceArticle->getQuantiteAR(),
-                    $receptionReferenceArticle->getQuantite(),
-                    $article->getReference(),
-                    $article->getLabel(),
-                    $article->getQuantite(),
-                    $article->getType() ? $article->getType()->getLabel() : '',
-                    $article->getArticleFournisseur()->getReferenceArticle()->getBarCode(),
-                    $article->getBarCode(),
-                ];
-            }
-        }
+    private function serializeReception(array $reception): array {
+        return [
+            $reception['numeroReception'] ?: '',
+            $reception['reference'] ?: '',
+            $reception['providerName'] ?: '',
+            $reception['userUsername'] ?: '',
+            $reception['statusName'] ?: '',
+            $reception['date'] ? $reception['date']->format('d/m/Y H:i') : '',
+            $reception['dateFinReception'] ? $reception['dateFinReception']->format('d/m/Y H:i') : '',
+            $reception['commentaire'] ? strip_tags($reception['commentaire']) : '',
+            $reception['receptionRefArticleQuantiteAR'] ?: '',
+            $reception['receptionRefArticleQuantite'] ?: ''
+        ];
     }
 
     /**
@@ -1939,10 +1848,10 @@ class ReceptionController extends AbstractController
             foreach ($totalQuantities as $rraId => $totalQuantity) {
                 $rra = $receptionReferenceArticleRepository->find($rraId);
 
-				// protection quantité reçue <= quantité à recevoir
-				if ($totalQuantity > $rra->getQuantiteAR()) {
-					return new JsonResponse(false);
-				}
+                // protection quantité reçue <= quantité à recevoir
+                if ($totalQuantity > $rra->getQuantiteAR()) {
+                    return new JsonResponse(false);
+                }
                 $rra->setQuantite($totalQuantity);
                 $entityManager->flush();
             }
@@ -1974,6 +1883,22 @@ class ReceptionController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @param Litige $entity
+     * @param AttachmentService $attachmentService
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     */
+    private function createAttachmentsForEntity(Litige $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+        $attachments = $attachmentService->createAttachements($request->files);
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $entity->addAttachement($attachment);
+        }
+        $entityManager->persist($entity);
+        $entityManager->flush();
     }
 
 }

@@ -130,8 +130,13 @@ class ImportController extends AbstractController
                 ];
 
             } else {
-                $attachements = $attachmentService->addAttachements($request->files, $import);
-                $data = $importService->getImportConfig($attachements[0]);
+                $attachments = $attachmentService->createAttachements([$file]);
+                $csvAttachment = $attachments[0];
+                $em->persist($csvAttachment);
+                $import->setCsvFile($csvAttachment);
+
+                $em->flush();
+                $data = $importService->getImportConfig($attachments[0]);
                 if (!$data) {
                     $response = [
                         'success' => false,
@@ -154,23 +159,23 @@ class ImportController extends AbstractController
                     ];
                     $attributes = $em->getClassMetadata($entityCodeToClass[$entity]);
 
-                    $fieldsToHide = ['id', 'barCode', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
+                    $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
                         'dateEmergencyTriggered', 'expiryDate', 'isUrgent', 'quantiteDisponible',
                         'quantiteReservee'];
                     $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                     switch ($entity) {
                         case Import::ENTITY_ART:
                             $categoryCL = CategorieCL::ARTICLE;
-                            $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement'];
+                            $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement', 'barCode'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_REF:
                             $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut'];
+                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_ART_FOU:
-                            $fieldsToAdd = ['référence article de référence', 'référence fournisseur'];
+                            $fieldsToAdd = ['référence article de référence', 'référence fournisseur', 'reference'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }
@@ -322,7 +327,7 @@ class ImportController extends AbstractController
         $importId = (int)$request->request->get('importId');
         $import = $em->getRepository(Import::class)->find($importId);
 
-        if ($import) {
+        if ($import && $import->getStatus()->getNom() === Import::STATUS_DRAFT) {
             $em->remove($import);
             $em->flush();
         }

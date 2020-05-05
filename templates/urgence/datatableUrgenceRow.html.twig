@@ -1,22 +1,27 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ urgence.id }}' data-target='#modalEditUrgence' data-toggle='modal'
-             onclick="editRow(
-                 $(this),
-                 Routing.generate('urgence_edit_api', true),
-                 $('#modalEditUrgence'),
-                 $('#submitEditUrgence'),
-                 false,
-                 '.editor-container-edit',
-                 false,
-                 ($modal) => callbackEditFormLoading($modal, {{ urgence.buyer ? urgence.buyer.id : 'undefined' }}, {{ urgence.buyer ? ("'" ~ urgence.buyer.username ~ "'") : 'undefined' }}))">
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div>
+                <div class="btn btn-col-action d-none action-on-click" data-id='{{ urgence.id }}' data-target='#modalEditUrgence' data-toggle='modal'
+                     onclick="editRow(
+                         $(this),
+                         Routing.generate('urgence_edit_api', true),
+                         $('#modalEditUrgence'),
+                         $('#submitEditUrgence'),
+                         false,
+                         '.editor-container-edit',
+                         false,
+                         ($modal) => callbackEditFormLoading($modal, {{ urgence.buyer ? urgence.buyer.id : 'undefined' }}, {{ urgence.buyer ? ("'" ~ urgence.buyer.username ~ "'") : 'undefined' }}))">
 
-            <i class='fas fa-pencil-alt'></i>
+                    <i class='fas fa-pencil-alt'></i>
+                </div>
+            </div>
+            <div class="dropdown-item" data-id='{{ urgence.id }}' data-target='#modalDeleteUrgence'
+                 data-toggle='modal'
+                 onclick="checkAndDeleteRow($(this), '#modalDeleteUrgence', 'urgence_check_delete', '#submitDeleteUrgence')">
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
         </div>
-    </div>
-    <div class="btn btn-col-action" data-id='{{ urgence.id }}' data-target='#modalDeleteUrgence'
-         data-toggle='modal'
-         onclick="checkAndDeleteRow($(this), '#modalDeleteUrgence', 'urgence_check_delete', '#submitDeleteUrgence')">
-        <i class='fas fa-trash'></i>
     </div>
 </div>

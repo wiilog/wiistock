@@ -33,7 +33,7 @@ class ReferenceArticleRepository extends EntityRepository
         'SeuilSecurite' => 'limitSecurity',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
-        'QuantiteStock' => 'quantiteStock',
+        'Quantité stock' => 'quantiteStock',
         'Emplacement' => 'Emplacement',
         'Actions' => 'Actions',
         'Fournisseur' => 'Fournisseur',
@@ -163,7 +163,12 @@ class ReferenceArticleRepository extends EntityRepository
             'Statut' => ['field' => 'Statut', 'typage' => 'text'],
             'Prix unitaire' => ['field' => 'prixUnitaire', 'typage' => 'number'],
             'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list'],
-            'Code barre' => ['field' => 'barCode', 'typage' => 'text']
+            'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
+            'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
+            'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
+            'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
+            'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
+            'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
         ];
 
         $qb
@@ -204,14 +209,14 @@ class ReferenceArticleRepository extends EntityRepository
                             switch ($field) {
                                 case 'type_id':
                                     $qb
-                                        ->leftJoin('ra.type', 't')
-                                        ->andWhere('t.label = :typeLabel')
+                                        ->leftJoin('ra.type', 'tFilter')
+                                        ->andWhere('tFilter.label = :typeLabel')
                                         ->setParameter('typeLabel', $filter['value']);
                                     break;
                                 case 'emplacement_id':
                                     $qb
-                                        ->leftJoin('ra.emplacement', 'e')
-                                        ->andWhere('e.label = :emplacementLabel')
+                                        ->leftJoin('ra.emplacement', 'eFilter')
+                                        ->andWhere('eFilter.label = :emplacementLabel')
                                         ->setParameter('emplacementLabel', $filter['value']);
                                     break;
                             }
@@ -225,13 +230,21 @@ class ReferenceArticleRepository extends EntityRepository
                         ->select('ra' . $index . '.id')
                         ->from('App\Entity\ReferenceArticle', 'ra' . $index)
                         ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
-                        ->andWhere("vcl$index.champLibre = :$champLibreLabelAlias")
+                        ->where("vcl$index.champLibre = :$champLibreLabelAlias")
                         ->setParameter($champLibreLabelAlias, $filter['champLibre']);
                     switch ($filter['typage']) {
                         case ChampLibre::TYPE_BOOL:
-                            $value = $filter['value'] == 1 ? '1' : '0';
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.valeur = ' . $value);
+                            if ($filter['value'] === "1") {
+                                $qbSub
+                                    ->andWhere('vcl' . $index . '.valeur = 1');
+                            } else {
+                                $forbiddenIds = $this->array_values_recursive($qbSub->getQuery()->getResult());
+                                $qbSub = $em->createQueryBuilder()
+                                    ->select('raWithoutCL' . $index . '.id')
+                                    ->from('App\Entity\ReferenceArticle', 'raWithoutCL' . $index)
+                                    ->where('raWithoutCL' . $index . '.id NOT IN (:ids)')
+                                    ->setParameter('ids', $forbiddenIds, Connection::PARAM_STR_ARRAY);
+                            }
                             break;
                         case ChampLibre::TYPE_TEXT:
                             $qbSub
@@ -424,9 +437,10 @@ class ReferenceArticleRepository extends EntityRepository
             $paramsQuery = $qb->getParameters();
             $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
             $qb
-                ->addSelect('(CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END) as vsort')
+                ->addSelect('MAX((CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END)) as vsort')
                 ->leftJoin('ra.valeurChampsLibres', 'vclra')
                 ->leftJoin('vclra.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
+                ->groupBy('ra')
                 ->orderBy('vsort', $needCLOrder[0])
                 ->setParameters($paramsQuery);
         }
@@ -896,12 +910,13 @@ class ReferenceArticleRepository extends EntityRepository
      * @throws NonUniqueResultException
      * @throws NoResultException
      */
-    public function getStockQuantity(ReferenceArticle $referenceArticle): int {
+    public function getStockQuantity(ReferenceArticle $referenceArticle): int
+    {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em->createQuery(
-                    /** @lang DQL */
-                    "SELECT SUM(a.quantite)
+            /** @lang DQL */
+                "SELECT SUM(a.quantite)
                     FROM App\Entity\ReferenceArticle ra
                     JOIN ra.articlesFournisseur af
                     JOIN af.articles a
@@ -914,8 +929,7 @@ class ReferenceArticleRepository extends EntityRepository
                     'activeStatus' => Article::STATUT_ACTIF
                 ]);
             $stockQuantity = ($query->getSingleScalarResult() ?? 0);
-        }
-        else {
+        } else {
             $stockQuantity = $referenceArticle->getQuantiteStock();
         }
         return $stockQuantity;
@@ -927,7 +941,8 @@ class ReferenceArticleRepository extends EntityRepository
      * @throws NonUniqueResultException
      * @throws NoResultException
      */
-    public function getReservedQuantity(ReferenceArticle $referenceArticle): int {
+    public function getReservedQuantity(ReferenceArticle $referenceArticle): int
+    {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em
@@ -946,8 +961,7 @@ class ReferenceArticleRepository extends EntityRepository
                     'preparationStatusCurrent' => Preparation::STATUT_EN_COURS_DE_PREPARATION
                 ]);
             $reservedQuantity = ($query->getSingleScalarResult() ?? 0);
-        }
-        else {
+        } else {
             $reservedQuantity = $referenceArticle->getQuantiteReservee();
         }
         return $reservedQuantity;
@@ -1115,5 +1129,18 @@ class ReferenceArticleRepository extends EntityRepository
             'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
         ]);
         return $query->execute();
+    }
+
+    private function array_values_recursive($array) {
+        $flat = [];
+        foreach($array as $value) {
+            if (is_array($value)) {
+                $flat = array_merge($flat, $this->array_values_recursive($value));
+            }
+            else {
+                $flat[] = $value;
+            }
+        }
+        return $flat;
     }
 }

@@ -2,7 +2,7 @@ $('.select2').select2();
 
 let prepaHasBegun = false;
 
-$(function() {
+$(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statut');
 
@@ -20,8 +20,7 @@ $(function() {
     if (filterDemandId && filterDemandValue) {
         let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');
-    }
-    else {
+    } else {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_PREPA);
@@ -32,25 +31,26 @@ $(function() {
 });
 
 let path = Routing.generate('preparation_api');
-let table = $('#table_id').DataTable({
+let tableConfig = {
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[3, 'desc']],
     ajax: {
         url: path,
-        'data' : {
+        'data': {
             'filterDemand': $('#filterDemandId').val()
         },
         "type": "POST"
     },
-    'drawCallback': function() {
-        overrideSearch($('#table_id_filter input'), table);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'table_id_filter'
+    },
+    rowConfig: {
+        needsRowClickAction: true
     },
     columns: [
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
+        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
@@ -63,42 +63,15 @@ let table = $('#table_id').DataTable({
             targets: 0
         }
     ],
-});
+};
+let table = initDataTable('table_id', tableConfig);
 
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = table.column('Date:name').index();
+let pathArticle = Routing.generate('preparation_article_api', {'preparation': $('#prepa-id').val()});
 
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
-let pathArticle = Routing.generate('preparation_article_api', {'prepaId': $('#prepa-id').val()});
-let tableArticle = $('#tableArticle_id').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArticleConfig = {
     ajax: pathArticle,
     columns: [
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
@@ -106,12 +79,16 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
         {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],
+    rowConfig: {
+        needsRowClickAction: true
+    },
     order: [[1, "asc"]],
     columnDefs: [
         {'orderable': false, 'targets': [0]}
     ]
+};
 
-});
+let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 function startPicking($button) {
     let ligneArticleId = $button.attr('value');
@@ -119,19 +96,19 @@ function startPicking($button) {
     let path = Routing.generate('start_splitting', true);
     $.post(path, JSON.stringify(ligneArticleId), function (html) {
         $('#splittingContent').html(html);
-        $('#tableSplittingArticles').DataTable({
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
-            },
-            dom: 'fltir',
+        let tableSplittingArticlesConfig = {
             'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
-            'columnDefs' : [
+            'columnDefs': [
                 {'orderable': false, 'targets': [3]}
-            ]
-        });
+            ],
+            domConfig: {
+                needsPaginationRemoval: true
+            }
+        };
+        let tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
         $('#startSplitting').click();
     });
-};
+}
 
 let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
 let modalEditLigneArticle = $("#modalEditLigneArticle");
@@ -144,7 +121,7 @@ function submitSplitting(submit) {
     let articlesChosen = {};
     let quantityToZero = false;
     let maxExceeded = false;
-    for(const input of $inputs) {
+    for (const input of $inputs) {
         const $input = $(input);
         const inputValue = $input.val() !== '' ? Number($input.val()) : '';
         const inputMax = $input.attr('max') !== '' ? Number($input.attr('max')) : 0;
@@ -155,13 +132,11 @@ function submitSplitting(submit) {
                 let id = $input.data('id');
                 articlesChosen[id] = inputValue;
                 $input.removeClass('is-invalid');
-            }
-            else {
+            } else {
                 maxExceeded = true;
                 $input.addClass('is-invalid');
             }
-        }
-        else if (inputValueInit > 0) {
+        } else if (inputValueInit > 0) {
             quantityToZero = true;
             $input.addClass('is-invalid');
             break;
@@ -170,14 +145,11 @@ function submitSplitting(submit) {
 
     if (maxExceeded) {
         $('#modalSplitting').find('.error-msg').html("Vous avez trop sélectionné pour un article.");
-    }
-    else if ($('#remainingQuantity').val() < 0) {
+    } else if ($('#remainingQuantity').val() < 0) {
         $('#modalSplitting').find('.error-msg').html("Vous avez prélevé une quantité supérieure à celle demandée.");
-    }
-    else if (quantityToZero) {
+    } else if (quantityToZero) {
         $('#modalSplitting').find('.error-msg').html("Vous ne pouvez pas renseigner de quantité inférieure à 1 pour cet article.");
-    }
-    else if (Object.keys(articlesChosen).length > 0) {
+    } else if (Object.keys(articlesChosen).length > 0) {
         let path = Routing.generate('submit_splitting', true);
         let params = {
             'articles': articlesChosen,
@@ -192,8 +164,7 @@ function submitSplitting(submit) {
                 tableArticle.ajax.reload();
             }
         });
-    }
-    else {
+    } else {
         $('#modalSplitting').find('.error-msg').html("Vous devez sélectionner une quantité pour enregistrer.");
     }
 }
@@ -202,7 +173,7 @@ function updateRemainingQuantity() {
     let $inputs = $('#tableSplittingArticles').find('.input');
 
     let totalQuantityTaken = 0;
-    $inputs.each(function() {
+    $inputs.each(function () {
         if ($(this).val() != '') {
             totalQuantityTaken += parseFloat($(this).val()) - $(this).data('value-init');
         } else {
@@ -318,9 +289,10 @@ function finishPrepa() {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
     } else {
         clearEmplacementModal();
-        $('#btnFinishPrepa').click();
+        $('#modalSubmitPreparation').modal('show');
     }
 }
+
 function printPrepaBarCodes() {
     const lengthPrintButton = $('.print-button').length;
 
@@ -332,8 +304,7 @@ function printPrepaBarCodes() {
             },
             true
         );
-    }
-    else {
+    } else {
         alertErrorMsg("Il n'y a aucun article à imprimer.");
     }
 }

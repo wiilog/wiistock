@@ -17,25 +17,23 @@ $(function() {
 });
 
 let pathMvt = Routing.generate('mouvement_stock_api', true);
-let tableMvt = $('#tableMvts').DataTable({
+let tableMvtStockConfig = {
     responsive: true,
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[1, "desc"]],
     ajax: {
         "url": pathMvt,
         "type": "POST"
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableMvts_filter input'), tableMvt);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableMvts_filter'
     },
     columns: [
-        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'actions', 'name': 'Actions', 'title': ''},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": 'from', 'name': 'from', 'title': 'Issu de'},
+        {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
         {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
         {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
@@ -49,7 +47,8 @@ let tableMvt = $('#tableMvts').DataTable({
             targets: [0, 2]
         }
     ]
-});
+};
+let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
 
 let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');

@@ -12,28 +12,29 @@ $(function () {
 });
 
 let pathMissions = Routing.generate('inv_missions_api', true);
-let tableMissions = $('#tableMissionsInv').DataTable({
+let tableMisionsConfig = {
     serverSide: true,
     processing: true,
     searching: false,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    order: [[0, 'desc']],
+    order: [[1, 'desc']],
     ajax:{
         "url": pathMissions,
         "type": "POST"
     },
+    rowConfig: {
+        needsRowClickAction: true,
+    },
     columns:[
+        { "data": 'Actions', 'title' : '', className: 'noVis' },
         { "data": 'StartDate', 'title' : 'Date de début', 'name' : 'date' },
         { "data": 'EndDate', 'title' : 'Date de fin' },
         { "data": 'Rate', 'title' : 'Taux d\'avancement' },
-        { "data": 'Actions', 'title' : 'Actions' }
     ],
     columnDefs: [
-        {'orderable': false, 'targets': [2, 3]}
+        {'orderable': false, 'targets': [0, 3]}
     ],
-});
+};
+let tableMissions = initDataTable('tableMissionsInv', tableMisionsConfig);
 
 let modalNewMission = $("#modalNewMission");
 let submitNewMission = $("#submitNewMission");

@@ -1,73 +1,31 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Préparation{% endblock %}
+{% block title %}Ordre | Préparation | Détails{% endblock %}
 
 {% block page_content %}
-
-    <div class="row">
-        <div class="col">
-            <h1>Préparation</h1>
+    <div class="m-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include 'preparation/preparation-show-header.html.twig' with {
+                        preparation: preparation,
+                        isPrepaEditable: isPrepaEditable,
+                        demande: demande,
+                        livraison: livraison,
+                        showDetails: headerConfig
+                    } %}
+                </div>
+            </div>
         </div>
-        <div class="col text-right">
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
-                {% if demande %}
-                    <a href="{{path('demande_show', {'id': demande.id})}}"
-                       class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison
-                    </a>
-                {% endif %}
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')) %}
-                {% if livraison is not empty %}
-                    <a href="{{path('livraison_show', {'id': livraison.id})}}"
-                       class="btn btn-primary btn-action ml-auto">Aller vers l'ordre de livraison</a>
-                {% endif %}
-            {% endif%}
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-4">
-            <p><strong> Numéro : </strong> {{ preparation.numero }}</p>
-            <p id="statutPreparation"><strong> Statut :</strong> {{ preparation.statut ? preparation.statut.nom : '' }}</p>
-            <p><strong> Point de livraison :</strong> {{ demande ? demande.destination.label : '' }}</p>
-        </div>
-        <div class="col-4">
-            <p><strong> Opérateur : </strong> {{preparation.utilisateur ? preparation.utilisateur.username : ''}}</p>
-            <p><strong> Demandeur : </strong> {{demande ? (demande.utilisateur ? demande.utilisateur.username : '') : ''}}</p>
-        </div>
-        <div class="col-12">
-            <p><strong> Commentaire : </strong><p>
-            <div class="commentOverflow">
-                <p>{{preparation.commentaire|raw}}</p>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="wii-page-card">
+                    <table id="tableArticle_id" class="table w-100"></table>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col text-right">
-            {% if isPrepaEditable %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                    <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
-                       data-toggle='modal'>Supprimer</a>
-                {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                    <button hidden id="btnFinishPrepa" data-toggle="modal" data-target="#modalSubmitPreparation"></button>
-                        <button onclick="finishPrepa()" class="btn btn-primary btn-action ml-auto">
-                            Finir la préparation
-                        </button>
-                {% endif %}
-            {% endif %}
-            <button onclick="printPrepaBarCodes()" class="btn btn-primary btn-action ml-auto">
-                <i class='fas fa-print'></i> Imprimer les étiquettes
-            </button>
-        </div>
-        <div id="msg" class="row">
-        </div>
-    </div>
-
-    <table id="tableArticle_id" class="table table-striped table-bordered w-100">
-    </table>
-
-    <a href="{{ path('preparation_index') }}" class="btn">Retour à la liste</a>
     <button class="btn" id="startSplitting" data-target='#modalSplitting' data-toggle='modal' hidden></button>
     <input hidden id="prepa-id" value="{{ preparation.id }}">
 

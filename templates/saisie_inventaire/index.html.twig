@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Saisie d'inventaire{% endblock %}
+
 {% block page_filter %}
     {% include 'filters/filtersEntryInv.html.twig' with {
         'page': 'PAGE_INV_ENTRIES',
@@ -8,35 +9,30 @@
     } %}
 {% endblock %}
 {% block page_content %}
-    <div class="col-12">
-        <h1>Saisies d'inventaire</h1>
-    </div>
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <div class="btn btn-primary btn-ripple" onclick="generateCSV('get_entries_for_csv', 'saisies-inv')">
+                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="d-none justify-content-center" id="spinner">
+                    <div class="spinner-border sizeLoader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
 
-    <div class="col-12">
-        <div class="btn btn-primary" onclick="generateCSV('get_entries_for_csv', 'saisies-inv')">
-            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                <table id="tableMissionEntries" class="table w-100">
+                </table>
+            </div>
         </div>
     </div>
-
-    <div class="d-none justify-content-center" id="spinner">
-        <div class="spinner-border sizeLoader" role="status">
-            <span class="sr-only">Loading...</span>
-        </div>
-    </div>
-
-    <div class="col-12 mt-5">
-        <table id="tableMissionEntries" class="table table-striped table-bordered w-100">
-        </table>
-    </div>
-
-
-
-    <a href="{{ path('inventory_mission_index') }}" class="btn btn-action">
-        Retour à la liste
-    </a>
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/inventory-entries.js') }}?{{ date().timestamp }}"></script>
-{% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="{{ asset('js/inventory-entries.js') }}?{{ date().timestamp }}"></script>
+    {% endblock %}

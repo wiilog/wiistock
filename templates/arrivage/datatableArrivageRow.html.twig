@@ -1,12 +1,16 @@
 <div class="d-flex">
-        <a href='{{ url }}'>
-            <div class="btn btn-col-action">
-                <i class='fas fa-eye'></i>
-            </div>
-        </a>
-
-        <div data-id='{{ arrivage.id }}' data-target='#modalListColis' data-toggle='modal' class='btn btn-col-action'
-             onclick="listColis($(this))">
-            <i class='fas fa-print'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <a href='{{ url }}' class="d-none action-on-click">
+                Voir
+            </a>
+            <a href="#" class="dropdown-item"
+                data-id='{{ arrivage.id }}'
+                data-target='#modalListColis' data-toggle='modal'
+                onclick="listColis($(this))">
+                <i class=' mr-2 fas fa-print'></i>Imprimer
+            </a>
         </div>
+    </div>
 </div>

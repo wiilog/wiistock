@@ -1,65 +1,25 @@
-@font-face
-  font-family: "Montserrat"
-  src: url('../../public/font/Montserrat-Regular.ttf')
-
-@font-face
-  font-family: "Montserrat"
-  src: url('../../public/font/Montserrat-Bold.ttf')
-  font-weight: bold
-
-@font-face
-  font-family: "Montserrat"
-  src: url('../../public/font/Montserrat-Italic.ttf')
-  font-style: italic
-
-@font-face
-  font-family: "Tahoma"
-  src: url('../../public/font/Tahoma-Regular.ttf')
-
-@font-face
-  font-family: "Tahoma"
-  src: url('../../public/font/Tahoma-Bold.ttf')
-  font-weight: bold
-
-@font-face
-  font-family: "Tahoma"
-  src: url('../../public/font/Tahoma-Italic.ttf')
-  font-style: italic
-
-@font-face
-  font-family: "Myriad"
-  src: url('../../public/font/MyriadPro-Regular.otf')
-
-@font-face
-  font-family: "Myriad"
-  src: url('../../public/font/MyriadPro-Bold.otf')
-  font-weight: bold
-
 *, *::after, *::before
   box-sizing: border-box
   margin: 0
   padding: 0
 
 html
-  height: 100%
-  overflow: auto
+    height: 100%
+    overflow: auto
+    body
+        font-family: $mainFont, Helvetica, Arial, sans-serif
+        line-height: 20px
+        font-weight: 400
+        -webkit-font-smoothing: antialiased
+        font-size: 1em
+        color: $bodyColor
+        overflow-x: hidden
+        height: 100%
 
-body
-  font-family: $mainFont, Helvetica, Arial, sans-serif
-  line-height: 20px
-  font-weight: 400
-  -webkit-font-smoothing: antialiased
-  font-size: 1em
-  color: $bodyColor
-  &.new-body
-    background-image: linear-gradient(to right, $backgroundBodyColorLight, $backgroundBodyColorDark)
-  background-repeat: no-repeat
-  background-size: 100% 40%
-  overflow-x: hidden
-  height: 100%
-
-p
-  padding: 10px
+        .wrapper
+            height: 100%
+            display: flex
+            flex-direction: column
 
 h1, h2
   color: #000
@@ -77,9 +37,6 @@ a, a:link, a:visited
   &:hover
     color : inherit
 
-.container-fluid
-  flex: 1
-
 .datepicker
   z-index: 1 !important
 
@@ -88,16 +45,6 @@ a, a:link, a:visited
 
 input:-webkit-autofill
   box-shadow: 0 0 0 30px white inset !important
-
-.wrapper
-    padding-left: 130px
-    height: 100%
-    display: flex
-    flex-direction: column
-
-.page-title
-  font-size: 32px
-  margin: 30px 0px
 
 //// FONTS ////
 .bold
@@ -121,24 +68,13 @@ input:-webkit-autofill
 .myriad
   font-family: "Myriad" !important
 
-.big-font
-  font-size: 4em !important
-  @media (min-width: 3800px)
-      font-size: 12em !important
-
-.ext-title-font
-    font-size: 4rem !important
-
 .medium-font
-  font-size: 1.5rem !important
+  font-size: 2.5vh
   @media (max-height: 950px)
-    font-size: 1rem !important
-  @media (min-width: 3800px)
-    font-size: 3em !important
-    margin-bottom: 20px
+    font-size: 1rem
 
 .display-font
-    font-size: 2.5vw !important
+    font-size: 2.5vw
 
 .little-font
   font-size: .8rem
@@ -191,21 +127,11 @@ a
 .green
   color: $green
 
-.white
-  color: $white
-
 .bg-grey-transparent
   background-color: rgba(0,0,0,0.5)
 
-.no-padding
-  p
-    padding: 0 !important
-
 
 //// HEIGHT ////
-.h-54px
-  height: 54px
-
 .h-fit-content
   height: fit-content
 
@@ -222,7 +148,7 @@ a
 .maxw-250px
   max-width: 250px
 
-.minw-300px
+.minw-150px
   min-width: 300px !important
 
 .minw-100px
@@ -230,6 +156,9 @@ a
 
 .minw-200px
   min-width: 200px !important
+
+.minw-250px
+    min-width: 250px !important
 
 .minw-450px
   min-width: 450px !important
@@ -294,7 +223,7 @@ a
 .checkbox-filter
   border-radius: 3px
   background-color: white
-  padding: 7px
+  padding: 6.5px
 
 .logo-wrapper
   padding: 25px
@@ -324,3 +253,6 @@ a
 
 .lh-1
     line-height: 1
+
+.bg-primary-followgt
+    background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark)

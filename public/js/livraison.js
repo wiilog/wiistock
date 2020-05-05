@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-$(function() {
+$(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statut');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
@@ -16,8 +16,7 @@ $(function() {
     if (filterDemandId && filterDemandValue) {
         let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');
-    }
-    else {
+    } else {
         // filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);
@@ -28,12 +27,9 @@ $(function() {
 });
 
 let pathLivraison = Routing.generate('livraison_api');
-let tableLivraison = $('#tableLivraison_id').DataTable({
+let tableLiraisonConfig = {
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [
         [3, "desc"]
     ],
@@ -44,11 +40,15 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
         },
         "type": "POST"
     },
-    'drawCallback': function() {
-        overrideSearch($('#tableLivraison_id_filter input'), tableLivraison);
+    rowConfig: {
+        needsRowClickAction: true
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'tableLivraison_id_filter'
     },
     columns: [
-        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
+        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
@@ -61,54 +61,31 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
             targets: 0
         }
     ],
-});
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableLivraison.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
+};
+let tableLivraison = initDataTable('tableLivraison_id', tableLiraisonConfig);
 
 let pathArticle = Routing.generate('livraison_article_api', {'id': id});
-let tableArticle = $('#tableArticle_id').DataTable({
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
+let tableArticleConfig = {
     ajax: {
         'url': pathArticle,
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité'},
     ],
+    rowConfig: {
+        needsRowClickAction: true,
+    },
     order: [[1, "asc"]],
     columnDefs: [
-        {orderable:false, targets: [0]}
+        {orderable: false, targets: [0]}
     ]
-});
+};
+let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 let modalDeleteLivraison = $('#modalDeleteLivraison');
 let submitDeleteLivraison = $('#submitDeleteLivraison');

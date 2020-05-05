@@ -1,16 +1,21 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
-        <div>
-            <div class="btn btn-col-action" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalEditRole'
-                 onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'))">
-                <i class='fas fa-pencil-alt'></i>
-            </div>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="d-none">
+                    <div class="action-on-click" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalEditRole'
+                         onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'))">
+                        <i class='fas fa-pencil-alt'></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="dropdown-item" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalDeleteRole'
+                         onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'role_check_delete', '#submitDeleteRole')">
+                        <i class='fas fa-trash mr-2'></i>Supprimer
+                    </div>
+                </div>
+            {% endif %}
         </div>
-        <div>
-            <div class="btn btn-col-action" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalDeleteRole'
-                 onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'role_check_delete', '#submitDeleteRole')">
-                <i class='fas fa-trash'></i>
-            </div>
-        </div>
-    {% endif %}
+    </div>
 </div>

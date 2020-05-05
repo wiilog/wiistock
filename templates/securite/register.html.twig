@@ -1,32 +1,32 @@
-{% extends 'base.html.twig' %}
+{% extends 'securite/unique-form-layout.html.twig' %}
 
 {% block title %}Créer un compte{% endblock %}
 
-{% block classbody %}
-    style='background-image: url({{asset('img/GTXBackAccueil2red.png')}})'
-    class='accueil-back'
-{% endblock  %}
-
 {% block body %}
-    <div class="login-wrapper mt-3">
-        <div class="row">
-            <div class="box-login login-form box-shadow">
-                <div class="login-header">
-                    Créer un compte
-                </div>
-                <div class="form-signin">
-                    {{ form_start(form) }}
-                    {{ form_row(form.username, {'attr': {'autofocus' : true} }) }}
-                    {{ form_row(form.email) }}
-                    {{ form_row(form.plainPassword.first) }}
-                    {{ form_row(form.plainPassword.second) }}
+    {{ parent() }}
 
-                    <div class="d-flex justify-content-between">
-                        <a class="btn" href="{{ url('login') }}">Retour connexion</a>
-                        <button class="btn btn-primary float-left" type="submit">Enregistrer</button>
+
+    <div class="container-fluid">
+        <div class="main-form-wrapper mt-3">
+            <div class="row">
+                <div class="box-login wii-page-card">
+                    <div class="login-header">
+                        Créer un compte
                     </div>
-                    {{ form_row(form._token) }}
-                    {{ form_end(form, {'render_rest' : false}) }}
+                    <div class="form-signin">
+                        {{ form_start(form) }}
+                        {{ form_row(form.username, {'attr': {'autofocus' : true} }) }}
+                        {{ form_row(form.email) }}
+                        {{ form_row(form.plainPassword.first) }}
+                        {{ form_row(form.plainPassword.second) }}
+
+                        <div class="d-flex justify-content-between">
+                            <a class="btn" href="{{ url('login') }}">Retour connexion</a>
+                            <button class="btn btn-primary float-left" type="submit">Enregistrer</button>
+                        </div>
+                        {{ form_row(form._token) }}
+                        {{ form_end(form, {'render_rest' : false}) }}
+                    </div>
                 </div>
             </div>
         </div>

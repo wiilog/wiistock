@@ -163,8 +163,8 @@
                                 N°&nbsp;commande&nbsp;/&nbsp;BL{{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? '*' : '' }}
                             </label>
                             <select id="numeroCommandeList"
-                                   class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? 'needed' : '' }}"
-                                   name="numeroCommandeList" multiple="multiple">
+                                    class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired('numeroCommandeList', 'mustToCreate') ? 'needed' : '' }}"
+                                    name="numeroCommandeList" multiple="multiple">
                             </select>
                         </div>
                     {% endif %}
@@ -254,7 +254,8 @@
                                         {{ nature.label | capitalize }}
                                     </label>
                                     <input type="number" class="form-control input-sm data-array needed-positiv"
-                                           name="colis" data-id="{{ nature.id }}" min="0" {#data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"#}
+                                           name="colis" data-id="{{ nature.id }}"
+                                           min="0" {#data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"#}
                                            value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}">
                                 </div>
                             {% endfor %}
@@ -275,21 +276,24 @@
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-2">
-                        <label>{{ 'arrivage.douane'|trans }}</label>
-                        <label class="switch d-block-switch mt-2">
-                            <input class="checkbox no-clear" type="checkbox" name="duty">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-group col-2">
-                        <label>{{ 'arrivage.congelé'|trans }}</label>
-                        <label class="switch d-block-switch mt-2">
-                            <input class="checkbox no-clear" type="checkbox" name="frozen">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
+                    {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
+                        <div class="form-group col-2">
+                            <label>{{ 'arrivage.douane'|trans }}</label>
+                            <label class="switch d-block-switch mt-2">
+                                <input class="checkbox no-clear" type="checkbox" name="duty">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    {% endif %}
+                    {% if fieldsParam|isFieldRequired('frozen', 'displayed') %}
+                        <div class="form-group col-2">
+                            <label>{{ 'arrivage.congelé'|trans }}</label>
+                            <label class="switch d-block-switch mt-2">
+                                <input class="checkbox no-clear" type="checkbox" name="frozen">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="row champsLibresBlock">
@@ -310,7 +314,7 @@
                     {% if fieldsParam|isFieldRequired('pj', 'displayed') %}
                         <div class="form-group col-4">
                             <div>
-                                {% include 'arrivage/attachements.html.twig' with {'isNew' : true} %}
+                                {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
                             </div>
                         </div>
                     {% endif %}

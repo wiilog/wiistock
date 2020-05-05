@@ -1,22 +1,21 @@
 <div class="d-flex">
-    <div>
-        <div class="btn btn-col-action" data-id='{{ idType }}' data-toggle='modal' data-target='#modalEditType'
-        onclick="editRow($(this),  Routing.generate('type_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
-            <i class='fas fa-pencil-alt '></i>
-        </div>
-    </div>
-    <div>
-        <div class="btn btn-col-action"
-        onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))"
-        data-id='{{ idType }}' data-target='#modalDeleteType' data-toggle='modal'>
-            <i class='fas fa-trash '></i>
-        </div>
-    </div>
-    <div>
-        <a href={{urlChampLibre}}>
-            <div class="btn btn-col-action">
-                <i class='fas fa-eye'></i>
+    <div class="dropdown">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="d-none">
+                <div class="action-on-click" data-id='{{ idType }}' data-toggle='modal' data-target='#modalEditType'
+                     onclick="editRow($(this),  Routing.generate('type_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
+                    <i class='fas fa-pencil-alt '></i>
+                </div>
             </div>
-        </a>
+            <a href="{{ urlChampLibre }}" class="dropdown-item">
+                <i class='fas fa-eye mr-2'></i>Voir
+            </a>
+            <div class="dropdown-item"
+                 onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))"
+                 data-id='{{ idType }}' data-target='#modalDeleteType' data-toggle='modal'>
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
+        </div>
     </div>
 </div>

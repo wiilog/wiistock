@@ -48,7 +48,10 @@
     </div>
     <div class="form-group col-12">
         <div>
-            {% include 'arrivage/attachements.html.twig' with {'isNew' : false} %}
+            {% include 'attachment/attachment.html.twig' with {
+                'isNew': false,
+                attachements: mvt.attachements
+            } %}
         </div>
     </div>
 </div>

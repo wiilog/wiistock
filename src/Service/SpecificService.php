@@ -14,10 +14,11 @@ class SpecificService
 	const CLIENT_CEA_LETI = 'cea-leti';
 	const CLIENT_SAFRAN_CS = 'safran-cs';
 	const CLIENT_SAFRAN_ED = 'safran-ed';
+	const CLIENT_TEREGA = 'terega';
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
 
-	public function isCurrentClientNameFunction(string $clientName)
+	public function isCurrentClientNameFunction(string $clientName): bool
 	{
 		return (isset($_SERVER['APP_CLIENT']) && $_SERVER['APP_CLIENT'] == $clientName);
 	}

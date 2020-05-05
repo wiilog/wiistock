@@ -1,5 +1,5 @@
 let pathacheminements = Routing.generate('acheminements_api', true);
-let tableAcheminements = $('#tableAcheminement').DataTable({
+let tableAcheminementsConfig = {
     serverSide: true,
     processing: true,
     order: [[1, "desc"]],
@@ -9,15 +9,15 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
             "targets" : [0]
         }
     ],
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     ajax: {
         "url": pathacheminements,
         "type": "POST",
     },
+    rowConfig: {
+        needsRowClickAction: true
+    },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
@@ -26,7 +26,8 @@ let tableAcheminements = $('#tableAcheminement').DataTable({
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
-});
+};
+let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);
 
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");

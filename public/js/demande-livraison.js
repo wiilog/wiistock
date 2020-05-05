@@ -1,56 +1,10 @@
 $('.select2').select2();
-
-//ARTICLE DEMANDE
-let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
-let tableArticle = $('#table-lignes').DataTable({
-    processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    order: [[1, "desc"]],
-    ajax: {
-        "url": pathArticle,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'Actions', 'title': 'Actions'},
-        {"data": 'Référence', 'title': 'Référence'},
-        {"data": 'Libellé', 'title': 'Libellé'},
-        {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité disponible'},
-        {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
-    ],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
-});
-
-let modalNewArticle = $("#modalNewArticle");
-let submitNewArticle = $("#submitNewArticle");
-let pathNewArticle = Routing.generate('demande_add_article', true);
-InitialiserModal(modalNewArticle, submitNewArticle, pathNewArticle, tableArticle);
-
-let modalDeleteArticle = $("#modalDeleteArticle");
-let submitDeleteArticle = $("#submitDeleteArticle");
-let pathDeleteArticle = Routing.generate('demande_remove_article', true);
-InitialiserModal(modalDeleteArticle, submitDeleteArticle, pathDeleteArticle, tableArticle);
-
-let modalEditArticle = $("#modalEditArticle");
-let submitEditArticle = $("#submitEditArticle");
-let pathEditArticle = Routing.generate('demande_article_edit', true);
-InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
-
 //DEMANDE
+
 let pathDemande = Routing.generate('demande_api', true);
-let tableDemande = $('#table_demande').DataTable({
+let tableDemandeConfig = {
     serverSide: true,
     processing: true,
-    language: {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
     order: [[1, 'desc']],
     ajax: {
         "url": pathDemande,
@@ -60,11 +14,15 @@ let tableDemande = $('#table_demande').DataTable({
             'filterReception': $('#receptionFilter').val()
         },
     },
-    'drawCallback': function() {
-        overrideSearch($('#table_demande_filter input'), tableDemande);
+    drawConfig: {
+        needsSearchOverride: true,
+        filterId: 'table_demande_filter'
+    },
+    rowConfig: {
+        needsRowClickAction: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
         {"data": 'Date', 'name': 'Date', 'title': 'Date'},
         {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
         {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
@@ -81,7 +39,52 @@ let tableDemande = $('#table_demande').DataTable({
             targets: 0
         }
     ],
-});
+};
+let tableDemande = initDataTable('table_demande', tableDemandeConfig);
+
+//ARTICLE DEMANDE
+let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
+let tableArticleConfig = {
+    processing: true,
+    order: [[1, "desc"]],
+    ajax: {
+        "url": pathArticle,
+        "type": "POST"
+    },
+    columns: [
+        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Référence', 'title': 'Référence'},
+        {"data": 'Libellé', 'title': 'Libellé'},
+        {"data": 'Emplacement', 'title': 'Emplacement'},
+        {"data": 'Quantité', 'title': 'Quantité disponible'},
+        {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
+    ],
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+    columnDefs: [
+        {
+            orderable: false,
+            targets: 0
+        }
+    ],
+};
+let tableArticle = initDataTable('table-lignes', tableArticleConfig);
+
+let modalNewArticle = $("#modalNewArticle");
+let submitNewArticle = $("#submitNewArticle");
+let pathNewArticle = Routing.generate('demande_add_article', true);
+InitialiserModal(modalNewArticle, submitNewArticle, pathNewArticle, tableArticle);
+
+let modalDeleteArticle = $("#modalDeleteArticle");
+let submitDeleteArticle = $("#submitDeleteArticle");
+let pathDeleteArticle = Routing.generate('demande_remove_article', true);
+InitialiserModal(modalDeleteArticle, submitDeleteArticle, pathDeleteArticle, tableArticle);
+
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let pathEditArticle = Routing.generate('demande_article_edit', true);
+InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
 
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {

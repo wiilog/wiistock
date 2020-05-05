@@ -30,10 +30,6 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
-$.fn.dataTable.ext.errMode = () => {
-    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
-};
-
 /**
  * Initialise une fenêtre modale
  *
@@ -158,7 +154,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
-        Data[$(this).attr("name")] = $(this).is(':checked');
+        if (!$(this).hasClass("no-data")) {
+            Data[$(this).attr("name")] = $(this).is(':checked');
+        }
     });
     $("div[name='id']").each(function () {
         Data[$(this).attr("name")] = $(this).attr('value');
@@ -234,9 +232,9 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
                                 msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
                             }
                         } else if (typeof (min) == 'undefined') {
-                            msg += ' doit être inférieure à ' + max + ".<br>";
+                            msg += ' doit être inférieure ou égal à ' + max + ".<br>";
                         } else if (typeof (max) == 'undefined') {
-                            msg += ' doit être supérieure à ' + min + ".<br>";
+                            msg += ' doit être supérieure ou égal à ' + min + ".<br>";
                         } else if (min < 1) {
                             msg += ' ne peut pas être rempli'
                         }
@@ -601,7 +599,9 @@ function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {},
         // on recupère le select2 après l'initialisation de select2
         $select2Selection = getSelect2Selection();
         $select2Selection.on('focus', function() {
-            $self.select2('open');
+            if (!isMultiple) {
+                $self.select2('open');
+            }
         });
     });
 }
@@ -864,7 +864,6 @@ function saveFilters(page, tableSelector, callback) {
     if ($filterDateMaxPicker) {
         $filterDateMaxPicker.format('DD/MM/YYYY');
     }
-
     $.post(path, JSON.stringify(params), function (response) {
         if (response) {
             if (callback) {
@@ -898,45 +897,6 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
             $submit.attr('value', id);
         }
     });
-}
-
-function toggleActiveButton($button, table) {
-    $button.toggleClass('active');
-    $button.toggleClass('not-active');
-
-    let value = $button.hasClass('active') ? 'true' : '';
-    table
-        .columns('Active:name')
-        .search(value)
-        .draw();
-}
-
-function initSearchDate(table) {
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = table.column('date:name').index();
-
-            if (typeof indexDate === "undefined") return true;
-
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin === "" && dateMax === "")
-                ||
-                (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
 }
 
 function hideSpinner(div) {
@@ -1025,40 +985,6 @@ let addArrivalAssociation = function (span) {
     let $parent = $arrivalInput.parent();
     $arrivalInput.clone().appendTo($parent);
 };
-
-function overrideSearch($input, table, callback = null) {
-    $input.off();
-    $input.on('keyup', function (e) {
-        if (e.key === 'Enter') {
-            table.search(this.value).draw();
-            if (callback) {
-                callback($input);
-            }
-        }
-    });
-    $input.attr('placeholder', 'entrée pour valider');
-}
-
-function addToRapidSearch(checkbox) {
-    let alreadySearched = [];
-    $('#rapidSearch tbody td').each(function () {
-        alreadySearched.push($(this).html());
-    });
-    if (!alreadySearched.includes(checkbox.data('name'))) {
-        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
-        $('#rapidSearch tbody').append(tr);
-    } else {
-        $('#rapidSearch tbody tr').each(function () {
-            if ($(this).find('td').html() === checkbox.data('name')) {
-                if ($('#rapidSearch tbody tr').length > 1) {
-                    $(this).remove();
-                } else {
-                    checkbox.prop("checked", true);
-                }
-            }
-        });
-    }
-}
 
 
 function redirectToDemandeLivraison(demandeId) {
@@ -1212,6 +1138,10 @@ function generateCSV(route, filename = 'export', param = null) {
 }
 
 let dlFile = function (csv, filename) {
+    // !!! remove a special char (first param is not empty) !!!
+    // Fix temporaire en attendant d'exporter en server side !
+    csv = csv.replace('﻿', '');
+    csv = csv.replace("﻿", '');
     $.post(Routing.generate('get_encodage'), function (usesUTF8) {
         let encoding = usesUTF8 ? 'utf-8' : 'windows-1252';
         let d = new Date();
@@ -1302,61 +1232,6 @@ function displayFiltersSup(data) {
 }
 
 /**
- * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
- */
-function renderMillisecondsToDelayDatatable(milliseconds, type) {
-    let res;
-
-    if (type === 'display') {
-        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
-        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
-        res = (
-                (hours > 0)
-                    ? `${hours < 10 ? '0' : ''}${hours} h `
-                    : '') +
-            ((minutes === 0 && hours < 1)
-                ? '< 1 min'
-                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
-    } else {
-        res = milliseconds;
-    }
-
-    return res;
-}
-
-function extendsDateSort(name) {
-    $.extend($.fn.dataTableExt.oSort, {
-        [name + "-pre"]: function (date) {
-            const dateSplitted = date.split(' ');
-            const dateDaysParts = dateSplitted[0].split('/');
-            const year = parseInt(dateDaysParts[2]);
-            const month = parseInt(dateDaysParts[1]);
-            const day = parseInt(dateDaysParts[0]);
-
-            const dateHoursParts = dateSplitted.length > 1 ? dateSplitted[1].split(':') : [];
-            const hours = dateHoursParts.length > 0 ? parseInt(dateHoursParts[0]) : 0;
-            const minutes = dateHoursParts.length > 1 ? parseInt(dateHoursParts[1]) : 0;
-            const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
-
-            const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
-            return madeDate.getTime();
-        },
-        [name + "-asc"]: function (a, b) {
-            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-        },
-        [name + "-desc"]: function (a, b) {
-            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-        }
-    });
-}
-
-function hideColumns(table, data) {
-    data.forEach(function (col) {
-        table.column(col + ':name').visible(false);
-    })
-}
-
-/**
  *
  * @param {string|undefined} title
  * @param $body jQuery object
@@ -1444,8 +1319,7 @@ function initTooltips($elements) {
 
 function managePrintButtonTooltip(active, $button) {
     if ($button) {
-        let $printTagParent = $button.parent();
-        $printTagParent.tooltip(
+        $button.tooltip(
             active ? undefined : 'dispose'
         )
     }
@@ -1479,4 +1353,84 @@ function initFreeSelect2($selects) {
 
 function openSelect2($select2) {
     $select2.select2('open');
+}
+
+function registerDropdownPosition() {
+    let dropdownMenu;
+
+    const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
+    const isThreeDotsInRow = ($target) => ($target.parents('.noVis').length > 0);
+
+    $(window).on('show.bs.dropdown', function (e) {
+        const $target = $(e.target);
+        dropdownMenu = $target.find('.dropdown-menu');
+        let parentModal = $target.parents('.modal');
+        if (!hasMainHeaderParent($target)) {
+            dropdownMenu = $target.find('.dropdown-menu');
+            $('body').append(dropdownMenu.detach());
+            dropdownMenu.css('display', 'block');
+            dropdownMenu.position({
+                'my': 'right top',
+                'at': 'right bottom',
+                'of': $(e.relatedTarget)
+            });
+            if (isThreeDotsInRow($target)) {
+                dropdownMenu.addClass('ml-3');
+            }
+            if (parentModal.length > 0) {
+                dropdownMenu.css('z-index', (parentModal.first().css('z-index') || 0) + 1)
+            }
+        }
+    });
+
+    $(window).on('hide.bs.dropdown', function (e) {
+        const $target = $(e.target);
+        if (!hasMainHeaderParent($target)) {
+            $target.append(dropdownMenu.detach());
+            dropdownMenu.hide();
+        }
+        if (isThreeDotsInRow($target)) {
+            dropdownMenu.removeClass('ml-3');
+        }
+    });
+}
+
+function saveExportFile(routeName, params = null) {
+    const $spinner = $('#spinner');
+    loadSpinner($spinner);
+
+    const path = Routing.generate(routeName, true);
+
+    const filtersData = {};
+    $('.filterService input').each(function () {
+        const $input = $(this);
+        const name = $input.attr('name');
+        const val = $input.val();
+        if (name && val) {
+            filtersData[name] = val;
+        }
+    });
+
+    const data = {
+        ...filtersData,
+        ...(params || {})
+    }
+
+    if (data.dateMin && data.dateMax) {
+        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+        const dataKeys = Object.keys(data);
+
+        const joinedData = dataKeys
+            .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+            .join('&');
+
+        window.location.href = `${path}?${joinedData}`;
+        hideSpinner($spinner);
+    }
+    else {
+        warningEmptyDatesForCsv();
+        hideSpinner($spinner);
+    }
 }

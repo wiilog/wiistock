@@ -1,20 +1,15 @@
 .filter
-  border-radius: 10px !important
-  width: 100%
   background-color: white !important
   color: $greyDark !important
   border-color: $greyDark !important
-  &:hover
+  i:hover
     color: $red !important
     border-color: $red !important
   span
     overflow-wrap: break-word
 
 .filters
-  align-items: center
-  padding: 6px
   >div
-    margin: auto 12px
     .select2-selection
       padding-top: 2px
       padding-bottom: 4px
@@ -23,12 +18,25 @@
       height: 38px
     .select2-selection__placeholder
       vertical-align: middle
-  .minw-150px
+  .minw-200px
     .select2-container
-      min-width: 150px !important
-  .minw-300px
+        min-width: 200px !important
+  .minw-100px
+    .select2-container
+        min-width: 100px !important
+  .minw-150px
     .select2-container
       min-width: 150px !important
   .select2-overflow
     .select2-selection
       overflow: auto
+
+.filter-input, .filter-select2
+    width: 200px !important
+
+.no-filter
+    color: ghostwhite
+    font-style: italic
+
+.select-filter
+    margin-top: -0.1rem

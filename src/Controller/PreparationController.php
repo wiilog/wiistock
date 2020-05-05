@@ -14,7 +14,6 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\PreparationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
@@ -33,7 +32,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
 use App\Entity\Demande;
-use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -46,21 +44,10 @@ use Twig\Error\SyntaxError;
  */
 class PreparationController extends AbstractController
 {
-
     /**
      * @var LivraisonRepository
      */
     private $livraisonRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
-     * @var PreparationRepository
-     */
-    private $preparationRepository;
 
     /**
      * @var UserService
@@ -92,14 +79,10 @@ class PreparationController extends AbstractController
                                 SpecificService $specificService,
                                 LivraisonRepository $livraisonRepository,
                                 ArticleDataService $articleDataService,
-                                PreparationRepository $preparationRepository,
-                                DemandeRepository $demandeRepository,
                                 UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
-        $this->preparationRepository = $preparationRepository;
-        $this->demandeRepository = $demandeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->specificService = $specificService;
@@ -184,6 +167,7 @@ class PreparationController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $preparation = new Preparation();
             $entityManager = $this->getDoctrine()->getManager();
@@ -194,7 +178,7 @@ class PreparationController extends AbstractController
             $preparation->setStatut($statut);
 
             foreach ($data as $key) {
-                $demande = $this->demandeRepository->find($key);
+                $demande = $demandeRepository->find($key);
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->addPreparation($preparation)
@@ -252,8 +236,9 @@ class PreparationController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
 
-        $demandeLivraison = $demandId ? $this->demandeRepository->find($demandId) : null;
+        $demandeLivraison = $demandId ? $demandeRepository->find($demandId) : null;
 
         return $this->render('preparation/index.html.twig', [
             'filterDemandId' => isset($demandeLivraison) ? $demandId : null,
@@ -285,19 +270,19 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/api_article/{prepaId}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api_article/{preparation}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param $prepaId
+     * @param Preparation $preparation
      * @return Response
      */
-    public function apiLignePreparation(Request $request, $prepaId): Response
+    public function apiLignePreparation(Request $request,
+                                        Preparation $preparation): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $preparation = $this->preparationRepository->find($prepaId);
             $demande = $preparation->getDemande();
             $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
             $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
@@ -384,12 +369,32 @@ class PreparationController extends AbstractController
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
+        $demande = $preparation->getDemande();
+        $destination = $demande ? $demande->getDestination() : null;
+        $operator = $preparation ? $preparation->getUtilisateur() : null;
+        $requester = $demande ? $demande->getUtilisateur() : null;
+        $comment = $preparation->getCommentaire();
+
         return $this->render('preparation/show.html.twig', [
-            'demande' => $preparation->getDemande(),
+            'demande' => $demande,
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'articles' => $articleRepository->getIdRefLabelAndQuantity(),
+            'headerConfig' => [
+                [ 'label' => 'Numéro', 'value' => $preparation->getNumero() ],
+                [ 'label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : '' ],
+                [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
+                [ 'label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : '' ],
+                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true
+                ],
+            ]
         ]);
     }
 
@@ -411,16 +416,16 @@ class PreparationController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-
         $demande = $preparation->getDemande();
         if ($demande->getPreparations()->count() === 1) {
             $demande
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
         }
 
+        $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         foreach ($preparation->getArticles() as $article) {
             $article->setPreparation(null);
-            $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF));
+            $article->setStatut($statutActifArticle);
             if ($article->getQuantiteAPrelever()) {
                 $article->setQuantite($article->getQuantiteAPrelever());
                 $article->setQuantiteAPrelever(0);
@@ -432,8 +437,16 @@ class PreparationController extends AbstractController
 
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
-            if ($refArticle->getQuantiteReservee() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $refArticle->setQuantiteReservee($refArticle->getQuantiteReservee() - $ligneArticlePreparation->getQuantite());
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $quantiteReservee = $refArticle->getQuantiteReservee();
+                $quantiteAPrelever = $ligneArticlePreparation->getQuantite();
+                $newQuantiteReservee = ($quantiteReservee - $quantiteAPrelever);
+                $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+
+                $newQuantiteReservee = $refArticle->getQuantiteReservee();
+                $quantiteStock = $refArticle->getQuantiteStock();
+                $newQuantiteDisponible = ($quantiteStock - $newQuantiteReservee);
+                $refArticle->setQuantiteDisponible($newQuantiteDisponible > 0 ? $newQuantiteDisponible : 0);
             }
             else {
                 $refToUpdate[] = $refArticle;
@@ -442,11 +455,15 @@ class PreparationController extends AbstractController
         }
 
         $entityManager->remove($preparation);
+
+        // il faut que la preparation soit supprimée avant une maj des articles
         $entityManager->flush();
 
         foreach ($refToUpdate as $reference) {
             $refArticleDataService->updateRefArticleQuantities($reference);
         }
+
+        $entityManager->flush();
 
         return $this->redirectToRoute('preparation_index');
     }
@@ -642,8 +659,12 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/infos", name="get_ordres_prepa_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function getOrdrePrepaIntels(Request $request): Response
+    public function getOrdrePrepaIntels(Request $request,
+                                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
@@ -652,7 +673,9 @@ class PreparationController extends AbstractController
             $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
             $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-            $preparations = $this->preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $preparationRepository = $entityManager->getRepository(Preparation::class);
+
+            $preparations = $preparationRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [
                 'numéro',
@@ -669,7 +692,6 @@ class PreparationController extends AbstractController
 
             $data = [];
             $data[] = $headers;
-
             foreach ($preparations as $preparation) {
                 $this->buildInfos($preparation, $data);
             }
@@ -683,7 +705,6 @@ class PreparationController extends AbstractController
     private function buildInfos(Preparation $preparation, &$data)
     {
         $demande = $preparation->getDemande();
-
         $dataPrepa =
             [
                 $preparation->getNumero() ?? '',
@@ -693,10 +714,10 @@ class PreparationController extends AbstractController
                 $demande->getType() ? $demande->getType()->getLabel() : '',
             ];
 
-        foreach ($demande->getLigneArticle() as $ligneArticle) {
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $referenceArticle = $ligneArticle->getReference();
 
-            if ($ligneArticle->getQuantitePrelevee() > 0) {
+            if ($ligneArticle->getQuantite() > 0) {
                 $data[] = array_merge($dataPrepa, [
                     $referenceArticle->getReference() ?? '',
                     $referenceArticle->getLibelle() ?? '',
@@ -707,12 +728,12 @@ class PreparationController extends AbstractController
             }
         }
 
-        foreach ($demande->getArticles() as $article) {
+    foreach ($preparation->getArticles() as $article) {
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
             $reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
-            if ($article->getQuantitePrelevee() > 0) {
+            if ($article->getQuantite() > 0) {
                 $data[] = array_merge($dataPrepa, [
                     $reference,
                     $article->getLabel() ?? '',
