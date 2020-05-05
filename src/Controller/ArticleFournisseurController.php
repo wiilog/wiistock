@@ -166,12 +166,11 @@ class ArticleFournisseurController extends AbstractController
                 ->setReferenceArticle($referenceArticle)
                 ->setLabel($data['label'] ?: null);
 
-            $dataResponse = [];
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-                $dataResponse['success'] = true;
+            $entityManager->flush();
 
-            return new JsonResponse($dataResponse);
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException("404");
     }

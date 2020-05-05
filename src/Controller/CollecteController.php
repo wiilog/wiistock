@@ -30,6 +30,7 @@ use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -307,12 +308,14 @@ class CollecteController extends AbstractController
      * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
-     * @throws NonUniqueResultException
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NoResultException
      */
     public function addArticle(Request $request,
                                EntityManagerInterface $entityManager,
