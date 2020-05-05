@@ -1,7 +1,7 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION ADMINISTRATIVE"/>
 <div class="col-12">
     <div class="row">
-        <div class="col-12 {{ isDashboardExt ? 'mt-3'}}">
+        <div class="col-12">
             <div class="row">
                 <div class="col-9 dashboard-box-container third-height {{ not isDashboardExt ? 'pr-2'}}">
                     <div class="dashboard-box">
@@ -13,8 +13,7 @@
                         </p>
                         {% if not isDashboardExt %}
                             <div class="points has-tooltip"
-                                 title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1)
-                            présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 1.">
+                                 title="Nombre {{ 'arrivage.de colis'|trans }} (de nature paramétrée pour le graphe 1) présents depuis < 48h sur l'ensemble des emplacements paramétrés pour le graphe 1.">
                                 <i class="fa fa-question"></i>
                             </div>
                         {% endif %}
@@ -152,8 +151,8 @@
                     </div>
                 </div>
                 <div class="col-3 {{ not isDashboardExt ? 'px-2'}}">
-                    <div class="dashboard-box-container dashboard-stats-container fourth-height">
-                        <div id="encours-urgence-box" class="dashboard-box text-center justify-content-around">
+                    <div class="dashboard-box-container fourth-height">
+                        <div id="encours-urgence-box" class="dashboard-box text-center justify-content-around dashboard-stats-container">
                             <div>
                                 <p class="text-center title">
                                     <i class="fas"></i>
@@ -169,8 +168,8 @@
                     </div>
                 </div>
                 <div class="col-3 {{ not isDashboardExt ? 'px-2'}}">
-                    <div class="dashboard-box-container dashboard-stats-container fourth-height">
-                        <div id="encours-litige-box" class="dashboard-box text-center justify-content-around">
+                    <div class="dashboard-box-container fourth-height">
+                        <div id="encours-litige-box" class="dashboard-box text-center justify-content-around dashboard-stats-container">
                             <div>
                                 <p class="text-center title">
                                     Lignes en litiges
@@ -184,8 +183,8 @@
                     </div>
                 </div>
                 <div class="col-3 {{ not isDashboardExt ? 'pl-2'}}">
-                    <div class="dashboard-box-container dashboard-stats-container fourth-height">
-                        <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-around">
+                    <div class="dashboard-box-container fourth-height">
+                        <div id="encours-clearance-box-admin" class="dashboard-box text-center justify-content-around dashboard-stats-container">
                             <div>
                                 <p class="text-center title">
                                     Colis en attente de dédouanement

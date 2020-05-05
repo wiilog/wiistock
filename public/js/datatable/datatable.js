@@ -81,7 +81,6 @@ function initActionOnCell(cell) {
 
 
 function showOrHideColumn(check, concernedTable, concernedTableColumns) {
-
     let columnName = check.data('name');
 
     let column = concernedTable.column(columnName + ':name');
@@ -189,29 +188,31 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
     let datatableToReturn = null;
     let $tableDom = $('#' + dtId);
     $tableDom.addClass('wii-table');
-    datatableToReturn = $tableDom.on('error.dt', function (e, settings, techNote, message) {
-        console.log('An error has been reported by DataTables: ', message);
-    }).DataTable({
-        language: {
-            url: "/js/i18n/dataTableLanguage.json",
-        },
-        dom: getAppropriateDom(domConfig ?? {}),
-        rowCallback: getAppropriateRowCallback(rowConfig ?? {}),
-        drawCallback: (response) => {
-            getAppropriateDrawCallback({
-                table: datatableToReturn,
-                response,
-                ...drawConfig
-            })
-        },
-        initComplete: () => {
-            articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
-            if (initCompleteCallback) {
-                initCompleteCallback();
-            }
-        },
-        ...config
-    });
+    datatableToReturn = $tableDom
+        .on('error.dt', function (e, settings, techNote, message) {
+            console.log('An error has been reported by DataTables: ', message);
+        })
+        .DataTable({
+            language: {
+                url: "/js/i18n/dataTableLanguage.json",
+            },
+            dom: getAppropriateDom(domConfig ?? {}),
+            rowCallback: getAppropriateRowCallback(rowConfig ?? {}),
+            drawCallback: (response) => {
+                getAppropriateDrawCallback({
+                    table: datatableToReturn,
+                    response,
+                    ...drawConfig
+                })
+            },
+            initComplete: () => {
+                articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
+                if (initCompleteCallback) {
+                    initCompleteCallback();
+                }
+            },
+            ...config
+        });
     return datatableToReturn;
 }
 
