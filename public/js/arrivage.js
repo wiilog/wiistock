@@ -91,7 +91,7 @@ let tableArrivageConfig = {
     rowConfig: {
         needsDangerColor: true,
         needsRowClickAction: true,
-        dataToCheck: 'urgent'
+        dataToCheck: 'Urgent'
     },
     drawConfig: {
         needsSearchOverride: true,
