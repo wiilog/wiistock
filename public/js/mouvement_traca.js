@@ -5,8 +5,8 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Type');
-    initSelect2($('#emplacement'), 'Emplacement');
+    initSelect2($('#statut'), 'Types');
+    initSelect2($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

@@ -121,7 +121,7 @@ InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tabl
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#statut'), 'Statuts');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
 
     // applique les filtres si pré-remplis
@@ -187,7 +187,7 @@ function initNewCollecteEditor(modal) {
         editorNewCollecteAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
-};
+}
 
 function validateCollecte(collecteId) {
     let params = JSON.stringify({id: collecteId});

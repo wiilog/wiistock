@@ -2,18 +2,18 @@ $('.select2').select2();
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('#emplacement'), 'Emplacement');
-    initSelect2($('#statut'), 'Type');
+    initSelect2($('#emplacement'), 'Emplacements');
+    initSelect2($('#statut'), 'Types');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_MVT_STOCK);;
+    let params = JSON.stringify(PAGE_MVT_STOCK);
     $.post(path, params, function(data) {
         displayFiltersSup(data);
     }, 'json');
 
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateur');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
 });
 
 let pathMvt = Routing.generate('mouvement_stock_api', true);

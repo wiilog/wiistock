@@ -1,6 +1,6 @@
 $(function () {
     initDateTimePicker('#dateMin, #dateMax');
-    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#statut'), 'Statuts');
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
 
     // filtres enregistrés en base pour chaque utilisateur

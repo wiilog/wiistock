@@ -163,7 +163,7 @@ function setMaxQuantity(select) {
 
 $(function () {
     initDateTimePicker();
-    initSelect2($('#statut'), 'Statut');
+    initSelect2($('#statut'), 'Statuts');
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Utilisateurs');
 
