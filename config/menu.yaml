@@ -200,8 +200,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_STATU_LITI
-                -   label: 'mouvement de traçabilité.NatureColis'
-                    isTranslation: true
+                -   label: 'Natures de colis'
                     path: 'nature_param_index'
                     rights:
                         menu: App\Entity\Menu::PARAM
