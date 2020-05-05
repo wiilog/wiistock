@@ -2,7 +2,7 @@ function buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublon
     let msg = '';
 
     if(doublonRef ){
-        msg+= "Il n'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>";
+        msg+= "Il n'est pas possible de rentrer plusieurs références d'article fournisseur identiques. Veuillez les différencier. <br>";
     }
 
     // cas où il manque des champs obligatoires

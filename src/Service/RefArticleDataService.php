@@ -410,11 +410,11 @@ class RefArticleDataService
                 $ligneArticle
                     ->setReference($referenceArticle)
                     ->setDemande($demande)
-                    ->setQuantite(max($data["quantitie"], 0)); // protection contre quantités négatives
+                    ->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
                 $this->entityManager->persist($ligneArticle);
             } else {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
+                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0)); // protection contre quantités négatives
             }
             $this->editRefArticle($referenceArticle, $data, $user);
 
@@ -424,21 +424,21 @@ class RefArticleDataService
                 if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
+                        ->setQuantite(max($data["quantite"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
                         ->setDemande($demande)
                         ->setToSplit(true);
                     $this->entityManager->persist($ligneArticle);
                 } else {
                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
-                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
+                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
                 /** @var Article $article */
                 $article
                     ->setDemande($demande)
-                    ->setQuantiteAPrelever(max($data["quantitie"], 0)); // protection contre quantités négatives
+                    ->setQuantiteAPrelever(max($data["quantite"], 0)); // protection contre quantités négatives
                 $resp = 'article';
             }
         } else {

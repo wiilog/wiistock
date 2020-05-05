@@ -1191,16 +1191,8 @@ class ImportService
                     'article-reference' =>$referenceArticle,
                     'label' => ($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom())
                 ]);
-
-//                $articleFournisseur = new ArticleFournisseur();
-//                $articleFournisseur
-//                    ->setFournisseur($fournisseur)
-//                    ->setReference($articleFournisseurReference)
-//                    ->setReferenceArticle($referenceArticle)
-//                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-//                $this->em->persist($articleFournisseur);
-
-            } else {
+            }
+            else {
                 // on a réussi à trouver un article fournisseur
                 // vérif que l'article fournisseur correspond au couple référence article / fournisseur
                 if (!empty($fournisseurReference)) {
@@ -1238,13 +1230,6 @@ class ImportService
                     'reference' => $referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference(),
                     'fournisseur' =>$fournisseur
                 ]);
-//                $articleFournisseur = new ArticleFournisseur();
-//                $articleFournisseur
-//                    ->setFournisseur($fournisseur)
-//                    ->setReference($referenceArticle->getReference() . ' / ' . $fournisseur->getCodeReference())
-//                    ->setReferenceArticle($referenceArticle)
-//                    ->setLabel($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom());
-//                $this->em->persist($articleFournisseur);
             }
         }
 
