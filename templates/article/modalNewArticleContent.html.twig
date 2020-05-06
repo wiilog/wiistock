@@ -1,5 +1,6 @@
 {% set easyForm = (easyForm is defined) and easyForm %}
-
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+{% set disabled = editable ? '' : 'disabled' %}
 <div class="row">
     <div class="form-group w-100 col-12">
         <label>Référence fournisseur*
@@ -9,7 +10,7 @@
                         <option value="" selected>&nbsp;</option>
                     {% endif %}
                     {% for ref in references %}
-                        <option value="{{ ref.id }}">{{ref.reference}}</option>
+                        <option value="{{ ref.id }}">{{ ref.reference }}</option>
                     {% endfor %}
                 {% endif %}
             </select>
@@ -22,7 +23,7 @@
         </div>
         <div class="form-group col-6">
             <label for="libelle">Type</label>
-            <input class="form-control data" type="text" disabled value="{{typeArticle}}" name="type" id="type">
+            <input class="form-control data" type="text" disabled value="{{ typeArticle }}" name="type" id="type">
         </div>
     {% endif %}
 </div>
@@ -88,57 +89,74 @@
         <div class="d-block">
             <div class="row mt-2">
                 {% for champLibre in champsLibres %}
-                <div class="form-group col-6">
-                    <label for="">
-                        {% set label = champLibre.label %}
-                        {{ label | capitalize ~ (champLibre.requiredCreate ? '*' : '') }}
-                    </label>
-
-                    {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                    <input type="checkbox" class="form-control data checkbox" value="" name="{{ champLibre.id}}" id="">
-
-                    {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
-                    <input type="number" class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
-                        value="" name="{{ champLibre.id}}" id="">
-
-
-                    {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
-                    <select class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}} "
-                        name="{{ champLibre.id}}" id="">
-                        <option value=""></option>
-                        {% for elem in  champLibre.elements %}
-                        <option value="{{elem}}">{{elem}}</option>
-                        {% endfor %}
-                    </select>
-
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
-                        <select id="" class="list-multiple form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
-                                name="{{ champLibre.id }}" multiple="multiple">
-                            {% for elem in champLibre.elements %}
-                                <option value="{{ elem }}">{{ elem }}</option>
-                            {% endfor %}
-                        </select>
-
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT')  %}
-                    <input type="text" id="{{ champLibre.label ~ 'edit'}}"
-                        class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
-                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
-                        name="{{  champLibre.id }}" id="input">
-
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
-                    <input type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
-                        class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
-                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
-                        <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
-                               class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
-                               value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
+                    {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+                        {% set needed = 'needed' %}
+                        {% set star = '*' %}
                     {% else %}
-                    <input disabled>
+                        {% set needed = '' %}
+                        {% set star = '' %}
                     {% endif %}
-                </div>
+
+                    <div class="form-group col-6">
+
+                        {% if champLibre.label|lower == 'code projet' %}
+                            <label for="input">{{ champLibre.label }}*</label>
+                        {% else %}
+                            <label for="input">{{ champLibre.label }}{{ star }}</label>
+                        {% endif %}
+
+                        {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
+                            {% set checked = champLibre.defaultValue ? 'checked' : '' %}
+                            <label class="switch">
+                                <input {{ disabled }} type="checkbox" class="data checkbox" {{ checked }}
+                                                      name="{{ champLibre.id }}">
+                                <span class="slider round"></span>
+                            </label>
+
+                        {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
+                            {% set value = champLibre.defaultValue ? champLibre.defaultValue : '' %}
+                            <input {{ disabled }} type="number" id="{{ champLibre.id ~ 'edit' }}"
+                                                  class="form-control data {{ needed }}"
+                                                  value="{{ value }}"
+                                                  name="{{ champLibre.id }}" id="input">
+
+                        {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
+                            <select {{ disabled }} class="form-control data {{ needed }}" id="{{ champLibre.id ~ 'edit' }}"
+                                                   name="{{ champLibre.id }}" id="input">
+                                <option value="">aucune sélection...</option>
+                                {% for elem in champLibre.elements %}
+                                    <option value="{{ elem }}">{{ elem }}</option>
+                                {% endfor %}
+                            </select>
+                        {% elseif champLibre.typage == 'list multiple' %}
+                            <select {{ disabled }} id="{{ champLibre.id ~ 'edit' }}" class="list-multiple form-control data {{ needed }}"
+                                                   name="{{ champLibre.id }}" multiple="multiple">
+                                {% for elem in champLibre.elements %}
+                                    <option value="{{ elem }}">{{ elem }}</option>
+                                {% endfor %}
+                            </select>
+
+                        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
+                            {% set value = champLibre.defaultValue ? champLibre.defaultValue : '' %}
+                            <input {{ disabled }} type="text" id="{{ champLibre.id ~ 'edit' }}"
+                                                  class="form-control data {{ needed }}"
+                                                  value="{{ value }}"
+                                                  name="{{ champLibre.id }}" id="input">
+
+                        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
+                            {% set value = champLibre.defaultValue ? champLibre.defaultValue|date("Y-d-m") : '' %}
+                            <input type="date" name="{{ champLibre.id }}" id="{{ champLibre.id ~ 'edit' }}"
+                                   class="form-control data {{ needed }}"
+                                   value="{{ value }}">
+                        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
+                            {% set value = champLibre.defaultValue ? champLibre.defaultValue|date("Y-d-m\\TH:i") : '' %}
+                            <input type="datetime-local" name="{{ champLibre.id }}" id="{{ champLibre.id ~ 'edit' }}"
+                                   class="form-control data {{ needed }}"
+                                   value="{{ value }}">
+                        {% else %}
+                            <input disabled>
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
         </div>

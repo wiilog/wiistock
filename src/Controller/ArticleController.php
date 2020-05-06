@@ -781,7 +781,8 @@ class ArticleController extends AbstractController
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $articleFournisseurRepository->getByFournisseur($fournisseur),
-                    'valeurChampLibre' => null
+                    'valeurChampLibre' => null,
+                    'champsLibres' => [],
                 ]);
             } else {
                 $json = false; //TODO gérer erreur retour
