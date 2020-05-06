@@ -222,10 +222,10 @@ class MouvementTracaRepository extends EntityRepository
             ->addSelect('tracking.colis AS code')
             ->join('tracking.emplacement', 'currentLocation')
             ->where('tracking.id IN (:trackingIds)')
-            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY);
+            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY)
+            ->orderBy('tracking.datetime', 'ASC');
         if (isset($limit)) {
             $queryBuilder
-                ->orderBy('tracking.datetime', 'ASC')
                 ->setMaxResults($limit);
         }
         return $queryBuilder
