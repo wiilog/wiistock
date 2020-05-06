@@ -121,12 +121,14 @@ class PreparationController extends AbstractController
         $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $livraison = $preparationsManager->persistLivraison($dateEnd, $preparation);
+        $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
+        $entityManager->persist($livraison);
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
         $mouvements = $mouvementRepository->findByPreparation($preparation);
+        $entityManager->flush();
 
         foreach ($mouvements as $mouvement) {
             $preparationsManager->createMouvementLivraison(

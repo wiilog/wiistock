@@ -586,7 +586,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $preparationsManager->setEntityManager($entityManager);
                             $mouvementsNomade = $preparationArray['mouvements'];
                             $totalQuantitiesWithRef = [];
-                            $livraison = $preparationsManager->persistLivraison($dateEnd, $preparation);
+                            $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
+                            $entityManager->persist($livraison);
                             $articlesToKeep = [];
                             foreach ($mouvementsNomade as $mouvementNomade) {
                                 if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
