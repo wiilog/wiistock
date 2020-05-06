@@ -20,9 +20,9 @@
                         {% if titleExists %}
                             {% for subTitle in title|split('|') %}
                                 {% if loop.last %}
-                                      <span class="bold" >{{ subTitle }}</span>
+                                    <span class="bold">{{ subTitle | raw }}</span>
                                 {% else %}
-                                    {{ subTitle }} |
+                                        {{ subTitle | raw }} |
                                 {% endif %}
                             {% endfor %}
                         {% endif %}
