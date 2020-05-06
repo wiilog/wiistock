@@ -20,8 +20,8 @@
             <h5 class="col-auto h5">Liste des articles</h5>
         </div>
         {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-            <div class="row justify-content-end wii-page-card-header">
-                <div class="col-auto">
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
                     <div class="btn-group">
                         <button type="button" data-toggle="modal" data-target="#modalNewArticle"
                                 onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
