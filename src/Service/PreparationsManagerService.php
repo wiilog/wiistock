@@ -167,7 +167,7 @@ class PreparationsManagerService
      * @return Livraison
      * @throws NonUniqueResultException
      */
-    public function persistLivraison(DateTime $dateEnd, Preparation $preparation)
+    public function createLivraison(DateTime $dateEnd, Preparation $preparation)
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
@@ -178,8 +178,6 @@ class PreparationsManagerService
             ->setDate($dateEnd)
             ->setNumero('L-' . $dateEnd->format('YmdHis'))
             ->setStatut($statut);
-
-        $this->entityManager->persist($livraison);
 
         return $livraison;
     }
