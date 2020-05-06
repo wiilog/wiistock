@@ -23,7 +23,6 @@ let collecteTableConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableCollecte_id_filter'
     },
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},

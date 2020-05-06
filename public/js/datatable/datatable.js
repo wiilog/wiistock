@@ -131,14 +131,14 @@ function toggleInputRadioOnRow(tr) {
 }
 
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
-    let dtDefaultValue = '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r';
-    let dtDefaultValueWithoutInfos = '<"row mb-2"<"col-2"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-8"p>>r';
+    let dtDefaultValue = '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r';
+    let dtDefaultValueWithoutInfos = '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-8"p>>r';
     return needsFullDomOverride
-        ? '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-2"f><"col-2">>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r'
+        ? '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-auto d-none"f><"col-2">>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r'
         : needsPartialDomOverride
             ? '<"top">rt<"bottom"lp><"clear">'
             : needsPaginationRemoval
-                ? '<"row mb-2"<"col-2"f>>t<"row mt-2"<"col-auto mt-2"l><"col-2 pl-0"i>>r'
+                ? '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2"<"col-auto mt-2"l><"col-2 pl-0"i>>r'
                 : needsMinimalDomOverride
                     ? 'tr'
                     : removeInfo
@@ -148,7 +148,8 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
 
 function getAppropriateRowCallback({needsDangerColor, dataToCheck, needsRowClickAction, callback}) {
     return function (row, data) {
-        if (needsDangerColor && data[dataToCheck] === true) {
+        if (needsDangerColor
+            && (data[dataToCheck] === true || data[dataToCheck] === 'oui')) {
             $(row).addClass('table-danger');
         }
         if (needsRowClickAction) {
@@ -173,15 +174,47 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'entrée pour valider');
 }
 
-function getAppropriateDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, hasCallback, callback, table, filterId}) {
-    let $searchInput = $('#' + filterId + ' input');
-    if (needsSearchOverride) overrideSearch($searchInput, table);
-    if (needsColumnHide) hideColumns(table, response.json.columnsToHide);
-    if (needsColumnShow) showColumns(table, response.json.visible);
-    if (needsResize) resizeTable(table);
-    if (needsEmplacementSearchOverride) overrideSearchSpecifEmplacement(filterId);
-    if (hasCallback) callback();
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $tableDom}) {
+    let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+    let $searchInput = $searchInputContainer.find('input');
+
+    if (needsSearchOverride && $searchInput.length > 0) {
+        overrideSearch($searchInput, table);
+    }
+    if (needsColumnHide) {
+        hideColumns(table, response.json.columnsToHide);
+    }
+    if (needsColumnShow) {
+        showColumns(table, response.json.visible);
+    }
+    if (needsResize) {
+        resizeTable(table);
+    }
+    if (needsEmplacementSearchOverride) {
+        overrideSearchSpecifEmplacement($searchInput);
+    }
+    if (callback) {
+        callback();
+    }
     renderDtInfo($(table.table().container()));
+}
+
+function moveSearchInputToHeader($searchInputContainer) {
+    const $datatableCard = $searchInputContainer.parents('.wii-page-card');
+    const $searchInput = $searchInputContainer.find('input');
+    const $searchInputContainerCol = $searchInputContainer.parent();
+    if ($datatableCard.length > 0) {
+        const $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        if ($datatableCardHeader.length > 0) {
+            $searchInput.addClass('search-input');
+            $datatableCardHeader.prepend($searchInputContainerCol);
+            $searchInputContainerCol.removeClass('d-none');
+        } else {
+            $searchInputContainerCol.removeClass('d-none');
+        }
+    } else {
+        $searchInputContainerCol.removeClass('d-none');
+    }
 }
 
 function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, isArticleOrRefSpecifConfig, ...config}) {
@@ -193,19 +226,23 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             console.log('An error has been reported by DataTables: ', message);
         })
         .DataTable({
+            bAutoWidth: false,
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
             },
             dom: getAppropriateDom(domConfig ?? {}),
             rowCallback: getAppropriateRowCallback(rowConfig ?? {}),
             drawCallback: (response) => {
-                getAppropriateDrawCallback({
+                datatableDrawCallback({
                     table: datatableToReturn,
                     response,
-                    ...drawConfig
+                    $tableDom,
+                    ...(drawConfig || {})
                 })
             },
             initComplete: () => {
+                let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
+                moveSearchInputToHeader($searchInputContainer);
                 articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
@@ -227,8 +264,7 @@ function resizeTable(table) {
         .responsive.recalc();
 }
 
-function overrideSearchSpecifEmplacement(filterId) {
-    let $input = $('#' + filterId + ' input');
+function overrideSearchSpecifEmplacement($input) {
     $input.off();
     $input.on('keyup', function (e) {
         let $printButton = $('.printButton');

@@ -7,16 +7,14 @@ export default interface DatatableConfig {
         needsFullDomOverride: boolean,
         needsPartialDomOverride: boolean,
         needsMinimalDomOverride: boolean,
-        needsPaginationRemoval: boolean},
+        needsPaginationRemoval: boolean
+    },
     drawConfig: {
         needsSearchOverride: boolean,
         needsColumnHide: boolean,
         needsResize: boolean,
         needsEmplacementSearchOverride: boolean,
-        hasCallback: boolean,
-        callback: () => {
-
-        },
+        callback: () => void,
         filterId: string
     },
     isArticleOrRefSpecifConfig: {

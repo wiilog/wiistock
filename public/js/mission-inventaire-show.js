@@ -39,7 +39,9 @@ function initPageElements() {
         },
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableMissionInvArticle_filter'
+        },
+        domConfig: {
+            removeInfo: true
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
@@ -71,7 +73,9 @@ function initPageElements() {
         },
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableMissionInvReferenceArticle_filter'
+        },
+        domConfig: {
+            removeInfo: true
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },

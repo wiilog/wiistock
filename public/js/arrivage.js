@@ -52,7 +52,7 @@ let tableArrivageConfig = {
         },
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': ''},
+        {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Date', 'name': 'date', 'title': 'Date'},
         {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
         {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
@@ -68,17 +68,7 @@ let tableArrivageConfig = {
         {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
         {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
-        {"data": 'url', 'name': 'url', 'title': 'url', visible: false},
-    ],
-    columnDefs: [
-        {
-            targets: [0, 16],
-            className: 'noVis'
-        },
-        {
-            orderable: false,
-            targets: [0]
-        }
+        {"data": 'url', 'name': 'url', 'title': 'url', visible: false, className: 'noVis'},
     ],
     headerCallback: function (thead) {
         $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
@@ -91,12 +81,11 @@ let tableArrivageConfig = {
     rowConfig: {
         needsDangerColor: true,
         needsRowClickAction: true,
-        dataToCheck: 'urgent'
+        dataToCheck: 'Urgent'
     },
     drawConfig: {
         needsSearchOverride: true,
-        needsColumnShow: true,
-        filterId: 'tableArrivages_filter'
+        needsColumnShow: true
     },
     buttons: [
         {

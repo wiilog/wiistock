@@ -48,7 +48,6 @@ function initDatatableLitiges() {
         },
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableLitiges_filter',
             needsColumnShow: true
         },
         columns: [

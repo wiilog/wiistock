@@ -44,7 +44,6 @@ let tableConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'table_id_filter'
     },
     rowConfig: {
         needsRowClickAction: true

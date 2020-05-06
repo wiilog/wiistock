@@ -45,7 +45,6 @@ let tableLiraisonConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableLivraison_id_filter'
     },
     columns: [
         {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis'},

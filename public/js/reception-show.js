@@ -88,17 +88,13 @@ function InitPageDataTable() {
         },
         order: [[5, "desc"], [1, "desc"]],
         columns: [
-            {"data": 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Référence', 'title': 'Référence'},
             {"data": 'Commande', 'title': 'Commande'},
             {"data": 'A recevoir', 'title': 'A recevoir'},
             {"data": 'Reçu', 'title': 'Reçu'},
-            {"data": 'Urgence', 'title': 'Urgence'},
+            {"data": 'Urgence', 'title': 'Urgence', visible: false},
             {"data": 'Comment', 'title': 'Comment', visible: false},
-        ],
-        columnDefs: [
-            {"orderable": false, "targets": 0},
-            {"visible": false, "targets": 5}
         ],
         rowConfig: {
             needsRowClickAction: true,
@@ -122,23 +118,12 @@ function InitPageDataTable() {
             "type": "POST",
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
             {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
-            {"data": 'date', 'name': 'date', 'title': 'Date'},
-            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
-        ],
-        columnDefs: [
-            {
-                "type": "customDate",
-                "targets": [4, 5],
-                "visible": false
-            },
-            {
-                orderable: false,
-                targets: 0
-            }
+            {"data": 'date', 'name': 'date', 'title': 'Date', visible: false},
+            {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
         ],
         order: [
             [5, 'desc'],

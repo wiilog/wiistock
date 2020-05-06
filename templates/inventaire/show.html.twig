@@ -10,53 +10,59 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="m-4 wii-page-card">
-        <div class="row wii-page-card-header mb-0">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    <button type="button"
-                            data-toggle="modal"
-                            data-target="#modalAddToMission"
-                            class="btn btn-primary btn-ripple split-button"
-                            onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete-refArticle'), 'reference'), ajaxAutoArticlesInit($('.ajax-autocomplete-article'))">
-                        <span class="fa fa-plus mr-2"></span>Ajouter des références ou des articles
-                    </button>
-                    <button type="button"
-                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                        <div class="dropdown-item" onclick="generateCSV('get_mission_for_csv', 'mission-inv', {{ missionId }})">
-                            <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+    <div class="mx-4 mt-3 mb-2">
+        <div class="wii-page-card">
+            <div class="row wii-page-card-header mb-0">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalAddToMission"
+                                class="btn btn-primary btn-ripple split-button"
+                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete-refArticle'), 'reference'), ajaxAutoArticlesInit($('.ajax-autocomplete-article'))">
+                            <span class="fa fa-plus mr-2"></span>Ajouter des références ou des articles
+                        </button>
+                        <button type="button"
+                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                            <div class="dropdown-item" onclick="generateCSV('get_mission_for_csv', 'mission-inv', {{ missionId }})">
+                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="m-4">
+    <div class="mx-4 mb-4 mt-3">
         <div class="row">
-            <div class="col-6">
+            <div class="col-6 pr-2">
                 <div class="wii-page-card">
-                    <div class="wii-page-card-header">
-                        <h5 class="h5 m-0">Articles</h5>
+                    <div class="row mb-2">
+                        <h5 class="col-auto h5">Liste des articles</h5>
+                    </div>
+                    <div class="row wii-page-card-header">
                     </div>
                     <div class="d-none justify-content-center">
                         <div class="spinner-border sizeLoader" role="status">
                             <span class="sr-only">Loading...</span>
                         </div>
                     </div>
-                    <table id="tableMissionInvArticle" class="table w-100">
+                    <table id="tableMissionInvArticle" class="table">
                     </table>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-6 pl-2">
                 <div class="wii-page-card">
-                    <div class="wii-page-card-header">
-                        <h5 class="h5 m-0">Références Articles</h5>
+                    <div class="row mb-2">
+                        <h5 class="col-auto h5">Liste des références</h5>
+                    </div>
+                    <div class="row wii-page-card-header">
                     </div>
                     <div class="d-none justify-content-center">
                         <div class="spinner-border sizeLoader" role="status">

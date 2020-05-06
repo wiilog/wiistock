@@ -62,9 +62,7 @@ let tableColisConfig = {
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
         {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
     ],
-    order: [
-        [2, 'asc'],
-    ],
+    order: [[2, 'asc']],
     columnDefs: [
         {
             orderable: false,
@@ -85,14 +83,8 @@ function openTableHisto() {
         order: [[1, 'asc']],
         columns: [
             {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'date', 'name': 'date', 'title': 'Date', "type": "customDate"},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
-        ],
-        "columnDefs": [
-            {
-                "type": "customDate",
-                "targets": 1
-            },
         ],
         domConfig: {
             needsPartialDomOverride: true,
@@ -121,38 +113,27 @@ InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) 
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitigesConfig = {
-    "columnDefs": [
-        {
-            "targets": 5,
-            "visible": false
-        },
-        {
-            targets: 0,
-            orderable: false,
-        }
-    ],
     domConfig: {
         removeInfo: true
     },
-    scrollX: true,
     ajax: {
         "url": pathArrivageLitiges,
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': ''},
+        {"data": 'Actions', 'name': 'actions', 'title': '', orderable: false},
         {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
         {"data": 'status', 'name': 'status', 'title': 'Statut'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'updateDate', 'name': 'updateDate', 'title': 'Date de modification'},
-        {"data": 'urgence', 'name': 'urgence', 'title': 'urgence'},
+        {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
     ],
     rowConfig: {
         needsDangerColor: true,
         needsRowClickAction: true,
         dataToCheck: 'urgence'
     },
-    order: [[1, 'desc']],
+    order: [[1, 'desc']]
 };
 let tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLitigesConfig);
 

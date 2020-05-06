@@ -16,6 +16,9 @@ let tableArticleFournisseurConfig = {
     rowConfig: {
         needsRowClickAction: true,
     },
+    drawConfig: {
+        needsSearchOverride: true
+    },
     columnDefs: [
         {"orderable": false, "targets": 0}
     ]

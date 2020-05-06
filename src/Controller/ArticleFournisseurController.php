@@ -61,13 +61,13 @@ class ArticleFournisseurController extends AbstractController
 
             $articlesFournisseurs = $articleFournisseurRepository->findByParams($request->request);
             $rows = [];
-            foreach ($articlesFournisseurs as $articleFournisseur) {
+            foreach ($articlesFournisseurs['data'] as $articleFournisseur) {
                 $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
             }
 
             $data['data'] = $rows;
-            $data['recordsTotal'] = (int)$articleFournisseurRepository->countAll();
-            $data['recordsFiltered'] = (int)$articleFournisseurRepository->countAll();
+            $data['recordsTotal'] = $articlesFournisseurs['total'];
+            $data['recordsFiltered'] = $articlesFournisseurs['count'];
 
             return new JsonResponse($data);
         }

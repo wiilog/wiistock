@@ -39,7 +39,6 @@ function initPage() {
         ],
         drawConfig: {
             needsSearchOverride: true,
-            filterId: 'tableUrgences_filter'
         },
         headerCallback: function(thead) {
             $(thead).find('th').eq(1).attr('title', "date de début");

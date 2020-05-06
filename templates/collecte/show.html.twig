@@ -16,6 +16,9 @@
         </div>
     </div>
     <div class="mt-3 wii-page-card">
+        <div class="row mb-2">
+            <h5 class="col-auto h5">Liste des articles</h5>
+        </div>
         {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
             <div class="row justify-content-end wii-page-card-header">
                 <div class="col-auto">
