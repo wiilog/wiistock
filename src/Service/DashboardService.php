@@ -257,7 +257,6 @@ class DashboardService
         $locations = $this->findEmplacementsParam($paramName);
         if (!empty($locations)) {
             $response = [];
-            $response['locations'] = $locations;
             $response['delay'] = null;
             if (!$isPack && $delay) {
                 $lastEnCours = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket, 'datetime', 1);
