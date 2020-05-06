@@ -1,5 +1,4 @@
 let datatableColis;
-let currentDashboard;
 
 let chartArrivalUm;
 let chartAssoRecep;
@@ -20,6 +19,24 @@ const DASHBOARD_ADMIN_NAME = 'admin';
 const DASHBOARD_PACKAGING_NAME = 'emballage';
 const DEFAULT_DASHBOARD = DASHBOARD_ARRIVAL_NAME;
 
+const PAGE_CONFIGS = {
+    [DASHBOARD_ARRIVAL_NAME]: {
+        loadData: loadArrivalDashboard,
+        isAlreadyLoaded: false
+    },
+    [DASHBOARD_DOCK_NAME]: {
+        loadData: loadDockDashboard,
+        isAlreadyLoaded: false
+    },
+    [DASHBOARD_ADMIN_NAME]: {
+        loadData: loadAdminDashboard,
+        isAlreadyLoaded: false
+    },
+    [DASHBOARD_PACKAGING_NAME]: {
+        loadData: loadPackagingData,
+        isAlreadyLoaded: false
+    }
+}
 
 $(function () {
     // config chart js
@@ -37,7 +54,6 @@ $(function () {
         setActiveDashboard(getUrlHash());
     }
 
-    hideCarouselTargetOverlay();
     loadProperData();
 
     initTooltips($('.has-tooltip'));
@@ -68,7 +84,7 @@ $(function () {
         let newFontSize = calculateChartsFontSize();
         if (newFontSize !== currentChartsFontSize) {
             currentChartsFontSize = newFontSize;
-            resizeCharts();
+            loadProperData(true);
         }
     });
 
@@ -76,71 +92,48 @@ $(function () {
     const $carouselDashboard = $('#carousel-dashboard');
     // slide during
     $carouselDashboard.on('slide.bs.carousel', (event) => {
-        hideCarouselTargetOverlay($(event.relatedTarget));
-        showSpinner();
+        showDashboardSpinner();
     });
 
     // slide end
     $carouselDashboard.on('slid.bs.carousel', () => {
         window.location.hash = $('#carousel-dashboard .carousel-item.active').data('name');
-        loadProperData();
+        loadProperData(true);
         refreshPageTitle();
     });
 });
 
-function hideCarouselTargetOverlay($currentCarouselItem = $('.carousel-item')) {
-    const $carouselIndicators = $('.carousel-indicators');
-    $carouselIndicators.addClass('d-none');
-    $currentCarouselItem.addClass('d-none');
-}
-
-function showSpinner() {
-    let $spinner = $('.spinner-grow');
+function showDashboardSpinner() {
+    let $spinner = $('.dashboard-spinner');
     $spinner.removeClass('d-none');
 }
 
-function showCarouselOverlayAndHideSpinner() {
-    let $spinner = $('.spinner-grow');
-    let $carouselContainer = $('.carousel-item');
-    let $carouselIndicators = $('.carousel-indicators');
-    $spinner.addClass('d-none');
-    $carouselIndicators.removeClass('d-none');
-    $carouselContainer.removeClass('d-none');
+function hideDashboardSpinner(activeDashboardName) {
+    if (!activeDashboardName
+        || activeDashboardName === getActiveDashboardName()) {
+        let $spinner = $('.dashboard-spinner');
+        $spinner.addClass('d-none');
+    }
 }
 
 function loadProperData(preferCache = false) {
-    const displayedDashboard = isDashboardExt()
-        ? $('#dashboard-name').val()
-        : $('.carousel-item.active').data('name');
-    switch (displayedDashboard) {
-        case DASHBOARD_ARRIVAL_NAME:
-            loadArrivalDashboard(preferCache).then(() => {
-                showCarouselOverlayAndHideSpinner();
-                resizeDatatable();
+    const activeDashboardName = getActiveDashboardName();
+
+    if (PAGE_CONFIGS[activeDashboardName]
+        && (preferCache || !PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded)) {
+        PAGE_CONFIGS[activeDashboardName]
+            .loadData(PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded && preferCache)
+            .then(() => {
+                hideDashboardSpinner(activeDashboardName);
             });
-            break;
-        case DASHBOARD_DOCK_NAME:
-            loadDockDashboard(preferCache).then(() => {
-                showCarouselOverlayAndHideSpinner();
-            });
-            break;
-        case DASHBOARD_ADMIN_NAME:
-            loadAdminDashboard(preferCache).then(() => {
-                showCarouselOverlayAndHideSpinner();
-            });
-            break;
-        case DASHBOARD_PACKAGING_NAME:
-            loadPackagingData(preferCache).then(() => {
-                showCarouselOverlayAndHideSpinner();
-            });
-            break;
-        default:
-            break;
+        PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded = true;
     }
 }
 
 function resizeDatatable() {
-    datatableColis.columns.adjust().draw();
+    if (datatableColis) {
+        datatableColis.columns.adjust().draw();
+    }
 }
 
 function loadPackagingData(preferCache) {
@@ -149,6 +142,7 @@ function loadPackagingData(preferCache) {
             const $canvas = $('#chartTreatedPacks');
             const chartData = dashboardChartsData[$canvas.attr('id')];
             createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData);
+            resolve();
         } else {
             let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
             $.get(pathForPackagingData, function ({counters, chartData, chartColors}) {
@@ -200,6 +194,7 @@ function loadArrivalDashboard(preferCache) {
             ...(!preferCache ? [loadRetards()] : [])
         ])
         .then(([chartArrivalUmLocal, chartAssoRecepLocal, chartMonetaryFiabilityLocal]) => {
+            resizeDatatable();
             chartArrivalUm = chartArrivalUmLocal;
             chartAssoRecep = chartAssoRecepLocal;
             chartMonetaryFiability = chartMonetaryFiabilityLocal;
@@ -243,15 +238,15 @@ function loadAdminDashboard(preferCache) {
 
 
 function reloadData() {
+    Object.keys(PAGE_CONFIGS).forEach((dashboardName) => {
+        PAGE_CONFIGS[dashboardName].isAlreadyLoaded = false;
+    });
+
     loadProperData();
     let now = new Date();
     const date = ('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
     const hour = now.getHours() + ':' + now.getMinutes();
     $('.refreshDate').text(`${date} à ${hour}`);
-}
-
-function resizeCharts() {
-    loadProperData(true);
 }
 
 function updateSimpleChartData(
@@ -721,6 +716,12 @@ function calculateChartsFontSize() {
 function setActiveDashboard(hash) {
     $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`).addClass('active');
     $(`#carousel-dashboard .carousel-item[data-name="${hash}"]`).addClass('active');
+}
+
+function getActiveDashboardName(activeDashboard = $('.carousel-item.active')) {
+    return isDashboardExt()
+        ? $('#dashboard-name').val()
+        : activeDashboard.data('name');
 }
 
 function getUrlHash() {
