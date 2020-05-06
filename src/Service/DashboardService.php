@@ -428,7 +428,7 @@ class DashboardService
      * @param EntityManagerInterface $entityManager
      * @throws Exception
      */
-    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager) {
+    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void {
         $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter::class);
         $dashboardMeterRepository->clearTable();
         $this->retrieveAndInsertParsedDockData($entityManager);
