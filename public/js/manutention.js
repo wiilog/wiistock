@@ -45,7 +45,7 @@ let tableManutention = initDataTable('tableManutention_id', tableManutentionConf
 
 $(function() {
     initDateTimePicker();
-    initSelect2($('.filter-select2[name="statut"]'), 'Statut');
+    initSelect2($('.filter-select2[name="statut"]'), 'Statuts');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
     registerDropdownPosition();
     // applique les filtres si pré-remplis
@@ -82,7 +82,7 @@ function initEditManutEditor(modal) {
         initEditorInModal(modal);
         editorEditManutAlreadyDone = true;
     }
-};
+}
 
 //initialisation editeur de texte une seule fois
 let editorNewManutAlreadyDone = false;
@@ -92,7 +92,7 @@ function initNewManutentionEditor(modal) {
         editorNewManutAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
-};
+}
 
 function changeStatus(button) {
     let sel = $(button).data('title');

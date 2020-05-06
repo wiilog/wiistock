@@ -17,6 +17,7 @@ use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
 use App\Service\UserService;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -92,7 +93,7 @@ class LivraisonController extends AbstractController
         }
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
-            $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $livraisonsManager->finishLivraison(
                 $this->getUser(),
                 $livraison,
@@ -232,8 +233,9 @@ class LivraisonController extends AbstractController
                     'value' => $comment ?: '',
                     'isRaw' => true,
                     'colClass' => 'col-sm-6 col-12',
-                    'isScrollable' => true
-                ],
+                    'isScrollable' => true,
+                    'isNeededNotEmpty' => true
+                ]
             ]
         ]);
     }
