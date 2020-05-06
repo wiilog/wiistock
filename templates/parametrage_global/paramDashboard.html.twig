@@ -1,6 +1,6 @@
 <a data-toggle="collapse" href="#paramDashboard" role="button" aria-expanded="false"
    aria-controls="paramReceptions" class="col-12 mb-4">
-    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration tableaux de bord
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration tableaux de bords
         <i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
 </a>
 <div class="collapse col-12" id="paramDashboard">
@@ -86,7 +86,7 @@
 
         <div class="col-5 offset-1">
             <div class="form-group w-fit-content">
-                <label for="natureColis">Natures de colis 1er graphe</label>
+                <label for="natureColis">Nature de colis 1er graphe</label>
                 <select id="natureColis" class="form-control data">
                     {% for nature in natures %}
                         {% set selected = nature.id == existingNatureId ? 'selected' : '' %}
