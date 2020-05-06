@@ -29,16 +29,13 @@ class DashboardFeedCommand extends Command
 
     private $em;
     private $dashboardService;
-    private $dashboardMeterRepository;
 
     public function __construct(EntityManagerInterface $entityManager,
-                                DashboardService $dashboardService,
-                                DashboardMeterRepository $dashboardMeterRepository)
+                                DashboardService $dashboardService)
     {
         parent::__construct(self::$defaultName);
         $this->em = $entityManager;
         $this->dashboardService = $dashboardService;
-        $this->dashboardMeterRepository = $dashboardMeterRepository;
     }
 
     protected function configure()
@@ -51,62 +48,12 @@ class DashboardFeedCommand extends Command
      * @param OutputInterface $output
      * @return int|void
      * @throws ORMException
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->dashboardMeterRepository->clearTable();
-        $this->retrieveAndInsertParsedDockData();
-        $this->retrieveAndInsertParsedAdminData();
-        $this->retrieveAndInsertParsedPackagingData();
+        $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
         $this->getEntityManager()->flush();
-    }
-
-    /**
-     * @throws ORMException
-     */
-    private function retrieveAndInsertParsedDockData() : void {
-        $dockData = $this->dashboardService->getDataForReceptionDockDashboard();
-        $this->parseRetrievedDataAndPersistMeter($dockData, DashboardMeter::DASHBOARD_DOCK);
-    }
-
-    /**
-     * @param $data
-     * @param string $dashboard
-     * @throws ORMException
-     */
-    private function parseRetrievedDataAndPersistMeter($data, string $dashboard): void {
-        foreach ($data as $key => $datum) {
-            $dashboardMeter = new DashboardMeter();
-            $dashboardMeter->setMeterKey($key);
-            $dashboardMeter->setDashboard($dashboard);
-            if (is_array($datum)) {
-                $dashboardMeter
-                    ->setCount($datum['count'])
-                    ->setDelay($datum['delay'])
-                    ->setLabel($datum['label']);
-                $this->getEntityManager()->persist($dashboardMeter);
-            } else {
-                $dashboardMeter->setCount(intval($datum));
-                $this->getEntityManager()->persist($dashboardMeter);
-            }
-        }
-    }
-
-    /**
-     * @throws ORMException
-     */
-    private function retrieveAndInsertParsedAdminData(): void {
-        $adminData = $this->dashboardService->getDataForReceptionAdminDashboard();
-        $this->parseRetrievedDataAndPersistMeter($adminData, DashboardMeter::DASHBOARD_ADMIN);
-    }
-
-    /**
-     * @throws ORMException
-     * @throws Exception
-     */
-    private function retrieveAndInsertParsedPackagingData(): void {
-        $packagingData = $this->dashboardService->getDataForMonitoringPackagingDashboard();
-        $this->parseRetrievedDataAndPersistMeter($packagingData['counters'], DashboardMeter::DASHBOARD_PACKAGING);
     }
 
     /**

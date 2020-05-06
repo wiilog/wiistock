@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Colis;
+use App\Entity\DashboardMeter;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
@@ -14,9 +15,11 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Repository\DashboardMeterRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\ORMException;
 use Exception;
 
 
@@ -419,5 +422,67 @@ class DashboardService
             $transporteurRepository->getDailyArrivalCarriersLabel($carriersIds)
         );
     }
+
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager) {
+        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter::class);
+        $dashboardMeterRepository->clearTable();
+        $this->retrieveAndInsertParsedDockData($entityManager);
+        $this->retrieveAndInsertParsedAdminData($entityManager);
+        $this->retrieveAndInsertParsedPackagingData($entityManager);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     */
+    private function retrieveAndInsertParsedDockData(EntityManagerInterface $entityManager) : void {
+        $dockData = $this->getDataForReceptionDockDashboard();
+        $this->parseRetrievedDataAndPersistMeter($dockData, DashboardMeter::DASHBOARD_DOCK, $entityManager);
+    }
+
+    /**
+     * @param $data
+     * @param string $dashboard
+     * @param EntityManagerInterface $entityManager
+     */
+    private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void {
+        foreach ($data as $key => $datum) {
+            $dashboardMeter = new DashboardMeter();
+            $dashboardMeter->setMeterKey($key);
+            $dashboardMeter->setDashboard($dashboard);
+            if (is_array($datum)) {
+                $dashboardMeter
+                    ->setCount($datum['count'])
+                    ->setDelay($datum['delay'])
+                    ->setLabel($datum['label']);
+                $entityManager->persist($dashboardMeter);
+            } else {
+                $dashboardMeter->setCount(intval($datum));
+                $entityManager->persist($dashboardMeter);
+            }
+        }
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     */
+    private function retrieveAndInsertParsedAdminData(EntityManagerInterface $entityManager): void {
+        $adminData = $this->getDataForReceptionAdminDashboard();
+        $this->parseRetrievedDataAndPersistMeter($adminData, DashboardMeter::DASHBOARD_ADMIN, $entityManager);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    private function retrieveAndInsertParsedPackagingData(EntityManagerInterface $entityManager): void {
+        $packagingData = $this->getDataForMonitoringPackagingDashboard();
+        $this->parseRetrievedDataAndPersistMeter($packagingData['counters'], DashboardMeter::DASHBOARD_PACKAGING, $entityManager);
+    }
+
 
 }
