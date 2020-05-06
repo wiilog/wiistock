@@ -105,6 +105,8 @@ class ArticleFournisseurRepository extends EntityRepository
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
+        $countTotal = $this->countAll();
+
         $qb
             ->select('af')
             ->from('App\Entity\ArticleFournisseur', 'af');
@@ -143,9 +145,23 @@ class ArticleFournisseurRepository extends EntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
+            $qb->select('count(af)');
+            $countQuery = (int) $qb->getQuery()->getSingleScalarResult();
+        } else {
+            $countQuery = $countTotal;
+        }
+        $qb
+            ->select('af');
+        if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-        return $query->getResult();
+        return [
+            'data' => $query ? $query->getResult() : null,
+            'count' => $countQuery,
+            'total' => $countTotal
+        ];
     }
 
     public function countAll()

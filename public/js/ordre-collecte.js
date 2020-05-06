@@ -20,7 +20,6 @@ let tableCollecteConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableCollecte_filter'
     },
     rowConfig: {
         needsRowClickAction: true

@@ -22,7 +22,6 @@ let tableManutentionConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableManutention_id_filter'
     },
     ajax: {
         "url": pathManut,

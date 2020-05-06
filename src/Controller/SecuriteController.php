@@ -111,8 +111,11 @@ class SecuriteController extends AbstractController
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
                 ->setRole($roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
-				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
-				->setRecherche(Utilisateur::SEARCH_DEFAULT);
+                ->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
+                ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
+                ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
+                ->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
+                ->setRecherche(Utilisateur::SEARCH_DEFAULT);
             $entityManager->persist($user);
             $entityManager->flush();
             $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
@@ -153,6 +156,14 @@ class SecuriteController extends AbstractController
 		if (empty($user->getColumnVisible())) {
 			$user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
 		}
+
+        if (empty($user->getColumnsVisibleForArrivage())) {
+            $user->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT);
+        }
+        // remplit champ columnVisibles si vide
+        if (empty($user->getColumnsVisibleForLitige())) {
+            $user->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT);
+        }
 
 		// remplit champ recherche rapide si vide
 		if (empty($user->getRecherche())) {

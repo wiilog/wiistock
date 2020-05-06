@@ -142,11 +142,11 @@ class EnCoursService
      * @param $locations
      * @param array $natures
      * @param bool $onlyLate
-     * @param int $limit
+     * @param int $limitOnlyLate
      * @return array
      * @throws Exception
      */
-    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limit = null): array {
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = null): array {
         $success = true;
         $emplacementInfo = [];
 
@@ -166,8 +166,8 @@ class EnCoursService
             $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
             $packIntelList = empty($natures)
-                ? $mouvementTracaRepository->getLastOnLocations($locations, $limit)
-                : $colisRepository->getPackIntelOnLocations($locations, $natures, $limit);
+                ? $mouvementTracaRepository->getLastOnLocations($locations)
+                : $colisRepository->getPackIntelOnLocations($locations, $natures);
             foreach ($packIntelList as $packIntel) {
                 $dateMvt = $packIntel['lastTrackingDateTime'];
                 $currentLocationId = $packIntel['currentLocationId'];
@@ -187,6 +187,9 @@ class EnCoursService
                             'late' => $isLate,
                             'emp' => $currentLocation->getLabel()
                         ];
+                        if ($onlyLate && isset($limitOnlyLate) && count($emplacementInfo) >= $limitOnlyLate) {
+                            break;
+                        }
                     }
                 }
             }

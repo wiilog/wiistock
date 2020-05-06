@@ -36,13 +36,11 @@ let tableImportConfig = {
         needsRowClickAction: true
     },
     drawConfig: {
-        hasCallback: true,
         callback: () => {
             initTooltips($('.has-tooltip'));
             initDoubleClick('.status-planifié');
         },
         needsSearchOverride: true,
-        filterId: 'tableImport_filter'
     },
     order: [[1, "desc"]],
 };

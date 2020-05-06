@@ -32,7 +32,6 @@ let tableMvtConfig = {
     },
     drawConfig: {
         needsSearchOverride: true,
-        filterId: 'tableMvts_filter'
     },
     rowConfig: {
         needsRowClickAction: true

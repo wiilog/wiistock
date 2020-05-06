@@ -105,7 +105,6 @@ class EnCoursController extends AbstractController
         $locationWithPack = $emplacementRepository->findBy(['id' => $locationIdWithPack]);
 
         $retards = $enCoursService->getEnCours($locationWithPack, [], true, 100);
-
         return new JsonResponse($retards);
     }
 
