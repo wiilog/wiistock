@@ -4,7 +4,7 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '2.12.8'
+    web_version: '2.12.9'
     nomade_versions: '>=2.12.6'
     nomade_apk: 'http://wiilog.fr/dl/wiistock/recette/app-2-12-6.apk'
     client: '%env(APP_CLIENT)%'
@@ -12,7 +12,7 @@ parameters:
     #menu_config added via menu.yaml
 
 services:
-    # default configuration for services in *this* file
+    # default configuration for services in *this* filed
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.

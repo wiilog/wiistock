@@ -1,6 +1,7 @@
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
 {% set titleExists = title is defined and title is not empty %}
+{% set subtitleExists = subtitle is defined and subtitle is not empty %}
 
 <div class="main-header">
     <div class="col-12">
@@ -15,18 +16,29 @@
             </div>
 
             {% if not withOnlyLogo %}
-                {% if isDashboardExt or titleExists %}
-                    <h5 class="header-title text-white col-auto h5 user-select-none my-0 page-title">
-                        {% if titleExists %}
-                            {% for subTitle in title|split('|') %}
-                                {% if loop.last %}
-                                      <span class="bold" >{{ subTitle }}</span>
-                                {% else %}
-                                    {{ subTitle }} |
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </h5>
+                {% if isDashboardExt or titleExists or subtitleExists %}
+                    <div class="col-auto user-select-none">
+                        <div class="d-flex align-items-center">
+                            {% if isDashboardExt or titleExists %}
+                                <h5 class="header-title text-white h5 my-0 page-title">
+                                    {% if titleExists %}
+                                        {% for subTitle in title|split('|') %}
+                                            {% if loop.last %}
+                                                <span class="bold">{{ subTitle | raw }}</span>
+                                            {% else %}
+                                                {{ subTitle | raw }} |
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </h5>
+                            {% endif %}
+                            {% if subtitleExists %}
+                                <div class="subtitle-container ml-2">
+                                    {{ subtitle|raw }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 {% endif %}
                 {% if not isDashboardExt
                       and app.user is defined

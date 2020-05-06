@@ -15,7 +15,7 @@ final class Version20200426153530 extends AbstractMigration
 {
     public function getDescription() : string
     {
-        return 'Transforme les columns idden en columns isible pour les littiges';
+        return 'Transforme les columns hidden en columns visibles pour les littiges';
     }
 
     public function up(Schema $schema): void

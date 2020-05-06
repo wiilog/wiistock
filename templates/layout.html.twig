@@ -15,7 +15,10 @@
 
     <div class="wrapper {% block wrapperClass '' %}">
         <div class="header-container">
-            {% include 'header.html.twig' with {title: block('title') is defined ? block('title')} %}
+            {% include 'header.html.twig' with {
+                title: block('title') is defined ? block('title'),
+                subtitle: block('subtitle') is defined ? block('subtitle')
+            } %}
             {% block page_filter %}{% endblock %}
         </div>
         <div class="container-fluid {% block pageContainerClass '' %}">
