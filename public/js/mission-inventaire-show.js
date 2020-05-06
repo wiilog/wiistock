@@ -40,6 +40,9 @@ function initPageElements() {
         drawConfig: {
             needsSearchOverride: true,
         },
+        domConfig: {
+            removeInfo: true
+        },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
             { "data": 'Label', 'title' : 'Libellé' },
@@ -70,6 +73,9 @@ function initPageElements() {
         },
         drawConfig: {
             needsSearchOverride: true,
+        },
+        domConfig: {
+            removeInfo: true
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
