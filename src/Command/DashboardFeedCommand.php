@@ -53,7 +53,6 @@ class DashboardFeedCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->dashboardService->retrieveAndInsertGlobalDashboardData($this->getEntityManager());
-        $this->getEntityManager()->flush();
     }
 
     /**
