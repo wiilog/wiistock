@@ -22,45 +22,37 @@ class DashboardChartMeter
      */
     private $chartKey;
 
-    /**
-     * @var string
-     * @ORM\Column(type="string", length=255)
-     */
-    private $axisKey;
-
-    /**
-     * @var string
-     * @ORM\Column(type="string", length=255)
-     */
-    private $axisSubKey;
-
-    /**
-     * @var int
-     * @ORM\Column(type="integer")
-     */
-    private $count;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
     private $dashboard;
 
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $data = [];
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $total;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $location;
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $chartColors = [];
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getCount(): ?int
-    {
-        return $this->count;
-    }
-
-    public function setCount(int $count): self
-    {
-        $this->count = $count;
-
-        return $this;
-    }
 
     public function getDashboard(): ?string
     {
@@ -90,39 +82,52 @@ class DashboardChartMeter
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getAxisKey(): string {
-        return $this->axisKey;
+    public function getData(): ?array
+    {
+        return $this->data;
     }
 
-    /**
-     * @param string $axisKey
-     * @return self
-     */
-    public function setAxisKey(string $axisKey): self {
-        $this->axisKey = $axisKey;
+    public function setData(array $data): self
+    {
+        $this->data = $data;
+
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getAxisSubKey(): string
+    public function getTotal(): ?string
     {
-        return $this->axisSubKey;
+        return $this->total;
     }
 
-    /**
-     * @param string $axisSubKey
-     * @return DashboardChartMeter
-     */
-    public function setAxisSubKey(string $axisSubKey): self
+    public function setTotal(?string $total): self
     {
-        $this->axisSubKey = $axisSubKey;
+        $this->total = $total;
+
         return $this;
     }
 
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    public function getChartColors(): ?array
+    {
+        return $this->chartColors;
+    }
+
+    public function setChartColors(array $chartColors): self
+    {
+        $this->chartColors = $chartColors;
+
+        return $this;
+    }
 
 }

@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\DashboardChartMeter;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method DashboardChartMeter|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,4 +15,34 @@ use Doctrine\ORM\EntityRepository;
  */
 class DashboardChartMeterRepository extends EntityRepository
 {
+    public function clearTable(): void {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "DELETE
+            FROM App\Entity\DashboardChartMeter d
+           "
+        );
+        $query->execute();
+    }
+
+    /**
+     * @param string $dashboard
+     * @param string $id
+     * @return mixed
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function findByDashboardAndId(string $dashboard, string $id) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d.chartColors, d.location, d.total, d.data
+            FROM App\Entity\DashboardChartMeter d
+            WHERE d.dashboard = :dashboard AND d.chartKey = :key
+           "
+        )->setParameters([
+            'dashboard' => $dashboard,
+            'key' => $id,
+        ]);
+        return $query->getSingleResult();
+    }
 }
