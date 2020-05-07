@@ -675,7 +675,7 @@ class ReceptionController extends AbstractController
                     $reception->setStatut($statutRecep);
                 }
 
-                $receptionReferenceArticle = new ReceptionReferenceArticle;
+                $receptionReferenceArticle = new ReceptionReferenceArticle();
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
@@ -1829,8 +1829,7 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
             }
             // optionnel : crée la demande de livraison
-            $paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-            $needCreateLivraison = $paramCreateDL ? $paramCreateDL->getValue() : false;
+            $needCreateLivraison = (bool) $data['create-demande'];
 
             if ($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa

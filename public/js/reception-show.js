@@ -432,6 +432,8 @@ function clearModalLigneReception(modal) {
     }
     $('.packing-title').addClass('d-none');
     clearModal(modal);
+
+    toggleDLForm();
 }
 
 function validatePacking($button) {
@@ -620,4 +622,19 @@ function createHandlerAddLigneArticleResponse($modal) {
 
 function updateQuantityToReceive($input) {
     $input.closest('.modal').find('#quantite').attr('max', $input.val());
+}
+
+function toggleDLForm() {
+    const $input = $('input[name="create-demande"]');
+    const $demandeForm = $input
+        .parents('form')
+        .find('.demande-form');
+    if ($input.is(':checked')) {
+        $demandeForm.removeClass('d-none');
+        $demandeForm.find('.data').attr('disabled', null);
+    }
+    else {
+        $demandeForm.addClass('d-none');
+        $demandeForm.find('.data').attr('disabled', 'disabled');
+    }
 }
