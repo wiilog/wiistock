@@ -20,6 +20,7 @@ class ArticleFournisseurRepository extends EntityRepository
         'Code Fournisseur' => 'fournisseur',
         'Référence' => 'reference',
         'Article de référence' => 'art_ref',
+        'label' => 'label',
     ];
 
     public function findBySearch($value)
@@ -129,6 +130,9 @@ class ArticleFournisseurRepository extends EntityRepository
                         $qb
                             ->leftJoin('af.referenceArticle', 'ra')
                             ->orderBy('ra.libelle', $order);
+                    } else if ($column === 'label') {
+                        $qb
+                            ->orderBy('af.label', $order);
                     } else {
                         $qb
                             ->orderBy('af.' . $column, $order);
@@ -141,7 +145,7 @@ class ArticleFournisseurRepository extends EntityRepository
                     $qb
                         ->leftJoin('af.fournisseur', 'f2')
                         ->leftJoin('af.referenceArticle', 'ra2')
-                        ->andWhere('f2.nom LIKE :value OR af.reference LIKE :value OR ra2.libelle LIKE :value')
+                        ->andWhere('f2.nom LIKE :value OR af.reference LIKE :value OR ra2.libelle LIKE :value OR af.label LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -248,22 +252,64 @@ class ArticleFournisseurRepository extends EntityRepository
     }
 
 	/**
-	 * @param string $reference
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
-	public function countByReference($reference)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(f)
-          FROM App\Entity\ArticleFournisseur af
-          WHERE af.reference = :reference"
-		)->setParameter('reference', $reference);
+ * @param string $reference
+ * @return int
+ * @throws NoResultException
+ * @throws NonUniqueResultException
+ */
+    public function countByReference($reference): int
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(articleFournisseur)
+           FROM App\Entity\ArticleFournisseur articleFournisseur
+           WHERE articleFournisseur.reference = :reference"
+        )->setParameter('reference', $reference);
 
-		return $query->getSingleScalarResult();
-	}
+        return (int) $query->getSingleScalarResult();
+    }
 
+
+    /**
+     * @param string $reference
+     * @param int $referencearticle
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByReferenceAndReferenceArticle($reference, $referencearticle): int
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(articleFournisseur)
+           FROM App\Entity\ArticleFournisseur articleFournisseur       
+           WHERE articleFournisseur.reference = :reference
+           AND articleFournisseur.referenceArticle = :referencearticle"
+        )   ->setParameter('referencearticle', $referencearticle)
+            ->setParameter('reference', $reference);
+
+        return (int) $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param string $label
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByLabel($label): int
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(articleFournisseur)
+           FROM App\Entity\ArticleFournisseur articleFournisseur
+           WHERE articleFournisseur.label = :label"
+        )
+            ->setParameter('label', $label);
+
+        return (int) $query->getSingleScalarResult();
+    }
 }
