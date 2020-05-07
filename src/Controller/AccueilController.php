@@ -388,7 +388,6 @@ class AccueilController extends AbstractController
      */
     public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService, EntityManagerInterface $entityManager): Response {
         $response = $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager);
-        dump($response);
         return new JsonResponse($response);
     }
 
