@@ -7,21 +7,34 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
 use App\Entity\Colis;
+use App\Entity\DashboardChartMeter;
+use App\Entity\DashboardMeter;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Entity\LatePack;
 use App\Entity\MouvementTraca;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Repository\DashboardMeterRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\ORMException;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class DashboardService
 {
+    public const DASHBOARD_PACKAGING = 'packaging';
+    public const DASHBOARD_ADMIN = 'admin';
+    public const DASHBOARD_DOCK = 'dock';
+
     private $enCoursService;
     private $entityManager;
 
@@ -124,6 +137,21 @@ class DashboardService
     /**
      * @return array
      */
+    public function getSimplifiedDataForDockDashboard()
+    {
+        $locationCounter = [];
+        $adminData = $this->getMeterData(self::DASHBOARD_DOCK);
+        foreach ($adminData as $adminDatum) {
+            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
+        }
+        return $locationCounter;
+    }
+
+    /**
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function getDataForReceptionDockDashboard()
     {
         $locationCounter = $this->getLocationCounters([
@@ -144,6 +172,21 @@ class DashboardService
     /**
      * @return array
      */
+    public function getSimplifiedDataForAdminDashboard()
+    {
+        $locationCounter = [];
+        $adminData = $this->getMeterData(self::DASHBOARD_ADMIN);
+        foreach ($adminData as $adminDatum) {
+            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
+        }
+        return $locationCounter;
+    }
+
+    /**
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function getDataForReceptionAdminDashboard()
     {
         $locationCounter = $this->getLocationCounters([
@@ -160,6 +203,41 @@ class DashboardService
         );
     }
 
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getSimplifiedDataForPackagingDashboard(EntityManagerInterface $entityManager)
+    {
+        $locationCounter = [];
+        $adminData = $this->getMeterData(self::DASHBOARD_PACKAGING);
+        foreach ($adminData as $adminDatum) {
+            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
+        }
+        $chartData = $this->getChartData($entityManager, self::DASHBOARD_PACKAGING, 'of');
+        return array_merge(
+            [
+                'counters' => $locationCounter
+            ],
+            [
+                'chartData' => $this->flatArray($chartData['data']),
+                'chartColors' => $chartData['chartColors'],
+            ]
+        );
+    }
+
+    public function flatArray(array $toFlat): array {
+        $formattedArrivalData = [];
+        foreach ($toFlat as $datum) {
+            $firstKey = array_key_first($datum);
+            $formattedArrivalData[$firstKey] = $datum[$firstKey];
+        }
+        return $formattedArrivalData;
+    }
+
     /**
      * @return array
      * @throws Exception
@@ -168,9 +246,7 @@ class DashboardService
     {
         $defaultDelay = '24:00';
         $urgenceDelay = '2:00';
-        $dsqrLabel = 'OF envoyés par le DSQR';
-        $gtLabel = 'OF traités par GT';
-        $counters = $this->getLocationCounters([
+        return $this->getLocationCounters([
             'packaging1' => [ParametrageGlobal::DASHBOARD_PACKAGING_1, $defaultDelay],
             'packaging2' => [ParametrageGlobal::DASHBOARD_PACKAGING_2, $defaultDelay],
             'packaging3' => [ParametrageGlobal::DASHBOARD_PACKAGING_3, $defaultDelay],
@@ -183,32 +259,271 @@ class DashboardService
             'packagingLitige' => [ParametrageGlobal::DASHBOARD_PACKAGING_LITIGE, $defaultDelay],
             'packagingUrgence' => [ParametrageGlobal::DASHBOARD_PACKAGING_URGENCE, $urgenceDelay]
         ]);
+    }
 
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-        $locationDropIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DSQR);
-        $locationOriginIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT);
-        $locationTargetIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT);
-        $locationDropIdsArray = !empty($locationDropIds) ? explode(',', $locationDropIds) : [];
-        $locationOriginIdsArray = !empty($locationOriginIds) ? explode(',', $locationOriginIds) : [];
-        $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    public function getAndSetGraphDataForDock(EntityManagerInterface $entityManager) {
+        $this->parseColisData($entityManager);
+        $this->parseDailyArrivalData($entityManager);
+        $this->parseWeeklyArrivalData($entityManager);
+    }
 
-        $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-                                                      use ($dsqrLabel, $gtLabel, $mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
-            return [
-                $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
-                $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
-            ];
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    private function parseDailyArrivalData(EntityManagerInterface $entityManager) {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
+
+        $arrivalCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
+            return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
-        return [
-            'counters' => $counters,
-            'chartData' => $chartData,
-            'chartColors' => [
-                $dsqrLabel => '#003871',
-                $gtLabel => '#77933C',
-            ]
+        $colisCountByDay = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+            return $colisRepository->countByDates($dateMin, $dateMax);
+        });
+        $json = [];
+        foreach ($colisCountByDay as $key => $packsCountByDay) {
+            $json[] = [$key => $packsCountByDay];
+        }
+        $newDashboardGraphMeterColis = new DashboardChartMeter();
+        $newDashboardGraphMeterColis
+            ->setData($json)
+            ->setChartColors([])
+            ->setDashboard(self::DASHBOARD_DOCK)
+            ->setChartKey('arrivage-colis-daily');
+        $json = [];
+        foreach ($arrivalCountByDays as $key => $packsCountByDay) {
+            $json[] = [$key => $packsCountByDay];
+        }
+        $newDashboardGraphMeterArrival = new DashboardChartMeter();
+        $newDashboardGraphMeterArrival
+            ->setData($json)
+            ->setChartColors([])
+            ->setDashboard(self::DASHBOARD_DOCK)
+            ->setChartKey('arrivage-daily');
+        $entityManager->persist($newDashboardGraphMeterColis);
+        $entityManager->persist($newDashboardGraphMeterArrival);
+    }
+
+    private function saveArrayForEncoding($arrToSave): array {
+        $json = [];
+        foreach ($arrToSave as $key => $arrToSaveItem) {
+            $json[] = [$key => $arrToSaveItem];
+        }
+        return $json;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    private function parseWeeklyArrivalData(EntityManagerInterface $entityManager) {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
+
+        $arrivalsCountByWeek = $this->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
+            return $arrivageRepository->countByDates($dateMin, $dateMax);
+        });
+
+        $colisCountByWeek = $this->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
+            return $colisRepository->countByDates($dateMin, $dateMax);
+        });
+        $newDashboardGraphMeterColis = new DashboardChartMeter();
+        $newDashboardGraphMeterColis
+            ->setData($this->saveArrayForEncoding($colisCountByWeek))
+            ->setChartColors([])
+            ->setDashboard(self::DASHBOARD_DOCK)
+            ->setChartKey('arrivage-colis-weekly');
+        $newDashboardGraphMeterArrival = new DashboardChartMeter();
+        $newDashboardGraphMeterArrival
+            ->setData($this->saveArrayForEncoding($arrivalsCountByWeek))
+            ->setChartColors([])
+            ->setDashboard(self::DASHBOARD_DOCK)
+            ->setChartKey('arrivage-weekly');
+        $entityManager->persist($newDashboardGraphMeterColis);
+        $entityManager->persist($newDashboardGraphMeterArrival);
+    }
+
+    private function parseColisData(EntityManagerInterface $entityManager) {
+        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) {
+            $resCounter = $this->getDashboardCounter(
+                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
+                true,
+                [
+                    'minDate' => $dateMin,
+                    'maxDate' => $dateMax
+                ]
+            );
+            return !empty($resCounter['count']) ? $resCounter['count'] : 0;
+        });
+        $json = [];
+        foreach ($packsCountByDays as $key => $packsCountByDay) {
+            $json[] = [$key => $packsCountByDay];
+        }
+        $newDashboardGraphMeter = new DashboardChartMeter();
+        $newDashboardGraphMeter
+            ->setData($json)
+            ->setChartColors([])
+            ->setDashboard(self::DASHBOARD_DOCK)
+            ->setChartKey('colis');
+        $entityManager->persist($newDashboardGraphMeter);
+    }
+
+    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph, string $dashboard) {
+        $adminDelay = '48:00';
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $colisRepository = $entityManager->getRepository(Colis::class);
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+
+        $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
+        $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
+
+        // on récupère les natures paramétrées
+        $paramNatureForGraph = $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue();
+        $naturesIdForGraph = !empty($paramNatureForGraph) ? explode(',', $paramNatureForGraph) : [];
+        $naturesForGraph = !empty($naturesIdForGraph)
+            ? $natureRepository->findBy(['id' => $naturesIdForGraph])
+            : [];
+
+        // on récupère les emplacements paramétrés
+        $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
+        $emplacementsIdWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
+        $emplacementsWanted = !empty($emplacementsIdWanted)
+            ? $emplacementRepository->findBy(['id' => $emplacementsIdWanted])
+            : [];
+
+        $locationCounters = [];
+
+        $globalCounter = 0;
+
+        $olderPackLocation = [
+            'locationLabel' => null,
+            'locationId' => null,
+            'packDateTime' => null
         ];
+
+        if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
+            $packsOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
+
+            $countByNatureBase = [];
+            foreach ($naturesForGraph as $wantedNature) {
+                $countByNatureBase[$wantedNature->getLabel()] = 0;
+            }
+
+            $graphData = $this->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
+            use ($daysWorked, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
+                $countByNature = array_merge($countByNatureBase);
+                $packUntreated = [];
+                foreach ($packsOnCluster as $pack) {
+                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime']);
+                    $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
+                    $countDownHours = isset($timeInformation['countDownLateTimespan'])
+                        ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
+                        : null;
+
+                    if (isset($countDownHours)
+                        && (
+                            ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
+                            || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
+                        )) {
+
+                        $countByNature[$pack['natureLabel']]++;
+
+                        $currentLocationLabel = $pack['currentLocationLabel'];
+                        $currentLocationId = $pack['currentLocationId'];
+                        $lastTrackingDateTime = $pack['lastTrackingDateTime'];
+
+                        // get older pack
+                        if ((
+                                empty($olderPackLocation['locationLabel'])
+                                || empty($olderPackLocation['locationId'])
+                                || empty($olderPackLocation['packDateTime'])
+                            )
+                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)){
+                            $olderPackLocation['locationLabel'] = $currentLocationLabel;
+                            $olderPackLocation['locationId'] = $currentLocationId;
+                            $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
+                        }
+
+                        // increment counters
+                        if (empty($locationCounters[$currentLocationId])) {
+                            $locationCounters[$currentLocationId] = 0;
+                        }
+
+                        $locationCounters[$currentLocationId]++;
+                        $globalCounter++;
+                    }
+                    else {
+                        $packUntreated[] = $pack;
+                    }
+                }
+                $packsOnCluster = $packUntreated;
+                return $countByNature;
+            });
+        }
+
+        if (!isset($graphData)) {
+            $graphData = $this->getObjectForTimeSpan(function () { return 0; });
+        }
+
+        $totalToDisplay = !empty($olderPackLocation['locationId'])
+            ? $globalCounter
+            : null;
+
+        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
+            ? $olderPackLocation['locationLabel']
+            : null;
+        $newDashboardMeter = new DashboardChartMeter();
+        $newDashboardMeter
+            ->setDashboard($dashboard)
+            ->setChartColors(array_reduce(
+                $naturesForGraph,
+                function (array $carry, Nature $nature) {
+                    $color = $nature->getColor();
+                    if (!empty($color)) {
+                        $carry[$nature->getLabel()] = $color;
+                    }
+                    return $carry;
+                },
+                []))
+            ->setChartKey($dashboard . '-' . $graph)
+            ->setData($graphData)
+            ->setLocation(isset($locationToDisplay) ? $locationToDisplay : '-')
+            ->setTotal(isset($totalToDisplay) ? $totalToDisplay : '-');
+        $entityManager->persist($newDashboardMeter);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param string $dashboard
+     * @param string $id
+     * @return mixed
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getChartData(EntityManagerInterface $entityManager, string $dashboard, string $id) {
+        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
+        return $dashboardChartMeterRepository->findByDashboardAndId($dashboard, $id);
+    }
+
+    /**
+     * @param string $dashboard
+     * @return array
+     */
+    public function getMeterData(string $dashboard): array
+    {
+        $dashboardMeterRepository = $this->entityManager->getRepository(DashboardMeter::class);
+        return $dashboardMeterRepository->getByKeyAndDashboard($dashboard);
     }
 
     /**
@@ -401,6 +716,7 @@ class DashboardService
 
     /**
      * @return array
+     * @throws NonUniqueResultException
      */
     public function getDailyArrivalCarriers(): array
     {
@@ -417,6 +733,138 @@ class DashboardService
             },
             $transporteurRepository->getDailyArrivalCarriersLabel($carriersIds)
         );
+    }
+
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
+    {
+        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter::class);
+        $latePackRepository = $entityManager->getRepository(LatePack::class);
+        $dashboardGraphMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
+        $dashboardMeterRepository->clearTable();
+        $latePackRepository->clearTable();
+        $dashboardGraphMeterRepository->clearTable();
+        $this->retrieveAndInsertParsedDockData($entityManager);
+        $this->retrieveAndInsertParsedAdminData($entityManager);
+        $this->retrieveAndInsertParsedPackagingData($entityManager);
+        $this->retrieveAndInsertLastEnCours($entityManager);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    private function retrieveAndInsertParsedDockData(EntityManagerInterface $entityManager): void
+    {
+        $dockData = $this->getDataForReceptionDockDashboard();
+        $this->parseRetrievedDataAndPersistMeter($dockData, self::DASHBOARD_DOCK, $entityManager);
+        $this->getAndSetGraphDataForDock($entityManager);
+    }
+
+    /**
+     * @param $data
+     * @param string $dashboard
+     * @param EntityManagerInterface $entityManager
+     */
+    private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
+    {
+        foreach ($data as $key => $datum) {
+            $dashboardMeter = new DashboardMeter();
+            $dashboardMeter->setMeterKey($key);
+            $dashboardMeter->setDashboard($dashboard);
+            if (is_array($datum)) {
+                $dashboardMeter
+                    ->setCount($datum['count'])
+                    ->setDelay($datum['delay'])
+                    ->setLabel($datum['label']);
+                $entityManager->persist($dashboardMeter);
+            } else {
+                $dashboardMeter->setCount(intval($datum));
+                $entityManager->persist($dashboardMeter);
+            }
+        }
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function retrieveAndInsertParsedAdminData(EntityManagerInterface $entityManager): void
+    {
+        $adminData = $this->getDataForReceptionAdminDashboard();
+        $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
+        $this->getAndSetGraphDataForAdmin($entityManager, 1, self::DASHBOARD_ADMIN);
+        $this->getAndSetGraphDataForAdmin($entityManager, 2, self::DASHBOARD_ADMIN);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    private function retrieveAndInsertParsedPackagingData(EntityManagerInterface $entityManager): void
+    {
+        $packagingData = $this->getDataForMonitoringPackagingDashboard();
+        $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
+        $this->getAndSetGraphDataForPackaging($entityManager);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws NonUniqueResultException
+     */
+    private function getAndSetGraphDataForPackaging(EntityManagerInterface $entityManager)
+    {
+        $dsqrLabel = 'OF envoyés par le DSQR';
+        $gtLabel = 'OF traités par GT';
+        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $locationDropIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DSQR);
+        $locationOriginIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_ORIGINE_GT);
+        $locationTargetIds = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_PACKAGING_DESTINATION_GT);
+        $locationDropIdsArray = !empty($locationDropIds) ? explode(',', $locationDropIds) : [];
+        $locationOriginIdsArray = !empty($locationOriginIds) ? explode(',', $locationOriginIds) : [];
+        $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
+
+        $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
+        use ($dsqrLabel, $gtLabel, $mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
+            return [
+                $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
+                $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
+            ];
+        });
+        $newPackagingChartMeter = new DashboardChartMeter();
+        $newPackagingChartMeter
+            ->setChartColors([
+                $dsqrLabel => '#003871',
+                $gtLabel => '#77933C',
+            ])
+            ->setDashboard(self::DASHBOARD_PACKAGING)
+            ->setChartKey('of')
+            ->setData($this->saveArrayForEncoding($chartData));
+        $entityManager->persist($newPackagingChartMeter);
+    }
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws Exception
+     */
+    public function retrieveAndInsertLastEnCours(EntityManagerInterface $entityManager) {
+        $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        foreach ($lastLates as $lastLate) {
+            $latePack = new LatePack();
+            $latePack
+                ->setDelay($lastLate['delay'])
+                ->setDate($lastLate['date'])
+                ->setEmp($lastLate['emp'])
+                ->setColis($lastLate['colis']);
+            $entityManager->persist($latePack);
+        }
     }
 
 }

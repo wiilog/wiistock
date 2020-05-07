@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Colis;
 use App\Entity\Collecte;
+use App\Entity\DashboardChartMeter;
 use App\Entity\DaysWorked;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
@@ -17,6 +18,7 @@ use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Repository\DashboardChartMeterRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
 use DateTime;
@@ -249,20 +251,13 @@ class AccueilController extends AbstractController
     public function getDailyArrivalsStatistics(DashboardService $dashboardService,
                                                EntityManagerInterface $entityManager): Response
     {
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $colisRepository = $entityManager->getRepository(Colis::class);
-
-        $arrivalCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
-            return $arrivageRepository->countByDates($dateMin, $dateMax);
-        });
-
-        $colisCountByDay = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
-            return $colisRepository->countByDates($dateMin, $dateMax);
-        });
-
+        $colisCountByDay = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-colis-daily');
+        $arrivalCountByDays = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-daily');
+        $formattedColisData = $dashboardService->flatArray($colisCountByDay['data']);
+        $formattedArrivalData = $dashboardService->flatArray($arrivalCountByDays['data']);
         return new JsonResponse([
-            'data' => $arrivalCountByDays,
-            'subCounters' => $colisCountByDay,
+            'data' => $formattedArrivalData,
+            'subCounters' => $formattedColisData,
             'subLabel' => 'Colis',
             'label' => 'Arrivages'
         ]);
@@ -276,24 +271,17 @@ class AccueilController extends AbstractController
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
+     * @param EntityManagerInterface $entityManager
      * @param DashboardService $dashboardService
      * @return Response
-     * @throws Exception
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function getDailyPacksStatistics(DashboardService $dashboardService): Response {
-        $packsCountByDays = $dashboardService->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($dashboardService) {
-            $resCounter = $dashboardService->getDashboardCounter(
-                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
-                true,
-                [
-                    'minDate' => $dateMin,
-                    'maxDate' => $dateMax
-                ]
-            );
-            return !empty($resCounter['count']) ? $resCounter['count'] : 0;
-        });
-
-        return new JsonResponse($packsCountByDays);
+    public function getDailyPacksStatistics(EntityManagerInterface $entityManager, DashboardService $dashboardService): Response
+    {
+        $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'colis');
+        $formattedData = $dashboardService->flatArray($data['data']);
+        return new JsonResponse($formattedData);
     }
 
     /**
@@ -312,20 +300,13 @@ class AccueilController extends AbstractController
     public function getWeeklyArrivalsStatistics(DashboardService $dashboardService,
                                                 EntityManagerInterface $entityManager): Response
     {
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $colisRepository = $entityManager->getRepository(Colis::class);
-
-        $arrivalsCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
-            return $arrivageRepository->countByDates($dateMin, $dateMax);
-        });
-
-        $colisCountByWeek = $dashboardService->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
-            return $colisRepository->countByDates($dateMin, $dateMax);
-        });
-
+        $colisCountByWeek = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-colis-weekly');
+        $arrivalCountByWeek = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-weekly');
+        $formattedColisData = $dashboardService->flatArray($colisCountByWeek['data']);
+        $formattedArrivalData = $dashboardService->flatArray($arrivalCountByWeek['data']);
         return new JsonResponse([
-            'data' => $arrivalsCountByWeek,
-            'subCounters' => $colisCountByWeek,
+            'data' => $formattedArrivalData,
+            'subCounters' => $formattedColisData,
             'subLabel' => 'Colis',
             'label' => 'Arrivages'
         ]);
@@ -340,146 +321,40 @@ class AccueilController extends AbstractController
      *     condition="request.isXmlHttpRequest()"
      * )
      *
-     * @param DashboardService $dashboardService
      * @param EntityManagerInterface $entityManager
-     * @param EnCoursService $enCoursService
+     * @param DashboardService $dashboardService
      * @param int $graph
      *
      * @return Response
-     *
+     * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws DBALException
      */
-    public function getEnCoursCountByNatureAndTimespan(DashboardService $dashboardService,
-                                                       EntityManagerInterface $entityManager,
-                                                       EnCoursService $enCoursService,
+    public function getEnCoursCountByNatureAndTimespan(EntityManagerInterface $entityManager,
+                                                       DashboardService $dashboardService,
                                                        int $graph): Response
 	{
-
-	    $adminDelay = '48:00';
-
-		$natureRepository = $entityManager->getRepository(Nature::class);
-		$emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $colisRepository = $entityManager->getRepository(Colis::class);
-        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-
-        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-
-        $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
-        $empLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_LOCATIONS_1 : ParametrageGlobal::DASHBOARD_LOCATIONS_2;
-
-        // on récupère les natures paramétrées
-        $paramNatureForGraph = $parametrageGlobalRepository->findOneByLabel($natureLabelToLookFor)->getValue();
-        $naturesIdForGraph = !empty($paramNatureForGraph) ? explode(',', $paramNatureForGraph) : [];
-        $naturesForGraph = !empty($naturesIdForGraph)
-            ? $natureRepository->findBy(['id' => $naturesIdForGraph])
-            : [];
-
-        // on récupère les emplacements paramétrés
-        $paramEmplacementWanted = $parametrageGlobalRepository->findOneByLabel($empLabelToLookFor)->getValue();
-        $emplacementsIdWanted = !empty($paramEmplacementWanted) ? explode(',', $paramEmplacementWanted) : [];
-        $emplacementsWanted = !empty($emplacementsIdWanted)
-            ? $emplacementRepository->findBy(['id' => $emplacementsIdWanted])
-            : [];
-
-        $locationCounters = [];
-
-        $globalCounter = 0;
-
-        $olderPackLocation = [
-            'locationLabel' => null,
-            'locationId' => null,
-            'packDateTime' => null
+	    $neededOrder = [
+            'Retard' => 0,
+            'Moins d\'1h' => 1,
+            '1h-6h' => 2,
+            '6h-12h' => 3,
+            '12h-24h' => 4,
+            '24h-36h' => 5,
+            '36h-48h' => 6,
         ];
-
-        if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
-            $packsOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
-
-            $countByNatureBase = [];
-            foreach ($naturesForGraph as $wantedNature) {
-                $countByNatureBase[$wantedNature->getLabel()] = 0;
-            }
-
-            $graphData = $dashboardService->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-                                                                 use ($daysWorked, $enCoursService, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
-                $countByNature = array_merge($countByNatureBase);
-                $packUntreated = [];
-                foreach ($packsOnCluster as $pack) {
-                    $date = $enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime']);
-                    $timeInformation = $enCoursService->getTimeInformation($date, $adminDelay);
-                    $countDownHours = isset($timeInformation['countDownLateTimespan'])
-                        ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
-                        : null;
-
-                    if (isset($countDownHours)
-                        && (
-                            ($countDownHours < 0 && $beginSpan === -1) // count colis en retard
-                            || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
-                        )) {
-
-                        $countByNature[$pack['natureLabel']]++;
-
-                        $currentLocationLabel = $pack['currentLocationLabel'];
-                        $currentLocationId = $pack['currentLocationId'];
-                        $lastTrackingDateTime = $pack['lastTrackingDateTime'];
-
-                        // get older pack
-                        if ((
-                                empty($olderPackLocation['locationLabel'])
-                                || empty($olderPackLocation['locationId'])
-                                || empty($olderPackLocation['packDateTime'])
-                            )
-                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)){
-                            $olderPackLocation['locationLabel'] = $currentLocationLabel;
-                            $olderPackLocation['locationId'] = $currentLocationId;
-                            $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
-                        }
-
-                        // increment counters
-                        if (empty($locationCounters[$currentLocationId])) {
-                            $locationCounters[$currentLocationId] = 0;
-                        }
-
-                        $locationCounters[$currentLocationId]++;
-                        $globalCounter++;
-                    }
-                    else {
-                        $packUntreated[] = $pack;
-                    }
-                }
-                $packsOnCluster = $packUntreated;
-                return $countByNature;
-            });
+	    $key = DashboardService::DASHBOARD_ADMIN . '-' . $graph;
+	    $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_ADMIN, $key);
+	    $orderedData = [];
+        $orderedData['chartColors'] = $data['chartColors'];
+        $orderedData['total'] = $data['total'];
+        $orderedData['location'] = $data['location'];
+        foreach ($data['data'] as $key => $datum) {
+            $index = $neededOrder[$key];
+            $orderedData['data'][$index] = $datum;
         }
-
-        if (!isset($graphData)) {
-            $graphData = $dashboardService->getObjectForTimeSpan(function () { return 0; });
-        }
-
-        $totalToDisplay = !empty($olderPackLocation['locationId'])
-            ? $globalCounter
-            : null;
-
-        $locationToDisplay = !empty($olderPackLocation['locationLabel'])
-            ? $olderPackLocation['locationLabel']
-            : null;
-
-        return new JsonResponse([
-            "data" => $graphData,
-            'total' => isset($totalToDisplay) ? $totalToDisplay : '-',
-            'location' => isset($locationToDisplay) ? $locationToDisplay : '-',
-			'chartColors' => array_reduce(
-			    $naturesForGraph,
-                function (array $carry, Nature $nature) {
-                    $color = $nature->getColor();
-                    if (!empty($color)) {
-                        $carry[$nature->getLabel()] = $color;
-                    }
-                    return $carry;
-                },
-                []),
-        ]);
+        ksort($orderedData['data']);
+        $orderedData['data'] = array_combine(array_keys($neededOrder), array_values($orderedData['data']));
+	    return new JsonResponse($orderedData);
     }
 
     /**
@@ -494,7 +369,7 @@ class AccueilController extends AbstractController
      * @return Response
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
-        $response = $dashboardService->getDataForReceptionAdminDashboard();
+        $response = $dashboardService->getSimplifiedDataForAdminDashboard();
         return new JsonResponse($response);
     }
 
@@ -506,11 +381,13 @@ class AccueilController extends AbstractController
      *     methods="GET"
      * )
      * @param DashboardService $dashboardService
+     * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws Exception
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
-        $response = $dashboardService->getDataForMonitoringPackagingDashboard();
+    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService, EntityManagerInterface $entityManager): Response {
+        $response = $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager);
         return new JsonResponse($response);
     }
 
@@ -526,7 +403,7 @@ class AccueilController extends AbstractController
      */
     public function getIndicatorsDockReception(DashboardService $dashboardService): Response
     {
-        $response = $dashboardService->getDataForReceptionDockDashboard();
+        $response = $dashboardService->getSimplifiedDataForDockDashboard();
         return new JsonResponse($response);
     }
 

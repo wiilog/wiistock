@@ -20,6 +20,7 @@ use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
 use App\Service\AttachmentService;
+use App\Service\DashboardService;
 use App\Service\GlobalParamService;
 use App\Service\StatutService;
 use App\Service\TranslationService;
@@ -861,11 +862,17 @@ class ParametrageGlobalController extends AbstractController
     /**
      * @Route("/modifier-parametres-tableau-de-bord", name="edit_dashboard_params",  options={"expose"=true},  methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param DashboardService $dashboardService
      * @return Response
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
-    public function editDashboardParams(Request $request, ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    public function editDashboardParams(Request $request,
+                                        EntityManagerInterface $entityManager,
+                                        ParametrageGlobalRepository $parametrageGlobalRepository,
+                                        DashboardService $dashboardService): Response
     {
         if ($request->isXmlHttpRequest()) {
             $post = $request->request;
@@ -915,8 +922,8 @@ class ParametrageGlobalController extends AbstractController
                 $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
                 $param->setValue($post->get($selectId));
             }
-
-            $this->getDoctrine()->getManager()->flush();
+            $dashboardService->retrieveAndInsertGlobalDashboardData($entityManager);
+            $entityManager->flush();
 
             return new JsonResponse(true);
         }
