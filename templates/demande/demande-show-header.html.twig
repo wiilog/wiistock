@@ -4,14 +4,14 @@
 
 {% block showActions %}
     <div class="btn-group">
-        {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+        {% if modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
             <button type="button"
                     data-id='{{ demande.id }}'
-                    data-target='#modalEditDemande'
-                    onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
+                    onclick="validateLivraison({{ demande.id }}, $(this))"
                     data-toggle='modal'
                     class="btn btn-primary btn-ripple split-button ml-auto">
-                Modifier
+                    <i class="fa fa-check mr-2"></i>
+                Valider
             </button>
         {% endif %}
         <button type="button"
@@ -57,10 +57,12 @@
             {% endif %}
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                 <a href="#"
-                   onclick="validateLivraison({{ demande.id }}, $(this))"
+                   onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
                    data-id='{{ demande.id }}'
+                   data-target='#modalEditDemande'
+                   data-toggle='modal'
                    class="dropdown-item">
-                    <i class="fa fa-check mr-2"></i>Valider
+                    <i class="fas fa-pencil-alt mr-2" aria-hidden="true"></i>Modifier
                 </a>
             {% endif %}
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
