@@ -202,38 +202,46 @@ function loadArrivalDashboard(preferCache) {
 }
 
 function loadDockDashboard(preferCache) {
-    return Promise
-        .all([
-            drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCache),
-            drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCache),
-            drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCache),
-            ...(
-                !preferCache
-                    ? [
-                        refreshIndicatorsReceptionDock(),
-                        updateCarriers()
-                    ]
-                    : []
-            )
-        ])
-        .then(([chartDailyArrivalLocal, chartWeeklyArrivalLocal, chartColisLocal]) => {
-            chartDailyArrival = chartDailyArrivalLocal;
-            chartWeeklyArrival = chartWeeklyArrivalLocal;
-            chartColis = chartColisLocal;
+    return new Promise((resolve => {
+        refreshIndicatorsReceptionDock().then(() => {
+            Promise
+                .all([
+                    drawSimpleChart($('#chartDailyArrival'), 'get_daily_arrivals_statistics', chartDailyArrival, preferCache),
+                    drawSimpleChart($('#chartWeeklyArrival'), 'get_weekly_arrivals_statistics', chartWeeklyArrival, preferCache),
+                    drawSimpleChart($('#chartColis'), 'get_daily_packs_statistics', chartColis, preferCache),
+                    ...(
+                        !preferCache
+                            ? [
+                                updateCarriers()
+                            ]
+                            : []
+                    )
+                ])
+                .then(([chartDailyArrivalLocal, chartWeeklyArrivalLocal, chartColisLocal]) => {
+                    chartDailyArrival = chartDailyArrivalLocal;
+                    chartWeeklyArrival = chartWeeklyArrivalLocal;
+                    chartColis = chartColisLocal;
+                    resolve();
+                });
         });
+    }));
 }
 
 function loadAdminDashboard(preferCache) {
-    return Promise
-        .all([
-            drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache),
-            drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache),
-            ...(!preferCache ? [refreshIndicatorsReceptionAdmin()] : [])
-        ])
-        .then(([chartFirstForAdminLocal, chartSecondForAdminLocal]) => {
-            chartFirstForAdmin = chartFirstForAdminLocal;
-            chartSecondForAdmin = chartSecondForAdminLocal;
+    return new Promise((resolve => {
+        refreshIndicatorsReceptionAdmin().then(() => {
+            Promise
+                .all([
+                    drawMultipleBarChart($('#chartFirstForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 1}, 1, chartFirstForAdmin, preferCache),
+                    drawMultipleBarChart($('#chartSecondForAdmin'), 'get_encours_count_by_nature_and_timespan', {graph: 2}, 2, chartSecondForAdmin, preferCache),
+                ])
+                .then(([chartFirstForAdminLocal, chartSecondForAdminLocal]) => {
+                    chartFirstForAdmin = chartFirstForAdminLocal;
+                    chartSecondForAdmin = chartSecondForAdminLocal;
+                    resolve();
+                });
         });
+    }));
 }
 
 
