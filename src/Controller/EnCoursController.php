@@ -95,7 +95,6 @@ class EnCoursController extends AbstractController
      */
     public function apiForRetard(LatePackRepository $latePackRepository): Response {
         $retards = $latePackRepository->findAllForDatatable();
-        dump($retards);
         return new JsonResponse([
             'data' => $retards
         ]);
