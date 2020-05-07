@@ -393,8 +393,8 @@ class DashboardService
             ->setData($data['data'])
             ->setChartColors($data['chartColors'])
             ->setDashboard($data['dashboard'])
-            ->setTotal(isset($data['total']) ?? null)
-            ->setLocation(isset($data['location']) ?? null)
+            ->setTotal(isset($data['total']) ? $data['total'] : null)
+            ->setLocation(isset($data['location']) ? $data['location'] : null)
             ->setChartKey($data['key']);
     }
 
@@ -531,8 +531,8 @@ class DashboardService
                 []),
             'key' => $dashboard . '-' . $graph,
             'data' => $graphData,
-            'location' => isset($locationToDisplay) ? $locationToDisplay : '-',
-            'total' => isset($totalToDisplay) ? $totalToDisplay : '-',
+            'location' => (isset($locationToDisplay) ? $locationToDisplay : '-'),
+            'total' => (isset($totalToDisplay) ? $totalToDisplay : '-'),
         ];
         $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
