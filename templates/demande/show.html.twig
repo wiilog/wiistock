@@ -26,13 +26,13 @@
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                             <div class="row wii-page-card-header" id="boutonCollecteInf">
                                 <div class="col-auto ml-auto">
-                                    <div class="btn-group" >
-                                        <button type="button"
-                                                data-toggle="modal"
-                                                data-target="#modalNewArticle"
-                                                onclick="clearModal('#modalNewArticle')"
-                                                class="btn btn-primary split-button btn-ripple">
-                                            <span class="fa fa-plus mr-2"></span>Ajouter article
+                                    <div class="btn-group">
+                                        <button
+                                                onclick="redirectshearch()"
+                                                class="btn btn-primary btn-ripple split-button"
+                                                title="chercher une référence">
+                                            <i class="fa fa-search mr-2"></i>
+                                            Chercher une {{ 'reference.référence'|trans }}
                                         </button>
                                         <button type="button"
                                                 class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
@@ -42,12 +42,14 @@
                                             <span class="fa fa-angle-down"></span>
                                         </button>
                                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                            <a href="{{ path('reference_article_index') }}"
+                                            <a href="#"
                                                data-toggle="modal"
+                                               data-target="#modalNewArticle"
                                                class="dropdown-item"
+                                               onclick="clearModal('#modalNewArticle')"
                                                title="référence">
-                                                <i class="fa fa-search mr-2"></i>
-                                                Chercher une {{ 'reference.référence'|trans }}
+                                                <i class="fa fa-plus mr-2"></i>
+                                                Ajouter article
                                             </a>
                                         </div>
                                     </div>
