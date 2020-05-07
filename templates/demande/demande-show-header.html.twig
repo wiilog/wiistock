@@ -54,7 +54,7 @@
                     </a>
                 {% endif %}
             {% endif %}
-            {% if modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+            {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <a href="#"
                    onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
                    data-id='{{ demande.id }}'

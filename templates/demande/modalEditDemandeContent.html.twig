@@ -39,9 +39,13 @@
                     {% for champLibre in typeChampLibre.champsLibres %}
                         <div class="form-group col-6">
                             <label for="input">{{ champLibre.label | capitalize}}</label>
-
+                            {% set valeurChampLibreDefined = (
+                                champLibre.valeurChampLibre is defined
+                                and champLibre.valeurChampLibre is not null
+                                and champLibre.valeurChampLibre is not empty
+                            ) %}
                             {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                                {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
+                                {% set checked = ((valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
                                 <label class="switch">
                                     <input type="checkbox" class="data checkbox" {{ checked }} name="{{ champLibre.id}}">
                                     <span class="slider round"></span>
@@ -49,7 +53,7 @@
 
                             {% elseif  champLibre.typage == 'number' %}
                                 <input type="number" id="{{ champLibre.id ~ 'edit'}}" class="form-control data"
-                                                      value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                                                      value="{{ valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : '' }}"
                                                       name="{{ champLibre.id}}" id="input">
 
                             {% elseif  champLibre.typage == 'list' %}
@@ -57,7 +61,7 @@
                                                        name="{{ champLibre.id}}" id="input">
                                     <option value="">aucune selection...</option>
                                     {% for elem in  champLibre.elements %}
-                                        {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
+                                        {% set selected = elem == (valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
                                         <option value="{{elem}}" {{ selected }}>{{elem}}</option>
                                     {% endfor %}
                                 </select>
@@ -65,28 +69,28 @@
                                 <select id="{{ champLibre.id ~ 'edit' }}" class="form-control data list-multiple"
                                         name="{{ champLibre.id }}" multiple="multiple">
                                     {% for elem in champLibre.elements %}
-                                        {% set selected = (elem in (champLibre.valeurChampLibre.valeur | split(';'))) ? 'selected' : '' %}
+                                        {% set selected = (valeurChampLibreDefined and elem in (champLibre.valeurChampLibre.valeur | split(';'))) ? 'selected' : '' %}
                                         <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                                     {% endfor %}
                                 </select>
                             {% elseif champLibre.typage == 'text' %}
                                 <input type="text" id="{{ champLibre.id ~ 'edit'}}" class="form-control data"
-                                                      value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                                                      value="{{ valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : '' }}"
                                                       name="{{  champLibre.id }}" id="input">
 
                             {% elseif champLibre.typage == 'date' %}
                                 <input type="date" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
                                                       class="form-control data"
-                                                      value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
+                                                      value="{{ valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : '' }}">
                             {% elseif champLibre.typage == 'datetime' %}
                                 <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
                                        class="form-control data"
-                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
+                                       value="{{ valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : '' }}">
 
                             {% else %}
                                 <input type="text" id="{{ champLibre.id ~ 'edit'}}" class="form-control data"
-                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
-                                       name="{{  champLibre.id }}" id="input">
+                                       value="{{ valeurChampLibreDefined ? champLibre.valeurChampLibre.valeur : '' }}"
+                                       name="{{  champLibre.id }}">
                             {% endif %}
                         </div>
                     {% endfor %}

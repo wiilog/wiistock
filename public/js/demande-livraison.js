@@ -267,6 +267,6 @@ function callbackSaveFilter() {
     }
 }
 
-function redirectshearch() {
+function redirectToArticlesList() {
     window.location.href = Routing.generate('reference_article_index');
 }
