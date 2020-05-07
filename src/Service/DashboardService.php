@@ -131,25 +131,23 @@ class DashboardService
         ];
     }
 
+    /**
+     * @return array
+     */
     public function getSimplifiedDataForDockDashboard()
     {
-        $keysForDock = [
-            'enCoursDock',
-            'enCoursClearance',
-            'enCoursCleared',
-            'enCoursDropzone',
-            'dailyUrgenceCount',
-            'urgenceCount'
-        ];
         $locationCounter = [];
-        foreach ($keysForDock as $key) {
-            $locationCounter[$key] = $this->getMeterData($key, self::DASHBOARD_DOCK);
+        $adminData = $this->getMeterData(self::DASHBOARD_DOCK);
+        foreach ($adminData as $adminDatum) {
+            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
         }
         return $locationCounter;
     }
 
     /**
      * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function getDataForReceptionDockDashboard()
     {
@@ -168,17 +166,15 @@ class DashboardService
         );
     }
 
+    /**
+     * @return array
+     */
     public function getSimplifiedDataForAdminDashboard()
     {
-        $keysForAdmin = [
-            'enCoursUrgence',
-            'enCoursLitige',
-            'enCoursClearance',
-            'urgenceCount'
-        ];
         $locationCounter = [];
-        foreach ($keysForAdmin as $key) {
-            $locationCounter[$key] = $this->getMeterData($key, self::DASHBOARD_ADMIN);
+        $adminData = $this->getMeterData(self::DASHBOARD_ADMIN);
+        foreach ($adminData as $adminDatum) {
+            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
         }
         return $locationCounter;
     }
@@ -206,28 +202,15 @@ class DashboardService
 
     /**
      * @return array
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws Exception
      */
     public function getSimplifiedDataForPackagingDashboard()
     {
-        $keysForPackaging = [
-            'packaging1',
-            'packaging2',
-            'packaging3',
-            'packaging4',
-            'packaging5',
-            'packaging6',
-            'packaging7',
-            'packaging8',
-            'packagingRPA',
-            'packagingLitige',
-            'packagingUrgence'
-        ];
         $locationCounter = [];
-        foreach ($keysForPackaging as $key) {
-            $locationCounter[$key] = $this->getMeterData($key, self::DASHBOARD_PACKAGING);
+        $adminData = $this->getMeterData(self::DASHBOARD_PACKAGING);
+        foreach ($adminData as $adminDatum) {
+            $locationCounter[$adminDatum['meterKey']] = $adminDatum;
         }
         $dsqrLabel = 'OF envoyés par le DSQR';
         $gtLabel = 'OF traités par GT';
@@ -282,16 +265,13 @@ class DashboardService
 
 
     /**
-     * @param string $meterKey
      * @param string $dashboard
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
-    public function getMeterData(string $meterKey, string $dashboard): array
+    public function getMeterData(string $dashboard): array
     {
         $dashboardMeterRepository = $this->entityManager->getRepository(DashboardMeter::class);
-        return $dashboardMeterRepository->getByKeyAndDashboard($meterKey, $dashboard);
+        return $dashboardMeterRepository->getByKeyAndDashboard($dashboard);
     }
 
     /**

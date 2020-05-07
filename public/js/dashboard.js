@@ -53,7 +53,7 @@ $(function () {
 
         setActiveDashboard(getUrlHash());
     }
-
+    updateRefreshDate();
     loadProperData();
 
     initTooltips($('.has-tooltip'));
@@ -251,9 +251,14 @@ function reloadData() {
     });
 
     loadProperData();
+    updateRefreshDate();
+}
+
+function updateRefreshDate() {
     let now = new Date();
     const date = ('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
-    const hour = now.getHours() + ':' + now.getMinutes();
+    let minutes = Math.floor(now.getMinutes() / 10) * 10;
+    const hour = now.getHours() + ':' + minutes;
     $('.refreshDate').text(`${date} à ${hour}`);
 }
 

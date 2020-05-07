@@ -492,6 +492,8 @@ class AccueilController extends AbstractController
      * )
      * @param DashboardService $dashboardService
      * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
         $response = $dashboardService->getSimplifiedDataForAdminDashboard();

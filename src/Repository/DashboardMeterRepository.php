@@ -26,24 +26,18 @@ class DashboardMeterRepository extends EntityRepository
     }
 
     /**
-     * @param string $key
      * @param string $dashboard
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
-    public function getByKeyAndDashboard(string $key, string $dashboard): array {
+    public function getByKeyAndDashboard(string $dashboard): array {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "
-                SELECT d.label, d.count, d.delay
+                SELECT d.label, d.count, d.delay, d.meterKey
                 FROM App\Entity\DashboardMeter d
-                WHERE d.meterKey = :key AND d.dashboard = :dashboard
+                WHERE d.dashboard = :dashboard
            "
-        )->setParameters([
-            'key' => $key,
-            'dashboard' => $dashboard,
-        ]);
-        return $query->getSingleResult();
+        )->setParameter('dashboard', $dashboard);
+        return $query->execute();
     }
 }
