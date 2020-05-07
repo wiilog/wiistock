@@ -840,34 +840,7 @@ class ReceptionController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
-        $type = $reception->getType();
-        if ($type) {
-            $valeurChampLibreTab = $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-        } else {
-            $valeurChampLibreTab = [];
-        }
-
-        $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-        $champsLibresReception = [];
-        foreach ($listTypes as $type) {
-            $listChampLibreReception = $champLibreRepository->findByType($type['id']);
-
-            foreach ($listChampLibreReception as $champLibre) {
-                $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                $champsLibresReception[] = [
-                    'id' => $champLibre->getId(),
-                    'label' => $champLibre->getLabel(),
-                    'typage' => $champLibre->getTypage(),
-                    'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                    'defaultValue' => $champLibre->getDefaultValue(),
-                    'valeurChampLibre' => $valeurChampLibre,
-                ];
-            }
-        }
 
         $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         $typeChampLibreDL = [];
