@@ -748,15 +748,23 @@ class DashboardService
         $dashboardMeterRepository->clearTable();
         $latePackRepository->clearTable();
         $dashboardGraphMeterRepository->clearTable();
-        $entityManager->flush();
+        $this->flushAndClearEm($entityManager);
         $this->retrieveAndInsertParsedDockData($entityManager);
-        $entityManager->flush();
+        $this->flushAndClearEm($entityManager);
         $this->retrieveAndInsertParsedAdminData($entityManager);
-        $entityManager->flush();
+        $this->flushAndClearEm($entityManager);
         $this->retrieveAndInsertParsedPackagingData($entityManager);
-        $entityManager->flush();
+        $this->flushAndClearEm($entityManager);
         $this->retrieveAndInsertLastEnCours($entityManager);
+        $this->flushAndClearEm($entityManager);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     */
+    private function flushAndClearEm(EntityManagerInterface $entityManager) {
         $entityManager->flush();
+        $entityManager->clear();
     }
 
     /**
