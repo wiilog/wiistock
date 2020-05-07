@@ -28,6 +28,10 @@ use Exception;
 
 class DashboardService
 {
+    public const DASHBOARD_PACKAGING = 'packaging';
+    public const DASHBOARD_ADMIN = 'admin';
+    public const DASHBOARD_DOCK = 'dock';
+
     private $enCoursService;
     private $entityManager;
 
@@ -139,15 +143,13 @@ class DashboardService
         ];
         $locationCounter = [];
         foreach ($keysForDock as $key) {
-            $locationCounter[$key] = $this->getMeterData($key, DashboardMeter::DASHBOARD_DOCK);
+            $locationCounter[$key] = $this->getMeterData($key, self::DASHBOARD_DOCK);
         }
         return $locationCounter;
     }
 
     /**
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getDataForReceptionDockDashboard()
     {
@@ -176,7 +178,7 @@ class DashboardService
         ];
         $locationCounter = [];
         foreach ($keysForAdmin as $key) {
-            $locationCounter[$key] = $this->getMeterData($key, DashboardMeter::DASHBOARD_ADMIN);
+            $locationCounter[$key] = $this->getMeterData($key, self::DASHBOARD_ADMIN);
         }
         return $locationCounter;
     }
@@ -225,7 +227,7 @@ class DashboardService
         ];
         $locationCounter = [];
         foreach ($keysForPackaging as $key) {
-            $locationCounter[$key] = $this->getMeterData($key, DashboardMeter::DASHBOARD_PACKAGING);
+            $locationCounter[$key] = $this->getMeterData($key, self::DASHBOARD_PACKAGING);
         }
         $dsqrLabel = 'OF envoyés par le DSQR';
         $gtLabel = 'OF traités par GT';
@@ -526,7 +528,7 @@ class DashboardService
     private function retrieveAndInsertParsedDockData(EntityManagerInterface $entityManager): void
     {
         $dockData = $this->getDataForReceptionDockDashboard();
-        $this->parseRetrievedDataAndPersistMeter($dockData, DashboardMeter::DASHBOARD_DOCK, $entityManager);
+        $this->parseRetrievedDataAndPersistMeter($dockData, self::DASHBOARD_DOCK, $entityManager);
     }
 
     /**
@@ -561,7 +563,7 @@ class DashboardService
     private function retrieveAndInsertParsedAdminData(EntityManagerInterface $entityManager): void
     {
         $adminData = $this->getDataForReceptionAdminDashboard();
-        $this->parseRetrievedDataAndPersistMeter($adminData, DashboardMeter::DASHBOARD_ADMIN, $entityManager);
+        $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
     }
 
     /**
@@ -571,7 +573,7 @@ class DashboardService
     private function retrieveAndInsertParsedPackagingData(EntityManagerInterface $entityManager): void
     {
         $packagingData = $this->getDataForMonitoringPackagingDashboard();
-        $this->parseRetrievedDataAndPersistMeter($packagingData, DashboardMeter::DASHBOARD_PACKAGING, $entityManager);
+        $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
     }
 
     /**
