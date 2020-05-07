@@ -29,7 +29,7 @@ class DashboardMeterRepository extends EntityRepository
      * @param string $dashboard
      * @return array
      */
-    public function getByKeyAndDashboard(string $dashboard): array {
+    public function getByDashboard(string $dashboard): array {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "
@@ -39,5 +39,26 @@ class DashboardMeterRepository extends EntityRepository
            "
         )->setParameter('dashboard', $dashboard);
         return $query->execute();
+    }
+
+    /**
+     * @param string $key
+     * @param string $dashboard
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
+    public function getByKeyAndDashboard(string $key, string $dashboard) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "
+                SELECT d
+                FROM App\Entity\DashboardMeter d
+                WHERE d.dashboard = :dashboard AND d.meterKey = :key
+           "
+        )->setParameters([
+            'dashboard' => $dashboard,
+            'key' => $key,
+        ]);
+        return $query->getOneOrNullResult();
     }
 }

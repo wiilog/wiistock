@@ -21,6 +21,7 @@ use App\Entity\Urgence;
 use App\Repository\DashboardMeterRepository;
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -229,7 +230,8 @@ class DashboardService
         );
     }
 
-    public function flatArray(array $toFlat): array {
+    public function flatArray(array $toFlat): array
+    {
         $formattedArrivalData = [];
         foreach ($toFlat as $datum) {
             $firstKey = array_key_first($datum);
@@ -265,7 +267,8 @@ class DashboardService
      * @param EntityManagerInterface $entityManager
      * @throws Exception
      */
-    public function getAndSetGraphDataForDock(EntityManagerInterface $entityManager) {
+    public function getAndSetGraphDataForDock(EntityManagerInterface $entityManager)
+    {
         $this->parseColisData($entityManager);
         $this->parseDailyArrivalData($entityManager);
         $this->parseWeeklyArrivalData($entityManager);
@@ -275,7 +278,8 @@ class DashboardService
      * @param EntityManagerInterface $entityManager
      * @throws Exception
      */
-    private function parseDailyArrivalData(EntityManagerInterface $entityManager) {
+    private function parseDailyArrivalData(EntityManagerInterface $entityManager)
+    {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $colisRepository = $entityManager->getRepository(Colis::class);
 
@@ -286,31 +290,26 @@ class DashboardService
         $colisCountByDay = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
             return $colisRepository->countByDates($dateMin, $dateMax);
         });
-        $json = [];
-        foreach ($colisCountByDay as $key => $packsCountByDay) {
-            $json[] = [$key => $packsCountByDay];
-        }
-        $newDashboardGraphMeterColis = new DashboardChartMeter();
-        $newDashboardGraphMeterColis
-            ->setData($json)
-            ->setChartColors([])
-            ->setDashboard(self::DASHBOARD_DOCK)
-            ->setChartKey('arrivage-colis-daily');
-        $json = [];
-        foreach ($arrivalCountByDays as $key => $packsCountByDay) {
-            $json[] = [$key => $packsCountByDay];
-        }
-        $newDashboardGraphMeterArrival = new DashboardChartMeter();
-        $newDashboardGraphMeterArrival
-            ->setData($json)
-            ->setChartColors([])
-            ->setDashboard(self::DASHBOARD_DOCK)
-            ->setChartKey('arrivage-daily');
-        $entityManager->persist($newDashboardGraphMeterColis);
-        $entityManager->persist($newDashboardGraphMeterArrival);
+        $colisCountByDaySaved = $this->saveArrayForEncoding($colisCountByDay);
+        $arrivalCountByDaySaved = $this->saveArrayForEncoding($arrivalCountByDays);
+        $dashboardColisData = [
+            'data' => $colisCountByDaySaved,
+            'chartColors' => [],
+            'dashboard' => self::DASHBOARD_DOCK,
+            'key' => 'arrivage-colis-daily',
+        ];
+        $dashboardArrivalData = [
+            'data' => $arrivalCountByDaySaved,
+            'chartColors' => [],
+            'dashboard' => self::DASHBOARD_DOCK,
+            'key' => 'arrivage-daily',
+        ];
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardColisData);
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardArrivalData);
     }
 
-    private function saveArrayForEncoding($arrToSave): array {
+    private function saveArrayForEncoding($arrToSave): array
+    {
         $json = [];
         foreach ($arrToSave as $key => $arrToSaveItem) {
             $json[] = [$key => $arrToSaveItem];
@@ -322,7 +321,8 @@ class DashboardService
      * @param EntityManagerInterface $entityManager
      * @throws Exception
      */
-    private function parseWeeklyArrivalData(EntityManagerInterface $entityManager) {
+    private function parseWeeklyArrivalData(EntityManagerInterface $entityManager)
+    {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $colisRepository = $entityManager->getRepository(Colis::class);
 
@@ -333,23 +333,29 @@ class DashboardService
         $colisCountByWeek = $this->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
             return $colisRepository->countByDates($dateMin, $dateMax);
         });
-        $newDashboardGraphMeterColis = new DashboardChartMeter();
-        $newDashboardGraphMeterColis
-            ->setData($this->saveArrayForEncoding($colisCountByWeek))
-            ->setChartColors([])
-            ->setDashboard(self::DASHBOARD_DOCK)
-            ->setChartKey('arrivage-colis-weekly');
-        $newDashboardGraphMeterArrival = new DashboardChartMeter();
-        $newDashboardGraphMeterArrival
-            ->setData($this->saveArrayForEncoding($arrivalsCountByWeek))
-            ->setChartColors([])
-            ->setDashboard(self::DASHBOARD_DOCK)
-            ->setChartKey('arrivage-weekly');
-        $entityManager->persist($newDashboardGraphMeterColis);
-        $entityManager->persist($newDashboardGraphMeterArrival);
+        $dashboardDataForColis = [
+            'data' => $this->saveArrayForEncoding($colisCountByWeek),
+            'dashboard' => self::DASHBOARD_DOCK,
+            'chartColors' => [],
+            'key' => 'arrivage-colis-weekly',
+        ];
+        $dashboardDataForArrival = [
+            'data' => $this->saveArrayForEncoding($arrivalsCountByWeek),
+            'dashboard' => self::DASHBOARD_DOCK,
+            'chartColors' => [],
+            'key' => 'arrivage-weekly',
+        ];
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardDataForColis);
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardDataForArrival);
     }
 
-    private function parseColisData(EntityManagerInterface $entityManager) {
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    private function parseColisData(EntityManagerInterface $entityManager)
+    {
         $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) {
             $resCounter = $this->getDashboardCounter(
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
@@ -361,20 +367,47 @@ class DashboardService
             );
             return !empty($resCounter['count']) ? $resCounter['count'] : 0;
         });
-        $json = [];
-        foreach ($packsCountByDays as $key => $packsCountByDay) {
-            $json[] = [$key => $packsCountByDay];
-        }
-        $newDashboardGraphMeter = new DashboardChartMeter();
-        $newDashboardGraphMeter
-            ->setData($json)
-            ->setChartColors([])
-            ->setDashboard(self::DASHBOARD_DOCK)
-            ->setChartKey('colis');
-        $entityManager->persist($newDashboardGraphMeter);
+        $dashboardData = [
+            'data' => $this->saveArrayForEncoding($packsCountByDays),
+            'chartColors' => [],
+            'dashboard' => self::DASHBOARD_DOCK,
+            'key' => 'colis'
+        ];
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
 
-    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph, string $dashboard) {
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param array $data
+     * @throws NonUniqueResultException
+     */
+    private function updateOrPersistDashboardGraphMeter(EntityManagerInterface $entityManager, array $data)
+    {
+        $dashboardChartMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
+        $dashboardChartMeter = $dashboardChartMeterRepository->findEntityByDashboardAndId($data['dashboard'], $data['key']);
+        if (!isset($dashboardChartMeter)) {
+            $dashboardChartMeter = new DashboardChartMeter();
+            $entityManager->persist($dashboardChartMeter);
+        }
+        $dashboardChartMeter
+            ->setData($data['data'])
+            ->setChartColors($data['chartColors'])
+            ->setDashboard($data['dashboard'])
+            ->setTotal(isset($data['total']) ?? null)
+            ->setLocation(isset($data['location']) ?? null)
+            ->setChartKey($data['key']);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param int $graph
+     * @param string $dashboard
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws DBALException
+     */
+    public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph, string $dashboard)
+    {
         $adminDelay = '48:00';
 
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -449,7 +482,7 @@ class DashboardService
                                 || empty($olderPackLocation['locationId'])
                                 || empty($olderPackLocation['packDateTime'])
                             )
-                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)){
+                            || ($olderPackLocation['packDateTime'] > $lastTrackingDateTime)) {
                             $olderPackLocation['locationLabel'] = $currentLocationLabel;
                             $olderPackLocation['locationId'] = $currentLocationId;
                             $olderPackLocation['packDateTime'] = $lastTrackingDateTime;
@@ -462,8 +495,7 @@ class DashboardService
 
                         $locationCounters[$currentLocationId]++;
                         $globalCounter++;
-                    }
-                    else {
+                    } else {
                         $packUntreated[] = $pack;
                     }
                 }
@@ -473,7 +505,9 @@ class DashboardService
         }
 
         if (!isset($graphData)) {
-            $graphData = $this->getObjectForTimeSpan(function () { return 0; });
+            $graphData = $this->getObjectForTimeSpan(function () {
+                return 0;
+            });
         }
 
         $totalToDisplay = !empty($olderPackLocation['locationId'])
@@ -483,10 +517,9 @@ class DashboardService
         $locationToDisplay = !empty($olderPackLocation['locationLabel'])
             ? $olderPackLocation['locationLabel']
             : null;
-        $newDashboardMeter = new DashboardChartMeter();
-        $newDashboardMeter
-            ->setDashboard($dashboard)
-            ->setChartColors(array_reduce(
+        $dashboardData = [
+            'dashboard' => $dashboard,
+            'chartColors' => array_reduce(
                 $naturesForGraph,
                 function (array $carry, Nature $nature) {
                     $color = $nature->getColor();
@@ -495,12 +528,13 @@ class DashboardService
                     }
                     return $carry;
                 },
-                []))
-            ->setChartKey($dashboard . '-' . $graph)
-            ->setData($graphData)
-            ->setLocation(isset($locationToDisplay) ? $locationToDisplay : '-')
-            ->setTotal(isset($totalToDisplay) ? $totalToDisplay : '-');
-        $entityManager->persist($newDashboardMeter);
+                []),
+            'key' => $dashboard . '-' . $graph,
+            'data' => $graphData,
+            'location' => isset($locationToDisplay) ? $locationToDisplay : '-',
+            'total' => isset($totalToDisplay) ? $totalToDisplay : '-',
+        ];
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
 
     /**
@@ -508,10 +542,10 @@ class DashboardService
      * @param string $dashboard
      * @param string $id
      * @return mixed
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function getChartData(EntityManagerInterface $entityManager, string $dashboard, string $id) {
+    public function getChartData(EntityManagerInterface $entityManager, string $dashboard, string $id)
+    {
         $dashboardChartMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
         return $dashboardChartMeterRepository->findByDashboardAndId($dashboard, $id);
     }
@@ -523,7 +557,7 @@ class DashboardService
     public function getMeterData(string $dashboard): array
     {
         $dashboardMeterRepository = $this->entityManager->getRepository(DashboardMeter::class);
-        return $dashboardMeterRepository->getByKeyAndDashboard($dashboard);
+        return $dashboardMeterRepository->getByDashboard($dashboard);
     }
 
     /**
@@ -742,12 +776,6 @@ class DashboardService
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
-        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter::class);
-        $latePackRepository = $entityManager->getRepository(LatePack::class);
-        $dashboardGraphMeterRepository = $entityManager->getRepository(DashboardChartMeter::class);
-        $dashboardMeterRepository->clearTable();
-        $latePackRepository->clearTable();
-        $dashboardGraphMeterRepository->clearTable();
         $this->flushAndClearEm($entityManager);
         $this->retrieveAndInsertParsedDockData($entityManager);
         $this->flushAndClearEm($entityManager);
@@ -762,7 +790,8 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      */
-    private function flushAndClearEm(EntityManagerInterface $entityManager) {
+    private function flushAndClearEm(EntityManagerInterface $entityManager)
+    {
         $entityManager->flush();
         $entityManager->clear();
     }
@@ -784,11 +813,17 @@ class DashboardService
      * @param $data
      * @param string $dashboard
      * @param EntityManagerInterface $entityManager
+     * @throws NonUniqueResultException
      */
     private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
     {
+        $dashboardMeterRepository = $entityManager->getRepository(DashboardMeter::class);
         foreach ($data as $key => $datum) {
-            $dashboardMeter = new DashboardMeter();
+            $dashboardMeter = $dashboardMeterRepository->getByKeyAndDashboard($key, $dashboard);
+            if (!isset($dashboardMeter)) {
+                $dashboardMeter = new DashboardMeter();
+                $entityManager->persist($dashboardMeter);
+            }
             $dashboardMeter->setMeterKey($key);
             $dashboardMeter->setDashboard($dashboard);
             if (is_array($datum)) {
@@ -796,16 +831,15 @@ class DashboardService
                     ->setCount($datum['count'])
                     ->setDelay($datum['delay'])
                     ->setLabel($datum['label']);
-                $entityManager->persist($dashboardMeter);
             } else {
                 $dashboardMeter->setCount(intval($datum));
-                $entityManager->persist($dashboardMeter);
             }
         }
     }
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @throws DBALException
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
@@ -831,6 +865,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     private function getAndSetGraphDataForPackaging(EntityManagerInterface $entityManager)
     {
@@ -852,23 +887,27 @@ class DashboardService
                 $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
             ];
         });
-        $newPackagingChartMeter = new DashboardChartMeter();
-        $newPackagingChartMeter
-            ->setChartColors([
+        $dashboardData = [
+            'dashboard' => self::DASHBOARD_PACKAGING,
+            'chartColors' => [
                 $dsqrLabel => '#003871',
                 $gtLabel => '#77933C',
-            ])
-            ->setDashboard(self::DASHBOARD_PACKAGING)
-            ->setChartKey('of')
-            ->setData($this->saveArrayForEncoding($chartData));
-        $entityManager->persist($newPackagingChartMeter);
+            ],
+            'key' => 'of',
+            'data' => $this->saveArrayForEncoding($chartData),
+        ];
+        $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
+
     /**
      * @param EntityManagerInterface $entityManager
      * @throws Exception
      */
-    public function retrieveAndInsertLastEnCours(EntityManagerInterface $entityManager) {
+    public function retrieveAndInsertLastEnCours(EntityManagerInterface $entityManager)
+    {
+        $latePackRepository = $entityManager->getRepository(LatePack::class);
         $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        $latePackRepository->clearTable();
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();
             $latePack
@@ -879,5 +918,4 @@ class DashboardService
             $entityManager->persist($latePack);
         }
     }
-
 }
