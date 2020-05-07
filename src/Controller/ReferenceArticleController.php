@@ -20,8 +20,11 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use App\Service\DemandeCollecteService;
 use App\Service\ValeurChampLibreService;
+use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
@@ -297,13 +300,16 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
@@ -314,8 +320,6 @@ class ReferenceArticleController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -402,32 +406,36 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setQuantiteStock(0);
             }
             $refArticle->setQuantiteReservee(0);
+
             foreach ($data['frl'] as $frl) {
-                $fournisseurId = explode(';', $frl)[0];
-                $ref = explode(';', $frl)[1];
-                $label = explode(';', $frl)[2];
-                $fournisseur = $fournisseurRepository->find(intval($fournisseurId));
+                $articleFournisseurData = explode(';', $frl);
+                $fournisseurArticleFournisseur = $articleFournisseurData[0];
+                $referenceArticleFournisseur = $articleFournisseurData[1];
+                $labelArticleFournisseur = $articleFournisseurData[2];
 
-                // on vérifie que la référence article fournisseur n'existe pas déjà
-                $refFournisseurAlreadyExist = $articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
-                if ($refFournisseurAlreadyExist) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Ce nom de référence article fournisseur existe déjà. Vous ne pouvez pas le recréer.'
+                try {
+                    $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                        'fournisseur' => $fournisseurArticleFournisseur,
+                        'article-reference' => $refArticle,
+                        'label' => $labelArticleFournisseur,
+                        'reference' => $referenceArticleFournisseur
                     ]);
+
+                    $entityManager->persist($articleFournisseur);
                 }
-
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setReferenceArticle($refArticle)
-                    ->setFournisseur($fournisseur)
-                    ->setReference($ref)
-                    ->setLabel($label);
-                $entityManager->persist($articleFournisseur);
-
+                catch (Exception $exception) {
+                    if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur."
+                        ]);
+                    }
+                }
             }
+
             $entityManager->persist($refArticle);
             $entityManager->flush();
+
             $champsLibresKey = array_keys($data);
 
             foreach ($champsLibresKey as $champs) {
@@ -857,31 +865,29 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param DemandeCollecteService $demandeCollecteService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function plusDemande(EntityManagerInterface $entityManager,
-                                Request $request): Response
+                                Request $request,
+                                DemandeCollecteService $demandeCollecteService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $json = true;
 
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
-
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
                     $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
                     if ($json === 'article') {
@@ -893,39 +899,7 @@ class ReferenceArticleController extends AbstractController
 					$collecte = $collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
-						$fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
-						if (!$fournisseurTemp) {
-							$fournisseurTemp = new Fournisseur();
-							$fournisseurTemp
-								->setCodeReference('A_DETERMINER')
-								->setNom('A DETERMINER');
-                            $entityManager->persist($fournisseurTemp);
-						}
-						$newArticle = new Article();
-						$index = $articleFournisseurRepository->countByRefArticle($refArticle);
-						$statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
-						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-						$ref = $date->format('YmdHis');
-						$articleFournisseur = new ArticleFournisseur();
-						$articleFournisseur
-							->setReferenceArticle($refArticle)
-							->setFournisseur($fournisseurTemp)
-							->setReference($refArticle->getReference())
-							->setLabel('A déterminer -' . $index);
-                        $entityManager->persist($articleFournisseur);
-						$newArticle
-							->setLabel($refArticle->getLibelle() . '-' . $index)
-							->setConform(true)
-							->setStatut($statut)
-							->setReference($ref . '-' . $index)
-							->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
-							//TODO quantite, quantitie ?
-							->setEmplacement($collecte->getPointCollecte())
-							->setArticleFournisseur($articleFournisseur)
-							->setType($refArticle->getType())
-							->setBarCode($this->articleDataService->generateBarCode());
-                        $entityManager->persist($newArticle);
-						$collecte->addArticle($newArticle);
+                        $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
 						//TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
 						//                    $article = $this->articleRepository->find($data['article']);
 						//                    $collecte->addArticle($article);
@@ -934,7 +908,7 @@ class ReferenceArticleController extends AbstractController
 						$collecteReference
 							->setCollecte($collecte)
 							->setReferenceArticle($refArticle)
-							->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
+							->setQuantite(max((int)$data['quantite'], 0)); // protection contre quantités négatives
                         $entityManager->persist($collecteReference);
 					} else {
 						$json = false; //TOOD gérer message erreur

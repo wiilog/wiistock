@@ -25,7 +25,6 @@ use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -73,6 +72,7 @@ class RefArticleDataService
      */
     private $router;
     private $valeurChampLibreService;
+    private $articleFournisseurService;
 
 
     public function __construct(RouterInterface $router,
@@ -82,6 +82,7 @@ class RefArticleDataService
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
                                 TokenStorageInterface $tokenStorage,
+                                ArticleFournisseurService $articleFournisseurService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
@@ -92,6 +93,7 @@ class RefArticleDataService
         $this->userService = $userService;
         $this->router = $router;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
+        $this->articleFournisseurService = $articleFournisseurService;
     }
 
     /**
@@ -261,17 +263,28 @@ class RefArticleDataService
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['frl'])) {
                 foreach ($data['frl'] as $frl) {
-                    $fournisseurId = explode(';', $frl)[0];
-                    $ref = explode(';', $frl)[1];
-                    $label = explode(';', $frl)[2];
-                    $fournisseur = $fournisseurRepository->find(intval($fournisseurId));
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($fournisseur)
-                        ->setReference($ref)
-                        ->setLabel($label);
-                    $entityManager->persist($articleFournisseur);
+                    $articleFournisseurData = explode(';', $frl);
+                    $fournisseurArticleFournisseur = $articleFournisseurData[0];
+                    $referenceArticleFournisseur = $articleFournisseurData[1];
+                    $labelArticleFournisseur = $articleFournisseurData[2];
+
+                    try {
+                        $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
+                            'fournisseur' => $fournisseurArticleFournisseur,
+                            'article-reference' => $refArticle,
+                            'label' => $labelArticleFournisseur,
+                            'reference' => $referenceArticleFournisseur
+                        ]);
+
+                        $entityManager->persist($articleFournisseur);
+                    }
+                    catch (Exception $exception) {
+                        if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                            $response['success'] = false;
+                            $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
+                            return $response;
+                        }
+                    }
                 }
             }
 
@@ -410,11 +423,11 @@ class RefArticleDataService
                 $ligneArticle
                     ->setReference($referenceArticle)
                     ->setDemande($demande)
-                    ->setQuantite(max($data["quantitie"], 0)); // protection contre quantités négatives
+                    ->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
                 $this->entityManager->persist($ligneArticle);
             } else {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
+                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0)); // protection contre quantités négatives
             }
             $this->editRefArticle($referenceArticle, $data, $user);
 
@@ -424,21 +437,21 @@ class RefArticleDataService
                 if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
+                        ->setQuantite(max($data["quantite"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
                         ->setDemande($demande)
                         ->setToSplit(true);
                     $this->entityManager->persist($ligneArticle);
                 } else {
                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
-                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
+                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
                 /** @var Article $article */
                 $article
                     ->setDemande($demande)
-                    ->setQuantiteAPrelever(max($data["quantitie"], 0)); // protection contre quantités négatives
+                    ->setQuantiteAPrelever(max($data["quantite"], 0)); // protection contre quantités négatives
                 $resp = 'article';
             }
         } else {

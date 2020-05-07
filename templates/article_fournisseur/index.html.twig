@@ -11,7 +11,7 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewArticleFournisseur"
-                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))"
+                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur')), clearModal($('#modalNewArticleFournisseur'))"
                                 class="btn btn-primary btn-ripple">
                             <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
                         </button>
@@ -25,15 +25,10 @@
             </div>
         </div>
     </div>
-    <div>
-        {% include "article_fournisseur/modalDeleteArticleFournisseur.html.twig" %}
-    </div>
-    <div>
-        {% include "article_fournisseur/modalEditArticleFournisseur.html.twig" %}
-    </div>
-    <div>
-        {% include "article_fournisseur/modalNewArticleFournisseur.html.twig" %}
-    </div>
+
+    {% include "article_fournisseur/modalDeleteArticleFournisseur.html.twig" %}
+    {% include "article_fournisseur/modalEditArticleFournisseur.html.twig" %}
+    {% include "article_fournisseur/modalNewArticleFournisseur.html.twig" %}
 
 {% endblock %}
 

@@ -22,13 +22,15 @@ use App\Entity\ArticleFournisseur;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\ArticleDataService;
-use App\Service\CollecteService;
+use App\Service\ArticleFournisseurService;
+use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -69,7 +71,7 @@ class CollecteController extends AbstractController
     private $articleDataService;
 
     /**
-     * @var CollecteService
+     * @var DemandeCollecteService
      */
     private $collecteService;
 
@@ -78,7 +80,7 @@ class CollecteController extends AbstractController
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
                                 ArticleDataService $articleDataService,
-                                CollecteService $collecteService)
+                                DemandeCollecteService $collecteService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -129,12 +131,12 @@ class CollecteController extends AbstractController
     /**
      * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
      * @param Collecte $collecte
-     * @param CollecteService $collecteService
+     * @param DemandeCollecteService $collecteService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function show(Collecte $collecte,
-                         CollecteService $collecteService,
+                         DemandeCollecteService $collecteService,
                          EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_COLL)) {
@@ -306,24 +308,23 @@ class CollecteController extends AbstractController
      * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param DemandeCollecteService $demandeCollecteService
      * @return Response
-     * @throws NonUniqueResultException
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NoResultException
      */
     public function addArticle(Request $request,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager,
+                               DemandeCollecteService $demandeCollecteService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
@@ -331,16 +332,17 @@ class CollecteController extends AbstractController
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $collecteRepository->find($data['collecte']);
+
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
-                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantitie']), 0)); // protection contre quantités négatives
+                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantite']), 0)); // protection contre quantités négatives
                 } else {
                     $collecteReference = new CollecteReference();
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite(max($data['quantitie'], 0)); // protection contre quantités négatives
+                        ->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
 
                     $entityManager->persist($collecteReference);
                 }
@@ -352,38 +354,7 @@ class CollecteController extends AbstractController
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA
-                $fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
-                if (!$fournisseurTemp) {
-                    $fournisseurTemp = new Fournisseur();
-                    $fournisseurTemp
-                        ->setCodeReference('A_DETERMINER')
-                        ->setNom('A DETERMINER');
-                    $entityManager->persist($fournisseurTemp);
-                }
-                $article = new Article();
-                $index = $articleFournisseurRepository->countByRefArticle($refArticle);
-                $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
-                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                $ref = $date->format('YmdHis');
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setReferenceArticle($refArticle)
-                    ->setFournisseur($fournisseurTemp)
-                    ->setReference($refArticle->getReference())
-                    ->setLabel('A déterminer -' . $index);
-                $entityManager->persist($articleFournisseur);
-                $article
-                    ->setLabel($refArticle->getLibelle() . '-' . $index)
-                    ->setConform(true)
-                    ->setStatut($statut)
-                    ->setReference($ref . '-' . $index)
-                    ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
-                    ->setEmplacement($collecte->getPointCollecte())
-                    ->setArticleFournisseur($articleFournisseur)
-                    ->setType($refArticle->getType())
-					->setBarCode($this->articleDataService->generateBarCode());
-                $entityManager->persist($article);
-                $collecte->addArticle($article);
+                $article = $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
 
 				$champslibres = $champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
                 foreach($champslibres as $champLibre) {
@@ -576,13 +547,13 @@ class CollecteController extends AbstractController
     /**
      * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param CollecteService $collecteService
+     * @param DemandeCollecteService $collecteService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
-                         CollecteService $collecteService,
+                         DemandeCollecteService $collecteService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {

@@ -3,11 +3,19 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
+use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
@@ -15,7 +23,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class CollecteService
+class DemandeCollecteService
 {
     /**
      * @var Twig_Environment
@@ -35,11 +43,15 @@ class CollecteService
     private $entityManager;
     private $stringService;
     private $valeurChampLibreService;
+    private $articleFournisseurService;
+    private $articleDataService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 StringService $stringService,
                                 ValeurChampLibreService $valeurChampLibreService,
+                                ArticleFournisseurService $articleFournisseurService,
+                                ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
@@ -47,6 +59,8 @@ class CollecteService
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
         $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->articleFournisseurService = $articleFournisseurService;
+        $this->articleDataService = $articleDataService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
     }
@@ -164,5 +178,57 @@ class CollecteService
                 ]
             ]
         );
+    }
+
+    /**
+     * @param array $data
+     * @param ReferenceArticle $referenceArticle
+     * @param Collecte $collecte
+     * @return Article
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function persistArticleInDemand(array $data,
+                                           ReferenceArticle $referenceArticle,
+                                           Collecte $collecte): Article {
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
+        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
+        $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+
+        $fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+        if (!$fournisseurTemp) {
+            $fournisseurTemp = new Fournisseur();
+            $fournisseurTemp
+                ->setCodeReference('A_DETERMINER')
+                ->setNom('A DETERMINER');
+            $this->entityManager->persist($fournisseurTemp);
+        }
+        $article = new Article();
+        $index = $articleFournisseurRepository->countByRefArticle($referenceArticle);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $ref = $date->format('YmdHis');
+
+        $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
+            'label' => 'A déterminer - ' . $index,
+            'article-reference' => $referenceArticle,
+            'reference' => $referenceArticle->getReference(),
+            'fournisseur' => $fournisseurTemp
+        ], true);
+
+        $this->entityManager->persist($articleFournisseur);
+        $article
+            ->setLabel($referenceArticle->getLibelle() . '-' . $index)
+            ->setConform(true)
+            ->setStatut($statut)
+            ->setReference($ref . '-' . $index)
+            ->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
+            ->setEmplacement($collecte->getPointCollecte())
+            ->setArticleFournisseur($articleFournisseur)
+            ->setType($referenceArticle->getType())
+            ->setBarCode($this->articleDataService->generateBarCode());
+        $this->entityManager->persist($article);
+        $collecte->addArticle($article);
+        return $article;
     }
 }
