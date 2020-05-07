@@ -140,9 +140,21 @@
                         <span title="réception">{{ 'réception.réception'|trans }}</span> <span title="d'articles">{{ "réception.d'articles"|trans }}</span>
                     </h5>
                     <div class="row align-items-center">
-                        <div class="form-group col-4">
-                            <label>Référence</label>
-                            <select class="form-control select2-autocomplete-ref-articles w-100" name="refArticleCommande"></select>
+                        <div class="col-4">
+                            <div class="form-group ">
+                                <label class="w-100">
+                                    Référence
+                                    <select class="form-control select2-autocomplete-ref-articles w-100"
+                                            name="refArticleCommande"
+                                            onchange="initConditionnementArticleFournisseurDefault()"></select>
+                                </label>
+                            </div>
+                            <div class="form-group d-none">
+                                <label class="w-100">
+                                    Référence fournisseur
+                                    <select class="form-control data needed select2 w-100" name="articleFournisseurDefault"></select>
+                                </label>
+                            </div>
                         </div>
                         <div class="col">
                             <div class="row justify-content-start align-items-center">

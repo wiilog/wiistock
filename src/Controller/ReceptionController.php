@@ -945,6 +945,7 @@ class ReceptionController extends AbstractController
             $reference = $request->query->get('reference');
             $commande = $request->query->get('commande');
             $quantity = $request->query->get('quantity');
+            $defaultArticleFournisseurReference = $request->query->get('defaultArticleFournisseurReference');
 
             // TODO verif null
 
@@ -964,6 +965,7 @@ class ReceptionController extends AbstractController
                         'referenceLabel' => $refArticle->getLibelle(),
                         'commande' => $commande,
                         'quantity' => $quantity,
+                        'defaultArticleFournisseurReference' => $defaultArticleFournisseurReference,
                     ],
                     'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
                     'champsLibres' => $champsLibres,
@@ -1428,45 +1430,6 @@ class ReceptionController extends AbstractController
             ->setDateCommande($now);
 
         $entityManager->flush();
-    }
-
-    /**
-     * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse|RedirectResponse
-     */
-    public function getArticleFournisseur(Request $request, EntityManagerInterface $entityManager)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $json = null;
-            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
-
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $fournisseur = $fournisseurRepository->find($data['fournisseur']);
-                $articlesFournisseurs = $articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
-                if ($articlesFournisseurs !== null) {
-                    $json = [
-                        "option" => $this->renderView(
-                            'reception/optionArticleFournisseur.html.twig',
-                            [
-                                'articlesFournisseurs' => $articlesFournisseurs,
-                            ]
-                        )
-                    ];
-                }
-            }
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
     }
 
     /**
