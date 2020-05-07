@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\DashboardMeter;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method DashboardMeter|null find($id, $lockMode = null, $lockVersion = null)
@@ -56,5 +58,27 @@ class DashboardMeterRepository extends ServiceEntityRepository
            "
         );
         $query->execute();
+    }
+
+    /**
+     * @param string $key
+     * @param string $dashboard
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getByKeyAndDashboard(string $key, string $dashboard): array {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "
+                SELECT d.label, d.count, d.delay
+                FROM App\Entity\DashboardMeter d
+                WHERE d.meterKey = :key AND d.dashboard = :dashboard
+           "
+        )->setParameters([
+            'key' => $key,
+            'dashboard' => $dashboard,
+        ]);
+        return $query->getSingleResult();
     }
 }

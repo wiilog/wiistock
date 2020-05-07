@@ -494,7 +494,7 @@ class AccueilController extends AbstractController
      * @return Response
      */
     public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
-        $response = $dashboardService->getDataForReceptionAdminDashboard();
+        $response = $dashboardService->getSimplifiedDataForAdminDashboard();
         return new JsonResponse($response);
     }
 
@@ -510,7 +510,7 @@ class AccueilController extends AbstractController
      * @throws Exception
      */
     public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService): Response {
-        $response = $dashboardService->getDataForMonitoringPackagingDashboard();
+        $response = $dashboardService->getSimplifiedDataForPackagingDashboard();
         return new JsonResponse($response);
     }
 
@@ -526,7 +526,7 @@ class AccueilController extends AbstractController
      */
     public function getIndicatorsDockReception(DashboardService $dashboardService): Response
     {
-        $response = $dashboardService->getDataForReceptionDockDashboard();
+        $response = $dashboardService->getSimplifiedDataForDockDashboard();
         return new JsonResponse($response);
     }
 
