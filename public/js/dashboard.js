@@ -255,11 +255,9 @@ function reloadData() {
 }
 
 function updateRefreshDate() {
-    let now = new Date();
-    const date = ('0' + (now.getDate() + 1)).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear();
-    let minutes = Math.floor(now.getMinutes() / 10) * 10;
-    const hour = now.getHours() + ':' + minutes;
-    $('.refreshDate').text(`${date} à ${hour}`);
+    $.get(Routing.generate('last_refresh'), function(response) {
+        $('.refreshDate').text(response);
+    });
 }
 
 function updateSimpleChartData(

@@ -18,6 +18,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Entity\Wiilock;
 use App\Repository\DashboardMeterRepository;
 use DateTime;
 use DateTimeZone;
@@ -38,12 +39,15 @@ class DashboardService
 
     private $enCoursService;
     private $entityManager;
+    private $wiilockService;
 
     public function __construct(EnCoursService $enCoursService,
+                                WiilockService $wiilockService,
                                 EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
         $this->enCoursService = $enCoursService;
+        $this->wiilockService = $wiilockService;
     }
 
     public function getWeekAssoc($firstDay, $lastDay, $beforeAfter)
@@ -772,20 +776,28 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
-        $this->flushAndClearEm($entityManager);
-        $this->retrieveAndInsertParsedDockData($entityManager);
-        $this->flushAndClearEm($entityManager);
-        $this->retrieveAndInsertParsedAdminData($entityManager);
-        $this->flushAndClearEm($entityManager);
-        $this->retrieveAndInsertParsedPackagingData($entityManager);
-        $this->flushAndClearEm($entityManager);
-        $this->retrieveAndInsertLastEnCours($entityManager);
-        $this->flushAndClearEm($entityManager);
+        if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
+            $this->wiilockService->startFeedingDashboard($entityManager);
+            $this->flushAndClearEm($entityManager);
+            $this->retrieveAndInsertParsedDockData($entityManager);
+            $this->flushAndClearEm($entityManager);
+            $this->retrieveAndInsertParsedAdminData($entityManager);
+            $this->flushAndClearEm($entityManager);
+            $this->retrieveAndInsertParsedPackagingData($entityManager);
+            $this->flushAndClearEm($entityManager);
+            $this->retrieveAndInsertLastEnCours($entityManager);
+            $this->flushAndClearEm($entityManager);
+            $this->wiilockService->stopFeedingDashboard($entityManager);
+        }
     }
+
 
     /**
      * @param EntityManagerInterface $entityManager
