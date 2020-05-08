@@ -864,15 +864,12 @@ class ParametrageGlobalController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @param DashboardService $dashboardService
      * @return Response
      * @throws NonUniqueResultException
-     * @throws \Exception
      */
     public function editDashboardParams(Request $request,
                                         EntityManagerInterface $entityManager,
-                                        ParametrageGlobalRepository $parametrageGlobalRepository,
-                                        DashboardService $dashboardService): Response
+                                        ParametrageGlobalRepository $parametrageGlobalRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
             $post = $request->request;
@@ -922,7 +919,6 @@ class ParametrageGlobalController extends AbstractController
                 $param = $parametrageGlobalRepository->findOneByLabel($labelParam);
                 $param->setValue($post->get($selectId));
             }
-            $dashboardService->retrieveAndInsertGlobalDashboardData($entityManager);
             $entityManager->flush();
 
             return new JsonResponse(true);

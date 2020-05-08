@@ -29,7 +29,6 @@ class DashboardChartMeterRepository extends EntityRepository
      * @param string $dashboard
      * @param string $id
      * @return mixed
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function findByDashboardAndId(string $dashboard, string $id) {
@@ -43,6 +42,26 @@ class DashboardChartMeterRepository extends EntityRepository
             'dashboard' => $dashboard,
             'key' => $id,
         ]);
-        return $query->getSingleResult();
+        return $query->getOneOrNullResult();
+    }
+
+    /**
+     * @param string $dashboard
+     * @param string $id
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
+    public function findEntityByDashboardAndId(string $dashboard, string $id) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
+            FROM App\Entity\DashboardChartMeter d
+            WHERE d.dashboard = :dashboard AND d.chartKey = :key
+           "
+        )->setParameters([
+            'dashboard' => $dashboard,
+            'key' => $id,
+        ]);
+        return $query->getOneOrNullResult();
     }
 }

@@ -18,6 +18,7 @@ use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Wiilock;
 use App\Repository\DashboardChartMeterRepository;
 use App\Service\DashboardService;
 use App\Service\EnCoursService;
@@ -73,7 +74,7 @@ class AccueilController extends AbstractController
                                  string $page): Response
     {
         $data = $this->getDashboardData($entityManager);
-		$data['page'] = $page;
+        $data['page'] = $page;
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
@@ -186,7 +187,7 @@ class AccueilController extends AbstractController
         $value['data'] = [];
         while ($idx !== 6) {
             $month = date("m", strtotime($precedentMonthFirst));
-            $month = date("F", mktime(0,0,0, $month, 10));
+            $month = date("F", mktime(0, 0, 0, $month, 10));
             $totalEntryRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalEntryPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
             $totalExitRefArticleOfPrecedentMonth = $mouvementStockRepository->countTotalExitPriceRefArticle($precedentMonthFirst, $precedentMonthLast);
             $totalRefArticleOfPrecedentMonth = $totalEntryRefArticleOfPrecedentMonth - $totalExitRefArticleOfPrecedentMonth;
@@ -233,6 +234,24 @@ class AccueilController extends AbstractController
         }
         $data = $value;
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/acceuil/dernier-rafraichissement", name="last_refresh", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getLastRefreshDate(EntityManagerInterface $entityManager): Response
+    {
+        $wiilockRepository = $entityManager->getRepository(Wiilock::class);
+        $dashboardLock = $wiilockRepository->findOneBy([
+            'lockKey' => Wiilock::DASHBOARD_FED_KEY
+        ]);
+        return new JsonResponse(
+            $dashboardLock->getUpdateDate()
+                ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
+                : 'Aucune données'
+        );
     }
 
     /**
@@ -332,8 +351,8 @@ class AccueilController extends AbstractController
     public function getEnCoursCountByNatureAndTimespan(EntityManagerInterface $entityManager,
                                                        DashboardService $dashboardService,
                                                        int $graph): Response
-	{
-	    $neededOrder = [
+    {
+        $neededOrder = [
             'Retard' => 0,
             'Moins d\'1h' => 1,
             '1h-6h' => 2,
@@ -342,9 +361,9 @@ class AccueilController extends AbstractController
             '24h-36h' => 5,
             '36h-48h' => 6,
         ];
-	    $key = DashboardService::DASHBOARD_ADMIN . '-' . $graph;
-	    $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_ADMIN, $key);
-	    $orderedData = [];
+        $key = DashboardService::DASHBOARD_ADMIN . '-' . $graph;
+        $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_ADMIN, $key);
+        $orderedData = [];
         $orderedData['chartColors'] = $data['chartColors'];
         $orderedData['total'] = $data['total'];
         $orderedData['location'] = $data['location'];
@@ -354,7 +373,7 @@ class AccueilController extends AbstractController
         }
         ksort($orderedData['data']);
         $orderedData['data'] = array_combine(array_keys($neededOrder), array_values($orderedData['data']));
-	    return new JsonResponse($orderedData);
+        return new JsonResponse($orderedData);
     }
 
     /**
@@ -368,7 +387,8 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @return Response
      */
-    public function getIndicatorsAdminReception(DashboardService $dashboardService): Response {
+    public function getIndicatorsAdminReception(DashboardService $dashboardService): Response
+    {
         $response = $dashboardService->getSimplifiedDataForAdminDashboard();
         return new JsonResponse($response);
     }
@@ -386,7 +406,8 @@ class AccueilController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService, EntityManagerInterface $entityManager): Response {
+    public function getIndicatorsMonitoringPackaging(DashboardService $dashboardService, EntityManagerInterface $entityManager): Response
+    {
         $response = $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager);
         return new JsonResponse($response);
     }
@@ -419,9 +440,9 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @return Response
      */
-	public function getAssoRecepStatistics(Request $request,
+    public function getAssoRecepStatistics(Request $request,
                                            DashboardService $dashboardService): Response
-	{
+    {
         $query = $request->query;
         $data = $dashboardService->getWeekAssoc(
             $query->get('firstDay'),
@@ -429,7 +450,7 @@ class AccueilController extends AbstractController
             $query->get('beforeAfter')
         );
         return new JsonResponse($data);
-	}
+    }
 
     /**
      * @Route(
@@ -443,9 +464,9 @@ class AccueilController extends AbstractController
      * @param DashboardService $dashboardService
      * @return Response
      */
-	public function getArrivalUmStatistics(Request $request,
+    public function getArrivalUmStatistics(Request $request,
                                            DashboardService $dashboardService): Response
-	{
+    {
         $query = $request->query;
         $data = $dashboardService->getWeekArrival(
             $query->get('firstDay'),
@@ -453,7 +474,7 @@ class AccueilController extends AbstractController
             $query->get('beforeAfter')
         );
         return new JsonResponse($data);
-	}
+    }
 
     /**
      * @Route(
@@ -469,8 +490,9 @@ class AccueilController extends AbstractController
      *
      * @throws NonUniqueResultException
      */
-	public function getDailyCarriersStatistics(DashboardService $dashboardService): Response {
+    public function getDailyCarriersStatistics(DashboardService $dashboardService): Response
+    {
         $carriersLabels = $dashboardService->getDailyArrivalCarriers();
         return new JsonResponse($carriersLabels);
-	}
+    }
 }
