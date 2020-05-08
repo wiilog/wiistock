@@ -795,6 +795,7 @@ class DashboardService
             $this->retrieveAndInsertLastEnCours($entityManager);
             $this->flushAndClearEm($entityManager);
             $this->wiilockService->stopFeedingDashboard($entityManager);
+            $this->flushAndClearEm($entityManager);
         }
     }
 
