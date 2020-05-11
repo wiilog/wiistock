@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Repository\LatePackRepository;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
@@ -89,23 +90,14 @@ class EnCoursController extends AbstractController
 
     /**
      * @Route("/statistiques/retard-api", name="api_retard", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
-     * @param EnCoursService $enCoursService
+     * @param LatePackRepository $latePackRepository
      * @return JsonResponse
-     * @throws Exception
      */
-    public function apiForRetard(EntityManagerInterface $entityManager,
-                                 EnCoursService $enCoursService): Response {
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
-        $locationArrayWithPack = $emplacementRepository->findWhereArticleIs();
-        $locationIdWithPack = array_map(function($emplacementArray) {
-            return $emplacementArray['id'];
-        }, $locationArrayWithPack);
-        $locationWithPack = $emplacementRepository->findBy(['id' => $locationIdWithPack]);
-
-        $retards = $enCoursService->getEnCours($locationWithPack, [], true, 100);
-        return new JsonResponse($retards);
+    public function apiForRetard(LatePackRepository $latePackRepository): Response {
+        $retards = $latePackRepository->findAllForDatatable();
+        return new JsonResponse([
+            'data' => $retards
+        ]);
     }
 
     /**

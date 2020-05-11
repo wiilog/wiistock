@@ -139,6 +139,20 @@ class EnCoursService
     }
 
     /**
+     * @throws Exception
+     */
+    public function getLastEnCoursForLate() {
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
+
+        $locationArrayWithPack = $emplacementRepository->findWhereArticleIs();
+        $locationIdWithPack = array_map(function($emplacementArray) {
+            return $emplacementArray['id'];
+        }, $locationArrayWithPack);
+        $locationWithPack = $emplacementRepository->findBy(['id' => $locationIdWithPack]);
+        return $this->getEnCours($locationWithPack, [], true, 100);
+    }
+
+    /**
      * @param $locations
      * @param array $natures
      * @param bool $onlyLate
@@ -195,10 +209,7 @@ class EnCoursService
             }
         }
 
-        return [
-            'data' => $emplacementInfo,
-            'success' => $success
-        ];
+        return $emplacementInfo;
     }
 
     /**
