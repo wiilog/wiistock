@@ -55,9 +55,9 @@ class FournisseurRepository extends EntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT f.id, f.nom as text
+            "SELECT f.id, f.codeReference as text
           FROM App\Entity\Fournisseur f
-          WHERE f.nom LIKE :search"
+          WHERE f.codeReference LIKE :search"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
