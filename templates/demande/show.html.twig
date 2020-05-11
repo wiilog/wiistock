@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Demande | Livraison | Détails{% endblock %}
+{% block titleLink path('demande_index') %}
 
 {% block page_content %}
     <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>

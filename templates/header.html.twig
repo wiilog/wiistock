@@ -2,6 +2,7 @@
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
 {% set titleExists = title is defined and title is not empty %}
 {% set subtitleExists = subtitle is defined and subtitle is not empty %}
+{% set titleLink = titleLink is defined ? titleLink : '' %}
 
 <div class="main-header">
     <div class="col-12">
@@ -22,13 +23,15 @@
                             {% if isDashboardExt or titleExists %}
                                 <h5 class="header-title text-white h5 my-0 page-title">
                                     {% if titleExists %}
-                                        {% for subTitle in title|split('|') %}
-                                            {% if loop.last %}
-                                                <span class="bold">{{ subTitle | raw }}</span>
-                                            {% else %}
-                                                {{ subTitle | raw }} |
-                                            {% endif %}
-                                        {% endfor %}
+                                        {% set titleSplit = title|split('|') %}
+                                        {% if titleSplit is not empty %}
+                                            {% if titleLink is not empty %}<a href="{{ titleLink }}">{% endif %}
+                                            {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
+                                                {{ titlePart | raw }} |
+                                            {% endfor %}
+                                            {% if titleLink is not empty %}</a>{% endif %}
+                                            <span class="bold">{{ (titleSplit|last) | raw }}</span>
+                                        {% endif %}
                                     {% endif %}
                                 </h5>
                             {% endif %}
