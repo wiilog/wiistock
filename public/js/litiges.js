@@ -81,7 +81,8 @@ function initDatatableLitiges() {
             },
         ],
         rowConfig: {
-            needsDangerColor: true,
+            needsColor: true,
+            color: 'danger',
             needsRowClickAction: true,
             dataToCheck: 'urgence'
         },

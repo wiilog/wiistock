@@ -304,6 +304,7 @@ class PreparationController extends AbstractController
                             "Quantité" => $articleRef->getQuantiteStock(),
                             "Quantité à prélever" => $qttForCurrentLine,
                             "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
+                            'active' => !empty($ligneArticle->getQuantitePrelevee()),
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $articleRef->getBarCode(),
                                 'isRef' => true,
@@ -311,7 +312,6 @@ class PreparationController extends AbstractController
                                 'isRefByArt' => $isRefByArt,
                                 'id' => $ligneArticle->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
-                                'active' => !empty($ligneArticle->getQuantitePrelevee())
                             ])
                         ];
                     }
@@ -331,6 +331,7 @@ class PreparationController extends AbstractController
                             "Quantité" => $article->getQuantite() ?? '',
                             "Quantité à prélever" => $article->getQuantiteAPrelever() ?? '',
                             "Quantité prélevée" => $article->getQuantitePrelevee() ?? ' ',
+                            'active' => !empty($article->getQuantitePrelevee()),
                             "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                                 'barcode' => $article->getBarCode(),
                                 'artOrRefId' => $article->getId(),
@@ -339,7 +340,6 @@ class PreparationController extends AbstractController
                                 'quantity' => $article->getQuantiteAPrelever(),
                                 'id' => $article->getId(),
                                 'isPrepaEditable' => $isPrepaEditable,
-                                'active' => !empty($article->getQuantitePrelevee())
                             ])
                         ];
                     }
