@@ -351,7 +351,8 @@ class CollecteController extends AbstractController
                 }
 
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
-            } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            }
+            elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA
                 $article = $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
 

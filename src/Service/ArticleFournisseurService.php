@@ -82,4 +82,30 @@ class ArticleFournisseurService
         }
         return $articleFournisseur;
     }
+
+    public function findSimilarArticleFournisseur(ReferenceArticle $referenceArticle,
+                                                  ?Fournisseur $fournisseur): ?ArticleFournisseur {
+        $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
+        $articleFournisseursArray = empty($fournisseur)
+            ? $articleFournisseurRepository->findByRefArticle($referenceArticle->getId())
+            : $articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle->getId(), $fournisseur->getId());
+        $articleFournisseursCount = count($articleFournisseursArray);
+        $indexArticleFournisseur = 0;
+        $articleFournisseur = null;
+
+        while(!isset($articleFournisseur)
+            && $indexArticleFournisseur < $articleFournisseursCount) {
+
+            /** @var ArticleFournisseur $currentArticleFournisseur */
+            $currentArticleFournisseur = $articleFournisseursArray[$indexArticleFournisseur];
+            if (($referenceArticle->getReference() === $currentArticleFournisseur->getReference())
+                && ($referenceArticle->getLibelle() === $currentArticleFournisseur->getLabel())) {
+                $articleFournisseur = $currentArticleFournisseur;
+            }
+            else {
+                $indexArticleFournisseur++;
+            }
+        }
+        return $articleFournisseur;
+    }
 }
