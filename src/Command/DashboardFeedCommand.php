@@ -1,8 +1,9 @@
 <?php
 /**
- * Commande Cron exécutée toute les 10 min
+ * Commande Cron exécutée toute les minutes tous les jours de 7h a 19h excepté le dimanche :
+ *
  */
-
+// */1 6-18 * * 1-6
 namespace App\Command;
 
 use App\Entity\CategorieStatut;
