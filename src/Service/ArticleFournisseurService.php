@@ -7,9 +7,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Symfony\Component\HttpFoundation\Request;
+use Exception;
 
 
 class ArticleFournisseurService
@@ -28,8 +26,7 @@ class ArticleFournisseurService
      * @param array $data
      * @param bool $generateReference
      * @return ArticleFournisseur
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function createArticleFournisseur(array $data, bool $generateReference = false): ArticleFournisseur
     {
@@ -81,7 +78,7 @@ class ArticleFournisseurService
                 ->setLabel($label);
         }
         else {
-            throw new \Exception(self::ERROR_REFERENCE_ALREADY_EXISTS);
+            throw new Exception(self::ERROR_REFERENCE_ALREADY_EXISTS);
         }
         return $articleFournisseur;
     }

@@ -20,7 +20,6 @@ use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
 use App\Service\AttachmentService;
-use App\Service\DashboardService;
 use App\Service\GlobalParamService;
 use App\Service\StatutService;
 use App\Service\TranslationService;

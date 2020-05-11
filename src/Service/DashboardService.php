@@ -18,15 +18,12 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
-use App\Repository\DashboardMeterRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\ORMException;
 use Exception;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class DashboardService

@@ -12,11 +12,9 @@ use App\Entity\Nature;
 use App\Repository\LatePackRepository;
 use App\Service\EnCoursService;
 use App\Service\UserService;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -60,7 +58,6 @@ class EnCoursController extends AbstractController
      * @param EnCoursService $enCoursService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
-     * @throws DBALException
      * @throws NonUniqueResultException
      */
     public function apiForEmplacement(Request $request,

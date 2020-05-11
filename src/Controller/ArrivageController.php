@@ -40,7 +40,6 @@ use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\StatutService;
-use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;

@@ -22,7 +22,6 @@ use App\Entity\ArticleFournisseur;
 use App\Repository\UtilisateurRepository;
 
 use App\Service\ArticleDataService;
-use App\Service\ArticleFournisseurService;
 use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;

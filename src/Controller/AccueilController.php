@@ -2,27 +2,17 @@
 
 namespace App\Controller;
 
-use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\Colis;
 use App\Entity\Collecte;
-use App\Entity\DashboardChartMeter;
-use App\Entity\DaysWorked;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiabilityByReference;
 use App\Entity\Manutention;
 use App\Entity\MouvementStock;
-use App\Entity\Nature;
-use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Repository\DashboardChartMeterRepository;
 use App\Service\DashboardService;
-use App\Service\EnCoursService;
-use DateTime;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
