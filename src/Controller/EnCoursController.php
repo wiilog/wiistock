@@ -83,8 +83,10 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : []
         );
-
-		return new JsonResponse($enCoursService->getEnCours($emplacement, $natureIds));
+		$response = $enCoursService->getEnCours($emplacement, $natureIds);
+		return new JsonResponse([
+		    'data' => $response
+        ]);
     }
 
 
