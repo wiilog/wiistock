@@ -266,3 +266,7 @@ function callbackSaveFilter() {
         window.location.href = Routing.generate('demande_index');
     }
 }
+
+function redirectToArticlesList() {
+    window.location.href = Routing.generate('reference_article_index');
+}

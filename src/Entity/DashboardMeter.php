@@ -37,7 +37,7 @@ class DashboardMeter
     private $label;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="bigint", nullable=true)
      */
     private $delay;
 

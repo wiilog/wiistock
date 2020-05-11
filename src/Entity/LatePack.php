@@ -27,7 +27,7 @@ class LatePack
     private $date;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="bigint")
      */
     private $delay;
 
