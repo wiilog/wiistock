@@ -1,6 +1,7 @@
 {% extends "layout.html.twig" %}
 
 {% block title %}Traçabilité | {{ 'arrivage.arrivage'|trans }} | Détails{% endblock %}
+{% block titleLink path('arrivage_index') %}
 
 {% block page_content %}
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}

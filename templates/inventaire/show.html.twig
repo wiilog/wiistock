@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Stock | Inventaire | Mission{% endblock %}
+{% block titleLink path('inventory_mission_index') %}
 
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
