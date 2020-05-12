@@ -81,7 +81,7 @@ let tableArticleConfig = {
     rowConfig: {
         needsRowClickAction: true,
         needsColor: true,
-        color: 'primary',
+        color: 'success',
         dataToCheck: 'active'
     },
     order: [[1, "asc"]],
