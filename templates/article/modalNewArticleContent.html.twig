@@ -6,11 +6,15 @@
         <label>Référence fournisseur*
             <select class="form-control data needed select2" name="articleFournisseur">
                 {% if references is defined and references %}
-                    {% if references|length > 1 %}
+                    {% if (defaultArticleFournisseurReference is not defined or defaultArticleFournisseurReference is empty)
+                          and references|length > 1 %}
                         <option value="" selected>&nbsp;</option>
                     {% endif %}
                     {% for ref in references %}
-                        <option value="{{ ref.id }}">{{ ref.reference }}</option>
+                        <option value="{{ ref.id }}"
+                                {{ defaultArticleFournisseurReference == ref.reference ? 'selected' }}>
+                            {{ ref.reference }}
+                        </option>
                     {% endfor %}
                 {% endif %}
             </select>

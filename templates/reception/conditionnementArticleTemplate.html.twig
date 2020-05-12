@@ -37,5 +37,8 @@
         </div>
 
     </div>
-    {% include 'article/modalNewArticleContent.html.twig' with {easyForm: true} %}
+    {% include 'article/modalNewArticleContent.html.twig' with {
+        easyForm: true,
+        defaultArticleFournisseurReference: reception.defaultArticleFournisseurReference
+    } %}
 </div>
