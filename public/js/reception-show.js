@@ -432,11 +432,15 @@ function clearModalLigneReception(modal) {
     }
     $('.packing-title').addClass('d-none');
     clearModal(modal);
+
+    toggleDLForm();
+    resetDefaultArticleFournisseur();
 }
 
 function validatePacking($button) {
     const $packingContainer = $button.closest('.bloc-packing');
     const $selectRefArticle = $packingContainer.find('[name="refArticleCommande"]');
+    const $selectArticleFournisseur = $packingContainer.find('[name="articleFournisseurDefault"]');
     const packageNumber = Number($packingContainer
         .find('[name="packageNumber"]')
         .val());
@@ -444,6 +448,7 @@ function validatePacking($button) {
         .find('[name="numberInPackage"]')
         .val());
     const selectedOptionArray = $selectRefArticle.select2('data');
+    const [defaultArticleFournisseur] = $selectArticleFournisseur.select2('data');
 
     if ((selectedOptionArray && selectedOptionArray.length > 0) &&
         (packageNumber && packageNumber > 0) &&
@@ -455,7 +460,8 @@ function validatePacking($button) {
             {
                 quantity: numberInPackage,
                 reference: selectedOption.reference,
-                commande: selectedOption.commande
+                commande: selectedOption.commande,
+                defaultArticleFournisseurReference: defaultArticleFournisseur && defaultArticleFournisseur.text
             },
             'text/html'
         ).done(function (html) {
@@ -620,4 +626,55 @@ function createHandlerAddLigneArticleResponse($modal) {
 
 function updateQuantityToReceive($input) {
     $input.closest('.modal').find('#quantite').attr('max', $input.val());
+}
+
+function toggleDLForm() {
+    const $input = $('#modalNewLigneReception input[name="create-demande"]');
+    const $demandeForm = $input
+        .parents('form')
+        .find('.demande-form');
+    if ($input.is(':checked')) {
+        $demandeForm.removeClass('d-none');
+        $demandeForm.find('.data').attr('disabled', null);
+    }
+    else {
+        $demandeForm.addClass('d-none');
+        $demandeForm.find('.data').attr('disabled', 'disabled');
+    }
+}
+
+function initConditionnementArticleFournisseurDefault() {
+    const $selectRefArticle = $('#modalNewLigneReception select[name="refArticleCommande"]');
+    const [referenceArticle] = $selectRefArticle.select2('data');
+    const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
+
+    if (referenceArticle) {
+        resetDefaultArticleFournisseur(true);
+
+        initSelect2($selectArticleFournisseur, '', 1, {
+            route: 'get_article_fournisseur_autocomplete',
+            param: {
+                referenceArticle: referenceArticle.reference
+            }
+        });
+    }
+    else {
+        resetDefaultArticleFournisseur();
+    }
+}
+
+function resetDefaultArticleFournisseur(show = false) {
+    const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
+    const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.parents('.form-group');
+    if ($selectArticleFournisseur.hasClass("select2-hidden-accessible")) {
+        $selectArticleFournisseur.select2('destroy');
+    }
+    $selectArticleFournisseur.val(null).trigger('change');
+
+    if (show) {
+        $selectArticleFournisseurFormGroup.removeClass('d-none');
+    }
+    else {
+        $selectArticleFournisseurFormGroup.addClass('d-none');
+    }
 }

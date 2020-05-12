@@ -205,17 +205,24 @@ class ArticleFournisseurRepository extends EntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-    public function getIdAndLibelleBySearch($search)
+    public function getIdAndLibelleBySearch($search, $refArticle = null)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT articleFournisseur.id,
-                         articleFournisseur.reference as text
-          FROM App\Entity\ArticleFournisseur articleFournisseur
-          WHERE articleFournisseur.reference LIKE :search"
-        )->setParameter('search', '%' . $search . '%');
+        $queryBuilder = $this->createQueryBuilder('articleFournisseur')
+            ->addSelect('articleFournisseur.id AS id')
+            ->addSelect('articleFournisseur.reference AS text')
+            ->andWhere('articleFournisseur.reference LIKE :search')
+            ->setParameter('search', '%' . $search . '%');
 
-        return $query->execute();
+        if (!empty($refArticle)) {
+            $queryBuilder
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->andWhere('referenceArticle.reference = :referenceArticleReference')
+                ->setParameter('referenceArticleReference', $refArticle);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
     public function getIdAndLibelleBySearchAndRef($search, $ref)

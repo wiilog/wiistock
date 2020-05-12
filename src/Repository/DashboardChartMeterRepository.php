@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\DashboardChartMeter;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 
 /**
  * @method DashboardChartMeter|null find($id, $lockMode = null, $lockVersion = null)

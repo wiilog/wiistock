@@ -245,4 +245,25 @@ class ArticleFournisseurController extends AbstractController
         ];
         return $row;
     }
+
+    /**
+     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+    public function getArticleFournisseur(Request $request,
+                                          EntityManagerInterface $entityManager)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+            $referenceArticle = $request->query->get('referenceArticle');
+
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $articleFournisseurs = $articleFournisseurRepository->getIdAndLibelleBySearch($search, $referenceArticle);
+
+            return new JsonResponse(['results' => $articleFournisseurs]);
+        }
+        throw new NotFoundHttpException("404");
+    }
 }

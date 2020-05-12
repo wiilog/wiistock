@@ -97,11 +97,6 @@ class ReceptionController extends AbstractController
     private $globalParamService;
 
     /**
-     * @var FieldsParamRepository
-     */
-    private $fieldsParamRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -154,7 +149,6 @@ class ReceptionController extends AbstractController
         LitigeRepository $litigeRepository,
         MailerService $mailerService,
         AttachmentService $attachmentService,
-        FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
         MouvementStockService $mouvementStockService,
@@ -173,7 +167,6 @@ class ReceptionController extends AbstractController
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
-        $this->fieldsParamRepository = $fieldsParamRepository;
         $this->mouvementStockService = $mouvementStockService;
         $this->translationService = $translationService;
     }
@@ -392,6 +385,7 @@ class ReceptionController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $reception = $receptionRepository->find($data['id']);
 
@@ -422,7 +416,7 @@ class ReceptionController extends AbstractController
                 ];
             }
 
-            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
@@ -437,8 +431,12 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
@@ -447,7 +445,8 @@ class ReceptionController extends AbstractController
 
             $data = $this->receptionService->getDataForDatatable($request->request);
 
-            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
             $data['columnsToHide'] = $fieldsParam;
 
             return new JsonResponse($data);
@@ -529,10 +528,11 @@ class ReceptionController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
         $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
         foreach ($listType as $type) {
@@ -675,7 +675,7 @@ class ReceptionController extends AbstractController
                     $reception->setStatut($statutRecep);
                 }
 
-                $receptionReferenceArticle = new ReceptionReferenceArticle;
+                $receptionReferenceArticle = new ReceptionReferenceArticle();
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
@@ -840,34 +840,7 @@ class ReceptionController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
-        $type = $reception->getType();
-        if ($type) {
-            $valeurChampLibreTab = $valeurChampLibreRepository->getByReceptionAndType($reception, $type);
-        } else {
-            $valeurChampLibreTab = [];
-        }
-
-        $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-
-        $champsLibresReception = [];
-        foreach ($listTypes as $type) {
-            $listChampLibreReception = $champLibreRepository->findByType($type['id']);
-
-            foreach ($listChampLibreReception as $champLibre) {
-                $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
-                $champsLibresReception[] = [
-                    'id' => $champLibre->getId(),
-                    'label' => $champLibre->getLabel(),
-                    'typage' => $champLibre->getTypage(),
-                    'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
-                    'defaultValue' => $champLibre->getDefaultValue(),
-                    'valeurChampLibre' => $valeurChampLibre,
-                ];
-            }
-        }
 
         $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         $typeChampLibreDL = [];
@@ -972,6 +945,7 @@ class ReceptionController extends AbstractController
             $reference = $request->query->get('reference');
             $commande = $request->query->get('commande');
             $quantity = $request->query->get('quantity');
+            $defaultArticleFournisseurReference = $request->query->get('defaultArticleFournisseurReference');
 
             // TODO verif null
 
@@ -991,6 +965,7 @@ class ReceptionController extends AbstractController
                         'referenceLabel' => $refArticle->getLibelle(),
                         'commande' => $commande,
                         'quantity' => $quantity,
+                        'defaultArticleFournisseurReference' => $defaultArticleFournisseurReference,
                     ],
                     'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
                     'champsLibres' => $champsLibres,
@@ -1458,45 +1433,6 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse|RedirectResponse
-     */
-    public function getArticleFournisseur(Request $request, EntityManagerInterface $entityManager)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $json = null;
-            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
-
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $fournisseur = $fournisseurRepository->find($data['fournisseur']);
-                $articlesFournisseurs = $articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
-                if ($articlesFournisseurs !== null) {
-                    $json = [
-                        "option" => $this->renderView(
-                            'reception/optionArticleFournisseur.html.twig',
-                            [
-                                'articlesFournisseurs' => $articlesFournisseurs,
-                            ]
-                        )
-                    ];
-                }
-            }
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @return Response
@@ -1856,8 +1792,7 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
             }
             // optionnel : crée la demande de livraison
-            $paramCreateDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
-            $needCreateLivraison = $paramCreateDL ? $paramCreateDL->getValue() : false;
+            $needCreateLivraison = (bool) $data['create-demande'];
 
             if ($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa

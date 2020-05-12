@@ -2,29 +2,11 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Acheminements;
-use App\Entity\Arrivage;
-use App\Entity\Article;
-use App\Entity\CategorieStatut;
-use App\Entity\Collecte;
-use App\Entity\Demande;
-use App\Entity\Import;
-use App\Entity\Livraison;
-use App\Entity\MouvementStock;
-use App\Entity\MouvementTraca;
-use App\Entity\OrdreCollecte;
-use App\Entity\Preparation;
-use App\Entity\Reception;
-use App\Entity\ReferenceArticle;
-use App\Entity\Manutention;
-use App\Entity\Statut;
 use App\Entity\Wiilock;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
-use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
 
 class WiilockFixtures extends Fixture implements FixtureGroupInterface
 {

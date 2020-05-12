@@ -5,22 +5,12 @@ namespace App\DataFixtures;
 
 use App\Entity\FieldsParam;
 
-use App\Repository\FieldsParamRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
 {
-	/**
-	 * @var FieldsParamRepository
-	 */
-	private $fieldsParamRepository;
-
-	public function __construct(FieldsParamRepository $fieldsParamRepository)
-	{
-		$this->fieldsParamRepository = $fieldsParamRepository;
-	}
 
 	public function load(ObjectManager $manager)
     {
@@ -54,9 +44,11 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
             ]
         ];
 
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+
     	foreach ($listEntityFieldCodes as $fieldEntity => $listFieldCodes) {
             foreach ($listFieldCodes as $fieldCode) {
-                $field = $this->fieldsParamRepository->findOneBy(
+                $field = $fieldsParamRepository->findOneBy(
                     [
                         'fieldCode' => $fieldCode['code'],
                         'entityCode' => $fieldEntity

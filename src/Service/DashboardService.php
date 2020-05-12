@@ -18,8 +18,6 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
-use App\Entity\Wiilock;
-use App\Repository\DashboardMeterRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;

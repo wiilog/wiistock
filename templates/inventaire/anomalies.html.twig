@@ -1,16 +1,10 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Stock | Inventaire | Anomalies{% endblock %}
+{% block titleLink path('inventory_mission_index') %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto">
-                <a href="{{ path ('inventory_mission_index') }}" class="btn btn-primary btn-ripple">
-                    Retour aux missions
-                </a>
-            </div>
-        </div>
         <div class="row">
             <div class="col-12">
                 <table id="tableAnomalies" class="table w-100"></table>

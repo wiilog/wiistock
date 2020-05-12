@@ -6,8 +6,8 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
-use App\Repository\FieldsParamRepository;
 use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -42,12 +42,13 @@ class FieldsParamController extends AbstractController
      * @Route("/api/{entityCode}", name="fields_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
-     * @param FieldsParamRepository $fieldsParamRepository
+     * @param EntityManagerInterface $entityManager
+     * @param string $entityCode
      * @return Response
      */
     public function api(Request $request,
                         UserService $userService,
-                        FieldsParamRepository $fieldsParamRepository,
+                        EntityManagerInterface $entityManager,
                         string $entityCode): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -55,6 +56,7 @@ class FieldsParamController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $arrayFields = $fieldsParamRepository->findByEntityForEntity($entityCode);
             $rows = [];
             foreach ($arrayFields as $field) {
@@ -82,18 +84,18 @@ class FieldsParamController extends AbstractController
      * @Route("/api-modifier", name="fields_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
-     * @param FieldsParamRepository $fieldsParamRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function apiEdit(Request $request,
                             UserService $userService,
-                            FieldsParamRepository $fieldsParamRepository): Response
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $field = $fieldsParamRepository->find($data['id']);
 
             $json = $this->renderView('fields_param/modalEditFieldsContent.html.twig', [
@@ -109,19 +111,20 @@ class FieldsParamController extends AbstractController
      * @Route("/modifier", name="fields_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param UserService $userService
-     * @param FieldsParamRepository $fieldsParamRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
                          UserService $userService,
-                         FieldsParamRepository $fieldsParamRepository): Response {
+                         EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $field = $fieldsParamRepository->find($data['field']);
+
             $fieldName = $field->getFieldCode();
             $fieldEntity = $field->getEntityCode();
 
