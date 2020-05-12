@@ -1,14 +1,16 @@
 <div class="d-flex">
     {% set target = isRef ? '#modalShowRefArticle' : '#modalShowArticle' %}
     {% set path = isRef ? 'reference_article_show' : 'article_show' %}
-    <div class="dropdown dropright">
+    <div class="dropdown dropright {{ not isPrepaEditable ? 'd-none' }}">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
-            <div class="d-none">
-                <div class="action-on-click" data-barcode='{{ barcode }}' data-target='{{ target }}' data-toggle='modal' data-id="{{ artOrRefId }}"
-                     onclick="showRow($(this), Routing.generate('{{ path }}', true), $('{{ target }}'))">
-                    <i class='fas fa-eye'></i>
-                </div>
+            <div class="dropdown-item"
+                 data-barcode='{{ barcode }}'
+                 data-target='{{ target }}'
+                 data-toggle='modal'
+                 data-id="{{ artOrRefId }}"
+                 onclick="showRow($(this), Routing.generate('{{ path }}', true), $('{{ target }}'))">
+                <i class='fas fa-eye mr-2'></i>Voir
             </div>
             {% if isPrepaEditable %}
                 {% set action = '' %}
@@ -20,14 +22,15 @@
                     {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
                     {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
                 {% endif %}
-                    <div class="dropdown-item {{ active ? 'active' : '' }}"
-                        {{ attr }}
-                         data-barcode='{{ barcode }}'
-                         data-id='{{ id }}'
-                         data-ref='{{ isRef ? 1 : 0 }}'
-                         onclick="beginPrepa(){{ action }}">
-                        <i class='fas fa-check mr-2'></i>Selectionner
-                    </div>
+                <div class="action-on-click d-none"
+                    {{ attr }}
+                     data-barcode='{{ barcode }}'
+                     data-id='{{ id }}'
+                     data-ref='{{ isRef ? 1 : 0 }}'
+                     onclick="beginPrepa(){{ action }}">
+                    <i class='fas fa-check mr-2'></i>Selectionner
+                </div>
+
             {% endif %}
 
             {% if not isRef or not isRefByArt %}

@@ -45,7 +45,10 @@ submitFinishCollecte.on('click', function() {
 });
 
 function toggleCheck($elem) {
-    $elem.toggleClass('active');
+    $elem
+        .parents('tr')
+        .toggleClass('active')
+        .toggleClass('table-success');
 }
 
 function checkIfRowSelected(success) {
@@ -64,14 +67,15 @@ function openLocationModal() {
 function finishCollecte(withoutLocation = false) {
     // on récupère les lignes sélectionnées
     let $table = $('#tableArticle');
-    let $rowsSelected = $table.find('.dropdown-item.active');
-    let $rowsToDelete = $table.find('.dropdown-item:not(.active)');
+    let $rowsSelected = $table.find('tr.active');
+    let $rowsToDelete = $table.find('tr:not(.active)');
     let rowsData = [];
     $rowsSelected.each(function() {
+        const $rowData = $(this).find('.ordre-collecte-data');
         rowsData.push({
-            'reference': $(this).data('ref'),
-            'is_ref': $(this).data('is-ref'),
-            'quantity': $(this).data('quantity')
+            'reference': $rowData.data('ref'),
+            'is_ref': $rowData.data('is-ref'),
+            'quantity': $rowData.data('quantity')
         });
     });
 
@@ -89,7 +93,7 @@ function finishCollecte(withoutLocation = false) {
             $('.zone-entete').html(data);
             $rowsToDelete.each(function() {
                 tableArticle
-                    .row($(this).parents('tr'))
+                    .row($(this))
                     .remove()
                     .draw();
             });
