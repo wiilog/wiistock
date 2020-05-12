@@ -13,7 +13,6 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Wiilock;
-use App\Repository\DashboardChartMeterRepository;
 use App\Service\DashboardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
