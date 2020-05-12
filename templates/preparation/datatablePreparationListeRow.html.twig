@@ -32,8 +32,7 @@
                 </div>
 
             {% endif %}
-
-            {% if isRef or not isRefByArt %}
+            {% if not isRef or not isRefByArt %}
                 {% set printPath = (isRef
                     ? path('reference_article_single_bar_code_print', {reference: artOrRefId})
                     : path('article_single_bar_code_print', {article: artOrRefId}) ) %}
@@ -45,3 +44,5 @@
         </div>
     </div>
 </div>
+{{ dump(isRef) }}
+{{ dump(isRefByArt) }}
