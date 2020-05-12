@@ -225,7 +225,6 @@ class RefArticleDataService
      * @return RedirectResponse
      * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */

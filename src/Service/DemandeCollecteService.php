@@ -15,7 +15,7 @@ use App\Entity\ValeurChampLibre;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
@@ -185,8 +185,8 @@ class DemandeCollecteService
      * @param ReferenceArticle $referenceArticle
      * @param Collecte $collecte
      * @return Article
-     * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function persistArticleInDemand(array $data,
                                            ReferenceArticle $referenceArticle,
@@ -195,26 +195,31 @@ class DemandeCollecteService
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
 
-        $fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
-        if (!$fournisseurTemp) {
-            $fournisseurTemp = new Fournisseur();
-            $fournisseurTemp
-                ->setCodeReference('A_DETERMINER')
-                ->setNom('A DETERMINER');
-            $this->entityManager->persist($fournisseurTemp);
-        }
         $article = new Article();
-        $index = $articleFournisseurRepository->countByRefArticle($referenceArticle);
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $ref = $date->format('YmdHis');
 
-        $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
-            'label' => 'A déterminer - ' . $index,
-            'article-reference' => $referenceArticle,
-            'reference' => $referenceArticle->getReference(),
-            'fournisseur' => $fournisseurTemp
-        ], true);
+        $index = $articleFournisseurRepository->countByRefArticle($referenceArticle);
+        $articleFournisseur = $this->articleFournisseurService->findSimilarArticleFournisseur($referenceArticle);
+
+        if (!isset($articleFournisseur)) {
+            $fournisseurTemp = $fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+            if (!$fournisseurTemp) {
+                $fournisseurTemp = new Fournisseur();
+                $fournisseurTemp
+                    ->setCodeReference('A_DETERMINER')
+                    ->setNom('A DETERMINER');
+                $this->entityManager->persist($fournisseurTemp);
+            }
+
+            $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
+                'label' => 'A déterminer - ' . $index,
+                'article-reference' => $referenceArticle,
+                'reference' => $referenceArticle->getReference(),
+                'fournisseur' => $fournisseurTemp
+            ], true);
+        }
 
         $this->entityManager->persist($articleFournisseur);
         $article

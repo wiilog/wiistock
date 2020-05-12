@@ -10,8 +10,6 @@ use App\Entity\ReferenceArticle;
 use App\Service\ArticleFournisseurService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use mysql_xdevapi\Exception;
-use phpDocumentor\Reflection\Types\String_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -6,7 +6,6 @@ namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use http\Client\Curl\User;
 
 /**
  * Auto-generated Migration: Please modify to your needs!

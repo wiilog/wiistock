@@ -24,7 +24,6 @@ use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\FieldsParamRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
@@ -40,7 +39,6 @@ use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\StatutService;
-use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use DateTime;
@@ -131,13 +129,7 @@ class ArrivageController extends AbstractController
      */
     private $dashboardService;
 
-    /**
-     * @var FieldsParamRepository
-     */
-    private $fieldsParamRepository;
-
-    public function __construct(FieldsParamRepository $fieldsParamRepository,
-                                ArrivageDataService $arrivageDataService,
+    public function __construct(ArrivageDataService $arrivageDataService,
                                 DashboardService $dashboardService,
                                 UrgenceRepository $urgenceRepository,
                                 AttachmentService $attachmentService,
@@ -151,7 +143,6 @@ class ArrivageController extends AbstractController
                                 UtilisateurRepository $utilisateurRepository,
                                 UserService $userService)
     {
-        $this->fieldsParamRepository = $fieldsParamRepository;
         $this->dashboardService = $dashboardService;
         $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;

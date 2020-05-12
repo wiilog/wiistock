@@ -97,11 +97,6 @@ class ReceptionController extends AbstractController
     private $globalParamService;
 
     /**
-     * @var FieldsParamRepository
-     */
-    private $fieldsParamRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -154,7 +149,6 @@ class ReceptionController extends AbstractController
         LitigeRepository $litigeRepository,
         MailerService $mailerService,
         AttachmentService $attachmentService,
-        FieldsParamRepository $fieldsParamRepository,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
         MouvementStockService $mouvementStockService,
@@ -173,7 +167,6 @@ class ReceptionController extends AbstractController
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
-        $this->fieldsParamRepository = $fieldsParamRepository;
         $this->mouvementStockService = $mouvementStockService;
         $this->translationService = $translationService;
     }
@@ -392,6 +385,7 @@ class ReceptionController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $reception = $receptionRepository->find($data['id']);
 
@@ -422,7 +416,7 @@ class ReceptionController extends AbstractController
                 ];
             }
 
-            $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
@@ -437,8 +431,12 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
@@ -447,7 +445,8 @@ class ReceptionController extends AbstractController
 
             $data = $this->receptionService->getDataForDatatable($request->request);
 
-            $fieldsParam = $this->fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
             $data['columnsToHide'] = $fieldsParam;
 
             return new JsonResponse($data);
@@ -529,10 +528,11 @@ class ReceptionController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
         $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-        $fieldsParam = $this->fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
         foreach ($listType as $type) {
