@@ -95,7 +95,8 @@ class ArticleFournisseurRepository extends EntityRepository
         $query = $entityManager->createQuery(
             "SELECT af
             FROM App\Entity\ArticleFournisseur af
-            WHERE af.referenceArticle = :refArticleId AND af.fournisseur = :fournisseurId"
+            WHERE af.referenceArticle = :refArticleId
+              AND af.fournisseur = :fournisseurId"
         )->setParameters(['refArticleId' => $refArticleId, 'fournisseurId' => $fournisseurId]);
 
         return $query->getResult();
@@ -284,7 +285,7 @@ class ArticleFournisseurRepository extends EntityRepository
         $query = $entityManager->createQuery(
         /** @lang DQL */
             "SELECT COUNT(articleFournisseur)
-           FROM App\Entity\ArticleFournisseur articleFournisseur       
+           FROM App\Entity\ArticleFournisseur articleFournisseur
            WHERE articleFournisseur.reference = :reference
            AND articleFournisseur.referenceArticle = :referencearticle"
         )   ->setParameter('referencearticle', $referencearticle)

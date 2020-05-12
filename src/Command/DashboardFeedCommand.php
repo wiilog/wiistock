@@ -1,22 +1,14 @@
 <?php
 /**
- * Commande Cron exécutée toute les 10 min
+ * Commande Cron exécutée toute les minutes tous les jours de 7h a 19h excepté le dimanche :
+ *
  */
-
+// */1 6-18 * * 1-6
 namespace App\Command;
 
-use App\Entity\CategorieStatut;
-use App\Entity\DashboardMeter;
-use App\Entity\Import;
-use App\Entity\Statut;
-use App\Repository\DashboardMeterRepository;
 use App\Service\DashboardService;
-use App\Service\ImportService;
-use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
 use Exception;
 use Symfony\Component\Console\Command\Command;

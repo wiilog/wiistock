@@ -1165,8 +1165,7 @@ class ImportService
      * @param ReferenceArticle|null $referenceArticle
      * @return ArticleFournisseur|null
      * @throws ImportException
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
                                                       ?string $fournisseurReference,
@@ -1187,10 +1186,11 @@ class ImportService
                     );
                 }
                 $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
+
                 $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
                     'fournisseur' => $fournisseur,
                     'reference' => $articleFournisseurReference,
-                    'article-reference' =>$referenceArticle,
+                    'article-reference' => $referenceArticle,
                     'label' => ($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom())
                 ]);
             }
@@ -1214,17 +1214,18 @@ class ImportService
                     $this->throwError("Veuillez renseigner une référence d'article fournisseur correspondant à la référence d'article fournie.");
                 }
             }
-        } // cas où la ref d'article fournisseur n'est pas renseigné
+        } // cas où la ref d'article fournisseur n'est pas renseignée
         else {
             if (empty($referenceArticle)) {
                 $this->throwError("Vous n'avez pas renseigné de référence d'article fournisseur. Dans ce cas, veuillez fournir une référence d'article de référence connue.");
             }
 
             $fournisseur = $this->checkAndCreateProvider(!empty($fournisseurReference) ? $fournisseurReference : Fournisseur::REF_A_DEFINIR);
-            $articleFournisseur = $articleFournisseurRepository->findOneBy([
-                'referenceArticle' => $referenceArticle,
-                'fournisseur' => $fournisseur
-            ]);
+
+            $articleFournisseur = $this->articleFournisseurService->findSimilarArticleFournisseur(
+                $referenceArticle,
+                !empty($fournisseurReference) ? $fournisseur : null
+            );
             if (empty($articleFournisseur)) {
                 $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
                     'label' => $referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom(),
