@@ -510,7 +510,9 @@ class OrdreCollecteController extends AbstractController
                 : null;
         }, $ordreCollecteReferences);
 
-        $barCodes = array_merge($barCodesArticles, array_filter($barCodesReferences));
+        $barCodes = array_merge($barCodesArticles, array_filter($barCodesReferences , function ($value) {
+            return $value !== null;}
+        ));
         $barCodesCount = count($barCodes);
         if($barCodesCount > 0) {
             $fileName = $PDFGeneratorService->getBarcodeFileName(
