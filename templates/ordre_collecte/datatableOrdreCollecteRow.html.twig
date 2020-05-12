@@ -9,56 +9,51 @@
              onclick="toggleCheck($(this))">
             Selectionner
         </div>
+    {% elif refArticleId is defined %}
+        <div class="action-on-click d-none sr-only"
+             data-id='{{ refArticleId }}'
+             data-target='#modalShowRefArticle'
+             data-toggle='modal'
+             onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
+            Voir la référence article
+        </div>
+    {% elif articleId is defined %}
+        <div class="action-on-click d-none sr-only"
+             data-id='{{ id }}'
+             data-target='#modalShowArticle'
+             data-toggle='modal'
+             onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+            Voir l'article
+        </div>
     {% endif %}
-    <div class="dropdown dropright">
-        {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            {% if modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                <a class="dropdown-item"
-                   data-id="{{ id }}"
-                   data-ref="{{ refArticleId is defined ? 1 : 0 }}"
-                   data-target="#modalEditArticle"
-                   data-toggle="modal"
-                   onclick="editRow($(this), Routing.generate('ordre_collecte_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'))">
-                    <i class='fas fa-pencil-alt'></i> Modifier
-                </a>
-            {% else %}
-
-                {% if refArticleId is defined or articleId is defined %}
-                    {% set printPath = refArticleId is defined ? path('reference_article_single_bar_code_print', {reference: refArticleId}) : path('article_single_bar_code_print', {article: articleId}) %}
+    {% if (modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')))
+        or (not modifiable and refArticleId is defined)
+        or (not modifiable and articleId is defined) %}
+        <div class="dropdown dropright">
+            {% include 'datatable/dotsRow.html.twig' %}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                {% if modifiable %}
+                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                        <a class="dropdown-item"
+                           data-id="{{ id }}"
+                           data-ref="{{ refArticleId is defined ? 1 : 0 }}"
+                           data-target="#modalEditArticle"
+                           data-toggle="modal"
+                           onclick="editRow($(this), Routing.generate('ordre_collecte_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+                            <i class='fas fa-pencil-alt'></i> Modifier
+                        </a>
+                    {% endif %}
+                {% elif (refArticleId is defined)
+                        or (articleId is defined) %}
+                    {% set printPath = refArticleId is defined
+                        ? path('reference_article_single_bar_code_print', {reference: refArticleId})
+                        : path('article_single_bar_code_print', {article: articleId}) %}
                     <a class="dropdown-item"
                        href="{{ printPath }}">
-                        <i class="fas fa-print mr-2"></i>Imprimer
+                        <i class="fas fa-print mr-2"></i> Imprimer
                     </a>
                 {% endif %}
-                {% if refArticleId is defined %}
-                    <div class="d-none">
-                        <div class="action-on-click" data-id='{{ refArticleId }}' data-target='#modalShowRefArticle' data-toggle='modal'
-                             onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
-                            <i class='fas fa-eye'></i>
-                        </div>
-                    </div>
-                    <a class="dropdown-item"
-                       href="{{ path('reference_article_single_bar_code_print', {reference: refArticleId}) }}">
-                        <i class="fas fa-print mr-2"></i>Imprimer
-                    </a>
-                {% else %}
-                    <div class="d-none">
-                        <div class="action-on-click"
-                             data-id='{{ id }}'
-                             data-target='#modalShowArticle'
-                             data-toggle='modal'
-                             onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
-                            <i class='fas fa-eye'></i>
-                        </div>
-                    </div>
-                    <a class="dropdown-item"
-                       href="{{ path('article_single_bar_code_print', {article: id}) }}">
-                        <i class="fas fa-print mr-2"></i>Imprimer
-                    </a>
-                {% endif %}
-            {% endif %}
-
+            </div>
         </div>
-    </div>
+    {% endif %}
 </div>
