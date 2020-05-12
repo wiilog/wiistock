@@ -14,7 +14,8 @@
         {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
             <input type="checkbox"
                    class="data checkbox needs-default"
-                   data-init="{{ defaultValue ? 'true': 'false' }}"
+                   data-init="{{ defaultValue ? 1 : 0 }}"
+                   {{ defaultValue ? 'checked' }}
                    value="{{ defaultValue }}"
                    name="{{ champLibre.id }}" id="input{{ champLibre.id }}">
 

@@ -300,15 +300,16 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function new(Request $request,
+                        ValeurChampLibreService $valeurChampLibreService,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -440,11 +441,8 @@ class ReferenceArticleController extends AbstractController
 
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
-                        ->addArticleReference($refArticle)
-                        ->setChampLibre($champLibreRepository->find($champs));
+                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
+                    $valeurChampLibre->addArticleReference($refArticle);
                     $entityManager->persist($valeurChampLibre);
                     $entityManager->flush();
                 }

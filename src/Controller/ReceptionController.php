@@ -32,7 +32,6 @@ use App\Entity\CategoryType;
 use App\Repository\LitigeRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
-use App\Repository\FieldsParamRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
@@ -51,6 +50,7 @@ use App\Service\RefArticleDataService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 
+use App\Service\ValeurChampLibreService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -175,11 +175,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
+                        ValeurChampLibreService $valeurChampLibreService,
                         Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
@@ -254,12 +256,8 @@ class ReceptionController extends AbstractController
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
-                        ->addReception($reception)
-                        ->setChampLibre($champLibreRepository->find($champs));
-
+                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
+                    $valeurChampLibre->addReception($reception);
                     $em->persist($valeurChampLibre);
                     $em->flush();
                 }
@@ -279,12 +277,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(EntityManagerInterface $entityManager,
+                         ValeurChampLibreService $valeurChampLibreService,
                          ReceptionService $receptionService,
                          Request $request): Response
     {
@@ -340,15 +340,16 @@ class ReceptionController extends AbstractController
                 if (gettype($champ) === 'integer') {
                     $champLibre = $champLibreRepository->find($champ);
                     $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $value = $data[$champ];
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampLibre();
-                        $valeurChampLibre
-                            ->addReception($reception)
-                            ->setChampLibre($champLibreRepository->find($champ));
+                        $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
+                        $valeurChampLibre->addReception($reception);
                         $em->persist($valeurChampLibre);
                     }
-                    $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+                    else {
+                        $valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                    }
                     $em->flush();
                 }
             }

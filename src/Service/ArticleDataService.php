@@ -56,8 +56,9 @@ class ArticleDataService
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
 	private $typeCLOnLabel;
+	private $valeurChampLibreService;
 
-    public function __construct(
+    public function __construct(ValeurChampLibreService $valeurChampLibreService,
                                 MailerService $mailerService,
                                 SpecificService $specificService,
                                 RouterInterface $router,
@@ -72,6 +73,7 @@ class ArticleDataService
         $this->router = $router;
         $this->specificService = $specificService;
         $this->mailerService = $mailerService;
+        $this->valeurChampLibreService = $valeurChampLibreService;
     }
 
     /**
@@ -361,14 +363,16 @@ class ArticleDataService
                 if (gettype($champ) === 'integer') {
                     $champLibre = $champLibreRepository->find($champ);
                     $valeurChampLibre = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
+                    $value = $data[$champ];
                     if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampLibre();
-                        $valeurChampLibre
-                            ->addArticle($article)
-                            ->setChampLibre($champLibre);
+                        $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champLibre, $value);
+                        $valeurChampLibre->addArticle($article);
+                        $this->entityManager->persist($valeurChampLibre);
                     }
-                    $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
-                    $this->entityManager->persist($valeurChampLibre);
+                    else {
+                        $this->valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                    }
+
                     $this->entityManager->flush();
                 }
             }
@@ -455,12 +459,9 @@ class ArticleDataService
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->addArticle($toInsert)
-                        ->setChampLibre($champLibreRepository->find($champ));
-                    $entityManager->persist($valeurChampLibre);
-                $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champ, $data[$champ]);
+                $valeurChampLibre->addArticle($toInsert);
+                $entityManager->persist($valeurChampLibre);
                 $entityManager->flush();
             }
         }

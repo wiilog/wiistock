@@ -185,11 +185,8 @@ class DemandeLivraisonService
 
         foreach ($champsLibresKey as $champs) {
             if (gettype($champs) === 'integer') {
-                $valeurChampLibre = new ValeurChampLibre();
-                $valeurChampLibre
-                    ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
-                    ->addDemandesLivraison($demande)
-                    ->setChampLibre($champLibreRepository->find($champs));
+                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
+                $valeurChampLibre->addDemandesLivraison($demande);
 				$this->entityManager->persist($valeurChampLibre);
 				$this->entityManager->flush();
             }

@@ -327,8 +327,7 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"})
      * @param OrdreCollecte $ordreCollecte
      * @param Request $request
      * @param UserService $userService

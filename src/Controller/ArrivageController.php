@@ -41,6 +41,7 @@ use App\Service\SpecificService;
 use App\Service\StatutService;
 use App\Service\UserService;
 use App\Service\MailerService;
+use App\Service\ValeurChampLibreService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -262,6 +263,7 @@ class ArrivageController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param UserService $userService
      * @param ArrivageDataService $arrivageDataService
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param ColisService $colisService
      * @return Response
      * @throws LoaderError
@@ -275,6 +277,7 @@ class ArrivageController extends AbstractController
                         AttachmentService $attachmentService,
                         UserService $userService,
                         ArrivageDataService $arrivageDataService,
+                        ValeurChampLibreService $valeurChampLibreService,
                         ColisService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -357,11 +360,8 @@ class ArrivageController extends AbstractController
             $champsLibresKey = array_keys($data);
             foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampLibre();
-                    $valeurChampLibre
-                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
-                        ->addArrivage($arrivage)
-                        ->setChampLibre($champLibreRepository->find($champs));
+                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
+                    $valeurChampLibre->addArrivage($arrivage);
                     $entityManager->persist($valeurChampLibre);
                     $arrivage->addValeurChampLibre($valeurChampLibre);
                 }
@@ -533,6 +533,7 @@ class ArrivageController extends AbstractController
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      *
      * @return Response
@@ -545,6 +546,7 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request,
                          ArrivageDataService $arrivageDataService,
+                         ValeurChampLibreService $valeurChampLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -623,15 +625,16 @@ class ArrivageController extends AbstractController
                 if (gettype($champ) === 'integer') {
                     $champLibre = $champLibreRepository->find($champ);
                     $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
+                    $value = $post->get($champ);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampLibre();
-                        $valeurChampLibre
-                            ->addArrivage($arrivage)
-                            ->setChampLibre($champLibre);
+                        $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, $value);
+                        $valeurChampLibre->addArrivage($arrivage);
                         $entityManager->persist($valeurChampLibre);
                     }
-                    $valeurChampLibre->setValeur(is_array($post->get($champ)) ? implode(";", $post->get($champ)) : $post->get($champ));
+                    else {
+                        $valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                    }
                     $entityManager->flush();
                 }
             }
@@ -964,8 +967,6 @@ class ArrivageController extends AbstractController
         $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 

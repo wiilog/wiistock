@@ -28,6 +28,7 @@ use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
+use App\Service\ValeurChampLibreService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -333,12 +334,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
+                         ValeurChampLibreService $valeurChampLibreService,
                          DemandeLivraisonService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
@@ -381,16 +384,16 @@ class DemandeController extends AbstractController
                 foreach ($champsLibresKey as $champ) {
                     if (gettype($champ) === 'integer') {
                         $valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champ);
-
+                        $value = $data[$champ];
                         // si la valeur n'existe pas, on la crée
                         if (!$valeurChampLibre) {
-                            $valeurChampLibre = new ValeurChampLibre();
-                            $valeurChampLibre
-                                ->addDemandesLivraison($demande)
-                                ->setChampLibre($champLibreRepository->find($champ));
+                            $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
+                            $valeurChampLibre->addDemandesLivraison($demande);
                             $em->persist($valeurChampLibre);
                         }
-                        $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+                        else {
+                            $valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                        }
                         $em->flush();
                     }
                 }
