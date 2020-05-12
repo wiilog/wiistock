@@ -25,12 +25,13 @@
                                     {% if titleExists %}
                                         {% set titleSplit = title|split('|') %}
                                         {% if titleSplit is not empty %}
-                                            {% if titleLink is not empty %}<a href="{{ titleLink }}">{% endif %}
+                                            {% if titleLink is not empty %}<a href="{{ titleLink }}" class="header-title-link">{% endif %}
                                             {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
-                                                {{ titlePart | raw }} |
+                                                {{ titlePart | raw }}
+                                                {{ not loop.last ? '|'}}
                                             {% endfor %}
                                             {% if titleLink is not empty %}</a>{% endif %}
-                                            <span class="bold">{{ (titleSplit|last) | raw }}</span>
+                                            {{ titleSplit|length > 1 ? '|' }} <span class="bold">{{ (titleSplit|last) | raw }}</span>
                                         {% endif %}
                                     {% endif %}
                                 </h5>
