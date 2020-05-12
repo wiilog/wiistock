@@ -99,3 +99,20 @@ function finishCollecte(withoutLocation = false) {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
     }
 }
+function printCollecteBarCodes() {
+
+    const lengthPrintButton = $('.print-button').length;
+
+     if (lengthPrintButton > 0) {
+              window.location.href = Routing.generate(
+                  'collecte_bar_codes_print',
+                  {
+                      ordreCollecte: $('#collecte-id').val()
+                  },
+                 true
+             );
+         } else {
+             alertErrorMsg("Il n'y a aucun article à imprimer.");
+     }
+
+}

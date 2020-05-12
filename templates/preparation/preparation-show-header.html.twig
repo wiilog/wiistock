@@ -27,7 +27,7 @@
                 </a>
             {% endif %}
             <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
-                <i class='fas fa-print'></i> Imprimer les étiquettes
+                <i class='fas fa-print print-button'></i> Imprimer les étiquettes
             </button>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
                 {% if demande %}
