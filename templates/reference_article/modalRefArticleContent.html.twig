@@ -200,11 +200,10 @@
                 <th>Quantité</th>
             </tr>
             {% for articleFournisseur in articlesFournisseur %}
-
                 <tr>
                     <td>{{ articleFournisseur.fournisseurRef }}</td>
                     <td>{{ articleFournisseur.label }}</td>
-                    <td>{{ articleFournisseur.fournisseur.codeReference }}</td>
+                    <td>{{ articleFournisseur.fournisseurName }}</td>
                     <td>{{ articleFournisseur.quantity }}</td>
                 </tr>
             {% endfor %}
