@@ -144,9 +144,9 @@ class RefArticleDataService
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
                 function (array $carry, ArticleFournisseur $articleFournisseur) {
                     $carry[] = [
-                        'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                        'reference' => $articleFournisseur->getReference(),
                         'label' => $articleFournisseur->getLabel(),
-                        'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                        'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
                         'quantity' => array_reduce($articleFournisseur->getArticles()->toArray(), function (int $carry, Article $article) {
                             return $article->getStatut()->getNom() === Article::STATUT_ACTIF
                                 ? $carry + $article->getQuantite()
@@ -168,7 +168,7 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getViewEditRefArticle($refArticle, $isADemand = false)
+    public function getViewEditRefArticle($refArticle, $isADemand = false, $preloadCategories = true)
     {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -180,7 +180,10 @@ class RefArticleDataService
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
-        $categories = $inventoryCategoryRepository->findAll();
+        $categories = $preloadCategories
+            ? $inventoryCategoryRepository->findAll()
+            : [];
+
         $typeChampLibre = [];
         foreach ($types as $type) {
             $champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -204,18 +207,17 @@ class RefArticleDataService
             ];
         }
 
-        $view = $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
+        return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'statut' => $refArticle->getStatut()->getNom(),
             'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
             'typeChampsLibres' => $typeChampLibre,
-            'articlesFournisseur' => ($data['listArticlesFournisseur']),
+            'articlesFournisseur' => $data['listArticlesFournisseur'],
             'totalQuantity' => $data['totalQuantity'],
             'articles' => $articlesFournisseur,
             'categories' => $categories,
             'isADemand' => $isADemand
         ]);
-        return $view;
     }
 
     /**
