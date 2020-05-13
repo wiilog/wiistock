@@ -6,14 +6,18 @@ use App\Entity\ChampLibre;
 use App\Entity\ValeurChampLibre;
 use DateTime;
 use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
 class ValeurChampLibreService {
 
     private $CSVExportService;
+    private $entityManager;
 
-    public function __construct(CSVExportService $CSVExportService) {
+    public function __construct(CSVExportService $CSVExportService,
+                                EntityManagerInterface $entityManager) {
         $this->CSVExportService = $CSVExportService;
+        $this->entityManager = $entityManager;
     }
 
 
@@ -69,5 +73,38 @@ class ValeurChampLibreService {
         return !empty($formattedValue)
             ? $this->CSVExportService->escapeCSV($formattedValue)
             : '';
+    }
+
+    /**
+     * @param ChampLibre|int $champ
+     * @param $value
+     * @return ValeurChampLibre
+     */
+    public function createValeurChampLibre($champ, $value): ValeurChampLibre {
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        /** @var ChampLibre $champLibre */
+        $champLibre = ($champ instanceof ChampLibre)
+            ? $champ
+            : $champLibreRepository->find($champ);
+        $valeurChampLibre = new ValeurChampLibre();
+
+        $valeurChampLibre->setChampLibre($champLibre);
+
+        $this->updateValue($valeurChampLibre, $value);
+
+        return $valeurChampLibre;
+    }
+
+    public function updateValue(ValeurChampLibre $valeurChampLibre, $value): void {
+        $converterValue = [
+            'true' => 1,
+            'false' => 0
+        ];
+
+        $formattedValue = is_array($value)
+            ? implode(";", $value)
+            : ($converterValue[$value] ?? $value);
+
+        $valeurChampLibre->setValeur($formattedValue);
     }
 }

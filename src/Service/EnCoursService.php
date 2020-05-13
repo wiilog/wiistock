@@ -161,7 +161,6 @@ class EnCoursService
      * @throws Exception
      */
     public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = null): array {
-        $success = true;
         $emplacementInfo = [];
 
         if (!empty($locations)) {

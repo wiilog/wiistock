@@ -9,7 +9,6 @@ use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
@@ -236,7 +235,6 @@ class RefArticleDataService
 
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
@@ -322,15 +320,16 @@ class RefArticleDataService
                 if (gettype($champ) === 'integer') {
                     $champLibre = $champLibreRepository->find($champ);
                     $valeurChampLibre = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
+                    $value = $data[$champ];
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampLibre();
-                        $valeurChampLibre
-                            ->addArticleReference($refArticle)
-                            ->setChampLibre($champLibre);
+                        $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champLibre, $value);
+                        $valeurChampLibre->addArticleReference($refArticle);
                         $entityManager->persist($valeurChampLibre);
                     }
-                    $valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+                    else {
+                        $this->valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                    }
                     $entityManager->flush();
                 }
             }
