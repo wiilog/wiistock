@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
@@ -12,17 +13,23 @@ use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Service\ArticleDataService;
 use App\Service\OrdreCollecteService;
+use App\Service\PDFGeneratorService;
+use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -137,7 +144,7 @@ class OrdreCollecteController extends AbstractController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         if ($data = json_decode($request->getContent(), true)) {
             if ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
-                $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
                 $ordreCollecteService->finishCollecte(
                     $ordreCollecte,
                     $this->getUser(),
@@ -204,7 +211,8 @@ class OrdreCollecteController extends AbstractController
                         'id' => $article->getId(),
                         'refArt' => $article->getReference(),
                         'quantity' => $article->getQuantite(),
-                        'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER
+                        'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                        'articleId' =>$article->getId()
                     ])
                 ];
             }
@@ -236,7 +244,7 @@ class OrdreCollecteController extends AbstractController
         $statut = $statutRepository
             ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))
@@ -327,8 +335,7 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"})
      * @param OrdreCollecte $ordreCollecte
      * @param Request $request
      * @param UserService $userService
@@ -464,6 +471,60 @@ class OrdreCollecteController extends AbstractController
                 $article->getQuantite() ?? 0,
                 $article->getBarCode(),
             ]);
+        }
+    }
+
+    /**
+     * @Route("/{ordreCollecte}/etiquettes", name="collecte_bar_codes_print", options={"expose"=true})
+     *
+     * @param OrdreCollecte $ordreCollecte
+     * @param RefArticleDataService $refArticleDataService
+     * @param ArticleDataService $articleDataService
+     * @param PDFGeneratorService $PDFGeneratorService
+     *
+     * @return Response
+     *
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function printCollecteBarCodes(OrdreCollecte $ordreCollecte,
+                                          RefArticleDataService $refArticleDataService,
+                                          ArticleDataService $articleDataService,
+                                          PDFGeneratorService $PDFGeneratorService): Response
+    {
+
+        $articles = $ordreCollecte->getArticles()->toArray();
+        $ordreCollecteReferences = $ordreCollecte->getOrdreCollecteReferences()->toArray();
+
+        $barCodesArticles = array_map(function (Article $article) use ($articleDataService) {
+            return $articleDataService->getBarcodeConfig($article);
+        }, $articles);
+
+        $barCodesReferences = array_map(function (OrdreCollecteReference $ordreCollecteReference) use ($refArticleDataService) {
+            $referenceArticle = $ordreCollecteReference->getReferenceArticle();
+            return $referenceArticle
+                ? $refArticleDataService->getBarcodeConfig($referenceArticle)
+                : null;
+        }, $ordreCollecteReferences);
+
+        $barCodes = array_merge($barCodesArticles, array_filter($barCodesReferences , function ($value) {
+            return $value !== null;}
+        ));
+        $barCodesCount = count($barCodes);
+        if($barCodesCount > 0) {
+            $fileName = $PDFGeneratorService->getBarcodeFileName(
+                $barCodes,
+                'ordreCollecte'
+            );
+
+            return new PdfResponse(
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barCodes),
+                $fileName
+            );
+        } else {
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
 }

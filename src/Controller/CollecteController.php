@@ -26,10 +26,10 @@ use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
+use App\Service\ValeurChampLibreService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -240,11 +240,13 @@ class CollecteController extends AbstractController
     /**
      * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(Request $request,
+                        ValeurChampLibreService $valeurChampLibreService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -284,11 +286,8 @@ class CollecteController extends AbstractController
 
 			foreach ($champsLibresKey as $champs) {
 				if (gettype($champs) === 'integer') {
-					$valeurChampLibre = new ValeurChampLibre();
-					$valeurChampLibre
-                        ->setValeur(is_array($data[$champs]) ? implode(";", $data[$champs]) : $data[$champs])
-						->addDemandesCollecte($collecte)
-						->setChampLibre($champLibreRepository->find($champs));
+                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
+					$valeurChampLibre->addDemandesCollecte($collecte);
                     $entityManager->persist($valeurChampLibre);
                     $entityManager->flush();
 				}
@@ -306,6 +305,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
@@ -314,9 +314,9 @@ class CollecteController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function addArticle(Request $request,
+                               ValeurChampLibreService $valeurChampLibreService,
                                EntityManagerInterface $entityManager,
                                DemandeCollecteService $demandeCollecteService): Response
     {
@@ -349,7 +349,7 @@ class CollecteController extends AbstractController
                 if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                     return $this->redirectToRoute('access_denied');
                 }
-
+                unset($data['quantite']);
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             }
             elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -358,10 +358,8 @@ class CollecteController extends AbstractController
 
 				$champslibres = $champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
                 foreach($champslibres as $champLibre) {
-                	$valeurChampLibre = new ValeurChampLibre();
-                	$valeurChampLibre
-						->addArticle($article)
-						->setChampLibre($champLibre);
+                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, null);
+                	$valeurChampLibre->addArticle($article);
                     $entityManager->persist($valeurChampLibre);
 				}
                 //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
@@ -548,12 +546,14 @@ class CollecteController extends AbstractController
      * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeCollecteService $collecteService
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,
+                         ValeurChampLibreService $valeurChampLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -597,16 +597,16 @@ class CollecteController extends AbstractController
 				foreach ($champsLibresKey as $champ) {
 					if (gettype($champ) === 'integer') {
 						$valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeCollecteAndChampLibre($collecte, $champ);
-
+                        $value = $data[$champ];
 						// si la valeur n'existe pas, on la crée
 						if (!$valeurChampLibre) {
-							$valeurChampLibre = new ValeurChampLibre();
-							$valeurChampLibre
-								->addDemandesCollecte($collecte)
-								->setChampLibre($champLibreRepository->find($champ));
+                            $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
+							$valeurChampLibre->addDemandesCollecte($collecte);
 							$entityManager->persist($valeurChampLibre);
 						}
-						$valeurChampLibre->setValeur(is_array($data[$champ]) ? implode(";", $data[$champ]) : $data[$champ]);
+						else {
+                            $valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                        }
                         $entityManager->flush();
 					}
 				}

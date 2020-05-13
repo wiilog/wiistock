@@ -129,7 +129,8 @@ let tableArrivageLitigesConfig = {
         {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
     ],
     rowConfig: {
-        needsDangerColor: true,
+        needsColor: true,
+        color: 'danger',
         needsRowClickAction: true,
         dataToCheck: 'urgence'
     },

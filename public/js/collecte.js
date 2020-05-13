@@ -153,15 +153,20 @@ function ajaxGetCollecteArticle(select) {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
             $selection.html(data.selection);
-            if (data.modif) $editNewArticle.html(data.modif);
+            if (data.modif) {
+                $editNewArticle.html(data.modif);
+                let $refQuantiteInput = $editNewArticle.find('input[name="quantite"]');
+                $refQuantiteInput.removeClass('data');
+            }
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
             $('.list-multiple').select2();
+
         }
     }
-    path = Routing.generate('get_collecte_article_by_refArticle', true)
+    path = Routing.generate('get_collecte_article_by_refArticle', true);
     $selection.html('');
     $editNewArticle.html('');
     let data = {};

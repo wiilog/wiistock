@@ -84,7 +84,7 @@ class ArticleFournisseurService
     }
 
     public function findSimilarArticleFournisseur(ReferenceArticle $referenceArticle,
-                                                  ?Fournisseur $fournisseur): ?ArticleFournisseur {
+                                                  ?Fournisseur $fournisseur = null): ?ArticleFournisseur {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $articleFournisseursArray = empty($fournisseur)
             ? $articleFournisseurRepository->findByRefArticle($referenceArticle->getId())

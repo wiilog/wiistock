@@ -79,7 +79,10 @@ let tableArticleConfig = {
         {"data": 'Quantité prélevée', 'name': 'quantitePrelevee', 'title': 'Quantité prélevée'},
     ],
     rowConfig: {
-        needsRowClickAction: true
+        needsRowClickAction: true,
+        needsColor: true,
+        color: 'success',
+        dataToCheck: 'active'
     },
     order: [[1, "asc"]],
     columnDefs: [

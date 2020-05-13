@@ -134,7 +134,8 @@ function InitPageDataTable() {
         },
         rowConfig: {
             needsRowClickAction: true,
-            needsDangerColor: true
+            needsColor: true,
+            color: 'danger',
         },
     };
     return {
