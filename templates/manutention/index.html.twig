@@ -40,7 +40,7 @@
                             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                         </div>
                     {% endif %}
-                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                         <a href="" data-toggle="modal" data-target="#modalNewManutention" class="btn btn-primary btn-ripple"
                            onclick='initNewManutentionEditor("#modalNewManutention")'>
                             <span class="fa fa-plus mr-2"></span>Nouvelle demande

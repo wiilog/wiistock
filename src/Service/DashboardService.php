@@ -219,12 +219,17 @@ class DashboardService
             $locationCounter[$adminDatum['meterKey']] = $adminDatum;
         }
         $chartData = $this->getChartData($entityManager, self::DASHBOARD_PACKAGING, 'of');
+        $flattenChartData = $this->flatArray($chartData['data']);
+        $orderedChartData = array_reduce($flattenChartData, function(array $acc, array $current) {
+            $acc[] = array_reverse($current);
+            return $acc;
+        }, []);
         return array_merge(
             [
                 'counters' => $locationCounter
             ],
             [
-                'chartData' => $this->flatArray($chartData['data']),
+                'chartData' => $orderedChartData,
                 'chartColors' => $chartData['chartColors'],
             ]
         );
