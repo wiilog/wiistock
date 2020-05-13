@@ -17,7 +17,8 @@
         <div class="header-container">
             {% include 'header.html.twig' with {
                 title: block('title') is defined ? block('title'),
-                subtitle: block('subtitle') is defined ? block('subtitle')
+                subtitle: block('subtitle') is defined ? block('subtitle'),
+                titleLink: block('titleLink') is defined ? block('titleLink')
             } %}
             {% block page_filter %}{% endblock %}
         </div>

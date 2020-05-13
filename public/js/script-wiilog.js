@@ -1176,6 +1176,7 @@ function displayFiltersSup(data) {
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
+                $select.empty();
                 valuesElement.forEach((value) => {
                     let valueArray = value.split(':');
                     let id = valueArray[0];

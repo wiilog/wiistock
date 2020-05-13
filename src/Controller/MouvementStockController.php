@@ -129,36 +129,46 @@ class MouvementStockController extends AbstractController
                 }
             }
 
-            $headers = ['date', 'ordre', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur'];
+            $headers = ['date', 'ordre', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur', 'code barre référence article', 'code barre article'];
             $data = [];
             $data[] = $headers;
 
             foreach ($mouvements as $mouvement) {
-                $mouvementData = [];
-                $reference = $mouvement->getRefArticle() ? $mouvement->getRefArticle()->getReference() : null;
-                // TODO code-barre au lieu de référence ??
-                $reference = $reference ? $reference : $mouvement->getArticle()->getReference();
+                $article = $mouvement->getArticle() ? $mouvement->getArticle() : null;
+                $reference = $mouvement->getRefArticle() ? $mouvement->getRefArticle() : null;
+                if ((isset($article) || isset($reference) )) {
+                    $mouvementData = [];
 
-                $orderNo = null;
-				if ($mouvement->getPreparationOrder()) {
-					$orderNo = $mouvement->getPreparationOrder()->getNumero();
-				} else if ($mouvement->getLivraisonOrder()) {
-					$orderNo = $mouvement->getLivraisonOrder()->getNumero();
-				} else if ($mouvement->getCollecteOrder()) {
-					$orderNo = $mouvement->getCollecteOrder()->getNumero();
-				} else if ($mouvement->getReceptionOrder()) {
-					$orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
-				}
-                $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
-                $mouvementData[] = $orderNo ? ' ' . $orderNo : '';
-                $mouvementData[] = $reference;
-				$mouvementData[] = $mouvement->getQuantity();
-				$mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';
-				$mouvementData[] = $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '';
-                $mouvementData[] = $mouvement->getType();
-                $mouvementData[] = $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '';
+                    $barCodeArticle = $article ? $article->getBarCode() : null;
+                    $articleArticleFournisseur = $article ? $article->getArticleFournisseur() : null;
+                    $articleRefArticle = $articleArticleFournisseur ? $articleArticleFournisseur->getReferenceArticle() : null;
+                    $barCodeReference = $articleRefArticle
+                        ? $articleRefArticle->getBarCode()
+                        : ($reference ? $reference->getBarCode() : null);
 
-                $data[] = $mouvementData;
+                    $orderNo = null;
+                    if ($mouvement->getPreparationOrder()) {
+                        $orderNo = $mouvement->getPreparationOrder()->getNumero();
+                    } else if ($mouvement->getLivraisonOrder()) {
+                        $orderNo = $mouvement->getLivraisonOrder()->getNumero();
+                    } else if ($mouvement->getCollecteOrder()) {
+                        $orderNo = $mouvement->getCollecteOrder()->getNumero();
+                    } else if ($mouvement->getReceptionOrder()) {
+                        $orderNo = $mouvement->getReceptionOrder()->getNumeroReception();
+                    }
+                    $mouvementData[] = $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '';
+                    $mouvementData[] = $orderNo ? ' ' . $orderNo : '';
+                    $mouvementData[] = isset($article) ? $article->getReference() : $reference->getReference();
+                    $mouvementData[] = $mouvement->getQuantity();
+                    $mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';
+                    $mouvementData[] = $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '';
+                    $mouvementData[] = $mouvement->getType();
+                    $mouvementData[] = $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '';
+                    $mouvementData[] = isset($barCodeReference) ? $barCodeReference : '';
+                    $mouvementData[] = isset($barCodeArticle) ? $barCodeArticle : '';
+
+                    $data[] = $mouvementData;
+                }
             }
             return new JsonResponse($data);
         } else {

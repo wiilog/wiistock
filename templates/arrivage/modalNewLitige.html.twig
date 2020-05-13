@@ -2,8 +2,8 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
 
-            <input type="text" id="acheteursLitigeHidden" name="" value="{{ acheteurs | join(',')}}" hidden/>
-            <input type="text" id="numeroCommandeListLitigeHidden" name="" value="{{ arrivage.numeroCommandeList | join(',')}}" hidden/>
+            <input type="text" id="acheteursLitigeHidden" name="" value="{{ acheteurs | join(',') }}" hidden/>
+            <input type="text" id="numeroCommandeListLitigeHidden" name="" value="{{ arrivage.numeroCommandeList | join(',') }}" hidden/>
 
             <div class="modal-header">
                 <h5 class="modal-title">Nouveau litige</h5>
@@ -21,40 +21,42 @@
                     redirectPath: path('types_param_index'),
                     redirectLabel: 'Aller vers la page de types'
                 } %}
-                {% if typesLitige is not empty %}
-                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                        array: statusLitige,
-                        warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
-                        redirectPath: path('status_param_index'),
-                        redirectLabel: 'Aller vers la page de statuts'
-                    } %}
-                {% endif %}
+                {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                    array: statusLitige,
+                    warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
+                    redirectPath: path('status_param_index'),
+                    redirectLabel: 'Aller vers la page de statuts'
+                } %}
 
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('fournisseur', 'displayed') %}
                         <div class="form-group col">
                             <label for="fournisseurLitige">Fournisseur</label>
-                            <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige" value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
+                            <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige"
+                                   value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
                         </div>
                     {% endif %}
 
                     {% if fieldsParam|isFieldRequired('transporteur', 'displayed') %}
                         <div class="form-group col">
                             <label for="transporteurLitige">Transporteur</label>
-                            <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige" value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
+                            <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige"
+                                   value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
                         </div>
                     {% endif %}
                     {% if fieldsParam|isFieldRequired('chauffeur', 'displayed') %}
                         <div class="form-group col">
                             <label for="chauffeurLitige">Chauffeur</label>
-                            <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige" value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
+                            <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige"
+                                   value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
                         </div>
                     {% endif %}
                 </div>
                 <div class="row">
                     <div class="form-group col-4">
                         <label for="noTrackingLitige">Ordre arrivage</label>
-                        <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige" value="{{ arrivage.numeroArrivage }}" disabled>
+                        <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige"
+                               value="{{ arrivage.numeroArrivage }}" disabled>
                     </div>
 
                     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayed') %}
@@ -106,7 +108,7 @@
                     </div>
                     <div class="form-group col-4">
                         <label for="colisLitige">Colis*</label>
-                        <select  multiple="multiple" class="form-control select2 w-100 data needed" id="colisLitige" name="colisLitige">
+                        <select multiple="multiple" class="form-control select2 w-100 data needed" id="colisLitige" name="colisLitige">
                             {% for colis in allColis %}
                                 <option value="{{ colis.id }}">{{ colis.code }}</option>
                             {% endfor %}
@@ -117,7 +119,7 @@
                 <div class="row">
                     <div class="form-group col-5 h-fit-content">
                         <label for="litige-commentaire">Commentaire</label>
-                        <input type="text"id="litige-commentaire" class="commentaire form-control data" name="commentaire">
+                        <input type="text" id="litige-commentaire" class="commentaire form-control data" name="commentaire">
                     </div>
                     <div class="form-group col-3 mt-4">
                         <label>Urgence ?</label>

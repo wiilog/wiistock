@@ -288,14 +288,18 @@ class ArrivageRepository extends EntityRepository
                         ->setParameter('isUrgent', $filter['value']);
                     break;
                 case 'duty':
-                    $qb
-                        ->andWhere('a.duty = :value')
-                        ->setParameter('value', $filter['value']);
+                    if ($filter['value'] === '1') {
+                        $qb
+                            ->andWhere('a.duty = :value')
+                            ->setParameter('value', $filter['value']);
+                    }
                     break;
                 case 'frozen':
-                    $qb
-                        ->andWhere('a.frozen = :value')
-                        ->setParameter('value', $filter['value']);
+                    if ($filter['value'] === '1') {
+                        $qb
+                            ->andWhere('a.frozen = :value')
+                            ->setParameter('value', $filter['value']);
+                    }
                     break;
                 case 'numArrivage':
                     $qb

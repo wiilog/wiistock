@@ -169,7 +169,7 @@ $(function () {
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_DEM_LIVRAISON);
         $.post(path, params, function (data) {
-                displayFiltersSup(data);
+            displayFiltersSup(data);
         }, 'json');
     }
 });
