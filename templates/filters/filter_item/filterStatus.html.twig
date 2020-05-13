@@ -1,6 +1,6 @@
 <div class="col-auto mb-2 select-filter pr-0">
     <div class="select2-overflow">
-        <div class="input-group w-100 cursor-default minw-250px">
+        <div class="input-group w-100 cursor-default">
             <select class="form-control data select2 filter-select2" name="statut" id="statut" multiple="multiple" {{ disabled }}>
                 {% for statut in statuts %}
                     {% if filterStatus is defined and statut.nom == filterStatus %}
