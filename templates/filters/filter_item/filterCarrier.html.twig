@@ -1,6 +1,6 @@
-<div class="col-auto mb-2 select-filter">
+<div class="col-auto mb-2 select-filter pr-0">
     <div class="select2-overflow">
-        <div class="input-group w-100 cursor-default minw-250px">
+        <div class="input-group w-100 cursor-default">
             <select class="form-control data filter-select2" name="carriers" id="carriers" multiple="multiple">
                 {% for carrier in carriers %}
                     <option class="d-none" value="{{ carrier.id }}">{{ carrier.label }}</option>

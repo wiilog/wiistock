@@ -10,17 +10,30 @@
     span
         overflow-wrap: break-word
 
+.filters-container
+    .filters-wrapper-row > *
+        margin-right: 15px
+
 .filters
     > div
         .select2-selection
-            padding-top: 2px
-            padding-bottom: 4px
-            margin-bottom: 2px
-            margin-top: 2px
-            height: 38px
+            margin: 0
 
         .select2-selection__placeholder
             vertical-align: middle
+
+    .select-filter
+        .select2-selection__rendered
+            margin: 0 5px
+            padding: 0
+            width: calc(100% - 10px)
+
+        .input-group
+            min-width: 260px
+
+    .input-group
+        border-radius: .25rem
+        background-color: $white !important
 
     .minw-200px
         .select2-container
@@ -39,23 +52,25 @@
             overflow: auto
 
 .filter-input
-    width: 250px !important
+    width: 260px !important
 
 .filter-select2
     width: 200px !important
     max-height: 38px !important
-    margin-top: 2px !important
-    margin-bottom: 2px !important
 
 .no-filter
     color: ghostwhite
     font-style: italic
 
-.select-filter
-    margin-top: -0.1rem
-
 .checkbox-filter
     border-radius: 3px
     background-color: white
     padding: 6.5px
-    width: 250px !important
+    width: 260px !important
+
+.w-50px
+    width: 50px !important
+
+.w-218px
+    width: 218px !important
+
