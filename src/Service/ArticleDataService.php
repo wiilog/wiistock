@@ -238,10 +238,12 @@ class ArticleDataService
                         'maximum' => $availableQuantity
                     ])];
             } else {
-                $data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
-                    'articles' => $articles,
-                    'maximum' => $availableQuantity,
-                ])];
+                $data = [
+                    'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+                        'articles' => $articles,
+                        'maximum' => $availableQuantity,
+                    ])
+                ];
             }
         } else {
             $data = false; //TODO gérer erreur retour

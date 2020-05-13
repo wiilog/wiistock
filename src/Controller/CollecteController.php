@@ -349,7 +349,7 @@ class CollecteController extends AbstractController
                 if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                     return $this->redirectToRoute('access_denied');
                 }
-
+                unset($data['quantite']);
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             }
             elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {

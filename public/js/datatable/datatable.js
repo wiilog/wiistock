@@ -146,11 +146,11 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
                         : dtDefaultValue;
 }
 
-function getAppropriateRowCallback({needsDangerColor, dataToCheck, needsRowClickAction, callback}) {
+function getAppropriateRowCallback({needsColor, color, dataToCheck, needsRowClickAction, callback}) {
     return function (row, data) {
-        if (needsDangerColor
+        if (needsColor
             && (data[dataToCheck] === true || data[dataToCheck] === 'oui')) {
-            $(row).addClass('table-danger');
+            $(row).addClass('table-' + color);
         }
         if (needsRowClickAction) {
             initActionOnRow(row);

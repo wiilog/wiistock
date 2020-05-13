@@ -79,7 +79,8 @@ let tableArrivageConfig = {
         needsFullDomOverride: true
     },
     rowConfig: {
-        needsDangerColor: true,
+        needsColor: true,
+        color: 'danger',
         needsRowClickAction: true,
         dataToCheck: 'Urgent'
     },

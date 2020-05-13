@@ -427,6 +427,8 @@ class RefArticleDataService
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0)); // protection contre quantités négatives
             }
+
+            unset($data['quantite']);
             $this->editRefArticle($referenceArticle, $data, $user);
 
             // cas gestion quantité par article

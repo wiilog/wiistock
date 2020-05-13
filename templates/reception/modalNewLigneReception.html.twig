@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }} <span id="reference-list"></span></h5>
+                <h5 class="modal-title" title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -12,9 +12,23 @@
                 <!--
                 BLOCK DL
                 -->
-                {% if createDL %}
-                    <div class="demande-livraison">
-                        <h5 class="bold mb-3">Demande de livraison<span id="reference-list"></span></h5>
+                <div class="demande-livraison">
+                    <div class="row">
+                        <div class="col-auto">
+                            <h5 class="bold mb-3">Demande de livraison</h5>
+                        </div>
+                        <div class="col-auto ml-auto">
+                            <label class="switch">
+                                <input class="checkbox data needs-default"
+                                       name="create-demande"
+                                       onclick="toggleDLForm()"
+                                       data-init="{{ createDL ? 1 : 0 }}"
+                                       type="checkbox"/>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="demande-form">
                         <div class="row">
                             <div class="col-4 form-group">
                                 <label for="destination">Destination*</label>
@@ -110,14 +124,13 @@
                             {% endfor %}
                         </div>
                         <label for="commentaire-dl" class="mt-3">Commentaire</label>
-                    <input id='commentaire-dl'
+                        <input id='commentaire-dl'
                            class="commentaire data"
                            name="commentaire"
-                           type="hidden">
-                        <div class="editor-container" id="editor-container-new-demande">
-                        </div>
+                           type="hidden"/>
+                        <div class="editor-container" id="editor-container-new-demande"></div>
                     </div>
-                {% endif %}
+                </div>
 
                 <!--
                 BLOCK CONDITIONNEMENT
@@ -127,9 +140,21 @@
                         <span title="réception">{{ 'réception.réception'|trans }}</span> <span title="d'articles">{{ "réception.d'articles"|trans }}</span>
                     </h5>
                     <div class="row align-items-center">
-                        <div class="form-group col-4">
-                            <label>Référence</label>
-                            <select class="form-control select2-autocomplete-ref-articles w-100" name="refArticleCommande"></select>
+                        <div class="col-4">
+                            <div class="form-group ">
+                                <label class="w-100">
+                                    Référence
+                                    <select class="form-control select2-autocomplete-ref-articles w-100"
+                                            name="refArticleCommande"
+                                            onchange="initConditionnementArticleFournisseurDefault()"></select>
+                                </label>
+                            </div>
+                            <div class="form-group d-none">
+                                <label class="w-100">
+                                    Référence fournisseur
+                                    <select class="form-control data needed select2 w-100" name="articleFournisseurDefault"></select>
+                                </label>
+                            </div>
                         </div>
                         <div class="col">
                             <div class="row justify-content-start align-items-center">

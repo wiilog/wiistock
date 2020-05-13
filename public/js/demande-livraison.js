@@ -148,19 +148,6 @@ function getCompareStock(submit) {
     }, 'json');
 }
 
-function setMaxQuantity(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        if (data) {
-            let modalBody = select.closest(".modal-body");
-            modalBody.find('#quantity-to-deliver').attr('max', data);
-        }
-
-    }, 'json');
-}
-
 $(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statuts');
@@ -182,7 +169,7 @@ $(function () {
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_DEM_LIVRAISON);
         $.post(path, params, function (data) {
-                displayFiltersSup(data);
+            displayFiltersSup(data);
         }, 'json');
     }
 });
@@ -199,27 +186,45 @@ function initNewLivraisonEditor(modal) {
     initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
 }
 
-function ajaxGetAndFillArticle(select) {
-    if ($(select).val() !== null) {
+function ajaxGetAndFillArticle($select) {
+    if ($select.val() !== null) {
         let path = Routing.generate('demande_article_by_refArticle', true);
-        let refArticle = $(select).val();
+        let refArticle = $select.val();
         let params = JSON.stringify(refArticle);
-        let selection = $('#selection');
-        let editNewArticle = $('#editNewArticle');
-        let modalFooter = $('#modalNewArticle').find('.modal-footer');
+        let $selection = $('#selection');
+        let $editNewArticle = $('#editNewArticle');
+        let $modalFooter = $('#modalNewArticle').find('.modal-footer');
 
-        selection.html('');
-        editNewArticle.html('');
-        modalFooter.addClass('d-none');
+        $selection.html('');
+        $editNewArticle.html('');
+        $modalFooter.addClass('d-none');
 
         $.post(path, params, function (data) {
-            selection.html(data.selection);
-            editNewArticle.html(data.modif);
-            modalFooter.removeClass('d-none');
+            $selection.html(data.selection);
+            $editNewArticle.html(data.modif);
+            $modalFooter.removeClass('d-none');
             toggleRequiredChampsLibres($('#typeEdit'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+
+            setMaxQuantity($select);
+            $editNewArticle
+                .find('input[name="quantite"]')
+                .removeClass('data');
         }, 'json');
     }
+}
+
+function setMaxQuantity(select) {
+    let params = {
+        refArticleId: select.val(),
+    };
+    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+        if (data) {
+            let modalBody = select.closest(".modal-body");
+            modalBody.find('#quantity-to-deliver').attr('max', data);
+        }
+
+    }, 'json');
 }
 
 function deleteRowDemande(button, modal, submit) {

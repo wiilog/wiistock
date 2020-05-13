@@ -77,7 +77,8 @@ function loadEncoursDatatable($table) {
                 {"data": 'late', 'name': 'late', 'title': 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {
-                needsDangerColor: true,
+                needsColor: true,
+                color: 'danger',
                 dataToCheck: 'late'
             },
             domConfig: {

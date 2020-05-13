@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Saisie d'inventaire{% endblock %}
+{% block title %}Stock | Inventaire | Saisies d'inventaire{% endblock %}
+{% block titleLink path('inventory_mission_index') %}
 
 {% block page_filter %}
     {% include 'filters/filtersEntryInv.html.twig' with {
