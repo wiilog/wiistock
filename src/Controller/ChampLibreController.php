@@ -244,7 +244,10 @@ class ChampLibreController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
 		$champLibre = $champLibreRepository->find($data['champLibre']);
-
+		$filters = $champLibre->getFilters();
+		foreach ($filters as $filter) {
+		    $entityManager->remove($filter);
+        }
 		$entityManager->remove($champLibre);
 		$entityManager->flush();
 
