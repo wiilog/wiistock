@@ -311,6 +311,7 @@ class LivraisonController extends AbstractController
                 'numéro',
                 'statut',
                 'date création',
+                'date de fin',
                 'opérateur',
                 'type',
                 'référence',
@@ -341,7 +342,8 @@ class LivraisonController extends AbstractController
                 [
                     $livraison->getNumero() ?? '',
                     $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
-                    $livraison->getDate() ? $livraison->getDate()->format('d/m/Y h:i') : '',
+                    $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
+                    $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
                     $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
                     $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
                 ];
