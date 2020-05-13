@@ -311,7 +311,7 @@ class LivraisonController extends AbstractController
                 'numéro',
                 'statut',
                 'date création',
-                'date de fin',
+                'date de livraison',
                 'opérateur',
                 'type',
                 'référence',
