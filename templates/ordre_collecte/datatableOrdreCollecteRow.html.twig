@@ -9,7 +9,7 @@
              onclick="toggleCheck($(this))">
             Selectionner
         </div>
-    {% elif refArticleId is defined %}
+    {% elseif refArticleId is defined %}
         <div class="action-on-click d-none sr-only"
              data-id='{{ refArticleId }}'
              data-target='#modalShowRefArticle'
@@ -17,7 +17,7 @@
              onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
             Voir la référence article
         </div>
-    {% elif articleId is defined %}
+    {% elseif articleId is defined %}
         <div class="action-on-click d-none sr-only"
              data-id='{{ id }}'
              data-target='#modalShowArticle'
@@ -43,7 +43,7 @@
                             <i class='fas fa-pencil-alt'></i> Modifier
                         </a>
                     {% endif %}
-                {% elif (refArticleId is defined)
+                {% elseif (refArticleId is defined)
                         or (articleId is defined) %}
                     {% set printPath = refArticleId is defined
                         ? path('reference_article_single_bar_code_print', {reference: refArticleId})
