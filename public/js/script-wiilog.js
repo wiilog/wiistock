@@ -77,7 +77,6 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
         name = $input.attr("name");
         const $parent = $input.closest('[data-multiple-key]');
-        console.log($input.attr('id'), name, val)
 
         if ($parent && $parent.length > 0) {
             const multipleKey = $parent.data('multiple-key');

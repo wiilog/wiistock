@@ -79,16 +79,13 @@ class ArticleDataService
     /**
      * @param ReferenceArticle $refArticle
      * @param string $demande
-     * @param bool $modifieRefArticle
      * @param bool $byRef
      * @return bool|string
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws NonUniqueResultException
-     * @throws DBALException
      */
-    public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
+    public function getArticleOrNoByRefArticle($refArticle, $demande, $byRef)
     {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
@@ -102,28 +99,7 @@ class ArticleDataService
         }
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            if ($modifieRefArticle === true) {
-                $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-            } else {
-                $data = [];
-            }
-
-            $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-            $typeRepository = $this->entityManager->getRepository(Type::class);
-
-            $statuts = $statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-
-            $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig', [
-                'articleRef' => $refArticle,
-                'articles' => $articleFournisseurRepository->findByRefArticle($refArticle->getId()),
-                'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                'types' => $typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
-                'statuts' => $statuts,
-                'modifieRefArticle' => $modifieRefArticle,
-                'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                'articlesFournisseur' => (isset($data['listArticlesFournisseur']) ? $data['listArticlesFournisseur'] : ''),
-                'totalQuantity' => (isset($data['totalQuantity']) ? $data['totalQuantity'] : ''),
-            ]);
+            $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig');
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $articleStatut);

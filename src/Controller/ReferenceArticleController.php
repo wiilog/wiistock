@@ -975,7 +975,7 @@ class ReferenceArticleController extends AbstractController
                 }
 
 				$byRef = $this->userService->hasParamQuantityByRef();
-                $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false, $byRef);
+                $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], $byRef);
 
                 $json = [
                     'plusContent' => $this->renderView(
@@ -1046,6 +1046,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
      * @param Request $request
+     * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws LoaderError
@@ -1053,64 +1054,18 @@ class ReferenceArticleController extends AbstractController
      * @throws SyntaxError
      */
     public function show(Request $request,
+                         RefArticleDataService $refArticleDataService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-
             $refArticle  = $referenceArticleRepository->find($data);
-
-            $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-            $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
-
-            $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-
-            $typeChampLibre =  [];
-            foreach ($types as $type) {
-                $champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-
-                $champsLibres = [];
-                foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
-                    $champsLibres[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampRefArticle,
-                    ];
-                }
-                $typeChampLibre[] = [
-                    'typeLabel' =>  $type->getLabel(),
-					'typeId' => $type->getId(),
-                    'champsLibres' => $champsLibres,
-                ];
-            }
-            //reponse Vue + data
-
-            if ($refArticle) {
-                $view =  $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
-                    'articleRef' => $refArticle,
-                    'statut' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : null,
-                    'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                    'typeChampsLibres' => $typeChampLibre,
-                    'articlesFournisseur' => ($data['listArticlesFournisseur']),
-                    'totalQuantity' => $data['totalQuantity'],
-                    'articles' => $articlesFournisseur,
-                ]);
-
-                $json = $view;
-            } else {
-                return $json = false;
-            }
+            $json = $refArticle
+                ? $refArticleDataService->getViewEditRefArticle($refArticle, false, false)
+                : false;
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
@@ -1454,25 +1409,23 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param $id
+     * @param ReferenceArticle $referenceArticle
      * @return Response
      */
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   Request $request,
-                                  $id): Response
+                                  ReferenceArticle $referenceArticle): Response
     {
         if ($request->isXmlHttpRequest()) {
-
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-            $mouvements = $mouvementStockRepository->findByRef($id);
+            $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
-            $rows = [];
-            foreach ($mouvements as $mouvement) {
-                $rows[] =
-                    [
+            $data['data'] = array_map(
+                function(MouvementStock $mouvement) {
+                    return [
                         'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
@@ -1480,8 +1433,9 @@ class ReferenceArticleController extends AbstractController
                         'Type' => $mouvement->getType(),
                         'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
                     ];
-            }
-            $data['data'] = $rows;
+                },
+                $mouvements
+            );
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

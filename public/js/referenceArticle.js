@@ -576,16 +576,20 @@ function displayActifOrInactif(select) {
     });
 }
 
-function initDatatableMovements(id) {
-    let pathRefMouvements = Routing.generate('ref_mouvements_api', {'id': id}, true);
+function initDatatableMovements(referenceArticleId) {
+    extendsDateSort('customDate');
+    let pathRefMouvements = Routing.generate('ref_mouvements_api', {referenceArticle: referenceArticleId}, true);
     let tableRefMvtOptions = {
 
         ajax: {
             "url": pathRefMouvements,
             "type": "POST"
         },
+        domConfig: {
+            removeInfo: true,
+        },
         columns: [
-            {"data": 'Date', 'title': 'Date'},
+            {"data": 'Date', 'title': 'Date', 'type': 'customDate'},
             {"data": 'Quantity', 'title': 'Quantité'},
             {"data": 'Origin', 'title': 'Origine'},
             {"data": 'Destination', 'title': 'Destination'},
@@ -593,7 +597,7 @@ function initDatatableMovements(id) {
             {"data": 'Operator', 'title': 'Opérateur'}
         ],
     };
-    let tableRefMouvements = initDataTable('tableMouvements', tableRefMvtOptions);
+    initDataTable('tableMouvements', tableRefMvtOptions);
 }
 
 function showRowMouvements(button) {

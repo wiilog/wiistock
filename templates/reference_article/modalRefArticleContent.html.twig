@@ -194,17 +194,16 @@
     <div class="form-group col-12 blocVisible d-none">
         <table class="table table-striped table-bordered w-auto m-auto">
             <tr>
-                <th>Ref fournisseur</th>
+                <th>Référence</th>
                 <th>Libellé</th>
                 <th>Code Fournisseur</th>
                 <th>Quantité</th>
             </tr>
             {% for articleFournisseur in articlesFournisseur %}
-
                 <tr>
-                    <td>{{ articleFournisseur.fournisseurRef }}</td>
+                    <td>{{ articleFournisseur.reference }}</td>
                     <td>{{ articleFournisseur.label }}</td>
-                    <td>{{ articleFournisseur.fournisseurName }}</td>
+                    <td>{{ articleFournisseur.fournisseurCode }}</td>
                     <td>{{ articleFournisseur.quantity }}</td>
                 </tr>
             {% endfor %}
