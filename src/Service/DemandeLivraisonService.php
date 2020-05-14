@@ -17,7 +17,6 @@ use App\Entity\ValeurChampLibre;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use Twig\Environment as Twig_Environment;
-use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -34,11 +33,6 @@ class DemandeLivraisonService
      * @var RouterInterface
      */
     private $router;
-
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
 
     /**
      * @var PrefixeNomDemandeRepository
@@ -59,8 +53,7 @@ class DemandeLivraisonService
     private $stringService;
     private $valeurChampLibreService;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository,
-                                ReceptionRepository $receptionRepository,
+    public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
@@ -69,7 +62,6 @@ class DemandeLivraisonService
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->receptionRepository = $receptionRepository;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
@@ -138,6 +130,7 @@ class DemandeLivraisonService
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
+        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -154,7 +147,7 @@ class DemandeLivraisonService
         if (!$requiredCreate) {
             return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
         }
-        $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
+        $utilisateur = $utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);

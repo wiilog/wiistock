@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\ColumnHidden;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
@@ -20,7 +19,6 @@ use App\Repository\LitigeHistoricRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
-use App\Repository\UtilisateurRepository;
 
 use App\Service\CSVExportService;
 use App\Service\LitigeService;
@@ -43,10 +41,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class LitigeController extends AbstractController
 {
-	/**
-	 * @var UtilisateurRepository
-	 */
-	private $utilisateurRepository;
 	/**
 	 * @var TransporteurRepository
 	 */
@@ -80,25 +74,23 @@ class LitigeController extends AbstractController
      */
     private $translator;
 
-	/**
-	 * @param LitigeService $litigeService
-	 * @param PieceJointeRepository $pieceJointeRepository
-	 * @param UserService $userService ;
-	 * @param LitigeRepository $litigeRepository
-	 * @param UtilisateurRepository $utilisateurRepository
-	 * @param TransporteurRepository $transporteurRepository
-	 * @param LitigeHistoricRepository $litigeHistoricRepository
-	 */
+    /**
+     * @param LitigeService $litigeService
+     * @param PieceJointeRepository $pieceJointeRepository
+     * @param UserService $userService ;
+     * @param LitigeRepository $litigeRepository
+     * @param TransporteurRepository $transporteurRepository
+     * @param TranslatorInterface $translator
+     * @param LitigeHistoricRepository $litigeHistoricRepository
+     */
 	public function __construct(LitigeService $litigeService,
                                 PieceJointeRepository $pieceJointeRepository,
                                 UserService $userService,
                                 LitigeRepository $litigeRepository,
-                                UtilisateurRepository $utilisateurRepository,
                                 TransporteurRepository $transporteurRepository,
                                 TranslatorInterface $translator,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
-		$this->utilisateurRepository = $utilisateurRepository;
 		$this->transporteurRepository = $transporteurRepository;
 		$this->litigeRepository = $litigeRepository;
 		$this->userService = $userService;

@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\Emplacement;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Repository\UtilisateurRepository;
 use App\Service\PasswordService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -14,10 +13,6 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterface
 {
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
 
     /**
      * @var PasswordService
@@ -29,11 +24,9 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
      */
     private $encoder;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository,
-                                PasswordService $passwordService,
+    public function __construct(PasswordService $passwordService,
                                 UserPasswordEncoderInterface $encoder)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordService = $passwordService;
         $this->encoder = $encoder;
     }

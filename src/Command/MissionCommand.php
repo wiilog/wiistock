@@ -8,7 +8,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Repository\UtilisateurRepository;
 use App\Repository\InventoryFrequencyRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Service\InventoryService;
@@ -21,11 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class MissionCommand extends Command
 {
     protected static $defaultName = 'app:generate:mission';
-
-    /**
-     * @var UtilisateurRepository
-     */
-    private $userRepository;
 
     /**
      * @var EntityManager
@@ -48,16 +42,11 @@ class MissionCommand extends Command
     private $inventoryService;
 
 
-    public function __construct(
-		UtilisateurRepository $userRepository,
-		EntityManagerInterface $entityManager,
-		InventoryFrequencyRepository $inventoryFrequencyRepository,
-		InventoryMissionRepository $inventoryMissionRepository,
-		InventoryService $inventoryService
-	)
-    {
+    public function __construct(EntityManagerInterface $entityManager,
+                                InventoryFrequencyRepository $inventoryFrequencyRepository,
+                                InventoryMissionRepository $inventoryMissionRepository,
+                                InventoryService $inventoryService) {
         parent::__construct();
-        $this->userRepository= $userRepository;
         $this->entityManager = $entityManager;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;

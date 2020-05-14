@@ -14,7 +14,6 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Repository\UtilisateurRepository;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
@@ -65,23 +64,16 @@ class PreparationController extends AbstractController
     private $specificService;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var PreparationsManagerService
      */
     private $preparationsManagerService;
 
     public function __construct(PreparationsManagerService $preparationsManagerService,
-                                UtilisateurRepository $utilisateurRepository,
                                 SpecificService $specificService,
                                 LivraisonRepository $livraisonRepository,
                                 ArticleDataService $articleDataService,
                                 UserService $userService)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;

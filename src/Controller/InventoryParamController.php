@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\ReferenceArticle;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,19 +29,14 @@ class InventoryParamController extends AbstractController
     private $userService;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var InventoryFrequencyRepository
      */
     private $inventoryFrequencyRepository;
 
-    public function __construct(UserService $userService, UtilisateurRepository $utilisateurRepository, InventoryFrequencyRepository $inventoryFrequencyRepository)
+    public function __construct(UserService $userService,
+                                InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->userService = $userService;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
     }
 

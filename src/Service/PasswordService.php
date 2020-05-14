@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Repository\UtilisateurRepository;
+use App\Entity\Utilisateur;
 use App\Repository\MailerServerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
@@ -21,11 +21,6 @@ class PasswordService
     private $entityManager;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var MailerServerRepository
      */
     private $mailerServerRepository;
@@ -42,7 +37,6 @@ class PasswordService
 
 
     public function __construct(MailerServerRepository $mailerServerRepository,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserPasswordEncoderInterface $passwordEncoder,
                                 EntityManagerInterface $entityManager,
                                 MailerService $mailerService,
@@ -50,7 +44,6 @@ class PasswordService
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
@@ -59,7 +52,8 @@ class PasswordService
 
     public function sendToken($token, $to)
     {
-        $user = $this->utilisateurRepository->findOneByMail($to);
+        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $user = $utilisateurRepository->findOneByMail($to);
         if ($user) {
         	$user->setToken($token);
         	$this->entityManager->flush();

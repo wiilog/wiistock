@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\FiltreRef;
 
-use App\Repository\UtilisateurRepository;
+use App\Entity\Utilisateur;
 use App\Repository\FiltreRefRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -16,24 +16,19 @@ class PatchFiltreStatutArticleActifFixtures extends Fixture implements FixtureGr
 {
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var FiltreRefRepository
      */
     private $filtreRefRepository;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, FiltreRefRepository $filtreRefRepository)
+    public function __construct(FiltreRefRepository $filtreRefRepository)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->filtreRefRepository = $filtreRefRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $listUser = $this->utilisateurRepository->findAll();
+        $utilisateurRepository = $manager->getRepository(Utilisateur::class);
+        $listUser = $utilisateurRepository->findAll();
         foreach($listUser as $user){
             $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
             if($filter == null){
@@ -43,7 +38,7 @@ class PatchFiltreStatutArticleActifFixtures extends Fixture implements FixtureGr
                     ->setChampFixe(FiltreRef::CHAMP_FIXE_STATUT)
                     ->setValue('actif');
 
-            $manager->persist($newFilter);
+                $manager->persist($newFilter);
             }
         }
         $manager->flush();

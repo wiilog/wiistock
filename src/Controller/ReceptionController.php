@@ -32,7 +32,6 @@ use App\Entity\CategoryType;
 use App\Repository\LitigeRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
-use App\Repository\UtilisateurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
@@ -75,11 +74,6 @@ use Twig\Error\SyntaxError;
  */
 class ReceptionController extends AbstractController
 {
-
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
 
     /**
      * @var TransporteurRepository
@@ -142,7 +136,6 @@ class ReceptionController extends AbstractController
         ArticleDataService $articleDataService,
         GlobalParamService $globalParamService,
         ReceptionRepository $receptionRepository,
-        UtilisateurRepository $utilisateurRepository,
         UserService $userService,
         PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
@@ -163,7 +156,6 @@ class ReceptionController extends AbstractController
         $this->receptionService = $receptionService;
         $this->globalParamService = $globalParamService;
         $this->receptionRepository = $receptionRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
@@ -841,7 +833,7 @@ class ReceptionController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         $typeChampLibreDL = [];
@@ -863,7 +855,7 @@ class ReceptionController extends AbstractController
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'acheteurs' => $this->utilisateurRepository->getIdAndLibelleBySearch(''),
+            'acheteurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),

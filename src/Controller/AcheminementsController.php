@@ -9,7 +9,6 @@ use App\Entity\Menu;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\UtilisateurRepository;
 
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
@@ -42,21 +41,14 @@ Class AcheminementsController extends AbstractController
     private $userService;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var AcheminementsService
      */
     private $acheminementsService;
 
     public function __construct(UserService $userService,
-                                UtilisateurRepository $utilisateurRepository,
                                 AcheminementsService $acheminementsService)
     {
         $this->userService = $userService;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->acheminementsService = $acheminementsService;
     }
 
@@ -73,9 +65,10 @@ Class AcheminementsController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         return $this->render('acheminements/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAll(),
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
         ]);
     }
@@ -115,6 +108,7 @@ Class AcheminementsController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ACHEMINEMENT, Acheminements::STATUT_A_TRAITER);
             $acheminements = new Acheminements();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -123,8 +117,8 @@ Class AcheminementsController extends AbstractController
                 ->setDate($date)
                 ->setDate($date)
                 ->setStatut($status)
-                ->setRequester($this->utilisateurRepository->find($data['demandeur']))
-                ->setReceiver($this->utilisateurRepository->find($data['destinataire']))
+                ->setRequester($utilisateurRepository->find($data['demandeur']))
+                ->setReceiver($utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
                 ->setLocationTake($data['prise'])
                 ->setColis($data['colis']);
@@ -184,11 +178,14 @@ Class AcheminementsController extends AbstractController
 
     /**
      * @Route("/api-new", name="acheminements_new_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function newApi(): Response
+    public function newApi(EntityManagerInterface $entityManager): Response
     {
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAll(),
         ]);
 
         return new JsonResponse($json);

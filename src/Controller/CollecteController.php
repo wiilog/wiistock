@@ -19,8 +19,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 
-use App\Repository\UtilisateurRepository;
-
 use App\Service\ArticleDataService;
 use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
@@ -50,11 +48,6 @@ class CollecteController extends AbstractController
 {
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var RefArticleDataService
      */
     private $refArticleDataService;
@@ -76,12 +69,10 @@ class CollecteController extends AbstractController
 
 
     public function __construct(RefArticleDataService $refArticleDataService,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
                                 ArticleDataService $articleDataService,
                                 DemandeCollecteService $collecteService)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
@@ -104,6 +95,7 @@ class CollecteController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
 
@@ -120,7 +112,7 @@ class CollecteController extends AbstractController
 
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
-            'utilisateurs' => $this->utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAll(),
 			'typeChampsLibres' => $typeChampLibre,
 			'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
 			'filterStatus' => $filter
@@ -156,6 +148,9 @@ class CollecteController extends AbstractController
      * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function api(Request $request): Response
 	{

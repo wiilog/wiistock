@@ -16,7 +16,6 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use App\Service\PasswordService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Repository\UtilisateurRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\UserService;
 
@@ -34,21 +33,14 @@ class SecuriteController extends AbstractController
     private $passwordEncoder;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository,
-                                PasswordService $passwordService,
+    public function __construct(PasswordService $passwordService,
                                 UserService $userService,
                                 UserPasswordEncoderInterface $passwordEncoder)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordService = $passwordService;
         $this->userService = $userService;
         $this->passwordEncoder = $passwordEncoder;
@@ -64,15 +56,22 @@ class SecuriteController extends AbstractController
 
     /**
      * @Route("/login/{info}", name="login", options={"expose"=true})
+     * @param AuthenticationUtils $authenticationUtils
+     * @param EntityManagerInterface $entityManager
+     * @param string $info
+     * @return Response
      */
-    public function login(AuthenticationUtils $authenticationUtils, string $info = '')
+    public function login(AuthenticationUtils $authenticationUtils,
+                          EntityManagerInterface $entityManager,
+                          string $info = '')
     {
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
 
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
-        $user = $this->utilisateurRepository->findOneByMail($lastUsername);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $user = $utilisateurRepository->findOneByMail($lastUsername);
         if ($user && $user->getStatus() === false) {
             $errorToDisplay = 'Utilisateur inactif.';
         } else if ($error) {
