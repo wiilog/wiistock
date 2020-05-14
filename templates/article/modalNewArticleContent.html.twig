@@ -12,7 +12,7 @@
                     {% endif %}
                     {% for ref in references %}
                         <option value="{{ ref.id }}"
-                                {{ defaultArticleFournisseurReference == ref.reference ? 'selected' }}>
+                                {{ defaultArticleFournisseurReference is defined and defaultArticleFournisseurReference == ref.reference ? 'selected' }}>
                             {{ ref.reference }}
                         </option>
                     {% endfor %}
