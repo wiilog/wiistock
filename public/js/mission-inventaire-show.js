@@ -24,7 +24,6 @@ function initPageElements() {
         processing: true,
         serverSide: true,
         order: [[3, 'desc']],
-        scrollX: true,
         ajax:{
             "url": pathApiArticle,
             "type": "POST",
@@ -58,7 +57,6 @@ function initPageElements() {
         processing: true,
         serverSide: true,
         order: [[3, 'desc']],
-        scrollX: true,
         ajax:{
             "url": pathApiReferenceArticle,
             "type": "POST",

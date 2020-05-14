@@ -40,7 +40,6 @@ function initDatatableLitiges() {
     let tableLitigesConfig = {
         serverSide: true,
         processing: true,
-        scrollX: true,
         order: [11, 'desc'],
         ajax: {
             "url": pathLitiges,

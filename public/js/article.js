@@ -13,7 +13,6 @@ function initTableArticle() {
             serverSide: true,
             processing: true,
             paging: true,
-            scrollX: true,
             order: [[1, 'asc']],
             ajax: {
                 "url": pathArticle,
@@ -96,7 +95,7 @@ function resizeTable() {
 function initNewArticleEditor(modal) {
     initEditor(modal + ' .editor-container-new');
     $('.list-multiple').select2();
-};
+}
 
 function loadAndDisplayInfos(select) {
     if ($(select).val() !== null) {

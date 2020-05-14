@@ -112,7 +112,6 @@ function InitPageDataTable() {
     };
     let tableLitigeConfig = {
         "lengthMenu": [5, 10, 25],
-        scrollX: true,
         ajax: {
             "url": pathLitigesReception,
             "type": "POST",

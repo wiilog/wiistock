@@ -147,7 +147,6 @@ function initTableRefArticle() {
             processing: true,
             serverSide: true,
             paging: true,
-            scrollX: true,
             order: [[1, 'asc']],
             ajax: {
                 'url': url,
@@ -424,7 +423,7 @@ function initNewReferenceArticleEditor(modal) {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
     clearModal(modal);
-};
+}
 
 function deleteArticleFournisseur(button) {
     xhttp = new XMLHttpRequest();
@@ -580,6 +579,7 @@ function displayActifOrInactif(select) {
 function initDatatableMovements(id) {
     let pathRefMouvements = Routing.generate('ref_mouvements_api', {'id': id}, true);
     let tableRefMvtOptions = {
+
         ajax: {
             "url": pathRefMouvements,
             "type": "POST"

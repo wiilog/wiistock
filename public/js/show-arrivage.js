@@ -46,7 +46,6 @@ $(function () {
 
 let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
 let tableColisConfig = {
-    scrollX: true,
     ajax: {
         "url": pathColis,
         "type": "POST"

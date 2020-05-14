@@ -5,7 +5,6 @@ let tableFournisseurConfig = {
     processing: true,
     serverSide: true,
     paging: true,
-    scrollX: true,
     order: [[1, 'desc']],
     ajax: {
         "url": pathFournisseur,

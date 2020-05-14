@@ -43,7 +43,6 @@ let tableArrivageConfig = {
     processing: true,
     pageLength: Number($('#pageLengthForArrivage').val()),
     order: [[1, "desc"]],
-    scrollX: true,
     ajax: {
         "url": pathArrivage,
         "type": "POST",
