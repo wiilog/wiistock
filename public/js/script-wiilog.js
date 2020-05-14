@@ -1358,7 +1358,6 @@ function openSelect2($select2) {
 
 function registerDropdownPosition() {
     let dropdownMenu;
-
     const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
     const isThreeDotsInRow = ($target) => ($target.parents('.noVis').length > 0);
 
