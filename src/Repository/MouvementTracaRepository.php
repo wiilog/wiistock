@@ -320,7 +320,7 @@ class MouvementTracaRepository extends EntityRepository
 
         $createInnerJoinIsDropFunction = function (string $aliasMouvementTraca) use ($dropType) {
             return "INNER JOIN statut ON ${aliasMouvementTraca}.type_id = statut.id
-                                         AND statut.code = '${dropType}'";
+                                     AND statut.code = '${dropType}'";
         };
 
         $createLimitFunction = function (string $aliasMouvementTraca) use ($limit, $field) {
