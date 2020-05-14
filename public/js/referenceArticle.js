@@ -584,8 +584,11 @@ function initDatatableMovements(id) {
             "url": pathRefMouvements,
             "type": "POST"
         },
+        domConfig: {
+            removeInfo: true,
+        },
         columns: [
-            {"data": 'Date', 'title': 'Date'},
+            {"data": 'Date', 'title': 'Date', 'type' : 'customDate'},
             {"data": 'Quantity', 'title': 'Quantité'},
             {"data": 'Origin', 'title': 'Origine'},
             {"data": 'Destination', 'title': 'Destination'},
@@ -594,6 +597,7 @@ function initDatatableMovements(id) {
         ],
     };
     let tableRefMouvements = initDataTable('tableMouvements', tableRefMvtOptions);
+    extendsDateSort('customDate');
 }
 
 function showRowMouvements(button) {
