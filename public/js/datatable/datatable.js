@@ -220,7 +220,9 @@ function moveSearchInputToHeader($searchInputContainer) {
 function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, isArticleOrRefSpecifConfig, ...config}) {
     let datatableToReturn = null;
     let $tableDom = $('#' + dtId);
-    $tableDom.addClass('wii-table');
+    $tableDom
+        .addClass('wii-table')
+        .addClass('w-100');
     datatableToReturn = $tableDom
         .on('error.dt', function (e, settings, techNote, message) {
             console.log('An error has been reported by DataTables: ', message);
