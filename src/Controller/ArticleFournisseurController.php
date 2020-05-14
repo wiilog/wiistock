@@ -235,7 +235,7 @@ class ArticleFournisseurController extends AbstractController
 
         $row = [
             'label' => $articleFournisseur ->getLabel(),
-            'Code Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
+            'Code Fournisseur' => $articleFournisseur->getFournisseur()->getCodeReference(),
             'Référence' => $articleFournisseur->getReference(),
             'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
             'Actions' => $this->renderView('article_fournisseur/datatableRowActions.html.twig', [

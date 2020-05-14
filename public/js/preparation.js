@@ -252,7 +252,6 @@ function limitInput($input) {
     // );
     //
     // if ($input.val() !== '' && $input.val() > max) {
-    //     console.log($input.val() + ' > ' + max);
     //     $input.parent().find('.error-msg').html('valeur max : ' + max);
     // //     input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
     // }
