@@ -276,8 +276,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                 let min = elem.attr('min');
                 let max = elem.attr('max');
 
-                console.log(min, max)
-
                 if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
                     if (min > max) {
                         msg += " doit être inférieure à " + max + ".<br>";
