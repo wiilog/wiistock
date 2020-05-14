@@ -53,7 +53,7 @@ function extendsDateSort(name) {
             const seconds = dateHoursParts.length > 2 ? parseInt(dateHoursParts[2]) : 0;
 
             const madeDate = new Date(year, month - 1, day, hours, minutes, seconds);
-            return madeDate.getTime();
+            return madeDate.getTime() || 0;
         },
         [name + "-asc"]: function (a, b) {
             return ((a < b) ? -1 : ((a > b) ? 1 : 0));

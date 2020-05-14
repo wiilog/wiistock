@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -284,20 +285,28 @@ class MouvementStockRepository extends EntityRepository
 
 
     /**
-     * @param $id
+     * @param ReferenceArticle $referenceArticle
      * @return MouvementStock[]
      */
-    public function findByRef($id)
+    public function findByRef(ReferenceArticle $referenceArticle)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT m
-            FROM App\Entity\MouvementStock m
-            WHERE m.refArticle = :id"
-        )->setParameter('id', $id);
+        $queryBuilder = $this->createQueryBuilder('mouvementStock');
 
-        return $query->execute();
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $queryBuilder->andWhere('mouvementStock.refArticle = :refArticle');
+        }
+        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $queryBuilder
+                ->join('mouvementStock.article', 'article')
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->andWhere('articleFournisseur.referenceArticle = :refArticle');
+        }
+
+        $queryBuilder->setParameter('refArticle', $referenceArticle);
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     /**

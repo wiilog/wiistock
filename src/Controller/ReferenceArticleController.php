@@ -1409,25 +1409,23 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/mouvements/api/{id}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param $id
+     * @param ReferenceArticle $referenceArticle
      * @return Response
      */
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   Request $request,
-                                  $id): Response
+                                  ReferenceArticle $referenceArticle): Response
     {
         if ($request->isXmlHttpRequest()) {
-
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
-            $mouvements = $mouvementStockRepository->findByRef($id);
+            $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
-            $rows = [];
-            foreach ($mouvements as $mouvement) {
-                $rows[] =
-                    [
+            $data['data'] = array_map(
+                function(MouvementStock $mouvement) {
+                    return [
                         'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
@@ -1435,8 +1433,9 @@ class ReferenceArticleController extends AbstractController
                         'Type' => $mouvement->getType(),
                         'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
                     ];
-            }
-            $data['data'] = $rows;
+                },
+                $mouvements
+            );
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
