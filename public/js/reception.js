@@ -9,7 +9,7 @@ $(function () {
     initSelect2($('#statut'), 'Statuts');
     initOnTheFlyCopies($('.copyOnTheFly'));
     $('.body-add-ref').css('display', 'none');
-
+    registerDropdownPosition();
     ajaxAutoArticlesReceptionInit($('.select2-autocomplete-articles'));
 
     // RECEPTION
