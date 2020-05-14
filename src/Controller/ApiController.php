@@ -264,7 +264,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $successData['data'] = [
                 'errors' => []
             ];
-            dump($mouvementsNomade);
 
             foreach ($mouvementsNomade as $index => $mvt) {
                 $invalidLocationTo = '';
@@ -454,10 +453,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     });
                 }
                 catch (Exception $e) {
-                    dump(!$entityManager->isOpen());
-                    dump($e);
-                    dump($index);
-                    dump($mvt);
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                         $entityManager->clear();
