@@ -1,7 +1,7 @@
 <div class="d-flex">
     {% set target = isRef ? '#modalShowRefArticle' : '#modalShowArticle' %}
     {% set path = isRef ? 'reference_article_show' : 'article_show' %}
-    <div class="dropdown dropright {{ not isPrepaEditable ? 'd-none' }}">
+    <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="dropdown-item"
