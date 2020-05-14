@@ -867,7 +867,6 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
@@ -897,16 +896,18 @@ class ReferenceArticleController extends AbstractController
 					$collecte = $collecteRepository->find($data['collecte']);
 					if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
 						//TODO patch temporaire CEA
+                        $data['quantity-to-pick'] = $data['quantite'];
                         $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
 						//TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
 						//                    $article = $this->articleRepository->find($data['article']);
 						//                    $collecte->addArticle($article);
-					} elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-						$collecteReference = new CollecteReference;
+					}
+					elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+						$collecteReference = new CollecteReference();
 						$collecteReference
 							->setCollecte($collecte)
 							->setReferenceArticle($refArticle)
-							->setQuantite(max((int)$data['quantite'], 0)); // protection contre quantités négatives
+							->setQuantite(max((int)$data['quantity-to-pick'], 0)); // protection contre quantités négatives
                         $entityManager->persist($collecteReference);
 					} else {
 						$json = false; //TOOD gérer message erreur
@@ -930,7 +931,6 @@ class ReferenceArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError

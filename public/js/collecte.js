@@ -155,8 +155,6 @@ function ajaxGetCollecteArticle(select) {
             $selection.html(data.selection);
             if (data.modif) {
                 $editNewArticle.html(data.modif);
-                let $refQuantiteInput = $editNewArticle.find('input[name="quantite"]');
-                $refQuantiteInput.removeClass('data');
             }
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');

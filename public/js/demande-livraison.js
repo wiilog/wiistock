@@ -207,9 +207,6 @@ function ajaxGetAndFillArticle($select) {
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
 
             setMaxQuantity($select);
-            $editNewArticle
-                .find('input[name="quantite"]')
-                .removeClass('data');
         }, 'json');
     }
 }

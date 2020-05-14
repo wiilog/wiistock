@@ -258,7 +258,6 @@ class CollecteController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -335,13 +334,13 @@ class CollecteController extends AbstractController
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
-                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantite']), 0)); // protection contre quantités négatives
+                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 0)); // protection contre quantités négatives
                 } else {
                     $collecteReference = new CollecteReference();
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
+                        ->setQuantite(max($data['quantity-to-pick'], 0)); // protection contre quantités négatives
 
                     $entityManager->persist($collecteReference);
                 }
@@ -349,7 +348,6 @@ class CollecteController extends AbstractController
                 if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                     return $this->redirectToRoute('access_denied');
                 }
-                unset($data['quantite']);
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
             }
             elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -421,30 +419,6 @@ class CollecteController extends AbstractController
                 'collecteRef' => $collecteReferenceRepository->find($data['id']),
             ]);
 
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/nouveau-api-article", name="collecte_article_new_content", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function newArticle(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-
-            $json['content'] = $this->renderView('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
-                'references' => $articleFournisseurRepository->getByFournisseur($fournisseurRepository->find($data['fournisseur']))
-            ]);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');

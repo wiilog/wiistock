@@ -402,7 +402,6 @@ class RefArticleDataService
      * @return bool
      * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -423,37 +422,37 @@ class RefArticleDataService
                 $ligneArticle
                     ->setReference($referenceArticle)
                     ->setDemande($demande)
-                    ->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
+                    ->setQuantite(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
                 $this->entityManager->persist($ligneArticle);
             } else {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0)); // protection contre quantités négatives
+                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
-            unset($data['quantite']);
             $this->editRefArticle($referenceArticle, $data, $user);
 
             // cas gestion quantité par article
-        } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        }
+        elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($this->userService->hasParamQuantityByRef()) {
                 if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite(max($data["quantite"], 0))// protection contre quantités négatives
+                        ->setQuantite(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
                         ->setDemande($demande)
                         ->setToSplit(true);
                     $this->entityManager->persist($ligneArticle);
                 } else {
                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
-                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantite"], 0));
+                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
                 /** @var Article $article */
                 $article
                     ->setDemande($demande)
-                    ->setQuantiteAPrelever(max($data["quantite"], 0)); // protection contre quantités négatives
+                    ->setQuantiteAPrelever(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
                 $resp = 'article';
             }
         } else {

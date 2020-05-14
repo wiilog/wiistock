@@ -227,7 +227,7 @@ class DemandeCollecteService
             ->setConform(true)
             ->setStatut($statut)
             ->setReference($ref . '-' . $index)
-            ->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
+            ->setQuantite(max($data['quantity-to-pick'], 0)) // protection contre quantités négatives
             ->setEmplacement($collecte->getPointCollecte())
             ->setArticleFournisseur($articleFournisseur)
             ->setType($referenceArticle->getType())
