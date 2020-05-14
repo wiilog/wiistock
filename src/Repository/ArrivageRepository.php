@@ -274,13 +274,17 @@ class ArrivageRepository extends EntityRepository
                     break;
                 case 'dateMin':
                     $needsDefaultDateFilter = false;
+                    $dateForFilter = new DateTime(str_replace('/', '-', $filter['value']));
+                    $dateForFilterString = $dateForFilter->format('Y-m-d');
                     $qb->andWhere('a.date >= :dateMin')
-                        ->setParameter('dateMin', $filter['value'] . " 00:00:00");
+                        ->setParameter('dateMin', $dateForFilterString . " 00:00:00");
                     break;
                 case 'dateMax':
                     $needsDefaultDateFilter = false;
+                    $dateForFilter = new DateTime(str_replace('/', '-', $filter['value']));
+                    $dateForFilterString = $dateForFilter->format('Y-m-d');
                     $qb->andWhere('a.date <= :dateMax')
-                        ->setParameter('dateMax', $filter['value'] . " 23:59:59");
+                        ->setParameter('dateMax', $dateForFilterString . " 23:59:59");
                     break;
                 case 'emergency':
                     $qb

@@ -39,8 +39,9 @@ function loadPage() {
 
         $('.block-encours').each(function () {
             const $blockEncours = $(this);
-            const $tableEncours = $blockEncours.find('.encours-table');
-
+            let $tableEncours = $blockEncours.find('.encours-table').filter(function() {
+                return $(this).attr('id');
+            });
             if (locationFiltersCounter === 0
                 || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
                 $blockEncours.removeClass('d-none');
@@ -48,7 +49,6 @@ function loadPage() {
             } else {
                 $blockEncours.addClass('d-none');
             }
-
         });
     }
 }
@@ -56,7 +56,6 @@ function loadPage() {
 function loadEncoursDatatable($table) {
     const tableId = $table.attr('id');
     let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);
-
     if (tableAlreadyInit) {
         $table.DataTable().ajax.reload();
     }
