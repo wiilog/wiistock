@@ -9,7 +9,6 @@ use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Repository\MenuRepository;
-use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -33,22 +32,15 @@ class RoleController extends AbstractController
     private $menuRepository;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
 
 
     public function __construct(MenuRepository $menuRepository,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserService $userService)
     {
         $this->menuRepository = $menuRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
     }
 
@@ -314,10 +306,16 @@ class RoleController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-	/**
-	 * @Route("/verification", name="role_check_delete", options={"expose"=true}, methods="GET|POST")
-	 */
-	public function checkRoleCanBeDeleted(Request $request): Response
+    /**
+     * @Route("/verification", name="role_check_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+	public function checkRoleCanBeDeleted(Request $request,
+                                          EntityManagerInterface $entityManager): Response
 	{
 		if ($request->isXmlHttpRequest() && $roleId = json_decode($request->getContent(), true)) {
 
@@ -325,7 +323,9 @@ class RoleController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$nbUsers = $this->utilisateurRepository->countByRoleId($roleId);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+			$nbUsers = $utilisateurRepository->countByRoleId($roleId);
 
 			if ($nbUsers > 0 ) {
 				$delete = false;

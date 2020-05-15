@@ -9,7 +9,6 @@ use App\Entity\Manutention;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\UtilisateurRepository;
 use App\Repository\ManutentionRepository;
 
 use App\Service\MailerService;
@@ -42,11 +41,6 @@ class ManutentionController extends AbstractController
     private $manutentionRepository;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -62,10 +56,12 @@ class ManutentionController extends AbstractController
     private $manutentionService;
 
 
-    public function __construct(ManutentionRepository $manutentionRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService, ManutentionService $manutentionService)
+    public function __construct(ManutentionRepository $manutentionRepository,
+                                UserService $userService,
+                                MailerService $mailerService,
+                                ManutentionService $manutentionService)
     {
         $this->manutentionRepository = $manutentionRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
         $this->manutentionService = $manutentionService;
@@ -73,6 +69,8 @@ class ManutentionController extends AbstractController
 
     /**
      * @Route("/api", name="manutention_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -106,9 +104,10 @@ class ManutentionController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         return $this->render('manutention/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAll(),
             'statuts' => $statutRepository->findByCategorieName(Manutention::CATEGORIE),
 			'filterStatus' => $filter
 		]);
@@ -150,6 +149,7 @@ class ManutentionController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
             $manutention = new Manutention();
@@ -161,7 +161,7 @@ class ManutentionController extends AbstractController
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
                 ->setStatut($status)
-                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
+                ->setDemandeur($utilisateurRepository->find($data['demandeur']))
 				->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
 				->setCommentaire($data['commentaire']);
 
@@ -230,6 +230,7 @@ class ManutentionController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $manutentionRepository = $entityManager->getRepository(Manutention::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $manutention = $manutentionRepository->find($data['id']);
 
@@ -246,7 +247,7 @@ class ManutentionController extends AbstractController
                 ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
-                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
+                ->setDemandeur($utilisateurRepository->find($data['demandeur']))
 				->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
 				->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();

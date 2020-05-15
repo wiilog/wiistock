@@ -9,7 +9,6 @@ use App\Entity\Menu;
 
 use App\Repository\InventoryEntryRepository;
 
-use App\Repository\UtilisateurRepository;
 use App\Service\InventoryEntryService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,20 +40,16 @@ class InventoryEntryController extends AbstractController
     private $inventoryEntryRepository;
 
 	/**
-	 * @var UtilisateurRepository
-	 */
-    private $userRepository;
-
-	/**
 	 * @var InventoryEntryService
 	 */
     private $inventoryEntryService;
 
-    public function __construct(InventoryEntryService $inventoryEntryService, UtilisateurRepository $userRepository, UserService $userService, InventoryEntryRepository $inventoryEntryRepository)
+    public function __construct(InventoryEntryService $inventoryEntryService,
+                                UserService $userService,
+                                InventoryEntryRepository $inventoryEntryRepository)
     {
         $this->userService = $userService;
         $this->inventoryEntryRepository = $inventoryEntryRepository;
-        $this->userRepository = $userRepository;
         $this->inventoryEntryService = $inventoryEntryService;
     }
 

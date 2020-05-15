@@ -12,7 +12,6 @@ use App\Entity\PieceJointe;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\UtilisateurRepository;
 
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -50,11 +49,6 @@ class MouvementTracaController extends AbstractController
     private $attachmentService;
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var MouvementTracaService
      */
     private $mouvementTracaService;
@@ -63,15 +57,12 @@ class MouvementTracaController extends AbstractController
      * ArrivageController constructor.
      * @param MouvementTracaService $mouvementTracaService
      * @param AttachmentService $attachmentService
-     * @param UtilisateurRepository $utilisateurRepository
      * @param UserService $userService
      */
     public function __construct(MouvementTracaService $mouvementTracaService,
                                 AttachmentService $attachmentService,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserService $userService)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->attachmentService = $attachmentService;
         $this->mouvementTracaService = $mouvementTracaService;

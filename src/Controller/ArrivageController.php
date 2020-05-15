@@ -29,7 +29,6 @@ use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\UrgenceRepository;
-use App\Repository\UtilisateurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
@@ -70,11 +69,6 @@ class ArrivageController extends AbstractController
      * @var UserService
      */
     private $userService;
-
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
 
     /**
      * @var TransporteurRepository
@@ -141,7 +135,6 @@ class ArrivageController extends AbstractController
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
                                 TransporteurRepository $transporteurRepository,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserService $userService)
     {
         $this->dashboardService = $dashboardService;
@@ -149,7 +142,6 @@ class ArrivageController extends AbstractController
         $this->specificService = $specificService;
         $this->globalParamService = $globalParamService;
         $this->userService = $userService;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->transporteurRepository = $transporteurRepository;
         $this->mailerService = $mailerService;
         $this->litigeRepository = $litigeRepository;
@@ -450,11 +442,12 @@ class ArrivageController extends AbstractController
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
                 $typeRepository = $entityManager->getRepository(Type::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+                $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+                    'utilisateurs' => $utilisateurRepository->findAllSorted(),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
@@ -561,6 +554,7 @@ class ArrivageController extends AbstractController
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $post = $request->request;
             $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
@@ -592,8 +586,8 @@ class ArrivageController extends AbstractController
 
             $acheteurs = $post->get('acheteurs');
 
-            $acheteursEntities = array_map(function ($acheteur) {
-                return $this->utilisateurRepository->findOneByUsername($acheteur);
+            $acheteursEntities = array_map(function ($acheteur) use ($utilisateurRepository) {
+                return $utilisateurRepository->findOneByUsername($acheteur);
             }, explode(',', $acheteurs));
 
             $arrivage->removeAllAcheteur();

@@ -20,7 +20,6 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ReceptionRepository;
-use App\Repository\UtilisateurRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArticleDataService;
@@ -50,11 +49,6 @@ use Twig\Error\SyntaxError;
  */
 class DemandeController extends AbstractController
 {
-
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
 
     /**
      * @var UserService
@@ -88,14 +82,12 @@ class DemandeController extends AbstractController
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleDataService $articleDataService,
                                 DemandeLivraisonService $demandeLivraisonService)
     {
         $this->receptionRepository = $receptionRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
@@ -451,6 +443,7 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
@@ -466,7 +459,7 @@ class DemandeController extends AbstractController
         }
 
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
@@ -549,10 +542,11 @@ class DemandeController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
-            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),

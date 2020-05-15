@@ -10,8 +10,6 @@ use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Repository\UtilisateurRepository;
-
 use App\Service\PasswordService;
 use App\Service\UserService;
 
@@ -32,10 +30,6 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
  */
 class UtilisateurController extends AbstractController
 {
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
 
     /**
      * @var UserService
@@ -55,10 +49,8 @@ class UtilisateurController extends AbstractController
 
     public function __construct(PasswordService $passwordService,
                                 UserPasswordEncoderInterface $encoder,
-                                UtilisateurRepository $utilisateurRepository,
                                 UserService $userService)
     {
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->encoder = $encoder;
         $this->passwordService = $passwordService;
@@ -201,8 +193,10 @@ class UtilisateurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $user = $this->utilisateurRepository->find($data['id']);
             $typeRepository = $entityManager->getRepository(Type::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+            $user = $utilisateurRepository->find($data['id']);
             $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
             $typeUser = [];
@@ -329,9 +323,10 @@ class UtilisateurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $roleRepository = $entityManager->getRepository(Role::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $role = $roleRepository->find((int)$data['role']);
-            $user = $this->utilisateurRepository->find($data['userId']);
+            $user = $utilisateurRepository->find($data['userId']);
 
             if ($user) {
                 $user->setRole($role);
@@ -389,15 +384,23 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $user = $this->utilisateurRepository->find($data['user']);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+            $user = $utilisateurRepository->find($data['user']);
 
 			// on vérifie que l'utilisateur n'est plus utilisé
 			$isUserUsed = $this->userService->isUsedByDemandsOrOrders($user);

@@ -137,7 +137,11 @@ class MouvementTracaService
      * @param bool $fromNomade
      * @param bool|null $finished
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
-     * @param array $options = ['commentaire' => string|null, 'mouvementStock' => MouvementStock|null, 'fileBag' => FileBag|null, from => Arrivage|Reception|null]
+     * @param array $options = [
+     *      'commentaire' => string|null,
+     *      'mouvementStock' => MouvementStock|null,
+     *      'fileBag' => FileBag|null, from => Arrivage|Reception|null],
+     *      'entityManager' => EntityManagerInterface|null
      * @return MouvementTraca
      * @throws Exception
      */
@@ -150,13 +154,16 @@ class MouvementTracaService
                                          $typeMouvementTraca,
                                          array $options = []): MouvementTraca
     {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
+        $entityManager = $options['entityManager'] ?? $this->entityManager;
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
-        $type = is_string($typeMouvementTraca)
-            ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
-            : $statutRepository->find($typeMouvementTraca);
+        $type = ($typeMouvementTraca instanceof Statut)
+            ? $typeMouvementTraca
+            : (is_string($typeMouvementTraca)
+                ? $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $typeMouvementTraca)
+                : $statutRepository->find($typeMouvementTraca));
 
         if (!isset($type)) {
             throw new Exception('Le type de mouvement traca donné est invalide');
@@ -173,7 +180,7 @@ class MouvementTracaService
             ->setColis($colis)
             ->setEmplacement($location)
             ->setOperateur($user)
-            ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($date) : null))
+            ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null))
             ->setDatetime($date)
             ->setFinished($finished)
             ->setType($type)
@@ -206,9 +213,9 @@ class MouvementTracaService
         return $mouvementTraca;
     }
 
-    private function generateUniqueIdForMobile(DateTime $date): string
-    {
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+    private function generateUniqueIdForMobile(EntityManagerInterface $entityManager,
+                                               DateTime $date): string {
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
         $uniqueId = null;
         //same format as moment.defaultFormat

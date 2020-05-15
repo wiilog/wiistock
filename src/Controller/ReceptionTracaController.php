@@ -5,12 +5,12 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\ReceptionTraca;
+use App\Entity\Utilisateur;
 use App\Repository\ReceptionTracaRepository;
-use App\Repository\UtilisateurRepository;
-use App\Service\DashboardService;
 use App\Service\ReceptionTracaService;
 use App\Service\UserService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,11 +25,6 @@ class ReceptionTracaController extends AbstractController
 {
 
     /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -40,40 +35,40 @@ class ReceptionTracaController extends AbstractController
     private $receptionTracaRepository;
 
     /**
-     * @var DashboardService
-     */
-    private $dashboardService;
-
-    /**
      * @var ReceptionTracaService
      */
     private $receptionTracaService;
 
     /**
      * ReceptionTracaController constructor.
-     * @param UtilisateurRepository $utilisateurRepository
      * @param UserService $userService
+     * @param ReceptionTracaRepository $receptionTracaRepository
+     * @param ReceptionTracaService $receptionTracaService
      */
-    public function __construct(DashboardService $dashboardService, UtilisateurRepository $utilisateurRepository, UserService $userService, ReceptionTracaRepository $receptionTracaRepository, ReceptionTracaService $receptionTracaService)
+    public function __construct(UserService $userService,
+                                ReceptionTracaRepository $receptionTracaRepository,
+                                ReceptionTracaService $receptionTracaService)
     {
-        $this->dashboardService = $dashboardService;
         $this->userService = $userService;
-        $this->utilisateurRepository = $utilisateurRepository;
         $this->receptionTracaRepository = $receptionTracaRepository;
         $this->receptionTracaService = $receptionTracaService;
     }
 
     /**
      * @Route("/", name="reception_traca_index", methods={"GET"})
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
         return $this->render('reception_traca/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+            'utilisateurs' => $utilisateurRepository->findAllSorted(),
         ]);
     }
 

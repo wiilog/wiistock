@@ -3,10 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Utilisateur;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
@@ -15,10 +14,8 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
  * @method Utilisateur[]    findAll()
  * @method Utilisateur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UtilisateurRepository extends ServiceEntityRepository implements UserLoaderInterface
+class UtilisateurRepository extends EntityRepository implements UserLoaderInterface
 {
-
-
     private const DtToDbLabels = [
         'Nom d\'utilisateur' => 'username',
         'Email' => 'email',
@@ -26,11 +23,6 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
         'Dernière connexion' => 'lastLogin',
         'Rôle' => 'role',
     ];
-
-	public function __construct(ManagerRegistry $registry)
-	{
-		parent::__construct($registry, Utilisateur::class);
-	}
 
 	public function countByEmail($email)
 	{
