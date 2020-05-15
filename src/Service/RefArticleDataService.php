@@ -25,7 +25,6 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;

@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Nature;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method Nature|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,12 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Nature[]    findAll()
  * @method Nature[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class NatureRepository extends ServiceEntityRepository
+class NatureRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Nature::class);
-    }
 
     public function countUsedById($id)
     {

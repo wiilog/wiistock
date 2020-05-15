@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
-use App\Repository\UrgenceRepository;
 use App\Service\SpecificService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
@@ -31,19 +30,14 @@ class UrgencesController extends AbstractController
     private $userService;
 
     /**
-     * @var UrgenceRepository
-     */
-    private $urgenceRepository;
-
-    /**
      * @var UrgenceService
      */
     private $urgenceService;
 
-    public function __construct(UserService $userService, UrgenceRepository $urgenceRepository, UrgenceService $urgenceService)
+    public function __construct(UserService $userService,
+                                UrgenceService $urgenceService)
     {
         $this->userService = $userService;
-        $this->urgenceRepository = $urgenceRepository;
         $this->urgenceService = $urgenceService;
     }
 
@@ -133,14 +127,16 @@ class UrgencesController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request,
+                           EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $urgence = $this->urgenceRepository->find($data['urgence']);
+            $urgenceRepository = $entityManager->getRepository(Urgence::class);
+            $urgence = $urgenceRepository->find($data['urgence']);
             $canDeleteUrgence = !$urgence->getLastArrival();
             if ($canDeleteUrgence) {
                 $entityManager->remove($urgence);
@@ -155,14 +151,19 @@ class UrgencesController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="urgence_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function editApi(Request $request): Response
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $urgence = $this->urgenceRepository->find($data['id']);
+            $urgenceRepository = $entityManager->getRepository(Urgence::class);
+            $urgence = $urgenceRepository->find($data['id']);
             $json = $this->renderView('urgence/modalEditUrgenceContent.html.twig', [
                 'urgence' => $urgence,
             ]);
@@ -194,7 +195,7 @@ class UrgencesController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
-        $urgence = $this->urgenceRepository->find($data['id']);
+        $urgence = $urgenceRepository->find($data['id']);
         $response = [];
 
         if ($urgence) {

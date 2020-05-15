@@ -13,7 +13,6 @@ use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 
-use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
