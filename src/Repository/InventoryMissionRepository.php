@@ -10,8 +10,10 @@ use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 
 /**
  * @method InventoryMission|null find($id, $lockMode = null, $lockVersion = null)
@@ -31,46 +33,68 @@ class InventoryMissionRepository extends ServiceEntityRepository
         parent::__construct($registry, InventoryMission::class);
     }
 
+    /**
+     * @return int|mixed|string
+     * @throws Exception
+     */
     public function getCurrentMissionRefNotTreated()
 	{
-		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-		$now = $now->format('Y-m-d');
+		$now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$queryBuilder = $this->createQueryBuilder('inventoryMission');
+		$exprBuilder = $queryBuilder->expr();
 
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-		"SELECT im.id as id_mission, ra.reference, e.label as location, 1 as is_ref, ie.id as ieid, ra.barCode
-		FROM App\Entity\InventoryMission im
-		JOIN im.refArticles ra
-		LEFT JOIN ra.inventoryEntries ie
-		JOIN ra.emplacement e
-		WHERE im.startPrevDate <= '" . $now . "'
-		AND im.endPrevDate >= '" . $now . "'
-		AND ie.id is null"
-		);
+		$queryBuilder
+            ->select('inventoryMission.id AS id_mission')
+            ->addSelect('refArticle.reference AS reference')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('1 AS is_ref')
+            ->addSelect('inventoryEntry.id AS ieid')
+            ->join('inventoryMission.refArticles', 'refArticle')
+            ->join('refArticle.emplacement', 'emplacement')
+            ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.refArticle = refArticle')
+            ->where($exprBuilder->andX(
+                'inventoryMission.startPrevDate <= :now',
+                'inventoryMission.endPrevDate >= :now',
+                'inventoryEntry.id IS NULL'
+            ))
+            ->setParameter('now', $now);
 
-		return $query->execute();
+		return $queryBuilder
+            ->getQuery()
+            ->execute();
 	}
 
+    /**
+     * @return int|mixed|string
+     * @throws Exception
+     */
 	public function getCurrentMissionArticlesNotTreated()
 	{
-		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-		$now = $now->format('Y-m-d');
+		$now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-		"SELECT im.id as id_mission, a.reference, e.label as location, 0 as is_ref, ie.id as ieid, a.barCode
-		FROM App\Entity\InventoryMission im
-		JOIN im.articles a
-		LEFT JOIN a.inventoryEntries ie
-		JOIN a.emplacement e
-		WHERE im.startPrevDate <= '" . $now . "'
-		AND im.endPrevDate >= '" . $now . "'
-		AND ie.id is null"
-		);
+        $queryBuilder = $this->createQueryBuilder('inventoryMission');
+        $exprBuilder = $queryBuilder->expr();
 
-		return $query->execute();
+        $queryBuilder
+            ->select('inventoryMission.id AS id_mission')
+            ->addSelect('article.reference AS reference')
+            ->addSelect('article.barCode AS barCode')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('0 AS is_ref')
+            ->addSelect('inventoryMission.id AS ied')
+            ->join('inventoryMission.articles', 'article')
+            ->join('article.emplacement', 'emplacement')
+            ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.article = article')
+            ->where($exprBuilder->andX(
+                'inventoryMission.startPrevDate <= :now',
+                'inventoryMission.endPrevDate >= :now',
+                'inventoryEntry.id IS NULL'
+            ))
+            ->setParameter('now', $now);
+
+		return $queryBuilder
+            ->getQuery()
+            ->execute();
 	}
 
 	public function countAnomaliesByMission($mission)
