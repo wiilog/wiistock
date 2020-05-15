@@ -17,7 +17,6 @@ $(function () {
             $(this).val('');
         }
     });
-    registerDropdownPosition();
 });
 
 function InitiliserPageModals() {

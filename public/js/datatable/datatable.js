@@ -250,6 +250,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }
+                attachDropdownToBodyOnDropdownOpening($tableDom);
             },
             ...config
         });
@@ -377,3 +378,31 @@ function articleAndRefTableCallback({columns, tableFilter}, table) {
         });
     }
 }
+
+function attachDropdownToBodyOnDropdownOpening($table) {
+    let dropdownMenu;
+
+    $table.on('show.bs.dropdown', function (e) {
+        const $target = $(e.target);
+        dropdownMenu = $target.find('.dropdown-menu');
+        let parentModal = $target.parents('.modal');
+        dropdownMenu = $target.find('.dropdown-menu');
+        $('body').append(dropdownMenu.detach());
+        dropdownMenu.css('display', 'block');
+        dropdownMenu.position({
+            'my': 'right top',
+            'at': 'right bottom',
+            'of': $(e.relatedTarget)
+        });
+        if (parentModal.length > 0) {
+            dropdownMenu.css('z-index', (parentModal.first().css('z-index') || 0) + 1)
+        }
+    });
+
+    $table.on('hide.bs.dropdown', function (e) {
+        const $target = $(e.target);
+        $target.append(dropdownMenu.detach());
+        dropdownMenu.hide();
+    });
+}
+

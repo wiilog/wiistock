@@ -19,7 +19,6 @@ $(function () {
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#litigeOrigin'), 'Origines');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
-    registerDropdownPosition();
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

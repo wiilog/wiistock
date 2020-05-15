@@ -12,7 +12,6 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
-    registerDropdownPosition();
 });
 
 $('.select2').select2();
@@ -43,6 +42,9 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
         $.post(path, JSON.stringify(Data), function (data) {
             if (!data) {
                 $('#cannotDelete').click();
+            }
+            if (!data.success) {
+                alertErrorMsg(data.msg);
             }
             if (data.new) {
                 tableRefArticle.row.add(data.new).draw(false);
