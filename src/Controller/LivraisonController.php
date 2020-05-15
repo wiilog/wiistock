@@ -354,8 +354,9 @@ class LivraisonController extends AbstractController
                 $data[] = array_merge($dataLivraison, [
                     $referenceArticle->getReference() ?? '',
                     $referenceArticle->getLibelle() ?? '',
-                    $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                    $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
                     $ligneArticle->getQuantite() ?? 0,
+                    $referenceArticle->getQuantiteStock() ?? 0,
                     $referenceArticle->getBarCode(),
                 ]);
             }
@@ -368,7 +369,8 @@ class LivraisonController extends AbstractController
                 $data[] = array_merge($dataLivraison, [
                     $reference,
                     $article->getLabel() ?? '',
-                    $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                    $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
+                    $article->getQuantiteAPrelever() ?? 0,
                     $article->getQuantite() ?? 0,
                     $article->getBarCode(),
                 ]);
