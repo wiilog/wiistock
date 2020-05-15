@@ -250,6 +250,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }
+                attachDropdownToBodyOnDropdownOpening($tableDom);
             },
             ...config
         });

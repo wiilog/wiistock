@@ -65,10 +65,6 @@ class FiltreRefController extends AbstractController
             if($existingFilter == 0) {
                 $filter = new FiltreRef();
 
-                // opérateur
-//				$operator = isset($data['operator']) ? $data['operator'] : 'and';
-//				$filter->setOperator($operator);
-
 				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
@@ -107,7 +103,10 @@ class FiltreRefController extends AbstractController
                     'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray])
                 ];
             } else {
-                $result = false; //TODO gérer retour erreur (filtre déjà existant)
+                $result = [
+                    'success' => false,
+                    'msg' => 'Un filtre sur ce champ existe déjà.'
+                ];
             }
             return new JsonResponse($result);
         }

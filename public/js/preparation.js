@@ -16,7 +16,6 @@ $(function () {
     $filterDemand.attr('id', 'demande');
     let filterDemandId = $('#filterDemandId').val();
     let filterDemandValue = $('#filterDemandValue').val();
-    registerDropdownPosition();
     if (filterDemandId && filterDemandValue) {
         let option = new Option(filterDemandValue, filterDemandId, true, true);
         $filterDemand.append(option).trigger('change');

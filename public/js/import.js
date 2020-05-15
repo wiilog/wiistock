@@ -2,7 +2,6 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax');
     initSelect2($('#statut'), 'Statuts');
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
-    registerDropdownPosition();
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_IMPORT);

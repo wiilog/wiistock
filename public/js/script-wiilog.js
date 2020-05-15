@@ -1356,12 +1356,12 @@ function openSelect2($select2) {
     $select2.select2('open');
 }
 
-function registerDropdownPosition() {
+function attachDropdownToBodyOnDropdownOpening($table) {
     let dropdownMenu;
     const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
     const isThreeDotsInRow = ($target) => ($target.parents('.noVis').length > 0);
 
-    $(window).on('show.bs.dropdown', function (e) {
+    $table.on('show.bs.dropdown', function (e) {
         const $target = $(e.target);
         dropdownMenu = $target.find('.dropdown-menu');
         let parentModal = $target.parents('.modal');
@@ -1383,7 +1383,7 @@ function registerDropdownPosition() {
         }
     });
 
-    $(window).on('hide.bs.dropdown', function (e) {
+    $table.on('hide.bs.dropdown', function (e) {
         const $target = $(e.target);
         if (!hasMainHeaderParent($target)) {
             $target.append(dropdownMenu.detach());
