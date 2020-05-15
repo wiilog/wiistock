@@ -1,5 +1,5 @@
 <div class="d-flex">
-    <div class="dropdown {{ not hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
+    <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
