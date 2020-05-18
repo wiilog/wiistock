@@ -143,15 +143,19 @@ function createDatatableDomFooter({information, length, pagination}) {
 }
 
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
+    const domFooter = createDatatableDomFooter({
+        information: !removeInfo,
+        length: true,
+        pagination: !needsPaginationRemoval
+    });
     let dtDefaultValue = (
         '<"row mb-2"' +
             '<"col-auto d-none"f>' +
         '>' +
         't' +
-        createDatatableDomFooter({information: true, length: true, pagination: !needsPaginationRemoval}) +
+        domFooter +
         'r'
     );
-    let dtDefaultValueWithoutInfos = '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-8"p>>r';
     return needsFullDomOverride
         ? dtDefaultValue
         : needsPartialDomOverride
@@ -162,9 +166,7 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
             )
             : needsMinimalDomOverride
                 ? 'tr'
-                : removeInfo
-                    ? dtDefaultValueWithoutInfos
-                    : dtDefaultValue;
+                : dtDefaultValue;
 }
 
 function getAppropriateRowCallback({needsColor, color, dataToCheck, needsRowClickAction, callback}) {
