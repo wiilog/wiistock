@@ -258,7 +258,6 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
 
 function renderDtInfo($table) {
     let $blocInfo = $table.find('.dataTables_info');
-    $blocInfo.html(' ' + $blocInfo.html());
 }
 
 function resizeTable(table) {
