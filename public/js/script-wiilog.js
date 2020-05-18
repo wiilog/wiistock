@@ -171,7 +171,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     );
 
     // si tout va bien on envoie la requête ajax...
-    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
+    if (!barcodeIsInvalid
+        && missingInputs.length == 0
+        && wrongNumberInputs.length == 0
+        && passwordIsValid
+        && datesAreValid) {
         if (close == true) {
             modal.find('.close').click();
         }

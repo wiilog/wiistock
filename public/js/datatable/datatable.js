@@ -130,20 +130,41 @@ function toggleInputRadioOnRow(tr) {
     $row.find('input[type="checkbox"]').trigger('click');
 }
 
+function createDatatableDomFooter({information, length, pagination}) {
+    return (information || length || pagination)
+        ? (
+            `<"row mt-2 align-items-center"
+                ${length ? '<"col-auto"l>' : ''}
+                ${information ? '<"col-auto"i>' : ''}
+                ${pagination ? '<"col"p>' : ''}
+            >`
+        )
+        : ''
+}
+
 function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needsMinimalDomOverride, needsPaginationRemoval, removeInfo}) {
-    let dtDefaultValue = '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r';
+    let dtDefaultValue = (
+        '<"row mb-2"' +
+            '<"col-auto d-none"f>' +
+        '>' +
+        't' +
+        createDatatableDomFooter({information: true, length: true, pagination: !needsPaginationRemoval}) +
+        'r'
+    );
     let dtDefaultValueWithoutInfos = '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-8"p>>r';
     return needsFullDomOverride
-        ? '<"row"<"col"><"col-2 align-self-end"B>><"row mb-2 justify-content-between"<"col-auto d-none"f><"col-2">>t<"row mt-2 justify-content-between"<"col-2 mt-2"l><"col-2 pl-0"i><"col-8"p>>r'
+        ? dtDefaultValue
         : needsPartialDomOverride
-            ? '<"top">rt<"bottom"lp><"clear">'
-            : needsPaginationRemoval
-                ? '<"row mb-2"<"col-auto d-none"f>>t<"row mt-2"<"col-auto mt-2"l><"col-2 pl-0"i>>r'
-                : needsMinimalDomOverride
-                    ? 'tr'
-                    : removeInfo
-                        ? dtDefaultValueWithoutInfos
-                        : dtDefaultValue;
+            ? (
+                'r' +
+                't' +
+                createDatatableDomFooter({length: true, pagination: true})
+            )
+            : needsMinimalDomOverride
+                ? 'tr'
+                : removeInfo
+                    ? dtDefaultValueWithoutInfos
+                    : dtDefaultValue;
 }
 
 function getAppropriateRowCallback({needsColor, color, dataToCheck, needsRowClickAction, callback}) {
@@ -241,7 +262,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
                     response,
                     $tableDom,
                     ...(drawConfig || {})
-                })
+                });
             },
             initComplete: () => {
                 let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
@@ -258,7 +279,9 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
 }
 
 function renderDtInfo($table) {
-    let $blocInfo = $table.find('.dataTables_info');
+    let $blocInfo = $table
+        .find('.dataTables_info')
+        .addClass('pt-0');
     $blocInfo.html(' -  &nbsp;' + $blocInfo.html());
 }
 
