@@ -893,13 +893,23 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $articlesFournisseurArrays = [];
             $ref = array_map(
-                function ($item) {
+                function ($item) use ($articleFournisseurRepository, &$articlesFournisseurArrays) {
+                    if (!isset($articlesFournisseurArrays[$item['reference']])) {
+                        $articlesFournisseurArrays[$item['reference']] = $articleFournisseurRepository->getIdAndLibelleByRefRef($item['reference']);
+                    }
                     return [
                         'id' => "{$item['reference']}_{$item['commande']}",
                         'reference' => $item['reference'],
                         'commande' => $item['commande'],
+                        'defaultArticleFournisseur' => count($articlesFournisseurArrays[$item['reference']]) === 1
+                            ? [
+                                'text' => $articlesFournisseurArrays[$item['reference']][0]['reference'],
+                                'value' => $articlesFournisseurArrays[$item['reference']][0]['id']
+                            ]
+                            : null,
                         'text' => "{$item['reference']} – {$item['commande']}"
                     ];
                 },

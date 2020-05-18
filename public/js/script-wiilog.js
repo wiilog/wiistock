@@ -513,12 +513,32 @@ function initFilterDateToday() {
  * @param {{}|{route: string, param: {}|undefined, success?: function(result, term)}} ajaxOptions
  * @param lengthMin
  * @param placeholder
- * @param {boolean} autoSelect
+ * @param {boolean|undefined} autoSelect
+ * @param {*} $nextField
+ * @param {string|undefined} defaultOptionText
+ * @param {string|undefined} defaultOptionValue
  */
-function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {}, {autoSelect, $nextField} = {}) {
+function initSelect2($select,
+                     placeholder = '',
+                     lengthMin = 0,
+                     ajaxOptions = {},
+                     {autoSelect, $nextField} = {},
+                     {value: defaultOptionValue, text: defaultOptionText} = {}) {
     $select.each(function () {
         const $self = $(this);
         let isMultiple = $self.attr('multiple') === 'multiple';
+
+        if (defaultOptionValue && defaultOptionText) {
+            const $existingDefaultOption = $self.find(`option[value="${defaultOptionValue}"]`);
+            if ($existingDefaultOption
+                && $existingDefaultOption.length > 0) {
+                $existingDefaultOption.prop('selected', true);
+            }
+            else {
+                let newOption = new Option(defaultOptionText, defaultOptionValue, true, true);
+                $self.append(newOption).trigger('change');
+            }
+        }
 
         const select2AjaxOptions = ajaxOptions && ajaxOptions.route
             ? {
