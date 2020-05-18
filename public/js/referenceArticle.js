@@ -12,14 +12,12 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
-    registerDropdownPosition();
 });
 
 $('.select2').select2();
 let tableRefArticle;
 
-function InitialiserModalRefArticle(modal, submit, path, callback = function () {
-}, close = true) {
+function InitialiserModalRefArticle(modal, submit, path, callback = function () {}, close = true) {
     submit.click(function () {
         submitActionRefArticle(modal, path, callback, close);
     });
@@ -43,6 +41,9 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
         $.post(path, JSON.stringify(Data), function (data) {
             if (!data) {
                 $('#cannotDelete').click();
+            }
+            if (!data.success) {
+                alertErrorMsg(data.msg);
             }
             if (data.new) {
                 tableRefArticle.row.add(data.new).draw(false);

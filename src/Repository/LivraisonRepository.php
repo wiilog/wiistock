@@ -6,11 +6,10 @@ use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Livraison|null find($id, $lockMode = null, $lockVersion = null)
@@ -18,7 +17,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Livraison[]    findAll()
  * @method Livraison[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LivraisonRepository extends ServiceEntityRepository
+class LivraisonRepository extends EntityRepository
 {
 	const DtToDbLabels = [
 		'Numéro' => 'numero',
@@ -27,11 +26,6 @@ class LivraisonRepository extends ServiceEntityRepository
 		'Opérateur' => 'utilisateur',
 		'Type' => 'type'
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Livraison::class);
-    }
 
     public function countByEmplacement($emplacementId)
     {
@@ -66,7 +60,7 @@ class LivraisonRepository extends ServiceEntityRepository
                     l.numero as number,
                     dest.label as location,
                     t.label as type,
-                    user.username as requester   
+                    user.username as requester
 			FROM App\Entity\Livraison l
 			JOIN l.statut s
 			JOIN l.preparation preparation

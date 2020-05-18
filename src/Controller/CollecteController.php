@@ -15,9 +15,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Entity\Fournisseur;
 use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
 
 use App\Service\ArticleDataService;
 use App\Service\DemandeCollecteService;

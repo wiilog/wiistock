@@ -171,7 +171,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     );
 
     // si tout va bien on envoie la requête ajax...
-    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
+    if (!barcodeIsInvalid
+        && missingInputs.length == 0
+        && wrongNumberInputs.length == 0
+        && passwordIsValid
+        && datesAreValid) {
         if (close == true) {
             modal.find('.close').click();
         }
@@ -1354,45 +1358,6 @@ function initFreeSelect2($selects) {
 
 function openSelect2($select2) {
     $select2.select2('open');
-}
-
-function registerDropdownPosition() {
-    let dropdownMenu;
-    const hasMainHeaderParent = ($target) => ($target.parents('.main-header').length > 0);
-    const isThreeDotsInRow = ($target) => ($target.parents('.noVis').length > 0);
-
-    $(window).on('show.bs.dropdown', function (e) {
-        const $target = $(e.target);
-        dropdownMenu = $target.find('.dropdown-menu');
-        let parentModal = $target.parents('.modal');
-        if (!hasMainHeaderParent($target)) {
-            dropdownMenu = $target.find('.dropdown-menu');
-            $('body').append(dropdownMenu.detach());
-            dropdownMenu.css('display', 'block');
-            dropdownMenu.position({
-                'my': 'right top',
-                'at': 'right bottom',
-                'of': $(e.relatedTarget)
-            });
-            if (isThreeDotsInRow($target)) {
-                dropdownMenu.addClass('ml-3');
-            }
-            if (parentModal.length > 0) {
-                dropdownMenu.css('z-index', (parentModal.first().css('z-index') || 0) + 1)
-            }
-        }
-    });
-
-    $(window).on('hide.bs.dropdown', function (e) {
-        const $target = $(e.target);
-        if (!hasMainHeaderParent($target)) {
-            $target.append(dropdownMenu.detach());
-            dropdownMenu.hide();
-        }
-        if (isThreeDotsInRow($target)) {
-            dropdownMenu.removeClass('ml-3');
-        }
-    });
 }
 
 function saveExportFile(routeName, params = null) {

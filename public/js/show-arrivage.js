@@ -3,7 +3,6 @@ $('.select2').select2();
 $(function () {
     //fill l'input acheteurs (modalNewLititge)
     let modal = $('#modalNewLitige');
-    registerDropdownPosition();
     let inputAcheteurs = $('#acheteursLitigeHidden').val();
     let acheteurs = inputAcheteurs.split(',');
     let $acheteursLitige = modal.find('#acheteursLitige');

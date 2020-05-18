@@ -11,8 +11,8 @@ namespace App\Command;
 
 use App\Entity\Litige;
 
-use App\Repository\LitigeRepository;
 use App\Service\MailerService;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,10 +21,6 @@ use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
 {
-    /**
-     * @var LitigeRepository
-     */
-    private $litigeRepository;
 
     /**
      * @var MailerService
@@ -41,13 +37,15 @@ class MailsLitigesComand extends Command
      */
     private $logger;
 
+    private $entityManager;
+
     public function __construct(LoggerInterface $logger,
-                                LitigeRepository $litigeRepository,
+                                EntityManagerInterface $entityManager,
                                 MailerService $mailerService,
                                 Twig_Environment $templating)
     {
         parent::__construct();
-        $this->litigeRepository = $litigeRepository;
+        $this->entityManager = $entityManager;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
         $this->logger = $logger;
@@ -62,13 +60,15 @@ class MailsLitigesComand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        $litigeRepository = $this->entityManager->getRepository(Litige::class);
+
         /** @var Litige[] $litiges */
-        $litiges = $this->litigeRepository->findByStatutSendNotifToBuyer();
+        $litiges = $litigeRepository->findByStatutSendNotifToBuyer();
 
         $litigesByAcheteur = [];
         foreach ($litiges as $litige) {
             /** @var  $acheteursEmail */
-            $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
+            $acheteursEmail = $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
             foreach ($acheteursEmail as $email) {
                 $litigesByAcheteur[$email][] = $litige;
             }

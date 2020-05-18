@@ -29,7 +29,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
-use App\Repository\LivraisonRepository;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -62,11 +61,6 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
  */
 class ReferenceArticleController extends AbstractController
 {
-
-    /**
-     * @var LivraisonRepository
-     */
-    private $livraisonRepository;
 
     /**
      * @var FiltreRefRepository
@@ -121,7 +115,6 @@ class ReferenceArticleController extends AbstractController
                                 SpecificService $specificService,
                                 Twig_Environment $templating,
                                 ArticleDataService $articleDataService,
-                                LivraisonRepository $livraisonRepository,
                                 FiltreRefRepository $filtreRefRepository,
                                 RefArticleDataService $refArticleDataService,
                                 UserService $userService,
@@ -130,7 +123,6 @@ class ReferenceArticleController extends AbstractController
                                 ValeurChampLibreService $valeurChampLibreService)
     {
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;

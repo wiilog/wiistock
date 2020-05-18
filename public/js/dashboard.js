@@ -701,21 +701,23 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val();
+    console.log(pageTitle)
+    if (pageTitle) {
+        document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 
-    document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
+        const words = pageTitle.split('|');
 
-    const words = pageTitle.split('|');
-
-    if (words && words.length > 0) {
-        const $titleContainer = $('<span/>');
-        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
-            if ($titleContainer.children().length > 0) {
-                $titleContainer.append(' | ')
+        if (words && words.length > 0) {
+            const $titleContainer = $('<span/>');
+            for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+                if ($titleContainer.children().length > 0) {
+                    $titleContainer.append(' | ')
+                }
+                const className = (wordIndex === (words.length - 1)) ? 'bold' : undefined;
+                $titleContainer.append($('<span/>', {class: className, text: words[wordIndex]}));
             }
-            const className = (wordIndex === (words.length - 1)) ? 'bold' : undefined;
-            $titleContainer.append($('<span/>', {class: className, text: words[wordIndex]}));
+            $('.main-header .header-title').html($titleContainer);
         }
-        $('.main-header .header-title').html($titleContainer);
     }
 }
 

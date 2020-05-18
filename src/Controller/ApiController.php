@@ -23,7 +23,6 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
-use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
@@ -93,11 +92,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $logger;
 
     /**
-     * @var LivraisonRepository
-     */
-    private $livraisonRepository;
-
-    /**
      * @var InventoryMissionRepository
      */
     private $inventoryMissionRepository;
@@ -135,7 +129,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param InventoryService $inventoryService
      * @param UserService $userService
      * @param InventoryMissionRepository $inventoryMissionRepository
-     * @param LivraisonRepository $livraisonRepository
      * @param LoggerInterface $logger
      * @param MailerServerRepository $mailerServerRepository
      * @param MailerService $mailerService
@@ -147,7 +140,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 InventoryService $inventoryService,
                                 UserService $userService,
                                 InventoryMissionRepository $inventoryMissionRepository,
-                                LivraisonRepository $livraisonRepository,
                                 LoggerInterface $logger,
                                 MailerServerRepository $mailerServerRepository,
                                 MailerService $mailerService,
@@ -158,7 +150,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $this->mailerService = $mailerService;
         $this->passwordEncoder = $passwordEncoder;
         $this->logger = $logger;
-        $this->livraisonRepository = $livraisonRepository;
         $this->inventoryMissionRepository = $inventoryMissionRepository;
         $this->userService = $userService;
         $this->inventoryService = $inventoryService;
@@ -697,12 +688,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $livraisonRepository = $entityManager->getRepository(Livraison::class);
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
 
             $em = $this->getDoctrine()->getManager();
 
             $id = $request->request->get('id');
-            $livraison = $this->livraisonRepository->find($id);
+            $livraison = $livraisonRepository->find($id);
 
             if (
                 ($livraison->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) &&
@@ -829,17 +821,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $statusCode = Response::HTTP_OK;
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $livraisonRepository = $entityManager->getRepository(Livraison::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
-
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
             $livraisons = json_decode($request->request->get('livraisons'), true);
             $resData = ['success' => [], 'errors' => []];
 
             // on termine les livraisons
             // même comportement que LivraisonController.finish()
             foreach ($livraisons as $livraisonArray) {
-                $livraison = $this->livraisonRepository->find($livraisonArray['id']);
+                $livraison = $livraisonRepository->find($livraisonArray['id']);
 
                 if ($livraison) {
                     $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
@@ -1166,6 +1158,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
         $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
         $preparationRepository = $entityManager->getRepository(Preparation::class);
+        $livraisonRepository = $entityManager->getRepository(Livraison::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1180,7 +1173,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['stock']) {
             // livraisons
-            $livraisons = $this->livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+            $livraisons = $livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
 
             $livraisonsIds = array_map(function ($livraisonArray) {
                 return $livraisonArray['id'];
