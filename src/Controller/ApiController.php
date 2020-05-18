@@ -1363,9 +1363,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $resData = [];
         $statusCode = Response::HTTP_OK;
-        if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->request->get('apiKey'))) {
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($request->request->get('apiKey'))) {
             if (!$emplacementRepository->findOneByLabel($request->request->get('label'))) {
                 $toInsert = new Emplacement();
                 $toInsert
@@ -1402,9 +1402,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         $resData = [];
-        if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
             $barCode = $request->query->get('barCode');
             $location = $request->query->get('location');
 
@@ -1434,13 +1435,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
-     * @throws DBALException
      */
     public function getTrackingDropsOnLocation(Request $request,
                                                EntityManagerInterface $entityManager): Response
     {
         $resData = [];
-        if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
             $statusCode = Response::HTTP_OK;
 
             $locationLabel = $request->query->get('location');
