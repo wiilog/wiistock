@@ -8,17 +8,17 @@
         <div class="header-container header-ext">
             {% include 'header.html.twig' with { 'isDashboardExt': 1 } %}
         </div>
-        {% if page == 'quai' %}
-            {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
-        {% elseif page == 'admin' %}
-            {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
-        {% elseif page == 'emballage' %}
-            {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 1 } %}
-        {% endif %}
-        <div class="row">
-            <div class="col-12 little-font text-right fixed-bottom z-index-back">
+        <div class="col-12">
+            <div class="col-auto pr-4 refresh-date-container little-font text-right d-none font-weight-bold">
                 Actualisé le : <span class="refreshDate"></span>
             </div>
+            {% if page == 'quai' %}
+                {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
+            {% elseif page == 'admin' %}
+                {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
+            {% elseif page == 'emballage' %}
+                {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 1 } %}
+            {% endif %}
         </div>
     </div>
 </div>
