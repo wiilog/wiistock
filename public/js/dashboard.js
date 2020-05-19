@@ -141,7 +141,7 @@ function loadPackagingData(preferCache) {
         if (preferCache) {
             const $canvas = $('#chartTreatedPacks');
             const chartData = dashboardChartsData[$canvas.attr('id')];
-            createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData);
+            createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData, false, false);
             resolve();
         } else {
             let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
@@ -156,7 +156,7 @@ function loadPackagingData(preferCache) {
                     data: chartData,
                     chartColors
                 };
-                chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true);
+                chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
                 resolve();
             });
         }
@@ -368,9 +368,9 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false)
     return chart;
 }
 
-function createAndUpdateMultipleCharts($canvas, chart, data, forceCreation = false) {
+function createAndUpdateMultipleCharts($canvas, chart, data, forceCreation = false, redForLastData = true) {
     if (forceCreation || !chart) {
-        chart = newChart($canvas, true);
+        chart = newChart($canvas, redForLastData);
     }
     if (data) {
         updateMultipleChartData(chart, data.data, (data.chartColors || {}));
