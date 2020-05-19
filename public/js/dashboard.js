@@ -58,7 +58,7 @@ $(function () {
 
     initTooltips($('.has-tooltip'));
 
-    let reloadFrequency = 1000 * 60 * 15; // 15min
+    let reloadFrequency = 1000 * 60 * 5; // 5min
     setInterval(reloadData, reloadFrequency);
 
     let $indicators = $('#indicators');
@@ -256,9 +256,11 @@ function reloadData() {
 
 function updateRefreshDate() {
     $.get(Routing.generate('last_refresh'), function(response) {
-        const $refreshDate = $('.refreshDate');
-        $refreshDate.text(response);
-        $refreshDate.parent().removeClass('d-none')
+        if (response && response.success) {
+            const $refreshDate = $('.refreshDate');
+            $refreshDate.text(response.date);
+            $refreshDate.parent().removeClass('d-none');
+        }
     });
 }
 
