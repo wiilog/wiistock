@@ -990,7 +990,7 @@ class DemandeController extends AbstractController
                                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
                 return $this->redirectToRoute('access_denied');
             }
 
