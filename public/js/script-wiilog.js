@@ -1211,7 +1211,7 @@ function displayFiltersSup(data) {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
                     let name = valueArray[1];
-                    const $optionToSelect = $selectK.find(`option[value="${name}"]`);
+                    const $optionToSelect = $select.find(`option[value="${name}"]`);
                     if ($optionToSelect.length > 0) {
                         $optionToSelect.prop('selected', true);
                     }
