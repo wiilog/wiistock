@@ -58,7 +58,7 @@ $(function () {
 
     initTooltips($('.has-tooltip'));
 
-    let reloadFrequency = 1000 * 60 * 15; // 15min
+    let reloadFrequency = 1000 * 60 * 5; // 5min
     setInterval(reloadData, reloadFrequency);
 
     let $indicators = $('#indicators');
