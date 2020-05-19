@@ -13,7 +13,8 @@
                 <table class="table" id="tableSplittingArticles">
                     <thead>
                     <tr>
-                        <th>Code Article</th>
+                        <th>Code barre article</th>
+                        <th>Libellé article</th>
                         <th>Quantité</th>
                         <th>Emplacement</th>
                         <th>Quantité prélevée</th>
@@ -24,7 +25,8 @@
                         {% set quantiteArt = article.quantite is null ? 0 : article.quantite %}
 
                         <tr>
-                            <td>{{ article.reference }}</td>
+                            <td>{{ article.barCode }}</td>
+                            <td>{{ article.label }}</td>
                             <td>{{ quantiteArt }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
                             <td class="d-flex">
