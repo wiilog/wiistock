@@ -256,9 +256,11 @@ function reloadData() {
 
 function updateRefreshDate() {
     $.get(Routing.generate('last_refresh'), function(response) {
-        const $refreshDate = $('.refreshDate');
-        $refreshDate.text(response);
-        $refreshDate.parent().removeClass('d-none')
+        if (response && response.success) {
+            const $refreshDate = $('.refreshDate');
+            $refreshDate.text(response.date);
+            $refreshDate.parent().removeClass('d-none');
+        }
     });
 }
 

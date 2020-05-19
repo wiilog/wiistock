@@ -237,11 +237,12 @@ class AccueilController extends AbstractController
         $dashboardLock = $wiilockRepository->findOneBy([
             'lockKey' => Wiilock::DASHBOARD_FED_KEY
         ]);
-        return new JsonResponse(
-            $dashboardLock->getUpdateDate()
+        return new JsonResponse([
+            'success' => true,
+            'date' => $dashboardLock->getUpdateDate()
                 ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
                 : 'Aucune données'
-        );
+        ]);
     }
 
     /**
