@@ -58,8 +58,10 @@ $(function () {
 
     initTooltips($('.has-tooltip'));
 
-    let reloadFrequency = 1000 * 60 * 5; // 5min
-    setInterval(reloadData, reloadFrequency);
+    if (!isDashboardExt()) {
+        let reloadFrequency = 1000 * 60 * 5; // 5min
+        setInterval(reloadData, reloadFrequency);
+    }
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
@@ -162,9 +164,11 @@ function loadPackagingData(preferCache) {
 }
 
 function treatPackagingData({counters, chartData, chartColors}) {
-    const total = Object
-        .keys(counters)
-        .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0);
+    const countersKeys = Object.keys(counters || {});
+    let total = 0;
+    for(const key of countersKeys) {
+        total += fillPackagingCard(key, counters[key]) || 0;
+    }
 
     $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
     const $canvas = $('#chartTreatedPacks');
