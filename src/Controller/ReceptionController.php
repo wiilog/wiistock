@@ -1212,19 +1212,25 @@ class ReceptionController extends AbstractController
 
     private function sendMailToAcheteurs(Litige $litige)
     {
-        $acheteursEmail = $litige->getBuyers()->toArray();
-        /** @var Utilisateur $buyer */
-        foreach ($acheteursEmail as $buyer) {
-            $title = 'Un litige a été déclaré sur une réception vous concernant :';
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Litige sur réception',
-                $this->renderView('mails/mailLitigesReception.html.twig', [
-                    'litiges' => [$litige],
-                    'title' => $title,
-                    'urlSuffix' => 'reception'
-                ]),
-                $buyer->getEmail()
-            );
+        $wantSendMailStatusChange = $litige->getStatus()->getSendNotifToBuyer();
+        dump($wantSendMailStatusChange);
+        dump($litige->getStatus()->getNom());
+        dump($litige->getStatus()->getId());
+        if ($wantSendMailStatusChange) {
+            $acheteursEmail = $litige->getBuyers()->toArray();
+            /** @var Utilisateur $buyer */
+            foreach ($acheteursEmail as $buyer) {
+                $title = 'Un litige a été déclaré sur une réception vous concernant :';
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Litige sur réception',
+                    $this->renderView('mails/mailLitigesReception.html.twig', [
+                        'litiges' => [$litige],
+                        'title' => $title,
+                        'urlSuffix' => 'reception'
+                    ]),
+                    $buyer->getEmail()
+                );
+            }
         }
     }
 
