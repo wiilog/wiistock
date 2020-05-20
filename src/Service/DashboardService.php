@@ -18,6 +18,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Entity\Wiilock;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -25,6 +26,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class DashboardService
@@ -910,5 +912,13 @@ class DashboardService
                 ->setColis($lastLate['colis']);
             $entityManager->persist($latePack);
         }
+    }
+
+    public function getLastRefresh(): string {
+        $wiilockRepository = $this->entityManager->getRepository(Wiilock::class);
+        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
+        return ($dashboardLock && $dashboardLock->getUpdateDate())
+            ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
+            : 'Aucune données';
     }
 }

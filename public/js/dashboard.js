@@ -146,7 +146,6 @@ function loadPackagingData(preferCache) {
         } else {
             if (isDashboardExt()) {
                 const data = $('#dashboard-data').data('data');
-                console.log(data)
                 treatPackagingData(data);
                 resolve();
             }
@@ -268,13 +267,22 @@ function reloadData() {
 }
 
 function updateRefreshDate() {
-    $.get(Routing.generate('last_refresh'), function(response) {
-        if (response && response.success) {
-            const $refreshDate = $('.refreshDate');
-            $refreshDate.text(response.date);
-            $refreshDate.parent().removeClass('d-none');
-        }
-    });
+    const treatDate = (date) => {
+        const $refreshDate = $('.refreshDate');
+        $refreshDate.text(date);
+        $refreshDate.parent().removeClass('d-none');
+    };
+    if (isDashboardExt()) {
+        const date = $('#dashboard-refresh-date').data('date')
+        treatDate(date);
+    }
+    else {
+        $.get(Routing.generate('last_refresh'), function (response) {
+            if (response && response.success) {
+                treatDate(response.date);
+            }
+        });
+    }
 }
 
 function updateSimpleChartData(
@@ -718,7 +726,7 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val();
-    console.log(pageTitle)
+
     if (pageTitle) {
         document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 

@@ -14,7 +14,8 @@
             </div>
 
             {% if page == 'quai' or page == 'admin' or page == 'emballage' %}
-            <div id="dashboard-data" data-data="{{ pageData|json_encode() }}"></div>
+                <div id="dashboard-data" data-data="{{ pageData|json_encode() }}"></div>
+                <div id="dashboard-refresh-date" data-date="{{ refreshDate }}"></div>
                 {% if page == 'quai' %}
                     {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
                 {% elseif page == 'admin' %}
