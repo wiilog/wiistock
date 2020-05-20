@@ -34,19 +34,27 @@
             <div class="carousel-inner h-100">
                 <div class="carousel-item"
                      data-name="arrivage">
-                    {% include 'accueil/dashboardArrival.html.twig' %}
+                    <div class="col-12">
+                        {% include 'accueil/dashboardArrival.html.twig' %}
+                    </div>
                 </div>
                 <div class="carousel-item"
                      data-name="quai">
-                    {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
+                    <div class="col-12">
+                        {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
+                    </div>
                 </div>
                 <div class="carousel-item"
                      data-name="admin">
-                    {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
+                    <div class="col-12">
+                        {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
+                    </div>
                 </div>
                 <div class="carousel-item"
                      data-name="emballage">
-                    {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
+                    <div class="col-12">
+                        {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
+                    </div>
                 </div>
             </div>
             <div class="row">

@@ -144,23 +144,36 @@ function loadPackagingData(preferCache) {
             createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData, false, false);
             resolve();
         } else {
-            let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
-            $.get(pathForPackagingData, function ({counters, chartData, chartColors}) {
-                const total = Object
-                    .keys(counters)
-                    .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0);
-
-                $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
-                const $canvas = $('#chartTreatedPacks');
-                dashboardChartsData[$canvas.attr('id')] = {
-                    data: chartData,
-                    chartColors
-                };
-                chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
+            if (isDashboardExt()) {
+                const data = $('#dashboard-data').data('data');
+                console.log(data)
+                treatPackagingData(data);
                 resolve();
-            });
+            }
+            else {
+                // if we are not on dashboardExt we load data via ajax
+                let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
+                $.get(pathForPackagingData, function (data) {
+                    treatPackagingData(data);
+                    resolve();
+                });
+            }
         }
     });
+}
+
+function treatPackagingData({counters, chartData, chartColors}) {
+    const total = Object
+        .keys(counters)
+        .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0);
+
+    $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
+    const $canvas = $('#chartTreatedPacks');
+    dashboardChartsData[$canvas.attr('id')] = {
+        data: chartData,
+        chartColors
+    };
+    chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
 }
 
 function fillPackagingCard(cardId, data) {

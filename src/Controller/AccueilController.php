@@ -55,16 +55,21 @@ class AccueilController extends AbstractController
      *     }
      * )
      * @param EntityManagerInterface $entityManager
+     * @param DashboardService $dashboardService
      * @param string $page
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function dashboardExt(EntityManagerInterface $entityManager,
+                                 DashboardService $dashboardService,
                                  string $page): Response
     {
         $data = $this->getDashboardData($entityManager);
         $data['page'] = $page;
+        $data['pageData'] = ($page === 'emballage')
+            ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
+            : [];
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
