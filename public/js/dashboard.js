@@ -705,7 +705,7 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val();
-    console.log(pageTitle)
+
     if (pageTitle) {
         document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 

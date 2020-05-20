@@ -6,11 +6,20 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block subtitle %}
-    {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
-        <div class="dashboard-spinner spinner-border spinner-border-sm text-white" role="status">
-            <span class="sr-only">Loading...</span>
-        </div>
-    {% endif %}
+    <div class="row align-items-center">
+        {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
+            <div class="col-auto">
+                <div class="dashboard-spinner spinner-border spinner-border-sm text-white" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        {% endif %}
+        {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+            <div class="col-auto mx-auto">
+                {% include "accueil/linkToAddArticleForm.html.twig" %}
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block page_content %}
@@ -56,11 +65,6 @@
             </div>
         </div>
     {% endif %}
-
-    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-        {% include "accueil/linkToAddArticleForm.html.twig" %}
-    {% endif %}
-
 {% endblock %}
 
 {% block javascripts %}
