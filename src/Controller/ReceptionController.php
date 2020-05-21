@@ -1082,7 +1082,10 @@ class ReceptionController extends AbstractController
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
-
+            $isStatutChange = ($statutBefore !== $statutAfter);
+            if ($isStatutChange) {
+                $this->sendMailToAcheteurs($litige);
+            }
             $response = [];
             return new JsonResponse($response);
         }
@@ -1213,13 +1216,10 @@ class ReceptionController extends AbstractController
     private function sendMailToAcheteurs(Litige $litige)
     {
         $wantSendMailStatusChange = $litige->getStatus()->getSendNotifToBuyer();
-        dump($wantSendMailStatusChange);
-        dump($litige->getStatus()->getNom());
-        dump($litige->getStatus()->getId());
         if ($wantSendMailStatusChange) {
-            $acheteursEmail = $litige->getBuyers()->toArray();
+            $buyersEmail = $litige->getBuyers()->toArray();
             /** @var Utilisateur $buyer */
-            foreach ($acheteursEmail as $buyer) {
+            foreach ($buyersEmail as $buyer) {
                 $title = 'Un litige a été déclaré sur une réception vous concernant :';
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Litige sur réception',
