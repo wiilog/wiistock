@@ -21,9 +21,14 @@ final class Version20200525103526 extends AbstractMigration
     {
         $this->addSql('UPDATE champ_libre
                         SET categorie_cl_id = (SELECT id FROM categorie_cl WHERE label = "reference article")
-                        WHERE (SELECT id FROM categorie_cl WHERE label = "reference CEA")');
+                        WHERE categorie_cl_id IN (SELECT id FROM categorie_cl WHERE label = "reference CEA")');
         $this->addSql('DELETE FROM categorie_cl
                         WHERE label="reference CEA"');
+        $this->addSql('UPDATE type
+                        SET category_id = (SELECT id FROM category_type WHERE label = "article")
+                        WHERE category_id IN (SELECT id FROM category_type WHERE label = "articles et references CEA")');
+        $this->addSql('DELETE FROM category_type
+                        WHERE label="articles et références CEA"');
     }
 
     public function down(Schema $schema) : void
