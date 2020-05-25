@@ -363,3 +363,9 @@ function resizeDaysWorked() {
         tableDays.columns.adjust().draw();
     }, 100);
 }
+
+function addNonWorkedDay() {
+    $date = $('#datePublicHolliday').val();
+    console.log($date);
+    // let path = Routing.generate('nonworkedday_new');
+}

@@ -1,0 +1,31 @@
+<a data-toggle="collapse" href="#nonWorkedDays" role="button" aria-expanded="false"
+   aria-controls="paramArrivage" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+        Jours non travaillés
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+    </h1>
+</a>
+<form action="#" method="post">
+    <div class="collapse col-12" id="nonWorkedDays">
+        <div class="col-auto mb-2 pr-0">
+            <div class="h-100 w-450px">
+                <div class="input-group">
+
+                    <input type="date"
+                           class="form-control cursor-default filter-date-min filter-input w-218px"
+                           name="dateHollyday"
+                           id="datePublicHolliday"
+                           placeholder="jj/mm/aaaa"
+                           autocomplete="off"/>
+                    <div class="form-group col-1 toggle-button-container">
+                                <span class="btn btn-primary"
+                                      onclick="addNonWorkedDay()">
+                                    <i class="fa fa-plus"></i>
+                                </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ dump() }}
+    </div>
+</form>
