@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
+use App\Entity\Utilisateur;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -16,6 +17,10 @@ use Twig\Error\SyntaxError;
 
 class LitigeService
 {
+
+    public const CATEGORY_ARRIVAGE = 'un arrivage';
+    public const CATEGORY_RECEPTION = 'une réception';
+
     /**
      * @var Twig_Environment
      */
@@ -35,12 +40,14 @@ class LitigeService
 
     private $entityManager;
     private $translator;
+    private $mailerService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
                                 TranslatorInterface $translator,
+                                MailerService $mailerService,
                                 Security $security)
     {
         $this->templating = $templating;
@@ -49,6 +56,7 @@ class LitigeService
         $this->router = $router;
         $this->userService = $userService;
         $this->security = $security;
+        $this->mailerService = $mailerService;
     }
 
 	/**
@@ -142,4 +150,35 @@ class LitigeService
             Litige::ORIGIN_RECEPTION => $this->translator->trans('réception.réception')
         ];
     }
+
+    public function sendMailToAcheteurs(Litige $litige, string $category)
+    {
+        $litigeRepository = $this->entityManager->getRepository(Litige::class);
+        $isArrival = $category === self::CATEGORY_ARRIVAGE;
+        $this->entityManager->getRepository(Litige::class);
+        $buyers = $isArrival
+            ? $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId())
+            : $buyersEmail = array_reduce($litige->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
+                $carry[] = $buyer->getEmail();
+                return $carry;
+            }, []);
+        $wantSendMailStatusChange = $litige->getStatus()->getSendNotifToBuyer();
+        if ($wantSendMailStatusChange) {
+            /** @var Utilisateur $buyer */
+            foreach ($buyers as $buyer) {
+                $title = 'Un litige a été déclaré sur ' . $category . ' vous concernant :';
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Litige sur ' . $category,
+                    $this->templating->render('mails/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
+                        'litiges' => [$litige],
+                        'title' => $title,
+                        'urlSuffix' => ($isArrival ? 'arrivage' : 'reception')
+                    ]),
+                    $buyer
+                );
+            }
+        }
+    }
+
+
 }
