@@ -1,6 +1,7 @@
 $('.select2').select2();
 
 let prepaHasBegun = false;
+let tableArticleSplitting;
 
 $(function () {
     initDateTimePicker();
@@ -106,8 +107,13 @@ function startPicking($button) {
                 needsPaginationRemoval: true
             }
         };
-        let tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
-        $('#startSplitting').click();
+        tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
+        $('#modalSplitting').modal('show');
+
+        // TODO WIIS-2373
+        setTimeout(() => {
+            tableArticleSplitting.columns.adjust().draw();
+        }, 300);
     });
 }
 

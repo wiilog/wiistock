@@ -5,9 +5,8 @@ namespace App\Repository;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 
 /**
@@ -16,7 +15,7 @@ use Exception;
  * @method Litige[]    findAll()
  * @method Litige[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LitigeRepository extends ServiceEntityRepository
+class LitigeRepository extends EntityRepository
 {
 	private const DtToDbLabels = [
 		'type' => 'type',
@@ -31,11 +30,6 @@ class LitigeRepository extends ServiceEntityRepository
         'status' => 'status',
         'urgence' => 'emergencyTriggered',
 	];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Litige::class);
-    }
 
     public function findByStatutSendNotifToBuyer()
 	{

@@ -6,11 +6,10 @@ use App\Entity\Fournisseur;
 use App\Entity\Urgence;
 use DateTime;
 use DateTimeZone;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Urgence|null find($id, $lockMode = null, $lockVersion = null)
@@ -18,7 +17,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Urgence[]    findAll()
  * @method Urgence[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UrgenceRepository extends ServiceEntityRepository
+class UrgenceRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
@@ -26,11 +25,6 @@ class UrgenceRepository extends ServiceEntityRepository
         "end" => 'dateEnd',
         'arrivalDate' => 'lastArrival',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Urgence::class);
-    }
 
     /**
      * @param DateTime $arrivalDate

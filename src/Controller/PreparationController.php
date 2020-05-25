@@ -31,7 +31,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
 use App\Entity\Demande;
-use App\Repository\LivraisonRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Error\LoaderError;
@@ -43,11 +42,6 @@ use Twig\Error\SyntaxError;
  */
 class PreparationController extends AbstractController
 {
-    /**
-     * @var LivraisonRepository
-     */
-    private $livraisonRepository;
-
     /**
      * @var UserService
      */
@@ -70,11 +64,9 @@ class PreparationController extends AbstractController
 
     public function __construct(PreparationsManagerService $preparationsManagerService,
                                 SpecificService $specificService,
-                                LivraisonRepository $livraisonRepository,
                                 ArticleDataService $articleDataService,
                                 UserService $userService)
     {
-        $this->livraisonRepository = $livraisonRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
         $this->specificService = $specificService;

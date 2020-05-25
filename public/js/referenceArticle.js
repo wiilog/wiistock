@@ -17,8 +17,7 @@ $(function () {
 $('.select2').select2();
 let tableRefArticle;
 
-function InitialiserModalRefArticle(modal, submit, path, callback = function () {
-}, close = true) {
+function InitialiserModalRefArticle(modal, submit, path, callback = function () {}, close = true) {
     submit.click(function () {
         submitActionRefArticle(modal, path, callback, close);
     });

@@ -29,7 +29,6 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
-use App\Repository\LitigeRepository;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\ReceptionRepository;
@@ -59,7 +58,6 @@ use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -106,11 +104,6 @@ class ReceptionController extends AbstractController
     private $attachmentService;
 
     /**
-     * @var LitigeRepository
-     */
-    private $litigeRepository;
-
-    /**
      * @var ReceptionService
      */
     private $receptionService;
@@ -139,7 +132,6 @@ class ReceptionController extends AbstractController
         UserService $userService,
         PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
-        LitigeRepository $litigeRepository,
         MailerService $mailerService,
         AttachmentService $attachmentService,
         TransporteurRepository $transporteurRepository,
@@ -150,7 +142,6 @@ class ReceptionController extends AbstractController
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
-        $this->litigeRepository = $litigeRepository;
         $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
@@ -902,13 +893,23 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
+            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+            $articlesFournisseurArrays = [];
             $ref = array_map(
-                function ($item) {
+                function ($item) use ($articleFournisseurRepository, &$articlesFournisseurArrays) {
+                    if (!isset($articlesFournisseurArrays[$item['reference']])) {
+                        $articlesFournisseurArrays[$item['reference']] = $articleFournisseurRepository->getIdAndLibelleByRefRef($item['reference']);
+                    }
                     return [
                         'id' => "{$item['reference']}_{$item['commande']}",
                         'reference' => $item['reference'],
                         'commande' => $item['commande'],
+                        'defaultArticleFournisseur' => count($articlesFournisseurArrays[$item['reference']]) === 1
+                            ? [
+                                'text' => $articlesFournisseurArrays[$item['reference']][0]['reference'],
+                                'value' => $articlesFournisseurArrays[$item['reference']][0]['id']
+                            ]
+                            : null,
                         'text' => "{$item['reference']} – {$item['commande']}"
                     ];
                 },
@@ -1229,15 +1230,20 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function deleteLitige(Request $request): Response
+    public function deleteLitige(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $litigeRepository = $entityManager->getRepository(Litige::class);
 
-            $litige = $this->litigeRepository->find($data['litige']);
+            $litige = $litigeRepository->find($data['litige']);
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($litige);
@@ -1249,13 +1255,20 @@ class ReceptionController extends AbstractController
 
     /**
      * @Route("/litiges/api/{reception}", name="litige_reception_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param Reception $reception
+     * @return Response
      */
-    public function apiReceptionLitiges(Request $request, Reception $reception): Response
+    public function apiReceptionLitiges(Request $request,
+                                        EntityManagerInterface $entityManager,
+                                        Reception $reception): Response
     {
         if ($request->isXmlHttpRequest()) {
+            $litigeRepository = $entityManager->getRepository(Litige::class);
 
             /** @var Litige[] $litiges */
-            $litiges = $this->litigeRepository->findByReception($reception);
+            $litiges = $litigeRepository->findByReception($reception);
 
             $rows = [];
 

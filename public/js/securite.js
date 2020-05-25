@@ -7,7 +7,7 @@ function checkIfUserExists() {
             $('.error-msg').html('Il n\'existe pas de compte associé à cette adresse mail.');
         } else {
             let $confirmMsg = $('.confirm-msg');
-            $confirmMsg.html('Un lien pour réinitialisation de mot de passe de votre compte vient d\'être envoyé sur votre adresse email.');
+            $confirmMsg.html('Un lien pour réinitialiser le mot de passe de votre compte vient d\'être envoyé sur votre adresse email.');
             $confirmMsg.closest('.alert').removeClass('d-none');
 
         }

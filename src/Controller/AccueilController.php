@@ -55,16 +55,22 @@ class AccueilController extends AbstractController
      *     }
      * )
      * @param EntityManagerInterface $entityManager
+     * @param DashboardService $dashboardService
      * @param string $page
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function dashboardExt(EntityManagerInterface $entityManager,
+                                 DashboardService $dashboardService,
                                  string $page): Response
     {
         $data = $this->getDashboardData($entityManager);
         $data['page'] = $page;
+        $data['pageData'] = ($page === 'emballage')
+            ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
+            : [];
+        $data['refreshDate'] = $dashboardService->getLastRefresh();
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
@@ -228,20 +234,15 @@ class AccueilController extends AbstractController
 
     /**
      * @Route("/acceuil/dernier-rafraichissement", name="last_refresh", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
+     * @param DashboardService $dashboardService
      * @return Response
      */
-    public function getLastRefreshDate(EntityManagerInterface $entityManager): Response
+    public function getLastRefreshDate(DashboardService $dashboardService): Response
     {
-        $wiilockRepository = $entityManager->getRepository(Wiilock::class);
-        $dashboardLock = $wiilockRepository->findOneBy([
-            'lockKey' => Wiilock::DASHBOARD_FED_KEY
+        return new JsonResponse([
+            'success' => true,
+            'date' => $dashboardService->getLastRefresh()
         ]);
-        return new JsonResponse(
-            $dashboardLock->getUpdateDate()
-                ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
-                : 'Aucune données'
-        );
     }
 
     /**

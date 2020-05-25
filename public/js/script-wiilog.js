@@ -88,7 +88,18 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
             Data[name] = val;
         }
 
-        let label = $input.closest('.form-group').find('label').text();
+        const $formGroupLabel = $input.closest('.form-group').find('label');
+
+        // Fix bug when we write <label>Label<select>...</select></label
+        // the label variable had text options
+        let label = $formGroupLabel
+            .clone()    //clone the element
+            .children() //select all the children
+            .remove()   //remove all the children
+            .end()      //again go back to selected element
+            .text();
+
+
         // validation données obligatoires
         if ($input.hasClass('needed')
             && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
@@ -171,7 +182,11 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
     );
 
     // si tout va bien on envoie la requête ajax...
-    if (!barcodeIsInvalid && missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid && datesAreValid) {
+    if (!barcodeIsInvalid
+        && missingInputs.length == 0
+        && wrongNumberInputs.length == 0
+        && passwordIsValid
+        && datesAreValid) {
         if (close == true) {
             modal.find('.close').click();
         }
@@ -203,11 +218,7 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
 
         // cas où il manque des champs obligatoires
         if (missingInputs.length > 0) {
-            if (missingInputs.length == 1) {
-                msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-            } else {
-                msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-            }
+            msg += 'Veuillez renseigner le champ ' + missingInputs.map((label) => (label && label.trim())).join(', ') + ". <br/>";
         }
         // cas où les champs number ne respectent pas les valeurs imposées (min et max)
         if (wrongNumberInputs.length > 0) {
@@ -502,12 +513,32 @@ function initFilterDateToday() {
  * @param {{}|{route: string, param: {}|undefined, success?: function(result, term)}} ajaxOptions
  * @param lengthMin
  * @param placeholder
- * @param {boolean} autoSelect
+ * @param {boolean|undefined} autoSelect
+ * @param {*} $nextField
+ * @param {string|undefined} defaultOptionText
+ * @param {string|undefined} defaultOptionValue
  */
-function initSelect2($select, placeholder = '', lengthMin = 0, ajaxOptions = {}, {autoSelect, $nextField} = {}) {
+function initSelect2($select,
+                     placeholder = '',
+                     lengthMin = 0,
+                     ajaxOptions = {},
+                     {autoSelect, $nextField} = {},
+                     {value: defaultOptionValue, text: defaultOptionText} = {}) {
     $select.each(function () {
         const $self = $(this);
         let isMultiple = $self.attr('multiple') === 'multiple';
+
+        if (defaultOptionValue && defaultOptionText) {
+            const $existingDefaultOption = $self.find(`option[value="${defaultOptionValue}"]`);
+            if ($existingDefaultOption
+                && $existingDefaultOption.length > 0) {
+                $existingDefaultOption.prop('selected', true);
+            }
+            else {
+                let newOption = new Option(defaultOptionText, defaultOptionValue, true, true);
+                $self.append(newOption).trigger('change');
+            }
+        }
 
         const select2AjaxOptions = ajaxOptions && ajaxOptions.route
             ? {
@@ -1175,13 +1206,19 @@ function displayFiltersSup(data) {
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
-                $select.empty();
+                $select.find('option').prop('selected', false);
                 valuesElement.forEach((value) => {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
                     let name = valueArray[1];
-                    let option = new Option(name, id, true, true);
-                    $select.append(option).trigger('change');
+                    const $optionToSelect = $select.find(`option[value="${name}"]`);
+                    if ($optionToSelect.length > 0) {
+                        $optionToSelect.prop('selected', true);
+                    }
+                    else {
+                        let option = new Option(name, id, true, true);
+                        $select.append(option).trigger('change');
+                    }
                 });
                 break;
 

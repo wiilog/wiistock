@@ -420,14 +420,17 @@ class UtilisateurController extends AbstractController
     /**
      * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getUserAutoComplete(Request $request): Response
+    public function getUserAutoComplete(Request $request,
+                                        EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
 
-            $user = $this->utilisateurRepository->getIdAndLibelleBySearch($search);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $user = $utilisateurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $user]);
         }
         throw new NotFoundHttpException("404");

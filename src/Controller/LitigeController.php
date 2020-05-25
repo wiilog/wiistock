@@ -16,7 +16,6 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\LitigeHistoricRepository;
-use App\Repository\LitigeRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 
@@ -45,10 +44,7 @@ class LitigeController extends AbstractController
 	 * @var TransporteurRepository
 	 */
 	private $transporteurRepository;
-	/**
-	 * @var LitigeRepository
-	 */
-	private $litigeRepository;
+
 	/**
 	 * @var UserService
 	 */
@@ -77,8 +73,7 @@ class LitigeController extends AbstractController
     /**
      * @param LitigeService $litigeService
      * @param PieceJointeRepository $pieceJointeRepository
-     * @param UserService $userService ;
-     * @param LitigeRepository $litigeRepository
+     * @param UserService $userService
      * @param TransporteurRepository $transporteurRepository
      * @param TranslatorInterface $translator
      * @param LitigeHistoricRepository $litigeHistoricRepository
@@ -86,13 +81,11 @@ class LitigeController extends AbstractController
 	public function __construct(LitigeService $litigeService,
                                 PieceJointeRepository $pieceJointeRepository,
                                 UserService $userService,
-                                LitigeRepository $litigeRepository,
                                 TransporteurRepository $transporteurRepository,
                                 TranslatorInterface $translator,
                                 LitigeHistoricRepository $litigeHistoricRepository)
 	{
 		$this->transporteurRepository = $transporteurRepository;
-		$this->litigeRepository = $litigeRepository;
 		$this->userService = $userService;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
 		$this->pieceJointeRepository = $pieceJointeRepository;
@@ -165,25 +158,29 @@ class LitigeController extends AbstractController
 		throw new NotFoundHttpException('404');
 	}
 
-	/**
-	 * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
-	 *
-	 * @param Request $request
-	 * @param CSVExportService $CSVExportService
-	 *
-	 * @return Response
-	 */
+    /**
+     * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     *
+     * @return Response
+     */
 	public function getLitigesIntels(Request $request,
+                                     EntityManagerInterface $entityManager,
                                      CSVExportService $CSVExportService): Response
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+
 			$dateMin = $data['dateMin'] . ' 00:00:00';
 			$dateMax = $data['dateMax'] . ' 23:59:59';
 
 			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
 			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-            $arrivalLitiges = $this->litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
+            $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [
 			    'Type',
@@ -259,7 +256,7 @@ class LitigeController extends AbstractController
                 }
 			}
 
-            $receptionLitiges = $this->litigeRepository->findReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
+            $receptionLitiges = $litigeRepository->findReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
 
 			/** @var Litige $litige */
             foreach ($receptionLitiges as $litige) {
@@ -270,7 +267,7 @@ class LitigeController extends AbstractController
                 $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
                 $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
 
-                $referencesStr = implode(', ', $this->litigeRepository->getReferencesByLitigeId($litige->getId()));
+                $referencesStr = implode(', ', $litigeRepository->getReferencesByLitigeId($litige->getId()));
 
                 $litigeData[] = $referencesStr;
 
@@ -288,7 +285,7 @@ class LitigeController extends AbstractController
 				$fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
 				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
-				$litigeData[] = implode(', ', $this->litigeRepository->getCommandesByLitigeId($litige->getId()));
+				$litigeData[] = implode(', ', $litigeRepository->getCommandesByLitigeId($litige->getId()));
 
                 $litigeHistorics = $litige->getLitigeHistorics();
                 if ($litigeHistorics->count() == 0) {

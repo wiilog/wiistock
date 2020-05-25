@@ -1,156 +1,154 @@
 <input type="hidden" class="page-title" value="Dashboard | RÉCEPTION QUAI"/>
-<div class="col-12">
-    <div class="row align-items-start">
-        <div class="col-10 {{ isDashboardExt ? '' : 'pr-2'}}">
-            <div class="row">
-                <div class="col-6 dashboard-box-container third-height {{ not isDashboardExt ? 'pr-2'}}">
-                    <div class="dashboard-box d-flex justify-content-start">
-                        <p class="title">Arrivages quotidiens</p>
-                        {% if not isDashboardExt %}
-                            <div class="points">
-                                <i class="fa fa-question has-tooltip"
-                                   title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour.">
-                                </i>
-                            </div>
-                        {% endif %}
-                        <div class="h-100">
-                            <canvas id="chartDailyArrival" width="300" height="90"></canvas>
+<div class="row align-items-start">
+    <div class="col-10 {{ isDashboardExt ? '' : 'pr-2'}}">
+        <div class="row">
+            <div class="col-6 dashboard-box-container third-height {{ not isDashboardExt ? 'pr-2'}}">
+                <div class="dashboard-box d-flex justify-content-start">
+                    <p class="title">Arrivages quotidiens</p>
+                    {% if not isDashboardExt %}
+                        <div class="points">
+                            <i class="fa fa-question has-tooltip"
+                               title="{{ 'arrivage.arrivages'|trans }} et nombre {{ 'arrivage.de colis'|trans }} réceptionnés par jour.">
+                            </i>
                         </div>
-                    </div>
-                </div>
-                <div class="col-6 dashboard-box-container third-height {{ not isDashboardExt ? 'pl-2'}}">
-                    <div class="dashboard-box justify-content-start">
-                        <p class="title">Arrivages hebdomadaires</p>
-                        {% if not isDashboardExt %}
-                            <div class="points">
-                                <i class="fa fa-question has-tooltip"
-                                   title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
-                            </div>
-                        {% endif %}
-                        <div class="h-100">
-                            <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
-                        </div>
+                    {% endif %}
+                    <div class="h-100">
+                        <canvas id="chartDailyArrival" width="300" height="90"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col-12">
-                    <div class="row">
-                        <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'pr-2'}}">
-                            <div id="encours-dock-box" class="dashboard-box dashboard-stats-container text-center">
-                                <div>
-                                    <p class="text-center title">
-                                        Colis restant à traiter
-                                    </p>
-                                    <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
-                                </div>
-                                <div class="align-items-center">
-                                    <p class="dashboard-stats dashboard-stats-counter"></p>
-                                </div>
-                            </div>
+            <div class="col-6 dashboard-box-container third-height {{ not isDashboardExt ? 'pl-2'}}">
+                <div class="dashboard-box justify-content-start">
+                    <p class="title">Arrivages hebdomadaires</p>
+                    {% if not isDashboardExt %}
+                        <div class="points">
+                            <i class="fa fa-question has-tooltip"
+                               title="{{ 'arrivage.arrivages'|trans }} et nombre de colis réceptionnés par semaine."></i>
                         </div>
-                        <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'px-2'}}">
-                            <div id="encours-clearance-box-dock" class="dashboard-box dashboard-stats-container text-center">
-                                    <div>
-                                        <p class="text-center title">
-                                            Colis en attente de dédouanement
-                                        </p>
-                                        <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
-                                    </div>
-                                    <div class="align-items-center">
-                                        <p class="dashboard-stats dashboard-stats-counter"></p>
-                                    </div>
-                                </div>
-                        </div>
-                        <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'px-2'}}">
-                            <div id="encours-cleared-box" class="dashboard-box dashboard-stats-container text-center">
-                                <div>
-                                    <p class="text-center title">
-                                        Colis dédouanés et dispo</p>
-                                    <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
-                                </div>
-                                <div class="align-items-center">
-                                    <p class="dashboard-stats dashboard-stats-counter"></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'pl-2'}}">
-                            <div id="encours-dropzone-box" class="dashboard-box dashboard-stats-container text-center">
-                                <div>
-                                    <p class="text-center title">
-                                        Colis à déposer en Drop Zones
-                                    </p>
-                                    <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
-                                </div>
-                                <div class="align-items-center">
-                                    <p class="dashboard-stats dashboard-stats-counter"></p>
-                                </div>
-                            </div>
-                        </div>
+                    {% endif %}
+                    <div class="h-100">
+                        <canvas id="chartWeeklyArrival" width="300" height="90"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="row mt-3">
-                <div class="col-3  {{ not isDashboardExt ? 'pr-2'}}">
-                    <div class="row h-100">
-                        <div class="col-12">
-                            <div class="dashboard-box-container fourth-row-height pb-1">
-                                <div class="dashboard-box dashboard-stats-container text-center" id="remaining-urgences-box-dock">
-                                    <p class="text-center title mt-1">
-                                        Urgences à recevoir
-                                    </p>
-                                    <div class="align-items-center mt-1">
-                                        <p class="dashboard-stats dashboard-stats-counter"></p>
-                                    </div>
-                                </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'pr-2'}}">
+                        <div id="encours-dock-box" class="dashboard-box dashboard-stats-container text-center">
+                            <div>
+                                <p class="text-center title">
+                                    Colis restant à traiter
+                                </p>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
                             </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="dashboard-box-container fourth-row-height pt-1">
-                                <div class="dashboard-box dashboard-stats-container text-center" id="remaining-daily-urgences-box-dock">
-                                    <p class="text-center title mt-1">
-                                        Urgences du jour
-                                    </p>
-                                    <div class="align-items-center mt-1">
-                                        <p class="dashboard-stats dashboard-stats-counter"></p>
-                                    </div>
-                                </div>
+                            <div class="align-items-center">
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-9 dashboard-box-container third-height {{ not isDashboardExt ? 'pl-2'}}">
-                    <div class="dashboard-box">
-                        <p class="title">
-                            Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
-                        </p>
-                        {% if not isDashboardExt %}
-                            <div class="points">
-                                <i class="fa fa-question has-tooltip"
-                                   title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
-                                </i>
+                    <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'px-2'}}">
+                        <div id="encours-clearance-box-dock" class="dashboard-box dashboard-stats-container text-center">
+                                <div>
+                                    <p class="text-center title">
+                                        Colis en attente de dédouanement
+                                    </p>
+                                    <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
+                                </div>
+                                <div class="align-items-center">
+                                    <p class="dashboard-stats dashboard-stats-counter"></p>
+                                </div>
                             </div>
-                        {% endif %}
-                        <div class="h-100">
-                            <canvas id="chartColis" width="300" height="90"></canvas>
+                    </div>
+                    <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'px-2'}}">
+                        <div id="encours-cleared-box" class="dashboard-box dashboard-stats-container text-center">
+                            <div>
+                                <p class="text-center title">
+                                    Colis dédouanés et dispo</p>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
+                            </div>
+                            <div class="align-items-center">
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3 dashboard-box-container fourth-height {{ not isDashboardExt ? 'pl-2'}}">
+                        <div id="encours-dropzone-box" class="dashboard-box dashboard-stats-container text-center">
+                            <div>
+                                <p class="text-center title">
+                                    Colis à déposer en Drop Zones
+                                </p>
+                                <div class="location-label ellipsis {{ isDashboardExt ? 'medium-font' : 'small' }}"></div>
+                            </div>
+                            <div class="align-items-center">
+                                <p class="dashboard-stats dashboard-stats-counter"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-2  dashboard-box-container pl-2">
-            <div class="dashboard-box dashboard-box-list">
-                <div class="title {{ not isDashboardExt ? 'pr-3'}}">
-                    Suivi des transporteurs
-                </div>
-                {% if not isDashboardExt %}
-                    <div class="points">
-                        <i class="fa fa-question has-tooltip ml-1"
-                           title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
+        <div class="row mt-3">
+            <div class="col-3  {{ not isDashboardExt ? 'pr-2'}}">
+                <div class="row h-100">
+                    <div class="col-12">
+                        <div class="dashboard-box-container fourth-row-height pb-1">
+                            <div class="dashboard-box dashboard-stats-container text-center" id="remaining-urgences-box-dock">
+                                <p class="text-center title mt-1">
+                                    Urgences à recevoir
+                                </p>
+                                <div class="align-items-center mt-1">
+                                    <p class="dashboard-stats dashboard-stats-counter"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
-                <ul class="text-center" id="statistics-arrival-carriers"></ul>
+                    <div class="col-12">
+                        <div class="dashboard-box-container fourth-row-height pt-1">
+                            <div class="dashboard-box dashboard-stats-container text-center" id="remaining-daily-urgences-box-dock">
+                                <p class="text-center title mt-1">
+                                    Urgences du jour
+                                </p>
+                                <div class="align-items-center mt-1">
+                                    <p class="dashboard-stats dashboard-stats-counter"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <div class="col-9 dashboard-box-container third-height {{ not isDashboardExt ? 'pl-2'}}">
+                <div class="dashboard-box">
+                    <p class="title">
+                        Nombre de {{ 'arrivage.colis'|trans }} distribués en Drop zone<br>
+                    </p>
+                    {% if not isDashboardExt %}
+                        <div class="points">
+                            <i class="fa fa-question has-tooltip"
+                               title="{{ 'arrivage.colis'|trans }} actuellement présents sur l'emplacement drop zone (paramétrable).">
+                            </i>
+                        </div>
+                    {% endif %}
+                    <div class="h-100">
+                        <canvas id="chartColis" width="300" height="90"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-2  dashboard-box-container pl-2">
+        <div class="dashboard-box dashboard-box-list">
+            <div class="title {{ not isDashboardExt ? 'pr-3'}}">
+                Suivi des transporteurs
+            </div>
+            {% if not isDashboardExt %}
+                <div class="points">
+                    <i class="fa fa-question has-tooltip ml-1"
+                       title="Transporteurs ayant effectué un {{ 'arrivage.arrivage'|trans }} aujourd'hui."></i>
+                </div>
+            {% endif %}
+            <ul class="text-center" id="statistics-arrival-carriers"></ul>
         </div>
     </div>
 </div>

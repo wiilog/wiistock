@@ -20,6 +20,14 @@
     min-width: 50%
     min-height: 40%
 
+.dashboard-ext
+    .refresh-date-container
+        position: absolute
+        top: -35px
+        right: 0
+        cursor: default
+        color: white
+
 .dashboard-box-container
     &.side-panels
         height: 15vh
@@ -121,7 +129,7 @@
                 font-weight: bold
                 color: $blueNeon
                 cursor: default
-                //font-size: 9vh
+                text-align: center
                 font-size: 2.6vw
                 line-height: 0.8
                 &.dashboard-stats-delay
@@ -130,11 +138,8 @@
                     font-size: 2vw
                     .dashboard-ext &
                         font-size: 8vh
-
-            &.dashboard-stats-label
-                font-size: 2.5vw
-                .dashboard-ext &
-                    font-size: 5vh
+                &.dashboard-stats-label
+                    font-size: 2vw
 
         .dashboard-box-content
             padding: 10px

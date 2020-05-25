@@ -18,6 +18,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Entity\Wiilock;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -25,6 +26,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class DashboardService
@@ -150,8 +152,6 @@ class DashboardService
 
     /**
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getDataForReceptionDockDashboard()
     {
@@ -185,8 +185,6 @@ class DashboardService
 
     /**
      * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getDataForReceptionAdminDashboard()
     {
@@ -208,7 +206,6 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @return array
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function getSimplifiedDataForPackagingDashboard(EntityManagerInterface $entityManager)
@@ -219,20 +216,11 @@ class DashboardService
             $locationCounter[$adminDatum['meterKey']] = $adminDatum;
         }
         $chartData = $this->getChartData($entityManager, self::DASHBOARD_PACKAGING, 'of');
-        $flattenChartData = $this->flatArray($chartData['data']);
-        $orderedChartData = array_reduce($flattenChartData, function(array $acc, array $current) {
-            $acc[] = array_reverse($current);
-            return $acc;
-        }, []);
-        return array_merge(
-            [
-                'counters' => $locationCounter
-            ],
-            [
-                'chartData' => $orderedChartData,
-                'chartColors' => $chartData['chartColors'],
-            ]
-        );
+        return [
+            'counters' => $locationCounter,
+            'chartData' => $chartData['data'],
+            'chartColors' => $chartData['chartColors'],
+        ];
     }
 
     public function flatArray(array $toFlat): array
@@ -356,8 +344,8 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function parseColisData(EntityManagerInterface $entityManager)
     {
@@ -407,9 +395,8 @@ class DashboardService
      * @param EntityManagerInterface $entityManager
      * @param int $graph
      * @param string $dashboard
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws DBALException
+     * @throws NonUniqueResultException
      */
     public function getAndSetGraphDataForAdmin(EntityManagerInterface $entityManager, int $graph, string $dashboard)
     {
@@ -755,7 +742,6 @@ class DashboardService
 
     /**
      * @return array
-     * @throws NonUniqueResultException
      */
     public function getDailyArrivalCarriers(): array
     {
@@ -778,7 +764,6 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws DBALException
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws Exception
      */
@@ -812,8 +797,6 @@ class DashboardService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     private function retrieveAndInsertParsedDockData(EntityManagerInterface $entityManager): void
@@ -827,7 +810,6 @@ class DashboardService
      * @param $data
      * @param string $dashboard
      * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
      */
     private function parseRetrievedDataAndPersistMeter($data, string $dashboard, EntityManagerInterface $entityManager): void
     {
@@ -854,7 +836,6 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws DBALException
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     private function retrieveAndInsertParsedAdminData(EntityManagerInterface $entityManager): void
@@ -879,7 +860,7 @@ class DashboardService
     /**
      * @param EntityManagerInterface $entityManager
      * @throws NonUniqueResultException
-     * @throws NoResultException
+     * @throws Exception
      */
     private function getAndSetGraphDataForPackaging(EntityManagerInterface $entityManager)
     {
@@ -895,7 +876,7 @@ class DashboardService
         $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
 
         $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-        use ($dsqrLabel, $gtLabel, $mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
+                                                      use ($dsqrLabel, $gtLabel, $mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
             return [
                 $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
                 $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
@@ -908,7 +889,7 @@ class DashboardService
                 $gtLabel => '#77933C',
             ],
             'key' => 'of',
-            'data' => $this->saveArrayForEncoding($chartData),
+            'data' => $chartData,
         ];
         $this->updateOrPersistDashboardGraphMeter($entityManager, $dashboardData);
     }
@@ -931,5 +912,13 @@ class DashboardService
                 ->setColis($lastLate['colis']);
             $entityManager->persist($latePack);
         }
+    }
+
+    public function getLastRefresh(): string {
+        $wiilockRepository = $this->entityManager->getRepository(Wiilock::class);
+        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
+        return ($dashboardLock && $dashboardLock->getUpdateDate())
+            ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
+            : 'Aucune données';
     }
 }

@@ -24,11 +24,8 @@ use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
-use App\Repository\LitigeRepository;
-use App\Repository\NatureRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
-use App\Repository\UrgenceRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
 use App\Service\ColisService;
@@ -106,31 +103,14 @@ class ArrivageController extends AbstractController
     private $arrivageDataService;
 
     /**
-     * @var LitigeRepository
-     */
-    private $litigeRepository;
-
-    /**
-     * @var UrgenceRepository
-     */
-    private $urgenceRepository;
-    /**
-     * @var NatureRepository
-     */
-    private $natureRepository;
-
-    /**
      * @var DashboardService
      */
     private $dashboardService;
 
     public function __construct(ArrivageDataService $arrivageDataService,
                                 DashboardService $dashboardService,
-                                UrgenceRepository $urgenceRepository,
                                 AttachmentService $attachmentService,
-                                NatureRepository $natureRepository,
                                 PieceJointeRepository $pieceJointeRepository,
-                                LitigeRepository $litigeRepository,
                                 SpecificService $specificService,
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
@@ -138,16 +118,13 @@ class ArrivageController extends AbstractController
                                 UserService $userService)
     {
         $this->dashboardService = $dashboardService;
-        $this->urgenceRepository = $urgenceRepository;
         $this->specificService = $specificService;
         $this->globalParamService = $globalParamService;
         $this->userService = $userService;
         $this->transporteurRepository = $transporteurRepository;
         $this->mailerService = $mailerService;
-        $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
-        $this->natureRepository = $natureRepository;
         $this->arrivageDataService = $arrivageDataService;
     }
 
@@ -746,10 +723,12 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs(Litige $litige)
+    private function sendMailToAcheteurs(EntityManagerInterface $entityManager,
+                                         Litige $litige)
     {
+        $litigeRepository = $entityManager->getRepository(Litige::class);
         //TODO HM getId ?
-        $acheteursEmail = $this->litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
+        $acheteursEmail = $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
         foreach ($acheteursEmail as $email) {
             $title = 'Un litige a été déclaré sur un arrivage vous concernant :';
 
@@ -963,6 +942,7 @@ class ArrivageController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
 
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
@@ -978,7 +958,7 @@ class ArrivageController extends AbstractController
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'allColis' => $arrivage->getColis(),
-                'natures' => $this->natureRepository->findAll(),
+                'natures' => $natureRepository->findAll(),
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
                 'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
@@ -1053,7 +1033,7 @@ class ArrivageController extends AbstractController
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
-            $this->sendMailToAcheteurs($litige);
+            $this->sendMailToAcheteurs($entityManager, $litige);
 
             $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
             $response = $arrivageResponse ? $arrivageResponse : [];
@@ -1065,15 +1045,20 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/supprimer-litige", name="litige_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function deleteLitige(Request $request): Response
+    public function deleteLitige(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $litige = $this->litigeRepository->find($data['litige']);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $litige = $litigeRepository->find($data['litige']);
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($litige);
@@ -1132,16 +1117,18 @@ class ArrivageController extends AbstractController
 
     /**
      * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param Arrivage $arrivage
      * @return Response
      */
-    public function apiArrivageLitiges(Request $request, Arrivage $arrivage): Response
+    public function apiArrivageLitiges(EntityManagerInterface $entityManager,
+                                       Request $request,
+                                       Arrivage $arrivage): Response
     {
         if ($request->isXmlHttpRequest()) {
-
-            /** @var Litige[] $litiges */
-            $litiges = $this->litigeRepository->findByArrivage($arrivage);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $litiges = $litigeRepository->findByArrivage($arrivage);
 
             $rows = [];
             foreach ($litiges as $litige) {
@@ -1233,8 +1220,9 @@ class ArrivageController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $colisRepository = $entityManager->getRepository(Colis::class);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
 
-            $litige = $this->litigeRepository->find($post->get('id'));
+            $litige = $litigeRepository->find($post->get('id'));
             $typeBefore = $litige->getType()->getId();
             $typeBeforeName = $litige->getType()->getLabel();
             $typeAfter = (int)$post->get('typeLitige');
@@ -1331,13 +1319,15 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function deposeLitige(Request $request, EntityManagerInterface $entityManager): Response
+    public function deposeLitige(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             $fileNames = [];
 
+            $litigeRepository = $entityManager->getRepository(Litige::class);
             $id = (int)$request->request->get('id');
-            $litige = $this->litigeRepository->find($id);
+            $litige = $litigeRepository->find($id);
 
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);

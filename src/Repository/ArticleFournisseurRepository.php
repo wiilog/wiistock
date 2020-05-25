@@ -257,6 +257,25 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param $reference
+     * @return array
+     */
+    public function getIdAndLibelleByRefRef($reference)
+    {
+        $queryBuilder = $this->createQueryBuilder('articleFournisseur');
+        $queryBuilder
+            ->select('articleFournisseur.id AS id')
+            ->addSelect('articleFournisseur.reference as reference')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->where('referenceArticle.reference = :reference')
+            ->setParameter('reference', $reference);
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
+
 	/**
  * @param string $reference
  * @return int

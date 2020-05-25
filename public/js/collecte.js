@@ -60,17 +60,11 @@ let tableArticleConfig = {
         "type": "POST"
     },
     order: [[1, 'desc']],
-    columnDefs: [
-        {
-            "orderable": false,
-            "targets": [0]
-        }
-    ],
     rowConfig: {
         needsRowClickAction: true,
     },
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},

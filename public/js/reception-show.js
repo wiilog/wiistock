@@ -648,14 +648,20 @@ function initConditionnementArticleFournisseurDefault() {
     const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
 
     if (referenceArticle) {
+        console.log(referenceArticle);
         resetDefaultArticleFournisseur(true);
-
-        initSelect2($selectArticleFournisseur, '', 1, {
-            route: 'get_article_fournisseur_autocomplete',
-            param: {
-                referenceArticle: referenceArticle.reference
-            }
-        });
+        initSelect2(
+            $selectArticleFournisseur,
+            '',
+            1,
+            {
+                route: 'get_article_fournisseur_autocomplete',
+                param: {
+                    referenceArticle: referenceArticle.reference
+                }
+            },
+            {},
+            referenceArticle.defaultArticleFournisseur || {});
     }
     else {
         resetDefaultArticleFournisseur();
