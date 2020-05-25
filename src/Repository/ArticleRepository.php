@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
@@ -343,33 +344,39 @@ class ArticleRepository extends EntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut, $preparation = null, $demande = null)
+	public function findActifByRefArticleWithoutDemand($refArticle = null, $preparation = null, $demande = null)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT a
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			LEFT JOIN a.demande d
-			LEFT JOIN d.statut s
-			WHERE a.statut = :statut
-			  AND ra = :refArticle
-			  AND a.quantite IS NOT NULL
-			  AND a.quantite > 0
-			  AND (a.preparation IS NULL OR a.preparation = :prepa)
-			  AND (a.demande IS NULL OR a.demande = :dem OR s.nom = :draft)
-			ORDER BY a.quantite DESC
-			'
-		)->setParameters([
-			'refArticle' => $refArticle,
-            'statut' => $statut,
-            'prepa' => $preparation,
-            'dem' => $demande,
-			'draft' => Demande::STATUT_BROUILLON
-		]);
+		return $this->createQueryBuilderActifWithoutDemand($refArticle, $preparation, $demande)
+            ->getQuery()
+            ->execute();
+	}
 
-		return $query->execute();
+	private function createQueryBuilderActifWithoutDemand($refArticle = null, $preparation = null, $demande = null): QueryBuilder
+	{
+	    $queryBuilder = $this->createQueryBuilder('article')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->join('article.statut', 'articleStatut')
+            ->leftJoin('article.demande', 'demande')
+            ->leftJoin('demande.statut', 'statutDemande')
+            ->where('articleStatut.nom = :articleActif')
+            ->andWhere('article.quantite IS NOT NULL')
+            ->andWhere('article.quantite > 0')
+            ->andWhere('(article.preparation IS NULL OR article.preparation = :prepa)')
+            ->andWhere('(article.demande IS NULL OR article.demande = :dem OR statutDemande.nom = :draft)')
+            ->setParameter('articleActif', Article::STATUT_ACTIF)
+            ->setParameter('prepa', $preparation)
+            ->setParameter('dem', $demande)
+            ->setParameter('draft', Demande::STATUT_BROUILLON);
+
+	    if (!empty($refArticle)) {
+            $queryBuilder
+                ->andWhere('referenceArticle = :refArticle')
+                ->setParameter('refArticle', $refArticle);
+        }
+
+	    return $queryBuilder;
+
 	}
 
     public function findByEtat($etat)
@@ -729,31 +736,25 @@ class ArticleRepository extends EntityRepository
 	}
 
     public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
-        $queryBuilder = $this->createQueryBuilder('a')
-            ->select('DISTINCT a.reference')
-            ->addSelect('a.label')
-            ->addSelect('e.label as location')
-            ->addSelect('a.quantite as quantity')
-            ->addSelect('ra.reference as reference_article')
-            ->addSelect('a.barCode')
-            ->leftJoin('a.emplacement', 'e')
-            ->join('a.articleFournisseur', 'af')
-            ->join('af.referenceArticle', 'ra')
-            ->join('ra.ligneArticlePreparations', 'la')
-            ->join('la.preparation', 'p')
-            ->join('p.statut', 's')
-            ->andWhere('a.quantite > 0')
-            ->andWhere('a.preparation IS NULL')
-            ->andWhere('(s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user))')
-            ->setParameters([
-                'statutLabel' => Preparation::STATUT_A_TRAITER,
-                'enCours' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
-                'user' => $user
-            ]);
+        $queryBuilder = $this->createQueryBuilderActifWithoutDemand()
+            ->select('DISTINCT article.reference AS reference')
+            ->addSelect('article.label AS label')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('article.quantite AS quantity')
+            ->addSelect('referenceArticle.reference AS reference_article')
+            ->addSelect('article.barCode AS barCode')
+            ->leftJoin('article.emplacement', 'emplacement')
+            ->join('referenceArticle.ligneArticlePreparations', 'ligneArticlePreparation')
+            ->join('ligneArticlePreparation.preparation', 'preparation')
+            ->join('preparation.statut', 'statutPreparation')
+            ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
+            ->setParameter('preparationToTreat', Preparation::STATUT_A_TRAITER)
+            ->setParameter('preparationInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
+            ->setParameter('preparationOperator', $user);
 
         if (!empty($preparationIdsFilter)) {
             $queryBuilder
-                ->andWhere('p.id IN (:preparationIdsFilter)')
+                ->andWhere('preparation.id IN (:preparationIdsFilter)')
                 ->setParameter('preparationIdsFilter', $preparationIdsFilter, Connection::PARAM_STR_ARRAY);
         }
 
