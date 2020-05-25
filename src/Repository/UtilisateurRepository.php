@@ -179,6 +179,16 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 			->getOneOrNullResult();
 	}
 
+	public function findByFieldNotNull(string $field) {
+	    $qb = $this->createQueryBuilder('u');
+	    return $qb
+            ->where(
+                $qb->expr()->isNotNull("u.$field")
+            )
+            ->getQuery()
+            ->execute();
+    }
+
 	public function findByParams($params = null)
 	{
 		$em = $this->getEntityManager();

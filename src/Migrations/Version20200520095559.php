@@ -4,14 +4,22 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Entity\Utilisateur;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20200520095559 extends AbstractMigration
+final class Version20200520095559 extends AbstractMigration implements ContainerAwareInterface
 {
+
+    use ContainerAwareTrait;
+
     public function getDescription() : string
     {
         return 'On enlève "Référence" du champ recherche_for_article des utilisateurs';
@@ -21,40 +29,31 @@ final class Version20200520095559 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
+    }
 
-        $oldData = $this->connection
-            ->executeQuery('
-                SELECT id AS user_id, recherche_for_article
-                FROM utilisateur
-                WHERE recherche_for_article IS NOT NULL
-            ')
-            ->fetchAll();
-
-        foreach ($oldData as $data) {
-            $userId = $data['user_id'];
-            $rechercheForArticleStr = $data['recherche_for_article'];
-            if (!empty($rechercheForArticleStr)) {
-                $rechercheForArticleJson = json_decode($rechercheForArticleStr, true);
-
-                $newRechercheForArticle = array_filter($rechercheForArticleJson, function ($field) {
+    public function postUp(Schema $schema): void
+    {
+        $em = $this->container->get('doctrine.orm.entity_manager');
+        $usersRepository = $em->getRepository(Utilisateur::class);
+        $users = $usersRepository->findByFieldNotNull('rechercheForArticle');
+        foreach ($users as $user) {
+            /**
+             * @var Utilisateur $user
+             */
+            $userArticleSearch = $user->getRechercheForArticle();
+            if (in_array('Référence', $userArticleSearch)) {
+                $newArticleSearch = array_filter($userArticleSearch, function (string $field) {
                     return $field !== 'Référence';
                 });
-
-                $newRechercheForArticleStr = json_encode($newRechercheForArticle);
-
-                $this->addSql("
-                    UPDATE `utilisateur`
-                    SET recherche_for_article = '$newRechercheForArticleStr'
-                    WHERE id = ${userId}"
-                );
+                $user->setRechercheForArticle($newArticleSearch);
             }
         }
+        $em->flush();
     }
 
     public function down(Schema $schema) : void
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
-
     }
 }

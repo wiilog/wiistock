@@ -1089,7 +1089,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function getRechercheForArticle()
+    public function getRechercheForArticle(): array
     {
         return $this->rechercheForArticle;
     }
