@@ -297,6 +297,7 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -497,6 +498,12 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+        $champF[] = [
+            'label' => 'Urgence',
+            'id' => 0,
+            'typage' => 'booleen'
 
         ];
         $champF[] = [
