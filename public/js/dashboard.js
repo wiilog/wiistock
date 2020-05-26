@@ -167,7 +167,12 @@ function treatPackagingData({counters, chartData, chartColors}) {
     const countersKeys = Object.keys(counters || {});
     let total = 0;
     for(const key of countersKeys) {
-        total += fillPackagingCard(key, counters[key]) || 0;
+        try {
+            total += fillPackagingCard(key, counters[key]) || 0;
+        }
+        catch (e) {
+            alert(e.message);
+        }
     }
 
     $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
@@ -185,20 +190,25 @@ function fillPackagingCard(cardId, data) {
     $container.find('.dashboard-stats-counter').html(data && data.count ? data.count : '-');
     let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
     let $titleDelayValue = $container.find('.dashboard-stats-delay');
-    if (data && data.delay < 0) {
-        $titleDelayContainer.html('Retard : ');
-        $titleDelayContainer.addClass('red');
-        $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
-        $titleDelayValue.addClass('red');
-    } else if (data && data.delay > 0) {
-        $titleDelayContainer.html('A traiter sous : ');
-        $titleDelayContainer.removeClass('red');
-        $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
-        $titleDelayValue.removeClass('red');
-    } else {
+
+    if (data && data.delay) {
+        if (data.delay < 0) {
+            $titleDelayContainer.html('Retard : ');
+            $titleDelayContainer.addClass('red');
+            $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
+            $titleDelayValue.addClass('red');
+        }
+        else if (data.delay > 0) {
+            $titleDelayContainer.html('A traiter sous : ');
+            $titleDelayContainer.removeClass('red');
+            $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
+            $titleDelayValue.removeClass('red');
+        }
+    }
+    else {
         $titleDelayValue.html('-');
     }
-    return data && $container.hasClass('contribute-to-total') ? data.count : 0;
+    return (data && $container.hasClass('contribute-to-total')) ? data.count : 0;
 }
 
 function loadArrivalDashboard(preferCache) {
