@@ -184,6 +184,29 @@ function treatPackagingData({counters, chartData, chartColors}) {
     chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
 }
 
+/**
+ * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
+ */
+function renderMillisecondsToDelay(milliseconds, type) {
+    let res;
+
+    if (type === 'display') {
+        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
+        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
+        res = (
+                (hours > 0)
+                    ? `${hours < 10 ? '0' : ''}${hours} h `
+                    : '') +
+            ((minutes === 0 && hours < 1)
+                ? '< 1 min'
+                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
+    } else {
+        res = milliseconds;
+    }
+
+    return res;
+}
+
 function fillPackagingCard(cardId, data) {
     let $container = $('#' + cardId);
     $container.find('.location-label').html(data ? data.label : '-');
@@ -195,13 +218,13 @@ function fillPackagingCard(cardId, data) {
         if (data.delay < 0) {
             $titleDelayContainer.html('Retard : ');
             $titleDelayContainer.addClass('red');
-            $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
+            $titleDelayValue.html(renderMillisecondsToDelay(Math.abs(data.delay), 'display'));
             $titleDelayValue.addClass('red');
         }
         else if (data.delay > 0) {
             $titleDelayContainer.html('A traiter sous : ');
             $titleDelayContainer.removeClass('red');
-            $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
+            $titleDelayValue.html(renderMillisecondsToDelay(data.delay, 'display'));
             $titleDelayValue.removeClass('red');
         }
     }
