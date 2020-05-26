@@ -47,6 +47,11 @@ class Role
      */
     private $parametreRoles;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $dashboardsVisible = [];
+
     public function __construct()
     {
         $this->actions = new ArrayCollection();
@@ -169,6 +174,18 @@ class Role
                 $parametreRole->setRole(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDashboardsVisible(): ?array
+    {
+        return $this->dashboardsVisible;
+    }
+
+    public function setDashboardsVisible(?array $dashboardsVisible): self
+    {
+        $this->dashboardsVisible = $dashboardsVisible;
 
         return $this;
     }

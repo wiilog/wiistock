@@ -17,8 +17,7 @@ const DASHBOARD_ARRIVAL_NAME = 'arrivage';
 const DASHBOARD_DOCK_NAME = 'quai';
 const DASHBOARD_ADMIN_NAME = 'admin';
 const DASHBOARD_PACKAGING_NAME = 'emballage';
-const DEFAULT_DASHBOARD = DASHBOARD_ARRIVAL_NAME;
-
+let displayedDashboards = [];
 const PAGE_CONFIGS = {
     [DASHBOARD_ARRIVAL_NAME]: {
         loadData: loadArrivalDashboard,
@@ -44,13 +43,14 @@ $(function () {
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
-
+    $('.indicator').each(function() {
+        displayedDashboards.push($(this).data('name'));
+    });
     if (!isDashboardExt()) {
         const knownHash = ([DASHBOARD_ARRIVAL_NAME, DASHBOARD_DOCK_NAME, DASHBOARD_ADMIN_NAME, DASHBOARD_PACKAGING_NAME].indexOf(getUrlHash()) > -1);
         if (!knownHash) {
-            window.location.hash = DEFAULT_DASHBOARD;
+            window.location.hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
         }
-
         setActiveDashboard(getUrlHash());
     }
     updateRefreshDate();
@@ -120,7 +120,6 @@ function hideDashboardSpinner(activeDashboardName) {
 
 function loadProperData(preferCache = false) {
     const activeDashboardName = getActiveDashboardName();
-
     if (PAGE_CONFIGS[activeDashboardName]
         && (preferCache || !PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded)) {
         PAGE_CONFIGS[activeDashboardName]
@@ -129,6 +128,9 @@ function loadProperData(preferCache = false) {
                 hideDashboardSpinner(activeDashboardName);
             });
         PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded = true;
+    } else {
+        hideDashboardSpinner(activeDashboardName);
+        $('.header-title span').text('Aucun Dashboard affiché');
     }
 }
 
@@ -756,7 +758,13 @@ function calculateChartsFontSize() {
 }
 
 function setActiveDashboard(hash) {
-    $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`).addClass('active');
+    if (!displayedDashboards.includes(hash)) {
+        hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
+        window.location.hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
+    }
+    let activeIndic = $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`);
+    activeIndic.addClass('active');
+    activeIndic.click();
     $(`#carousel-dashboard .carousel-item[data-name="${hash}"]`).addClass('active');
 }
 

@@ -8,6 +8,7 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,22 +59,40 @@ class RoleController extends AbstractController
 
         $menus = $menuRepository->findAll();
 
-		$params = $parametreRepository->findAll();
-		$listParams = [];
-		foreach ($params as $param) {
-			$listParams[] = [
-				'id' => $param->getId(),
-				'label' => $param->getLabel(),
-				'typage' => $param->getTypage(),
-				'elements' => $param->getElements(),
-				'default' => $param->getDefaultValue()
-			];
-		}
+        $params = $parametreRepository->findAll();
+        $listParams = [];
+        foreach ($params as $param) {
+            $listParams[] = [
+                'id' => $param->getId(),
+                'label' => $param->getLabel(),
+                'typage' => $param->getTypage(),
+                'elements' => $param->getElements(),
+                'default' => $param->getDefaultValue()
+            ];
+        }
 
         return $this->render('role/index.html.twig', [
-        	'menus' => $menus,
-			'params' => $listParams
-		]);
+            'menus' => $menus,
+            'params' => $listParams,
+            'dashboards' => [
+                [
+                    "id" => 'arrivage',
+                    'label' => "Dashboard Réception Arrivage"
+                ],
+                [
+                    "id" => 'quai',
+                    'label' => "Dashboard Réception Quai"
+                ],
+                [
+                    "id" => 'admin',
+                    'label' => "Dashboard Réception Administrative"
+                ],
+                [
+                    "id" => 'emballage',
+                    'label' => "Dashboard Monitoring Emballage"
+                ],
+            ]
+        ]);
     }
 
     /**
@@ -138,45 +157,33 @@ class RoleController extends AbstractController
             $labelExist = $roleRepository->countByLabel($data['label']);
 
             if (!$labelExist) {
-
                 $role = new Role();
                 $role
                     ->setActive(true)
                     ->setLabel($data['label']);
-				$entityManager->persist($role);
+                $entityManager->persist($role);
 
                 unset($data['label']);
                 unset($data['elem']);
 
-				// on traite les paramètres
-				foreach (array_keys($data) as $id) {
-					if (is_numeric($id)) {
-						$parametre = $parametreRepository->find($id);
+                // on traite les paramètres
+                foreach (array_keys($data) as $id) {
+                    if (is_numeric($id)) {
+                        $parametre = $parametreRepository->find($id);
 
-						$paramRole = new ParametreRole();
-						$paramRole
-							->setParametre($parametre)
-							->setRole($role)
-							->setValue($data[$id]);
-						$entityManager->persist($paramRole);
-						$entityManager->flush();
-						$role->addParametreRole($paramRole);
-						unset($data[$id]);
-					}
-				}
-
-				// on traite les actions
-                foreach ($data as $menuAction => $isChecked) {
-                    $menuActionArray = explode('/', $menuAction);
-                    $menuLabel = $menuActionArray[0];
-                    $actionLabel = $menuActionArray[1];
-
-                    $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
-
-                    if ($action && $isChecked) {
-                        $role->addAction($action);
+                        $paramRole = new ParametreRole();
+                        $paramRole
+                            ->setParametre($parametre)
+                            ->setRole($role)
+                            ->setValue($data[$id]);
+                        $entityManager->persist($paramRole);
+                        $entityManager->flush();
+                        $role->addParametreRole($paramRole);
+                        unset($data[$id]);
                     }
                 }
+
+                $this->parseParameters($role, $data, $actionRepository);
                 $entityManager->flush();
 
                 return new JsonResponse();
@@ -217,21 +224,39 @@ class RoleController extends AbstractController
             $params = $parametreRepository->findAll();
             $listParams = [];
             foreach ($params as $param) {
-            	$listParams[] = [
-            		'id' => $param->getId(),
-					'label' => $param->getLabel(),
-					'typage' => $param->getTypage(),
-					'elements' => $param->getElements(),
-					'default' => $param->getDefaultValue(),
-					'value' => $parametreRoleRepository->getValueByRoleAndParam($role, $param)
-				];
-			}
+                $listParams[] = [
+                    'id' => $param->getId(),
+                    'label' => $param->getLabel(),
+                    'typage' => $param->getTypage(),
+                    'elements' => $param->getElements(),
+                    'default' => $param->getDefaultValue(),
+                    'value' => $parametreRoleRepository->getValueByRoleAndParam($role, $param)
+                ];
+            }
 
-			$json = $this->renderView('role/modalEditRoleContent.html.twig', [
+            $json = $this->renderView('role/modalEditRoleContent.html.twig', [
                 'role' => $role,
                 'menus' => $menus,
                 'actionsIdOfRole' => $actionsIdOfRole,
-				'params' => $listParams
+                'params' => $listParams,
+                'dashboards' => [
+                    [
+                        "id" => 'arrivage',
+                        'label' => "Dashboard Réception Arrivage"
+                    ],
+                    [
+                        "id" => 'quai',
+                        'label' => "Dashboard Réception Quai"
+                    ],
+                    [
+                        "id" => 'admin',
+                        'label' => "Dashboard Réception Administrative"
+                    ],
+                    [
+                        "id" => 'emballage',
+                        'label' => "Dashboard Monitoring Emballage"
+                    ],
+                ]
             ]);
 
             return new JsonResponse($json);
@@ -267,43 +292,58 @@ class RoleController extends AbstractController
             unset($data['id']);
 
             // on traite les paramètres
-			foreach (array_keys($data) as $id) {
-				if (is_numeric($id)) {
-					$parametre = $parametreRepository->find($id);
+            foreach (array_keys($data) as $id) {
+                if (is_numeric($id)) {
+                    $parametre = $parametreRepository->find($id);
 
-					$paramRole = $parametreRoleRepository->findOneByRoleAndParam($role, $parametre);
-					if (!$paramRole) {
-						$paramRole = new ParametreRole();
-						$entityManager->persist($paramRole);
-					}
-					$paramRole
-						->setParametre($parametre)
-						->setRole($role)
-						->setValue($data[$id]);
-					$entityManager->flush();
-					unset($data[$id]);
-				}
-			}
-
-            // on traite les actions
-            foreach ($data as $menuAction => $isChecked) {
-                $menuActionArray = explode('/', $menuAction);
-                $menuLabel = $menuActionArray[0];
-                $actionLabel = $menuActionArray[1];
-                $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
-
-                if ($action) {
-                    if ($isChecked) {
-                        $role->addAction($action);
-                    } else {
-                        $role->removeAction($action);
+                    $paramRole = $parametreRoleRepository->findOneByRoleAndParam($role, $parametre);
+                    if (!$paramRole) {
+                        $paramRole = new ParametreRole();
+                        $entityManager->persist($paramRole);
                     }
+                    $paramRole
+                        ->setParametre($parametre)
+                        ->setRole($role)
+                        ->setValue($data[$id]);
+                    $entityManager->flush();
+                    unset($data[$id]);
                 }
             }
+
+            $this->parseParameters($role, $data, $actionRepository);
             $entityManager->flush();
             return new JsonResponse($role->getLabel());
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @param Role $role
+     * @param array $data
+     * @param ActionRepository $actionRepository
+     * @throws NonUniqueResultException
+     */
+    private function parseParameters(Role $role, array $data, ActionRepository $actionRepository) {
+        // on traite les actions
+        $dashboardsVisible = [];
+        foreach ($data as $menuAction => $isChecked) {
+            $menuActionArray = explode('/', $menuAction);
+            if (count($menuActionArray) > 1) {
+                $menuLabel = $menuActionArray[0];
+                $actionLabel = $menuActionArray[1];
+
+                $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
+
+                if ($action && $isChecked) {
+                    $role->addAction($action);
+                }
+            } else {
+                if ($isChecked && is_string($menuAction)) {
+                    $dashboardsVisible[] = $menuAction;
+                }
+            }
+        }
+        $role->setDashboardsVisible($dashboardsVisible);
     }
 
     /**
@@ -314,31 +354,31 @@ class RoleController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-	public function checkRoleCanBeDeleted(Request $request,
+    public function checkRoleCanBeDeleted(Request $request,
                                           EntityManagerInterface $entityManager): Response
-	{
-		if ($request->isXmlHttpRequest() && $roleId = json_decode($request->getContent(), true)) {
+    {
+        if ($request->isXmlHttpRequest() && $roleId = json_decode($request->getContent(), true)) {
 
-			if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-				return $this->redirectToRoute('access_denied');
-			}
+            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-			$nbUsers = $utilisateurRepository->countByRoleId($roleId);
+            $nbUsers = $utilisateurRepository->countByRoleId($roleId);
 
-			if ($nbUsers > 0 ) {
-				$delete = false;
-				$html = $this->renderView('role/modalDeleteRoleWrong.html.twig', ['nbUsers' => $nbUsers]);
-			} else {
-				$delete = true;
-				$html = $this->renderView('role/modalDeleteRoleRight.html.twig');
-			}
+            if ($nbUsers > 0) {
+                $delete = false;
+                $html = $this->renderView('role/modalDeleteRoleWrong.html.twig', ['nbUsers' => $nbUsers]);
+            } else {
+                $delete = true;
+                $html = $this->renderView('role/modalDeleteRoleRight.html.twig');
+            }
 
-			return new JsonResponse(['delete' => $delete, 'html' => $html]);
-		}
-		throw new NotFoundHttpException('404');
-	}
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
     /**
      * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"})
@@ -363,14 +403,14 @@ class RoleController extends AbstractController
                 $role = $roleRepository->find($roleId);
 
                 if ($role) {
-                	$nbUsers = $utilisateurRepository->countByRoleId($roleId);
+                    $nbUsers = $utilisateurRepository->countByRoleId($roleId);
 
-                	if ($nbUsers == 0) {
-						$entityManager->remove($role);
-						$entityManager->flush();
-						$resp = true;
-					}
-				}
+                    if ($nbUsers == 0) {
+                        $entityManager->remove($role);
+                        $entityManager->flush();
+                        $resp = true;
+                    }
+                }
             }
             return new JsonResponse($resp);
         }

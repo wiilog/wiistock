@@ -26,45 +26,30 @@
     {% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
         <div id="carousel-dashboard" class="carousel slide">
             <ol class="carousel-indicators">
-                <li data-target="#carousel-dashboard"
-                    data-slide-to="0"
-                    data-name="arrivage"></li>
-                <li data-target="#carousel-dashboard"
-                    data-slide-to="1"
-                    data-name="quai"></li>
-                <li data-target="#carousel-dashboard"
-                    data-slide-to="2"
-                    data-name="admin"></li>
-                <li data-target="#carousel-dashboard"
-                    data-slide-to="3"
-                    data-name="emballage"></li>
+                {% for dashboard in visibleDashboards %}
+                    <li data-target="#carousel-dashboard"
+                        class="indicator"
+                        data-slide-to="{{ loop.index0 }}"
+                        data-name="{{ dashboard }}"></li>
+                {% endfor %}
             </ol>
-
             <div class="carousel-inner h-100">
-                <div class="carousel-item"
-                     data-name="arrivage">
-                    <div class="col-12">
-                        {% include 'accueil/dashboardArrival.html.twig' %}
+                {% for dashboard in visibleDashboards %}
+                    <div class="carousel-item"
+                         data-name="{{ dashboard }}">
+                        <div class="col-12">
+                            {% if dashboard == 'arrivage' %}
+                                {% include 'accueil/dashboardArrival.html.twig' %}
+                            {% elseif dashboard == 'quai' %}
+                                {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
+                            {% elseif dashboard == 'admin' %}
+                                {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
+                            {% elseif dashboard == 'emballage' %}
+                                {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="carousel-item"
-                     data-name="quai">
-                    <div class="col-12">
-                        {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 0 } %}
-                    </div>
-                </div>
-                <div class="carousel-item"
-                     data-name="admin">
-                    <div class="col-12">
-                        {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 0 } %}
-                    </div>
-                </div>
-                <div class="carousel-item"
-                     data-name="emballage">
-                    <div class="col-12">
-                        {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 0 } %}
-                    </div>
-                </div>
+                {% endfor %}
             </div>
             <div class="row">
                 <div class="col-12 little-font text-right fixed-bottom z-index-back d-none refresh-date-container">
