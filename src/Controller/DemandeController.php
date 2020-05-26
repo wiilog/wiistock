@@ -576,13 +576,10 @@ class DemandeController extends AbstractController
             $ligneArticles = $demande->getLigneArticle();
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
-                $articleRef = $ligneArticle->getReference();
-                $availableQuantity = $articleRef->getQuantiteDisponible();
                 $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => $availableQuantity,
                     "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
@@ -603,7 +600,6 @@ class DemandeController extends AbstractController
                     "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
                     "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
                     "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
