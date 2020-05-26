@@ -171,7 +171,6 @@ function treatPackagingData({counters, chartData, chartColors}) {
             total += fillPackagingCard(key, counters[key]) || 0;
         }
         catch (e) {
-            alert(e.message);
         }
     }
 
