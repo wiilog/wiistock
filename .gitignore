@@ -34,7 +34,7 @@ yarn-error.log
 /deployment/db*
 /deployment/pass*
 /SnoreToast.lnk
-/assets/sass/_customFont.sass
+/assets/scss/_customFont.scss
 ###< wiistock ###
 
 ###> assoconnect/mjml-bundle ###
