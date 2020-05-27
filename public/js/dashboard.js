@@ -167,7 +167,11 @@ function treatPackagingData({counters, chartData, chartColors}) {
     const countersKeys = Object.keys(counters || {});
     let total = 0;
     for(const key of countersKeys) {
-        total += fillPackagingCard(key, counters[key]) || 0;
+        try {
+            total += fillPackagingCard(key, counters[key]) || 0;
+        }
+        catch (e) {
+        }
     }
 
     $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
@@ -179,26 +183,54 @@ function treatPackagingData({counters, chartData, chartColors}) {
     chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
 }
 
+/**
+ * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
+ */
+function renderMillisecondsToDelay(milliseconds, type) {
+    let res;
+
+    if (type === 'display') {
+        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
+        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
+        res = (
+                (hours > 0)
+                    ? `${hours < 10 ? '0' : ''}${hours} h `
+                    : '') +
+            ((minutes === 0 && hours < 1)
+                ? '< 1 min'
+                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
+    } else {
+        res = milliseconds;
+    }
+
+    return res;
+}
+
 function fillPackagingCard(cardId, data) {
     let $container = $('#' + cardId);
     $container.find('.location-label').html(data ? data.label : '-');
     $container.find('.dashboard-stats-counter').html(data && data.count ? data.count : '-');
     let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
     let $titleDelayValue = $container.find('.dashboard-stats-delay');
-    if (data && data.delay < 0) {
-        $titleDelayContainer.html('Retard : ');
-        $titleDelayContainer.addClass('red');
-        $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
-        $titleDelayValue.addClass('red');
-    } else if (data && data.delay > 0) {
-        $titleDelayContainer.html('A traiter sous : ');
-        $titleDelayContainer.removeClass('red');
-        $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
-        $titleDelayValue.removeClass('red');
-    } else {
+
+    if (data && data.delay) {
+        if (data.delay < 0) {
+            $titleDelayContainer.html('Retard : ');
+            $titleDelayContainer.addClass('red');
+            $titleDelayValue.html(renderMillisecondsToDelay(Math.abs(data.delay), 'display'));
+            $titleDelayValue.addClass('red');
+        }
+        else if (data.delay > 0) {
+            $titleDelayContainer.html('A traiter sous : ');
+            $titleDelayContainer.removeClass('red');
+            $titleDelayValue.html(renderMillisecondsToDelay(data.delay, 'display'));
+            $titleDelayValue.removeClass('red');
+        }
+    }
+    else {
         $titleDelayValue.html('-');
     }
-    return data && $container.hasClass('contribute-to-total') ? data.count : 0;
+    return (data && $container.hasClass('contribute-to-total')) ? data.count : 0;
 }
 
 function loadArrivalDashboard(preferCache) {
