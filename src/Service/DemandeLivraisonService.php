@@ -16,6 +16,7 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -80,9 +81,9 @@ class DemandeLivraisonService
         if ($statusFilter) {
             $filters = [
                 [
-                	'field' => 'statut',
-					'value' => $statusFilter
-				]
+                    'field' => 'statut',
+                    'value' => $statusFilter
+                ]
             ];
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
@@ -124,7 +125,13 @@ class DemandeLivraisonService
         return $row;
     }
 
-    public function newDemande($data) {
+    /**
+     * @param $data
+     * @return Demande|array|JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function newDemande($data)
+    {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
@@ -174,16 +181,7 @@ class DemandeLivraisonService
         $this->entityManager->persist($demande);
 
         // enregistrement des champs libres
-        $champsLibresKey = array_keys($data);
-
-        foreach ($champsLibresKey as $champs) {
-            if (gettype($champs) === 'integer') {
-                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-                $valeurChampLibre->addDemandesLivraison($demande);
-				$this->entityManager->persist($valeurChampLibre);
-				$this->entityManager->flush();
-            }
-        }
+        $this->checkAndPersistIfClIsOkay($demande, $data);
         $this->entityManager->flush();
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
@@ -200,17 +198,41 @@ class DemandeLivraisonService
                 $this->entityManager->persist($preparation);
                 $demande->addPreparation($preparation);
             }
-			$this->entityManager->flush();
+            $this->entityManager->flush();
             $data = $demande;
         } else {
             $data = [
                 'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
-			];
+            ];
         }
         return $data;
     }
 
-    public function createHeaderDetailsConfig(Demande $demande): array {
+    /**
+     * @param Demande $demande
+     * @param array $data
+     */
+    public function checkAndPersistIfClIsOkay(Demande $demande, array $data)
+    {
+        $demande->getValeurChampLibre()->clear();
+        $keys = array_keys($data);
+        foreach ($keys as $champs) {
+            $champExploded = explode('-', $champs);
+            $champId = $champExploded[0] ?? -1;
+            $typeId = isset($champExploded[1]) ? intval($champExploded[1]) : -1;
+            $isChampLibre = (ctype_digit($champId) && $champId > 0);
+            if ($isChampLibre && $typeId === $demande->getType()->getId()) {
+                $value = $data[$champs];
+                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre(intval($champId), $value);
+                $valeurChampLibre->addDemandesLivraison($demande);
+                $this->entityManager->persist($valeurChampLibre);
+            }
+        }
+        $this->entityManager->flush();
+    }
+
+    public function createHeaderDetailsConfig(Demande $demande): array
+    {
         $status = $demande->getStatut();
         $requester = $demande->getUtilisateur();
         $destination = $demande->getDestination();
@@ -234,12 +256,12 @@ class DemandeLivraisonService
 
         return array_merge(
             [
-                [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
-                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
-                [ 'label' => 'Destination', 'value' => $destination ? $destination->getLabel() : '' ],
-                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
-                [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
-                [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
+                ['label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''],
+                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Destination', 'value' => $destination ? $destination->getLabel() : ''],
+                ['label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : ''],
+                ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : ''],
+                ['label' => 'Type', 'value' => $type ? $type->getLabel() : '']
             ],
             $detailsChampLibres,
             [

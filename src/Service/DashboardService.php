@@ -24,9 +24,7 @@ use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class DashboardService

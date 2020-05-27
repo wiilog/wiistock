@@ -472,4 +472,15 @@ class ValeurChampLibreRepository extends EntityRepository
 
         return $prepare->fetchAll();
     }
+
+    public function deleteIn(array $ids) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "DELETE
+            FROM App\Entity\ValeurChampLibre v
+            WHERE v.id IN (:ids)"
+        );
+        $query->setParameter('ids', $ids);
+        return $query->execute();
+    }
 }
