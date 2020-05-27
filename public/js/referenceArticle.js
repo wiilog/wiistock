@@ -136,13 +136,13 @@ let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_ref_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
-let url = Routing.generate('ref_article_api', true);
 
 $(function () {
     initTableRefArticle();
 });
 
 function initTableRefArticle() {
+    let url = Routing.generate('ref_article_api', true);
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
         let tableRefArticleConfig = {
             processing: true,
@@ -174,7 +174,10 @@ function initTableRefArticle() {
                 needsResize: true
             },
             rowConfig: {
-                needsRowClickAction: true
+                needsRowClickAction: true,
+                needsColor: true,
+                color: 'danger',
+                dataToCheck: 'isUrgent'
             },
             isArticleOrRefSpecifConfig: {
                 columns,

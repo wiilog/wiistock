@@ -501,12 +501,6 @@ class ReferenceArticleController extends AbstractController
 
         ];
         $champF[] = [
-            'label' => 'Urgence',
-            'id' => 0,
-            'typage' => 'booleen'
-
-        ];
-        $champF[] = [
             'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
@@ -1014,7 +1008,7 @@ class ReferenceArticleController extends AbstractController
             $em  = $this->getDoctrine()->getManager();
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException("404");
     }
