@@ -256,8 +256,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
             },
-            dom: getAppropriateDom(domConfig ?? {}),
-            rowCallback: getAppropriateRowCallback(rowConfig ?? {}),
+            dom: getAppropriateDom(domConfig || {}),
+            rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
                 datatableDrawCallback({
                     table: datatableToReturn,
@@ -269,7 +269,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             initComplete: () => {
                 let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
                 moveSearchInputToHeader($searchInputContainer);
-                articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
+                articleAndRefTableCallback(isArticleOrRefSpecifConfig || {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }
