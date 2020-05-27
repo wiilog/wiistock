@@ -79,7 +79,7 @@ class MailsLitigesComand extends Command
         foreach ($litigesByAcheteur as $email => $litiges) {
             $this->mailerService->sendMail(
                 'FOLLOW GT // Récapitulatif de vos litiges',
-                $this->templating->render('mails/mailLitiges.html.twig', [
+                $this->templating->render('mails/mailLitigesArrivage.html.twig', [
                     'litiges' => $litiges,
                     'title' => 'Récapitulatif de vos litiges',
                     'urlSuffix' => 'arrivage'

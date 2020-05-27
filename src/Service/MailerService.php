@@ -81,6 +81,7 @@ class MailerService
             ->setSubject($subject)
             ->setBody($content)
             ->setContentType('text/html');
+		dump($message);
         $mailer = (new \Swift_Mailer($transport));
         $mailer->send($message);
     }
