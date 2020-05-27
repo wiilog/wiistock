@@ -72,7 +72,7 @@ function loadEncoursDatatable($table) {
             columns: [
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
                 {"data": 'date', 'name': 'date', 'title': 'Date de dépose'},
-                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)},
+                {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
                 {"data": 'late', 'name': 'late', 'title': 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {
