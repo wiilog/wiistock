@@ -10,6 +10,7 @@
         <thead>
         <tr>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Type de litige</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Statut de litige</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Colis</th>
         </tr>
@@ -19,6 +20,8 @@
             <tr>
                 <td class="td" rowspan="{{ litige.colis|length }}"
                     style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.type.label }}</td>
+                <td class="td" rowspan="{{ litige.colis|length }}"
+                    style="border: 1px solid black; padding: 6px; text-align: center;">{{ litige.status.nom }}</td>
 
                 {% set firstColis = litige.colis|first %}
                 <td class="td" style="border: 1px solid black; padding: 6px; text-align: center;">

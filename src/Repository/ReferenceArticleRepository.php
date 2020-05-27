@@ -31,6 +31,7 @@ class ReferenceArticleRepository extends EntityRepository
         'Référence' => 'reference',
         'SeuilAlerte' => 'limitWarning',
         'SeuilSecurite' => 'limitSecurity',
+        'Urgence' => 'isUrgent',
         'Type' => 'Type',
         'Quantité disponible' => 'quantiteDisponible',
         'Quantité stock' => 'quantiteStock',
@@ -169,6 +170,7 @@ class ReferenceArticleRepository extends EntityRepository
             'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
+            'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
         ];
 
         $qb
@@ -203,6 +205,11 @@ class ReferenceArticleRepository extends EntityRepository
                         case 'number':
                             $qb
                                 ->andWhere("ra.$field = :value$index")
+                                ->setParameter("value$index", $filter['value']);
+                            break;
+                        case 'boolean':
+                            $qb
+                                ->andWhere("ra.isUrgent = :value$index")
                                 ->setParameter("value$index", $filter['value']);
                             break;
                         case 'list':
@@ -1131,13 +1138,13 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    private function array_values_recursive($array) {
+    private function array_values_recursive($array)
+    {
         $flat = [];
-        foreach($array as $value) {
+        foreach ($array as $value) {
             if (is_array($value)) {
                 $flat = array_merge($flat, $this->array_values_recursive($value));
-            }
-            else {
+            } else {
                 $flat[] = $value;
             }
         }

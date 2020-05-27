@@ -252,6 +252,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Dernier inventaire',
 					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Urgence',
+					"data" => 'Urgence',
+					'name' => 'Urgence',
+					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -297,6 +303,7 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -497,6 +504,12 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+        $champF[] = [
+            'label' => 'Urgence',
+            'id' => 0,
+            'typage' => 'booleen'
 
         ];
         $champF[] = [
@@ -1007,7 +1020,7 @@ class ReferenceArticleController extends AbstractController
             $em  = $this->getDoctrine()->getManager();
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException("404");
     }

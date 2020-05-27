@@ -53,18 +53,18 @@
                                             {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
                                             <label class="switch">
                                                 <input type="checkbox" class="data checkbox" {{ checked }}
-                                                       name="{{ champ.id }}">
+                                                       name="{{ champ.id ~ '-' ~ type.typeId }}">
                                                 <span class="slider round"></span>
                                             </label>
 
                                         {% elseif champ.typage == 'number' %}
                                             <input type="number" id="{{ champ.id ~ 'create' }}"
                                                    class="form-control data"
-                                                   value="{{ champ.defaultValue }}" name="{{ champ.id }}">
+                                                   value="{{ champ.defaultValue }}" name="{{ champ.id ~ '-' ~ type.typeId }}">
 
                                         {% elseif champ.typage == 'list' %}
                                             <select id="{{ champ.id ~ 'create' }}" class="form-control data"
-                                                    name="{{ champ.id }}"
+                                                    name="{{ champ.id ~ '-' ~ type.typeId }}"
                                                     id="input">
                                                 <option value="{{ champ.defaultValue }}">{{ champ.defaultValue }}
                                                 </option>
@@ -79,23 +79,23 @@
                                             </select>
                                         {% elseif champ.typage == 'list multiple' %}
                                             <select id="{{ champ.id ~ 'create' }}" class="form-control data list-multiple"
-                                                    name="{{ champ.id }}" multiple="multiple">
+                                                    name="{{ champ.id ~ '-' ~ type.typeId }}" multiple="multiple">
                                                 {% for elem in champ.elements %}
                                                     <option value="{{ elem }}">{{ elem }}</option>
                                                 {% endfor %}
                                             </select>
                                         {% elseif champ.typage == 'text' %}
                                             <input id="{{ champ.id ~ 'create' }}" class="form-control data" type="text"
-                                                   value="{{ champ.defaultValue }}" name='{{ champ.id }}'>
+                                                   value="{{ champ.defaultValue }}" name="{{ champ.id ~ '-' ~ type.typeId }}">
 
                                         {% elseif champ.typage == 'date' %}
-                                            <input type="date" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
+                                            <input type="date" name="{{ champ.id ~ '-' ~ type.typeId }}" id="{{ champ.id ~ 'create' }}"
                                                    class="form-control data" value="{{ champ.defaultValue }}">
                                         {% elseif champ.typage == 'date' %}
-                                            <input type="date" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
+                                            <input type="date" name="{{ champ.id ~ '-' ~ type.typeId }}" id="{{ champ.id ~ 'create' }}"
                                                    class="form-control data" value="{{ champ.defaultValue }}">
                                         {% elseif champ.typage == 'datetime' %}
-                                            <input type="datetime-local" name="{{ champ.id }}"
+                                            <input type="datetime-local" name="{{ champ.id ~ '-' ~ type.typeId }}"
                                                    id="{{ champ.id ~ 'create' }}"
                                                    class="form-control data" value="{{ champ.defaultValue }}">
                                         {% else %}

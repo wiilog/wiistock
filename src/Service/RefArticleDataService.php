@@ -383,6 +383,7 @@ class RefArticleDataService
             "Seuil de sécurité" => $refArticle->getLimitSecurity() ?? "Non défini",
             "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
+            'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
