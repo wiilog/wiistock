@@ -151,24 +151,32 @@ class LitigeService
         ];
     }
 
-    public function sendMailToAcheteurs(Litige $litige, string $category)
+    public function sendMailToAcheteurs(Litige $litige, string $category, $isUpdate = false)
     {
-        $litigeRepository = $this->entityManager->getRepository(Litige::class);
-        $isArrival = $category === self::CATEGORY_ARRIVAGE;
-        $this->entityManager->getRepository(Litige::class);
-        $buyers = $isArrival
-            ? $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId())
-            : $buyersEmail = array_reduce($litige->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
-                $carry[] = $buyer->getEmail();
-                return $carry;
-            }, []);
         $wantSendMailStatusChange = $litige->getStatus()->getSendNotifToBuyer();
         if ($wantSendMailStatusChange) {
+            $litigeRepository = $this->entityManager->getRepository(Litige::class);
+            $isArrival = ($category === self::CATEGORY_ARRIVAGE);
+            $buyers = $isArrival
+                ? $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId())
+                : $buyersEmail = array_reduce($litige->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
+                    $carry[] = $buyer->getEmail();
+                    return $carry;
+                }, []);
+
+            $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
+
+            $title = !$isUpdate
+                ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
+                : ('Changement de statut d\'un litige sur ' . $translatedCategory . ' vous concernant :');
+            $subject = !$isUpdate
+                ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
+                : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
+
             /** @var Utilisateur $buyer */
             foreach ($buyers as $buyer) {
-                $title = 'Un litige a été déclaré sur ' . $category . ' vous concernant :';
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Litige sur ' . $category,
+                    $subject,
                     $this->templating->render('mails/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
                         'litiges' => [$litige],
                         'title' => $title,
@@ -179,6 +187,4 @@ class LitigeService
             }
         }
     }
-
-
 }

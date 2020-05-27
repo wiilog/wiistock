@@ -1087,7 +1087,7 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION);
+                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION, true);
             }
             $response = [];
             return new JsonResponse($response);

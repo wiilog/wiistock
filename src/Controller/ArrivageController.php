@@ -1294,7 +1294,7 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE);
+                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE, true);
             }
 
             $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
