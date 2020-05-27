@@ -6,17 +6,11 @@ use App\Entity\Action;
 use App\Entity\Role;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class RolesFixtures extends Fixture implements FixtureGroupInterface
+class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
-    private $encoder;
-
-    public function __construct(UserPasswordEncoderInterface $encoder) {
-        $this->encoder = $encoder;
-    }
-
     public function load(ObjectManager $manager)
     {
         $rolesLabels = [
@@ -45,11 +39,15 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
 				}
             }
         }
-
         $manager->flush();
     }
 
     public static function getGroups():array {
         return ['fixtures'];
+    }
+
+    public function getDependencies()
+    {
+        return [ActionsFixtures::class];
     }
 }

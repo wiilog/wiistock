@@ -89,23 +89,18 @@ class ArticleDataService
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         if ($demande === 'livraison') {
-            $articleStatut = Article::STATUT_ACTIF;
             $demande = 'demande';
-        } elseif ($demande === 'collecte') {
-            $articleStatut = Article::STATUT_INACTIF;
-        } else {
-            $articleStatut = null;
         }
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig');
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $articleStatut);
             if ($demande === 'collecte') {
+                $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
                 $articles = $articleRepository->findByRefArticleAndStatut($refArticle, $statut);
             } else if ($demande === 'demande') {
-                $articles = $articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statut);
+                $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
             } else {
                 $articles = [];
             }
@@ -183,11 +178,9 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
-            $statutRepository = $this->entityManager->getRepository(Statut::class);
             $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
 
-            $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-            $articles = $articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+            $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
             $role = $user->getRole();
 
             $parametreRepository = $this->entityManager->getRepository(Parametre::class);

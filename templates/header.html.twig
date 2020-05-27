@@ -18,27 +18,29 @@
 
             {% if not withOnlyLogo %}
                 {% if isDashboardExt or titleExists or subtitleExists %}
-                    <div class="col-auto user-select-none">
-                        <div class="d-flex align-items-center">
+                    <div class="col user-select-none">
+                        <div class="row align-items-center">
                             {% if isDashboardExt or titleExists %}
-                                <h5 class="header-title text-white h5 my-0 page-title">
-                                    {% if titleExists %}
-                                        {% set titleSplit = title|split('|') %}
-                                        {% if titleSplit is not empty %}
-                                            {% if titleLink is not empty %}<a href="{{ titleLink }}" class="header-title-link"><span>{% endif %}
-                                            {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
-                                                {{ (titlePart | trim) | raw }}
-                                                {{ not loop.last ? '|'}}
-                                            {% endfor %}
-                                            {% if titleLink is not empty %}</span></a>{% endif %}
-                                            {% if titleSplit|length > 1 %}<span>|</span>{% endif %}
-                                            <span class="bold">{{ ((titleSplit | last) | trim) | raw }}</span>
+                                <div class="col-auto">
+                                    <h5 class="header-title text-white h5 my-0 page-title">
+                                        {% if titleExists %}
+                                            {% set titleSplit = title|split('|') %}
+                                            {% if titleSplit is not empty %}
+                                                {% if titleLink is not empty %}<a href="{{ titleLink }}" class="header-title-link"><span>{% endif %}
+                                                {% for titlePart in titleSplit[:(titleSplit|length - 1)] %}
+                                                    {{ (titlePart | trim) | raw }}
+                                                    {{ not loop.last ? '|'}}
+                                                {% endfor %}
+                                                {% if titleLink is not empty %}</span></a>{% endif %}
+                                                {% if titleSplit|length > 1 %}<span>|</span>{% endif %}
+                                                <span class="bold">{{ ((titleSplit | last) | trim) | raw }}</span>
+                                            {% endif %}
                                         {% endif %}
-                                    {% endif %}
-                                </h5>
+                                    </h5>
+                                </div>
                             {% endif %}
                             {% if subtitleExists %}
-                                <div class="subtitle-container ml-2">
+                                <div class="subtitle-container col">
                                     {{ subtitle|raw }}
                                 </div>
                             {% endif %}

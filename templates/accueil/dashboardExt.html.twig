@@ -12,12 +12,17 @@
             <div class="col-auto pr-4 refresh-date-container little-font text-right d-none font-weight-bold">
                 Actualisé le : <span class="refreshDate"></span>
             </div>
-            {% if page == 'quai' %}
-                {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
-            {% elseif page == 'admin' %}
-                {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
-            {% elseif page == 'emballage' %}
-                {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 1 } %}
+
+            {% if page == 'quai' or page == 'admin' or page == 'emballage' %}
+                <div id="dashboard-data" data-data="{{ pageData|json_encode() }}"></div>
+                <div id="dashboard-refresh-date" data-date="{{ refreshDate }}"></div>
+                {% if page == 'quai' %}
+                    {% include 'accueil/dashboardDockReception.html.twig' with { 'isDashboardExt': 1 } %}
+                {% elseif page == 'admin' %}
+                    {% include 'accueil/dashboardAdminReception.html.twig' with { 'isDashboardExt': 1 } %}
+                {% elseif page == 'emballage' %}
+                    {% include 'accueil/dashboardMonitoringPackaging.html.twig' with { 'isDashboardExt': 1 } %}
+                {% endif %}
             {% endif %}
         </div>
     </div>

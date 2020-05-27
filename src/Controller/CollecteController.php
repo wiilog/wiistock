@@ -338,7 +338,7 @@ class CollecteController extends AbstractController
                     $entityManager->persist($collecteReference);
                 }
 
-                if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+                if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                     return $this->redirectToRoute('access_denied');
                 }
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());

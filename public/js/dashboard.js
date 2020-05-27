@@ -58,8 +58,10 @@ $(function () {
 
     initTooltips($('.has-tooltip'));
 
-    let reloadFrequency = 1000 * 60 * 5; // 5min
-    setInterval(reloadData, reloadFrequency);
+    if (!isDashboardExt()) {
+        let reloadFrequency = 1000 * 60 * 5; // 5min
+        setInterval(reloadData, reloadFrequency);
+    }
 
     let $indicators = $('#indicators');
     $('#btnIndicators').mouseenter(function () {
@@ -144,23 +146,37 @@ function loadPackagingData(preferCache) {
             createAndUpdateMultipleCharts($canvas, chartTreatedPacks, chartData, false, false);
             resolve();
         } else {
-            let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
-            $.get(pathForPackagingData, function ({counters, chartData, chartColors}) {
-                const total = Object
-                    .keys(counters)
-                    .reduce((acc, key) => (acc + fillPackagingCard(key, counters[key])), 0);
-
-                $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
-                const $canvas = $('#chartTreatedPacks');
-                dashboardChartsData[$canvas.attr('id')] = {
-                    data: chartData,
-                    chartColors
-                };
-                chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
+            if (isDashboardExt()) {
+                const data = $('#dashboard-data').data('data');
+                treatPackagingData(data);
                 resolve();
-            });
+            }
+            else {
+                // if we are not on dashboardExt we load data via ajax
+                let pathForPackagingData = Routing.generate('get_indicators_monitoring_packaging', true);
+                $.get(pathForPackagingData, function (data) {
+                    treatPackagingData(data);
+                    resolve();
+                });
+            }
         }
     });
+}
+
+function treatPackagingData({counters, chartData, chartColors}) {
+    const countersKeys = Object.keys(counters || {});
+    let total = 0;
+    for(const key of countersKeys) {
+        total += fillPackagingCard(key, counters[key]) || 0;
+    }
+
+    $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
+    const $canvas = $('#chartTreatedPacks');
+    dashboardChartsData[$canvas.attr('id')] = {
+        data: chartData,
+        chartColors
+    };
+    chartTreatedPacks = createAndUpdateMultipleCharts($canvas, chartTreatedPacks, dashboardChartsData[$canvas.attr('id')], true, false);
 }
 
 function fillPackagingCard(cardId, data) {
@@ -255,13 +271,22 @@ function reloadData() {
 }
 
 function updateRefreshDate() {
-    $.get(Routing.generate('last_refresh'), function(response) {
-        if (response && response.success) {
-            const $refreshDate = $('.refreshDate');
-            $refreshDate.text(response.date);
-            $refreshDate.parent().removeClass('d-none');
-        }
-    });
+    const treatDate = (date) => {
+        const $refreshDate = $('.refreshDate');
+        $refreshDate.text(date);
+        $refreshDate.parent().removeClass('d-none');
+    };
+    if (isDashboardExt()) {
+        const date = $('#dashboard-refresh-date').data('date')
+        treatDate(date);
+    }
+    else {
+        $.get(Routing.generate('last_refresh'), function (response) {
+            if (response && response.success) {
+                treatDate(response.date);
+            }
+        });
+    }
 }
 
 function updateSimpleChartData(
@@ -705,7 +730,7 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val();
-    console.log(pageTitle)
+
     if (pageTitle) {
         document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
 
