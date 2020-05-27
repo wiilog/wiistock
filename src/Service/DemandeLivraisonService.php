@@ -211,7 +211,6 @@ class DemandeLivraisonService
     /**
      * @param Demande $demande
      * @param array $data
-     * @throws NonUniqueResultException
      */
     public function checkAndPersistIfClIsOkay(Demande $demande, array $data)
     {
@@ -221,7 +220,7 @@ class DemandeLivraisonService
             $champExploded = explode('-', $champs);
             $champId = $champExploded[0] ?? -1;
             $typeId = isset($champExploded[1]) ? intval($champExploded[1]) : -1;
-            $isChampLibre = ctype_digit($champId);
+            $isChampLibre = (ctype_digit($champId) && $champId > 0);
             if ($isChampLibre && $typeId === $demande->getType()->getId()) {
                 $value = $data[$champs];
                 $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre(intval($champId), $value);

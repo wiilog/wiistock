@@ -473,7 +473,7 @@ class ValeurChampLibreRepository extends EntityRepository
         return $prepare->fetchAll();
     }
 
-    public function deleteIfNotIn(array $ids) {
+    public function deleteIn(array $ids) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "DELETE
