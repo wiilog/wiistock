@@ -12,6 +12,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use Doctrine\DBAL\Connection;
@@ -801,6 +802,41 @@ class ArticleRepository extends EntityRepository
 
 		return $query->execute();
 	}
+
+    /**
+     * @param Statut $statut
+     * @param Type $type
+     * @param array $statutsPrepa
+     * @param Statut $statutLivraison
+     * @return Article[]
+     */
+    public function getByStatutAndTypeWithoutInProgressPrepaNorLivraison(Statut $statut, Type $type, array $statutsPrepa, Statut $statutLivraison) {
+        $queryBuilder = $this->createQueryBuilder('article');
+        $exprBuilder = $queryBuilder->expr();
+        return $queryBuilder
+            ->join('article.type', 'type')
+            ->join('article.statut', 'statut')
+            ->leftJoin('article.preparation', 'preparation')
+            ->leftJoin('preparation.statut', 'statutPreparation')
+            ->leftJoin('preparation.livraison', 'livraison')
+            ->leftJoin('livraison.statut', 'statutLivraison')
+            ->where(
+                $exprBuilder->andX(
+                    $exprBuilder->eq('type.id', $type->getId()),
+                    $exprBuilder->eq('statut.id', $statut->getId()),
+                    $exprBuilder->orX(
+                        $exprBuilder->isNull('preparation'),
+                        $exprBuilder->notIn('statutPreparation.id', $statutsPrepa)
+                    ),
+                    $exprBuilder->orX(
+                        $exprBuilder->isNull('livraison'),
+                        $exprBuilder->neq('statutLivraison.id', $statutLivraison->getId())
+                    )
+                )
+            )
+            ->getQuery()
+            ->execute();
+    }
 
 	private function getArticleCollecteQuery()
 	{
