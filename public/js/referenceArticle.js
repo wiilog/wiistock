@@ -333,7 +333,7 @@ function displayFilterValue(elem) {
             $('.list-multiple').select2();
         }, 'json');
     } else {
-        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control cursor-default data ' + type + '" id="value" name="value">');
+        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control cursor-default data needed ' + type + '" id="value" name="value">');
         if (datetimepicker) initDateTimePicker('#modalNewFilter .text');
     }
 
