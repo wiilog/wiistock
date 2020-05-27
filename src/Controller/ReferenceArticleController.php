@@ -252,6 +252,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Dernier inventaire',
 					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Urgence',
+					"data" => 'Urgence',
+					'name' => 'Urgence',
+					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -498,6 +504,12 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+        $champF[] = [
+            'label' => 'Urgence',
+            'id' => 0,
+            'typage' => 'booleen'
 
         ];
         $champF[] = [

@@ -174,10 +174,7 @@ function initTableRefArticle() {
                 needsResize: true
             },
             rowConfig: {
-                needsRowClickAction: true,
-                needsColor: true,
-                color: 'danger',
-                dataToCheck: 'isUrgent'
+                needsRowClickAction: true
             },
             isArticleOrRefSpecifConfig: {
                 columns,
