@@ -185,7 +185,7 @@ Class AcheminementsController extends AbstractController
     {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAllByAsc(),
         ]);
 
         return new JsonResponse($json);
