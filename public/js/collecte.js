@@ -186,16 +186,22 @@ function initNewCollecteEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 }
 
-function validateCollecte(collecteId) {
+function validateCollecte(collecteId, $button) {
     let params = JSON.stringify({id: collecteId});
 
-    $.post(Routing.generate('demande_collecte_has_articles'), params, function (resp) {
-        if (resp === true) {
-            window.location.href = Routing.generate('ordre_collecte_new', {'id': collecteId});
-        } else {
-            $('#cannotValidate').click();
-        }
-    });
+    wrapLoadingOnActionButton($button, () => (
+        $.post({
+            url: Routing.generate('demande_collecte_has_articles'),
+            data: params
+        })
+            .then(function (resp) {
+                if (resp === true) {
+                    window.location.href = Routing.generate('ordre_collecte_new', {'id': collecteId});
+                } else {
+                    $('#cannotValidate').click();
+                }
+            })
+    ), false);
 }
 
 let ajaxEditArticle = function (select) {

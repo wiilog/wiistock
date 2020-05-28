@@ -1461,7 +1461,7 @@ function renderMillisecondsToDelay(milliseconds, type) {
  * @param {*} $button jQuery button element
  * @param {function} action Function retuning a promise
  */
-function wrapLoadingOnActionButton($button, action) {
+function wrapLoadingOnActionButton($button, action, endLoading = true) {
     const loadingClass = 'loading';
     if (!$button.hasClass(loadingClass)) {
         const $loader = $('<div/>', {
@@ -1479,11 +1479,12 @@ function wrapLoadingOnActionButton($button, action) {
         $button.addClass(loadingClass);
 
         action().then(() => {
-            $button.html($oldButtonContent);
-            $button.removeClass(loadingClass);
+            if (endLoading) {
+                $button.html($oldButtonContent);
+                $button.removeClass(loadingClass);
+            }
         });
-    }
-    else {
+    } else {
         alertSuccessMsg('L\'opération est en cours de traitement');
     }
 }

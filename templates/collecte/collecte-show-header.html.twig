@@ -9,7 +9,7 @@
             {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
             {% if hasRightEdit %}
                 <button type="button"
-                        onclick="validateCollecte({{ collecte.id }})"
+                        onclick="validateCollecte({{ collecte.id }}, $(this))"
                         class="btn btn-primary btn-ripple split-button">
                     Valider
                 </button>
