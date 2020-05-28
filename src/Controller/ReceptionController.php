@@ -37,6 +37,7 @@ use App\Repository\TransporteurRepository;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
+use App\Service\LitigeService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
@@ -974,11 +975,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param LitigeService $litigeService
      * @param Request $request
      * @return Response
      * @throws Exception
      */
     public function editLitige(EntityManagerInterface $entityManager,
+                               LitigeService $litigeService,
                                Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1082,7 +1085,10 @@ class ReceptionController extends AbstractController
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
-
+            $isStatutChange = ($statutBefore !== $statutAfter);
+            if ($isStatutChange) {
+                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION, true);
+            }
             $response = [];
             return new JsonResponse($response);
         }
@@ -1092,11 +1098,13 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/creer-litige", name="litige_new_reception", options={"expose"=true}, methods={"POST"})
      * @param EntityManagerInterface $entityManager
+     * @param LitigeService $litigeService
      * @param Request $request
      * @return Response
      * @throws Exception
      */
     public function newLitige(EntityManagerInterface $entityManager,
+                              LitigeService $litigeService,
                               Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1159,7 +1167,7 @@ class ReceptionController extends AbstractController
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
-            $this->sendMailToAcheteurs($litige);
+            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION);
             $response = [];
 
             return new JsonResponse($response);
@@ -1210,23 +1218,7 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    private function sendMailToAcheteurs(Litige $litige)
-    {
-        $acheteursEmail = $litige->getBuyers()->toArray();
-        /** @var Utilisateur $buyer */
-        foreach ($acheteursEmail as $buyer) {
-            $title = 'Un litige a été déclaré sur une réception vous concernant :';
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Litige sur réception',
-                $this->renderView('mails/mailLitigesReception.html.twig', [
-                    'litiges' => [$litige],
-                    'title' => $title,
-                    'urlSuffix' => 'reception'
-                ]),
-                $buyer->getEmail()
-            );
-        }
-    }
+
 
     /**
      * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")

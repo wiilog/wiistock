@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;

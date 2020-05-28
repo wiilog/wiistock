@@ -369,27 +369,7 @@ class DemandeController extends AbstractController
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-
-                // modification ou création des champs libres
-                $champsLibresKey = array_keys($data);
-
-                foreach ($champsLibresKey as $champ) {
-                    if (gettype($champ) === 'integer') {
-                        $valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champ);
-                        $value = $data[$champ];
-                        // si la valeur n'existe pas, on la crée
-                        if (!$valeurChampLibre) {
-                            $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
-                            $valeurChampLibre->addDemandesLivraison($demande);
-                            $em->persist($valeurChampLibre);
-                        }
-                        else {
-                            $valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                        }
-                        $em->flush();
-                    }
-                }
-
+                $this->demandeLivraisonService->checkAndPersistIfClIsOkay($demande, $data);
                 $response = [
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
