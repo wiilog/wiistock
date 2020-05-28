@@ -586,6 +586,9 @@ function initDatatableMovements(referenceArticleId) {
             "url": pathRefMouvements,
             "type": "POST"
         },
+        drawConfig: {
+            needsResize: true
+        },
         domConfig: {
             removeInfo: true,
         },
