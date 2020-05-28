@@ -18,54 +18,69 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment as Twig_Environment;
 
-/**
- * @Route("/nonworkeddays")
- */
 class NonWorkedDaysController extends AbstractController
 {
     /**
-     * @var Twig_Environment
-     */
-    private $templating;
-
-    /**
-     * @var GlobalParamService
-     */
-    private $globalParamService;
-
-    /**
-     * @var ParametrageGlobalRepository
-     */
-    private $paramGlobalRepository;
-
-    /**
      * @var NonWorkedDaysRepository
+     * @Route("/nonworkedday")
      */
-    private $nonWorkedDayRepository;
+    private $repository;
 
-    public function __construct(Twig_Environment $templating,
-                                GlobalParamService $globalParamService,
-                                ParametrageGlobalRepository $parametrageGlobalRepository,
-                                NonWorkedDaysRepository $nonWorkedDaysRepository)
+    public function __construct(NonWorkedDaysRepository $nonWorkedDaysRepository)
     {
-     $this->paramGlobalRepository = $parametrageGlobalRepository;
-     $this->globalParamService = $globalParamService;
-     $this->nonWorkedDayRepository = $nonWorkedDaysRepository;
-     $this->templating = $templating;
-    }
-
-    public function index(EntityManagerInterface $entityManager)
-    {
-        //TODO CR créer les droits d'affichage des jours fériés
-
+        $this->repository = $nonWorkedDaysRepository;
     }
 
     /**
-     * @Route("/new", name="nonworkedday_new", options={"expose"=true})
+     * @return Response
      */
-    public function newNonWorkedDay()
+    public function index(): Response
     {
+        $publicHollydays = $this->repository->findAll();
+        return $this->render('parametrage_global/index.html.twig', [
+            'days' => $publicHollydays,
+        ]);
+    }
 
+    /**
+     * @Route("/nonworkedday/new", name="nonworkedday_new", options={ "expose"=true },  methods="POST")
+     */
+    public function newNonWorkedDay(Request $request,
+                                    EntityManagerInterface $entityManager)
+    {
+        if (($request->isXmlHttpRequest())) {
+            if (!(empty($request->request->get('date')))) {
+                $nonWorkedDayToAdd = $request->request->get('date');
+                $date_input = new \DateTime($nonWorkedDayToAdd);
+                $publicHolliday = new NonWorkedDays();
+
+                $check = $this->repository->findBy(array('day' => $date_input));
+
+                if (count($check) == 0) {
+                    $publicHolliday->setDay($date_input);
+                    $entityManager->persist($publicHolliday);
+                    $entityManager->flush();
+
+                    return new JsonResponse([
+                        'success' => true,
+                        'text' => "Le jour non travaillé a bien été enregistré."
+                    ]);
+                }
+                return new JsonResponse([
+                    'success' => false,
+                    'text' => "Ce jour non travaillé est déja enegistré."
+                ]);
+            }
+            return new JsonResponse([
+                'success' => false,
+                'text' => "Aucun jour non travaillé sélectionné."
+            ]);
+        }
+        throw new NotFoundHttpException('404 not found');
     }
 }
 
+//    TODO Cédric créer les droits d'ajout de jour férié
+//            if (!$userService->hasRightFunction(Menu::(joursferies a créer), Action:: a definir)) {
+//                return $this->redirectToRoute('access_denied');
+//            }

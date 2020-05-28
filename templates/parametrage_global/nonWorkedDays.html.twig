@@ -5,18 +5,19 @@
         <i class="fas fa-arrow-alt-circle-down ml-2"></i>
     </h1>
 </a>
-<form action="#" method="post">
+<form action="" method="post">
     <div class="collapse col-12" id="nonWorkedDays">
         <div class="col-auto mb-2 pr-0">
             <div class="h-100 w-450px">
                 <div class="input-group">
 
-                    <input type="date"
+                    <input type="text"
                            class="form-control cursor-default filter-date-min filter-input w-218px"
                            name="dateHollyday"
                            id="datePublicHolliday"
                            placeholder="jj/mm/aaaa"
                            autocomplete="off"/>
+
                     <div class="form-group col-1 toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="addNonWorkedDay()">
@@ -26,6 +27,15 @@
                 </div>
             </div>
         </div>
-        {{ dump() }}
+        <table id="listPublicHolliday" class="ml-4">
+            <tr>
+                <th scope="col" class="pb-3 text-center bold"><span>Jours non travaillés</span></th>
+            </tr>
+            {% for day in days %}
+                <tr>
+                    <td class="text-wii non-worked-day" data-datetime="{{ day.datetime }}">{{ day.day }}</td>
+                </tr>
+            {% endfor %}
+        </table>
     </div>
 </form>

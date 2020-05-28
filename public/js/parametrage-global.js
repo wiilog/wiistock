@@ -1,5 +1,6 @@
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
+let disabledDates = [];
 let tableDaysConfig = {
     ajax: {
         "url": pathDays,
@@ -40,6 +41,12 @@ $(function () {
     $('#locationArrivageDest').on('change', editArrivageDestination);
     $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
     // config tableau de bord : transporteurs
+
+    // TODO Cedric
+    $('.non-worked-day').each(function() {
+        disabledDates.push(moment($(this).data('datetime')));
+    })
+    initDateTimePicker('#datePublicHolliday', "YYYY-MM-DD", false, null, null, disabledDates);
 });
 
 function initSelect2ValuesForDashboard() {
@@ -365,7 +372,25 @@ function resizeDaysWorked() {
 }
 
 function addNonWorkedDay() {
-    $date = $('#datePublicHolliday').val();
-    console.log($date);
-    // let path = Routing.generate('nonworkedday_new');
+    const date = $('#datePublicHolliday').val(); // YYYY-MM-DD
+    let path = Routing.generate('nonworkedday_new', true);
+    $.post(path, {date}, (resp) => {
+        if (resp.success) {
+            alertSuccessMsg(resp.text);
+            let datetimeMoment = moment(date);
+            const event = new Date(datetimeMoment);
+            disabledDates.push(datetimeMoment);
+            $('#datePublicHolliday').data('DateTimePicker').disabledDates(disabledDates);
+            $('#datePublicHolliday').val('');
+            const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
+            let jour = event.toLocaleDateString('fr-FR', options);
+            let newtr = document.createElement("tr");
+            let newtd = document.createElement("td");
+            $('#listPublicHolliday').append(newtr);
+            $('#listPublicHolliday tr:last').prepend(newtd);
+            $('#listPublicHolliday tr td:last').prepend(jour);
+        } else {
+            alertErrorMsg(resp.text);
+        }
+    });
 }

@@ -11,6 +11,7 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\NonWorkedDays;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
@@ -27,12 +28,14 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use phpDocumentor\Reflection\Type;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 /**
  * @Route("/parametrage-global")
@@ -49,6 +52,17 @@ class ParametrageGlobalController extends AbstractController
         'sunday' => 'Dimanche',
     ];
 
+    private function getFrenchDay($day): string
+    {
+        $weekDays = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+        $monthYear = ["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"];
+        $intDay = $day->format('w');
+        $intMonth = $day->format('n');
+        $numDay = $day->format('d');
+        $year = $day->format('Y');
+        return ($weekDays[$intDay] . " " . $numDay . " " . $monthYear[$intMonth] . " " . $year);
+    }
+
     /**
      * @Route("/", name="global_param_index")
      * @param UserService $userService
@@ -60,14 +74,15 @@ class ParametrageGlobalController extends AbstractController
      */
 
     public function index(UserService $userService,
-						  GlobalParamService $globalParamService,
-						  EntityManagerInterface $entityManager,
-                          StatutService $statutService): Response {
+                          GlobalParamService $globalParamService,
+                          EntityManagerInterface $entityManager,
+                          StatutService $statutService): Response
+    {
 
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
-
+        $nonWorkedDaysRepository = $entityManager->getRepository(NonWorkedDays::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
@@ -80,7 +95,16 @@ class ParametrageGlobalController extends AbstractController
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
         ]);
         $paramLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
-
+        $nonWorkedDays = $nonWorkedDaysRepository->findAll();
+        $datePublicHollidays = array();
+        for ($i = 0, $max = count($nonWorkedDays); $i < $max; $i++) {
+            $day = ($nonWorkedDays[$i]);
+            $dateDay['id'] = $day->getId();
+            $day = $day->getDay();
+            $dateDay['day'] = $this->getFrenchDay($day);
+            $dateDay['datetime'] = $day->format('Y-m-d');
+            $datePublicHollidays[] = $dateDay;
+        }
         return $this->render('parametrage_global/index.html.twig',
             [
                 'logo' => ($paramLogo && file_exists(getcwd() . "/uploads/attachements/" . $paramLogo) ? $paramLogo : null),
@@ -97,9 +121,9 @@ class ParametrageGlobalController extends AbstractController
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
                 ],
                 'paramArrivages' => [
-					'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
-					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
-					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                    'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
+                    'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+                    'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'defaultStatusArrivageId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE),
                     'listStatusArrivage' => $statutService->findAllStatusArrivage(),
                     'location' => $globalParamService->getMvtDeposeArrival(),
@@ -121,12 +145,13 @@ class ParametrageGlobalController extends AbstractController
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
+                'days' => $datePublicHollidays,
                 'paramDashboard' => [
                     'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
                     'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
                     'natures' => $natureRepository->findAll(),
                     'locations' => $globalParamService->getDashboardLocations(),
-                    'valueCarriers' => $globalParamService->getDashboardCarrierDock()
+                    'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
                 ],
             ]);
     }
@@ -755,9 +780,9 @@ class ParametrageGlobalController extends AbstractController
         $trimmedValue = trim($value);
         $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
 
-		$em->flush();
+        $em->flush();
 
-		return new JsonResponse(true);
+        return new JsonResponse(true);
     }
 
     /**
@@ -995,7 +1020,8 @@ class ParametrageGlobalController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function editDemandeLivraisonDestination(Request $request,
-                                                    ParametrageGlobalRepository $parametrageGlobalRepository): Response    {
+                                                    ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
 
         $value = json_decode($request->getContent(), true);
 

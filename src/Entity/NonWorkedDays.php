@@ -3,6 +3,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -19,7 +20,8 @@ class NonWorkedDays
     private $id;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="date", unique=true)
+     * @var DateTime A "Y-m-d" formatted value
      */
     private $day;
 
@@ -32,18 +34,25 @@ class NonWorkedDays
     }
 
     /**
-     * @return mixed
+     * @return DateTime
      */
-    public function getDay()
+    public function getDay(): DateTime
     {
         return $this->day;
     }
 
+
+    public function getTimestamp()
+    {
+        return $this->getDay()->getTimestamp();
+    }
+
     /**
-     * @param mixed $day
+     * @param DateTime
      */
-    public function setDay($day): void
+    public function setDay(DateTime $day): self
     {
         $this->day = $day;
+        return $this;
     }
 }
