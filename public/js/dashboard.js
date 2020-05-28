@@ -130,7 +130,7 @@ function loadProperData(preferCache = false) {
         PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded = true;
     } else {
         hideDashboardSpinner(activeDashboardName);
-        $('.header-title span').text('Aucun Dashboard affiché');
+        $('.header-title span').text('');
     }
 }
 
@@ -760,11 +760,11 @@ function calculateChartsFontSize() {
 function setActiveDashboard(hash) {
     if (!displayedDashboards.includes(hash)) {
         hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
-        window.location.hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
+        window.location.hash = hash;
     }
-    let activeIndic = $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`);
-    activeIndic.addClass('active');
-    activeIndic.click();
+    const $activeIndic = $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`);
+    $activeIndic.addClass('active');
+    $activeIndic.click();
     $(`#carousel-dashboard .carousel-item[data-name="${hash}"]`).addClass('active');
 }
 

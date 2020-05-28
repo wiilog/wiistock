@@ -48,15 +48,16 @@ class Role
     private $parametreRoles;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
+     * @ORM\Column(type="json", nullable=false)
      */
-    private $dashboardsVisible = [];
+    private $dashboardsVisible;
 
     public function __construct()
     {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
         $this->parametreRoles = new ArrayCollection();
+        $this->dashboardsVisible = [];
     }
 
     public function getId(): ?int

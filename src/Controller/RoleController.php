@@ -8,14 +8,15 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
+use App\Service\RoleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -47,52 +48,17 @@ class RoleController extends AbstractController
 
     /**
      * @Route("/", name="role_index")
+     * @param RoleService $roleService
+     * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager)
+    public function index(RoleService $roleService)
     {
         if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $parametreRepository = $entityManager->getRepository(Parametre::class);
-        $menuRepository = $entityManager->getRepository(Menu::class);
-
-        $menus = $menuRepository->findAll();
-
-        $params = $parametreRepository->findAll();
-        $listParams = [];
-        foreach ($params as $param) {
-            $listParams[] = [
-                'id' => $param->getId(),
-                'label' => $param->getLabel(),
-                'typage' => $param->getTypage(),
-                'elements' => $param->getElements(),
-                'default' => $param->getDefaultValue()
-            ];
-        }
-
-        return $this->render('role/index.html.twig', [
-            'menus' => $menus,
-            'params' => $listParams,
-            'dashboards' => [
-                [
-                    "id" => 'arrivage',
-                    'label' => "Dashboard Réception Arrivage"
-                ],
-                [
-                    "id" => 'quai',
-                    'label' => "Dashboard Réception Quai"
-                ],
-                [
-                    "id" => 'admin',
-                    'label' => "Dashboard Réception Administrative"
-                ],
-                [
-                    "id" => 'emballage',
-                    'label' => "Dashboard Monitoring Emballage"
-                ],
-            ]
-        ]);
+        $templateParameters = $roleService->createFormTemplateParameters();
+        return $this->render('role/index.html.twig', $templateParameters);
     }
 
     /**
@@ -136,12 +102,14 @@ class RoleController extends AbstractController
     /**
      * @Route("/creer", name="role_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param RoleService $roleService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function new(Request $request,
+                        RoleService $roleService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -149,7 +117,6 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $actionRepository = $entityManager->getRepository(Action::class);
             $roleRepository = $entityManager->getRepository(Role::class);
             $parametreRepository = $entityManager->getRepository(Parametre::class);
 
@@ -183,7 +150,7 @@ class RoleController extends AbstractController
                     }
                 }
 
-                $this->parseParameters($role, $data, $actionRepository);
+                $roleService->parseParameters($role, $data);
                 $entityManager->flush();
 
                 return new JsonResponse();
@@ -201,6 +168,7 @@ class RoleController extends AbstractController
      * @return Response
      */
     public function apiEdit(Request $request,
+                            RoleService $roleService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -208,56 +176,21 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $roleRepository = $entityManager->getRepository(Role::class);
-            $menuRepository = $entityManager->getRepository(Menu::class);
-            $parametreRoleRepository = $entityManager->getRepository(ParametreRole::class);
-            $parametreRepository = $entityManager->getRepository(Parametre::class);
-
             $role = $roleRepository->find($data['id']);
-            $menus = $menuRepository->findAll();
 
             // on liste les id des actions que possède le rôle
-            $actionsIdOfRole = [];
-            foreach ($role->getActions() as $action) {
-                $actionsIdOfRole[] = $action->getId();
-            }
+            $actionsIdOfRole = array_map(
+                function (Action $action) {
+                    return $action->getId();
+                },
+                $role->getActions()
+            );
 
-            $params = $parametreRepository->findAll();
-            $listParams = [];
-            foreach ($params as $param) {
-                $listParams[] = [
-                    'id' => $param->getId(),
-                    'label' => $param->getLabel(),
-                    'typage' => $param->getTypage(),
-                    'elements' => $param->getElements(),
-                    'default' => $param->getDefaultValue(),
-                    'value' => $parametreRoleRepository->getValueByRoleAndParam($role, $param)
-                ];
-            }
+            $templateParameters = $roleService->createFormTemplateParameters($role);
+            $templateParameters['role'] = $role;
+            $templateParameters['actionsIdOfRole'] = $actionsIdOfRole;
 
-            $json = $this->renderView('role/modalEditRoleContent.html.twig', [
-                'role' => $role,
-                'menus' => $menus,
-                'actionsIdOfRole' => $actionsIdOfRole,
-                'params' => $listParams,
-                'dashboards' => [
-                    [
-                        "id" => 'arrivage',
-                        'label' => "Dashboard Réception Arrivage"
-                    ],
-                    [
-                        "id" => 'quai',
-                        'label' => "Dashboard Réception Quai"
-                    ],
-                    [
-                        "id" => 'admin',
-                        'label' => "Dashboard Réception Administrative"
-                    ],
-                    [
-                        "id" => 'emballage',
-                        'label' => "Dashboard Monitoring Emballage"
-                    ],
-                ]
-            ]);
+            $json = $this->renderView('role/modalEditRoleContent.html.twig', $templateParameters);
 
             return new JsonResponse($json);
         }
@@ -267,11 +200,12 @@ class RoleController extends AbstractController
     /**
      * @Route("/modifier", name="role_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param RoleService $roleService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function edit(Request $request,
+                         RoleService $roleService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -279,7 +213,6 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $actionRepository = $entityManager->getRepository(Action::class);
             $roleRepository = $entityManager->getRepository(Role::class);
             $parametreRoleRepository = $entityManager->getRepository(ParametreRole::class);
             $parametreRepository = $entityManager->getRepository(Parametre::class);
@@ -310,40 +243,11 @@ class RoleController extends AbstractController
                 }
             }
 
-            $this->parseParameters($role, $data, $actionRepository);
+            $roleService->parseParameters($role, $data);
             $entityManager->flush();
             return new JsonResponse($role->getLabel());
         }
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @param Role $role
-     * @param array $data
-     * @param ActionRepository $actionRepository
-     * @throws NonUniqueResultException
-     */
-    private function parseParameters(Role $role, array $data, ActionRepository $actionRepository) {
-        // on traite les actions
-        $dashboardsVisible = [];
-        foreach ($data as $menuAction => $isChecked) {
-            $menuActionArray = explode('/', $menuAction);
-            if (count($menuActionArray) > 1) {
-                $menuLabel = $menuActionArray[0];
-                $actionLabel = $menuActionArray[1];
-
-                $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
-
-                if ($action && $isChecked) {
-                    $role->addAction($action);
-                }
-            } else {
-                if ($isChecked && is_string($menuAction)) {
-                    $dashboardsVisible[] = $menuAction;
-                }
-            }
-        }
-        $role->setDashboardsVisible($dashboardsVisible);
     }
 
     /**

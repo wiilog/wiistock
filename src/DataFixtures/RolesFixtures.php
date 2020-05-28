@@ -39,17 +39,6 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
                 }
             }
         }
-        $allRoles = $roleRepository->findAll();
-        foreach ($allRoles as $allRole) {
-            if (empty($allRole->getDashboardsVisible())) {
-                $allRole->setDashboardsVisible([
-                    "arrivage",
-                    "quai",
-                    "admin",
-                    "emballage"
-                ]);
-            }
-        }
         $manager->flush();
     }
 
