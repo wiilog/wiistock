@@ -276,9 +276,4 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             return $acc;
         }, []);
     }
-    // Retourne la liste des utilisteurs dans l'ordre alphabétique
-    public function findAllByAsc()
-    {
-        return $this->findBy(array(), array('username' => 'ASC'));
-    }
 }
