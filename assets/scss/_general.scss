@@ -234,10 +234,10 @@ a {
 .w-100 {
     + .select2-container {
         width: 100% !important;
+    }
 
-        .select2-container {
-            width: 100% !important;
-        }
+    .select2-container {
+        width: 100% !important;
 
         .select2-selection {
             font-size: 1rem !important;
@@ -248,7 +248,6 @@ a {
             border-radius: 0.25rem !important;
         }
     }
-;
 }
 
 .border-radius-light {
