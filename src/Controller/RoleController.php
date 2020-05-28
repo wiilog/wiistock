@@ -164,6 +164,7 @@ class RoleController extends AbstractController
     /**
      * @Route("/api-modifier", name="role_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param RoleService $roleService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
@@ -183,7 +184,7 @@ class RoleController extends AbstractController
                 function (Action $action) {
                     return $action->getId();
                 },
-                $role->getActions()
+                $role->getActions()->toArray()
             );
 
             $templateParameters = $roleService->createFormTemplateParameters($role);

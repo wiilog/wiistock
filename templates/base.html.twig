@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {% set titlePrefix = 'FollowGT' %}
-    {% if block("title") is defined %}
+    {% if block("title") is defined and block("title") is not empty %}
         <title>{{ titlePrefix }} | {{ block("title") }}</title>
     {% else %}
         <title>{{ titlePrefix }}</title>

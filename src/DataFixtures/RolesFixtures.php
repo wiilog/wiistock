@@ -7,10 +7,15 @@ use App\Entity\Role;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 
 class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
+    /**
+     * @param ObjectManager $manager
+     * @throws NonUniqueResultException
+     */
     public function load(ObjectManager $manager)
     {
         $rolesLabels = [

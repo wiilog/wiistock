@@ -764,9 +764,10 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val();
+    const followGTPrefix = 'FollowGT';
 
     if (pageTitle) {
-        document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
+        document.title = `${followGTPrefix}${(pageTitle ? ' | ' : '') + pageTitle}`;
 
         const words = pageTitle.split('|');
 
@@ -781,6 +782,9 @@ function refreshPageTitle() {
             }
             $('.main-header .header-title').html($titleContainer);
         }
+    }
+    else {
+        document.title = followGTPrefix;
     }
 }
 
