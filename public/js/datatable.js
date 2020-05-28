@@ -15,29 +15,6 @@ function showColumns(table, data) {
     })
 }
 
-/**
- * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
- */
-function renderMillisecondsToDelayDatatable(milliseconds, type) {
-    let res;
-
-    if (type === 'display') {
-        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
-        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
-        res = (
-                (hours > 0)
-                    ? `${hours < 10 ? '0' : ''}${hours} h `
-                    : '') +
-            ((minutes === 0 && hours < 1)
-                ? '< 1 min'
-                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
-    } else {
-        res = milliseconds;
-    }
-
-    return res;
-}
-
 function extendsDateSort(name) {
     $.extend($.fn.dataTableExt.oSort, {
         [name + "-pre"]: function (date) {
@@ -256,8 +233,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
             },
-            dom: getAppropriateDom(domConfig ?? {}),
-            rowCallback: getAppropriateRowCallback(rowConfig ?? {}),
+            dom: getAppropriateDom(domConfig || {}),
+            rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
                 datatableDrawCallback({
                     table: datatableToReturn,
@@ -269,7 +246,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             initComplete: () => {
                 let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
                 moveSearchInputToHeader($searchInputContainer);
-                articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
+                articleAndRefTableCallback(isArticleOrRefSpecifConfig || {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }
