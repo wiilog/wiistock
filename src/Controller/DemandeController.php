@@ -369,27 +369,7 @@ class DemandeController extends AbstractController
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-
-                // modification ou création des champs libres
-                $champsLibresKey = array_keys($data);
-
-                foreach ($champsLibresKey as $champ) {
-                    if (gettype($champ) === 'integer') {
-                        $valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champ);
-                        $value = $data[$champ];
-                        // si la valeur n'existe pas, on la crée
-                        if (!$valeurChampLibre) {
-                            $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
-                            $valeurChampLibre->addDemandesLivraison($demande);
-                            $em->persist($valeurChampLibre);
-                        }
-                        else {
-                            $valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                        }
-                        $em->flush();
-                    }
-                }
-
+                $this->demandeLivraisonService->checkAndPersistIfClIsOkay($demande, $data);
                 $response = [
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
@@ -576,13 +556,10 @@ class DemandeController extends AbstractController
             $ligneArticles = $demande->getLigneArticle();
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
-                $articleRef = $ligneArticle->getReference();
-                $availableQuantity = $articleRef->getQuantiteDisponible();
                 $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => $availableQuantity,
                     "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
@@ -603,7 +580,6 @@ class DemandeController extends AbstractController
                     "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
                     "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
                     "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',

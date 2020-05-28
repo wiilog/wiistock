@@ -47,11 +47,17 @@ class Role
      */
     private $parametreRoles;
 
+    /**
+     * @ORM\Column(type="json", nullable=false)
+     */
+    private $dashboardsVisible;
+
     public function __construct()
     {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
         $this->parametreRoles = new ArrayCollection();
+        $this->dashboardsVisible = [];
     }
 
     public function getId(): ?int
@@ -169,6 +175,18 @@ class Role
                 $parametreRole->setRole(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDashboardsVisible(): ?array
+    {
+        return $this->dashboardsVisible;
+    }
+
+    public function setDashboardsVisible(?array $dashboardsVisible): self
+    {
+        $this->dashboardsVisible = $dashboardsVisible;
 
         return $this;
     }

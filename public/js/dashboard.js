@@ -17,8 +17,7 @@ const DASHBOARD_ARRIVAL_NAME = 'arrivage';
 const DASHBOARD_DOCK_NAME = 'quai';
 const DASHBOARD_ADMIN_NAME = 'admin';
 const DASHBOARD_PACKAGING_NAME = 'emballage';
-const DEFAULT_DASHBOARD = DASHBOARD_ARRIVAL_NAME;
-
+let displayedDashboards = [];
 const PAGE_CONFIGS = {
     [DASHBOARD_ARRIVAL_NAME]: {
         loadData: loadArrivalDashboard,
@@ -44,13 +43,14 @@ $(function () {
     Chart.defaults.global.responsive = true;
     Chart.defaults.global.maintainAspectRatio = false;
     currentChartsFontSize = calculateChartsFontSize();
-
+    $('.indicator').each(function() {
+        displayedDashboards.push($(this).data('name'));
+    });
     if (!isDashboardExt()) {
         const knownHash = ([DASHBOARD_ARRIVAL_NAME, DASHBOARD_DOCK_NAME, DASHBOARD_ADMIN_NAME, DASHBOARD_PACKAGING_NAME].indexOf(getUrlHash()) > -1);
         if (!knownHash) {
-            window.location.hash = DEFAULT_DASHBOARD;
+            window.location.hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
         }
-
         setActiveDashboard(getUrlHash());
     }
     updateRefreshDate();
@@ -120,7 +120,6 @@ function hideDashboardSpinner(activeDashboardName) {
 
 function loadProperData(preferCache = false) {
     const activeDashboardName = getActiveDashboardName();
-
     if (PAGE_CONFIGS[activeDashboardName]
         && (preferCache || !PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded)) {
         PAGE_CONFIGS[activeDashboardName]
@@ -129,6 +128,9 @@ function loadProperData(preferCache = false) {
                 hideDashboardSpinner(activeDashboardName);
             });
         PAGE_CONFIGS[activeDashboardName].isAlreadyLoaded = true;
+    } else {
+        hideDashboardSpinner(activeDashboardName);
+        $('.header-title span').text('');
     }
 }
 
@@ -167,7 +169,11 @@ function treatPackagingData({counters, chartData, chartColors}) {
     const countersKeys = Object.keys(counters || {});
     let total = 0;
     for(const key of countersKeys) {
-        total += fillPackagingCard(key, counters[key]) || 0;
+        try {
+            total += fillPackagingCard(key, counters[key]) || 0;
+        }
+        catch (e) {
+        }
     }
 
     $('#packagingTotal').find('.dashboard-stats-counter').html(total || '-');
@@ -185,20 +191,25 @@ function fillPackagingCard(cardId, data) {
     $container.find('.dashboard-stats-counter').html(data && data.count ? data.count : '-');
     let $titleDelayContainer = $container.find('.dashboard-stats-delay-title');
     let $titleDelayValue = $container.find('.dashboard-stats-delay');
-    if (data && data.delay < 0) {
-        $titleDelayContainer.html('Retard : ');
-        $titleDelayContainer.addClass('red');
-        $titleDelayValue.html(renderMillisecondsToDelayDatatable(Math.abs(data.delay), 'display'));
-        $titleDelayValue.addClass('red');
-    } else if (data && data.delay > 0) {
-        $titleDelayContainer.html('A traiter sous : ');
-        $titleDelayContainer.removeClass('red');
-        $titleDelayValue.html(renderMillisecondsToDelayDatatable(data.delay, 'display'));
-        $titleDelayValue.removeClass('red');
-    } else {
+
+    if (data && data.delay) {
+        if (data.delay < 0) {
+            $titleDelayContainer.html('Retard : ');
+            $titleDelayContainer.addClass('red');
+            $titleDelayValue.html(renderMillisecondsToDelay(Math.abs(data.delay), 'display'));
+            $titleDelayValue.addClass('red');
+        }
+        else if (data.delay > 0) {
+            $titleDelayContainer.html('A traiter sous : ');
+            $titleDelayContainer.removeClass('red');
+            $titleDelayValue.html(renderMillisecondsToDelay(data.delay, 'display'));
+            $titleDelayValue.removeClass('red');
+        }
+    }
+    else {
         $titleDelayValue.html('-');
     }
-    return data && $container.hasClass('contribute-to-total') ? data.count : 0;
+    return (data && $container.hasClass('contribute-to-total')) ? data.count : 0;
 }
 
 function loadArrivalDashboard(preferCache) {
@@ -585,7 +596,7 @@ function loadRetards() {
                         "data": 'delay',
                         'name': 'delay',
                         'title': 'Délai',
-                        render: (milliseconds, type) => renderMillisecondsToDelayDatatable(milliseconds, type)
+                        render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)
                     },
                     {"data": 'emp', 'name': 'emp', 'title': 'Emplacement'},
                 ]
@@ -730,9 +741,10 @@ function refreshPageTitle() {
         ? $activeCarousel.find('input.page-title')
         : $('input.page-title');
     const pageTitle = $pageTitle.val();
+    const followGTPrefix = 'FollowGT';
 
     if (pageTitle) {
-        document.title = `FollowGT${(pageTitle ? ' | ' : '') + pageTitle}`;
+        document.title = `${followGTPrefix}${(pageTitle ? ' | ' : '') + pageTitle}`;
 
         const words = pageTitle.split('|');
 
@@ -748,6 +760,9 @@ function refreshPageTitle() {
             $('.main-header .header-title').html($titleContainer);
         }
     }
+    else {
+        document.title = followGTPrefix;
+    }
 }
 
 function calculateChartsFontSize() {
@@ -756,7 +771,13 @@ function calculateChartsFontSize() {
 }
 
 function setActiveDashboard(hash) {
-    $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`).addClass('active');
+    if (!displayedDashboards.includes(hash)) {
+        hash = displayedDashboards.length > 0 ? displayedDashboards[0] : '';
+        window.location.hash = hash;
+    }
+    const $activeIndic = $(`#carousel-dashboard .carousel-indicators > li[data-name="${hash}"]`);
+    $activeIndic.addClass('active');
+    $activeIndic.click();
     $(`#carousel-dashboard .carousel-item[data-name="${hash}"]`).addClass('active');
 }
 

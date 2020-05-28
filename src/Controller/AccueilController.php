@@ -12,7 +12,6 @@ use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Wiilock;
 use App\Service\DashboardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -139,6 +138,7 @@ class AccueilController extends AbstractController
 
         return [
             'nbAlerts' => $nbAlerts,
+            'visibleDashboards' => $this->getUser()->getRole()->getDashboardsVisible(),
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

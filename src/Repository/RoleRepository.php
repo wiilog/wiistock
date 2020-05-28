@@ -35,7 +35,7 @@ class RoleRepository extends EntityRepository
 
     /**
      * @param string $label
-     * @return mixed
+     * @return Role
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function findByLabel($label)

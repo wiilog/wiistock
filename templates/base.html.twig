@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {% set titlePrefix = 'FollowGT' %}
-    {% if block("title") is defined %}
+    {% if block("title") is defined and block("title") is not empty %}
         <title>{{ titlePrefix }} | {{ block("title") }}</title>
     {% else %}
         <title>{{ titlePrefix }}</title>
@@ -105,7 +105,7 @@
         {# scripts wiilog #}
         <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
-        <script src="{{ asset('js/datatable/datatable.js') }}?{{ date().timestamp }}"></script>
+        <script src="{{ asset('js/datatable.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}
 
 </body>
