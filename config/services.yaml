@@ -5,8 +5,8 @@ parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
     web_version: '3.0.6'
-    nomade_versions: '>=3.0.0'
-    nomade_apk: 'http://wiilog.fr/dl/wiistock/app-3-0-0.apk'
+    nomade_versions: '>=3.0.6'
+    nomade_apk: 'http://wiilog.fr/dl/wiistock/app-3-0-6.apk'
     client: '%env(APP_CLIENT)%'
     dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
     #menu_config added via menu.yaml
