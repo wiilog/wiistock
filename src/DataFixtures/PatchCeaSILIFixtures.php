@@ -42,36 +42,32 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
 
         if ($isCEA) {
             $articleRepository = $manager->getRepository(Article::class);
-            $typeRepository = $manager->getRepository(Type::class);
             $statutRepository = $manager->getRepository(Statut::class);
-            $siliType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_SILICIUM);
-            $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT);
-            $statutPreparationTodo = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER);
-            $statutPreparationDoing = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-            $statutLivraisonTodo = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
             $statutConsomme = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $refsToUpdate = [];
-            if ($siliType) {
-                $availableSILIArticles = $articleRepository
-                    ->getByStatutAndTypeWithoutInProgressPrepaNorLivraison($statutTransit, $siliType, [
-                        $statutPreparationTodo->getId(),
-                        $statutPreparationDoing->getId()
-                    ], $statutLivraisonTodo);
-                foreach ($availableSILIArticles as $availableSILIArticle) {
-                    dump($availableSILIArticle->getId());
-                    $availableSILIArticle
-                        ->setStatut($statutConsomme);
-                    $referenceArticle = $availableSILIArticle->getArticleFournisseur()
-                        ? $availableSILIArticle->getArticleFournisseur()->getReferenceArticle()
-                        : null;
-                    if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
-                        $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
-                    }
+            $availableSILIArticles = $articleRepository
+                ->getByStatutAndTypeWithoutInProgressPrepaNorLivraison(
+                    Article::STATUT_EN_TRANSIT,
+                    Type::LABEL_SILICIUM,
+                    [
+                        Preparation::STATUT_A_TRAITER,
+                        Preparation::STATUT_EN_COURS_DE_PREPARATION
+                    ],
+                    [Livraison::STATUT_A_TRAITER]);
+            foreach ($availableSILIArticles as $availableSILIArticle) {
+                $availableSILIArticle
+                    ->setStatut($statutConsomme);
+                $referenceArticle = $availableSILIArticle->getArticleFournisseur()
+                    ? $availableSILIArticle->getArticleFournisseur()->getReferenceArticle()
+                    : null;
+                if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
+                    $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
                 }
             }
+            $manager->flush();
             foreach ($refsToUpdate as $refToUpdate) {
-                $this->refArticleService->treatAlert($refToUpdate);
                 $this->refArticleService->updateRefArticleQuantities($refToUpdate);
+                $this->refArticleService->treatAlert($refToUpdate);
             }
             $manager->flush();
         }

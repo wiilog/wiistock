@@ -804,16 +804,20 @@ class ArticleRepository extends EntityRepository
 	}
 
     /**
-     * @param Statut $statut
-     * @param Type $type
+     * @param string $statusName
+     * @param string $typeLabel
      * @param array $statutsPrepa
-     * @param Statut $statutLivraison
+     * @param array $statutsLivraison
      * @return Article[]
      */
-    public function getByStatutAndTypeWithoutInProgressPrepaNorLivraison(Statut $statut, Type $type, array $statutsPrepa, Statut $statutLivraison) {
+    public function getByStatutAndTypeWithoutInProgressPrepaNorLivraison(string $statusName,
+                                                                         string $typeLabel,
+                                                                         array $statutsPrepa,
+                                                                         array $statutsLivraison) {
         $queryBuilder = $this->createQueryBuilder('article');
         $exprBuilder = $queryBuilder->expr();
-        return $queryBuilder
+
+        $queryBuilder = $queryBuilder
             ->join('article.type', 'type')
             ->join('article.statut', 'statut')
             ->leftJoin('article.preparation', 'preparation')
@@ -822,18 +826,22 @@ class ArticleRepository extends EntityRepository
             ->leftJoin('livraison.statut', 'statutLivraison')
             ->where(
                 $exprBuilder->andX(
-                    $exprBuilder->eq('type.id', $type->getId()),
-                    $exprBuilder->eq('statut.id', $statut->getId()),
+                    $exprBuilder->eq('type.label', ':typeLabel'),
+                    $exprBuilder->eq('statut.nom', ':statusName'),
                     $exprBuilder->orX(
                         $exprBuilder->isNull('preparation'),
-                        $exprBuilder->notIn('statutPreparation.id', $statutsPrepa)
+                        $exprBuilder->notIn('statutPreparation.nom', $statutsPrepa)
                     ),
                     $exprBuilder->orX(
                         $exprBuilder->isNull('livraison'),
-                        $exprBuilder->neq('statutLivraison.id', $statutLivraison->getId())
+                        $exprBuilder->notIn('statutLivraison.nom', $statutsLivraison)
                     )
                 )
             )
+            ->setParameter('typeLabel', $typeLabel)
+            ->setParameter('statusName', $statusName);
+
+        return $queryBuilder
             ->getQuery()
             ->execute();
     }
