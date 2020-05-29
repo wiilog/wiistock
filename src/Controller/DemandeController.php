@@ -604,7 +604,6 @@ class DemandeController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError

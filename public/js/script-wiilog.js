@@ -1455,3 +1455,39 @@ function renderMillisecondsToDelay(milliseconds, type) {
 
     return res;
 }
+
+/**
+ * Set status of button to 'loading' and prevent other click until first finished.
+ * @param {*} $button jQuery button element
+ * @param {function} action Function retuning a promise
+ */
+function wrapLoadingOnActionButton($button, action, endLoading = true) {
+    const loadingClass = 'loading';
+    if (!$button.hasClass(loadingClass)) {
+        let $buttonIcon = $button.find('.button-icon');
+        const $loader = $('<div/>', {
+            class: 'spinner-border spinner-border-sm text-light mr-2',
+            role: 'status',
+            html: $('<span/>', {
+                class: 'sr-only',
+                text: 'Loading...'
+            })
+        });
+        if ($buttonIcon.length > 0) {
+            $buttonIcon.addClass('d-none');
+        }
+        $button.prepend($loader);
+        $button.addClass(loadingClass);
+        action().then((success) => {
+            if (endLoading || !success) {
+                $button.find('.spinner-border').remove();
+                if ($buttonIcon.length > 0) {
+                    $buttonIcon.removeClass('d-none');
+                }
+                $button.removeClass(loadingClass);
+            }
+        });
+    } else {
+        alertSuccessMsg('L\'opération est en cours de traitement');
+    }
+}
