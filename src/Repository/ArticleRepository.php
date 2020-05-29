@@ -11,6 +11,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use Doctrine\DBAL\Connection;
@@ -800,6 +801,49 @@ class ArticleRepository extends EntityRepository
 
 		return $query->execute();
 	}
+
+    /**
+     * @param string $statusName
+     * @param string $typeLabel
+     * @param array $statutsPrepa
+     * @param array $statutsLivraison
+     * @return Article[]
+     */
+    public function getByStatutAndTypeWithoutInProgressPrepaNorLivraison(string $statusName,
+                                                                         string $typeLabel,
+                                                                         array $statutsPrepa,
+                                                                         array $statutsLivraison) {
+        $queryBuilder = $this->createQueryBuilder('article');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder = $queryBuilder
+            ->join('article.type', 'type')
+            ->join('article.statut', 'statut')
+            ->leftJoin('article.preparation', 'preparation')
+            ->leftJoin('preparation.statut', 'statutPreparation')
+            ->leftJoin('preparation.livraison', 'livraison')
+            ->leftJoin('livraison.statut', 'statutLivraison')
+            ->where(
+                $exprBuilder->andX(
+                    $exprBuilder->eq('type.label', ':typeLabel'),
+                    $exprBuilder->eq('statut.nom', ':statusName'),
+                    $exprBuilder->orX(
+                        $exprBuilder->isNull('preparation'),
+                        $exprBuilder->notIn('statutPreparation.nom', $statutsPrepa)
+                    ),
+                    $exprBuilder->orX(
+                        $exprBuilder->isNull('livraison'),
+                        $exprBuilder->notIn('statutLivraison.nom', $statutsLivraison)
+                    )
+                )
+            )
+            ->setParameter('typeLabel', $typeLabel)
+            ->setParameter('statusName', $statusName);
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
 
 	private function getArticleCollecteQuery()
 	{
