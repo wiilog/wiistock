@@ -197,8 +197,10 @@ function validateCollecte(collecteId, $button) {
             .then(function (resp) {
                 if (resp === true) {
                     window.location.href = Routing.generate('ordre_collecte_new', {'id': collecteId});
+                    return true;
                 } else {
                     $('#cannotValidate').click();
+                    return false;
                 }
             })
     ), false);

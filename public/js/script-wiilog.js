@@ -1464,23 +1464,26 @@ function renderMillisecondsToDelay(milliseconds, type) {
 function wrapLoadingOnActionButton($button, action, endLoading = true) {
     const loadingClass = 'loading';
     if (!$button.hasClass(loadingClass)) {
+        let $buttonIcon = $button.find('.button-icon');
         const $loader = $('<div/>', {
-            class: 'spinner-border spinner-border-sm text-light',
+            class: 'spinner-border spinner-border-sm text-light mr-2',
             role: 'status',
             html: $('<span/>', {
                 class: 'sr-only',
                 text: 'Loading...'
             })
         });
-
-        const $oldButtonContent = $button.html();
-
-        $button.html($loader);
+        if ($buttonIcon.length > 0) {
+            $buttonIcon.addClass('d-none');
+        }
+        $button.prepend($loader);
         $button.addClass(loadingClass);
-
-        action().then(() => {
-            if (endLoading) {
-                $button.html($oldButtonContent);
+        action().then((success) => {
+            if (endLoading || !success) {
+                $button.find('.spinner-border').remove();
+                if ($buttonIcon.length > 0) {
+                    $buttonIcon.removeClass('d-none');
+                }
                 $button.removeClass(loadingClass);
             }
         });

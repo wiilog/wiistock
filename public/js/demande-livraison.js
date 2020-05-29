@@ -139,6 +139,7 @@ function getCompareStock(submit) {
                 $('#tableArticle_id').DataTable().ajax.reload();
                 $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
                 tableArticle.ajax.reload();
+                return true;
             } else {
                 if (data.message) {
                     alertErrorMsg(data.message)
@@ -147,6 +148,7 @@ function getCompareStock(submit) {
                     $('#restantQuantite').html(data.stock);
                     $('#negativStock').click();
                 }
+                return false;
             }
         });
 }
@@ -247,6 +249,7 @@ function validateLivraison(livraisonId, $button) {
                     return getCompareStock($button);
                 } else {
                     $('#cannotValidate').click();
+                    return false;
                 }
             })
     ));
