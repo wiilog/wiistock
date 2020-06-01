@@ -1,29 +1,34 @@
 {% for articleF in articles %}
-
-{% if articleF is not empty %}
-<div class="row">
-    <div class="form-group col-4 w-100">
-        <label for="reference">Code Fournisseur</label>
-        <input class="form-control needed" type="text" value="{{articleF.fournisseur.codeReference}}" disabled>
-    </div>
-    <div class="form-group col-4">
-        <label for="reference">Référence Article fournisseur</label>
-        <input class="form-control needed" disabled type="text" value="{{articleF.reference}}">
-    </div>
-    <div class="form-group col-3">
-        <label for="reference">Libellé</label>
-        <input class="form-control needed" type="text" disabled value="{{articleF.label}}">
-    </div>
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) and (editable is not defined or editable) %}
-    <div class="col-1">
-        <span class="btn btn-primary mt-3" data-toggle="modal" data-target="#modalDeleteFournisseur" data-value="{{ articleF.id }}"
-            data-title="{{articleRef.id}}" onclick="passArgsToModal(this)">
-            <i class="fa fa-trash"></i>
-        </span>
-    </div>
+    {% if articleF is not empty %}
+        <div class="row">
+            <div class="form-group col-2">
+                <label for="reference">Code Fournisseur</label>
+                <input class="form-control needed" type="text" value="{{articleF.fournisseur.codeReference}}" disabled/>
+            </div>
+            <div class="form-group col-3">
+                <label for="reference">Nom Fournisseur</label>
+                <input class="form-control needed" type="text" value="{{articleF.fournisseur.nom}}" disabled/>
+            </div>
+            <div class="form-group col-3">
+                <label for="reference">Référence Art. fournisseur</label>
+                <input class="form-control needed" type="text" value="{{articleF.reference}}" disabled/>
+            </div>
+            <div class="form-group col-3">
+                <label for="reference">Libellé Art. fournisseur</label>
+                <input class="form-control needed" type="text" value="{{articleF.label}}" disabled/>
+            </div>
+            {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) and (editable is not defined or editable) %}
+                <div class="mb-3 col-1 d-flex align-items-end">
+                    <span class="btn btn-primary"
+                          data-toggle="modal"
+                          data-target="#modalDeleteFournisseur"
+                          data-value="{{ articleF.id }}"
+                          data-title="{{articleRef.id}}"
+                          onclick="passArgsToModal(this)">
+                        <i class="fa fa-trash"></i>
+                    </span>
+                </div>
+            {% endif %}
+        </div>
     {% endif %}
-</div>
-
-{% endif %}
-
 {% endfor %}
