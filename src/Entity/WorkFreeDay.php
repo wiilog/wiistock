@@ -7,10 +7,9 @@ use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\NonWorkedDaysRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\WorkFreeDayRepository")
  */
-
-class NonWorkedDays
+class WorkFreeDay
 {
     /**
      * @ORM\Id()
@@ -48,7 +47,8 @@ class NonWorkedDays
     }
 
     /**
-     * @param DateTime
+     * @param DateTime $day
+     * @return WorkFreeDay
      */
     public function setDay(DateTime $day): self
     {

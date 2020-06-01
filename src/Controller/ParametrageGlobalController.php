@@ -11,10 +11,10 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\NonWorkedDays;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\WorkFreeDay;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
@@ -28,14 +28,12 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use phpDocumentor\Reflection\Type;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\DateTime;
 
 /**
  * @Route("/parametrage-global")
@@ -51,17 +49,6 @@ class ParametrageGlobalController extends AbstractController
         'saturday' => 'Samedi',
         'sunday' => 'Dimanche',
     ];
-
-    private function getFrenchDay($day): string
-    {
-        $weekDays = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-        $monthYear = ["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"];
-        $intDay = $day->format('w');
-        $intMonth = $day->format('n');
-        $numDay = $day->format('d');
-        $year = $day->format('Y');
-        return ($weekDays[$intDay] . " " . $numDay . " " . $monthYear[$intMonth] . " " . $year);
-    }
 
     /**
      * @Route("/", name="global_param_index")
@@ -82,7 +69,6 @@ class ParametrageGlobalController extends AbstractController
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
-        $nonWorkedDaysRepository = $entityManager->getRepository(NonWorkedDays::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
@@ -91,20 +77,19 @@ class ParametrageGlobalController extends AbstractController
         $champsLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
         ]);
         $paramLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
-        $nonWorkedDays = $nonWorkedDaysRepository->findAll();
-        $datePublicHollidays = array();
-        for ($i = 0, $max = count($nonWorkedDays); $i < $max; $i++) {
-            $day = ($nonWorkedDays[$i]);
-            $dateDay['id'] = $day->getId();
-            $day = $day->getDay();
-            $dateDay['day'] = $this->getFrenchDay($day);
-            $dateDay['datetime'] = $day->format('Y-m-d');
-            $datePublicHollidays[] = $dateDay;
-        }
+        $workFreeDays = array_map(
+            function (WorkFreeDay $workFreeDay) {
+                return $workFreeDay->getDay()->format('Y-m-d');
+            },
+            $workFreeDaysRepository->findAll()
+        );
+
         return $this->render('parametrage_global/index.html.twig',
             [
                 'logo' => ($paramLogo && file_exists(getcwd() . "/uploads/attachements/" . $paramLogo) ? $paramLogo : null),
@@ -145,7 +130,7 @@ class ParametrageGlobalController extends AbstractController
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
-                'days' => $datePublicHollidays,
+                'workFreeDays' => $workFreeDays,
                 'paramDashboard' => [
                     'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
                     'existingListNaturesId' => $globalParamService->getDashboardListNatures(),

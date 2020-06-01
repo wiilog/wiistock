@@ -1,0 +1,38 @@
+<a data-toggle="collapse"
+   href="#workFreeDays"
+   role="button"
+   aria-expanded="false"
+   onclick="resizeDaysWorked('#tableWorkFreeDays')"
+   aria-controls="paramDaysWorked" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">
+        Paramétrage des jours non travaillés
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+    </h1>
+</a>
+<div class="collapse col-12" id="workFreeDays">
+    <div class="row">
+        <div class="col-auto">
+            <div class="input-group">
+                <input type="hidden"
+                       name="already-work-free-days"
+                       value="{{ workFreeDays|json_encode }}"/>
+                <input type="text"
+                       class="form-control cursor-default w-218px"
+                       name="newWorkFreeDay"
+                       placeholder="jj/mm/aaaa"
+                       autocomplete="off"/>
+
+                <span class="btn btn-primary"
+                      onclick="addWorkFreeDay($(this))">
+                    <i class="fa fa-plus"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <table id="tableWorkFreeDays" class="table w-100" >
+            </table>
+        </div>
+    </div>
+</div>
