@@ -5,11 +5,12 @@ let tableCategoriesConfig = {
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Label', 'title': 'Label'},
         {"data": 'Frequence', 'title': 'Fréquence'},
         {"data": 'Permanent', 'title': 'Permanent'},
     ],
+    order: [],
     rowConfig: {
         needsRowClickAction: true,
     },

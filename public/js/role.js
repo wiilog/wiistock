@@ -6,7 +6,7 @@ let tableRolesConfig = {
         "type": "POST"
     },
     columns:[
-        { "data": 'Actions', 'title' : '', className: 'noVis'},
+        { "data": 'Actions', 'title' : '', className: 'noVis', orderable: false},
         { "data": 'Nom', 'title' : 'Nom' },
         { "data": 'Actif', 'title' : 'Actif' },
     ],

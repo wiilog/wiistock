@@ -356,10 +356,3 @@ function fileToImagePreview($fileInput) {
         }
     }
 }
-
-function resizeDaysWorked() {
-    // TODO WIIS-2373
-    setTimeout(() => {
-        tableDays.columns.adjust().draw();
-    }, 100);
-}
