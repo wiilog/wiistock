@@ -54,6 +54,10 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
                         Preparation::STATUT_EN_COURS_DE_PREPARATION
                     ],
                     [Livraison::STATUT_A_TRAITER]);
+
+            $cpt = 0;
+            $articleCount = count($availableSILIArticles);
+
             foreach ($availableSILIArticles as $availableSILIArticle) {
                 $availableSILIArticle
                     ->setStatut($statutConsomme);
@@ -63,12 +67,31 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
                 if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
                     $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
                 }
+
+                $cpt++;
+
+                if (($cpt % 100) === 0) {
+                    $manager->flush();
+                    dump('Flush (' . $cpt . '/' . $articleCount . ') articles');
+                }
             }
+
+            dump('Flush (' . $articleCount . '/' . $articleCount . ') articles');
             $manager->flush();
+
+
+            $cpt = 0;
+            $refsToUpdateCount = count($availableSILIArticles);
             foreach ($refsToUpdate as $refToUpdate) {
                 $this->refArticleService->updateRefArticleQuantities($refToUpdate);
                 $this->refArticleService->treatAlert($refToUpdate);
+
+                if (($cpt % 100) === 0) {
+                    $manager->flush();
+                    dump('Flush (' . $cpt . '/' . $refsToUpdateCount . ') références');
+                }
             }
+            dump('Flush (' . $refsToUpdateCount . '/' . $refsToUpdateCount . ') références');
             $manager->flush();
         }
     }
