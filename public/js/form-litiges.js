@@ -2,11 +2,19 @@ function openNewLitigeModal($button) {
     const modalSelector = $button.data('target');
     clearModal(modalSelector);
     ajaxAutoArticlesReceptionInit($(modalSelector).find('.select2-autocomplete-articles'), $('#receptionId').val());
-
     // we select default litige
     const $modal = $(modalSelector);
     const $selectStatusLitige = $modal.find('#statutLitige');
     const $statutLitigeDefault = $selectStatusLitige.siblings('input[hidden][name="default-status"]');
+    const $operatorSelect = $modal.find('.select2-demandeur');
+    const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
+    let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+    $operatorSelect
+        .select2()
+        .val(null)
+        .trigger('change')
+        .append(option)
+        .trigger('change');
     if ($statutLitigeDefault.length > 0) {
         const idSelected = $statutLitigeDefault.data('id');
         $selectStatusLitige
