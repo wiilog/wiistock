@@ -239,9 +239,11 @@ class AccueilController extends AbstractController
         ]);
         return new JsonResponse([
             'success' => true,
-            'date' => $dashboardLock->getUpdateDate()
-                ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
-                : 'Aucune données'
+            'date' => $dashboardLock ? (
+                     $dashboardLock->getUpdateDate()
+                        ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
+                        : 'Aucune données')
+                    : 'Aucune données'
         ]);
     }
 

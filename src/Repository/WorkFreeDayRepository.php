@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\WorkFreeDay;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -13,4 +14,13 @@ use Doctrine\ORM\EntityRepository;
  */
 class WorkFreeDayRepository extends EntityRepository
 {
+    /**
+     * @return DateTime[]
+     */
+    public function  getWorkFreeDaysToString()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQueryBuilder();
+        return $query->select('day.day')->from('App\Entity\WorkFreeDay', 'day')->getQuery()->execute();
+    }
 }

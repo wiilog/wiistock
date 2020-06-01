@@ -8,6 +8,7 @@ use App\Entity\Colis;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
+use App\Entity\WorkFreeDay;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -175,8 +176,10 @@ class EnCoursService
             $colisRepository = $this->entityManager->getRepository(Colis::class);
             $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
             $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
+            $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
 
             $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+            $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToString();
 
             $packIntelList = empty($natures)
                 ? $mouvementTracaRepository->getLastOnLocations($locations)
@@ -186,7 +189,7 @@ class EnCoursService
                 $currentLocationId = $packIntel['currentLocationId'];
                 $currentLocation = $locations[(int)$currentLocationId];
 
-                $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt);
+                $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt, $freeWorkDays);
                 $dateMaxTime = $currentLocation->getDateMaxTime();
 
                 if ($dateMaxTime) {
@@ -214,10 +217,11 @@ class EnCoursService
     /**
      * @param array $workedDays [<english day label ('l' format)> => <nb time worked>]
      * @param DateTime $movementDate
+     * @param array $workFreeDays
      * @return DateInterval
      * @throws Exception
      */
-    public function getTrackingMovementAge(array $workedDays, DateTime $movementDate): DateInterval
+    public function getTrackingMovementAge(array $workedDays, DateTime $movementDate, array $workFreeDays): DateInterval
     {
         if (count($workedDays) > 0) {
             $now = new DateTime("now", new DateTimeZone('Europe/Paris'));
@@ -230,8 +234,8 @@ class EnCoursService
             /** @var DateTime $day */
             foreach ($period as $day) {
                 $dayLabel = strtolower($day->format('l'));
-
-                if (isset($workedDays[$dayLabel])) {
+                $dayToString = $day->format('Y-m-d');
+                if (isset($workedDays[$dayLabel]) && !isset($workFreeDays[$dayToString])) {
                     $periodsWorked = array_merge(
                         $periodsWorked,
                         array_map(

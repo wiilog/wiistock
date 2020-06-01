@@ -18,6 +18,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionTraca;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
+use App\Entity\WorkFreeDay;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
@@ -405,7 +406,7 @@ class DashboardService
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $colisRepository = $entityManager->getRepository(Colis::class);
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
-
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
 
         $natureLabelToLookFor = $graph === 1 ? ParametrageGlobal::DASHBOARD_NATURE_COLIS : ParametrageGlobal::DASHBOARD_LIST_NATURES_COLIS;
@@ -444,11 +445,12 @@ class DashboardService
             }
 
             $graphData = $this->getObjectForTimeSpan(function (int $beginSpan, int $endSpan)
-            use ($daysWorked, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
+            use ($daysWorked, $workFreeDaysRepository, $countByNatureBase, $naturesForGraph, &$packsOnCluster, $adminDelay, &$locationCounters, &$olderPackLocation, &$globalCounter) {
                 $countByNature = array_merge($countByNatureBase);
+                $workFreedays = $workFreeDaysRepository->getWorkFreeDaysToString();
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
-                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime']);
+                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime'], $workFreedays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
                     $countDownHours = isset($timeInformation['countDownLateTimespan'])
                         ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
@@ -590,15 +592,21 @@ class DashboardService
     {
         $colisRepository = $this->entityManager->getRepository(Colis::class);
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
         $locations = $this->findEmplacementsParam($paramName);
         if (!empty($locations)) {
             $response = [];
             $response['delay'] = null;
             if (!$isPack && $delay) {
                 $lastEnCours = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket, 'datetime', 1);
+                $daysFree = $workFreeDaysRepository->getWorkFreeDaysToString();
+                $workFreeDaysFormatted = array_reduce($daysFree, function (array $carry, array $day) {
+                    $carry[$day['day']->format('Y-m-d')] = true;
+                    return $carry;
+                }, []);
                 if (!empty($lastEnCours[0])) {
                     $lastEnCoursDateTime = new DateTime($lastEnCours[0], new DateTimeZone('Europe/Paris'));
-                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime);
+                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime, $workFreeDaysFormatted);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $delay);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
                 }
@@ -874,7 +882,14 @@ class DashboardService
         $locationTargetIdsArray = !empty($locationTargetIds) ? explode(',', $locationTargetIds) : [];
 
         $chartData = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax)
-                                                      use ($dsqrLabel, $gtLabel, $mouvementTracaRepository, $locationDropIdsArray, $locationOriginIdsArray, $locationTargetIdsArray) {
+
+        use (   $dsqrLabel,
+                $gtLabel,
+                $mouvementTracaRepository,
+                $locationDropIdsArray,
+                $locationOriginIdsArray,
+                $locationTargetIdsArray) {
+
             return [
                 $dsqrLabel => $mouvementTracaRepository->countDropsOnLocations($locationDropIdsArray, $dateMin, $dateMax),
                 $gtLabel => $mouvementTracaRepository->countMovementsFromInto($locationOriginIdsArray, $locationTargetIdsArray, $dateMin, $dateMax)
