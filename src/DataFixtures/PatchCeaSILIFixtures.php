@@ -45,6 +45,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
             $statutRepository = $manager->getRepository(Statut::class);
             $statutConsomme = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $refsToUpdate = [];
+            $articleFournIdToRefArticle = [];
             $availableSILIArticles = $articleRepository
                 ->getByStatutAndTypeWithoutInProgressPrepaNorLivraison(
                     Article::STATUT_EN_TRANSIT,
@@ -61,11 +62,16 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
             foreach ($availableSILIArticles as $availableSILIArticle) {
                 $availableSILIArticle
                     ->setStatut($statutConsomme);
-                $referenceArticle = $availableSILIArticle->getArticleFournisseur()
-                    ? $availableSILIArticle->getArticleFournisseur()->getReferenceArticle()
-                    : null;
-                if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
-                    $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
+                $articleFournisseur = $availableSILIArticle->getArticleFournisseur();
+                if (isset($articleFournisseur)) {
+                    $articleFournisseurId = $articleFournisseur->getId();
+                    if (!isset($articleFournIdTorefArticle[$articleFournisseurId])) {
+                        $articleFournIdToRefArticle[$articleFournisseurId] = $articleFournisseur->getReferenceArticle();
+                    }
+                    $referenceArticle = $articleFournIdToRefArticle[$articleFournisseurId];
+                    if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
+                        $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
+                    }
                 }
 
                 $cpt++;
