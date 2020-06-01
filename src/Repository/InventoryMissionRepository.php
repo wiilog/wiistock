@@ -49,6 +49,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             ->addSelect('emplacement.label AS location')
             ->addSelect('1 AS is_ref')
             ->addSelect('inventoryEntry.id AS ieid')
+            ->addSelect('refArticle.barCode AS barCode')
             ->join('inventoryMission.refArticles', 'refArticle')
             ->join('refArticle.emplacement', 'emplacement')
             ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.refArticle = refArticle')

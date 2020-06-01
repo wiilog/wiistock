@@ -13,7 +13,8 @@
                 <table class="table" id="tableSplittingArticles">
                     <thead>
                     <tr>
-                        <th>Code Article</th>
+                        <th>Code barre article</th>
+                        <th>Libellé article</th>
                         <th>Quantité</th>
                         <th>Emplacement</th>
                         <th>Quantité prélevée</th>
@@ -24,34 +25,37 @@
                         {% set quantiteArt = article.quantite is null ? 0 : article.quantite %}
 
                         <tr>
-                            <td>{{ article.reference }}</td>
+                            <td>{{ article.barCode }}</td>
+                            <td>{{ article.label }}</td>
                             <td>{{ quantiteArt }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
-                            <td class="d-flex">
-                                <label class="pr-2">Quantité totale ? </label>
-                                <label class="switch">
-                                    <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantiteArt }}"
-                                           data-quantite="{{ quantiteArt }}" type="checkbox"
-                                           data-name="{{ article.label }}" data-id="{{ article.id }}"
-                                           onchange="addToScissionAll($(this))">
-                                    <span class="slider round"></span>
-                                </label>
-                                <label class="pr-2 pl-2">Quantité : </label>
-                                <input id="{{ article.id }}"
-                                       class="input w-25"
-                                       data-ref="{{ reference }}"
-                                       value="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : '' }}"
-                                       data-value-init="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : 0 }}"
-                                       data-total="{{ quantiteArt }}"
-                                       data-quantite="{{ quantiteArt }}"
-                                       type="number"
-                                       data-name="{{ article.label }}"
-                                       data-id="{{ article.id }}"
-                                       min=1
-                                       max="{{ quantiteArt }}"
-                                       onclick="limitInput($(this)), updateRemainingQuantity($(this))"
-                                       onkeyup="limitInput($(this)), updateRemainingQuantity($(this))">
-                                <div class="row-error-msg pl-2 bold text-center"></div>
+                            <td>
+                                <div class="d-flex w-100">
+                                    <label class="pr-1">Quantité totale&nbsp;?</label>
+                                    <label class="switch">
+                                        <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantiteArt }}"
+                                               data-quantite="{{ quantiteArt }}" type="checkbox"
+                                               data-name="{{ article.label }}" data-id="{{ article.id }}"
+                                               onchange="addToScissionAll($(this))">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <label class="px-1">Quantité&nbsp;:</label>
+                                    <input id="{{ article.id }}"
+                                           class="input w-25"
+                                           data-ref="{{ reference }}"
+                                           value="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : '' }}"
+                                           data-value-init="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : 0 }}"
+                                           data-total="{{ quantiteArt }}"
+                                           data-quantite="{{ quantiteArt }}"
+                                           type="number"
+                                           data-name="{{ article.label }}"
+                                           data-id="{{ article.id }}"
+                                           min=1
+                                           max="{{ quantiteArt }}"
+                                           onclick="limitInput($(this)), updateRemainingQuantity($(this))"
+                                           onkeyup="limitInput($(this)), updateRemainingQuantity($(this))">
+                                    <div class="row-error-msg pl-2 bold text-center"></div>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}

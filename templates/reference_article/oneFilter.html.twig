@@ -5,7 +5,14 @@
             {% if filter.champFixe is not null %}
                 <div class="col">
                     <span class="bold">
-                        {{ filter.champFixe | capitalize }} : {{ filter.value }}</span><br>
+                        {% if (filter.value == 'on' or filter.value == '1') %}
+                            {% set value = 'oui' %}
+                        {% elseif (filter.value == '') %}
+                            {% set value = 'non' %}
+                        {% else %}
+                            {% set value = filter.value %}
+                        {% endif %}
+                        {{ filter.champFixe | capitalize }} : {{ value }}</span><br>
                 </div>
                 <div class="col-auto">
                     <i class="fas fa-times remove-filter"></i>
@@ -15,7 +22,8 @@
                     {% if (filter.value == 'on' or filter.value == '1') %}
                         {% set value = 'oui' %}
                     {% elseif (filter.value == '') %}
-                        {% set value = 'non' %}{% else %}
+                        {% set value = 'non' %}
+                    {% else %}
                         {% set value = filter.value %}
                     {% endif %}
                     <span class="bold">

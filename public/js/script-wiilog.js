@@ -1214,7 +1214,7 @@ function displayFiltersSup(data) {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
                     let name = valueArray[1];
-                    const $optionToSelect = $selectK.find(`option[value="${name}"]`);
+                    const $optionToSelect = $select.find(`option[value="${name}"]`);
                     if ($optionToSelect.length > 0) {
                         $optionToSelect.prop('selected', true);
                     }
@@ -1351,13 +1351,6 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     $alertModal.modal('show');
 }
 
-function initTooltips($elements) {
-    $elements.each(function () {
-        $(this).tooltip('dispose');
-        $(this).tooltip();
-    });
-}
-
 function managePrintButtonTooltip(active, $button) {
     if ($button) {
         $button.tooltip(
@@ -1433,5 +1426,41 @@ function saveExportFile(routeName, params = null) {
     else {
         warningEmptyDatesForCsv();
         hideSpinner($spinner);
+    }
+}
+
+/**
+ * Set status of button to 'loading' and prevent other click until first finished.
+ * @param {*} $button jQuery button element
+ * @param {function} action Function retuning a promise
+ */
+function wrapLoadingOnActionButton($button, action, endLoading = true) {
+    const loadingClass = 'loading';
+    if (!$button.hasClass(loadingClass)) {
+        let $buttonIcon = $button.find('.button-icon');
+        const $loader = $('<div/>', {
+            class: 'spinner-border spinner-border-sm text-light mr-2',
+            role: 'status',
+            html: $('<span/>', {
+                class: 'sr-only',
+                text: 'Loading...'
+            })
+        });
+        if ($buttonIcon.length > 0) {
+            $buttonIcon.addClass('d-none');
+        }
+        $button.prepend($loader);
+        $button.addClass(loadingClass);
+        action().then((success) => {
+            if (endLoading || !success) {
+                $button.find('.spinner-border').remove();
+                if ($buttonIcon.length > 0) {
+                    $buttonIcon.removeClass('d-none');
+                }
+                $button.removeClass(loadingClass);
+            }
+        });
+    } else {
+        alertSuccessMsg('L\'opération est en cours de traitement');
     }
 }

@@ -185,7 +185,7 @@ Class AcheminementsController extends AbstractController
     {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
         ]);
 
         return new JsonResponse($json);
@@ -247,7 +247,7 @@ Class AcheminementsController extends AbstractController
             $acheminement = $acheminementsRepository->find($data['id']);
             $json = $this->renderView('acheminements/modalEditContentAcheminements.html.twig', [
                 'acheminement' => $acheminement,
-                'utilisateurs' => $utilisateurRepository->findAll(),
+                'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
                 'statut' => (($acheminement->getStatut()->getNom() === Acheminements::STATUT_A_TRAITER) ? 1 : 0),
                 'statuts' => $statutRepository->findByCategorieName(Acheminements::CATEGORIE),
             ]);

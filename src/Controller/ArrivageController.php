@@ -32,6 +32,7 @@ use App\Service\ColisService;
 use App\Service\CSVExportService;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
+use App\Service\LitigeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\StatutService;
@@ -725,29 +726,6 @@ class ArrivageController extends AbstractController
         }
     }
 
-    private function sendMailToAcheteurs(EntityManagerInterface $entityManager,
-                                         Litige $litige, $title, $sujet)
-    {
-        $litigeRepository = $entityManager->getRepository(Litige::class);
-        //TODO HM getId ?
-        $acheteursEmail = $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
-        $wantSendMailStatusChange = $litige->getStatus()->getSendNotifToBuyer();
-        if ($wantSendMailStatusChange) {
-            foreach ($acheteursEmail as $email) {
-                $title;
-                $this->mailerService->sendMail(
-                    $sujet,
-                    $this->renderView('mails/mailLitiges.html.twig', [
-                        'litiges' => [$litige],
-                        'title' => $title,
-                        'urlSuffix' => 'arrivage'
-                    ]),
-                    $email
-                );
-            }
-        }
-    }
-
     /**
      * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
@@ -976,6 +954,7 @@ class ArrivageController extends AbstractController
      * @Route("/creer-litige", name="litige_new", options={"expose"=true}, methods={"POST"})
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
+     * @param LitigeService $litigeService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
@@ -983,6 +962,7 @@ class ArrivageController extends AbstractController
      */
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
+                              LitigeService $litigeService,
                               EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1037,10 +1017,7 @@ class ArrivageController extends AbstractController
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
-            $title= "FOLOW GT / Litige sur un arrivage";
-            $sujet= "Un litige est déclaré sur un arrivage vous concernant";
-            $this->sendMailToAcheteurs($entityManager, $litige,$title,$sujet);
-
+            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE);
             $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
             $response = $arrivageResponse ? $arrivageResponse : [];
 
@@ -1209,6 +1186,8 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
+     * @param LitigeService $litigeService
+     * @param Twig_Environment $templating
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
@@ -1216,6 +1195,7 @@ class ArrivageController extends AbstractController
     public function editLitige(Request $request,
                                ArrivageDataService $arrivageDataService,
                                EntityManagerInterface $entityManager,
+                               LitigeService $litigeService,
                                Twig_Environment $templating): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1314,9 +1294,7 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $title = "FOLLOW GT / Changement de statut d'un litige";
-                $sujet = "Changement de statut d'un litige sur un arrivage vous concernant";
-                $this->sendMailToAcheteurs($entityManager, $litige, $title, $sujet);
+                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE, true);
             }
 
             $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));

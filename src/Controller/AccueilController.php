@@ -12,7 +12,6 @@ use App\Entity\Manutention;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Wiilock;
 use App\Service\DashboardService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -55,26 +54,34 @@ class AccueilController extends AbstractController
      *     }
      * )
      * @param EntityManagerInterface $entityManager
+     * @param DashboardService $dashboardService
      * @param string $page
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function dashboardExt(EntityManagerInterface $entityManager,
+                                 DashboardService $dashboardService,
                                  string $page): Response
     {
-        $data = $this->getDashboardData($entityManager);
+        $data = $this->getDashboardData($entityManager, true);
         $data['page'] = $page;
+        $data['pageData'] = ($page === 'emballage')
+            ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
+            : [];
+        $data['refreshDate'] = $dashboardService->getLastRefresh();
         return $this->render('accueil/dashboardExt.html.twig', $data);
     }
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param bool $isDashboardExt
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function getDashboardData(EntityManagerInterface $entityManager)
+    private function getDashboardData(EntityManagerInterface $entityManager,
+                                      bool $isDashboardExt = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -133,6 +140,9 @@ class AccueilController extends AbstractController
 
         return [
             'nbAlerts' => $nbAlerts,
+            'visibleDashboards' => $isDashboardExt
+                ? []
+                : $this->getUser()->getRole()->getDashboardsVisible(),
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
@@ -228,22 +238,14 @@ class AccueilController extends AbstractController
 
     /**
      * @Route("/acceuil/dernier-rafraichissement", name="last_refresh", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
+     * @param DashboardService $dashboardService
      * @return Response
      */
-    public function getLastRefreshDate(EntityManagerInterface $entityManager): Response
+    public function getLastRefreshDate(DashboardService $dashboardService): Response
     {
-        $wiilockRepository = $entityManager->getRepository(Wiilock::class);
-        $dashboardLock = $wiilockRepository->findOneBy([
-            'lockKey' => Wiilock::DASHBOARD_FED_KEY
-        ]);
         return new JsonResponse([
             'success' => true,
-            'date' => $dashboardLock ? (
-                     $dashboardLock->getUpdateDate()
-                        ? $dashboardLock->getUpdateDate()->format('d/m/Y H:i')
-                        : 'Aucune données')
-                    : 'Aucune données'
+            'date' => $dashboardService->getLastRefresh()
         ]);
     }
 

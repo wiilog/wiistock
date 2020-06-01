@@ -5,7 +5,31 @@
     <label hidden>Libellé</label>
     <input type="text" class="data form-control needed" name="label" value="{{ role.label }}">
 </div>
-
+{% if hasRight(constant('App\\Entity\\Menu::ACCUEIL'), constant('App\\Entity\\Action::DISPLAY_INDI')) %}
+    <div class="form-group ml-2">
+        <div class="row">
+            <div class="col-12 mb-3 pointer" data-toggle="collapse" href="#menu-dashboards">
+                                <span class="bold">
+                                    Affichage des dashboards
+                                </span>
+                <i class="fas fa-arrow-alt-circle-down ml-2"></i>
+            </div>
+            {% for dashboard in dashboards %}
+                {% set checked = dashboard.id in role.dashboardsVisible %}
+                <div id="menu-dashboards" class="collapse">
+                    <div class="col-auto mb-2">
+                        <label class="switch mini-switch">
+                            <input class="checkbox data" type="checkbox" name="{{ dashboard.id }}" {{ checked ? 'checked' }}>
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="font-size-mini pointer"
+                              onclick="$(this).closest('div').find('.checkbox').click();">{{ dashboard.label }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
 {% for menu in menus %}
     <div class="form-group ml-2">
         <div class="row">
@@ -36,35 +60,35 @@
 
 <div class="form-group">
     {% for param in params %}
-    <div class="input-group mb-3">
-        <div class="input-group-prepend">
-            <span class="input-group-text">{{ param.label|capitalize }}</span>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ param.label|capitalize }}</span>
+            </div>
+
+            {% if param.typage == 'bool' %}
+                {% set checked = param.value ? 'checked' : '' %}
+                <label class="switch">
+                    <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id }}" id="{{ param.id }}">
+                    <span class="slider round"></span>
+                </label>
+
+            {% elseif param.typage == 'number' %}
+                <input type="number" id="{{ param.id }}" class="form-control data col-3"
+                       value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id }}">
+
+            {% elseif param.typage == 'list' %}
+                <select class="form-control data col-3" id="{{ param.id }}" name="{{ param.id }}">
+                    {% set value = param.value is null ? param.default : param.value %}
+                    {% for elem in param.elements %}
+                        {% set selected = (elem == value) ? 'selected' : '' %}
+                        <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
+                    {% endfor %}
+                </select>
+
+            {% else %}
+                <input type="text" id="{{ param.id }}" class="form-control data col-3"
+                       value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id }}">
+            {% endif %}
         </div>
-
-        {% if param.typage == 'bool' %}
-            {% set checked = param.value ? 'checked' : '' %}
-            <label class="switch">
-                <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id}}" id="{{ param.id }}">
-                <span class="slider round"></span>
-            </label>
-
-        {% elseif param.typage == 'number' %}
-            <input type="number" id="{{ param.id }}" class="form-control data col-3"
-                   value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id}}">
-
-        {% elseif param.typage == 'list' %}
-            <select class="form-control data col-3" id="{{ param.id }}" name="{{ param.id }}">
-                {% set value = param.value is null ? param.default : param.value %}
-                {% for elem in param.elements %}
-                    {% set selected = (elem == value) ? 'selected' : '' %}
-                    <option value="{{ elem }}" {{ selected }}>{{elem}}</option>
-                {% endfor %}
-            </select>
-
-        {% else %}
-            <input type="text" id="{{ param.id }}" class="form-control data col-3"
-                   value="{{ param.value }}" id="{{ param.id }}" name="{{ param.id }}">
-        {% endif %}
-    </div>
-{% endfor %}
+    {% endfor %}
 </div>

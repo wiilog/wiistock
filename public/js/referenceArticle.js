@@ -29,10 +29,6 @@ function afterLoadingEditModal($button) {
 }
 
 function submitActionRefArticle(modal, path, callback = null, close = true) {
-    if (path === Routing.generate('save_column_visible', true)) {
-        tableColumnVisible.search('').draw()
-    }
-
     let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
 
     // si tout va bien on envoie la requête ajax...
@@ -136,13 +132,13 @@ let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_ref_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
-let url = Routing.generate('ref_article_api', true);
 
 $(function () {
     initTableRefArticle();
 });
 
 function initTableRefArticle() {
+    let url = Routing.generate('ref_article_api', true);
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
         let tableRefArticleConfig = {
             processing: true,
@@ -192,14 +188,6 @@ function resizeTable() {
         .columns.adjust()
         .responsive.recalc();
 }
-
-//COLUMN VISIBLE
-let tableColumnVisibleConfig = {
-    "paging": false,
-    "info": false,
-    "searching": false
-};
-let tableColumnVisible = initDataTable('tableColumnVisible_id', tableColumnVisibleConfig);
 
 function showDemande(bloc) {
     let $livraisonShow = $('#livraisonShow');
@@ -333,7 +321,7 @@ function displayFilterValue(elem) {
             $('.list-multiple').select2();
         }, 'json');
     } else {
-        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control cursor-default data ' + type + '" id="value" name="value">');
+        modalBody.find('.input-group').html('<input type="' + type + '" class="form-control cursor-default data needed ' + type + '" id="value" name="value">');
         if (datetimepicker) initDateTimePicker('#modalNewFilter .text');
     }
 
@@ -585,6 +573,9 @@ function initDatatableMovements(referenceArticleId) {
         ajax: {
             "url": pathRefMouvements,
             "type": "POST"
+        },
+        drawConfig: {
+            needsResize: true
         },
         domConfig: {
             removeInfo: true,

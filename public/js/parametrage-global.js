@@ -387,13 +387,6 @@ function fileToImagePreview($fileInput) {
     }
 }
 
-function resizeDaysWorked(tableId) {
-    // TODO WIIS-2373
-    setTimeout(() => {
-        $(tableId).DataTable().columns.adjust().draw();
-    }, 100);
-}
-
 function addWorkFreeDay($button) {
     const $input = $button.siblings('input[name="newWorkFreeDay"]');
     const date = moment($input.val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
