@@ -53,56 +53,63 @@ $(function () {
         }
         setActiveDashboard(getUrlHash());
     }
+
     updateRefreshDate();
     loadProperData();
 
-    initTooltips($('.has-tooltip'));
+    refreshPageTitle();
+
+    let reloadFrequency = 1000 * 60 * 5; // 5min
+    setInterval(() => {
+        if (isDashboardExt()) {
+            window.location.reload();
+        }
+        else {
+            reloadData();
+        }
+    }, reloadFrequency);
 
     if (!isDashboardExt()) {
-        let reloadFrequency = 1000 * 60 * 5; // 5min
-        setInterval(reloadData, reloadFrequency);
-    }
+        initTooltips($('.has-tooltip'));
+        let $indicators = $('#indicators');
+        $('#btnIndicators').mouseenter(function () {
+            $indicators.fadeIn();
+        });
+        $('#blocIndicators').mouseleave(function () {
+            $indicators.fadeOut();
+        });
 
-    let $indicators = $('#indicators');
-    $('#btnIndicators').mouseenter(function () {
-        $indicators.fadeIn();
-    });
-    $('#blocIndicators').mouseleave(function () {
-        $indicators.fadeOut();
-    });
-
-    $(document).on('keydown', function (e) {
-        if (!$('.carousel-indicators').hasClass('d-none')) {
-            let activeBtn = $('#carousel-dashboard').find('[data-slide-to].active');
-            if (e.which === 37) {
-                activeBtn.prev('li').click()
-            } else if (e.which === 39) {
-                activeBtn.next('li').click()
+        $(document).on('keydown', function (e) {
+            if (!$('.carousel-indicators').hasClass('d-none')) {
+                let activeBtn = $('#carousel-dashboard').find('[data-slide-to].active');
+                if (e.which === 37) {
+                    activeBtn.prev('li').click()
+                } else if (e.which === 39) {
+                    activeBtn.next('li').click()
+                }
             }
-        }
-    });
+        });
 
-    $(window).resize(function () {
-        let newFontSize = calculateChartsFontSize();
-        if (newFontSize !== currentChartsFontSize) {
-            currentChartsFontSize = newFontSize;
+        $(window).resize(function () {
+            let newFontSize = calculateChartsFontSize();
+            if (newFontSize !== currentChartsFontSize) {
+                currentChartsFontSize = newFontSize;
+                loadProperData(true);
+            }
+        });
+        const $carouselDashboard = $('#carousel-dashboard');
+        // slide during
+        $carouselDashboard.on('slide.bs.carousel', (event) => {
+            showDashboardSpinner();
+        });
+
+        // slide end
+        $carouselDashboard.on('slid.bs.carousel', () => {
+            window.location.hash = $('#carousel-dashboard .carousel-item.active').data('name');
             loadProperData(true);
-        }
-    });
-
-    refreshPageTitle();
-    const $carouselDashboard = $('#carousel-dashboard');
-    // slide during
-    $carouselDashboard.on('slide.bs.carousel', (event) => {
-        showDashboardSpinner();
-    });
-
-    // slide end
-    $carouselDashboard.on('slid.bs.carousel', () => {
-        window.location.hash = $('#carousel-dashboard .carousel-item.active').data('name');
-        loadProperData(true);
-        refreshPageTitle();
-    });
+            refreshPageTitle();
+        });
+    }
 });
 
 function showDashboardSpinner() {

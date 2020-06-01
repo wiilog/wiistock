@@ -29,10 +29,6 @@ function afterLoadingEditModal($button) {
 }
 
 function submitActionRefArticle(modal, path, callback = null, close = true) {
-    if (path === Routing.generate('save_column_visible', true)) {
-        tableColumnVisible.search('').draw()
-    }
-
     let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
 
     // si tout va bien on envoie la requête ajax...
@@ -192,14 +188,6 @@ function resizeTable() {
         .columns.adjust()
         .responsive.recalc();
 }
-
-//COLUMN VISIBLE
-let tableColumnVisibleConfig = {
-    "paging": false,
-    "info": false,
-    "searching": false
-};
-let tableColumnVisible = initDataTable('tableColumnVisible_id', tableColumnVisibleConfig);
 
 function showDemande(bloc) {
     let $livraisonShow = $('#livraisonShow');
