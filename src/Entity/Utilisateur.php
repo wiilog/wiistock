@@ -283,6 +283,17 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->email = $email;
         return $this;
     }
+
+    public function getMainAndSecondaryEmails(): array {
+        $secondaryEmails = array_filter(($this->secondaryEmails ?? []), function(string $email) {
+            return $email !== "";
+        });
+        return array_merge(
+            [$this->email],
+            $secondaryEmails
+        );
+    }
+
     public function getPassword(): ?string
 {
     return $this->password;

@@ -428,7 +428,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'pjs' => $arrivage->getAttachements()
                                                 ]
                                             ),
-                                            $destinataire->getEmail()
+                                            $destinataire->getMainAndSecondaryEmails()
                                         );
                                     } else {
                                         $this->logger->critical('Parametrage mail non defini.');

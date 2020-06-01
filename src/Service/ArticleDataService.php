@@ -457,16 +457,16 @@ class ArticleDataService
                 $userThatTriggeredEmergency = $refArticle->getUserThatTriggeredEmergency();
                 if ($userThatTriggeredEmergency) {
                     if ($demande && $demande->getUtilisateur()) {
-                        $destinataires = [
-                            $userThatTriggeredEmergency->getEmail(),
-                            $demande->getUtilisateur()->getEmail()
-                        ];
+                        $destinataires = array_merge(
+                            $userThatTriggeredEmergency->getMainAndSecondaryEmails(),
+                            $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                        );
                     } else {
-                        $destinataires = $userThatTriggeredEmergency->getEmail();
+                        $destinataires = $userThatTriggeredEmergency->getMainAndSecondaryEmails();
                     }
                 } else {
                     if ($demande && $demande->getUtilisateur()) {
-                        $destinataires = $demande->getUtilisateur()->getEmail();
+                        $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
                     }
                 }
                 // on envoie un mail aux demandeurs
