@@ -57,7 +57,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
 
             $cpt = 0;
             $articleCount = count($availableSILIArticles);
-
+            dump('Total des articles : ' . $articleCount);
             foreach ($availableSILIArticles as $availableSILIArticle) {
                 $availableSILIArticle
                     ->setStatut($statutConsomme);
@@ -81,7 +81,8 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
 
 
             $cpt = 0;
-            $refsToUpdateCount = count($availableSILIArticles);
+            $refsToUpdateCount = count($refsToUpdate);
+            dump('Total des réferences : ' . $refsToUpdate);
             foreach ($refsToUpdate as $refToUpdate) {
                 $this->refArticleService->updateRefArticleQuantities($refToUpdate);
                 $this->refArticleService->treatAlert($refToUpdate);
