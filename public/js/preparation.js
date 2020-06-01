@@ -109,11 +109,6 @@ function startPicking($button) {
         };
         tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
         $('#modalSplitting').modal('show');
-
-        // TODO WIIS-2373
-        setTimeout(() => {
-            tableArticleSplitting.columns.adjust().draw();
-        }, 300);
     });
 }
 

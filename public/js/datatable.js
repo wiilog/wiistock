@@ -1,6 +1,16 @@
-$.fn.dataTable.ext.errMode = () => {
-    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
-};
+$(function() {
+    $.fn.dataTable.ext.errMode = () => {
+        alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+    };
+
+    $(window).on('shown.bs.collapse shown.bs.modal', (event) => {
+        const $collapse = $(event.target);
+        $collapse.find('.wii-table').each(function () {
+            const $table = $(this);
+            $table.DataTable().columns.adjust().draw();
+        });
+    });
+});
 
 function hideColumns(table, data) {
     data.forEach(function (col) {
