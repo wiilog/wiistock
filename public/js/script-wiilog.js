@@ -1194,9 +1194,11 @@ function warningEmptyDatesForCsv() {
 }
 
 function displayFiltersSup(data) {
+    console.log(data);
     data.forEach(function (element) {
         switch (element.field) {
             case 'utilisateurs':
+            case 'declarants':
             case 'providers':
             case 'reference':
             case 'statut':
@@ -1459,5 +1461,25 @@ function wrapLoadingOnActionButton($button, action, endLoading = true) {
         });
     } else {
         alertSuccessMsg('L\'opération est en cours de traitement');
+    }
+}
+
+
+function fillDemandeurField($modal) {
+    const $operatorSelect = $modal.find('.select2-declarant');
+    const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
+    if ($loggedUserInput.data('id')) {
+        let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+        $operatorSelect
+            .select2()
+            .val(null)
+            .trigger('change')
+            .append(option)
+            .trigger('change');
+    } else {
+        $operatorSelect
+            .select2()
+            .val(null)
+            .trigger('change');
     }
 }

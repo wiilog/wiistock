@@ -175,7 +175,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'));
-
+        fillDemandeurField(modal);
         let values = [];
         data.colis.forEach(val => {
             values.push({

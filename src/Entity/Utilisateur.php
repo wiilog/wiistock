@@ -230,6 +230,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnsVisibleForArrivage;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="declarant")
+     */
+    private $litigesDeclarant;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -254,6 +259,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->receptionsTraca = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
+        $this->litigesDeclarant = new ArrayCollection();
     }
 
     public function getId()
@@ -1202,6 +1208,37 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function getColumnsVisibleForArrivage()
     {
         return $this->columnsVisibleForArrivage;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitigesDeclarant(): Collection
+    {
+        return $this->litigesDeclarant;
+    }
+
+    public function addLitigesDeclarant(Litige $litigesDeclarant): self
+    {
+        if (!$this->litigesDeclarant->contains($litigesDeclarant)) {
+            $this->litigesDeclarant[] = $litigesDeclarant;
+            $litigesDeclarant->setDeclarant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigesDeclarant(Litige $litigesDeclarant): self
+    {
+        if ($this->litigesDeclarant->contains($litigesDeclarant)) {
+            $this->litigesDeclarant->removeElement($litigesDeclarant);
+            // set the owning side to null (unless already changed)
+            if ($litigesDeclarant->getDeclarant() === $this) {
+                $litigesDeclarant->setDeclarant(null);
+            }
+        }
+
+        return $this;
     }
 
 }

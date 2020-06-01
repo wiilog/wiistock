@@ -236,6 +236,8 @@ class LitigeRepository extends EntityRepository
 			->leftJoin('a.chauffeur', 'ch')
             ->leftJoin('a.acheteurs', 'ach')
             ->leftJoin('l.buyers', 'buyers')
+            ->leftJoin('l.declarant', 'declarant')
+            ->addSelect('declarant.username as declarantUsername')
 			->addSelect('ach.username as achUsername')
 			->addSelect('a.numeroArrivage')
 			->addSelect('a.id as arrivageId')
@@ -289,6 +291,13 @@ class LitigeRepository extends EntityRepository
 						->andWhere("ach.id in (:userId) OR b.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
+                case 'declarants':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->leftJoin('l.declarant', 'd')
+                        ->andWhere("d.id in (:userIdDeclarant)")
+                        ->setParameter('userIdDeclarant', $value);
+                    break;
 				case 'dateMin':
 					$qb
 						->andWhere('l.creationDate >= :dateMin')
@@ -322,6 +331,8 @@ class LitigeRepository extends EntityRepository
 					$qb
 						->andWhere('(
 						t.label LIKE :value OR
+						declarant.username LIKE :value OR
+						declarant.email LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						r.numeroReception LIKE :value OR
 						r.reference LIKE :value OR

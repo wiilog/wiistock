@@ -1,5 +1,4 @@
 <div class="modal-body modal-input container-fluid">
-
     <div class="row">
         <div class="form-group col-8">
             <label for="typeLitige">Type*</label>
@@ -31,10 +30,22 @@
         <div class="form-group w-100 col-12">
             <label for="acheteursLitige">Acheteur(s)</label>
             <select class="form-control data select2" name="acheteursLitige" id="acheteursLitigeEdit" multiple="multiple">
-                {% for acheteur in acheteurs %}
-                    <option value="{{ acheteur.id }}">{{ acheteur.text }}</option>
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
                 {% endfor %}
             </select>
+        </div>
+        <div class="form-group w-100 col-12">
+            <label for="declarantLitige">Déclarant*</label>
+            <select class="form-control data select2-declarant needed" name="declarantLitige" id="declarantLitige">
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
+                {% endfor %}
+            </select>
+            <input hidden
+                   name="logged-user"
+                   data-username="{{ litige.declarant ? litige.declarant.username : ''}}"
+                   data-id="{{ litige.declarant ? litige.declarant.id : '' }}"/>
         </div>
         <div class="form-group w-100 col-12">
             <label for="colisEditLitige" title="articles">{{ 'réception.articles'|trans }}*</label>

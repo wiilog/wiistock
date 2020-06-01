@@ -50,10 +50,22 @@
                             <label for="acheteursLitige">Acheteur(s)</label>
                             <select class="form-control data select2" name="acheteursLitige" id="acheteursLitige"
                                     multiple="multiple">
-                                {% for acheteur in acheteurs %}
-                                    <option value="{{ acheteur.id }}">{{ acheteur.text }}</option>
+                                {% for utilisateur in utilisateurs %}
+                                    <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+                        <div class="form-group w-100 col-12">
+                            <label for="declarantLitige">Déclarant*</label>
+                            <select class="form-control data select2-declarant needed" name="declarantLitige" id="declarantLitige">
+                                {% for utilisateur in utilisateurs %}
+                                    <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
+                                {% endfor %}
+                            </select>
+                            <input hidden
+                                   name="logged-user"
+                                   data-username="{{ app.user.username }}"
+                                   data-id="{{ app.user.id }}"/>
                         </div>
                         <div class="form-group w-100 col-12">
                             <label for="colisLitige"><span title="articles">{{ 'réception.articles'|trans }}</span>*</label>

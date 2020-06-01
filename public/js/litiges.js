@@ -18,7 +18,8 @@ $(function () {
     initSelect2($('#carriers'), 'Transporteurs');
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#litigeOrigin'), 'Origines');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+    ajaxAutoUserInit($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
+    ajaxAutoUserInit($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -54,6 +55,7 @@ function initDatatableLitiges() {
             {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
+            {"data": 'declarant', 'name': 'declarant', 'title': 'Déclarant'},
             {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
@@ -128,7 +130,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {
 
             $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         }
-
+        fillDemandeurField($modal);
         $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();
 
