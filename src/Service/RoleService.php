@@ -9,6 +9,7 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Role;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 
 class RoleService
 {
@@ -22,6 +23,7 @@ class RoleService
     /**
      * @param Role $role
      * @param array $data
+     * @throws NonUniqueResultException
      */
     public function parseParameters(Role $role, array $data) {
         $actionRepository = $this->entityManager->getRepository(Action::class);
@@ -35,9 +37,10 @@ class RoleService
                 $actionLabel = $menuActionArray[1];
 
                 $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
-
                 if ($action && $isChecked) {
                     $role->addAction($action);
+                } else {
+                    $role->removeAction($action);
                 }
             } else {
                 if ($isChecked && is_string($menuAction)) {
