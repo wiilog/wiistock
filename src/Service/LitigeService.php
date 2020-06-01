@@ -131,6 +131,7 @@ class LitigeService
 				'receptionId' => $litige['receptionId']
 			]),
             'references' => $references,
+            'declarant' => $litige['declarantUsername'],
 			'command' => $commands,
 			'numCommandeBl' => $numerosBL,
 			'buyers' => implode(', ', array_merge($acheteursArrivage, $acheteursReception)),
