@@ -4,6 +4,22 @@
 
 {% block showActions %}
     <div class="btn-group">
+        {#Bouton rajouté pour la validation#}
+        {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
+            {% if not finished %}
+                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+                    <button
+                       data-id="22"
+                       class="btn btn-primary btn-ripple split-button"
+                       onclick="endLivraison({{ livraison.id }}, $(this))">
+                        <i class="fa fa-check mr-2 button-icon"></i>
+                        Finir la livraison
+                    </button>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        {#Fin bouton rajouté pour la validation#}
+
         <button type="button"
                 class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                 data-toggle="dropdown"
@@ -11,23 +27,24 @@
                 aria-expanded="false">
             <span class="fa fa-angle-down"></span>
         </button>
+
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-            {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
+            {#{% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
                 {% if not finished %}
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                         <a class="dropdown-item" href={{ path('livraison_finish', {'id': livraison.id}) }}>
                             <i class="fa fa-check mr-2"></i>Finir la livraison
                         </a>
-                    {% endif %}
-                    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                        <a class="dropdown-item" href=""
-                           onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
-                           data-id='{{ livraison.id }}' data-target='#modalDeleteLivraison' data-toggle='modal'>
-                            <i class="fa fa-trash mr-2"></i>Supprimer
-                        </a>
-                    {% endif %}
-                {% endif %}
+                    {% endif %}#}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
+                <a class="dropdown-item" href=""
+                   onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
+                   data-id='{{ livraison.id }}' data-target='#modalDeleteLivraison' data-toggle='modal'>
+                        <i class="fa fa-trash mr-2"></i>Supprimer
+                </a>
             {% endif %}
+                {#{% endif %}
+            {% endif %}#}
             <a href="{{ path('demande_show', {'id': demande.id}) }}" class="dropdown-item">
                 <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison
             </a>
