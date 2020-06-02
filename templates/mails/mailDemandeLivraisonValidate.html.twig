@@ -1,0 +1,34 @@
+{% extends 'mails/mjml/template.html.twig' %}
+
+{% block content %}
+    <table class="table" style="border: 1px solid black;">
+        <thead>
+        <tr>
+            <th class="th" style="border: 1px solid black; padding: 10px">{{ 'reference.référence'|trans }}</th>
+            <th class="th" style="border: 1px solid black; padding: 10px">Code barre {{ 'reference.référence'|trans }}</th>
+            <th class="th" style="border: 1px solid black; padding: 10px">Code barre article</th>
+            <th class="th" style="border: 1px solid black; padding: 10px">Quantité</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for article in demande.articles %}
+            <tr>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.reference }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.barCode }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.barCode }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.quantiteAPrelever }}</td>
+            </tr>
+        {% endfor %}
+        {% for demandeRef in demande.ligneArticle %}
+            <tr>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.reference.reference }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.reference.barCode }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px"></td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.quantite }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+{% endblock %}
