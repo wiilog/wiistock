@@ -77,7 +77,7 @@ class ParamTypesController extends AbstractController
                         'Label' => $type->getLabel(),
                         'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
                         'Description' => $type->getDescription(),
-                        'Actions' => $type->getId(),
+                        'sendMail' => $type->getSendMail() ? 'Oui' : 'Non',
                         'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
                             'url' => $url,
                             'typeId' => $type->getId(),
@@ -117,6 +117,7 @@ class ParamTypesController extends AbstractController
                 $type = new Type();
                 $type
                     ->setLabel($data['label'])
+                    ->setSendMail($data["sendMail"] ?? false)
                     ->setDescription($data['description'])
                     ->setCategory($category);
 
@@ -193,6 +194,7 @@ class ParamTypesController extends AbstractController
                 $category = $categoryTypeRepository->find($data['category']);
                 $type
                     ->setLabel($data['label'])
+                    ->setSendMail($data["sendMail"] ?? false)
                     ->setCategory($category)
                     ->setDescription($data['description']);
 
