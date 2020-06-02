@@ -267,8 +267,8 @@ class AccueilController extends AbstractController
     {
         $colisCountByDay = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-colis-daily');
         $arrivalCountByDays = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-daily');
-        $formattedColisData = $dashboardService->flatArray($colisCountByDay['data']);
-        $formattedArrivalData = $dashboardService->flatArray($arrivalCountByDays['data']);
+        $formattedColisData = $colisCountByDay ? $dashboardService->flatArray($colisCountByDay['data']) : [] ;
+        $formattedArrivalData = $arrivalCountByDays ? $dashboardService->flatArray($arrivalCountByDays['data']) : [];
         return new JsonResponse([
             'data' => $formattedArrivalData,
             'subCounters' => $formattedColisData,
@@ -294,7 +294,7 @@ class AccueilController extends AbstractController
     public function getDailyPacksStatistics(EntityManagerInterface $entityManager, DashboardService $dashboardService): Response
     {
         $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'colis');
-        $formattedData = $dashboardService->flatArray($data['data']);
+        $formattedData = $data ? $dashboardService->flatArray($data['data']) : [];
         return new JsonResponse($formattedData);
     }
 
@@ -316,8 +316,8 @@ class AccueilController extends AbstractController
     {
         $colisCountByWeek = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-colis-weekly');
         $arrivalCountByWeek = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_DOCK, 'arrivage-weekly');
-        $formattedColisData = $dashboardService->flatArray($colisCountByWeek['data']);
-        $formattedArrivalData = $dashboardService->flatArray($arrivalCountByWeek['data']);
+        $formattedColisData = $colisCountByWeek ? $dashboardService->flatArray($colisCountByWeek['data']) : [];
+        $formattedArrivalData = $arrivalCountByWeek ? $dashboardService->flatArray($arrivalCountByWeek['data']) : [];
         return new JsonResponse([
             'data' => $formattedArrivalData,
             'subCounters' => $formattedColisData,
@@ -359,15 +359,17 @@ class AccueilController extends AbstractController
         $key = DashboardService::DASHBOARD_ADMIN . '-' . $graph;
         $data = $dashboardService->getChartData($entityManager, DashboardService::DASHBOARD_ADMIN, $key);
         $orderedData = [];
-        $orderedData['chartColors'] = $data['chartColors'];
-        $orderedData['total'] = $data['total'];
-        $orderedData['location'] = $data['location'];
-        foreach ($data['data'] as $key => $datum) {
-            $index = $neededOrder[$key];
-            $orderedData['data'][$index] = $datum;
-        }
+        $orderedData['chartColors'] = $data['chartColors'] ?? [];
+        $orderedData['total'] = $data['total'] ?? [];
+        $orderedData['location'] = $data['location']  ?? [];
+        if (!is_null($data)) {
+            foreach ($data['data'] as $key => $datum) {
+                $index = $neededOrder[$key];
+                $orderedData['data'][$index] = $datum;
+            }
         ksort($orderedData['data']);
         $orderedData['data'] = array_combine(array_keys($neededOrder), array_values($orderedData['data']));
+        }
         return new JsonResponse($orderedData);
     }
 

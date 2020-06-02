@@ -216,8 +216,8 @@ class DashboardService
         $chartData = $this->getChartData($entityManager, self::DASHBOARD_PACKAGING, 'of');
         return [
             'counters' => $locationCounter,
-            'chartData' => $chartData['data'],
-            'chartColors' => $chartData['chartColors'],
+            'chartData' => $chartData['data'] ?? [],
+            'chartColors' => $chartData['chartColors'] ?? [],
         ];
     }
 
