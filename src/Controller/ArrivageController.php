@@ -1022,7 +1022,7 @@ class ArrivageController extends AbstractController
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
-            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE);
+            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE);
             $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
             $response = $arrivageResponse ? $arrivageResponse : [];
 
@@ -1304,7 +1304,7 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE, true);
+                $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE, true);
             }
 
             $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));

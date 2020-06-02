@@ -57,7 +57,6 @@ class LitigeRepository extends EntityRepository
         $query = $em
             ->createQuery($sql)
             ->setParameter('litigeId', $litigeId);
-
         return array_map(function($utilisateur) use ($field) {
             return $utilisateur[$field];
         }, $query->execute());

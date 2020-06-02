@@ -1088,7 +1088,7 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION, true);
+                $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
             }
             $response = [];
             return new JsonResponse($response);
@@ -1169,7 +1169,7 @@ class ReceptionController extends AbstractController
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
-            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION);
+            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
             $response = [];
 
             return new JsonResponse($response);
