@@ -1448,15 +1448,17 @@ function wrapLoadingOnActionButton($button, action, endLoading = true) {
         }
         $button.prepend($loader);
         $button.addClass(loadingClass);
-        action().then((success) => {
-            if (endLoading || !success) {
-                $button.find('.spinner-border').remove();
-                if ($buttonIcon.length > 0) {
-                    $buttonIcon.removeClass('d-none');
+        if(action) {
+            action().then((success) => {
+                if (endLoading || !success) {
+                    $button.find('.spinner-border').remove();
+                    if ($buttonIcon.length > 0) {
+                        $buttonIcon.removeClass('d-none');
+                    }
+                    $button.removeClass(loadingClass);
                 }
-                $button.removeClass(loadingClass);
-            }
-        });
+            });
+        }
     } else {
         alertSuccessMsg('L\'opération est en cours de traitement');
     }

@@ -86,6 +86,11 @@ let tableArticleConfig = {
 };
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
+let modalDeleteLivraison = $('#modalDeleteLivraison');
+let submitDeleteLivraison = $('#submitDeleteLivraison');
+let urlDeleteLivraison = Routing.generate('livraison_delete', {'id': id}, true);
+InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);
+
 function endLivraison(livraisonId, $button) {
     wrapLoadingOnActionButton($button, () => (
         new Promise(function (resolve) {
@@ -94,8 +99,3 @@ function endLivraison(livraisonId, $button) {
         })
     ), false);
 }
-
-let modalDeleteLivraison = $('#modalDeleteLivraison');
-let submitDeleteLivraison = $('#submitDeleteLivraison');
-let urlDeleteLivraison = Routing.generate('livraison_delete', {'id': id}, true);
-InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);

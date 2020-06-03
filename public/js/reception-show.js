@@ -659,7 +659,6 @@ function initConditionnementArticleFournisseurDefault() {
     const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
 
     if (referenceArticle) {
-        console.log(referenceArticle);
         resetDefaultArticleFournisseur(true);
         initSelect2(
             $selectArticleFournisseur,
