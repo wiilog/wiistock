@@ -1104,7 +1104,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null) {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
     let options = {
         format: format,
         useCurrent: false,
@@ -1122,6 +1122,9 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
             selectDecade: 'Choisir la décennie',
         }
     };
+    if (disableDates) {
+        options.disabledDates = disableDates;
+    }
     if (minDate) {
         options.minDate = moment().hours(0).minutes(0).seconds(0);
     }
@@ -1348,13 +1351,6 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     $alertModal.modal('show');
 }
 
-function initTooltips($elements) {
-    $elements.each(function () {
-        $(this).tooltip('dispose');
-        $(this).tooltip();
-    });
-}
-
 function managePrintButtonTooltip(active, $button) {
     if ($button) {
         $button.tooltip(
@@ -1431,29 +1427,6 @@ function saveExportFile(routeName, params = null) {
         warningEmptyDatesForCsv();
         hideSpinner($spinner);
     }
-}
-
-/**
- * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
- */
-function renderMillisecondsToDelay(milliseconds, type) {
-    let res;
-
-    if (type === 'display') {
-        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
-        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
-        res = (
-                (hours > 0)
-                    ? `${hours < 10 ? '0' : ''}${hours} h `
-                    : '') +
-            ((minutes === 0 && hours < 1)
-                ? '< 1 min'
-                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
-    } else {
-        res = milliseconds;
-    }
-
-    return res;
 }
 
 /**

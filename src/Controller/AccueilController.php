@@ -64,7 +64,7 @@ class AccueilController extends AbstractController
                                  DashboardService $dashboardService,
                                  string $page): Response
     {
-        $data = $this->getDashboardData($entityManager);
+        $data = $this->getDashboardData($entityManager, true);
         $data['page'] = $page;
         $data['pageData'] = ($page === 'emballage')
             ? $dashboardService->getSimplifiedDataForPackagingDashboard($entityManager)
@@ -75,11 +75,13 @@ class AccueilController extends AbstractController
 
     /**
      * @param EntityManagerInterface $entityManager
+     * @param bool $isDashboardExt
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    private function getDashboardData(EntityManagerInterface $entityManager)
+    private function getDashboardData(EntityManagerInterface $entityManager,
+                                      bool $isDashboardExt = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -137,7 +139,9 @@ class AccueilController extends AbstractController
         $nbrDemandeManutentionAT = $manutentionRepository->countByStatut($statutManutAT);
         return [
             'nbAlerts' => $nbAlerts,
-            'visibleDashboards' => $this->getUser()->getRole()->getDashboardsVisible(),
+            'visibleDashboards' => $isDashboardExt
+                ? []
+                : $this->getUser()->getRole()->getDashboardsVisible(),
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

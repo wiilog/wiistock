@@ -1,13 +1,18 @@
-<a data-toggle="collapse" href="#paramDaysWorked" role="button" aria-expanded="false"
-   onclick="resizeDaysWorked()"
-   aria-controls="paramDaysWorked" class="col-12 mb-4">
+<a data-toggle="collapse"
+   href="#paramDaysWorked"
+   role="button"
+   aria-expanded="false"
+   aria-controls="paramDaysWorked"
+   class="col-12 mb-4">
     <h1 class="btn btn-primary m-0 w-100 border-radius-light">Paramétrage des heures travaillées<i
-                class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+            class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
 </a>
-<div class="collapse col-12" id="paramDaysWorked">
+<div class="collapse col-12 dt-parent" id="paramDaysWorked">
+    <div class="row wii-page-card-header">
+    </div>
+
     <table id="tableDays" class="table w-100">
     </table>
-
     <form method="" class="modal fade" id="modalEditDays" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -24,7 +29,8 @@
                 <div class="modal-footer">
                     <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                     <button id="submitEditDays" class="btn btn-primary btn-success data "
-                            name='id' type="button" value =''>Enregistrer</button>
+                            name='id' type="button" value=''>Enregistrer
+                    </button>
                 </div>
             </div>
         </div>

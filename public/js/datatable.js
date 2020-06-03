@@ -1,6 +1,16 @@
-$.fn.dataTable.ext.errMode = () => {
-    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
-};
+$(function() {
+    $.fn.dataTable.ext.errMode = () => {
+        alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+    };
+
+    $(window).on('shown.bs.collapse shown.bs.modal', (event) => {
+        const $collapse = $(event.target);
+        $collapse.find('.wii-table').each(function () {
+            const $table = $(this);
+            $table.DataTable().columns.adjust().draw();
+        });
+    });
+});
 
 function hideColumns(table, data) {
     data.forEach(function (col) {
@@ -204,8 +214,12 @@ function moveSearchInputToHeader($searchInputContainer) {
     const $searchInput = $searchInputContainer.find('input');
     const $searchInputContainerCol = $searchInputContainer.parent();
     if ($datatableCard.length > 0) {
-        const $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        let $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        $datatableCardHeader = ($datatableCardHeader.length > 1)
+            ? $searchInputContainer.parents('.dt-parent').find('.wii-page-card-header')
+            : $datatableCardHeader;
         if ($datatableCardHeader.length > 0) {
+            console.log($datatableCardHeader);
             $searchInput.addClass('search-input');
             $datatableCardHeader.prepend($searchInputContainerCol);
             $searchInputContainerCol.removeClass('d-none');
