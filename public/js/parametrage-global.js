@@ -389,21 +389,25 @@ function fileToImagePreview($fileInput) {
 
 function addWorkFreeDay($button) {
     const $input = $button.siblings('input[name="newWorkFreeDay"]');
-    const date = moment($input.val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
-    let path = Routing.generate('workFreeDay_new', true);
-    $.post(path, {date}, (resp) => {
-        if (resp.success) {
-            let datetimeMoment = moment(date);
-            disabledDates.push(datetimeMoment);
-            $input.data('DateTimePicker').disabledDates(disabledDates);
-            $input.val('');
+    if ($input.val()) {
+        const date = moment($input.val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let path = Routing.generate('workFreeDay_new', true);
+        $.post(path, {date}, (resp) => {
+            if (resp.success) {
+                let datetimeMoment = moment(date);
+                disabledDates.push(datetimeMoment);
+                $input.data('DateTimePicker').disabledDates(disabledDates);
+                $input.val('');
 
-            workFreeDaysTable.ajax.reload();
-            alertSuccessMsg(resp.text);
-        } else {
-            alertErrorMsg(resp.text);
-        }
-    });
+                workFreeDaysTable.ajax.reload();
+                alertSuccessMsg(resp.text);
+            } else {
+                alertErrorMsg(resp.text);
+            }
+        });
+    } else {
+        alertErrorMsg('Veuillez sélectionner une date valide.');
+    }
 }
 
 function deleteWorkFreeDay(id, date) {

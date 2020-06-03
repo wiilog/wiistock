@@ -2,16 +2,15 @@
    href="#workFreeDays"
    role="button"
    aria-expanded="false"
-   onclick="resizeDaysWorked('#tableWorkFreeDays')"
    aria-controls="paramDaysWorked" class="col-12 mb-4">
     <h1 class="btn btn-primary m-0 w-100 border-radius-light">
         Paramétrage des jours non travaillés
         <i class="fas fa-arrow-alt-circle-down ml-2"></i>
     </h1>
 </a>
-<div class="collapse col-12" id="workFreeDays">
-    <div class="row">
-        <div class="col-auto">
+<div class="collapse col-12 dt-parent" id="workFreeDays">
+    <div class="row wii-page-card-header">
+        <div class="col-auto ml-auto">
             <div class="input-group">
                 <input type="hidden"
                        name="already-work-free-days"
