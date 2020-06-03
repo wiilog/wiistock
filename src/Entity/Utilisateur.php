@@ -286,7 +286,7 @@ class Utilisateur implements UserInterface, EquatableInterface
 
     public function getMainAndSecondaryEmails(): array {
         $secondaryEmails = array_filter(($this->secondaryEmails ?? []), function(string $email) {
-            return $email !== "";
+            return !empty($email);
         });
         return array_merge(
             [$this->email],

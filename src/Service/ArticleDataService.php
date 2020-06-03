@@ -469,11 +469,14 @@ class ArticleDataService
                         $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
                     }
                 }
-                // on envoie un mail aux demandeurs
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
-                    $destinataires
-                );
+
+                if (!empty($destinataires)) {
+                    // on envoie un mail aux demandeurs
+                    $this->mailerService->sendMail(
+                        'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                        $destinataires
+                    );
+                }
                 // on retire l'urgence
                 $refArticle
                     ->setIsUrgent(false)

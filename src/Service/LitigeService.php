@@ -160,11 +160,10 @@ class LitigeService
             $buyers = $isArrival
                 ? $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId())
                 : $buyersEmail = array_reduce($litige->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
-                    $emails = $buyer->getMainAndSecondaryEmails();
-                    foreach ($emails as $email) {
-                        $carry[] = $email;
-                    }
-                    return $carry;
+                    return array_merge(
+                        $carry,
+                        $buyer->getMainAndSecondaryEmails()
+                    );
                 }, []);
 
             $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
