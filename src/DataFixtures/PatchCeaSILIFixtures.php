@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\Article;
 
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Livraison;
 use App\Entity\Preparation;
 use App\Entity\Statut;
