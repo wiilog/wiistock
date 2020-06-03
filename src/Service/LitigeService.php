@@ -163,9 +163,11 @@ class LitigeService
             $litigeRepository = $this->entityManager->getRepository(Litige::class);
             $recipients = $isArrival
                 ? $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId())
-                : array_reduce($litige->getBuyers()->toArray(), function (array $carry, Utilisateur $buyer) {
-                    $carry[] = $buyer->getEmail();
-                    return $carry;
+                : array_reduce($litige->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
+                    return array_merge(
+                        $carry,
+                        $buyer->getMainAndSecondaryEmails()
+                    );
                 }, []);
         }
         if ($wantSendToDeclarantMailStatusChange && $litige->getDeclarant()) {
@@ -178,7 +180,7 @@ class LitigeService
         $subject = !$isUpdate
             ? ('FOLLOW GT // Litige sur ' . $translatedCategory)
             : 'FOLLOW GT // Changement de statut d\'un litige sur ' . $translatedCategory;
-        dump($recipients);
+
         if (!empty($recipients)) {
             $this->mailerService->sendMail(
                 $subject,

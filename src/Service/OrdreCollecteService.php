@@ -289,7 +289,7 @@ class OrdreCollecteService
 						'demande' => $demandeCollecte,
                     ]
                 ),
-                $demandeCollecte->getDemandeur()->getEmail()
+                $demandeCollecte->getDemandeur()->getMainAndSecondaryEmails()
             );
         }
 

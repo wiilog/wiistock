@@ -137,7 +137,6 @@ class AccueilController extends AbstractController
 
         $statutManutAT = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
         $nbrDemandeManutentionAT = $manutentionRepository->countByStatut($statutManutAT);
-
         return [
             'nbAlerts' => $nbAlerts,
             'visibleDashboards' => $isDashboardExt

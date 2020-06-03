@@ -1104,7 +1104,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null) {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
     let options = {
         format: format,
         useCurrent: false,
@@ -1122,6 +1122,9 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
             selectDecade: 'Choisir la décennie',
         }
     };
+    if (disableDates) {
+        options.disabledDates = disableDates;
+    }
     if (minDate) {
         options.minDate = moment().hours(0).minutes(0).seconds(0);
     }
