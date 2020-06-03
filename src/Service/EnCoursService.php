@@ -144,7 +144,6 @@ class EnCoursService
      */
     public function getLastEnCoursForLate() {
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-
         $locationArrayWithPack = $emplacementRepository->findWhereArticleIs();
         $locationIdWithPack = array_map(function($emplacementArray) {
             return $emplacementArray['id'];
@@ -179,7 +178,7 @@ class EnCoursService
             $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
 
             $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-            $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToString();
+            $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
 
             $packIntelList = empty($natures)
                 ? $mouvementTracaRepository->getLastOnLocations($locations)
@@ -217,7 +216,7 @@ class EnCoursService
     /**
      * @param array $workedDays [<english day label ('l' format)> => <nb time worked>]
      * @param DateTime $movementDate
-     * @param array $workFreeDays
+     * @param DateTime[] $workFreeDays
      * @return DateInterval
      * @throws Exception
      */
@@ -230,12 +229,13 @@ class EnCoursService
             $period = new DatePeriod($movementDate, $interval, $nowIncluding);
 
             $periodsWorked = [];
+
             // pour chaque jour entre la date du mouvement et aujourd'hui, minimum un tour de boucle pour les mouvements du jours
             /** @var DateTime $day */
             foreach ($period as $day) {
                 $dayLabel = strtolower($day->format('l'));
-                $dayToString = $day->format('Y-m-d');
-                if (isset($workedDays[$dayLabel]) && !isset($workFreeDays[$dayToString])) {
+                if (isset($workedDays[$dayLabel])
+                    && !$this->isDayInArray($day, $workFreeDays)) {
                     $periodsWorked = array_merge(
                         $periodsWorked,
                         array_map(
@@ -297,5 +297,24 @@ class EnCoursService
             $age = new DateInterval('P0Y');
         }
         return $age;
+    }
+
+    public function isDayInArray(DateTime $day, array $daysToCheck): bool {
+        $isDayInArray = false;
+        $dayIndex = 0;
+        $daysToCheckCount = count($daysToCheck);
+        $comparisonFormat = 'Y-m-d';
+
+        $formattedDay = $day->format($comparisonFormat);
+        while (!$isDayInArray && $dayIndex < $daysToCheckCount) {
+            $currentFormattedDay = $daysToCheck[$dayIndex]->format($comparisonFormat);
+            if ($currentFormattedDay === $formattedDay) {
+                $isDayInArray = true;
+            }
+            else {
+                $dayIndex++;
+            }
+        }
+        return $isDayInArray;
     }
 }
