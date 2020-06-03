@@ -7,6 +7,9 @@
             <th class="th" style="border: 1px solid black; padding: 10px">{{ 'reference.référence'|trans }}</th>
             <th class="th" style="border: 1px solid black; padding: 10px">Code barre {{ 'reference.référence'|trans }}</th>
             <th class="th" style="border: 1px solid black; padding: 10px">Code barre article</th>
+            {% if fournisseur is defined %}
+                <th class="th" style="border: 1px solid black; padding: 10px">Fournisseur</th>
+            {% endif %}
             <th class="th" style="border: 1px solid black; padding: 10px">Quantité</th>
         </tr>
         </thead>
@@ -16,7 +19,10 @@
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.reference }}</td>
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.barCode }}</td>
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ article.barCode }}</td>
-                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.quantiteAPrelever }}</td>
+                {% if fournisseur is defined %}
+                    <th class="th" style="border: 1px solid black; padding: 10px">{{ fournisseur }}</th>
+                {% endif %}
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.quantiteAPrelever == 0 ? article.quantite : article.quantiteAPrelever }}</td>
             </tr>
         {% endfor %}
         {% for demandeRef in demande.ligneArticle %}
@@ -24,6 +30,9 @@
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.reference.reference }}</td>
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.reference.barCode }}</td>
                 <td class="td" style="border: 1px solid black; padding: 10px"></td>
+                {% if fournisseur is defined %}
+                    <th class="th" style="border: 1px solid black; padding: 10px">{{ fournisseur }}</th>
+                {% endif %}
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.quantite }}</td>
             </tr>
         {% endfor %}

@@ -1810,7 +1810,27 @@ class ReceptionController extends AbstractController
                 }
                 $this->articleDataService->newArticle($article, $demande ?? null, $reception);
             }
-
+            if (isset($demande) && $demande->getType()->getSendMail()) {
+                $nowDate = new DateTime('now');
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Conditionnement d\'une '
+                    . $this->translationService->getTranslation('réception', 'réception')
+                    . ' vous concernant',
+                    $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
+                        'demande' => $demande,
+                        'fournisseur' => $reception->getFournisseur(),
+                        'title' => 'Votre ' . $this->translationService->getTranslation('réception', 'réception')
+                            . ' '
+                            . $reception->getNumeroReception()
+                            . ' de type '
+                            . $demande->getType()->getLabel()
+                            . ' a bien été conditionnée le '
+                            . $nowDate->format('d/m/Y \à H:i')
+                            . '.',
+                    ]),
+                    $demande->getUtilisateur()->getEmail()
+                );
+            }
             $entityManager->flush();
 
             return new JsonResponse(true);
