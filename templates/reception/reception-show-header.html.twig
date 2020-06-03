@@ -20,13 +20,14 @@
             <button type="button"
                     data-target='#modalNewLigneReception'
                     data-toggle='modal'
-                    onclick='clearModalLigneReception("#modalNewLigneReception"); initNewLigneReception()'
-                    class="btn btn-primary btn-ripple split-button" title="réception">
+                    onclick='clearModalLigneReception("#modalNewLigneReception"); initNewLigneReception($(this))'
+                    class="btn btn-primary btn-ripple split-button button-icon" title="réception">
                 {{ 'réception.réception'|trans }}
             </button>
             <button type="button"
                     class="btn btn-primary btn-ripple {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
-                    onclick="finishReception({{ reception.id }}, false)">
+                    onclick="finishReception({{ reception.id }}, false,$(this))"
+                    id="finishReceptionButton">
                 Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
             </button>
         {% endif %}

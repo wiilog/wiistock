@@ -5,6 +5,7 @@ let tableArticle;
 let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
+let modalArticleAlreadyInit = false;
 
 $(function () {
     $('.select2').select2();
@@ -235,6 +236,7 @@ function initDatatableConditionnement() {
         paging: false,
         searching: false,
         destroy: true,
+        processing: true,
         ajax: {
             "url": pathArticle,
             "type": "POST",
@@ -274,8 +276,10 @@ function initDatatableConditionnement() {
     if (!statutVisible) {
         tableFromArticle.column('Statut:name').visible(false);
     }
-
-    initModalCondit(tableFromArticle);
+    if(!modalArticleAlreadyInit) {
+        initModalCondit(tableFromArticle);
+        modalArticleAlreadyInit = true;
+    }
 }
 
 function initModalCondit(tableFromArticle) {
@@ -358,19 +362,21 @@ function addArticle() {
     });
 }
 
-function finishReception(receptionId, confirmed) {
-    $.post(Routing.generate('reception_finish'), JSON.stringify({
-        id: receptionId,
-        confirmed: confirmed
-    }), function (data) {
-        if (data === 1) {
-            window.location.href = Routing.generate('reception_index', true);
-        } else if (data === 0) {
-            $('#finishReception').click();
-        } else {
-            alertErrorMsg(data);
-        }
-    }, 'json');
+function finishReception(receptionId, confirmed, $button) {
+    wrapLoadingOnActionButton($button, () => (
+        $.post(Routing.generate('reception_finish'), JSON.stringify({
+            id: receptionId,
+            confirmed: confirmed
+        }), function (data) {
+            if (data === 1) {
+                window.location.href = Routing.generate('reception_index', true);
+            } else if (data === 0) {
+                $('#finishReception').click();
+            } else {
+                alertErrorMsg(data);
+            }
+        }, 'json')
+    ), false);
 }
 
 function clearAddRefModal() {
@@ -491,7 +497,7 @@ function validatePacking($button) {
     }
 }
 
-function initNewLigneReception() {
+function initNewLigneReception($button) {
     if (!editorNewLivraisonAlreadyDoneForDL) {
         initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
@@ -506,6 +512,7 @@ function initNewLigneReception() {
     if ($('#locationDemandeLivraison').length > 0) {
         initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
@@ -520,17 +527,21 @@ function initNewLigneReception() {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function (success) {
-                if (success) {
-                    const $printButton = $('#buttonPrintMultipleBarcodes');
-                    if ($printButton.length > 0) {
-                        window.location.href = $printButton.attr('href');
-                    }
-                }
-            });
+            wrapLoadingOnActionButton($button, () => (
+                new Promise(function (resolve) {
+                    submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function (success) {
+                        if (success) {
+                            const $printButton = $('#buttonPrintMultipleBarcodes');
+                            if ($printButton.length > 0) {
+                                window.location.href = $printButton.attr('href');
+                            }
+                        }
+                        resolve(true);
+                    })
+                })
+            ));
         }
     });
-
     let $typeContentNewChildren = $('#typeContentNew').children();
     $typeContentNewChildren.addClass('d-none');
     $typeContentNewChildren.removeClass('d-block');
