@@ -10,6 +10,7 @@
         <thead>
         <tr>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Type de litige</th>
+            <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Statut du litige</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° de réception</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">N° commande / BL</th>
             <th class="th" style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">Fournisseur</th>
@@ -25,8 +26,16 @@
                 {% set firstReceptionReferenceArticle = firstArticle.receptionReferenceArticle %}
                 {% set reception = firstArticle.receptionReferenceArticle.reception %}
 
-                <td class="td" rowspan="{{ litige.articles|length }}"
-                    style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.type ? litige.type.label }}</td>
+                <td class="td"
+                    rowspan="{{ litige.articles|length }}"
+                    style="border: 1px solid black; padding: 6px; text-align: center;">
+                    {{ litige.type ? litige.type.label }}
+                </td>
+                <td class="td"
+                    rowspan="{{ litige.articles|length }}"
+                    style="border: 1px solid black; padding: 6px; text-align: center;">
+                    {{ litige.status ? litige.status.nom }}
+                </td>
                 <td class="td" rowspan="{{ litige.articles|length }}"
                     style="border: 1px solid black; padding: 6px; text-align: center;">{{ reception.numeroReception }}</td>
                 <td class="td" rowspan="{{ litige.articles|length }}"
