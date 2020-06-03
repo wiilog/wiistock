@@ -253,8 +253,6 @@ class LitigeRepository extends EntityRepository
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
 			->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl');
 
-		$countTotal = count($qb->getQuery()->getResult());
-
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch($filter['field']) {
@@ -387,21 +385,78 @@ class LitigeRepository extends EntityRepository
                 }
 			}
 		}
-		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
 
-		$query = $qb->getQuery();
+        // compte éléments filtrés
+		$queryCountFiltered = clone $qb;
+        $countFilteredResult = $queryCountFiltered
+            ->select('COUNT(DISTINCT l.id) AS count')
+            ->getQuery()
+            ->getResult();
+
+        $countFiltered = (!empty($countFilteredResult) && !empty($countFilteredResult[0]))
+            ? intval($countFilteredResult[0]['count'])
+            : 0;
+
+        $countTotalResult = $this->createQueryBuilder('l')
+            ->select('COUNT(l.id) AS count')
+            ->getQuery()
+            ->getResult();
+
+        $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
+            ? intval($countTotalResult[0]['count'])
+            : 0;
+
+        if ($params) {
+			if (!empty($params->get('start'))) {
+			    $resultStart = $params->get('start');
+            }
+			if (!empty($params->get('length'))) {
+			    $resultLength = $params->get('length');
+            }
+		}
+        $resultLength = $resultLength ?? 0;
+        $resultStart = $resultStart ?? 0;
+
+        $queryResultDistinct = [];
+        if (empty($resultLength)) {
+            $queryResult = $qb->getQuery()->getResult();
+            $queryResultDistinct = $this->distinctLitige($queryResult);
+        }
+        else {
+            $nbLoop = 0;
+            do {
+                $qb->setFirstResult($resultStart + ($nbLoop * $resultLength));
+                $qb->setMaxResults($resultLength);
+                $queryResult = $qb->getQuery()->getResult();
+                $queryResultDistinct = $this->distinctLitige(array_merge($queryResultDistinct, $queryResult), $resultLength);
+                $nbLoop++;
+            }
+            while (!empty($queryResult) && count($queryResultDistinct) < $resultLength);
+        }
 
 		return [
-			'data' => $query ? $query->getResult() : null ,
+			'data' => $queryResultDistinct ?? [],
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
 	}
+
+	private function distinctLitige(array $litiges, $maxLength = null) {
+        $alreadySavedLitigeId = [];
+        return array_reduce(
+            $litiges,
+            function (array $carry, $litige) use (&$alreadySavedLitigeId, $maxLength) {
+                $litigeId = $litige['id'];
+                if ((empty($maxLength) || count($carry) < $maxLength)
+                    && !in_array($litigeId, $alreadySavedLitigeId)) {
+                    $alreadySavedLitigeId[] = $litigeId;
+                    $carry[] = $litige;
+                }
+                return $carry;
+            },
+            []
+        );
+    }
 
 	/**
 	 * @param int $litigeId

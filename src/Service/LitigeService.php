@@ -73,7 +73,6 @@ class LitigeService
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LITIGE, $this->security->getUser());
 
         $queryResult = $litigeRepository->findByParamsAndFilters($params, $filters);
-
         $litiges = $queryResult['data'];
 
         $rows = [];
