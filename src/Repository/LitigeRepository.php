@@ -23,7 +23,8 @@ class LitigeRepository extends EntityRepository
 		'receptionNumber' => 'numeroReception',
 		'provider' => 'provider',
 		'numCommandeBl' => 'numCommandeBl',
-		'buyers' => 'acheteurs',
+        'buyers' => 'acheteurs',
+        'declarant' => 'declarant',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
 		'updateDate' => 'updateDate',
@@ -365,6 +366,9 @@ class LitigeRepository extends EntityRepository
                         } else if ($column === 'acheteurs') {
                             $qb
                                 ->addOrderBy('achUsername', $order);
+                        } else if ($column === 'declarant') {
+                            $qb
+                                ->addOrderBy('declarant.username', $order);
                         } else if ($column === 'numeroArrivage') {
                             $qb
                                 ->addOrderBy('a.numeroArrivage', $order);
@@ -405,37 +409,16 @@ class LitigeRepository extends EntityRepository
         $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
             ? intval($countTotalResult[0]['count'])
             : 0;
-
-        if ($params) {
-			if (!empty($params->get('start'))) {
-			    $resultStart = $params->get('start');
-            }
-			if (!empty($params->get('length'))) {
-			    $resultLength = $params->get('length');
-            }
-		}
-        $resultLength = $resultLength ?? 0;
-        $resultStart = $resultStart ?? 0;
-
-        $queryResultDistinct = [];
-        if (empty($resultLength)) {
-            $queryResult = $qb->getQuery()->getResult();
-            $queryResultDistinct = $this->distinctLitige($queryResult);
-        }
-        else {
-            $nbLoop = 0;
-            do {
-                $qb->setFirstResult($resultStart + ($nbLoop * $resultLength));
-                $qb->setMaxResults($resultLength);
-                $queryResult = $qb->getQuery()->getResult();
-                $queryResultDistinct = $this->distinctLitige(array_merge($queryResultDistinct, $queryResult), $resultLength);
-                $nbLoop++;
-            }
-            while (!empty($queryResult) && count($queryResultDistinct) < $resultLength);
-        }
-
+        $litiges = $this->distinctLitige($qb->getQuery()->getResult());
+        $length = $params && !empty($params->get('length'))
+            ? $params->get('length')
+            : -1;
+        $start = $params && !empty($params->get('start'))
+            ? $params->get('start')
+            : 0;
+        $litiges = array_slice($litiges, $start, $length);
 		return [
-			'data' => $queryResultDistinct ?? [],
+            'data' => $litiges ,
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
