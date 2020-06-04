@@ -199,7 +199,7 @@ class StatusController extends AbstractController
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $data['category']);
-            dump($data);
+
             if (!$labelExist) {
                 $category = $categoryStatusRepository->find($data['category']);
                 $status
