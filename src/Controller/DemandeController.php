@@ -263,7 +263,7 @@ class DemandeController extends AbstractController
                             . $nowDate->format('d/m/Y \à H:i')
                             . '.',
                     ]),
-                    $demande->getUtilisateur()->getEmail()
+                    $demande->getUtilisateur()->getMainAndSecondaryEmails()
                 );
             }
             //renvoi de l'en-tête avec modification

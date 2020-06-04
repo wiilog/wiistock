@@ -170,7 +170,10 @@ class LitigeService
                 }, []);
         }
         if ($wantSendToDeclarantMailStatusChange && $litige->getDeclarant()) {
-            $recipients[] = $litige->getDeclarant()->getEmail();
+            $mainAndSecondaryEmails = $litige->getDeclarant()->getMainAndSecondaryEmails();
+            if (!empty($mainAndSecondaryEmails)) {
+                array_push($recipients, ...$mainAndSecondaryEmails);
+            }
         }
         $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
         $title = !$isUpdate
