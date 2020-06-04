@@ -235,7 +235,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
         .addClass('w-100');
     datatableToReturn = $tableDom
         .on('error.dt', function (e, settings, techNote, message) {
-            console.log('An error has been reported by DataTables: ', message);
+            console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
         .DataTable({
             autoWidth: true,

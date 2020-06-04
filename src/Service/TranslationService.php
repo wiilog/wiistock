@@ -63,13 +63,11 @@ class TranslationService {
      */
     public function cacheClearWarmUp() {
         $env = $this->kernel->getEnvironment();
-		$command = $env == 'dev' ? 'warmup' : 'clear';
-
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
 
 		$input = new ArrayInput(array(
-			'command' => 'cache:' . $command,
+			'command' => 'cache:warmup',
             '--env' => $env
         ));
 
