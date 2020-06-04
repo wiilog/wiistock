@@ -230,6 +230,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnsVisibleForArrivage;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $secondaryEmails = [];
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -278,6 +283,17 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->email = $email;
         return $this;
     }
+
+    public function getMainAndSecondaryEmails(): array {
+        $secondaryEmails = array_filter(($this->secondaryEmails ?? []), function(string $email) {
+            return !empty($email);
+        });
+        return array_merge(
+            [$this->email],
+            $secondaryEmails
+        );
+    }
+
     public function getPassword(): ?string
 {
     return $this->password;
@@ -1202,6 +1218,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function getColumnsVisibleForArrivage()
     {
         return $this->columnsVisibleForArrivage;
+    }
+
+    public function getSecondaryEmails(): ?array
+    {
+        return $this->secondaryEmails;
+    }
+
+    public function setSecondaryEmails(?array $secondaryEmails): self
+    {
+        $this->secondaryEmails = $secondaryEmails;
+
+        return $this;
     }
 
 }

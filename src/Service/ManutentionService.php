@@ -116,7 +116,7 @@ class ManutentionService
                 'manut' => $manutention,
                 'title' => 'Votre demande de manutention a bien été effectuée.',
             ]),
-            $manutention->getDemandeur()->getEmail()
+            $manutention->getDemandeur()->getMainAndSecondaryEmails()
         );
     }
 }
