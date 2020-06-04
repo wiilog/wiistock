@@ -64,6 +64,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -123,7 +124,6 @@ class ReceptionController extends AbstractController
      * @var MouvementStockService
      */
     private $mouvementStockService;
-    private $translationService;
     private $mailerService;
 
     public function __construct(
@@ -137,8 +137,7 @@ class ReceptionController extends AbstractController
         AttachmentService $attachmentService,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
-        MouvementStockService $mouvementStockService,
-        TranslationService $translationService
+        MouvementStockService $mouvementStockService
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -152,7 +151,6 @@ class ReceptionController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
         $this->mouvementStockService = $mouvementStockService;
-        $this->translationService = $translationService;
     }
 
 
@@ -178,7 +176,6 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
@@ -1652,6 +1649,7 @@ class ReceptionController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function getReceptionCSV(EntityManagerInterface $entityManager,
+                                    TranslatorInterface $translator,
                                     CSVExportService $CSVExportService,
                                     Request $request): Response
     {
@@ -1669,7 +1667,7 @@ class ReceptionController extends AbstractController
             $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
 
             $csvHeader = [
-                $this->translationService->getTranslation('réception', 'n° de réception'),
+                $translator->trans('réception.n° de réception'),
                 'n° de commande',
                 'fournisseur',
                 'utilisateur',
@@ -1760,6 +1758,7 @@ class ReceptionController extends AbstractController
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
+                                   TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
                                    Reception $reception): Response
     {
@@ -1816,12 +1815,13 @@ class ReceptionController extends AbstractController
                 $nowDate = new DateTime('now');
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Conditionnement d\'une '
-                    . $this->translationService->getTranslation('réception', 'réception')
+                    . $translator->trans('réception.réception')
                     . ' vous concernant',
                     $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
-                        'title' => 'Votre ' . $this->translationService->getTranslation('réception', 'réception')
+                        'isReception' => true,
+                        'title' => 'Votre ' . $translator->trans('réception.réception')
                             . ' '
                             . $reception->getNumeroReception()
                             . ' de type '

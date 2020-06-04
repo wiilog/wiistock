@@ -1,5 +1,6 @@
 {% extends 'mails/mjml/template.html.twig' %}
 
+{% set isReception = (isReception is defined and isReception) %}
 {% block content %}
     <table class="table" style="border: 1px solid black;">
         <thead>
@@ -9,6 +10,9 @@
             <th class="th" style="border: 1px solid black; padding: 10px">Code barre article</th>
             {% if fournisseur is defined %}
                 <th class="th" style="border: 1px solid black; padding: 10px">Fournisseur</th>
+            {% endif %}
+            {% if isReception %}
+                <th class="th" style="border: 1px solid black; padding: 10px">Commande</th>
             {% endif %}
             <th class="th" style="border: 1px solid black; padding: 10px">Quantité</th>
         </tr>
@@ -20,7 +24,10 @@
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.barCode }}</td>
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ article.barCode }}</td>
                 {% if fournisseur is defined %}
-                    <th class="th" style="border: 1px solid black; padding: 10px">{{ fournisseur }}</th>
+                    <th class="td" style="border: 1px solid black; padding: 10px">{{ fournisseur }}</th>
+                {% endif %}
+                {% if isReception %}
+                    <td class="td" style="border: 1px solid black; padding: 10px">{{ article.receptionReferenceArticle.commande }}</td>
                 {% endif %}
                 <td class="td" style="border: 1px solid black; padding: 10px">{{ article.quantiteAPrelever == 0 ? article.quantite : article.quantiteAPrelever }}</td>
             </tr>
