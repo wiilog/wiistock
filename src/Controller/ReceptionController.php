@@ -847,7 +847,7 @@ class ReceptionController extends AbstractController
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'acheteurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
+            'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
@@ -1004,6 +1004,7 @@ class ReceptionController extends AbstractController
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$post->get('statutLitige');
             $litige
+                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
                 ->setUpdateDate(new \DateTime('now'))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setStatus($statutRepository->find($post->get('statutLitige')));
@@ -1087,7 +1088,7 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION, true);
+                $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
             }
             $response = [];
             return new JsonResponse($response);
@@ -1123,6 +1124,7 @@ class ReceptionController extends AbstractController
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
+                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
                 ->setCreationDate(new \DateTime('now'));
 
             if (!empty($colis = $post->get('colisLitige'))) {
@@ -1167,7 +1169,7 @@ class ReceptionController extends AbstractController
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
-            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION);
+            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
             $response = [];
 
             return new JsonResponse($response);
@@ -1210,7 +1212,7 @@ class ReceptionController extends AbstractController
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
                 'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
-                'acheteurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
+                'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);

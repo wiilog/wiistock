@@ -82,6 +82,7 @@ class FiltreSupController extends AbstractController
 
             $filterLabelsSelect2 = [
                 'utilisateurs' => FiltreSup::FIELD_USERS,
+                'declarants' => FiltreSup::FIELD_DECLARANTS,
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
                 'reference' => FiltreSup::FIELD_REFERENCE,
                 'statut' => FiltreSup::FIELD_STATUT,
@@ -92,7 +93,6 @@ class FiltreSupController extends AbstractController
                 'demande' => FiltreSup::FIELD_DEMANDE,
                 'natures' => FiltreSup::FIELD_NATURES
             ];
-
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {
                 if (array_key_exists($filterLabel, $data)) {
                     if (!empty($data[$filterLabel])) {
@@ -105,7 +105,6 @@ class FiltreSupController extends AbstractController
                                 ->setUser($user);
                             $entityManager->persist($filter);
                         }
-
                         if (is_array($data[$filterLabel])) {
                             $value = [];
                             foreach ($data[$filterLabel] as $elem) {

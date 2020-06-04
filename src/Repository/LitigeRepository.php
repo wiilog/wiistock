@@ -23,7 +23,8 @@ class LitigeRepository extends EntityRepository
 		'receptionNumber' => 'numeroReception',
 		'provider' => 'provider',
 		'numCommandeBl' => 'numCommandeBl',
-		'buyers' => 'acheteurs',
+        'buyers' => 'acheteurs',
+        'declarant' => 'declarant',
 		'lastHistoric' => 'lastHistoric',
 		'creationDate' => 'creationDate',
 		'updateDate' => 'updateDate',
@@ -57,7 +58,6 @@ class LitigeRepository extends EntityRepository
         $query = $em
             ->createQuery($sql)
             ->setParameter('litigeId', $litigeId);
-
         return array_map(function($utilisateur) use ($field) {
             return $utilisateur[$field];
         }, $query->execute());
@@ -236,6 +236,8 @@ class LitigeRepository extends EntityRepository
 			->leftJoin('a.chauffeur', 'ch')
             ->leftJoin('a.acheteurs', 'ach')
             ->leftJoin('l.buyers', 'buyers')
+            ->leftJoin('l.declarant', 'declarant')
+            ->addSelect('declarant.username as declarantUsername')
 			->addSelect('ach.username as achUsername')
 			->addSelect('a.numeroArrivage')
 			->addSelect('a.id as arrivageId')
@@ -251,8 +253,6 @@ class LitigeRepository extends EntityRepository
 			->leftJoin('r.fournisseur', 'rFourn')
 			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
 			->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl');
-
-		$countTotal = count($qb->getQuery()->getResult());
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -289,6 +289,13 @@ class LitigeRepository extends EntityRepository
 						->andWhere("ach.id in (:userId) OR b.id in (:userId)")
 						->setParameter('userId', $value);
 					break;
+                case 'declarants':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->leftJoin('l.declarant', 'd')
+                        ->andWhere("d.id in (:userIdDeclarant)")
+                        ->setParameter('userIdDeclarant', $value);
+                    break;
 				case 'dateMin':
 					$qb
 						->andWhere('l.creationDate >= :dateMin')
@@ -322,6 +329,8 @@ class LitigeRepository extends EntityRepository
 					$qb
 						->andWhere('(
 						t.label LIKE :value OR
+						declarant.username LIKE :value OR
+						declarant.email LIKE :value OR
 						a.numeroArrivage LIKE :value OR
 						r.numeroReception LIKE :value OR
 						r.reference LIKE :value OR
@@ -357,6 +366,9 @@ class LitigeRepository extends EntityRepository
                         } else if ($column === 'acheteurs') {
                             $qb
                                 ->addOrderBy('achUsername', $order);
+                        } else if ($column === 'declarant') {
+                            $qb
+                                ->addOrderBy('declarant.username', $order);
                         } else if ($column === 'numeroArrivage') {
                             $qb
                                 ->addOrderBy('a.numeroArrivage', $order);
@@ -377,21 +389,57 @@ class LitigeRepository extends EntityRepository
                 }
 			}
 		}
-		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
 
-		$query = $qb->getQuery();
+        // compte éléments filtrés
+		$queryCountFiltered = clone $qb;
+        $countFilteredResult = $queryCountFiltered
+            ->select('COUNT(DISTINCT l.id) AS count')
+            ->getQuery()
+            ->getResult();
 
+        $countFiltered = (!empty($countFilteredResult) && !empty($countFilteredResult[0]))
+            ? intval($countFilteredResult[0]['count'])
+            : 0;
+
+        $countTotalResult = $this->createQueryBuilder('l')
+            ->select('COUNT(l.id) AS count')
+            ->getQuery()
+            ->getResult();
+
+        $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
+            ? intval($countTotalResult[0]['count'])
+            : 0;
+        $litiges = $this->distinctLitige($qb->getQuery()->getResult());
+        $length = $params && !empty($params->get('length'))
+            ? $params->get('length')
+            : -1;
+        $start = $params && !empty($params->get('start'))
+            ? $params->get('start')
+            : 0;
+        $litiges = array_slice($litiges, $start, $length);
 		return [
-			'data' => $query ? $query->getResult() : null ,
+            'data' => $litiges ,
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
 	}
+
+	private function distinctLitige(array $litiges, $maxLength = null) {
+        $alreadySavedLitigeId = [];
+        return array_reduce(
+            $litiges,
+            function (array $carry, $litige) use (&$alreadySavedLitigeId, $maxLength) {
+                $litigeId = $litige['id'];
+                if ((empty($maxLength) || count($carry) < $maxLength)
+                    && !in_array($litigeId, $alreadySavedLitigeId)) {
+                    $alreadySavedLitigeId[] = $litigeId;
+                    $carry[] = $litige;
+                }
+                return $carry;
+            },
+            []
+        );
+    }
 
 	/**
 	 * @param int $litigeId
