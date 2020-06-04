@@ -77,7 +77,9 @@ class ParamTypesController extends AbstractController
                         'Label' => $type->getLabel(),
                         'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
                         'Description' => $type->getDescription(),
-                        'sendMail' => $type->getSendMail() ? 'Oui' : 'Non',
+                        'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
+                            ? ($type->getSendMail() ? 'Oui' : 'Non')
+                            : '',
                         'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
                             'url' => $url,
                             'typeId' => $type->getId(),
