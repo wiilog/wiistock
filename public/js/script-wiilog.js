@@ -47,11 +47,16 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
  */
 function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitAction(modal, path, table, callback, close, clear);
+        submitAction(modal, path, table, close, clear)
+            .then((data) => {
+                if (callback) {
+                    callback(data);
+                }
+            })
     });
 }
 
-function submitAction(modal, path, table = null, callback = null, close = true, clear = true) {
+function submitAction(modal, path, table = null, close = true, clear = true) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -190,28 +195,32 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         if (close == true) {
             modal.find('.close').click();
         }
-        $.post(path, JSON.stringify(Data), function (data) {
-            if (data.redirect) {
-                window.location.href = data.redirect;
-                return;
-            }
-            // pour mise à jour des données d'en-tête après modification
-            if (data.entete) {
-                $('.zone-entete').html(data.entete)
-            }
-            if (table) {
-                table.ajax.reload(null, false);
-            }
 
-            if (clear) {
-                clearModal(modal);
-            }
+        return $
+            .post({
+                url: path,
+                dataType: 'json',
+                data: JSON.stringify(Data)
+            })
+            .then((data) => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                // pour mise à jour des données d'en-tête après modification
+                if (data.entete) {
+                    $('.zone-entete').html(data.entete)
+                }
+                if (table) {
+                    table.ajax.reload(null, false);
+                }
 
-            if (callback !== null) {
-                callback(data);
-            }
-        }, 'json');
+                if (clear) {
+                    clearModal(modal);
+                }
 
+                return data;
+            });
     } else {
         // ... sinon on construit les messages d'erreur
         let msg = '';
@@ -265,6 +274,10 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         }
 
         modal.find('.error-msg').html(msg);
+
+        return new Promise((_, reject) => {
+            reject(false);
+        });
     }
 }
 

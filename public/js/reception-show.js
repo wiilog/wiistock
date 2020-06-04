@@ -528,17 +528,16 @@ function initNewLigneReception($button) {
         } else {
             $errorContainer.text('');
             wrapLoadingOnActionButton($button, () => (
-                new Promise(function (resolve) {
-                    submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function (success) {
+                submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle)
+                    .then(function (success) {
                         if (success) {
                             const $printButton = $('#buttonPrintMultipleBarcodes');
                             if ($printButton.length > 0) {
                                 window.location.href = $printButton.attr('href');
                             }
                         }
-                        resolve(true);
                     })
-                })
+                    .catch(() => {/* we handle form error */})
             ));
         }
     });
