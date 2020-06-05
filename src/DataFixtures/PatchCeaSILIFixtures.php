@@ -44,6 +44,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
             $statutRepository = $manager->getRepository(Statut::class);
             $statutConsomme = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
             $refsToUpdate = [];
+            $articleFournIdToRefArticle = [];
             $availableSILIArticles = $articleRepository
                 ->getByStatutAndTypeWithoutInProgressPrepaNorLivraison(
                     Article::STATUT_EN_TRANSIT,
@@ -53,21 +54,50 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
                         Preparation::STATUT_EN_COURS_DE_PREPARATION
                     ],
                     [Livraison::STATUT_A_TRAITER]);
+
+            $cpt = 0;
+            $articleCount = count($availableSILIArticles);
+            dump('Total des articles : ' . $articleCount);
             foreach ($availableSILIArticles as $availableSILIArticle) {
                 $availableSILIArticle
                     ->setStatut($statutConsomme);
-                $referenceArticle = $availableSILIArticle->getArticleFournisseur()
-                    ? $availableSILIArticle->getArticleFournisseur()->getReferenceArticle()
-                    : null;
-                if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
-                    $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
+                $articleFournisseur = $availableSILIArticle->getArticleFournisseur();
+                if (isset($articleFournisseur)) {
+                    $articleFournisseurId = $articleFournisseur->getId();
+                    if (!isset($articleFournIdTorefArticle[$articleFournisseurId])) {
+                        $articleFournIdToRefArticle[$articleFournisseurId] = $articleFournisseur->getReferenceArticle();
+                    }
+                    $referenceArticle = $articleFournIdToRefArticle[$articleFournisseurId];
+                    if ($referenceArticle && !isset($refsToUpdate[$referenceArticle->getId()])) {
+                        $refsToUpdate[$referenceArticle->getId()] = $referenceArticle;
+                    }
+                }
+
+                $cpt++;
+
+                if (($cpt % 100) === 0) {
+                    $manager->flush();
+                    dump('Flush (' . $cpt . '/' . $articleCount . ') articles');
                 }
             }
+
+            dump('Flush (' . $articleCount . '/' . $articleCount . ') articles');
             $manager->flush();
+
+
+            $cpt = 0;
+            $refsToUpdateCount = count($refsToUpdate);
+            dump('Total des réferences : ' . $refsToUpdate);
             foreach ($refsToUpdate as $refToUpdate) {
                 $this->refArticleService->updateRefArticleQuantities($refToUpdate);
                 $this->refArticleService->treatAlert($refToUpdate);
+
+                if (($cpt % 100) === 0) {
+                    $manager->flush();
+                    dump('Flush (' . $cpt . '/' . $refsToUpdateCount . ') références');
+                }
             }
+            dump('Flush (' . $refsToUpdateCount . '/' . $refsToUpdateCount . ') références');
             $manager->flush();
         }
     }
