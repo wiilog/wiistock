@@ -101,10 +101,12 @@ class DemandeController extends AbstractController
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
-     * @param MailerService $mailerService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
@@ -290,6 +292,12 @@ class DemandeController extends AbstractController
             ];
         }
 
+        dump(array_map(function (Type $type) {
+            return [
+                'id' => $type->getId(),
+                'label' => $type->getLabel(),
+            ];
+        }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON)));
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
