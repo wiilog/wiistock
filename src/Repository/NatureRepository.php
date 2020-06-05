@@ -41,4 +41,17 @@ class NatureRepository extends EntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function findAllLabels() {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT n.label as label
+            FROM App\Entity\Nature n
+           "
+        );
+        return array_map(function(array $nature) {
+            return $nature['label'];
+        }, $query->getResult());
+    }
 }
