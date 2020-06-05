@@ -399,13 +399,14 @@ class RefArticleDataService
      * @param array $data
      * @param ReferenceArticle $referenceArticle
      * @param Utilisateur $user
+     * @param bool $fromNomade
      * @return bool
      * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function addRefToDemand($data, $referenceArticle, Utilisateur $user)
+    public function addRefToDemand($data, $referenceArticle, Utilisateur $user, bool $fromNomade = false)
     {
         $resp = true;
 
@@ -429,12 +430,12 @@ class RefArticleDataService
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
-            $this->editRefArticle($referenceArticle, $data, $user);
-
-            // cas gestion quantité par article
+            if (!$fromNomade) {
+                $this->editRefArticle($referenceArticle, $data, $user);
+            }
         }
         elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if ($this->userService->hasParamQuantityByRef()) {
+            if ($this->userService->hasParamQuantityByRef() || $fromNomade) {
                 if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle

@@ -5,6 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
@@ -21,7 +22,9 @@ use App\Entity\ValeurChampLibre;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use mysql_xdevapi\RowResult;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -157,36 +160,29 @@ class DemandeLivraisonService
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
-
+        $fromNomade = $data['fromNomade'] ?? false;
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
-
-        $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
-        $msgMissingCL = '';
-        foreach ($CLRequired as $CL) {
-            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-                $requiredCreate = false;
-                if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
-                $msgMissingCL .= $CL['label'];
+        if (!$fromNomade) {
+            $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
+            $msgMissingCL = '';
+            foreach ($CLRequired as $CL) {
+                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+                    $requiredCreate = false;
+                    if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
+                    $msgMissingCL .= $CL['label'];
+                }
             }
-        }
-        if (!$requiredCreate) {
-            return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
+            if (!$requiredCreate) {
+                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
+            }
         }
         $utilisateur = $utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
 
-        // génère le numéro
-        $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
-        $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
-
-        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
-        $lastCpt = (int)substr($lastNumero, -4, 4);
-        $i = $lastCpt + 1;
-        $cpt = sprintf('%04u', $i);
-        $numero = $prefixe . $date->format('ym') . $cpt;
+        $numero = $this->generateNumeroForNewDL($this->entityManager);
 
         $demande = new Demande();
         $demande
@@ -198,9 +194,10 @@ class DemandeLivraisonService
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
         $this->entityManager->persist($demande);
-
-        // enregistrement des champs libres
-        $this->checkAndPersistIfClIsOkay($demande, $data);
+        if (!$fromNomade) {
+            // enregistrement des champs libres
+            $this->checkAndPersistIfClIsOkay($demande, $data);
+        }
         $this->entityManager->flush();
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
@@ -223,9 +220,28 @@ class DemandeLivraisonService
         } else {
             $data = [
                 'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
+                'demande' => $demande
             ];
         }
         return $data;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @return string
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    private function generateNumeroForNewDL(EntityManagerInterface $entityManager) {
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
+        $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
+        $lastCpt = (int)substr($lastNumero, -4, 4);
+        $i = $lastCpt + 1;
+        $cpt = sprintf('%04u', $i);
+        return ($prefixe . $date->format('ym') . $cpt);
     }
 
     /**
@@ -236,13 +252,42 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws DBALException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $data): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
-
-        $demande = $demandeRepository->find($data['demande']);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $fromNomade = $data['fromNomade'] ?? false;
+        $nomadUser = $utilisateurRepository->findOneByApiKey($data['apiKey']);
+        $data['demandeur'] = $nomadUser->getId();
+        if ($fromNomade) {
+            /**
+             * @var Demande $demande
+             */
+            $demande = $this->newDemande($data)['demande'];
+            /**
+             * Liste des références sous le format :
+                 * [
+                 *    'barCode' => REF123456789,
+                 *    'quantity-to-pick' => 12
+                 * ]
+             */
+            $references = $data['references'];
+            foreach ($references as $reference) {
+                $referenceArticle = $referenceArticleRepository->findOneBy([
+                    'barCode' => $reference['barCode']
+                ]);
+                $referenceData = array_merge($reference, [
+                    'livraison' => $demande->getId()
+                ]);
+                $this->refArticleDataService->addRefToDemand($referenceData, $referenceArticle, null, true);
+            }
+        } else {
+            $demande = $demandeRepository->find($data['demande']);
+        }
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
@@ -301,27 +346,25 @@ class DemandeLivraisonService
                 }
             }
         }
-        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $data) : $response;
+        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande) : $response;
         return $response;
     }
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param array $data
+     * @param Demande $demande
      * @return array
-     * @throws NonUniqueResultException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager, array $data): array {
+    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande): array {
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $demandeRepository = $entityManager->getRepository(Demande::class);
-
-        $demande = $demandeRepository->find($data['demande']);
 
         // Creation d'une nouvelle preparation basée sur une selection de demandes
         $preparation = new Preparation();
@@ -375,7 +418,7 @@ class DemandeLivraisonService
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
-                $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
+                $this->templating->render('mails/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()

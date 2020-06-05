@@ -29,6 +29,7 @@ use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Service\AttachmentService;
+use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
@@ -39,6 +40,7 @@ use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
 use DateTimeZone;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -1020,6 +1022,25 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
         return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Post("/api/valider-dl", name="api-validate-dl", condition="request.isXmlHttpRequest()")
+     * @Rest\View()
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws DBALException
+     */
+    public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response {
+        $data = json_decode($request->getContent(), true);
+        $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
+        return new JsonResponse($responseAfterQuantitiesCheck);
     }
 
     /**

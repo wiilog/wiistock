@@ -126,7 +126,10 @@ InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDeman
 
 function getCompareStock(submit) {
     let path = Routing.generate('compare_stock', true);
-    let params = {'demande': submit.data('id')};
+    let params = {
+        'demande': submit.data('id'),
+        'fromNomade': false
+    };
 
     return $.post({
         url: path,
