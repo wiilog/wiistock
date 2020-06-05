@@ -113,6 +113,31 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
+    public function findByNeedsMobileSync()
+    {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder->join('referenceArticle.emplacement', 'emplacement')
+            ->join('referenceArticle.statut', 'statut')
+            ->select('referenceArticle.barCode')
+            ->addSelect('referenceArticle.reference')
+            ->addSelect('referenceArticle.libelle')
+            ->addSelect('referenceArticle.quantiteDisponible')
+            ->addSelect('referenceArticle.quantiteReservee')
+            ->addSelect('referenceArticle.quantiteStock')
+            ->addSelect('referenceArticle.typeQuantite')
+            ->addSelect('referenceArticle.commentaire')
+            ->addSelect('emplacement.label as emplacementLabel')
+            ->where($queryBuilderExpr->andX(
+                $queryBuilderExpr->eq('statut.nom', ':actif'),
+                $queryBuilderExpr->eq('referenceArticle.needsMobileSync', ':mobileSync')
+            ))
+            ->setParameter('actif', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('mobileSync', true)
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param string $search
      * @param bool $activeOnly

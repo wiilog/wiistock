@@ -149,17 +149,17 @@ class DemandeLivraisonService
 
     /**
      * @param $data
+     * @param EntityManagerInterface $entityManager
      * @return Demande|array|JsonResponse
      * @throws NonUniqueResultException
      */
-    public function newDemande($data)
+    public function newDemande($data, EntityManagerInterface $entityManager)
     {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $typeRepository = $this->entityManager->getRepository(Type::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $demandeRepository = $this->entityManager->getRepository(Demande::class);
-        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $fromNomade = $data['fromNomade'] ?? false;
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -193,12 +193,10 @@ class DemandeLivraisonService
             ->setDestination($destination)
             ->setNumero($numero)
             ->setCommentaire($data['commentaire']);
-        $this->entityManager->persist($demande);
         if (!$fromNomade) {
             // enregistrement des champs libres
             $this->checkAndPersistIfClIsOkay($demande, $data);
         }
-        $this->entityManager->flush();
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
             $reception = $this->receptionRepository->find(intval($data['reception']));
@@ -215,14 +213,8 @@ class DemandeLivraisonService
                 $this->entityManager->persist($preparation);
                 $demande->addPreparation($preparation);
             }
-            $this->entityManager->flush();
-            $data = $demande;
-        } else {
-            $data = [
-                'redirect' => $this->router->generate('demande_show', ['id' => $demande->getId()]),
-                'demande' => $demande
-            ];
         }
+        $data = $demande;
         return $data;
     }
 
@@ -261,13 +253,13 @@ class DemandeLivraisonService
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $fromNomade = $data['fromNomade'] ?? false;
-        $nomadUser = $utilisateurRepository->findOneByApiKey($data['apiKey']);
-        $data['demandeur'] = $nomadUser->getId();
         if ($fromNomade) {
+            $nomadUser = $utilisateurRepository->findOneByApiKey($data['apiKey']);
+            $data['demandeur'] = $nomadUser->getId();
             /**
              * @var Demande $demande
              */
-            $demande = $this->newDemande($data)['demande'];
+            $demande = $this->newDemande($data, $entityManager);
             /**
              * Liste des références sous le format :
                  * [
@@ -280,10 +272,7 @@ class DemandeLivraisonService
                 $referenceArticle = $referenceArticleRepository->findOneBy([
                     'barCode' => $reference['barCode']
                 ]);
-                $referenceData = array_merge($reference, [
-                    'livraison' => $demande->getId()
-                ]);
-                $this->refArticleDataService->addRefToDemand($referenceData, $referenceArticle, null, true);
+                $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $nomadUser, true, $entityManager, $demande);
             }
         } else {
             $demande = $demandeRepository->find($data['demande']);
@@ -317,7 +306,6 @@ class DemandeLivraisonService
         foreach ($demande->getLigneArticle() as $ligne) {
             if (!$ligne->getToSplit()) {
                 $articleRef = $ligne->getReference();
-
                 $stock = $articleRef->getQuantiteStock();
                 $quantiteReservee = $ligne->getQuantite();
 
@@ -346,7 +334,10 @@ class DemandeLivraisonService
                 }
             }
         }
+        $entityManager->persist($demande);
+        $entityManager->flush();
         $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande) : $response;
+        $entityManager->flush();
         return $response;
     }
 
@@ -365,7 +356,6 @@ class DemandeLivraisonService
         $response['success'] = true;
         $response['message'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
-
         // Creation d'une nouvelle preparation basée sur une selection de demandes
         $preparation = new Preparation();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -375,11 +365,10 @@ class DemandeLivraisonService
 
         $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
         $preparation->setStatut($statutP);
-
+        $entityManager->persist($preparation);
         $demande->addPreparation($preparation);
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
-        $entityManager->persist($preparation);
 
         // modification du statut articles => en transit
         $articles = $demande->getArticles();
@@ -407,13 +396,11 @@ class DemandeLivraisonService
             }
             $preparation->addLigneArticlePreparation($lignesArticlePreparation);
         }
-        $entityManager->flush();
 
         foreach ($refArticleToUpdateQuantities as $refArticle) {
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
         }
 
-        $entityManager->flush();
         if ($demande->getType()->getSendMail()) {
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
@@ -429,11 +416,13 @@ class DemandeLivraisonService
                 $demande->getUtilisateur()->getMainAndSecondaryEmails()
             );
         }
+        $entityManager->flush();
         $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
             'demande' => $demande,
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'showDetails' => $this->createHeaderDetailsConfig($demande)
         ]);
+        $response['demande'] = $demande;
         return $response;
     }
 

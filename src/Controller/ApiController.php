@@ -1025,7 +1025,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/valider-dl", name="api-validate-dl", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/valider-dl", name="api-validate-dl")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1262,7 +1262,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         } else {
             $trackingTaking = [];
         }
-
         return [
             'emplacements' => $emplacementRepository->getIdAndNom(),
             'preparations' => $preparations,
@@ -1277,9 +1276,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
             'stockTaking' => $stockTaking,
-            'refsDL' => $referenceArticleRepository->findBy([
-                'needsMobileSync' => true
-            ]),
+            'refsDL' => $referenceArticleRepository->findByNeedsMobileSync(),
             'rights' => $rights,
             'typesDL' => array_map(function (Type $type) {
                 return [
@@ -1291,7 +1288,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/getData", name="api-get-data", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/getData", name="api-get-data")
      * @param Request $request
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
