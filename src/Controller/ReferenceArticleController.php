@@ -371,6 +371,7 @@ class ReferenceArticleController extends AbstractController
             }
             $refArticle = new ReferenceArticle();
             $refArticle
+                ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])

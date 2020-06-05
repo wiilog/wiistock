@@ -1277,6 +1277,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
             'stockTaking' => $stockTaking,
+            'refsDL' => $referenceArticleRepository->findBy([
+                'needsMobileSync' => true
+            ]),
             'rights' => $rights,
             'typesDL' => array_map(function (Type $type) {
                 return [

@@ -300,6 +300,7 @@ class RefArticleDataService
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+            if (isset($data['mobileSync'])) $refArticle->setNeedsMobileSync($data['mobileSync']);
             if ($data['emergency-comment-input']) {
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
