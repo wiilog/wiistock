@@ -850,14 +850,9 @@ class ArrivageController extends AbstractController
                     $dateTimeMax->format('Y-m-d H:i:s')
                 ]
             );
-
             $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
             $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
-            $natures = $natureRepository->findAll();
-            $natureLabels = [];
-            foreach ($natures as $nature) {
-                array_push($natureLabels, $nature->getLabel());
-            }
+            $natureLabels = $natureRepository->findAllLabels();
             // en-têtes champs fixes
             $csvHeader = [
                 'n° arrivage',
@@ -875,7 +870,6 @@ class ArrivageController extends AbstractController
                 'date',
                 'utilisateur',
             ];
-
             $csvHeader = array_merge($csvHeader, $natureLabels);
 
             return $CSVExportService->createCsvResponse(
