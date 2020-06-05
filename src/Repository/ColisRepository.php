@@ -95,6 +95,50 @@ class ColisRepository extends EntityRepository
     }
 
     /**
+     * @param array $onDateBracket
+     * @return int|mixed|string
+     * @throws DBALException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countColisByArrivageAndNature(array $onDateBracket = [])
+    {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $queryBuilder
+            ->select('count(colis.id) as nbColis')
+            ->addSelect('nature.label AS natureLabel')
+            ->addSelect('arrivage.id AS arrivageId')
+            ->join ('colis.nature', 'nature')
+            ->join ('colis.arrivage', 'arrivage')
+            ->groupBy ('nature.id')
+            ->addGroupBy('arrivage.id')
+            ->where(
+                $queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo')
+            )
+            ->setParameter('dateFrom', $onDateBracket[0])
+            ->setParameter('dateTo', $onDateBracket[1]);
+
+        $result = $queryBuilder->getQuery()->execute();
+
+        return array_reduce(
+            $result,
+            function (array $carry, $counter) {
+                $arrivageId = $counter['arrivageId'];
+                $natureLabel = $counter['natureLabel'];
+                $nbColis = $counter['nbColis'];
+                if (!isset($carry[$arrivageId])) {
+                    $carry[$arrivageId] = [];
+                }
+                $carry[$arrivageId][$natureLabel] = intval($nbColis);
+                return $carry;
+            },
+            []
+        );
+    }
+
+
+    /**
      * @param array $locations
      * @param array $naturesFilter
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]|[]
