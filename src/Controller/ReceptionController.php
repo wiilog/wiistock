@@ -1748,6 +1748,7 @@ class ReceptionController extends AbstractController
      * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
      * @return Response
