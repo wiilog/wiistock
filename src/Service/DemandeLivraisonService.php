@@ -280,14 +280,15 @@ class DemandeLivraisonService
 
                 foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                     $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if (in_array($statusLabel, [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE])) {
+                    if (in_array($statusLabel, [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE])
+                        && $ligneArticle->getDemande()->getId() !== $demande->getId()) {
                         $quantiteReservee += $ligneArticle->getQuantite();
                     }
                 }
 
                 if ($quantiteReservee > $stock) {
                     $response['success'] = false;
-                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $stock . ").";
+                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $quantiteReservee . ").";
                 }
             } else {
                 $totalQuantity = (
@@ -300,7 +301,7 @@ class DemandeLivraisonService
                 }
             }
         }
-        $response = $response['success'] ? $this->validateDLAfterCheck() : $response;
+        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $data) : $response;
         return $response;
     }
 
