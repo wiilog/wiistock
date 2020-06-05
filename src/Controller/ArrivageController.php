@@ -258,6 +258,7 @@ class ArrivageController extends AbstractController
 
             $data = $request->request->all();
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -268,14 +269,21 @@ class ArrivageController extends AbstractController
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
-
+            $todayStart = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
+            $todayStart->setTime(0, 0);
+            $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
+            $todayEnd->setTime(23, 59);
+            $suffix = $arrivageRepository->countByDates($todayStart , $todayEnd)+1  ;
+            $suffix = $suffix < 10 ? "0".$suffix : $suffix ;
+            // Si on ajoute l'id de 'utilisateur qui crée l'arrivage en plus du compteur les doublons seront forcement impossible entre deux utilisateurs qui feraient une requete simultanément
+            $suffix = ($this->getUser()->getId()).$suffix;
             $arrivage = new Arrivage();
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
-                ->setNumeroArrivage($numeroArrivage)
+                ->setNumeroArrivage($numeroArrivage."-".$suffix)
                 ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null);

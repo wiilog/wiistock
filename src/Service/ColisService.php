@@ -32,13 +32,21 @@ Class ColisService
     }
 
     public function persistColis(Arrivage $arrivage, Nature $nature): Colis {
+
         $arrivageNum = $arrivage->getNumeroArrivage();
 
-        $highestCounter = $this->getHighestCodeByPrefix($arrivage) + 1;
-        $newCounter = sprintf('%05u', $highestCounter);
+       // $highestCounter = $this->getHighestCodeByPrefix($arrivage) + 1;
+        $newCounter = count($arrivage->getColis()) + 1;
+
+        if ($newCounter < 10) {
+            $newCounter = "00" . $newCounter;
+        } elseif ($newCounter < 100 && $newCounter > 9) {
+            $newCounter = "0" . $newCounter;
+        }
+
 
         $colis = new Colis();
-        $code = ($nature->getPrefix() ?? '') . $arrivageNum . '-' . $newCounter;
+        $code = ($nature->getPrefix(). $arrivageNum . $newCounter ?? '');
         $colis
             ->setCode($code)
             ->setNature($nature);
@@ -104,7 +112,6 @@ Class ColisService
                 $colisList[] = $colis;
             }
         }
-
         return $colisList;
     }
 }
