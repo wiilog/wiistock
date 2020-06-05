@@ -4,12 +4,16 @@
 namespace App\Service;
 
 
+use App\Entity\Article;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LigneArticle;
+use App\Entity\LigneArticlePreparation;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -18,12 +22,16 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use mysql_xdevapi\RowResult;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class DemandeLivraisonService
 {
@@ -54,6 +62,7 @@ class DemandeLivraisonService
 
     private $entityManager;
     private $stringService;
+    private $refArticleDataService;
     private $mailerService;
     private $translator;
     private $valeurChampLibreService;
@@ -67,6 +76,7 @@ class DemandeLivraisonService
                                 EntityManagerInterface $entityManager,
                                 TranslatorInterface $translator,
                                 MailerService $mailerService,
+                                RefArticleDataService $refArticleDataService,
                                 Twig_Environment $templating)
     {
         $this->receptionRepository = $receptionRepository;
@@ -79,6 +89,7 @@ class DemandeLivraisonService
         $this->user = $tokenStorage->getToken()->getUser();
         $this->translator = $translator;
         $this->mailerService = $mailerService;
+        $this->refArticleDataService = $refArticleDataService;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
@@ -215,6 +226,171 @@ class DemandeLivraisonService
             ];
         }
         return $data;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param array $data
+     * @return array
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $data): array {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+
+        $demande = $demandeRepository->find($data['demande']);
+        $response = [];
+        $response['success'] = true;
+        $response['message'] = '';
+        // pour réf gérées par articles
+        $articles = $demande->getArticles();
+        foreach ($articles as $article) {
+            $statutArticle = $article->getStatut();
+            if (isset($statutArticle)
+                && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
+                $response['success'] = false;
+                $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
+            }
+            else {
+                $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                $totalQuantity = $refArticle->getQuantiteDisponible();
+                $treshHold = ($article->getQuantite() > $totalQuantity)
+                    ? $totalQuantity
+                    : $article->getQuantite();
+                if ($article->getQuantiteAPrelever() > $treshHold) {
+                    $response['success'] = false;
+                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
+                }
+            }
+        }
+
+        // pour réf gérées par référence
+        foreach ($demande->getLigneArticle() as $ligne) {
+            if (!$ligne->getToSplit()) {
+                $articleRef = $ligne->getReference();
+
+                $stock = $articleRef->getQuantiteStock();
+                $quantiteReservee = $ligne->getQuantite();
+
+                $listLigneArticleByRefArticle = $ligneArticleRepository->findByRefArticle($articleRef);
+
+                foreach ($listLigneArticleByRefArticle as $ligneArticle) {
+                    $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
+                    if (in_array($statusLabel, [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE])) {
+                        $quantiteReservee += $ligneArticle->getQuantite();
+                    }
+                }
+
+                if ($quantiteReservee > $stock) {
+                    $response['success'] = false;
+                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $stock . ").";
+                }
+            } else {
+                $totalQuantity = (
+                    $articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF)
+                    - $ligne->getReference()->getQuantiteReservee()
+                );
+                if ($ligne->getQuantite() > $totalQuantity) {
+                    $response['success'] = false;
+                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $totalQuantity . ").";
+                }
+            }
+        }
+        $response = $response['success'] ? $this->validateDLAfterCheck() : $response;
+        return $response;
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param array $data
+     * @return array
+     * @throws NonUniqueResultException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    private function validateDLAfterCheck(EntityManagerInterface $entityManager, array $data): array {
+        $response = [];
+        $response['success'] = true;
+        $response['message'] = '';
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+
+        $demande = $demandeRepository->find($data['demande']);
+
+        // Creation d'une nouvelle preparation basée sur une selection de demandes
+        $preparation = new Preparation();
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $preparation
+            ->setNumero('P-' . $date->format('YmdHis'))
+            ->setDate($date);
+
+        $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+        $preparation->setStatut($statutP);
+
+        $demande->addPreparation($preparation);
+        $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+        $demande->setStatut($statutD);
+        $entityManager->persist($preparation);
+
+        // modification du statut articles => en transit
+        $articles = $demande->getArticles();
+        foreach ($articles as $article) {
+            $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+            $preparation->addArticle($article);
+        }
+        $lignesArticles = $demande->getLigneArticle();
+        $refArticleToUpdateQuantities = [];
+        foreach ($lignesArticles as $ligneArticle) {
+            $referenceArticle = $ligneArticle->getReference();
+            $lignesArticlePreparation = new LigneArticlePreparation();
+            $lignesArticlePreparation
+                ->setToSplit($ligneArticle->getToSplit())
+                ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
+                ->setQuantite($ligneArticle->getQuantite())
+                ->setReference($referenceArticle)
+                ->setPreparation($preparation);
+            $entityManager->persist($lignesArticlePreparation);
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
+            }
+            else {
+                $refArticleToUpdateQuantities[] = $referenceArticle;
+            }
+            $preparation->addLigneArticlePreparation($lignesArticlePreparation);
+        }
+        $entityManager->flush();
+
+        foreach ($refArticleToUpdateQuantities as $refArticle) {
+            $this->refArticleDataService->updateRefArticleQuantities($refArticle);
+        }
+
+        $entityManager->flush();
+        if ($demande->getType()->getSendMail()) {
+            $nowDate = new DateTime('now');
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Validation d\'une demande vous concernant',
+                $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
+                    'demande' => $demande,
+                    'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                        . $demande->getType()->getLabel()
+                        . ' a bien été validée le '
+                        . $nowDate->format('d/m/Y \à H:i')
+                        . '.',
+                ]),
+                $demande->getUtilisateur()->getMainAndSecondaryEmails()
+            );
+        }
+        $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
+            'demande' => $demande,
+            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+            'showDetails' => $this->createHeaderDetailsConfig($demande)
+        ]);
+        return $response;
     }
 
     /**

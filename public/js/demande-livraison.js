@@ -133,22 +133,13 @@ function getCompareStock(submit) {
         dataType: 'json',
         data: JSON.stringify(params)
     })
-        .then(function (data) {
-            if (data.status === true) {
-                $('.zone-entete').html(data.entete);
-                $('#tableArticle_id').DataTable().ajax.reload();
+        .then(function (response) {
+            if (response.success) {
+                $('.zone-entete').html(response.message);
                 $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
                 tableArticle.ajax.reload();
-                return true;
             } else {
-                if (data.message) {
-                    alertErrorMsg(data.message)
-                }
-                else {
-                    $('#restantQuantite').html(data.stock);
-                    $('#negativStock').click();
-                }
-                return false;
+                alertErrorMsg(response.message);
             }
         });
 }
