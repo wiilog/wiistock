@@ -117,17 +117,15 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
         $queryBuilderExpr = $queryBuilder->expr();
-        return $queryBuilder->join('referenceArticle.emplacement', 'emplacement')
+        return $queryBuilder
+            ->select('referenceArticle.barCode AS barCode')
+            ->addSelect('referenceArticle.reference AS reference')
+            ->addSelect('referenceArticle.libelle AS label')
+            ->addSelect('referenceArticle.quantiteDisponible AS availableQuantity')
+            ->addSelect('referenceArticle.typeQuantite AS typeQuantity')
+            ->addSelect('emplacement.label AS locationLabel')
+            ->join('referenceArticle.emplacement', 'emplacement')
             ->join('referenceArticle.statut', 'statut')
-            ->select('referenceArticle.barCode')
-            ->addSelect('referenceArticle.reference')
-            ->addSelect('referenceArticle.libelle')
-            ->addSelect('referenceArticle.quantiteDisponible')
-            ->addSelect('referenceArticle.quantiteReservee')
-            ->addSelect('referenceArticle.quantiteStock')
-            ->addSelect('referenceArticle.typeQuantite')
-            ->addSelect('referenceArticle.commentaire')
-            ->addSelect('emplacement.label as emplacementLabel')
             ->where($queryBuilderExpr->andX(
                 $queryBuilderExpr->eq('statut.nom', ':actif'),
                 $queryBuilderExpr->eq('referenceArticle.needsMobileSync', ':mobileSync')

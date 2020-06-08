@@ -1253,8 +1253,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $statutRepository = $entityManager->getRepository(Statut::class);
             $manutentionRepository = $entityManager->getRepository(Manutention::class);
             $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
+
+            $demandeLivraisonArticles = $referenceArticleRepository->findByNeedsMobileSync();
+            $demandeLivraisonType = array_map(function (Type $type) {
+                return [
+                    'id' => $type->getId(),
+                    'label' => $type->getLabel(),
+                ];
+            }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON));
         } else {
             $manutentions = [];
+            $demandeLivraisonArticles = [];
+            $demandeLivraisonType = [];
         }
 
         if ($rights['tracking']) {
@@ -1276,14 +1286,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
             'stockTaking' => $stockTaking,
-            'refsDL' => $referenceArticleRepository->findByNeedsMobileSync(),
-            'rights' => $rights,
-            'typesDL' => array_map(function (Type $type) {
-                return [
-                    'id' => $type->getId(),
-                    'label' => $type->getLabel(),
-                ];
-            }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON))
+            'demandeLivraisonTypes' => $demandeLivraisonType,
+            'demandeLivraisonArticles' => $demandeLivraisonArticles,
+            'rights' => $rights
         ];
     }
 
