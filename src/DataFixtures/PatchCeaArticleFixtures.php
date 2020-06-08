@@ -19,7 +19,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 
 
-class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
+class PatchCeaArticleFixtures extends Fixture implements FixtureGroupInterface
 {
 
     private $specificService;
@@ -49,7 +49,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
             $availableSILIArticles = $articleRepository
                 ->getByStatutAndTypeWithoutInProgressPrepaNorLivraison(
                     Article::STATUT_EN_TRANSIT,
-                    Type::LABEL_SILICIUM,
+                    Type::LABEL_CSP,
                     [
                         Preparation::STATUT_A_TRAITER,
                         Preparation::STATUT_EN_COURS_DE_PREPARATION
@@ -105,7 +105,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['cea-sili-fix'];
+        return ['cea-article-fix'];
     }
 
 }
