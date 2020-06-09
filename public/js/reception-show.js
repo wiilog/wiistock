@@ -97,14 +97,14 @@ function InitPageDataTable() {
         ],
         rowConfig: {
             needsRowClickAction: true,
+            needsColor: true,
+            dataToCheck: 'Urgence',
+            color: 'danger',
             callback: (row, data) => {
-                if (data.Urgence) {
+                if (data.Urgence && data.Comment) {
                     const $row = $(row);
-                    $row.addClass('table-danger');
-                    if (data.Comment) {
-                        $row.attr('title', data.Comment);
-                        initTooltips($row);
-                    }
+                    $row.attr('title', data.Comment);
+                    initTooltips($row);
                 }
             }
         },
@@ -133,6 +133,7 @@ function InitPageDataTable() {
         rowConfig: {
             needsRowClickAction: true,
             needsColor: true,
+            dataToCheck: 'urgence',
             color: 'danger',
         },
     };
