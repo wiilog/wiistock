@@ -121,7 +121,7 @@ class LitigeController extends AbstractController
             ["key" => 'command', 'label' => 'N° ligne'],
             ["key" => 'provider', 'label' => 'Fournisseur'],
             ["key" => 'references', 'label' => 'Référence'],
-            ["key" => 'lastHistorique', 'label' => 'Dernier historique'],
+            ["key" => 'lastHistoric', 'label' => 'Dernier historique'],
             ["key" => 'creationDate', 'label' => 'Créé le'],
             ["key" => 'updateDate', 'label' => 'Modifié le'],
             ["key" => 'status', 'label' => 'Statut'],
@@ -436,6 +436,7 @@ class LitigeController extends AbstractController
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $champs[] = "actions";
+            dump($champs);
             $user->setColumnsVisibleForLitige($champs);
             $entityManager->flush();
 
