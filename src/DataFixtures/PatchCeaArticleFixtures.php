@@ -77,8 +77,8 @@ class PatchCeaArticleFixtures extends Fixture implements FixtureGroupInterface
                 $cpt++;
 
                 if (($cpt % 100) === 0) {
-                    $manager->flush();
                     dump('Flush (' . $cpt . '/' . $articleCount . ') articles');
+                    $manager->flush();
                 }
             }
 
@@ -88,14 +88,15 @@ class PatchCeaArticleFixtures extends Fixture implements FixtureGroupInterface
 
             $cpt = 0;
             $refsToUpdateCount = count($refsToUpdate);
-            dump('Total des réferences : ' . $refsToUpdate);
+            dump('Total des réferences : ' . $refsToUpdateCount);
             foreach ($refsToUpdate as $refToUpdate) {
                 $this->refArticleService->updateRefArticleQuantities($refToUpdate);
                 $this->refArticleService->treatAlert($refToUpdate);
 
+                $cpt++;
                 if (($cpt % 100) === 0) {
-                    $manager->flush();
                     dump('Flush (' . $cpt . '/' . $refsToUpdateCount . ') références');
+                    $manager->flush();
                 }
             }
             dump('Flush (' . $refsToUpdateCount . '/' . $refsToUpdateCount . ') références');
