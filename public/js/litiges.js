@@ -97,7 +97,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
     let params = {
-        litigeId: litigeId,
+        litigeId: litigeId
     };
 
     if (isArrivage) {
