@@ -686,8 +686,8 @@ function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
     initSelect2(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
 }
 
-function ajaxAutoFournisseurInit(select, placeholder = '') {
-    initSelect2(select, placeholder, 1, {route: 'get_fournisseur'});
+function ajaxAutoFournisseurInit(select, placeholder = '', route = 'get_fournisseur') {
+    initSelect2(select, placeholder, 1, { route });
 }
 
 function ajaxAutoChauffeurInit(select) {

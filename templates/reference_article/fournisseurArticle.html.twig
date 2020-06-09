@@ -6,6 +6,12 @@
                 name="fournisseur">
             </select>
         </div>
+        <div class="form-group col-4 w-100">
+            <label for="reference">Nom Fournisseur</label>
+            <select class="ajax-autocompleteFournisseurLabel form-control" onchange="loadAndDisplayLabels($(this))"
+                    name="fournisseurLabel">
+            </select>
+        </div>
         <div class="form-group col-4 d-none newContent">
             <label for="reference">Référence Article fournisseur</label>
             <input class="form-control data" type="text" name="referenceFournisseur" id="referenceFournisseur">
