@@ -543,7 +543,7 @@ class PreparationsManagerService
                     $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $quantitePicked);
                     $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) - $quantitePicked);
                 }
-                else { // on livraison delete (reset preparation
+                else { // on livraison delete (reset preparation)
                     $quantitePicked = $ligneArticle->getQuantitePrelevee();
                     $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $quantitePicked);
                     $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) + $quantitePicked);
