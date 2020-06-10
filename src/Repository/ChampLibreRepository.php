@@ -174,6 +174,7 @@ class ChampLibreRepository extends EntityRepository
             ->setParameter('categorieCLLabel', $categorieCLLabel);
 
         $result = $query->execute();
+        // TODO supprimer
         if ($assocTypeId) {
             $result = array_reduce($result, function(array $carry, ChampLibre $current) {
                 $typeId = $current->getType()->getId();

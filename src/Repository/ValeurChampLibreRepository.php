@@ -10,6 +10,7 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
@@ -92,6 +93,54 @@ class ValeurChampLibreRepository extends EntityRepository
         //        return $query->getOneOrNullResult();
         $result = $query->execute();
         return $result ? $result[0] : null;
+    }
+
+    /**
+     * @param int $refArticleId
+     * @param ChampLibre $champLibre
+     * @return ValeurChampLibre|null
+     */
+    public function findByDemandesAndChampLibres($demandes, $champLibres)
+    {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "SELECT valeurCL, 
+                        reference.id AS referenceId
+                FROM App\Entity\ValeurChampLibre valeurCL
+                JOIN valeurCL.champLibre champLibre
+                JOIN valeurCL.articleReference reference
+                JOIN reference.ligneArticles ligneArticle
+                JOIN ligneArticle.demande demande
+                WHERE demande.id IN (:demandesId) AND champLibre.id IN (:champLibresId)"
+            )
+            ->setParameter(
+                'demandesId',
+                array_map( function (Demande $demande) {
+                    return $demande->getId();
+                }, $demandes),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter(
+                'champLibresId',
+                array_map(function (ChampLibre $champLibre) {
+                    return $champLibre->getId();
+                }, $champLibres),
+                Connection::PARAM_STR_ARRAY
+            );
+        $result = $query->execute();
+
+        return array_reduce($result, function(array $carry, $current) {
+            $valeurChampLibre =  $current[0];
+            $referenceId = $current['referenceId'];
+
+            if (!isset($carry[$referenceId])) {
+                $carry[$referenceId] = [];
+            }
+
+            $carry[$referenceId][] = $valeurChampLibre;
+            return $carry;
+        }, []);
     }
 
 
