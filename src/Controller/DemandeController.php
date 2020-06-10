@@ -826,7 +826,8 @@ class DemandeController extends AbstractController
 			$listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 			$listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
-            $listChampsLibresAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE, true);
+            $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE, true);
+            $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE, true);
 
 			$listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {
@@ -852,18 +853,17 @@ class DemandeController extends AbstractController
 					// champs libres de la demande
 					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
-					// champs libres de l'article de référence
-					$categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
 					$champsLibresArt = [];
 
-
 					foreach ($listTypesArt as $type) {
-						$listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
-						foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ligneArticle->getReference()->getId(), $champLibre);
-
-                            if ($valeurChampRefArticle) {
-                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                        $typeId = $type->getId();
+						$listChampsLibres = isset($listChampsLibresRefAll[$typeId]) ? $listChampsLibresRefAll[$typeId] : null;
+						if (isset($listChampsLibres)) {
+                            foreach ($listChampsLibres as $champLibre) {
+                                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ligneArticle->getReference()->getId(), $champLibre);
+                                if ($valeurChampRefArticle) {
+                                    $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                                }
                             }
                         }
                     }
@@ -893,14 +893,12 @@ class DemandeController extends AbstractController
 					// champs libres de la demande
 					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
-
-
-
+                    $champsLibresArt = [];
 
                     foreach ($listTypesArt as $type) {
                         $typeId = $type->getId();
-                        if (isset($listChampsLibresAll[$typeId])) {
-                            $listChampsLibres = $listChampsLibresAll[$typeId];
+                        if (isset($listChampsLibresArticleAll[$typeId])) {
+                            $listChampsLibres = $listChampsLibresArticleAll[$typeId];
                             foreach ($listChampsLibres as $champLibre) {
                                 $valeurChampRefArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
                                 if ($valeurChampRefArticle) {
