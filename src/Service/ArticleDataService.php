@@ -370,7 +370,6 @@ class ArticleDataService
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
