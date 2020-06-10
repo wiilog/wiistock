@@ -11,6 +11,7 @@ use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -72,22 +73,28 @@ class ValeurChampLibreRepository extends EntityRepository
 
     /**
      * @param int $refArticleId
-     * @param ChampLibre $champLibre
+     * @param ChampLibre|ChampLibre[] $champLibres
      * @return ValeurChampLibre|null
      */
-    public function findOneByRefArticleAndChampLibre($refArticleId, $champLibre)
+    public function findOneByRefArticleAndChampLibre($refArticleId, $champLibres, $assocChampsLibres = false)
     {
+        if(!is_array($champLibres)){
+            $champLibres = [$champLibres];
+        }
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT v
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.articleReference a
-            WHERE a.id = :refArticle AND v.champLibre = :champLibre"
+            "SELECT valeurChampLibre
+            FROM App\Entity\ValeurChampLibre valeurChampLibre
+            JOIN valeurChampLibre.articleReference articleReference
+            WHERE articleReference.id = :refArticle AND valeurChampLibre.champLibre IN (:champLibre)"
+        )
+            ->setParameter( "refArticle" , $refArticleId)
+            ->setParameter("champLibre",
+            array_map(function(ChampLibre $champLibre) {
+                return $champLibre->getId();
+            } , $champLibres),
+                Connection::PARAM_STR_ARRAY
         );
-        $query->setParameters([
-            "refArticle" => $refArticleId,
-            "champLibre" => $champLibre
-        ]);
 
         //        return $query->getOneOrNullResult();
         $result = $query->execute();

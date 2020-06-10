@@ -145,26 +145,49 @@ class ChampLibreRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param Type $type
-	 * @param string $categorieCLLabel
-	 * @return ChampLibre[]
-	 */
-	public function findByTypeAndCategorieCLLabel($type, $categorieCLLabel)
+    /**
+     * @param Type|Type[] $types
+     * @param string $categorieCLLabel
+     * @param bool $assocTypeId
+     * @return ChampLibre[]
+     */
+	public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel, $assocTypeId = false)
 	{
+        if (!is_array($types)){
+            $types = [$types];
+        }
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
-			"SELECT c
-            FROM App\Entity\ChampLibre c
-            JOIN c.categorieCL ccl
-            WHERE c.type = :type AND ccl.label = :categorieCLLabel"
-		)->setParameters(
-			[
-				'type' => $type,
-				'categorieCLLabel' => $categorieCLLabel,
-			]
-		);;
-		return $query->execute();
+			"SELECT champLibre
+            FROM App\Entity\ChampLibre champLibre
+            JOIN champLibre.categorieCL categorieChampLibre
+            JOIN champLibre.type type
+            WHERE type.id IN (:types)  AND categorieChampLibre.label = :categorieCLLabel "
+        )
+            ->setParameter(
+                'types',
+                array_map( function (Type $type) {
+                    return $type->getId();
+                } , $types),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter('categorieCLLabel', $categorieCLLabel);
+
+        $result = $query->execute();
+        if ($assocTypeId) {
+            $result = array_reduce($result, function(array $carry, ChampLibre $current) {
+                $typeId = $current->getType()->getId();
+
+                if (!isset($carry[$typeId])) {
+                    $carry[$typeId] = [];
+                }
+
+                $carry[$typeId][] = $current;
+                return $carry;
+            }, []);
+        }
+
+        return $result;
 	}
 
     /**
