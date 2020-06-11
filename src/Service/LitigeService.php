@@ -130,6 +130,7 @@ class LitigeService
 				'receptionNb' => $litige['numeroReception'] ?? '',
 				'receptionId' => $litige['receptionId']
 			]),
+            'id' => 'LA00'.$litigeId,
             'references' => $references,
 			'command' => $commands,
 			'numCommandeBl' => $numerosBL,
