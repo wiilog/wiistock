@@ -417,7 +417,8 @@ class OrdreCollecteController extends AbstractController
                 'libellé',
                 'emplacement',
                 'quantité à collecter',
-                'code-barre'
+                'code-barre',
+                'destination'
             ];
 
             $data = [];
@@ -443,7 +444,7 @@ class OrdreCollecteController extends AbstractController
                 $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
                 $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y h:i') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
-                $collecte->getType() ? $collecte->getType()->getLabel() : '',
+                $collecte->getType() ? $collecte->getType()->getLabel() : ''
             ];
 
         foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
@@ -454,7 +455,7 @@ class OrdreCollecteController extends AbstractController
                 $referenceArticle->getLibelle() ?? '',
                 $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
                 $ordreCollecteReference->getQuantite() ?? 0,
-                $referenceArticle->getBarCode(),
+                $referenceArticle->getBarCode()
             ]);
         }
 
@@ -469,6 +470,7 @@ class OrdreCollecteController extends AbstractController
                 $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                 $article->getQuantite() ?? 0,
                 $article->getBarCode(),
+                $collecte->getStockOrDestruct() ? 'Mise en stock' : 'Destruction'
             ]);
         }
     }
