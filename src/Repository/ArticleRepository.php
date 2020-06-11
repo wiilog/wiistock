@@ -147,25 +147,45 @@ class ArticleRepository extends EntityRepository
     }
 
     /**
-     * @param Demande $demande
+     * @param $demande
      * @return Article[]
      */
-    public function findByDemandes($demandes)
+    public function findByDemandes($demandes, $needAssoc = false)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager
-            ->createQuery(
-            "SELECT a
-             FROM App\Entity\Article a
-             WHERE a.demande IN (:demande)
-            "
-        )->setParameter('demande',
-                array_map( function (Demande $demande) {
-                    return $demande->getId();
+        $queryBuilder = $this->createQueryBuilder('article')
+            ->select('article');
+
+        if ($needAssoc) {
+            $queryBuilder->addSelect('demande.id AS demandeId');
+        }
+        $queryBuilder
+            ->join('article.demande' , 'demande')
+            ->where('article.demande IN (:demande)')
+            ->setParameter('demande',
+                array_map( function ($demande) {
+                    return ($demande instanceof Demande)
+                        ? $demande->getId()
+                        : $demande;
                 }, $demandes),
                 Connection::PARAM_STR_ARRAY
             );
-        return $query->execute();
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        if ($needAssoc) {
+            $result = array_reduce($result, function(array $carry, $current) {
+                $article =  $current[0];
+                $demandeId = $current['demandeId'];
+
+                if (!isset($carry[$demandeId])) {
+                    $carry[$demandeId] = [];
+                }
+
+                $carry[$demandeId][] = $article;
+                return $carry;
+            }, []);
+        }
+        return $result;
     }
 
     public function getByDemandeAndType($demande, $type)

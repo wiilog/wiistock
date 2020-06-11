@@ -591,7 +591,7 @@ class DemandeController extends AbstractController
                     )
                 ];
             }
-            $articles = $articleRepository->findByDemande($demande);
+            $articles = $articleRepository->findByDemandes([$demande]);
             $rowsCA = [];
             foreach ($articles as $article) {
                 $rowsCA[] = [
@@ -753,7 +753,7 @@ class DemandeController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
-            $articles = $articleRepository->findByDemande($data['id']);
+            $articles = $articleRepository->findByDemandes([$data['id']]);
             $references = $ligneArticleRepository->findByDemande($data['id']);
             $count = count($articles) + count($references);
 
@@ -769,15 +769,15 @@ class DemandeController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-	public function getDemandesIntels(EntityManagerInterface $entityManager,
+    public function getDemandesIntels(EntityManagerInterface $entityManager,
                                       Request $request): Response
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$dateMin = $data['dateMin'] . ' 00:00:00';
-			$dateMax = $data['dateMax'] . ' 23:59:59';
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
 
-			$dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-			$dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
 
             $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -786,79 +786,78 @@ class DemandeController extends AbstractController
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 
-			$demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
-            $articles = $articleRepository->findByDemandes($demandes);
-
+            $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $articles = $articleRepository->findByDemandes($demandes, true);
             // en-têtes champs fixes
             $headers = [
-				'demandeur',
-				'statut',
-				'destination',
-				'commentaire',
-				'date demande',
-				'date(s) validation(s)',
-				'numéro',
-				'type demande',
-				'code(s) préparation(s)',
-				'code(s) livraison(s)',
-				'référence article',
+                'demandeur',
+                'statut',
+                'destination',
+                'commentaire',
+                'date demande',
+                'date(s) validation(s)',
+                'numéro',
+                'type demande',
+                'code(s) préparation(s)',
+                'code(s) livraison(s)',
+                'référence article',
                 'libellé article',
                 'code-barre article',
                 'code-barre référence',
-				'quantité disponible',
-				'quantité à prélever'
-			];
+                'quantité disponible',
+                'quantité à prélever'
+            ];
 
-			// en-têtes champs libres DL
-			$clDL = $champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
-			foreach ($clDL as $champLibre) {
-				$headers[] = $champLibre->getLabel();
-			}
+            // en-têtes champs libres DL
+            $clDL = $champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+            foreach ($clDL as $champLibre) {
+                $headers[] = $champLibre->getLabel();
+            }
 
-			// en-têtes champs libres articles
-			$clAR = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
-			foreach ($clAR as $champLibre) {
-				$headers[] = $champLibre->getLabel();
-			}
+            // en-têtes champs libres articles
+            $clAR = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
+            foreach ($clAR as $champLibre) {
+                $headers[] = $champLibre->getLabel();
+            }
 
-			$data = [];
-			$data[] = $headers;
+            $data = [];
+            $data[] = $headers;
 
-			$listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-			$listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
             $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
             $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
             $valeurCLRefAll = $valeurChampLibreRepository->findByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
-			$valeurCLArticle = $valeurChampLibreRepository->findByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
+            $valeurCLArticle = $valeurChampLibreRepository->findByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
 
             $listChampsLibresDL = [];
-			foreach ($listTypesDL as $type) {
-				$listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
-			}
+            foreach ($listTypesDL as $type) {
+                $listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
+            }
 
-			/** @var Demande $demande */
+            /** @var Demande $demande */
             foreach ($demandes as $demande) {
-			    $infosDemand = $this->getCSVExportFromDemand($demande);
-				foreach ($demande->getLigneArticle() as $ligneArticle) {
-					$demandeData = [];
-					$articleRef = $ligneArticle->getReference();
+                $infosDemand = $this->getCSVExportFromDemand($demande);
+                foreach ($demande->getLigneArticle() as $ligneArticle) {
+                    $demandeData = [];
+                    $articleRef = $ligneArticle->getReference();
 
                     $availableQuantity = $articleRef->getQuantiteDisponible();
 
                     array_push($demandeData, ...$infosDemand);
-					$demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $demandeData[] = '';
                     $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
-					$demandeData[] = $availableQuantity;
-					$demandeData[] = $ligneArticle->getQuantite();
+                    $demandeData[] = $availableQuantity;
+                    $demandeData[] = $ligneArticle->getQuantite();
 
-					// champs libres de la demande
-					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
+                    // champs libres de la demande
+                    $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
-					$champsLibresArt = [];
+                    $champsLibresArt = [];
 
-					$referenceId = $articleRef->getId();
+                    $referenceId = $articleRef->getId();
 
                     if (isset($valeurCLRefAll[$referenceId])) {
                         $valeursCLReference = $valeurCLRefAll[$referenceId];
@@ -868,42 +867,6 @@ class DemandeController extends AbstractController
                         }
                     }
 
-					foreach ($clAR as $type) {
-						if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-							$demandeData[] = $champsLibresArt[$type->getLabel()];
-						} else {
-							$demandeData[] = '';
-						}
-					}
-
-					$data[] = $demandeData;
-				}
-
-
-				foreach ($articles as $article) {
-					$demandeData = [];
-
-                    array_push($demandeData, ...$infosDemand);
-					$demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
-					$demandeData[] = $article->getLabel();
-                    $demandeData[] = $article->getBarCode();
-                    $demandeData[] = '';
-					$demandeData[] = $article->getQuantite();
-					$demandeData[] = $article->getQuantiteAPrelever();
-
-					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
-
-                    $champsLibresArt = [];
-
-                    $articleId = $article->getId();
-
-                    if (isset($valeurCLArticle[$articleId])) {
-                        $valeursCL = $valeurCLArticle[$articleId];
-                        /** @var ValeurChampLibre $valeurCL */
-                        foreach ($valeursCL as $valeurCL) {
-                            $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
-                        }
-                    }
                     foreach ($clAR as $type) {
                         if (array_key_exists($type->getLabel(), $champsLibresArt)) {
                             $demandeData[] = $champsLibresArt[$type->getLabel()];
@@ -912,16 +875,51 @@ class DemandeController extends AbstractController
                         }
                     }
 
+                    $data[] = $demandeData;
+                }
+
+                if (array_key_exists($demande->getId(), $articles)) {
+                    foreach ($articles[$demande->getId()] as $article) {
+                        $demandeData = [];
+
+                        array_push($demandeData, ...$infosDemand);
+                        $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+                        $demandeData[] = $article->getLabel();
+                        $demandeData[] = $article->getBarCode();
+                        $demandeData[] = '';
+                        $demandeData[] = $article->getQuantite();
+                        $demandeData[] = $article->getQuantiteAPrelever();
+
+                        $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
+
+                        $champsLibresArt = [];
+
+                        $articleId = $article->getId();
+
+                        if (isset($valeurCLArticle[$articleId])) {
+                            $valeursCL = $valeurCLArticle[$articleId];
+                            /** @var ValeurChampLibre $valeurCL */
+                            foreach ($valeursCL as $valeurCL) {
+                                $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                            }
+                        }
+                        foreach ($clAR as $type) {
+                            if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                                $demandeData[] = $champsLibresArt[$type->getLabel()];
+                            } else {
+                                $demandeData[] = '';
+                            }
+                        }
+                        $data[] = $demandeData;
+                    }
                 }
             }
 
-            $data[] = $demandeData;
-
             return new JsonResponse($data);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
     /**
      * @param ValeurChampLibreRepository $valeurChampLibreRepository
