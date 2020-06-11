@@ -44,6 +44,7 @@ function initPageElements() {
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
+            { "data": 'CodeBarre', 'title' : 'Code barre' },
             { "data": 'Label', 'title' : 'Libellé' },
             { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
             { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
@@ -77,6 +78,7 @@ function initPageElements() {
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
+            { "data": 'CodeBarre', 'title' : 'Code barre' },
             { "data": 'Label', 'title' : 'Libellé' },
             { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
             { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
