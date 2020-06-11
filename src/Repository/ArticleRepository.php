@@ -146,6 +146,28 @@ class ArticleRepository extends EntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param Demande $demande
+     * @return Article[]
+     */
+    public function findByDemandes($demandes)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager
+            ->createQuery(
+            "SELECT a
+             FROM App\Entity\Article a
+             WHERE a.demande IN (:demande)
+            "
+        )->setParameter('demande',
+                array_map( function (Demande $demande) {
+                    return $demande->getId();
+                }, $demandes),
+                Connection::PARAM_STR_ARRAY
+            );
+        return $query->execute();
+    }
+
     public function getByDemandeAndType($demande, $type)
     {
         $entityManager = $this->getEntityManager();

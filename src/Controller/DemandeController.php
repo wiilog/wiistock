@@ -787,6 +787,7 @@ class DemandeController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
 
 			$demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $articles = $articleRepository->findByDemandes($demandes);
 
             // en-têtes champs fixes
             $headers = [
@@ -879,7 +880,7 @@ class DemandeController extends AbstractController
 				}
 
 
-				foreach ($articleRepository->findByDemande($demande) as $article) {
+				foreach ($articles as $article) {
 					$demandeData = [];
 
                     array_push($demandeData, ...$infosDemand);
@@ -890,7 +891,6 @@ class DemandeController extends AbstractController
 					$demandeData[] = $article->getQuantite();
 					$demandeData[] = $article->getQuantiteAPrelever();
 
-					// champs libres de la demande
 					$this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
                     $champsLibresArt = [];
@@ -904,18 +904,20 @@ class DemandeController extends AbstractController
                             $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
                         }
                     }
-					foreach ($clAR as $type) {
-						if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-							$demandeData[] = $champsLibresArt[$type->getLabel()];
-						} else {
-							$demandeData[] = '';
-						}
-					}
+                    foreach ($clAR as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                            $demandeData[] = $champsLibresArt[$type->getLabel()];
+                        } else {
+                            $demandeData[] = '';
+                        }
+                    }
 
-					$data[] = $demandeData;
-				}
-			}
-			return new JsonResponse($data);
+                }
+            }
+
+            $data[] = $demandeData;
+
+            return new JsonResponse($data);
 		} else {
 			throw new NotFoundHttpException('404');
 		}
