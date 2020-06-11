@@ -825,12 +825,12 @@ class DemandeController extends AbstractController
 
 			$listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 			$listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-
-            $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE, true); // TODO supprimer true
+            $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
             $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
             $valeurCLRefAll = $valeurChampLibreRepository->findByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
+			$valeurCLArticle = $valeurChampLibreRepository->findByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
 
-			$listChampsLibresDL = [];
+            $listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {
 				$listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
 			}
@@ -895,16 +895,13 @@ class DemandeController extends AbstractController
 
                     $champsLibresArt = [];
 
-                    foreach ($listTypesArt as $type) {
-                        $typeId = $type->getId();
-                        if (isset($listChampsLibresArticleAll[$typeId])) {
-                            $listChampsLibres = $listChampsLibresArticleAll[$typeId];
-                            foreach ($listChampsLibres as $champLibre) {
-                                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-                                if ($valeurChampRefArticle) {
-                                    $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
-                                }
-                            }
+                    $articleId = $article->getId();
+
+                    if (isset($valeurCLArticle[$articleId])) {
+                        $valeursCL = $valeurCLArticle[$articleId];
+                        /** @var ValeurChampLibre $valeurCL */
+                        foreach ($valeursCL as $valeurCL) {
+                            $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
                         }
                     }
 					foreach ($clAR as $type) {

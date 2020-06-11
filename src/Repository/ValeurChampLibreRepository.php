@@ -10,7 +10,6 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
-use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
@@ -90,7 +89,7 @@ class ValeurChampLibreRepository extends EntityRepository
             "refArticle" => $refArticleId,
             "champLibre" => $champLibre
         ]);
-        //        return $query->getOneOrNullResult();
+
         $result = $query->execute();
         return $result ? $result[0] : null;
     }
@@ -143,6 +142,52 @@ class ValeurChampLibreRepository extends EntityRepository
         }, []);
     }
 
+    /**
+     * @param int $articleId
+     * @param ChampLibre $champLibre
+     * @return ValeurChampLibre|null
+     */
+    public function findByDemandesAndChampLibresArticles($demandes, $champLibres)
+    {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "SELECT valeurCL, 
+                        article.id AS articleId
+                FROM App\Entity\ValeurChampLibre valeurCL
+                JOIN valeurCL.champLibre champLibre
+                JOIN valeurCL.article article
+                JOIN article.demande demande
+                WHERE demande.id IN (:demandesId) AND champLibre.id IN (:champLibresId)"
+            )
+            ->setParameter(
+                'demandesId',
+                array_map( function (Demande $demande) {
+                    return $demande->getId();
+                }, $demandes),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter(
+                'champLibresId',
+                array_map(function (ChampLibre $champLibre) {
+                    return $champLibre->getId();
+                }, $champLibres),
+                Connection::PARAM_STR_ARRAY
+            );
+        $result = $query->execute();
+
+        return array_reduce($result, function(array $carry, $current) {
+            $valeurChampLibre =  $current[0];
+            $articleId = $current['articleId'];
+
+            if (!isset($carry[$articleId])) {
+                $carry[$articleId] = [];
+            }
+
+            $carry[$articleId][] = $valeurChampLibre;
+            return $carry;
+        }, []);
+    }
 
     public function getByRefArticle($idArticle)
     {

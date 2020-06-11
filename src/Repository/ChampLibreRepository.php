@@ -148,10 +148,9 @@ class ChampLibreRepository extends EntityRepository
     /**
      * @param Type|Type[] $types
      * @param string $categorieCLLabel
-     * @param bool $assocTypeId
      * @return ChampLibre[]
      */
-	public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel, $assocTypeId = false)
+	public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel)
 	{
         if (!is_array($types)){
             $types = [$types];
@@ -173,22 +172,7 @@ class ChampLibreRepository extends EntityRepository
             )
             ->setParameter('categorieCLLabel', $categorieCLLabel);
 
-        $result = $query->execute();
-        // TODO supprimer
-        if ($assocTypeId) {
-            $result = array_reduce($result, function(array $carry, ChampLibre $current) {
-                $typeId = $current->getType()->getId();
-
-                if (!isset($carry[$typeId])) {
-                    $carry[$typeId] = [];
-                }
-
-                $carry[$typeId][] = $current;
-                return $carry;
-            }, []);
-        }
-
-        return $result;
+        return $query->execute();
 	}
 
     /**
