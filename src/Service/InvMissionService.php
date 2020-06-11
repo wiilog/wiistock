@@ -180,7 +180,7 @@ class InvMissionService
         $artDate = $articleRepository->getEntryDateByMission($mission, $art);
         return $this->dataRowMissionArtRef(
             $art->getEmplacement(),
-            $art->getReference(),
+            $art->getArticleFournisseur()->getReferenceArticle(),
             $art->getBarCode(),
             $art->getlabel(),
             !empty($artDate) ? $artDate['date'] : null,
