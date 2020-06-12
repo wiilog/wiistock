@@ -73,6 +73,11 @@ class Litige
      */
     private $emergencyTriggered;
 
+    /**
+     * @ORM\Column(type="string", length=64, nullable=true)
+     */
+    private $numeroLitige;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -345,6 +350,18 @@ class Litige
         if ($this->colis->contains($coli)) {
             $this->colis->removeElement($coli);
         }
+
+        return $this;
+    }
+
+    public function getNumeroLitige(): ?string
+    {
+        return $this->numeroLitige;
+    }
+
+    public function setNumeroLitige(?string $numeroLitige): self
+    {
+        $this->numeroLitige = $numeroLitige;
 
         return $this;
     }

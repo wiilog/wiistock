@@ -5,6 +5,8 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
+use DateTime;
+use DateTimeZone;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -187,5 +189,17 @@ class LitigeService
                 );
             }
         }
+    }
+
+    public function createDisputeNumber($type) {
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $i = 1;
+        $cpt = sprintf('%04u', $i);
+        if ($type === 'arrivage') {
+            $disputeNumber = 'LA' . $date->format('ymd') . $cpt;
+        } else {
+            $disputeNumber = 'LR' . $date->format('ymd') . $cpt;
+        }
+        return $disputeNumber;
     }
 }
