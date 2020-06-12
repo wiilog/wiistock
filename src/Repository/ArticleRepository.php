@@ -131,23 +131,7 @@ class ArticleRepository extends EntityRepository
 	}
 
     /**
-     * @param Demande|int $demande
-     * @return Article[]|null
-     */
-    public function findByDemande($demande)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a
-             FROM App\Entity\Article a
-             WHERE a.demande =:demande
-            "
-        )->setParameter('demande', $demande);
-        return $query->execute();
-    }
-
-    /**
-     * @param $demande
+     * @param $demandes
      * @return Article[]
      */
     public function findByDemandes($demandes, $needAssoc = false)
@@ -157,18 +141,12 @@ class ArticleRepository extends EntityRepository
 
         if ($needAssoc) {
             $queryBuilder->addSelect('demande.id AS demandeId');
+
         }
         $queryBuilder
             ->join('article.demande' , 'demande')
-            ->where('article.demande IN (:demande)')
-            ->setParameter('demande',
-                array_map( function ($demande) {
-                    return ($demande instanceof Demande)
-                        ? $demande->getId()
-                        : $demande;
-                }, $demandes),
-                Connection::PARAM_STR_ARRAY
-            );
+            ->where('article.demande IN (:demandes)')
+            ->setParameter('demandes', $demandes);
         $result = $queryBuilder
             ->getQuery()
             ->execute();

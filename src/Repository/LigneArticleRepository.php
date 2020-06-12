@@ -89,6 +89,43 @@ class LigneArticleRepository extends EntityRepository
         )->setParameter('demande', $demande);;
         return $query->getResult();
     }
+    /**
+     * @param $demandes
+     * @return LigneArticle[]
+     */
+    public function findByDemandes($demandes, $needAssoc = false)
+    {
+        $queryBuilder = $this->createQueryBuilder('ligne_article')
+            ->select('ligne_article');
+
+        if ($needAssoc) {
+            $queryBuilder->addSelect('demande.id AS demandeId');
+
+        }
+        $queryBuilder
+            ->join('ligne_article.demande' , 'demande')
+            ->where('ligne_article.demande IN (:demandes)')
+            ->setParameter('demandes', $demandes );
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+
+        if ($needAssoc) {
+            $result = array_reduce($result, function(array $carry, $current) {
+                $ligneArticle =  $current[0];
+                $demandeId = $current['demandeId'];
+
+                if (!isset($carry[$demandeId])) {
+                    $carry[$demandeId] = [];
+                }
+
+                $carry[$demandeId][] = $ligneArticle;
+                return $carry;
+            }, []);
+        }
+        return $result;
+    }
 
     public function countByRefArticleDemande($referenceArticle, $demande)
     {
@@ -135,48 +172,4 @@ class LigneArticleRepository extends EntityRepository
 
         return $query->getResult();
     }
-
-    //    public function countByArticle($referenceArticle)
-    //    {
-    //        $entityManager = $this->getEntityManager();
-    //        $query = $entityManager->createQuery(
-    //            "SELECT COUNT(l)
-    //            FROM App\Entity\LigneArticle l
-    //            WHERE l.reference = :referenceArticle
-    //            "
-    //        )->setParameters([
-    //            'referenceArticle'=> $referenceArticle,
-    //            ]);
-    //        ;
-    //        return $query->getSingleScalarResult();
-    //    }
-
-    // /**
-    //  * @return LigneArticle[] Returns an array of LigneArticle objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?LigneArticle
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

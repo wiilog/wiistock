@@ -242,4 +242,27 @@ class LivraisonRepository extends EntityRepository
 		]);
 		return $query->execute();
 	}
+
+    public function getNumeroLivraisonGroupByDemande (array $demandes)
+    {
+        $queryBuilder = $this->createQueryBuilder('livraison')
+            ->select('demande.id AS demandeId')
+            ->addSelect('livraison.numero AS numeroLivraison')
+            ->join('livraison.preparation', 'preparation')
+            ->join('preparation.demande', 'demande')
+            ->where('preparation.demande in (:demandes)')
+            ->setParameter('demandes', $demandes);
+
+        $result = $queryBuilder->getQuery()->execute();
+        return array_reduce($result, function (array $carry, $current) {
+
+            $demandeId = $current['demandeId'];
+            $numeroLivraison = $current['numeroLivraison'];
+            if (!isset($carry[$demandeId])) {
+                $carry[$demandeId] = [];
+            }
+            $carry[$demandeId][] = $numeroLivraison;
+            return $carry;
+        }, []);
+    }
 }

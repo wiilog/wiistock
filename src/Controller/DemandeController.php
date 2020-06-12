@@ -33,14 +33,12 @@ use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Date;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -754,7 +752,7 @@ class DemandeController extends AbstractController
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
             $articles = $articleRepository->findByDemandes([$data['id']]);
-            $references = $ligneArticleRepository->findByDemande($data['id']);
+            $references = $ligneArticleRepository->findByDemandes([$data['id']]);
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);
@@ -785,9 +783,13 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $articleRepository = $entityManager->getRepository(Article::class);
+            $preparationRepository = $entityManager->getRepository(Preparation::class);
+            $livraisonRepository = $entityManager->getRepository(Livraison::class);
+            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
-            $articles = $articleRepository->findByDemandes($demandes, true);
+
+
             // en-têtes champs fixes
             $headers = [
                 'demandeur',
@@ -829,6 +831,12 @@ class DemandeController extends AbstractController
             $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
             $valeurCLRefAll = $valeurChampLibreRepository->findByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
             $valeurCLArticle = $valeurChampLibreRepository->findByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
+            $lastDates = $preparationRepository->getLastDatePreparationGroupByDemande($demandes);
+            $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
+            $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
+
+            $articles = $articleRepository->findByDemandes($demandes, true);
+            $ligneArticles = $ligneArticleRepository->findByDemandes($demandes, true);
 
             $listChampsLibresDL = [];
             foreach ($listTypesDL as $type) {
@@ -837,49 +845,58 @@ class DemandeController extends AbstractController
 
             /** @var Demande $demande */
             foreach ($demandes as $demande) {
-                $infosDemand = $this->getCSVExportFromDemand($demande);
-                foreach ($demande->getLigneArticle() as $ligneArticle) {
-                    $demandeData = [];
-                    $articleRef = $ligneArticle->getReference();
+                $demandeId = $demande->getId();
+                $lastDatePrepaForDemande = isset($lastDates[$demandeId]) ? $lastDates[$demandeId] : null;
+                $prepartionOrdersForDemande = isset($prepartionOrders[$demandeId]) ? $prepartionOrders[$demandeId] : [];
+                $livraisonOrdersForDemande = isset($livraisonOrders[$demandeId]) ? $livraisonOrders[$demandeId] : [];
+                $infosDemand = $this->getCSVExportFromDemand($demande, $lastDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
 
-                    $availableQuantity = $articleRef->getQuantiteDisponible();
+                if (isset($ligneArticles[$demandeId])) {
+                    /** @var LigneArticle $ligneArticle */
+                    foreach ($ligneArticles[$demandeId] as $ligneArticle) {
+                        $demandeData = [];
+                        $articleRef = $ligneArticle->getReference();
 
-                    array_push($demandeData, ...$infosDemand);
-                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
-                    $demandeData[] = '';
-                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
-                    $demandeData[] = $availableQuantity;
-                    $demandeData[] = $ligneArticle->getQuantite();
+                        $availableQuantity = $articleRef->getQuantiteDisponible();
 
-                    // champs libres de la demande
-                    $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
+                        array_push($demandeData, ...$infosDemand);
+                        $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+                        $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                        $demandeData[] = '';
+                        $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
+                        $demandeData[] = $availableQuantity;
+                        $demandeData[] = $ligneArticle->getQuantite();
 
-                    $champsLibresArt = [];
+                        // champs libres de la demande
+                        $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
-                    $referenceId = $articleRef->getId();
+                        $champsLibresArt = [];
 
-                    if (isset($valeurCLRefAll[$referenceId])) {
-                        $valeursCLReference = $valeurCLRefAll[$referenceId];
-                        /** @var ValeurChampLibre $valeurCL */
-                        foreach ($valeursCLReference as $valeurCL) {
-                            $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                        $referenceId = $articleRef->getId();
+
+                        if (isset($valeurCLRefAll[$referenceId])) {
+                            $valeursCLReference = $valeurCLRefAll[$referenceId];
+                            /** @var ValeurChampLibre $valeurCL */
+                            foreach ($valeursCLReference as $valeurCL) {
+                                $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                            }
                         }
-                    }
 
-                    foreach ($clAR as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                            $demandeData[] = $champsLibresArt[$type->getLabel()];
-                        } else {
-                            $demandeData[] = '';
+                        foreach ($clAR as $type) {
+                            if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                                $demandeData[] = $champsLibresArt[$type->getLabel()];
+                            } else {
+                                $demandeData[] = '';
+                            }
                         }
-                    }
 
-                    $data[] = $demandeData;
+                        $data[] = $demandeData;
+                    }
                 }
 
-                if (array_key_exists($demande->getId(), $articles)) {
-                    foreach ($articles[$demande->getId()] as $article) {
+                if (isset($articles[$demandeId])) {
+                    /** @var Article $article */
+                    foreach ($articles[$demandeId] as $article) {
                         $demandeData = [];
 
                         array_push($demandeData, ...$infosDemand);
@@ -948,29 +965,20 @@ class DemandeController extends AbstractController
 		}
 	}
 
-    private function getCSVExportFromDemand(Demande $demande): array {
-        $preparationOrders = $demande->getPreparations();
-
-        $livraisonOrders = $demande
-            ->getLivraisons()
-            ->map(function (Livraison $livraison) {
-                return $livraison->getNumero();
-            })
-            ->toArray();
-
-        $preparationOrdersNumeros = $preparationOrders
-            ->map(function (Preparation $preparation) {
-                return $preparation->getNumero();
-            })
-            ->toArray();
-
+    private function getCSVExportFromDemand(Demande $demande,
+                                            $lastDatePrepaStr,
+                                            array $preparationOrdersNumeros,
+                                            array $livraisonOrders): array {
+        $lastDatePrepa = isset($lastDatePrepaStr)
+            ? DateTime::createFromFormat('Y-m-d H:i:s', $lastDatePrepaStr)
+            : null;
         return [
             $demande->getUtilisateur()->getUsername(),
             $demande->getStatut()->getNom(),
             $demande->getDestination()->getLabel(),
             strip_tags($demande->getCommentaire()),
-            $demande->getDate()->format('Y/m/d-H:i:s'),
-            $preparationOrders->count() > 0 ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
+            $demande->getDate()->format('d/m/Y H:i:s'),
+            isset($lastDatePrepa) ? $lastDatePrepa->format('d/m/Y H:i:s') : '',
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : '',
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
