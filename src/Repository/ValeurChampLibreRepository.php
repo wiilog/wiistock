@@ -99,12 +99,13 @@ class ValeurChampLibreRepository extends EntityRepository
      * @param ChampLibre $champLibre
      * @return ValeurChampLibre|null
      */
-    public function findByDemandesAndChampLibres($demandes, $champLibres)
+    public function getByDemandesAndChampLibres($demandes, $champLibres)
     {
         $em = $this->getEntityManager();
         $query = $em
             ->createQuery(
-                "SELECT valeurCL, 
+                "SELECT valeurCL.valeur AS value,
+                        champLibre.label AS label,
                         reference.id AS referenceId
                 FROM App\Entity\ValeurChampLibre valeurCL
                 JOIN valeurCL.champLibre champLibre
@@ -130,29 +131,31 @@ class ValeurChampLibreRepository extends EntityRepository
         $result = $query->execute();
 
         return array_reduce($result, function(array $carry, $current) {
-            $valeurChampLibre =  $current[0];
+            $value =  $current['value'];
+            $label =  $current['label'];
             $referenceId = $current['referenceId'];
 
             if (!isset($carry[$referenceId])) {
                 $carry[$referenceId] = [];
             }
 
-            $carry[$referenceId][] = $valeurChampLibre;
+            $carry[$referenceId][$label] = $value;
             return $carry;
         }, []);
     }
 
     /**
-     * @param int $articleId
-     * @param ChampLibre $champLibre
+     * @param $demandes
+     * @param $champLibres
      * @return ValeurChampLibre|null
      */
-    public function findByDemandesAndChampLibresArticles($demandes, $champLibres)
+    public function getByDemandesAndChampLibresArticles($demandes, $champLibres)
     {
         $em = $this->getEntityManager();
         $query = $em
             ->createQuery(
-                "SELECT valeurCL, 
+                "SELECT champLibre.label AS label,
+                        valeurCL.valeur AS value,
                         article.id AS articleId
                 FROM App\Entity\ValeurChampLibre valeurCL
                 JOIN valeurCL.champLibre champLibre
@@ -177,14 +180,15 @@ class ValeurChampLibreRepository extends EntityRepository
         $result = $query->execute();
 
         return array_reduce($result, function(array $carry, $current) {
-            $valeurChampLibre =  $current[0];
+            $value =  $current['value'];
+            $label =  $current['label'];
             $articleId = $current['articleId'];
 
             if (!isset($carry[$articleId])) {
                 $carry[$articleId] = [];
             }
 
-            $carry[$articleId][] = $valeurChampLibre;
+            $carry[$articleId][$label] = $value;
             return $carry;
         }, []);
     }

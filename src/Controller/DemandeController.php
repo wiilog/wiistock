@@ -833,8 +833,8 @@ class DemandeController extends AbstractController
             $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
             $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
             $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
-            $valeurCLRefAll = $valeurChampLibreRepository->findByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
-            $valeurCLArticle = $valeurChampLibreRepository->findByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
+            $valeurCLRefAll = $valeurChampLibreRepository->getByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
+            $valeurCLArticle = $valeurChampLibreRepository->getByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
             $lastDates = $preparationRepository->getLastDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
@@ -851,18 +851,18 @@ class DemandeController extends AbstractController
                 "dem-livr $nowStr.csv",
                 $demandes,
                 $headers,
-                function (Demande $demande) use (
-                    $valeurChampLibreRepository,
-                    $listChampsLibresDL,
-                        $clDL,
-                        $clAR,
-                        $valeurCLRefAll,
-                        $valeurCLArticle,
-                    $lastDates,
-                    $prepartionOrders,
-                    $livraisonOrders,
-                    $articles,
-                        $ligneArticles
+                function (Demande $demande)
+                use ($valeurChampLibreRepository,
+                     $listChampsLibresDL,
+                     $clDL,
+                     $clAR,
+                     $valeurCLRefAll,
+                     $valeurCLArticle,
+                     $lastDates,
+                     $prepartionOrders,
+                     $livraisonOrders,
+                     $articles,
+                     $ligneArticles
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -876,14 +876,15 @@ class DemandeController extends AbstractController
                         foreach ($ligneArticles[$demandeId] as $ligneArticle) {
                             $demandeData = [];
                             $articleRef = $ligneArticle->getReference();
+                            $referenceId = $articleRef->getId();
 
                             $availableQuantity = $articleRef->getQuantiteDisponible();
 
                             array_push($demandeData, ...$infosDemand);
-                            $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-                            $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                            $demandeData[] = $articleRef ? $articleRef->getReference() : '';
+                            $demandeData[] = $articleRef ? $articleRef->getLibelle() : '';
                             $demandeData[] = '';
-                            $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
+                            $demandeData[] = $articleRef ? $articleRef->getBarCode() : '';
                             $demandeData[] = $availableQuantity;
                             $demandeData[] = $ligneArticle->getQuantite();
 
@@ -891,15 +892,8 @@ class DemandeController extends AbstractController
                             $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
                             $champsLibresArt = [];
-
-                            $referenceId = $articleRef->getId();
-
                             if (isset($valeurCLRefAll[$referenceId])) {
-                                $valeursCLReference = $valeurCLRefAll[$referenceId];
-                                /** @var ValeurChampLibre $valeurCL */
-                                foreach ($valeursCLReference as $valeurCL) {
-                                    $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
-                                }
+                                $champsLibresArt = $valeurCLRefAll[$referenceId];
                             }
 
                             foreach ($clAR as $type) {
@@ -918,6 +912,7 @@ class DemandeController extends AbstractController
                         /** @var Article $article */
                         foreach ($articles[$demandeId] as $article) {
                             $demandeData = [];
+                            $articleId = $article->getId();
 
                             array_push($demandeData, ...$infosDemand);
                             $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
@@ -930,15 +925,8 @@ class DemandeController extends AbstractController
                             $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
                             $champsLibresArt = [];
-
-                            $articleId = $article->getId();
-
                             if (isset($valeurCLArticle[$articleId])) {
-                                $valeursCL = $valeurCLArticle[$articleId];
-                                /** @var ValeurChampLibre $valeurCL */
-                                foreach ($valeursCL as $valeurCL) {
-                                    $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
-                                }
+                                $champsLibresArt = $valeurCLArticle[$articleId];
                             }
                             foreach ($clAR as $type) {
                                 if (array_key_exists($type->getLabel(), $champsLibresArt)) {
