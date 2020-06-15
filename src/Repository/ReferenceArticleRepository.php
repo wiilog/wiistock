@@ -113,17 +113,17 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function findByNeedsMobileSync()
+    public function getByNeedsMobileSync()
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
         $queryBuilderExpr = $queryBuilder->expr();
         return $queryBuilder
-            ->select('referenceArticle.barCode AS barCode')
+            ->select('referenceArticle.barCode AS bar_code')
             ->addSelect('referenceArticle.reference AS reference')
             ->addSelect('referenceArticle.libelle AS label')
-            ->addSelect('referenceArticle.quantiteDisponible AS availableQuantity')
-            ->addSelect('referenceArticle.typeQuantite AS typeQuantity')
-            ->addSelect('emplacement.label AS locationLabel')
+            ->addSelect('referenceArticle.quantiteDisponible AS available_quantity')
+            ->addSelect('referenceArticle.typeQuantite AS type_quantity')
+            ->addSelect('emplacement.label AS location_label')
             ->join('referenceArticle.emplacement', 'emplacement')
             ->join('referenceArticle.statut', 'statut')
             ->where($queryBuilderExpr->andX(

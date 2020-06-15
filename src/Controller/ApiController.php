@@ -1255,7 +1255,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $manutentionRepository = $entityManager->getRepository(Manutention::class);
             $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
 
-            $demandeLivraisonArticles = $referenceArticleRepository->findByNeedsMobileSync();
+            $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonType = array_map(function (Type $type) {
                 return [
                     'id' => $type->getId(),
