@@ -291,7 +291,8 @@ function initModalCondit(tableFromArticle) {
 }
 
 function initNewArticleEditor(modal) {
-    let $select2refs = $('#reference');
+    const $modal = $(modal);
+    let $select2refs = $modal.find('[name="referenceArticle"]');
     ajaxAutoRefArticleInit($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
@@ -301,7 +302,7 @@ function initNewArticleEditor(modal) {
     clearAddRefModal();
     clearModal(modal);
 
-    const $commandField = $(modal).find('#commande');
+    const $commandField = $(modal).find('[name="commande"]');
     const numCommand = $('#numCommandeReception').val();
     $commandField.val(numCommand);
 
@@ -624,7 +625,7 @@ function createHandlerAddLigneArticleResponse($modal) {
 }
 
 function updateQuantityToReceive($input) {
-    $input.closest('.modal').find('#quantite').attr('max', $input.val());
+    $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
 
 function toggleDLForm() {
