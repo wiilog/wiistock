@@ -124,7 +124,7 @@ class ReferenceArticleRepository extends EntityRepository
             ->addSelect('referenceArticle.quantiteDisponible AS available_quantity')
             ->addSelect('referenceArticle.typeQuantite AS type_quantity')
             ->addSelect('emplacement.label AS location_label')
-            ->join('referenceArticle.emplacement', 'emplacement')
+            ->leftJoin('referenceArticle.emplacement', 'emplacement') // pour les références gérées par article
             ->join('referenceArticle.statut', 'statut')
             ->where($queryBuilderExpr->andX(
                 $queryBuilderExpr->eq('statut.nom', ':actif'),

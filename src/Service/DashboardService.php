@@ -804,6 +804,7 @@ class DashboardService
             }
             catch (Throwable $throwable) {
                 $this->wiilockService->stopFeedingDashboard($entityManager);
+                $this->flushAndClearEm($entityManager);
                 throw $throwable;
             }
             $this->wiilockService->stopFeedingDashboard($entityManager);
