@@ -23,6 +23,7 @@ use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArticleDataService;
+use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\MailerService;
 use App\Service\RefArticleDataService;
@@ -761,23 +762,26 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/demandes-infos", name="get_demandes_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="get_demandes_csv", options={"expose"=true}, methods={"GET"} )
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws NonUniqueResultException
      */
-    public function getDemandesIntels(EntityManagerInterface $entityManager,
-                                      Request $request): Response
+    public function getDemandesCSV(EntityManagerInterface $entityManager,
+                                   Request $request,
+                                   CSVExportService $CSVExportService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
 
-            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
-            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
+        }
 
-
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -842,97 +846,113 @@ class DemandeController extends AbstractController
             foreach ($listTypesDL as $type) {
                 $listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
             }
+            $nowStr = date("d-m-Y H:i");
+            return $CSVExportService->createCsvResponse(
+                "dem-livr $nowStr.csv",
+                $demandes,
+                $headers,
+                function (Demande $demande) use (
+                    $valeurChampLibreRepository,
+                    $listChampsLibresDL,
+                        $clDL,
+                        $clAR,
+                        $valeurCLRefAll,
+                        $valeurCLArticle,
+                    $lastDates,
+                    $prepartionOrders,
+                    $livraisonOrders,
+                    $articles,
+                        $ligneArticles
+                ) {
+                    $rows = [];
+                    $demandeId = $demande->getId();
+                    $lastDatePrepaForDemande = isset($lastDates[$demandeId]) ? $lastDates[$demandeId] : null;
+                    $prepartionOrdersForDemande = isset($prepartionOrders[$demandeId]) ? $prepartionOrders[$demandeId] : [];
+                    $livraisonOrdersForDemande = isset($livraisonOrders[$demandeId]) ? $livraisonOrders[$demandeId] : [];
+                    $infosDemand = $this->getCSVExportFromDemand($demande, $lastDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
 
-            /** @var Demande $demande */
-            foreach ($demandes as $demande) {
-                $demandeId = $demande->getId();
-                $lastDatePrepaForDemande = isset($lastDates[$demandeId]) ? $lastDates[$demandeId] : null;
-                $prepartionOrdersForDemande = isset($prepartionOrders[$demandeId]) ? $prepartionOrders[$demandeId] : [];
-                $livraisonOrdersForDemande = isset($livraisonOrders[$demandeId]) ? $livraisonOrders[$demandeId] : [];
-                $infosDemand = $this->getCSVExportFromDemand($demande, $lastDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
+                    if (isset($ligneArticles[$demandeId])) {
+                        /** @var LigneArticle $ligneArticle */
+                        foreach ($ligneArticles[$demandeId] as $ligneArticle) {
+                            $demandeData = [];
+                            $articleRef = $ligneArticle->getReference();
 
-                if (isset($ligneArticles[$demandeId])) {
-                    /** @var LigneArticle $ligneArticle */
-                    foreach ($ligneArticles[$demandeId] as $ligneArticle) {
-                        $demandeData = [];
-                        $articleRef = $ligneArticle->getReference();
+                            $availableQuantity = $articleRef->getQuantiteDisponible();
 
-                        $availableQuantity = $articleRef->getQuantiteDisponible();
+                            array_push($demandeData, ...$infosDemand);
+                            $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+                            $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                            $demandeData[] = '';
+                            $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
+                            $demandeData[] = $availableQuantity;
+                            $demandeData[] = $ligneArticle->getQuantite();
 
-                        array_push($demandeData, ...$infosDemand);
-                        $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-                        $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
-                        $demandeData[] = '';
-                        $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
-                        $demandeData[] = $availableQuantity;
-                        $demandeData[] = $ligneArticle->getQuantite();
+                            // champs libres de la demande
+                            $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
-                        // champs libres de la demande
-                        $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
+                            $champsLibresArt = [];
 
-                        $champsLibresArt = [];
+                            $referenceId = $articleRef->getId();
 
-                        $referenceId = $articleRef->getId();
-
-                        if (isset($valeurCLRefAll[$referenceId])) {
-                            $valeursCLReference = $valeurCLRefAll[$referenceId];
-                            /** @var ValeurChampLibre $valeurCL */
-                            foreach ($valeursCLReference as $valeurCL) {
-                                $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                            if (isset($valeurCLRefAll[$referenceId])) {
+                                $valeursCLReference = $valeurCLRefAll[$referenceId];
+                                /** @var ValeurChampLibre $valeurCL */
+                                foreach ($valeursCLReference as $valeurCL) {
+                                    $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                                }
                             }
-                        }
 
-                        foreach ($clAR as $type) {
-                            if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                                $demandeData[] = $champsLibresArt[$type->getLabel()];
-                            } else {
-                                $demandeData[] = '';
+                            foreach ($clAR as $type) {
+                                if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                                    $demandeData[] = $champsLibresArt[$type->getLabel()];
+                                } else {
+                                    $demandeData[] = '';
+                                }
                             }
-                        }
 
-                        $data[] = $demandeData;
+                            $rows[] = $demandeData;
+                        }
                     }
-                }
 
-                if (isset($articles[$demandeId])) {
-                    /** @var Article $article */
-                    foreach ($articles[$demandeId] as $article) {
-                        $demandeData = [];
+                    if (isset($articles[$demandeId])) {
+                        /** @var Article $article */
+                        foreach ($articles[$demandeId] as $article) {
+                            $demandeData = [];
 
-                        array_push($demandeData, ...$infosDemand);
-                        $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
-                        $demandeData[] = $article->getLabel();
-                        $demandeData[] = $article->getBarCode();
-                        $demandeData[] = '';
-                        $demandeData[] = $article->getQuantite();
-                        $demandeData[] = $article->getQuantiteAPrelever();
+                            array_push($demandeData, ...$infosDemand);
+                            $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+                            $demandeData[] = $article->getLabel();
+                            $demandeData[] = $article->getBarCode();
+                            $demandeData[] = '';
+                            $demandeData[] = $article->getQuantite();
+                            $demandeData[] = $article->getQuantiteAPrelever();
 
-                        $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
+                            $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
 
-                        $champsLibresArt = [];
+                            $champsLibresArt = [];
 
-                        $articleId = $article->getId();
+                            $articleId = $article->getId();
 
-                        if (isset($valeurCLArticle[$articleId])) {
-                            $valeursCL = $valeurCLArticle[$articleId];
-                            /** @var ValeurChampLibre $valeurCL */
-                            foreach ($valeursCL as $valeurCL) {
-                                $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                            if (isset($valeurCLArticle[$articleId])) {
+                                $valeursCL = $valeurCLArticle[$articleId];
+                                /** @var ValeurChampLibre $valeurCL */
+                                foreach ($valeursCL as $valeurCL) {
+                                    $champsLibresArt[$valeurCL->getChampLibre()->getLabel()] = $valeurCL->getValeur();
+                                }
                             }
-                        }
-                        foreach ($clAR as $type) {
-                            if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                                $demandeData[] = $champsLibresArt[$type->getLabel()];
-                            } else {
-                                $demandeData[] = '';
+                            foreach ($clAR as $type) {
+                                if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                                    $demandeData[] = $champsLibresArt[$type->getLabel()];
+                                } else {
+                                    $demandeData[] = '';
+                                }
                             }
+                            $rows[] = $demandeData;
                         }
-                        $data[] = $demandeData;
                     }
+                    return $rows;
                 }
-            }
-
-            return new JsonResponse($data);
+            );
         } else {
             throw new NotFoundHttpException('404');
         }
