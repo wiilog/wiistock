@@ -768,7 +768,7 @@ class ReceptionController extends AbstractController
             if ($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
 
                 // protection quantité reçue <= quantité à recevoir
-                if ($receptionReferenceArticle->getQuantite() && $quantite > $receptionReferenceArticle->getQuantite()) {
+                if ($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse(false);
                 }
                 $receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
