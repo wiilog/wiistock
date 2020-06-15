@@ -833,8 +833,10 @@ class DemandeController extends AbstractController
             $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
             $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
             $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
+            $listChampsLibresDemandeAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesDL, CategorieCL::DEMANDE_LIVRAISON);
             $valeurCLRefAll = $valeurChampLibreRepository->getByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
             $valeurCLArticle = $valeurChampLibreRepository->getByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
+            $valeurCLDemande = $valeurChampLibreRepository->getByDemandeLivraisonAndChampLibre($demandes, $listChampsLibresDemandeAll);
             $lastDates = $preparationRepository->getLastDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
@@ -858,6 +860,7 @@ class DemandeController extends AbstractController
                      $clAR,
                      $valeurCLRefAll,
                      $valeurCLArticle,
+                     $valeurCLDemande,
                      $lastDates,
                      $prepartionOrders,
                      $livraisonOrders,
@@ -888,23 +891,11 @@ class DemandeController extends AbstractController
                             $demandeData[] = $availableQuantity;
                             $demandeData[] = $ligneArticle->getQuantite();
 
-                            // champs libres de la demande
-                            $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
-
-                            $champsLibresArt = [];
-                            if (isset($valeurCLRefAll[$referenceId])) {
-                                $champsLibresArt = $valeurCLRefAll[$referenceId];
-                            }
-
-                            foreach ($clAR as $type) {
-                                if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                                    $demandeData[] = $champsLibresArt[$type->getLabel()];
-                                } else {
-                                    $demandeData[] = '';
-                                }
-                            }
-
-                            $rows[] = $demandeData;
+                            $rows[] = array_merge(
+                                $demandeData,
+                                $this->addChampsLibresCsvExport($valeurCLDemande, $demandeId, $clDL),
+                                $this->addChampsLibresCsvExport($valeurCLRefAll, $referenceId, $clAR)
+                            );
                         }
                     }
 
@@ -922,20 +913,11 @@ class DemandeController extends AbstractController
                             $demandeData[] = $article->getQuantite();
                             $demandeData[] = $article->getQuantiteAPrelever();
 
-                            $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
-
-                            $champsLibresArt = [];
-                            if (isset($valeurCLArticle[$articleId])) {
-                                $champsLibresArt = $valeurCLArticle[$articleId];
-                            }
-                            foreach ($clAR as $type) {
-                                if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                                    $demandeData[] = $champsLibresArt[$type->getLabel()];
-                                } else {
-                                    $demandeData[] = '';
-                                }
-                            }
-                            $rows[] = $demandeData;
+                            $rows[] = array_merge(
+                                $demandeData,
+                                $this->addChampsLibresCsvExport($valeurCLDemande, $demandeId, $clDL),
+                                $this->addChampsLibresCsvExport($valeurCLArticle, $articleId, $clAR)
+                            );
                         }
                     }
                     return $rows;
@@ -947,30 +929,26 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @param ValeurChampLibreRepository $valeurChampLibreRepository
-     * @param Demande $livraison
-     * @param ChampLibre[] $listChampsLibresDL
-     * @param ChampLibre[] $cls
-     * @param array $demandeData
-     * @throws NonUniqueResultException
+     * @param $valeurCLAll
+     * @param $id
+     * @param $champLibres
+     * @return array
      */
-	private function addChampsLibresDL(ValeurChampLibreRepository $valeurChampLibreRepository, $livraison, $listChampsLibresDL, $cls, &$demandeData)
+	private function addChampsLibresCsvExport($valeurCLAll, $id, $champLibres)
 	{
-		$champsLibresDL = [];
-		foreach ($listChampsLibresDL as $champLibre) {
-			$valeurChampDL = $valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($livraison, $champLibre);
-			if ($valeurChampDL) {
-				$champsLibresDL[$champLibre->getLabel()] = $valeurChampDL->getValeur();
-			}
-		}
-
-		foreach ($cls as $cl) {
-			if (array_key_exists($cl->getLabel(), $champsLibresDL)) {
-                $demandeData[] = $champsLibresDL[$cl->getLabel()];
-			} else {
-                $demandeData[] = '';
-			}
-		}
+        $data = [];
+	    $valeursChampLibre = [];
+        if (isset($valeurCLAll[$id])) {
+            $valeursChampLibre = $valeurCLAll[$id];
+        }
+        foreach ($champLibres as $type) {
+            if (array_key_exists($type->getLabel(), $valeursChampLibre)) {
+                $data[] = $valeursChampLibre[$type->getLabel()];
+            } else {
+                $data[] = '';
+            }
+        }
+        return $data;
 	}
 
     private function getCSVExportFromDemand(Demande $demande,

@@ -315,21 +315,49 @@ class ValeurChampLibreRepository extends EntityRepository
 	 * @return mixed
 	 * @throws NonUniqueResultException
 	 */
-	public function findOneByDemandeLivraisonAndChampLibre($demande, $champLibre)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT v
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.demandesLivraison d
-            WHERE v.champLibre = :champLibre AND v.id IN (:demandeVCL)"
-		);
-		$query->setParameters([
-			'champLibre' => $champLibre,
-			'demandeVCL' => $demande->getValeurChampLibre()
-		]);
-		return $query->getOneOrNullResult();
-	}
+    public function getByDemandeLivraisonAndChampLibre($demandes, $champLibres)
+    {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "
+                SELECT champLibre.label AS label,
+                        valeurCL.valeur AS value,
+                        demande.id AS demandeId
+            FROM App\Entity\ValeurChampLibre valeurCL
+            JOIN valeurCL.demandesLivraison demande
+            JOIN valeurCL.champLibre AS champLibre
+            WHERE demande.id IN (:demandesId) AND champLibre.id IN (:champLibresId)"
+            )
+            ->setParameter(
+                'demandesId',
+                array_map(function (Demande $demande) {
+                    return $demande->getId();
+                }, $demandes),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter(
+                'champLibresId',
+                array_map(function (ChampLibre $champLibre) {
+                    return $champLibre->getId();
+                }, $champLibres),
+                Connection::PARAM_STR_ARRAY
+            );
+        $result = $query->execute();
+
+        return array_reduce($result, function (array $carry, $current) {
+            $value = $current['value'];
+            $label = $current['label'];
+            $demandeId = $current['demandeId'];
+
+            if (!isset($carry[$demandeId])) {
+                $carry[$demandeId] = [];
+            }
+
+            $carry[$demandeId][$label] = $value;
+            return $carry;
+        }, []);
+    }
 
 	/**
 	 * @param Collecte $demandeCollecte
