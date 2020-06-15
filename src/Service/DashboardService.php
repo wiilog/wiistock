@@ -25,6 +25,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Throwable;
 
 
 class DashboardService
@@ -764,20 +765,30 @@ class DashboardService
      * @throws DBALException
      * @throws NonUniqueResultException
      * @throws Exception
+     * @throws Throwable
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
         if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
             $this->wiilockService->startFeedingDashboard($entityManager);
-            $this->flushAndClearEm($entityManager);
-            $this->retrieveAndInsertParsedDockData($entityManager);
-            $this->flushAndClearEm($entityManager);
-            $this->retrieveAndInsertParsedAdminData($entityManager);
-            $this->flushAndClearEm($entityManager);
-            $this->retrieveAndInsertParsedPackagingData($entityManager);
-            $this->flushAndClearEm($entityManager);
-            $this->retrieveAndInsertLastEnCours($entityManager);
-            $this->flushAndClearEm($entityManager);
+
+            try {
+                $this->flushAndClearEm($entityManager);
+                $this->retrieveAndInsertParsedDockData($entityManager);
+                $this->flushAndClearEm($entityManager);
+                $this->retrieveAndInsertParsedAdminData($entityManager);
+                $this->flushAndClearEm($entityManager);
+                $this->retrieveAndInsertParsedPackagingData($entityManager);
+                $this->flushAndClearEm($entityManager);
+                $this->retrieveAndInsertLastEnCours($entityManager);
+                $this->flushAndClearEm($entityManager);
+            }
+            catch (Throwable $throwable) {
+                $this->wiilockService->stopFeedingDashboard($entityManager);
+                $this->flushAndClearEm($entityManager);
+                throw $throwable;
+            }
+
             $this->wiilockService->stopFeedingDashboard($entityManager);
             $this->flushAndClearEm($entityManager);
         }
