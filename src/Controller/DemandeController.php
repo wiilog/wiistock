@@ -767,6 +767,7 @@ class DemandeController extends AbstractController
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function getDemandesCSV(EntityManagerInterface $entityManager,
                                    Request $request,
@@ -834,7 +835,7 @@ class DemandeController extends AbstractController
             $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
             $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
             $listChampsLibresDemandeAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesDL, CategorieCL::DEMANDE_LIVRAISON);
-            $valeurCLRefAll = $valeurChampLibreRepository->getByDemandesAndChampLibres($demandes, $listChampsLibresRefAll);
+            $valeurCLRefAll = $valeurChampLibreRepository->getByDemandesAndChampLibres($dateTimeMin, $dateTimeMax, $listChampsLibresRefAll);
             $valeurCLArticle = $valeurChampLibreRepository->getByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
             $valeurCLDemande = $valeurChampLibreRepository->getByDemandeLivraisonAndChampLibre($demandes, $listChampsLibresDemandeAll);
             $lastDates = $preparationRepository->getLastDatePreparationGroupByDemande($demandes);

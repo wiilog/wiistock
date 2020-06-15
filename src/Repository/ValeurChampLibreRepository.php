@@ -11,6 +11,7 @@ use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
@@ -95,11 +96,12 @@ class ValeurChampLibreRepository extends EntityRepository
     }
 
     /**
-     * @param int $refArticleId
-     * @param ChampLibre $champLibre
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param $champLibres
      * @return ValeurChampLibre|null
      */
-    public function getByDemandesAndChampLibres($demandes, $champLibres)
+    public function getByDemandesAndChampLibres(DateTime $dateMin, DateTime $dateMax, $champLibres)
     {
         $em = $this->getEntityManager();
         $query = $em
@@ -112,15 +114,10 @@ class ValeurChampLibreRepository extends EntityRepository
                 JOIN valeurCL.articleReference reference
                 JOIN reference.ligneArticles ligneArticle
                 JOIN ligneArticle.demande demande
-                WHERE demande.id IN (:demandesId) AND champLibre.id IN (:champLibresId)"
+                WHERE demande.date BETWEEN :dateMin AND :dateMax AND champLibre.id IN (:champLibresId)"
             )
-            ->setParameter(
-                'demandesId',
-                array_map( function (Demande $demande) {
-                    return $demande->getId();
-                }, $demandes),
-                Connection::PARAM_STR_ARRAY
-            )
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax)
             ->setParameter(
                 'champLibresId',
                 array_map(function (ChampLibre $champLibre) {
