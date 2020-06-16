@@ -41,9 +41,13 @@ use App\Service\MailerService;
 use App\Service\ValeurChampLibreService;
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\ConstraintViolationException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -242,6 +246,7 @@ class ArrivageController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Doctrine\ORM\ORMException
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -272,10 +277,10 @@ class ArrivageController extends AbstractController
             $todayStart->setTime(0, 0);
             $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
             $todayEnd->setTime(23, 59);
-            $suffix = $arrivageRepository->countByDates($todayStart , $todayEnd) + 1;
-            $suffix = $suffix < 10 ? "0".$suffix : $suffix;
+            $counter = $arrivageRepository->countByDates($todayStart, $todayEnd) + 1;
+            $suffix = $counter < 10 ? ("0" . $counter) : $counter;
             // Si on ajoute l'id de 'utilisateur qui crée l'arrivage en plus du compteur les doublons seront forcement impossible entre deux utilisateurs qui feraient une requete simultanément
-            $numeroArrivage = $date->format('ymdHis') . "-U" . $this->getUser()->getId() . '-' .$suffix;
+            $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
             $arrivage = new Arrivage();
             $arrivage
                 ->setIsUrgent(false)
@@ -312,9 +317,15 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
+            try {
+                $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+            } catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer.<br>"
+                ]);
+            }
 
-
-            $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -346,7 +357,6 @@ class ArrivageController extends AbstractController
             }
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
-
             $entityManager->flush();
             if ($sendMail) {
                 $arrivageDataService->sendArrivalEmails($arrivage);
@@ -611,8 +621,7 @@ class ArrivageController extends AbstractController
                         $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, $value);
                         $valeurChampLibre->addArrivage($arrivage);
                         $entityManager->persist($valeurChampLibre);
-                    }
-                    else {
+                    } else {
                         $valeurChampLibreService->updateValue($valeurChampLibre, $value);
                     }
                     $entityManager->flush();
@@ -834,15 +843,16 @@ class ArrivageController extends AbstractController
      */
     public function getArrivageCSV(Request $request,
                                    CSVExportService $CSVExportService,
-                                   EntityManagerInterface $entityManager): Response {
+                                   EntityManagerInterface $entityManager): Response
+    {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
         }
-        catch(\Throwable $throwable) {}
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -874,7 +884,7 @@ class ArrivageController extends AbstractController
                 $arrivals,
                 $csvHeader,
                 function ($arrival) use ($buyersByArrival) {
-                    $arrivalId = (int) $arrival['id'];
+                    $arrivalId = (int)$arrival['id'];
                     $row = [];
                     $row[] = $arrival['numeroArrivage'] ?: '';
                     $row[] = $arrival['recipientUsername'] ?: '';
@@ -1549,7 +1559,8 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
+    {
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
@@ -1567,7 +1578,7 @@ class ArrivageController extends AbstractController
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() ) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -1596,7 +1607,7 @@ class ArrivageController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $user = $this->getUser();     ;
+        $user = $this->getUser();;
 
         return new JsonResponse($user->getColumnsVisibleForArrivage());
     }
