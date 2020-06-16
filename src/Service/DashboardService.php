@@ -791,6 +791,7 @@ class DashboardService
     {
         if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
             $this->wiilockService->startFeedingDashboard($entityManager);
+
             try {
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedDockData($entityManager);
@@ -804,8 +805,10 @@ class DashboardService
             }
             catch (Throwable $throwable) {
                 $this->wiilockService->stopFeedingDashboard($entityManager);
+                $this->flushAndClearEm($entityManager);
                 throw $throwable;
             }
+
             $this->wiilockService->stopFeedingDashboard($entityManager);
             $this->flushAndClearEm($entityManager);
         }
