@@ -23,8 +23,11 @@ $(function () {
 function InitiliserPageModals() {
     let modal = $("#modalAddLigneArticle");
     let submit = $("#addArticleLigneSubmit");
+    let submitAndRedirect = $('#addArticleLigneSubmitAndRedirect');
     let url = Routing.generate('reception_article_add', true);
+
     InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
+    InitialiserModal(modal, submitAndRedirect, url, tableArticle, createHandlerAddLigneArticleResponseandAndRedirect(modal), false, false);
 
     let modalDeleteArticle = $("#modalDeleteLigneArticle");
     let submitDeleteArticle = $("#submitDeleteLigneArticle");
@@ -629,6 +632,15 @@ function createHandlerAddLigneArticleResponse($modal) {
             alertSuccessMsg('La référence a été ajoutée à la réception', true);
             $modal.find('.close').click();
             clearModal($modal);
+        }
+    }
+}
+
+function createHandlerAddLigneArticleResponseandAndRedirect($modal) {
+    return (data) => {
+        createHandlerAddLigneArticleResponse($modal)(data);
+        if (!data.errorMsg) {
+            $('#modalNewLigneReception').modal('show');
         }
     }
 }

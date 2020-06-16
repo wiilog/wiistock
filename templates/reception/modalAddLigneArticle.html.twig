@@ -75,6 +75,14 @@
                         onclick="setCommentaire('.editor-container')">
                     Enregistrer
                 </button>
+
+                <button type="button"
+                        id="addArticleLigneSubmitAndRedirect"
+                        class="btn btn-primary btn-ripple split-button"
+                        title="réception"
+                        onclick=" initNewLigneReception($(this))">
+                      Enregistrer et {{ 'réception.réception'|trans }}
+                </button>
             </div>
         </div>
     </div>

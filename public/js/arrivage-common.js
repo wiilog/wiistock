@@ -28,7 +28,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             if (isCreation) {
                                 treatArrivalCreation(response, arrivalsDatatable);
                             }
-                            $modal.modal('hide')
+                            $modal.modal('hide');
                         }
                         else {
                             arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response}, arrivalsDatatable);
