@@ -682,12 +682,12 @@ class ReferenceArticleRepository extends EntityRepository
      * @return mixed
      * @throws NonUniqueResultException
      */
-    public function getEntryDateByMission($mission, $refId)
+    public function getEntryByMission($mission, $refId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT e.date
+            "SELECT e.date, e.quantity
             FROM App\Entity\InventoryEntry e
             WHERE e.mission = :mission AND e.refArticle = :ref"
         )->setParameters([
