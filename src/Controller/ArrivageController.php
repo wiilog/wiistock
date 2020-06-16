@@ -268,22 +268,21 @@ class ArrivageController extends AbstractController
             $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $numeroArrivage = $date->format('ymdHis');
             $todayStart = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
             $todayStart->setTime(0, 0);
             $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
             $todayEnd->setTime(23, 59);
-            $suffix = $arrivageRepository->countByDates($todayStart , $todayEnd)+1  ;
-            $suffix = $suffix < 10 ? "0".$suffix : $suffix ;
+            $suffix = $arrivageRepository->countByDates($todayStart , $todayEnd) + 1;
+            $suffix = $suffix < 10 ? "0".$suffix : $suffix;
             // Si on ajoute l'id de 'utilisateur qui crée l'arrivage en plus du compteur les doublons seront forcement impossible entre deux utilisateurs qui feraient une requete simultanément
-            $suffix = ($this->getUser()->getId()).$suffix;
+            $numeroArrivage = $date->format('ymdHis') . "-U" . $this->getUser()->getId() . '-' .$suffix;
             $arrivage = new Arrivage();
             $arrivage
                 ->setIsUrgent(false)
                 ->setDate($date)
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setUtilisateur($this->getUser())
-                ->setNumeroArrivage($numeroArrivage."-".$suffix)
+                ->setNumeroArrivage($numeroArrivage)
                 ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
                 ->setCommentaire($data['commentaire'] ?? null);

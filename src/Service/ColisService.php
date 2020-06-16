@@ -36,14 +36,13 @@ Class ColisService
         $arrivageNum = $arrivage->getNumeroArrivage();
 
        // $highestCounter = $this->getHighestCodeByPrefix($arrivage) + 1;
-        $newCounter = count($arrivage->getColis()) + 1;
+        $newCounter = $arrivage->getColis()->count() + 1;
 
         if ($newCounter < 10) {
             $newCounter = "00" . $newCounter;
-        } elseif ($newCounter < 100 && $newCounter > 9) {
+        } elseif ($newCounter < 100) {
             $newCounter = "0" . $newCounter;
         }
-
 
         $colis = new Colis();
         $code = ($nature->getPrefix(). $arrivageNum . $newCounter ?? '');
