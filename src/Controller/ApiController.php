@@ -341,6 +341,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         ],
                                         ['datetime' => 'DESC']
                                     );
+                                    /** @var MouvementTraca|null $mouvementTracaPrise */
                                     $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
                                     if (isset($mouvementTracaPrise)) {
                                         $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
@@ -428,7 +429,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'pjs' => $arrivage->getAttachements()
                                                 ]
                                             ),
-                                            $destinataire->getEmail()
+                                            $destinataire->getMainAndSecondaryEmails()
                                         );
                                     } else {
                                         $this->logger->critical('Parametrage mail non defini.');

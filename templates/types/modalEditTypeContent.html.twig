@@ -6,12 +6,13 @@
 
         <div class="col-12 form-group">
             <label for="label">Catégorie*</label>
-            <select name="category" id="categories" class="data form-control needed">
-                <option value="{{ type.category.id }}">{{ type.category.label }}</option>
+            <select name="category" id="categories" class="data form-control needed" onchange="typeSelectChange($(this))">
                 {% for category in categories %}
-                    {% if category.label != type.category.label %}
-                        <option value="{{ category.id }}">{{ category.label }}</option>
-                    {% endif %}
+                    {% set selected = (category.id == type.category.id ? 'selected') %}
+                        <option value="{{ category.id }}"
+                                {{ selected }}
+                                data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}">
+                            {{ category.label }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -24,6 +25,14 @@
         <div class="col-12 form-group">
             <label for="username">Description</label>
             <input type="text" class="form-control data" name="description" value="{{ type.description }}">
+        </div>
+        {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') %}
+        <div class="col-12 form-group {{ needsHide ? 'd-none' }} send-mail">
+            <label>Envoi de mails au demandeur ?</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="sendMail" {{ type.sendMail ? 'checked' }}>
+                <span class="slider round"></span>
+            </label>
         </div>
     </div>
 </form>

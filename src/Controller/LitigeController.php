@@ -118,10 +118,11 @@ class LitigeController extends AbstractController
             ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
             ["key" => 'buyers', 'label' => 'Acheteur'],
             ["key" => 'numCommandeBl', 'label' => 'N° commande / BL'],
+            ["key" => 'declarant', 'label' => 'Déclarant'],
             ["key" => 'command', 'label' => 'N° ligne'],
             ["key" => 'provider', 'label' => 'Fournisseur'],
             ["key" => 'references', 'label' => 'Référence'],
-            ["key" => 'lastHistorique', 'label' => 'Dernier historique'],
+            ["key" => 'lastHistoric', 'label' => 'Dernier historique'],
             ["key" => 'creationDate', 'label' => 'Créé le'],
             ["key" => 'updateDate', 'label' => 'Modifié le'],
             ["key" => 'status', 'label' => 'Statut'],
@@ -190,9 +191,10 @@ class LitigeController extends AbstractController
                 'Colis / Réferences',
                 'Ordre arrivage / réception',
 				'N° Commande / BL',
+                'Déclarant',
                 'Fournisseur',
                 'N° ligne',
-            	'Date commentaire',
+                'Date commentaire',
             	'Utilisateur',
             	'Commentaire'
             ];
@@ -228,7 +230,8 @@ class LitigeController extends AbstractController
 
                 $numeroCommandeList = $arrivage ? $arrivage->getNumeroCommandeList() : [];
                 $litigeData[] = implode(' / ', $numeroCommandeList); // N° de commandes
-
+                $declarant = $litige->getDeclarant() ? $litige->getDeclarant()->getUsername() : '';
+                $litigeData[] = $declarant;
 				$fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
 				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
@@ -281,7 +284,8 @@ class LitigeController extends AbstractController
                 $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
 
 				$litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
-
+                $declarant = $litige->getDeclarant() ? $litige->getDeclarant()->getUsername() : '';
+                $litigeData[] = $declarant;
 				$fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
 				$litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
 
@@ -436,6 +440,7 @@ class LitigeController extends AbstractController
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $champs[] = "actions";
+            dump($champs);
             $user->setColumnsVisibleForLitige($champs);
             $entityManager->flush();
 

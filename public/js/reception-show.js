@@ -179,7 +179,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'));
-
+        fillDemandeurField(modal);
         let values = [];
         data.colis.forEach(val => {
             values.push({
@@ -298,7 +298,8 @@ function initModalCondit(tableFromArticle) {
 }
 
 function initNewArticleEditor(modal) {
-    let $select2refs = $('#reference');
+    const $modal = $(modal);
+    let $select2refs = $modal.find('[name="referenceArticle"]');
     ajaxAutoRefArticleInit($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
@@ -308,7 +309,7 @@ function initNewArticleEditor(modal) {
     clearAddRefModal();
     clearModal(modal);
 
-    const $commandField = $(modal).find('#commande');
+    const $commandField = $(modal).find('[name="commande"]');
     const numCommand = $('#numCommandeReception').val();
     $commandField.val(numCommand);
 
@@ -646,7 +647,7 @@ function createHandlerAddLigneArticleResponseandAndRedirect($modal) {
 }
 
 function updateQuantityToReceive($input) {
-    $input.closest('.modal').find('#quantite').attr('max', $input.val());
+    $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
 
 function toggleDLForm() {

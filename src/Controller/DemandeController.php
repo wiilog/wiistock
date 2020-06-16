@@ -24,6 +24,7 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\GlobalParamService;
+use App\Service\MailerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
@@ -39,6 +40,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\Date;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -99,13 +101,14 @@ class DemandeController extends AbstractController
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param MailerService $mailerService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
+                                 MailerService $mailerService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -172,7 +175,7 @@ class DemandeController extends AbstractController
                 }
             }
 
-            return $this->finish($request, $demandeLivraisonService, $entityManager);
+            return $this->finish($request, $demandeLivraisonService, $mailerService, $entityManager);
         }
         throw new NotFoundHttpException('404');
     }
@@ -180,17 +183,18 @@ class DemandeController extends AbstractController
     /**
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param MailerService $mailerService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function finish(Request $request,
                            DemandeLivraisonService $demandeLivraisonService,
+                           MailerService $mailerService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -247,7 +251,21 @@ class DemandeController extends AbstractController
             }
 
             $entityManager->flush();
-
+            if ($demande->getType()->getSendMail()) {
+                $nowDate = new DateTime('now');
+                $mailerService->sendMail(
+                    'FOLLOW GT // Validation d\'une demande vous concernant',
+                    $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
+                        'demande' => $demande,
+                        'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                            . $demande->getType()->getLabel()
+                            . ' a bien été validée le '
+                            . $nowDate->format('d/m/Y \à H:i')
+                            . '.',
+                    ]),
+                    $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                );
+            }
             //renvoi de l'en-tête avec modification
             $data = [
                 'entete' => $this->renderView(
