@@ -11,7 +11,6 @@ use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use Doctrine\DBAL\Connection;

@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\Article;
 
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Livraison;
 use App\Entity\Preparation;
 use App\Entity\Statut;
@@ -19,7 +18,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 
 
-class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
+class PatchCeaArticleFixtures extends Fixture implements FixtureGroupInterface
 {
 
     private $specificService;
@@ -49,7 +48,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
             $availableSILIArticles = $articleRepository
                 ->getByStatutAndTypeWithoutInProgressPrepaNorLivraison(
                     Article::STATUT_EN_TRANSIT,
-                    Type::LABEL_SILICIUM,
+                    Type::LABEL_CSP,
                     [
                         Preparation::STATUT_A_TRAITER,
                         Preparation::STATUT_EN_COURS_DE_PREPARATION
@@ -77,8 +76,8 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
                 $cpt++;
 
                 if (($cpt % 100) === 0) {
-                    $manager->flush();
                     dump('Flush (' . $cpt . '/' . $articleCount . ') articles');
+                    $manager->flush();
                 }
             }
 
@@ -88,14 +87,15 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
 
             $cpt = 0;
             $refsToUpdateCount = count($refsToUpdate);
-            dump('Total des réferences : ' . $refsToUpdate);
+            dump('Total des réferences : ' . $refsToUpdateCount);
             foreach ($refsToUpdate as $refToUpdate) {
                 $this->refArticleService->updateRefArticleQuantities($refToUpdate);
                 $this->refArticleService->treatAlert($refToUpdate);
 
+                $cpt++;
                 if (($cpt % 100) === 0) {
-                    $manager->flush();
                     dump('Flush (' . $cpt . '/' . $refsToUpdateCount . ') références');
+                    $manager->flush();
                 }
             }
             dump('Flush (' . $refsToUpdateCount . '/' . $refsToUpdateCount . ') références');
@@ -105,7 +105,7 @@ class PatchCeaSILIFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['cea-sili-fix'];
+        return ['cea-article-fix'];
     }
 
 }

@@ -160,16 +160,18 @@ class ArrivageDataService
             $finalRecipents = array_reduce(
                 $emergencies,
                 function (array $carry, Urgence $emergency) {
-                    $email = $emergency->getBuyer()->getEmail();
-                    if (!in_array($email, $carry)) {
-                        $carry[] = $email;
+                    $emails = $emergency->getBuyer()->getMainAndSecondaryEmails();
+                    foreach ($emails as $email) {
+                        if (!in_array($email, $carry)) {
+                            $carry[] = $email;
+                        }
                     }
                     return $carry;
                 },
                 []
             );
         } else if ($arrival->getDestinataire()) {
-            $finalRecipents = [$arrival->getDestinataire()->getEmail()];
+            $finalRecipents = $arrival->getDestinataire()->getMainAndSecondaryEmails();
         }
 
         if (!empty($finalRecipents)) {

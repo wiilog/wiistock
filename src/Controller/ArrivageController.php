@@ -58,7 +58,6 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use App\Command\MailsLitigesComand;
 
 /**
  * @Route("/arrivage")
@@ -841,10 +840,18 @@ class ArrivageController extends AbstractController
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $colisRepository = $entityManager->getRepository(Colis::class);
 
+            $colisData = $colisRepository->countColisByArrivageAndNature(
+                [
+                    $dateTimeMin->format('Y-m-d H:i:s'),
+                    $dateTimeMax->format('Y-m-d H:i:s')
+                ]
+            );
             $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
             $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
-
+            $natureLabels = $natureRepository->findAllLabels();
             // en-têtes champs fixes
             $csvHeader = [
                 'n° arrivage',
@@ -860,14 +867,15 @@ class ArrivageController extends AbstractController
                 'statut',
                 'commentaire',
                 'date',
-                'utilisateur'
+                'utilisateur',
             ];
+            $csvHeader = array_merge($csvHeader, $natureLabels);
 
             return $CSVExportService->createCsvResponse(
                 'export.csv',
                 $arrivals,
                 $csvHeader,
-                function ($arrival) use ($buyersByArrival) {
+                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData) {
                     $arrivalId = (int) $arrival['id'];
                     $row = [];
                     $row[] = $arrival['numeroArrivage'] ?: '';
@@ -886,6 +894,13 @@ class ArrivageController extends AbstractController
                     $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
                     $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
                     $row[] = $arrival['userUsername'] ?: '';
+
+                    foreach ($natureLabels as $natureLabel) {
+                        $count = (isset($colisData[$arrivalId]) && isset($colisData[$arrivalId][$natureLabel]))
+                            ? $colisData[$arrivalId][$natureLabel]
+                            : 0;
+                        $row[] = $count;
+                    }
                     return [$row];
                 }
             );
@@ -925,6 +940,7 @@ class ArrivageController extends AbstractController
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
@@ -943,6 +959,7 @@ class ArrivageController extends AbstractController
                 'natures' => $natureRepository->findAll(),
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
+                'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                 'fieldsParam' => $fieldsParam,
                 'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
@@ -975,9 +992,11 @@ class ArrivageController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $colisRepository = $entityManager->getRepository(Colis::class);
+            $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = new Litige();
             $litige
+                ->setDeclarant($usersRepository->find($post->get('declarantLitige')))
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setCreationDate(new DateTime('now'));
@@ -1017,7 +1036,7 @@ class ArrivageController extends AbstractController
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
 
-            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE);
+            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE);
             $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
             $response = $arrivageResponse ? $arrivageResponse : [];
 
@@ -1154,6 +1173,7 @@ class ArrivageController extends AbstractController
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+            $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = $litigeRepository->find($data['litigeId']);
 
@@ -1170,6 +1190,7 @@ class ArrivageController extends AbstractController
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
+                'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
@@ -1208,6 +1229,7 @@ class ArrivageController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $colisRepository = $entityManager->getRepository(Colis::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
+            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = $litigeRepository->find($post->get('id'));
             $typeBefore = $litige->getType()->getId();
@@ -1216,7 +1238,9 @@ class ArrivageController extends AbstractController
             $statutBefore = $litige->getStatus()->getId();
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$post->get('statutLitige');
-            $litige->setUpdateDate(new DateTime('now'));
+            $litige
+                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
+                ->setUpdateDate(new DateTime('now'));
             $this->templating = $templating;
             $newStatus = $statutRepository->find($statutAfter);
             $hasRightToTreatLitige = $this->userService->hasRightFunction(Menu::QUALI, Action::TREAT_LITIGE);
@@ -1294,7 +1318,7 @@ class ArrivageController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_ARRIVAGE, true);
+                $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE, true);
             }
 
             $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
