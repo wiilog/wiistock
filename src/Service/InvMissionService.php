@@ -160,6 +160,7 @@ class InvMissionService
         return $this->dataRowMissionArtRef(
             $ref->getEmplacement(),
             $ref->getReference(),
+            $ref->getBarCode(),
             $ref->getLibelle(),
             (!empty($refDate) && isset($refDate['date'])) ? $refDate['date'] : null,
             $referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-')
@@ -179,7 +180,8 @@ class InvMissionService
         $artDate = $articleRepository->getEntryDateByMission($mission, $art);
         return $this->dataRowMissionArtRef(
             $art->getEmplacement(),
-            $art->getReference(),
+            $art->getArticleFournisseur()->getReferenceArticle(),
+            $art->getBarCode(),
             $art->getlabel(),
             !empty($artDate) ? $artDate['date'] : null,
             $articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-')
@@ -189,6 +191,7 @@ class InvMissionService
     /**
      * @param Emplacement|null $emplacement
      * @param string|null $reference
+     * @param string|null $codeBarre
      * @param string|null $label
      * @param DateTimeInterface|null $date
      * @param string|null $anomaly
@@ -196,6 +199,7 @@ class InvMissionService
      */
     private function dataRowMissionArtRef(?Emplacement $emplacement,
                                           ?string $reference,
+                                          ?string $codeBarre,
                                           ?string $label,
                                           ?DateTimeInterface $date,
                                           ?string $anomaly): array {
@@ -209,6 +213,7 @@ class InvMissionService
 
         return [
             'Ref' => $reference,
+            'CodeBarre' => $codeBarre,
             'Label' => $label,
             'Location' => $location,
             'Date' => isset($date) ? $date->format('d/m/Y') : '',

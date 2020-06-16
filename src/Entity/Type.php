@@ -97,6 +97,11 @@ class Type
      */
     private $utilisateurs;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendMail;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -436,6 +441,18 @@ class Type
             $this->utilisateurs->removeElement($utilisateur);
             $utilisateur->removeType($this);
         }
+
+        return $this;
+    }
+
+    public function getSendMail(): ?bool
+    {
+        return $this->sendMail;
+    }
+
+    public function setSendMail(?bool $sendMail): self
+    {
+        $this->sendMail = $sendMail;
 
         return $this;
     }

@@ -130,7 +130,7 @@ class LivraisonsManagerService
                     'livraison' => $demande,
                     'title' => 'Votre demande a bien été livrée.',
                 ]),
-                $demande->getUtilisateur()->getEmail()
+                $demande->getUtilisateur()->getMainAndSecondaryEmails()
             );
         } else {
             throw new Exception(self::LIVRAISON_ALREADY_BEGAN);

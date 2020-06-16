@@ -16,7 +16,9 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
+use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -52,6 +54,8 @@ class DemandeLivraisonService
 
     private $entityManager;
     private $stringService;
+    private $mailerService;
+    private $translator;
     private $valeurChampLibreService;
 
     public function __construct(ReceptionRepository $receptionRepository,
@@ -61,6 +65,8 @@ class DemandeLivraisonService
                                 ValeurChampLibreService $valeurChampLibreService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
+                                TranslatorInterface $translator,
+                                MailerService $mailerService,
                                 Twig_Environment $templating)
     {
         $this->receptionRepository = $receptionRepository;
@@ -71,6 +77,8 @@ class DemandeLivraisonService
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->translator = $translator;
+        $this->mailerService = $mailerService;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
@@ -185,7 +193,8 @@ class DemandeLivraisonService
         $this->entityManager->flush();
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
-            $demande->setReception($this->receptionRepository->find(intval($data['reception'])));
+            $reception = $this->receptionRepository->find(intval($data['reception']));
+            $demande->setReception($reception);
             $demande->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER));
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $preparation = new Preparation();
