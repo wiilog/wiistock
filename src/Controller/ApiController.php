@@ -1026,7 +1026,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/valider-dl", name="api-validate-dl")
+     * @Rest\Post("/api/valider-dl", name="api_validate_dl")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1040,6 +1040,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response {
         $data = json_decode($request->getContent(), true);
+        $data['fromNomade'] = true;
         $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
         return new JsonResponse($responseAfterQuantitiesCheck);
     }
