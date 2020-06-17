@@ -195,7 +195,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $this->successDataMsg['success'] = true;
                 $this->successDataMsg['data'] = [
                     'apiKey' => $apiKey,
-                    'rights' => $this->getMenuRights($user, $userService)
+                    'rights' => $this->getMenuRights($user, $userService),
+                    'userId' => $user->getId()
                 ];
             }
         }
@@ -1173,6 +1174,55 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return $response;
     }
 
+    /**
+     * @Rest\Post("/api/demande-livraison-data", name="api_get_demande_livraison_data")
+     * @Rest\View()
+     * @param Request $request
+     * @param UserService $userService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function getDemandeLivraisonData(Request $request,
+                                            UserService $userService,
+                                            EntityManagerInterface $entityManager): Response
+    {
+
+        $apiKey = $request->request->get('apiKey');
+        $dataResponse = [];
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
+            $httpCode = Response::HTTP_OK;
+            $dataResponse['success'] = true;
+
+            $rights = $this->getMenuRights($nomadUser, $userService);
+            if ($rights['demande']) {
+                $dataResponse['data'] = [
+                    'demandeLivraisonArticles' => $referenceArticleRepository->getByNeedsMobileSync(),
+                    'demandeLivraisonType' => array_map(function (Type $type) {
+                        return [
+                            'id' => $type->getId(),
+                            'label' => $type->getLabel(),
+                        ];
+                    }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON))
+                ];
+            } else {
+                $dataResponse['data'] = [
+                    'demandeLivraisonArticles' => [],
+                    'demandeLivraisonTypes' => []
+                ];
+            }
+        } else {
+            $httpCode = Response::HTTP_UNAUTHORIZED;
+            $dataResponse['success'] = false;
+            $dataResponse['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+
+        return new JsonResponse($dataResponse, $httpCode);
+    }
+
 
     /**
      * @param $user
@@ -1268,7 +1318,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
 
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
-            $demandeLivraisonType = array_map(function (Type $type) {
+            $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
@@ -1277,7 +1327,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         } else {
             $manutentions = [];
             $demandeLivraisonArticles = [];
-            $demandeLivraisonType = [];
+            $demandeLivraisonTypes = [];
         }
 
         if ($rights['tracking']) {
@@ -1299,7 +1349,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
             'stockTaking' => $stockTaking,
-            'demandeLivraisonTypes' => $demandeLivraisonType,
+            'demandeLivraisonTypes' => $demandeLivraisonTypes,
             'demandeLivraisonArticles' => $demandeLivraisonArticles,
             'rights' => $rights
         ];
