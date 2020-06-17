@@ -335,7 +335,7 @@ class DemandeLivraisonService
         }
         $entityManager->persist($demande);
         $entityManager->flush();
-        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande) : $response;
+        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande, $fromNomade) : $response;
         $entityManager->flush();
         return $response;
     }
@@ -343,14 +343,14 @@ class DemandeLivraisonService
     /**
      * @param EntityManagerInterface $entityManager
      * @param Demande $demande
+     * @param bool $fromNomade
      * @return array
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande): array
+    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
     {
         $response = [];
         $response['success'] = true;
@@ -416,12 +416,14 @@ class DemandeLivraisonService
             );
         }
         $entityManager->flush();
-        $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
-            'demande' => $demande,
-            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'showDetails' => $this->createHeaderDetailsConfig($demande)
-        ]);
-        $response['demande'] = $demande;
+        if (!$fromNomade) {
+            $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
+                'demande' => $demande,
+                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                'showDetails' => $this->createHeaderDetailsConfig($demande)
+            ]);
+            $response['demande'] = $demande;
+        }
         return $response;
     }
 
