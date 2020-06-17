@@ -52,6 +52,12 @@ class UpdateRefQuantitiesCommand extends Command
             ->writeln('Quantité réservée avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteReservee());
         $output
             ->writeln('Quantité en stock avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteStock());
+        $output
+            ->writeln('');
+        $output
+            ->writeln('..........Mise à jour..........');
+        $output
+            ->writeln('');
         $this->refArticleService->updateRefArticleQuantities($referenceArticleToUpdate);
         $this->em->flush();
         $this->refArticleService->treatAlert($referenceArticleToUpdate);
@@ -62,6 +68,8 @@ class UpdateRefQuantitiesCommand extends Command
             ->writeln('Quantité réservée après mise à jour : ' . $referenceArticleToUpdate->getQuantiteReservee());
         $output
             ->writeln('Quantité en stock après mise à jour : ' . $referenceArticleToUpdate->getQuantiteStock());
+        $output
+            ->writeln('');
         $refPrepasEnCours = $referenceArticleToUpdate
             ->getLigneArticlePreparations()
             ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
@@ -81,6 +89,8 @@ class UpdateRefQuantitiesCommand extends Command
             $output
                 ->writeln('Aucune préparation en cours pour la référence ' . $refToUpdate);
         }
+        $output
+            ->writeln('');
         $refLivraisonEnCours = $referenceArticleToUpdate
             ->getLigneArticlePreparations()
             ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
