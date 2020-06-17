@@ -275,8 +275,7 @@ class RefArticleDataService
                         ]);
 
                         $entityManager->persist($articleFournisseur);
-                    }
-                    catch (Exception $exception) {
+                    } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                             $response['success'] = false;
                             $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
@@ -328,8 +327,7 @@ class RefArticleDataService
                         $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champLibre, $value);
                         $valeurChampLibre->addArticleReference($refArticle);
                         $entityManager->persist($valeurChampLibre);
-                    }
-                    else {
+                    } else {
                         $this->valeurChampLibreService->updateValue($valeurChampLibre, $value);
                     }
                     $entityManager->flush();
@@ -433,10 +431,9 @@ class RefArticleDataService
             if (!$fromNomade) {
                 $this->editRefArticle($referenceArticle, $data, $user);
             }
-        }
-        elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($fromNomade || $this->userService->hasParamQuantityByRef()) {
-                if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
                         ->setQuantite(max($data["quantity-to-pick"], 0))// protection contre quantités négatives

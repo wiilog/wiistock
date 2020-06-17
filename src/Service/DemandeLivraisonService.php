@@ -215,8 +215,7 @@ class DemandeLivraisonService
                 $demande->addPreparation($preparation);
             }
         }
-        $data = $demande;
-        return $data;
+        return $demande;
     }
 
     /**
