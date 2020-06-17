@@ -46,10 +46,22 @@ class UpdateRefQuantitiesCommand extends Command
         $refToUpdate = $input->getArgument('ref');
         $referenceArticleRepository = $this->em->getRepository(ReferenceArticle::class);
         $referenceArticleToUpdate = $referenceArticleRepository->findOneByReference($refToUpdate);
+        $output
+            ->writeln('Quantité disponible avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible());
+        $output
+            ->writeln('Quantité réservée avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteReservee());
+        $output
+            ->writeln('Quantité en stock avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteStock());
         $this->refArticleService->updateRefArticleQuantities($referenceArticleToUpdate);
         $this->em->flush();
         $this->refArticleService->treatAlert($referenceArticleToUpdate);
         $this->em->flush();
+        $output
+            ->writeln('Quantité disponible après mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible());
+        $output
+            ->writeln('Quantité réservée après mise à jour : ' . $referenceArticleToUpdate->getQuantiteReservee());
+        $output
+            ->writeln('Quantité en stock après mise à jour : ' . $referenceArticleToUpdate->getQuantiteStock());
         $refPrepasEnCours = $referenceArticleToUpdate
             ->getLigneArticlePreparations()
             ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
