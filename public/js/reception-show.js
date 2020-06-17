@@ -310,8 +310,17 @@ function initNewArticleEditor(modal) {
     clearModal(modal);
 
     const $commandField = $(modal).find('[name="commande"]');
-    const numCommand = $('#numCommandeReception').val();
-    $commandField.val(numCommand);
+    const $numCommand = $('#numCommandeReception').val();
+    $commandField.val($numCommand);
+
+    const $button = $('#addArticleLigneSubmitAndRedirect');
+    $button.addClass('d-none');
+
+    let $quantiteRecue =  $('#quantiteRecue');
+    let $quantiteAR = $('#quantiteAR');
+    $quantiteRecue.prop('disabled', true);
+    $quantiteRecue.val(0);
+    $quantiteAR.val(0);
 
     setTimeout(() => {
         openSelect2($select2refs);
@@ -324,10 +333,24 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
     initDatatableConditionnement();
 }
 
-function articleChanged(select) {
-    if (select.val() !== null) {
+function articleChanged($select) {
+    console.log($select.select2('data'));
+    const selectedReferences = $select.select2('data');
+    if (selectedReferences.length > 0) {
+        const selectedReference = selectedReferences[0];
+        const typeQuantity = selectedReference.typeQuantity;
+        const $button = $('#addArticleLigneSubmitAndRedirect');
+
+        if (typeQuantity === 'article') {
+            $button.removeClass('d-none');
+        } else {
+            $button.addClass('d-none');
+        }
+    }
+
+    if ($select.val() !== null) {
         let route = Routing.generate('is_urgent', true);
-        let params = JSON.stringify(select.val());
+        let params = JSON.stringify($select.val());
         $.post(route, params, function (response) {
             if (response.urgent) {
                 $('.emergency').removeClass('d-none');
@@ -716,14 +739,6 @@ $('#quantiteAR').on('input', function () {
         quantiteRecue.prop('disabled', true);
     }
 })
-
-$('#modalAddLigneArticle').on('shown.bs.modal', function () {
-    let quantiteRecue =  $('#quantiteRecue');
-    let quantiteAR = $('#quantiteAR');
-    quantiteRecue.prop('disabled', true);
-    quantiteRecue.val(0);
-    quantiteAR.val(0);
-});
 
 
 

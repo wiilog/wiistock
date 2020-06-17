@@ -109,11 +109,11 @@
                         onclick="setCommentaire('.editor-container')">
                     Enregistrer
                 </button>
-
                 <button type="button"
                         id="addArticleLigneSubmitAndRedirect"
-                        class="btn btn-primary btn-ripple split-button"
+                        class="btn btn-success data d-none"
                         title="réception"
+                        value="{{ reception.id }}"
                         onclick=" initNewLigneReception($(this))">
                       Enregistrer et {{ 'réception.réception'|trans }}
                 </button>
