@@ -111,5 +111,7 @@ class UpdateRefQuantitiesCommand extends Command
             $output
                 ->writeln('Aucune livraison en cours pour la référence ' . $refToUpdate);
         }
+        $output
+            ->writeln('');
     }
 }
