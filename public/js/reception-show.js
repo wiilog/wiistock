@@ -705,3 +705,25 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }
+
+$('#quantiteAR').on('input', function () {
+    let quantiteAR = $('#quantiteAR');
+    let quantiteRecue = $('#quantiteRecue');
+    if ( quantiteAR.val() > 0 ) {
+        quantiteRecue.prop('disabled', false);
+    } else {
+        quantiteRecue.val(0);
+        quantiteRecue.prop('disabled', true);
+    }
+})
+
+$('#modalAddLigneArticle').on('shown.bs.modal', function () {
+    let quantiteRecue =  $('#quantiteRecue');
+    let quantiteAR = $('#quantiteAR');
+    quantiteRecue.prop('disabled', true);
+    quantiteRecue.val(0);
+    quantiteAR.val(0);
+});
+
+
+
