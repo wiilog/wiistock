@@ -150,17 +150,18 @@ class DemandeLivraisonService
     /**
      * @param $data
      * @param EntityManagerInterface $entityManager
+     * @param bool $fromNomade
      * @return Demande|array|JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
-    public function newDemande($data, EntityManagerInterface $entityManager)
+    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $fromNomade = $data['fromNomade'] ?? false;
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
         if (!$fromNomade) {
@@ -177,7 +178,7 @@ class DemandeLivraisonService
                 return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
             }
         }
-        $utilisateur = $utilisateurRepository->find($data['demandeur']);
+        $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
@@ -224,7 +225,8 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function generateNumeroForNewDL(EntityManagerInterface $entityManager) {
+    private function generateNumeroForNewDL(EntityManagerInterface $entityManager)
+    {
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
         $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
@@ -238,49 +240,42 @@ class DemandeLivraisonService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param array $data
+     * @param array $demandeArray
+     * @param bool $fromNomade
      * @return array
+     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
      */
-    public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $data): array {
+    public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
+    {
         $articleRepository = $entityManager->getRepository(Article::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $fromNomade = $data['fromNomade'] ?? false;
         if ($fromNomade) {
-            $nomadUser = $utilisateurRepository->findOneByApiKey($data['apiKey']);
-            if ($nomadUser) {
-                $data['demandeur'] = $nomadUser->getId();
-                /**
-                 * @var Demande $demande
-                 */
-                $demande = $this->newDemande($data, $entityManager);
-                /**
-                 * Liste des références sous le format :
-                 * [
-                 *    'barCode' => REF123456789,
-                 *    'quantity-to-pick' => 12
-                 * ]
-                 */
-                $references = $data['references'];
-                foreach ($references as $reference) {
-                    $referenceArticle = $referenceArticleRepository->findOneBy([
-                        'barCode' => $reference['barCode']
-                    ]);
-                    $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $nomadUser, true, $entityManager, $demande);
-                }
-            } else {
-                $response['success'] = false;
-                $response['message'] = "Vous n'avez pas pu être autentifié, veuillez vous reconnecter.";
+            /**
+             * @var Demande $demande
+             */
+            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade);
+            /**
+             * Liste des références sous le format :
+             * [
+             *    'barCode' => REF123456789,
+             *    'quantity-to-pick' => 12
+             * ]
+             */
+            $references = $demandeArray['references'];
+            foreach ($references as $reference) {
+                $referenceArticle = $referenceArticleRepository->findOneBy([
+                    'barCode' => $reference['barCode']
+                ]);
+                $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $demandeArray['demandeur'], true, $entityManager, $demande);
             }
         } else {
-            $demande = $demandeRepository->find($data['demande']);
+            $demande = $demandeRepository->find($demandeArray['demande']);
         }
         $response = [];
         $response['success'] = true;
@@ -293,8 +288,7 @@ class DemandeLivraisonService
                 && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                 $response['success'] = false;
                 $response['message'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
-            }
-            else {
+            } else {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                 $totalQuantity = $refArticle->getQuantiteDisponible();
                 $treshHold = ($article->getQuantite() > $totalQuantity)
@@ -356,7 +350,8 @@ class DemandeLivraisonService
      * @throws SyntaxError
      * @throws Exception
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande): array {
+    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande): array
+    {
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
@@ -395,8 +390,7 @@ class DemandeLivraisonService
             $entityManager->persist($lignesArticlePreparation);
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
-            }
-            else {
+            } else {
                 $refArticleToUpdateQuantities[] = $referenceArticle;
             }
             $preparation->addLigneArticlePreparation($lignesArticlePreparation);

@@ -1038,10 +1038,21 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws SyntaxError
      * @throws DBALException
      */
-    public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response {
-        $data = json_decode($request->getContent(), true);
-        $data['fromNomade'] = true;
-        $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
+    public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
+    {
+        $apiKey = $request->request->get('apiKey');
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $nomadUser = $utilisateurRepository->findOneByApiKey($apiKey);
+        if ($nomadUser) {
+            $demandeArray = json_decode($request->request->get('demande'), true);
+            $demandeArray['demandeur'] = $nomadUser;
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $demandeArray, true);
+        } else {
+            $responseAfterQuantitiesCheck = [
+                'success' => false,
+                'message' => "Vous n'avez pas pu être autentifié, veuillez vous reconnecter.",
+            ];
+        }
         return new JsonResponse($responseAfterQuantitiesCheck);
     }
 

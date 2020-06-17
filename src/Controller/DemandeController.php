@@ -108,6 +108,7 @@ class DemandeController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws DBALException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
