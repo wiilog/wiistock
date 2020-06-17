@@ -255,24 +255,29 @@ class DemandeLivraisonService
         $fromNomade = $data['fromNomade'] ?? false;
         if ($fromNomade) {
             $nomadUser = $utilisateurRepository->findOneByApiKey($data['apiKey']);
-            $data['demandeur'] = $nomadUser->getId();
-            /**
-             * @var Demande $demande
-             */
-            $demande = $this->newDemande($data, $entityManager);
-            /**
-             * Liste des références sous le format :
+            if ($nomadUser) {
+                $data['demandeur'] = $nomadUser->getId();
+                /**
+                 * @var Demande $demande
+                 */
+                $demande = $this->newDemande($data, $entityManager);
+                /**
+                 * Liste des références sous le format :
                  * [
                  *    'barCode' => REF123456789,
                  *    'quantity-to-pick' => 12
                  * ]
-             */
-            $references = $data['references'];
-            foreach ($references as $reference) {
-                $referenceArticle = $referenceArticleRepository->findOneBy([
-                    'barCode' => $reference['barCode']
-                ]);
-                $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $nomadUser, true, $entityManager, $demande);
+                 */
+                $references = $data['references'];
+                foreach ($references as $reference) {
+                    $referenceArticle = $referenceArticleRepository->findOneBy([
+                        'barCode' => $reference['barCode']
+                    ]);
+                    $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $nomadUser, true, $entityManager, $demande);
+                }
+            } else {
+                $response['success'] = false;
+                $response['message'] = "Vous n'avez pas pu être autentifié, veuillez vous reconnecter.";
             }
         } else {
             $demande = $demandeRepository->find($data['demande']);
