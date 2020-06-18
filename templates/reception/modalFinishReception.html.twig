@@ -3,7 +3,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Valider <span title="la réception">{{ 'réception.la réception'|trans }}</span></h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -12,7 +15,12 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Fermer</button>
-                <button type="button" data-dismiss="modal" class="btn btn-success" onclick="finishReception({{ reception.id }}, true)">Valider</button>
+                <button type="button"
+                        data-dismiss="modal"
+                        class="btn btn-success"
+                        onclick="finishReception({{ reception.id }}, true, $('#finishReceptionButton'))">
+                    Valider
+                </button>
             </div>
         </div>
     </div>
