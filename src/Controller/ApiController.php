@@ -1175,7 +1175,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/demande-livraison-data", name="api_get_demande_livraison_data")
+     * @Rest\Get("/api/demande-livraison-data", name="api_get_demande_livraison_data")
      * @Rest\View()
      * @param Request $request
      * @param UserService $userService
@@ -1188,7 +1188,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             EntityManagerInterface $entityManager): Response
     {
 
-        $apiKey = $request->request->get('apiKey');
+        $apiKey = $request->query->get('apiKey');
         $dataResponse = [];
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1201,7 +1201,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             if ($rights['demande']) {
                 $dataResponse['data'] = [
                     'demandeLivraisonArticles' => $referenceArticleRepository->getByNeedsMobileSync(),
-                    'demandeLivraisonType' => array_map(function (Type $type) {
+                    'demandeLivraisonTypes' => array_map(function (Type $type) {
                         return [
                             'id' => $type->getId(),
                             'label' => $type->getLabel(),
@@ -1234,8 +1234,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     private function getDataArray($user,
                                   UserService $userService,
-                                  EntityManagerInterface $entityManager)
-    {
+                                  EntityManagerInterface $entityManager) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
@@ -1398,7 +1397,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
     /**
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv", condition="request.isXmlHttpRequest()")
-     * @Rest\Get("/api/treatAnomalies")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
