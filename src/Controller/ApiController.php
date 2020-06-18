@@ -1038,6 +1038,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws DBALException
+     * @throws \Doctrine\ORM\NoResultException
      */
     public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
     {

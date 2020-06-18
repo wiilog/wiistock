@@ -247,6 +247,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Doctrine\ORM\NoResultException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
     {
@@ -337,8 +338,6 @@ class DemandeLivraisonService
                 }
             }
         }
-        $entityManager->persist($demande);
-        $entityManager->flush();
         $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande, $fromNomade) : $response;
         $entityManager->flush();
         return $response;
@@ -353,9 +352,12 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Doctrine\ORM\NoResultException
      */
     private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
     {
+        $entityManager->persist($demande);
+        $entityManager->flush();
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
