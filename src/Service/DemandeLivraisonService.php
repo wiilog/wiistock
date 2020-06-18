@@ -247,6 +247,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Doctrine\ORM\NoResultException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
     {
@@ -337,10 +338,11 @@ class DemandeLivraisonService
                 }
             }
         }
-        $entityManager->persist($demande);
-        $entityManager->flush();
+        if ($response['success']) {
+            $entityManager->persist($demande);
+            $entityManager->flush();
+        }
         $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande, $fromNomade) : $response;
-        $entityManager->flush();
         return $response;
     }
 
@@ -353,6 +355,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Doctrine\ORM\NoResultException
      */
     private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
     {
@@ -428,6 +431,7 @@ class DemandeLivraisonService
             ]);
             $response['demande'] = $demande;
         }
+        $entityManager->flush();
         return $response;
     }
 
@@ -447,6 +451,7 @@ class DemandeLivraisonService
             if ($isChampLibre && $typeId === $demande->getType()->getId()) {
                 $value = $data[$champs];
                 $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre(intval($champId), $value);
+                $this->entityManager->persist($demande);
                 $valeurChampLibre->addDemandesLivraison($demande);
                 $this->entityManager->persist($valeurChampLibre);
             }
