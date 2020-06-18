@@ -338,8 +338,11 @@ class DemandeLivraisonService
                 }
             }
         }
+        if ($response['success']) {
+            $entityManager->persist($demande);
+            $entityManager->flush();
+        }
         $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande, $fromNomade) : $response;
-        $entityManager->flush();
         return $response;
     }
 
@@ -356,8 +359,6 @@ class DemandeLivraisonService
      */
     private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
     {
-        $entityManager->persist($demande);
-        $entityManager->flush();
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
@@ -430,6 +431,7 @@ class DemandeLivraisonService
             ]);
             $response['demande'] = $demande;
         }
+        $entityManager->flush();
         return $response;
     }
 
