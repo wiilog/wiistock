@@ -103,7 +103,7 @@
 
 {% set dnoneRef = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
 {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
-<div class="row mt-4 mb-3">
+<div class="row mt-4 mb-3 justify-content-left">
     {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4">
             <div class="radio-btn">
@@ -122,8 +122,8 @@
         </div>
     {% endif %}
 
-    <div class="form-group mt-4 mr-5">
-        <div class="article {{ dnone }}">
+    <div class="form-group col-4 mt-4">
+        <div class="line-height-25 article {{ dnone }} ">
             <label for="urgence">Urgence ? </label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" onchange="toggleEmergency($(this))" name="urgence"
@@ -133,10 +133,10 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group col-4">
         <div class="emergency-comment {{ not articleRef.isUrgent ? 'd-none' }}">
             <label for="emergency-comment-input">Commentaire de l'urgence</label>
-            <input class="form-control data" type="text" name="emergency-comment-input" value="{{ articleRef.emergencyComment }}">
+            <input class="form-control data w-100" type="text" name="emergency-comment-input" value="{{ articleRef.emergencyComment }}">
         </div>
     </div>
 </div>
