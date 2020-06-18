@@ -1800,7 +1800,9 @@ class ReceptionController extends AbstractController
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
-                $demande = $demandeLivraisonService->newDemande($data);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
+                $entityManager->persist($demande);
+                $entityManager->flush();
             }
 
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
