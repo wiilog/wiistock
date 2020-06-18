@@ -263,6 +263,7 @@ function ajaxEditArticle (select) {
             if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
             quantityToTake.removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            $('.list-multiple').select2();
         }
     });
 }
