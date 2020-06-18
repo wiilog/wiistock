@@ -378,7 +378,7 @@ function finishReception(receptionId, confirmed, $button) {
                 alertErrorMsg(data);
             }
         }, 'json')
-    ), false);
+    ), true);
 }
 
 function clearAddRefModal() {

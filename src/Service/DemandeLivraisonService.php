@@ -402,6 +402,7 @@ class DemandeLivraisonService
             }
             $preparation->addLigneArticlePreparation($lignesArticlePreparation);
         }
+        $entityManager->flush();
 
         foreach ($refArticleToUpdateQuantities as $refArticle) {
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
