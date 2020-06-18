@@ -11,7 +11,9 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
+use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
+use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -24,6 +26,8 @@ use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -579,6 +583,8 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -586,6 +592,22 @@ class RefArticleDataService
 
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
+        } else {
+            $totalReservedQuantity = 0;
+            $lignesArticlePrepaEnCours = $referenceArticle
+                ->getLigneArticlePreparations()
+                ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
+                    $preparation = $ligneArticlePreparation->getPreparation();
+                    return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
+                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
+                });
+            /**
+             * @var LigneArticlePreparation $ligneArticlePrepaEnCours
+             */
+            foreach ($lignesArticlePrepaEnCours as $ligneArticlePrepaEnCours) {
+                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantite();
+            }
+            $referenceArticle->setQuantiteReservee($totalReservedQuantity);
         }
     }
 
