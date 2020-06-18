@@ -447,6 +447,7 @@ class DemandeLivraisonService
             if ($isChampLibre && $typeId === $demande->getType()->getId()) {
                 $value = $data[$champs];
                 $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre(intval($champId), $value);
+                $this->entityManager->persist($demande);
                 $valeurChampLibre->addDemandesLivraison($demande);
                 $this->entityManager->persist($valeurChampLibre);
             }
