@@ -928,12 +928,12 @@ class ReferenceArticleRepository extends EntityRepository
                     JOIN ra.articlesFournisseur af
                     JOIN af.articles a
                     JOIN a.statut s
-                    WHERE s.nom = :activeStatus
+                    WHERE s.nom != :inactiveStatus
                       AND ra = :refArt
                 ")
                 ->setParameters([
                     'refArt' => $referenceArticle->getId(),
-                    'activeStatus' => Article::STATUT_ACTIF
+                    'inactiveStatus' => Article::STATUT_INACTIF
                 ]);
             $stockQuantity = ($query->getSingleScalarResult() ?? 0);
         } else {
