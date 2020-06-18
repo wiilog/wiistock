@@ -340,7 +340,9 @@ function articleChanged($select) {
         const selectedReference = selectedReferences[0];
         const typeQuantity = selectedReference.typeQuantity;
         const $button = $('#addArticleLigneSubmitAndRedirect');
-
+        const test = selectedReference.text;
+        const numCommande =  selectedReference.commande;
+        console.log(test + " - " +  numCommande);
         if (typeQuantity === 'article') {
             $button.removeClass('d-none');
         } else {
@@ -687,6 +689,16 @@ function toggleDLForm() {
         $demandeForm.find('.data').attr('disabled', 'disabled');
     }
 }
+//
+// function initConditionnementReferenceDefault() {
+//     console.log(data);
+//     const $reference = $('#modalNewLigneReception')
+// }
+
+
+
+
+
 
 function initConditionnementArticleFournisseurDefault() {
     const $selectRefArticle = $('#modalNewLigneReception select[name="refArticleCommande"]');
