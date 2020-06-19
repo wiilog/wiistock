@@ -29,7 +29,7 @@ class MouvementStockRepository extends EntityRepository
         'destination' => 'emplacementTo',
         'type' => 'type',
         'operateur' => 'user',
-        'codeBarre' => 'refArticle'
+        'barCode' => 'barCode'
     ];
 
     public function countByEmplacement($emplacementId)
@@ -427,13 +427,13 @@ class MouvementStockRepository extends EntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     if ($column === 'refArticle') {
+                        dump($column);
                         $qb
                             ->leftJoin('m.refArticle', 'ra2')
                             ->orderBy('ra2.reference', $order);
@@ -449,8 +449,12 @@ class MouvementStockRepository extends EntityRepository
                         $qb
                             ->leftJoin('m.user', 'u2')
                             ->orderBy('u2.username', $order);
-                    } else if ($column === 'codeBarre') {
+                    } else if ($column === 'barCode') {
                         $qb
+                            /*->addSelect(
+                                '(CASE WHEN m.refArticle IS NOT NULL THEN ra.barCode ELSE article.barCode END) AS movementBarCode'
+                            )
+                            ->leftJoin('m.article','article')*/
                             ->leftJoin('m.refArticle', 'ra')
                             ->orderBy('ra.barCode', $order);
                     } else {

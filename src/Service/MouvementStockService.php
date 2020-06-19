@@ -111,7 +111,20 @@ class MouvementStockService
 		} else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
 			$from = 'transfert de stock';
 		}
+		$refArticleCheck = '';
+        if($mouvement->getArticle()) {
+            $articleFournisseur = $mouvement->getArticle()->getArticleFournisseur();
+            if($articleFournisseur) {
+                $referenceArticle = $articleFournisseur->getReferenceArticle();
+                if($referenceArticle) {
+                    $refArticleCheck = $referenceArticle->getReference() ?: '';
+                }
+            }
+        }
 
+        else {
+            $refArticleCheck = $mouvement->getRefArticle()->getReference();
+        }
 		$row = [
 			'id' => $mouvement->getId(),
 			'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
@@ -121,8 +134,8 @@ class MouvementStockService
 				'orderId' => $orderId
 			]),
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
-			'refArticle' => $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : $mouvement->getRefArticle()->getReference(),
-            'codeBarre' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
+			'refArticle' => $refArticleCheck,
+            'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
             'quantite' => $mouvement->getQuantity(),
 			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
