@@ -211,6 +211,7 @@ class RefArticleDataService
 
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
+            'Synchronisation nomade' =>$refArticle->getNeedsMobileSync(),
             'statut' => $refArticle->getStatut()->getNom(),
             'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
             'typeChampsLibres' => $typeChampLibre,
@@ -387,6 +388,7 @@ class RefArticleDataService
             "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
+            'Synchronisation nomade' =>$refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),

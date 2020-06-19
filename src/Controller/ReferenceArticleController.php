@@ -259,6 +259,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Urgence',
 					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Synchronisation nomade',
+                    "data" => 'Synchronisation nomade',
+                    'name' => 'Synchronisation nomade',
+                    "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
+                ],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -565,6 +571,11 @@ class ReferenceArticleController extends AbstractController
             'typage' => 'number'
         ];
         $champF[] = [
+            'label' => 'Synchronisation nomade',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champF[] = [
             'label' => 'Dernier inventaire',
             'id' => 0,
             'typage' => 'date'
@@ -595,6 +606,12 @@ class ReferenceArticleController extends AbstractController
         ];
         $champsFText[] = [
             'label' => 'Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Synchronisation Nomade',
             'id' => 0,
             'typage' => 'text'
 
