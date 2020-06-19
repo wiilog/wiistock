@@ -50,8 +50,6 @@ class MouvementStockService
      * @param array|null $params
      * @return array
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -84,9 +82,7 @@ class MouvementStockService
 	 * @throws LoaderError
 	 * @throws RuntimeError
 	 * @throws SyntaxError
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
+     */
     public function dataRowMouvement($mouvement)
     {
         $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);

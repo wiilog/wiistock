@@ -29,6 +29,7 @@ class MouvementStockRepository extends EntityRepository
         'destination' => 'emplacementTo',
         'type' => 'type',
         'operateur' => 'user',
+        'codeBarre' => 'refArticle'
     ];
 
     public function countByEmplacement($emplacementId)
@@ -448,6 +449,10 @@ class MouvementStockRepository extends EntityRepository
                         $qb
                             ->leftJoin('m.user', 'u2')
                             ->orderBy('u2.username', $order);
+                    } else if ($column === 'codeBarre') {
+                        $qb
+                            ->leftJoin('m.refArticle', 'ra')
+                            ->orderBy('ra.barCode', $order);
                     } else {
                         $qb
                             ->orderBy('m.' . $column, $order);
