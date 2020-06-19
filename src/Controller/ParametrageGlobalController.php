@@ -827,7 +827,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal->setValue($post->get('value'));
             $em->flush();
 
-            $globalParamService->generateSassFile();
+            $globalParamService->generateScssFile();
 
             return new JsonResponse(true);
         }

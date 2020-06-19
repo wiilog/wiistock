@@ -1,0 +1,13 @@
+.dropFrame {
+    border: 3px dashed $greyForm;
+    line-height: 50px;
+    text-align: center;
+}
+
+.isWrong {
+    border: 3px dashed $red;
+}
+
+.isRight {
+    border: 3px dashed $green;
+}

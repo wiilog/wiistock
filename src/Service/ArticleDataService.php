@@ -438,6 +438,12 @@ class ArticleDataService
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
+            $toInsert
+                ->setQuantiteAPrelever($toInsert->getQuantite());
+            if (count($demande->getPreparations()) > 0) {
+                $demande
+                    ->getPreparations()[0]->addArticle($toInsert);
+            }
         }
 
         // optionnel : ajout dans une réception

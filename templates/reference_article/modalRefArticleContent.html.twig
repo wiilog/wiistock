@@ -14,7 +14,7 @@
         <input {{ disabled }} class="form-control data needed" type="text" name="libelle" value="{{ articleRef.libelle }}"
                               id="libelle">
     </div>
-    <div class="form-group col-6">
+    <div class="form-group col-4">
         {% if isADemand is not defined or not isADemand %}
             <div class="input-group radio-btn">
                 <label for="statut" class="mtb-auto mr-2">Statut</label>
@@ -35,6 +35,14 @@
                 <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
             </div>
         {% endif %}
+    </div>
+    <div class="form-group col-4">
+        <label>Synchronisation nomade ?</label>
+        {% set checkedSync = articleRef.needsMobileSync ? 'checked' %}
+        <label class="switch">
+            <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
+            <span class="slider round"></span>
+        </label>
     </div>
 </div>
 
