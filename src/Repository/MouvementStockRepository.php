@@ -433,7 +433,6 @@ class MouvementStockRepository extends EntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     if ($column === 'refArticle') {
-                        dump($column);
                         $qb
                             ->leftJoin('m.refArticle', 'ra2')
                             ->orderBy('ra2.reference', $order);
