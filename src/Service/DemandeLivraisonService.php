@@ -5,7 +5,6 @@ namespace App\Service;
 
 
 use App\Entity\Article;
-use App\Entity\CategorieStatut;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
@@ -25,7 +24,6 @@ use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
-use mysql_xdevapi\RowResult;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
