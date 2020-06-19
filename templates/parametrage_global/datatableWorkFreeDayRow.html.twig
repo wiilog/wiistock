@@ -1,0 +1,11 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="dropdown-item"
+                 onclick="deleteWorkFreeDay({{ workFreeDayId }}, '{{ dateStr }}')">
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
+        </div>
+    </div>
+</div>

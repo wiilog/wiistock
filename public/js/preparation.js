@@ -2,6 +2,8 @@ $('.select2').select2();
 
 let prepaHasBegun = false;
 let tableArticleSplitting;
+let modalSubmitPreparation = "#modalSubmitPreparation";
+let $modalSubmitPreparation = $(modalSubmitPreparation);
 
 $(function () {
     initDateTimePicker();
@@ -109,11 +111,6 @@ function startPicking($button) {
         };
         tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
         $('#modalSplitting').modal('show');
-
-        // TODO WIIS-2373
-        setTimeout(() => {
-            tableArticleSplitting.columns.adjust().draw();
-        }, 300);
     });
 }
 
@@ -280,8 +277,9 @@ function beginPrepa() {
     }
 }
 
-function finishPrepa() {
+function finishPrepa($button) {
     let allRowsEmpty = true;
+    let $submitPreparationButton = $modalSubmitPreparation.find("#submitPreparationButton");
 
     let rows = tableArticle
         .column('quantitePrelevee:name')
@@ -296,6 +294,14 @@ function finishPrepa() {
     } else {
         clearEmplacementModal();
         $('#modalSubmitPreparation').modal('show');
+        $submitPreparationButton.click(function () {
+            if ($('#preparation-emplacement').has('option').length == 0) {
+                alertErrorMsg('Veuillez sélectionner un emplacement.', true);
+            } else {
+                $('#modalSubmitPreparation').modal('hide');
+                wrapLoadingOnActionButton($button, null);
+            }
+        })
     }
 }
 

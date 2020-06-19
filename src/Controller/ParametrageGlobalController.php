@@ -14,6 +14,7 @@ use App\Entity\Nature;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Statut;
 use App\Entity\Translation;
+use App\Entity\WorkFreeDay;
 use App\Repository\MailerServerRepository;
 use App\Entity\ParametrageGlobal;
 use App\Repository\ParametrageGlobalRepository;
@@ -60,14 +61,14 @@ class ParametrageGlobalController extends AbstractController
      */
 
     public function index(UserService $userService,
-						  GlobalParamService $globalParamService,
-						  EntityManagerInterface $entityManager,
-                          StatutService $statutService): Response {
+                          GlobalParamService $globalParamService,
+                          EntityManagerInterface $entityManager,
+                          StatutService $statutService): Response
+    {
 
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
             return $this->redirectToRoute('access_denied');
         }
-
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
@@ -76,10 +77,18 @@ class ParametrageGlobalController extends AbstractController
         $champsLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
         ]);
         $paramLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FILE_FOR_LOGO);
+        $workFreeDays = array_map(
+            function (WorkFreeDay $workFreeDay) {
+                return $workFreeDay->getDay()->format('Y-m-d');
+            },
+            $workFreeDaysRepository->findAll()
+        );
 
         return $this->render('parametrage_global/index.html.twig',
             [
@@ -97,9 +106,9 @@ class ParametrageGlobalController extends AbstractController
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
                 ],
                 'paramArrivages' => [
-					'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
-					'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
-					'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
+                    'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
+                    'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
+                    'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'defaultStatusArrivageId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE),
                     'listStatusArrivage' => $statutService->findAllStatusArrivage(),
                     'location' => $globalParamService->getMvtDeposeArrival(),
@@ -121,12 +130,13 @@ class ParametrageGlobalController extends AbstractController
                 'fonts' => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
                 'fontFamily' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
+                'workFreeDays' => $workFreeDays,
                 'paramDashboard' => [
                     'existingNatureId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DASHBOARD_NATURE_COLIS),
                     'existingListNaturesId' => $globalParamService->getDashboardListNatures(),
                     'natures' => $natureRepository->findAll(),
                     'locations' => $globalParamService->getDashboardLocations(),
-                    'valueCarriers' => $globalParamService->getDashboardCarrierDock()
+                    'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
                 ],
             ]);
     }
@@ -755,9 +765,9 @@ class ParametrageGlobalController extends AbstractController
         $trimmedValue = trim($value);
         $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
 
-		$em->flush();
+        $em->flush();
 
-		return new JsonResponse(true);
+        return new JsonResponse(true);
     }
 
     /**
@@ -995,7 +1005,8 @@ class ParametrageGlobalController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function editDemandeLivraisonDestination(Request $request,
-                                                    ParametrageGlobalRepository $parametrageGlobalRepository): Response    {
+                                                    ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
 
         $value = json_decode($request->getContent(), true);
 

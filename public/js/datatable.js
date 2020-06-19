@@ -1,6 +1,16 @@
-$.fn.dataTable.ext.errMode = () => {
-    alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
-};
+$(function() {
+    $.fn.dataTable.ext.errMode = () => {
+        alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+    };
+
+    $(window).on('shown.bs.collapse shown.bs.modal', (event) => {
+        const $collapse = $(event.target);
+        $collapse.find('.wii-table').each(function () {
+            const $table = $(this);
+            $table.DataTable().columns.adjust().draw();
+        });
+    });
+});
 
 function hideColumns(table, data) {
     data.forEach(function (col) {
@@ -13,29 +23,6 @@ function showColumns(table, data) {
     data.forEach(function (col) {
         table.columns(col + ':name').visible(true);
     })
-}
-
-/**
- * Transform milliseconds to 'X h X min' or 'X min' or '< 1 min'
- */
-function renderMillisecondsToDelayDatatable(milliseconds, type) {
-    let res;
-
-    if (type === 'display') {
-        const hours = Math.floor(milliseconds / 1000 / 60 / 60);
-        const minutes = Math.floor(milliseconds / 1000 / 60) % 60;
-        res = (
-                (hours > 0)
-                    ? `${hours < 10 ? '0' : ''}${hours} h `
-                    : '') +
-            ((minutes === 0 && hours < 1)
-                ? '< 1 min'
-                : `${(hours > 0 && minutes < 10) ? '0' : ''}${minutes} min`)
-    } else {
-        res = milliseconds;
-    }
-
-    return res;
 }
 
 function extendsDateSort(name) {
@@ -227,8 +214,12 @@ function moveSearchInputToHeader($searchInputContainer) {
     const $searchInput = $searchInputContainer.find('input');
     const $searchInputContainerCol = $searchInputContainer.parent();
     if ($datatableCard.length > 0) {
-        const $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        let $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        $datatableCardHeader = ($datatableCardHeader.length > 1)
+            ? $searchInputContainer.parents('.dt-parent').find('.wii-page-card-header')
+            : $datatableCardHeader;
         if ($datatableCardHeader.length > 0) {
+            console.log($datatableCardHeader);
             $searchInput.addClass('search-input');
             $datatableCardHeader.prepend($searchInputContainerCol);
             $searchInputContainerCol.removeClass('d-none');
@@ -256,8 +247,8 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             language: {
                 url: "/js/i18n/dataTableLanguage.json",
             },
-            dom: getAppropriateDom(domConfig ?? {}),
-            rowCallback: getAppropriateRowCallback(rowConfig ?? {}),
+            dom: getAppropriateDom(domConfig || {}),
+            rowCallback: getAppropriateRowCallback(rowConfig || {}),
             drawCallback: (response) => {
                 datatableDrawCallback({
                     table: datatableToReturn,
@@ -269,7 +260,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             initComplete: () => {
                 let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
                 moveSearchInputToHeader($searchInputContainer);
-                articleAndRefTableCallback(isArticleOrRefSpecifConfig ?? {}, datatableToReturn);
+                articleAndRefTableCallback(isArticleOrRefSpecifConfig || {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }

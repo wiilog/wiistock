@@ -6,22 +6,21 @@ use App\Entity\Action;
 use App\Entity\Role;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class RolesFixtures extends Fixture implements FixtureGroupInterface
+class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
-    private $encoder;
-
-    public function __construct(UserPasswordEncoderInterface $encoder) {
-        $this->encoder = $encoder;
-    }
-
+    /**
+     * @param ObjectManager $manager
+     * @throws NonUniqueResultException
+     */
     public function load(ObjectManager $manager)
     {
         $rolesLabels = [
             Role::NO_ACCESS_USER,
-			Role::SUPER_ADMIN
+            Role::SUPER_ADMIN
         ];
         $actionRepository = $manager->getRepository(Action::class);
         $roleRepository = $manager->getRepository(Role::class);
@@ -38,18 +37,23 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
                 dump("création du rôle " . $roleLabel);
 
                 if ($roleLabel == Role::SUPER_ADMIN) {
-                	$actions = $actionRepository->findAll();
-                	foreach ($actions as $action) {
-                		$action->addRole($role);
-					}
-				}
+                    $actions = $actionRepository->findAll();
+                    foreach ($actions as $action) {
+                        $action->addRole($role);
+                    }
+                }
             }
         }
-
         $manager->flush();
     }
 
-    public static function getGroups():array {
+    public static function getGroups(): array
+    {
         return ['fixtures'];
+    }
+
+    public function getDependencies()
+    {
+        return [ActionsFixtures::class];
     }
 }

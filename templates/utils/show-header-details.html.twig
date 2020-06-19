@@ -19,7 +19,7 @@
             {% if neededDisplay %}
                 <div class="{{ datum.colClass is defined ? datum.colClass : 'col-xl-3 col-md-4 col-sm-6 col-12' }} mt-3">
                     <div class="row">
-                        <div class="col-12 text-wii-grey" {{ labelTitle }}>{{ datum.label }}</div>
+                        <div class="col-12 text-wii-grey" {{ labelTitle | raw }}>{{ datum.label }}</div>
                         <div class="col-12 text-wii-black">
                             {% if isAttachments %}
                                 <div class="scrollable-details bg-light">

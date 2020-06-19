@@ -230,6 +230,16 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnsVisibleForArrivage;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $secondaryEmails = [];
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="declarant")
+     */
+    private $litigesDeclarant;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -254,6 +264,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->receptionsTraca = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
+        $this->litigesDeclarant = new ArrayCollection();
+        $this->secondaryEmails = [];
     }
 
     public function getId()
@@ -278,6 +290,17 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->email = $email;
         return $this;
     }
+
+    public function getMainAndSecondaryEmails(): array {
+        $secondaryEmails = array_filter(($this->secondaryEmails ?? []), function(string $email) {
+            return !empty($email);
+        });
+        return array_merge(
+            [$this->email],
+            $secondaryEmails
+        );
+    }
+
     public function getPassword(): ?string
 {
     return $this->password;
@@ -1089,7 +1112,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function getRechercheForArticle()
+    public function getRechercheForArticle(): array
     {
         return $this->rechercheForArticle;
     }
@@ -1202,6 +1225,49 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function getColumnsVisibleForArrivage()
     {
         return $this->columnsVisibleForArrivage;
+    }
+
+    public function getSecondaryEmails(): ?array
+    {
+        return $this->secondaryEmails;
+    }
+
+    public function setSecondaryEmails(?array $secondaryEmails): self
+    {
+        $this->secondaryEmails = $secondaryEmails;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitigesDeclarant(): Collection
+    {
+        return $this->litigesDeclarant;
+    }
+
+    public function addLitigesDeclarant(Litige $litigesDeclarant): self
+    {
+        if (!$this->litigesDeclarant->contains($litigesDeclarant)) {
+            $this->litigesDeclarant[] = $litigesDeclarant;
+            $litigesDeclarant->setDeclarant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitigesDeclarant(Litige $litigesDeclarant): self
+    {
+        if ($this->litigesDeclarant->contains($litigesDeclarant)) {
+            $this->litigesDeclarant->removeElement($litigesDeclarant);
+            // set the owning side to null (unless already changed)
+            if ($litigesDeclarant->getDeclarant() === $this) {
+                $litigesDeclarant->setDeclarant(null);
+            }
+        }
+
+        return $this;
     }
 
 }

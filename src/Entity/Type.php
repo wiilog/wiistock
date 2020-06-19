@@ -16,6 +16,7 @@ class Type
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';
+    const LABEL_SILICIUM = 'SILICIUM';
     const LABEL_SILI_EXT = 'SILI-ext';
     const LABEL_SILI_INT = 'SILI-int';
     const LABEL_MOB = 'MOB';
@@ -95,6 +96,11 @@ class Type
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="types")
      */
     private $utilisateurs;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendMail;
 
     public function __construct()
     {
@@ -435,6 +441,18 @@ class Type
             $this->utilisateurs->removeElement($utilisateur);
             $utilisateur->removeType($this);
         }
+
+        return $this;
+    }
+
+    public function getSendMail(): ?bool
+    {
+        return $this->sendMail;
+    }
+
+    public function setSendMail(?bool $sendMail): self
+    {
+        $this->sendMail = $sendMail;
 
         return $this;
     }

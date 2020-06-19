@@ -53,7 +53,7 @@ let tableColisConfig = {
         removeInfo: true
     },
     columns: [
-        {"data": 'actions', 'name': 'actions', 'title': ''},
+        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
         {"data": 'nature', 'name': 'nature', 'title': 'Nature'},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
@@ -119,7 +119,7 @@ let tableArrivageLitigesConfig = {
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': '', orderable: false},
+        {"data": 'Actions', 'name': 'actions', 'title': '', orderable: false, className: 'noVis'},
         {"data": 'firstDate', 'name': 'firstDate', 'title': 'Date de création'},
         {"data": 'status', 'name': 'status', 'title': 'Statut'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
@@ -200,6 +200,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         modal.find('#colisEditLitige').val(data.colis).select2();
+        fillDemandeurField(modal);
         afterLoadingEditModal()
     }, 'json');
 

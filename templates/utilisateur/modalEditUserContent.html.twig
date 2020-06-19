@@ -11,6 +11,21 @@
             <label for="email">Email</label>
             <input type="email" class="form-control data needed" name="email" value="{{ user.email }}" disabled>
         </div>
+        {% for email in user.secondaryEmails %}
+            <div class="col-12 form-group">
+                <label for="email">Email {{ loop.index + 1 }}</label>
+                <input type="email" class="form-control data-array" name="secondaryEmails" value="{{ email }}">
+            </div>
+        {% else %}
+            <div class="col-12 form-group">
+                <label for="email">Email 2</label>
+                <input type="email" class="form-control data-array" name="secondaryEmails">
+            </div>
+            <div class="col-12 form-group">
+                <label for="email">Email 3</label>
+                <input type="email" class="form-control data-array" name="secondaryEmails">
+            </div>
+        {% endfor %}
         <div class="col-12 form-group">
             <label for="password">Mot de passe</label>
             <input type="password" class="form-control data optional-password" name="password">
@@ -37,9 +52,9 @@
         <div class="col-12 form-group">
             <div class="input-group radio-btn">
                 <div>
-                    <span class="btn {{ user.status == 1 ? 'active' : 'not-active'}}" data-toggle="status"
-                        data-title="active" onclick="toggleRadioButton($(this))">Actif</span><span
-                        class="btn {{ user.status == 0 ? 'active' : 'not-active'}}" data-toggle="status"
+                    <span class="btn {{ user.status == 1 ? 'active' : 'not-active' }}" data-toggle="status"
+                          data-title="active" onclick="toggleRadioButton($(this))">Actif</span><span
+                        class="btn {{ user.status == 0 ? 'active' : 'not-active' }}" data-toggle="status"
                         data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
                 </div>
                 <input type="hidden" name="status" id="status" class="data" value="{{ user.status ? 'active' : 'inactive' }}">

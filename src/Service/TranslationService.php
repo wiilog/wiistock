@@ -85,17 +85,4 @@ class TranslationService {
 		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
 		$process->run();
 	}
-
-    /**
-     * @param $menu
-     * @param $label
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
-	public function getTranslation($menu, $label)
-	{
-        $translationRepository = $this->entityManager->getRepository(Translation::class);
-		$translation = $translationRepository->getTranslationByMenuAndLabel($menu, $label);
-		return !empty($translation) ? $translation : $label;
-	}
 }

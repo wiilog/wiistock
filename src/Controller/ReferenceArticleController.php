@@ -20,6 +20,7 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use App\Repository\DemandeRepository;
 use App\Service\DemandeCollecteService;
 use App\Service\ValeurChampLibreService;
 use App\Service\ArticleFournisseurService;
@@ -252,6 +253,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Dernier inventaire',
 					"class" => (in_array('Dernier inventaire', $columnsVisible) ? 'display' : 'hide'),
 				],
+				[
+					"title" => 'Urgence',
+					"data" => 'Urgence',
+					'name' => 'Urgence',
+					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
+				],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -297,6 +304,7 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -364,6 +372,7 @@ class ReferenceArticleController extends AbstractController
             }
             $refArticle = new ReferenceArticle();
             $refArticle
+                ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
@@ -497,6 +506,12 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+        $champF[] = [
+            'label' => 'Urgence',
+            'id' => 0,
+            'typage' => 'booleen'
 
         ];
         $champF[] = [
@@ -807,21 +822,22 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-ref/{activeOnly}/type/{field}/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param bool $activeOnly
      * @param null $typeQuantity
+     * @param string $field
      * @return JsonResponse
      */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null)
+    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null, $field = 'reference')
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field);
 
             return new JsonResponse(['results' => $refArticles]);
         }
@@ -855,6 +871,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param DemandeRepository $demandeRepository
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
      * @throws DBALException
@@ -874,11 +891,12 @@ class ReferenceArticleController extends AbstractController
             $json = true;
 
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
-
+            $demandeRepository = $entityManager->getRepository(Demande::class);
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
-                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
+				    $demande = $demandeRepository->find($data['livraison']);
+                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser(), false, $entityManager, $demande);
                     if ($json === 'article') {
 						$this->articleDataService->editArticle($data);
 						$json = true;
@@ -1007,7 +1025,7 @@ class ReferenceArticleController extends AbstractController
             $em  = $this->getDoctrine()->getManager();
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException("404");
     }

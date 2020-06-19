@@ -76,7 +76,10 @@ class FiltreRefController extends AbstractController
                         $filter->setChampFixe($data['field']);
                     }
                 } else {
-                    return new JsonResponse(false); //TODO gérer retour erreur (champ obligatoire)
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Champ inconnu.'
+                    ]);
                 }
 
                 // champ Value
@@ -95,12 +98,12 @@ class FiltreRefController extends AbstractController
                     'id' => $filter->getId(),
                     'champLibre' => $filter->getChampLibre(),
                     'champFixe' => $filter->getChampFixe(),
-                    'value' => $filter->getValue(),
-//					'operator' => $filter->getOperator()
+                    'value' => $filter->getValue()
                 ];
 
                 $result = [
-                    'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray])
+                    'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray]),
+                    'success' => true
                 ];
             } else {
                 $result = [

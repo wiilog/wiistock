@@ -25,6 +25,7 @@ use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use FOS\RestBundle\Controller\Annotations as Rest;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -673,7 +674,7 @@ class ArticleController extends AbstractController
             $search = $request->query->get('term');
 
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
+            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode');
 
             return new JsonResponse(['results' => $articles]);
         }

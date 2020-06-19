@@ -55,7 +55,6 @@ let tableArticleConfig = {
         {"data": 'Référence', 'title': 'Référence'},
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité disponible'},
         {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
     ],
     rowConfig: {
@@ -126,26 +125,26 @@ let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
 function getCompareStock(submit) {
-
     let path = Routing.generate('compare_stock', true);
-    let params = {'demande': submit.data('id')};
+    let params = {
+        'demande': submit.data('id'),
+        'fromNomade': false
+    };
 
-    $.post(path, JSON.stringify(params), function (data) {
-        if (data.status === true) {
-            $('.zone-entete').html(data.entete);
-            $('#tableArticle_id').DataTable().ajax.reload();
-            $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
-            tableArticle.ajax.reload();
-        } else {
-            if (data.message) {
-                alertErrorMsg(data.message)
+    return $.post({
+        url: path,
+        dataType: 'json',
+        data: JSON.stringify(params)
+    })
+        .then(function (response) {
+            if (response.success) {
+                $('.zone-entete').html(response.message);
+                $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
+                tableArticle.ajax.reload();
+            } else {
+                alertErrorMsg(response.message);
             }
-            else {
-                $('#restantQuantite').html(data.stock);
-                $('#negativStock').click();
-            }
-        }
-    }, 'json');
+        });
 }
 
 $(function () {
@@ -231,16 +230,23 @@ function deleteRowDemande(button, modal, submit) {
     modal.find(submit).attr('name', name);
 }
 
-function validateLivraison(livraisonId, elem) {
+function validateLivraison(livraisonId, $button) {
     let params = JSON.stringify({id: livraisonId});
 
-    $.post(Routing.generate('demande_livraison_has_articles'), params, function (resp) {
-        if (resp === true) {
-            getCompareStock(elem);
-        } else {
-            $('#cannotValidate').click();
-        }
-    });
+    wrapLoadingOnActionButton($button, () => (
+        $.post({
+            url: Routing.generate('demande_livraison_has_articles'),
+            data: params
+        })
+            .then(function (resp) {
+                if (resp === true) {
+                    return getCompareStock($button);
+                } else {
+                    $('#cannotValidate').click();
+                    return false;
+                }
+            })
+    ));
 }
 
 function ajaxEditArticle (select) {
@@ -257,6 +263,7 @@ function ajaxEditArticle (select) {
             if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
             quantityToTake.removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            $('.list-multiple').select2();
         }
     });
 }

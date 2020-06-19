@@ -9,8 +9,9 @@
             {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
             {% if hasRightEdit %}
                 <button type="button"
-                        onclick="validateCollecte({{ collecte.id }})"
+                        onclick="validateCollecte({{ collecte.id }}, $(this))"
                         class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2 button-icon"></i>
                     Valider
                 </button>
             {% endif %}
@@ -23,11 +24,11 @@
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
                 {% if hasRightEdit %}
-                    <a  data-id='{{ collecte.id }}'
-                        data-target='#modalEditCollecte'
-                        data-toggle='modal'
-                        onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
-                        class="dropdown-item">
+                    <a data-id='{{ collecte.id }}'
+                       data-target='#modalEditCollecte'
+                       data-toggle='modal'
+                       onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
+                       class="dropdown-item">
                         <i class="fa fa-pen mr-2"></i>Modifier
                     </a>
                 {% endif %}

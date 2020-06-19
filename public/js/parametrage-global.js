@@ -1,5 +1,6 @@
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
+let disabledDates = [];
 let tableDaysConfig = {
     ajax: {
         "url": pathDays,
@@ -19,7 +20,9 @@ let tableDaysConfig = {
         needsRowClickAction: true,
     }
 };
+
 let tableDays = initDataTable('tableDays', tableDaysConfig);
+let workFreeDaysTable;
 
 let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
@@ -40,6 +43,33 @@ $(function () {
     $('#locationArrivageDest').on('change', editArrivageDestination);
     $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
     // config tableau de bord : transporteurs
+
+    const inputWorkFreeDayAlreadyAdd = JSON.parse($('#workFreeDays input[type="hidden"][name="already-work-free-days"]').val());
+    disabledDates = inputWorkFreeDayAlreadyAdd.map((dateStr) => moment(dateStr, 'YYYY-MM-DD'));
+    initDateTimePicker(
+        '#workFreeDays input[name="newWorkFreeDay"]',
+        "DD/MM/YYYY",
+        false,
+        null,
+        null,
+        disabledDates
+    );
+
+    let tableNonWorkedDaysConfig = {
+        ajax: {
+            "url": Routing.generate('workFreeDays_table_api', true),
+            "type": "GET"
+        },
+        columns: [
+            { "data": 'actions', className: 'noVis', orderable: false},
+            { "data": 'day', 'title': 'Jour', orderable: false },
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        order: [],
+    };
+    workFreeDaysTable = initDataTable('tableWorkFreeDays', tableNonWorkedDaysConfig);
 });
 
 function initSelect2ValuesForDashboard() {
@@ -357,9 +387,48 @@ function fileToImagePreview($fileInput) {
     }
 }
 
-function resizeDaysWorked() {
-    // TODO WIIS-2373
-    setTimeout(() => {
-        tableDays.columns.adjust().draw();
-    }, 100);
+function addWorkFreeDay($button) {
+    const $input = $button.siblings('input[name="newWorkFreeDay"]');
+    if ($input.val()) {
+        const date = moment($input.val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let path = Routing.generate('workFreeDay_new', true);
+        $.post(path, {date}, (resp) => {
+            if (resp.success) {
+                let datetimeMoment = moment(date);
+                disabledDates.push(datetimeMoment);
+                $input.data('DateTimePicker').disabledDates(disabledDates);
+                $input.val('');
+
+                workFreeDaysTable.ajax.reload();
+                alertSuccessMsg(resp.text);
+            } else {
+                alertErrorMsg(resp.text);
+            }
+        });
+    } else {
+        alertErrorMsg('Veuillez sélectionner une date valide.');
+    }
+}
+
+function deleteWorkFreeDay(id, date) {
+    $.ajax({
+        url: Routing.generate('workFreeDay_delete', true),
+        type: 'DELETE',
+        data: {id},
+        success: (resp) => {
+            if (resp.success) {
+                const $input = $('#workFreeDays input[name="newWorkFreeDay"]');
+                let datetimeToRemove = moment(date);
+                const indexOfDeleted = disabledDates.findIndex((dateSaved) => datetimeToRemove.isSame(dateSaved.format('YYYY-MM-DD')));
+                if (indexOfDeleted > -1) {
+                    disabledDates.splice(indexOfDeleted, 1);
+                    $input.data('DateTimePicker').disabledDates(disabledDates);
+                }
+                workFreeDaysTable.ajax.reload();
+                alertSuccessMsg(resp.message);
+            } else {
+                alertErrorMsg(resp.message);
+            }
+        }
+    });
 }

@@ -11,11 +11,12 @@ $(function () {
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut litige traité'},
-            {"data": 'NotifToBuyer', 'title': 'Envoi de mails'},
+            {"data": 'NotifToBuyer', 'title': 'Envoi de mails aux acheteurs'},
+            {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'Order', 'title': 'Ordre'},
         ],
         order: [
-            [6, 'asc']
+            [7, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,

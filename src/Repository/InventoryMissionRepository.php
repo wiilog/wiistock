@@ -49,6 +49,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
             ->addSelect('emplacement.label AS location')
             ->addSelect('1 AS is_ref')
             ->addSelect('inventoryEntry.id AS ieid')
+            ->addSelect('refArticle.barCode AS barCode')
             ->join('inventoryMission.refArticles', 'refArticle')
             ->join('refArticle.emplacement', 'emplacement')
             ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.refArticle = refArticle')
@@ -77,13 +78,15 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
         $queryBuilder
             ->select('inventoryMission.id AS id_mission')
-            ->addSelect('article.reference AS reference')
+            ->addSelect('referenceArticle.reference AS reference')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('emplacement.label AS location')
             ->addSelect('0 AS is_ref')
             ->addSelect('inventoryMission.id AS ied')
             ->join('inventoryMission.articles', 'article')
             ->join('article.emplacement', 'emplacement')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.article = article')
             ->where($exprBuilder->andX(
                 'inventoryMission.startPrevDate <= :now',

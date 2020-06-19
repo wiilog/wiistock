@@ -552,7 +552,7 @@ class MouvementTracaRepository extends EntityRepository
             ->join('mouvementTraca.type', 'mouvementTracaType')
             ->join('mouvementTraca.operateur', 'operator')
             ->join('mouvementTraca.emplacement', 'location')
-            ->join('mouvementTraca.mouvementStock', 'mouvementStock')
+            ->leftJoin('mouvementTraca.mouvementStock', 'mouvementStock')
             ->where('operator = :operator')
             ->andWhere('mouvementTracaType.nom LIKE :priseType')
             ->andWhere('mouvementTraca.finished = :finished')

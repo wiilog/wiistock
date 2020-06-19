@@ -5,6 +5,7 @@ let tableArticle;
 let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
+let modalArticleAlreadyInit = false;
 
 $(function () {
     $('.select2').select2();
@@ -97,14 +98,14 @@ function InitPageDataTable() {
         ],
         rowConfig: {
             needsRowClickAction: true,
+            needsColor: true,
+            dataToCheck: 'Urgence',
+            color: 'danger',
             callback: (row, data) => {
-                if (data.Urgence) {
+                if (data.Urgence && data.Comment) {
                     const $row = $(row);
-                    $row.addClass('table-danger');
-                    if (data.Comment) {
-                        $row.attr('title', data.Comment);
-                        initTooltips($row);
-                    }
+                    $row.attr('title', data.Comment);
+                    initTooltips($row);
                 }
             }
         },
@@ -133,6 +134,7 @@ function InitPageDataTable() {
         rowConfig: {
             needsRowClickAction: true,
             needsColor: true,
+            dataToCheck: 'urgence',
             color: 'danger',
         },
     };
@@ -175,7 +177,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         ajaxAutoArticlesReceptionInit(modal.find('.select2-autocomplete-articles'));
-
+        fillDemandeurField(modal);
         let values = [];
         data.colis.forEach(val => {
             values.push({
@@ -235,6 +237,7 @@ function initDatatableConditionnement() {
         paging: false,
         searching: false,
         destroy: true,
+        processing: true,
         ajax: {
             "url": pathArticle,
             "type": "POST",
@@ -274,8 +277,10 @@ function initDatatableConditionnement() {
     if (!statutVisible) {
         tableFromArticle.column('Statut:name').visible(false);
     }
-
-    initModalCondit(tableFromArticle);
+    if(!modalArticleAlreadyInit) {
+        initModalCondit(tableFromArticle);
+        modalArticleAlreadyInit = true;
+    }
 }
 
 function initModalCondit(tableFromArticle) {
@@ -291,7 +296,8 @@ function initModalCondit(tableFromArticle) {
 }
 
 function initNewArticleEditor(modal) {
-    let $select2refs = $('#reference');
+    const $modal = $(modal);
+    let $select2refs = $modal.find('[name="referenceArticle"]');
     ajaxAutoRefArticleInit($select2refs);
 
     if (!editorNewArticleAlreadyDone) {
@@ -301,7 +307,7 @@ function initNewArticleEditor(modal) {
     clearAddRefModal();
     clearModal(modal);
 
-    const $commandField = $(modal).find('#commande');
+    const $commandField = $(modal).find('[name="commande"]');
     const numCommand = $('#numCommandeReception').val();
     $commandField.val(numCommand);
 
@@ -358,19 +364,21 @@ function addArticle() {
     });
 }
 
-function finishReception(receptionId, confirmed) {
-    $.post(Routing.generate('reception_finish'), JSON.stringify({
-        id: receptionId,
-        confirmed: confirmed
-    }), function (data) {
-        if (data === 1) {
-            window.location.href = Routing.generate('reception_index', true);
-        } else if (data === 0) {
-            $('#finishReception').click();
-        } else {
-            alertErrorMsg(data);
-        }
-    }, 'json');
+function finishReception(receptionId, confirmed, $button) {
+    wrapLoadingOnActionButton($button, () => (
+        $.post(Routing.generate('reception_finish'), JSON.stringify({
+            id: receptionId,
+            confirmed: confirmed
+        }), function (data) {
+            if (data === 1) {
+                window.location.href = Routing.generate('reception_index', true);
+            } else if (data === 0) {
+                $('#finishReception').click();
+            } else {
+                alertErrorMsg(data);
+            }
+        }, 'json')
+    ), true);
 }
 
 function clearAddRefModal() {
@@ -491,7 +499,7 @@ function validatePacking($button) {
     }
 }
 
-function initNewLigneReception() {
+function initNewLigneReception($button) {
     if (!editorNewLivraisonAlreadyDoneForDL) {
         initEditorInModal(modalNewLigneReception);
         editorNewLivraisonAlreadyDoneForDL = true;
@@ -506,6 +514,7 @@ function initNewLigneReception() {
     if ($('#locationDemandeLivraison').length > 0) {
         initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
+
     let urlNewLigneReception = Routing.generate(
         'reception_new_with_packing',
         {reception: $modalNewLigneReception.find('input[type="hidden"][name="reception"]').val()},
@@ -520,17 +529,20 @@ function initNewLigneReception() {
             $errorContainer.text(error);
         } else {
             $errorContainer.text('');
-            submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle, function (success) {
-                if (success) {
-                    const $printButton = $('#buttonPrintMultipleBarcodes');
-                    if ($printButton.length > 0) {
-                        window.location.href = $printButton.attr('href');
-                    }
-                }
-            });
+            wrapLoadingOnActionButton($button, () => (
+                submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle)
+                    .then(function (success) {
+                        if (success) {
+                            const $printButton = $('#buttonPrintMultipleBarcodes');
+                            if ($printButton.length > 0) {
+                                window.location.href = $printButton.attr('href');
+                            }
+                        }
+                    })
+                    .catch(() => {/* we handle form error */})
+            ));
         }
     });
-
     let $typeContentNewChildren = $('#typeContentNew').children();
     $typeContentNewChildren.addClass('d-none');
     $typeContentNewChildren.removeClass('d-block');
@@ -624,7 +636,7 @@ function createHandlerAddLigneArticleResponse($modal) {
 }
 
 function updateQuantityToReceive($input) {
-    $input.closest('.modal').find('#quantite').attr('max', $input.val());
+    $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
 
 function toggleDLForm() {
@@ -648,7 +660,6 @@ function initConditionnementArticleFournisseurDefault() {
     const $selectArticleFournisseur = $('#modalNewLigneReception select[name="articleFournisseurDefault"]');
 
     if (referenceArticle) {
-        console.log(referenceArticle);
         resetDefaultArticleFournisseur(true);
         initSelect2(
             $selectArticleFournisseur,

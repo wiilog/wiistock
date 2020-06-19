@@ -368,11 +368,11 @@ class PreparationController extends AbstractController
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'articles' => $articleRepository->getIdRefLabelAndQuantity(),
             'headerConfig' => [
-                [ 'label' => 'Numéro', 'value' => $preparation->getNumero() ],
-                [ 'label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : '' ],
-                [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
-                [ 'label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : '' ],
-                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+                ['label' => 'Numéro', 'value' => $preparation->getNumero()],
+                ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
+                ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
+                ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
+                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -413,11 +413,7 @@ class PreparationController extends AbstractController
         foreach ($preparation->getArticles() as $article) {
             $article->setPreparation(null);
             $article->setStatut($statutActifArticle);
-            if ($article->getQuantiteAPrelever()) {
-                $article->setQuantite($article->getQuantiteAPrelever());
-                $article->setQuantiteAPrelever(0);
-                $article->setQuantitePrelevee(0);
-            }
+            $article->setQuantitePrelevee(0);
         }
 
         $refToUpdate = [];
@@ -434,8 +430,7 @@ class PreparationController extends AbstractController
                 $quantiteStock = $refArticle->getQuantiteStock();
                 $newQuantiteDisponible = ($quantiteStock - $newQuantiteReservee);
                 $refArticle->setQuantiteDisponible($newQuantiteDisponible > 0 ? $newQuantiteDisponible : 0);
-            }
-            else {
+            } else {
                 $refToUpdate[] = $refArticle;
             }
             $entityManager->remove($ligneArticlePreparation);
@@ -475,9 +470,8 @@ class PreparationController extends AbstractController
             $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
             $refArticle = $ligneArticle->getReference();
-            $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $preparation = $ligneArticle->getPreparation();
-            $articles = $articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif, $preparation, $preparation->getDemande());
+            $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle, $preparation, $preparation->getDemande());
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
                 'referenceId' => $refArticle->getId(),
@@ -715,7 +709,7 @@ class PreparationController extends AbstractController
             }
         }
 
-    foreach ($preparation->getArticles() as $article) {
+        foreach ($preparation->getArticles() as $article) {
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
             $reference = $referenceArticle ? $referenceArticle->getReference() : '';
