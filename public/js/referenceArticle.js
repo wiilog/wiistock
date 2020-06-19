@@ -12,6 +12,7 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
+    displayActifOrInactif($('#toggleActivOrInactiv'), true, initTableRefArticle);
 });
 
 $('.select2').select2();
@@ -132,10 +133,6 @@ let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_ref_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
-
-$(function () {
-    initTableRefArticle();
-});
 
 function initTableRefArticle() {
     let url = Routing.generate('ref_article_api', true);
@@ -549,19 +546,20 @@ function printReferenceArticleBarCode($button, event) {
     }
 }
 
-function displayActifOrInactif(select) {
+function displayActifOrInactif(select, onInit, callback = null) {
     let donnees;
     if (select.is(':checked')) {
         donnees = 'actif';
     } else {
-        donnees = 'inactif';
+        donnees = 'consommé';
     }
 
     let params = {donnees: donnees};
     let path = Routing.generate('reference_article_actif_inactif');
 
     $.post(path, JSON.stringify(params), function () {
-        tableRefArticle.ajax.reload();
+        if (!onInit) tableRefArticle.ajax.reload();
+        if (callback) callback();
     });
 }
 
