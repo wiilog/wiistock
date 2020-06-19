@@ -679,12 +679,13 @@ function ajaxAutoCompleteTransporteurInit(select) {
     initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
-function ajaxAutoRefArticleInit(select, typeQuantity = null) {
+function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference') {
     initSelect2(select, '', 1, {
         route: 'get_ref_articles',
         param:
             {
                 activeOnly: 1,
+                field,
                 typeQuantity
             }
     });

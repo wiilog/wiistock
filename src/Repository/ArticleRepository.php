@@ -236,11 +236,11 @@ class ArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-	public function getIdAndRefBySearch($search, $activeOnly = false)
+	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference')
 	{
 		$em = $this->getEntityManager();
 
-		$dql = "SELECT a.id, a.reference as text
+		$dql = "SELECT a.id, a.${field} as text
           FROM App\Entity\Article a
           LEFT JOIN a.statut s
           WHERE a.reference LIKE :search";

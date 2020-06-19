@@ -438,6 +438,7 @@ class RefArticleDataService
         } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($fromNomade || $this->userService->hasParamQuantityByRef()) {
                 if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                    dump('gdgd');
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
                         ->setQuantite(max($data["quantity-to-pick"], 0))// protection contre quantités négatives

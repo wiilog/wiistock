@@ -1093,8 +1093,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $location = $emplacementRepository->findOneByLabel($entry['location']);
 
                 $articleToInventory = $entry['is_ref']
-                    ? $referenceArticleRepository->findOneByReference($entry['reference'])
-                    : $articleRepository->findOneByReference($entry['reference']);
+                    ? $referenceArticleRepository->findOneBy(['barCode' => $entry['bar_code']])
+                    : $articleRepository->findOneBy(['barCode' => $entry['bar_code']]);
 
                 $criteriaInventoryEntry = ['mission' => $mission];
 

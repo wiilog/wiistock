@@ -485,12 +485,11 @@ class DemandeController extends AbstractController
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $demande = $demandeRepository->find($data['livraison']);
             $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle, $this->getUser(), false, $entityManager, $demande);
-
             if ($resp === 'article') {
                 $this->articleDataService->editArticle($data);
                 $resp = true;
             }
-
+            $entityManager->flush();
             return new JsonResponse($resp);
         }
         throw new NotFoundHttpException('404');

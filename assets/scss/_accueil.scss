@@ -1,0 +1,327 @@
+.accueil-back {
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#alerts {
+    position: absolute;
+    z-index: 10000;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.alert-danger {
+    padding: 10px;
+    text-align: center;
+}
+
+.dashboard-item {
+    min-width: 50%;
+    min-height: 40%;
+}
+
+.dashboard-ext {
+    .refresh-date-container {
+        position: absolute;
+        top: -35px;
+        right: 0;
+        cursor: default;
+        color: white;
+    }
+}
+
+.dashboard-box-container {
+    &.side-panels {
+        height: 15vh;
+
+        .dashboard-ext & {
+            height: 14.5vh;
+        }
+    }
+
+    &.fourth-height {
+        height: 16vh;
+
+        .dashboard-ext & {
+            height: 18vh;
+        }
+    }
+
+    &.third-height {
+        height: 31vh;
+    }
+
+    &.third-row-height {
+        height: 22vh;
+
+        .dashboard-ext & {
+            height: 26vh;
+        }
+    }
+
+    &.fourth-row-height {
+        height: 15.5vh;
+
+        &.dashboard-ext {
+            height: 16vh;
+        }
+    }
+
+    &.half-height {
+        height: 38vh;
+
+        .dashboard-ext & {
+            height: 41vh;
+        }
+    }
+
+    .dashboard-box {
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        box-shadow: 2px 2px 3px grey;
+        height: 100%;
+        position: relative;
+        background: $white;
+        padding: 0.5rem;
+
+        &.dashboard-box-list {
+            .title {
+                margin-bottom: 1.5rem;
+            }
+
+            li {
+                line-height: 1.5;
+            }
+        }
+
+        .title {
+            line-height: 0.9;
+            font-size: 1vw;
+            margin-bottom: 0.3rem;
+            padding: 0;
+            color: $blackDashboard;
+
+            .dashboard-ext & {
+                font-size: 2.2vh;
+                font-weight: bold;
+            }
+        }
+
+        .subtitle {
+            line-height: 0.9;
+            font-size: 0.8vw;
+            margin-bottom: 0.3rem;
+            padding: 0;
+            color: $blackDashboard;
+
+            .dashboard-ext & {
+                font-size: 2vh;
+                font-weight: bold;
+            }
+        }
+
+        .location-label {
+            line-height: 1;
+        }
+
+        .label {
+            color: $greyDashboard;
+            font-size: 0.8em;
+        }
+
+        .points {
+            position: absolute;
+            right: 0.5rem;
+            top: 0.5rem;
+        }
+
+        .arrow-chart {
+            color: $blueGT;
+            font-weight: bold;
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .range-buttons {
+            text-align: center;
+
+            span {
+                font-size: 0.8em;
+            }
+        }
+
+        .dataTables_wrapper, span {
+            font-size: 0.8em;
+        }
+
+        &.dashboard-stats-container {
+            .dashboard-ext & {
+                padding-left: 2px;
+                padding-right: 2px;
+            }
+
+            .dashboard-stats {
+                font-weight: bold;
+                color: $blueNeon;
+                cursor: default;
+                text-align: center;
+                font-size: 2.6vw;
+                line-height: 0.8;
+
+                &.dashboard-stats-delay {
+                    font-size: 3vh;
+                }
+
+                &.dashboard-stats-counter {
+                    font-size: 2vw;
+
+                    .dashboard-ext & {
+                        font-size: 8vh;
+                    }
+                }
+
+                &.dashboard-stats-label {
+                    font-size: 2vw;
+                }
+            }
+        }
+
+        .dashboard-box-content {
+            padding: 10px;
+            height: 100%;
+
+            .range-buttons {
+                position: absolute;
+                margin-left: auto;
+                margin-right: auto;
+                left: 0;
+                right: 0;
+                bottom: 20px;
+            }
+
+            .spinner-container {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                align-items: center;
+                display: flex;
+                justify-content: center;
+            }
+        }
+    }
+}
+
+.home-card {
+    background-color: $lightGrey;
+    border-radius: 8px;
+    display: flex;
+    margin: 8px 0;
+
+    .home-card-content {
+        margin-bottom: 9px;
+    }
+
+    h2 {
+        margin: 9px 0;
+    }
+}
+
+.page-item.active .page-link {
+    background-color: #130078 !important;
+    border-color: #130078 !important;
+    color: #fff !important;
+}
+
+.page-link {
+    color: #130078 !important;
+}
+
+.chart {
+    height: 70%;
+    width: 99%;
+}
+
+#chart-assoc {
+    height: 70%;
+}
+
+#chart-arrival {
+    height: 70%;
+}
+
+.fournisseurFilterContainer {
+    .select2-selection {
+        overflow: auto;
+    }
+}
+
+.plus-btn {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+
+    .icon {
+        background-color: $white;
+        width: 20px;
+        height: 20px;
+        display: block;
+        -webkit-mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+        mask: url("../../public/svg/plusblanc.svg") no-repeat center;
+    }
+
+    &:hover {
+        background-color: $white;
+
+        .icon {
+            background-color: $backgroundBodyColorDark;
+        }
+    }
+}
+
+.indicators {
+    position: absolute;
+    z-index: 1;
+    width: 25vw;
+    font-weight: bold;
+
+    .card-body {
+        padding: 0.2rem 1.2rem !important;
+    }
+}
+
+.indicator-row {
+    padding: 0.2rem;
+    font-size: 0.8rem;
+
+    &:hover {
+        @extend .bg-primary-followgt;
+
+        border-radius: 5px;
+        color: white;
+        cursor: pointer !important;
+    }
+}
+
+.space {
+    @media (max-height: 1800px) {
+        margin-top: 1rem;
+    }
+
+    @media (min-height: 1801px) {
+        margin-top: 2.1rem;
+    }
+}
+
+.lh {
+    line-height: 1em;
+    margin-bottom: 0;
+}
