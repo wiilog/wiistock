@@ -388,7 +388,7 @@ class RefArticleDataService
             "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
-            'Synchronisation nomade' =>$refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
+            'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
@@ -440,7 +440,6 @@ class RefArticleDataService
         } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($fromNomade || $this->userService->hasParamQuantityByRef()) {
                 if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
-                    dump('gdgd');
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
                         ->setQuantite(max($data["quantity-to-pick"], 0))// protection contre quantités négatives

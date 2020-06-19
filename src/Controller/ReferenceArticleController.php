@@ -573,7 +573,7 @@ class ReferenceArticleController extends AbstractController
         $champF[] = [
             'label' => 'Synchronisation nomade',
             'id' => 0,
-            'typage' => 'text'
+            'typage' => 'booleen'
         ];
         $champF[] = [
             'label' => 'Dernier inventaire',
@@ -611,9 +611,9 @@ class ReferenceArticleController extends AbstractController
 
         ];
         $champsFText[] = [
-            'label' => 'Synchronisation Nomade',
+            'label' => 'Synchronisation nomade',
             'id' => 0,
-            'typage' => 'text'
+            'typage' => 'sync'
 
         ];
         $champsFText[] = [
