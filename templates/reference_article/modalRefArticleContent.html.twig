@@ -36,10 +36,10 @@
             </div>
         {% endif %}
     </div>
-    <div class="form-group col-4">
+    <div class="form-group col-4 d-flex align-items-center">
         <label>Synchronisation nomade ?</label>
         {% set checkedSync = articleRef.needsMobileSync ? 'checked' %}
-        <label class="switch">
+        <label class="switch ml-3">
             <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
             <span class="slider round"></span>
         </label>
@@ -123,9 +123,9 @@
     {% endif %}
 
     <div class="form-group col-4 mt-4">
-        <div class="line-height-25 article {{ dnone }} ">
-            <label for="urgence">Urgence ? </label>
-            <label class="switch">
+        <div class="article d-flex align-items-center {{ dnone }} ">
+            <label for="urgence">Urgence ?</label>
+            <label class="switch ml-3">
                 <input class="checkbox" type="checkbox" onchange="toggleEmergency($(this))" name="urgence"
                        value="{{ articleRef.isUrgent }}" {{ articleRef.isUrgent ? 'checked' : '' }}>
                 <span class="slider round"></span>
