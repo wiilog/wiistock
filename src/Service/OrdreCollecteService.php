@@ -140,8 +140,8 @@ class OrdreCollecteService
 				$listRefRef[] = $mouvement['reference'];
                 $referenceToQuantity[$mouvement['reference']] = $quantity;
 			} else {
-				$listArtRef[] = $mouvement['reference'];
-                $artToQuantity[$mouvement['reference']] = $quantity;
+				$listArtRef[] = $mouvement['barcode'];
+                $artToQuantity[$mouvement['barcode']] = $quantity;
 			}
 		}
 
@@ -167,14 +167,14 @@ class OrdreCollecteService
 
 		$listArticles = $articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
 		foreach ($listArticles as $article) {
-			if (!in_array($article->getReference(), $listArtRef)) {
+			if (!in_array($article->getBarCode(), $listArtRef)) {
 				$rowsToRemove[] = [
 					'id' => $article->getId(),
 					'isRef' => 0
 				];
 			}
 			else {
-                $quantity = $artToQuantity[$article->getReference()];
+                $quantity = $artToQuantity[$article->getBarCode()];
                 $oldQuantity = $article->getQuantite();
                 if($quantity > 0 && $quantity < $oldQuantity) {
                     $article->setQuantite($quantity);
