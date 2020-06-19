@@ -33,6 +33,7 @@ let tableMvtStockConfig = {
         {"data": 'actions', 'name': 'Actions', 'title': ''},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis'},
+        {"data": "codeBarre", 'name': 'codeBarre', 'title': 'Code barre'},
         {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
         {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
         {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
