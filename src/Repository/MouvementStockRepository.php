@@ -414,16 +414,19 @@ class MouvementStockRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->leftJoin('m.refArticle', 'ra3')
+                        ->leftJoin('m.article', 'a3')
                         ->leftJoin('m.emplacementFrom', 'ef3')
                         ->leftJoin('m.emplacementTo', 'et3')
                         ->leftJoin('m.user', 'u3')
-                        ->andWhere('
+                        ->andWhere('(
 						ra3.reference LIKE :value OR
 						ef3.label LIKE :value OR
+						ra3.barCode LIKE :value OR
+						a3.barCode LIKE :value OR
 						et3.label LIKE :value OR
 						m.type LIKE :value OR
 						u3.username LIKE :value
-						')
+						)')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -450,12 +453,11 @@ class MouvementStockRepository extends EntityRepository
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'barCode') {
                         $qb
-                            /*->addSelect(
-                                '(CASE WHEN m.refArticle IS NOT NULL THEN ra.barCode ELSE article.barCode END) AS movementBarCode'
-                            )
-                            ->leftJoin('m.article','article')*/
-                            ->leftJoin('m.refArticle', 'ra')
-                            ->orderBy('ra.barCode', $order);
+
+                            ->leftJoin('m.article','articleSort')
+                            ->leftJoin('m.refArticle', 'raSort')
+                            ->addOrderBy('raSort.barCode', $order)
+                            ->addOrderBy('articleSort.barCode', $order);
                     } else {
                         $qb
                             ->orderBy('m.' . $column, $order);
