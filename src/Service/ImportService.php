@@ -507,6 +507,10 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('status', Import::ENTITY_REF),
                         'value' => isset($corresp['status']) ? $corresp['status'] : null,
                     ],
+                    'needsMobileSync' => [
+                        'needed' => $this->fieldIsNeeded('needsMobileSync', Import::ENTITY_REF),
+                        'value' => isset($corresp['needsMobileSync']) ? $corresp['needsMobileSync'] : null,
+                    ]
                 ];
                 break;
             case Import::ENTITY_ART:
@@ -732,9 +736,16 @@ class ImportService
             $refArt = new ReferenceArticle();
             $isNewEntity = true;
         }
-
         if (isset($data['libelle'])) {
             $refArt->setLibelle($data['libelle']);
+        }
+        if (isset($data['needsMobileSync'])) {
+            $value = strtolower($data['needsMobileSync']);
+            if ($value !== 'oui' && $value !== 'non') {
+                $this->throwError('La valeur saisie pour le champ synchronisation nomade est invalide (autorisé : "oui" ou "non")');
+            } else {
+                $refArt->setNeedsMobileSync($value === 'oui');
+            }
         }
         if (isset($data['reference'])) {
             $refArt->setReference($data['reference']);
@@ -1193,8 +1204,7 @@ class ImportService
                     'article-reference' => $referenceArticle,
                     'label' => ($referenceArticle->getLibelle() . ' / ' . $fournisseur->getNom())
                 ]);
-            }
-            else {
+            } else {
                 // on a réussi à trouver un article fournisseur
                 // vérif que l'article fournisseur correspond au couple référence article / fournisseur
                 if (!empty($fournisseurReference)) {
