@@ -334,7 +334,8 @@ class LitigeRepository extends EntityRepository
 						aFourn.nom LIKE :value OR
 						rFourn.nom LIKE :value OR
 						ra.reference LIKE :value OR
-						a.numeroCommandeList LIKE :value
+						a.numeroCommandeList LIKE :value OR
+						l.numeroLitige LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
