@@ -1042,7 +1042,8 @@ class ReferenceArticleController extends AbstractController
 
             return new JsonResponse([
                 'urgent' => $referenceArticle->getIsUrgent() ?? false,
-                'comment' => $referenceArticle->getEmergencyComment()
+                'comment' => $referenceArticle->getEmergencyComment(),
+                'typeQuantity' =>$referenceArticle->getTypeQuantite()
             ]);
         }
         throw new NotFoundHttpException("404");

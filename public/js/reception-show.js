@@ -334,15 +334,12 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 }
 
 function articleChanged($select) {
-    console.log($select.select2('data'));
     const selectedReferences = $select.select2('data');
     if (selectedReferences.length > 0) {
         const selectedReference = selectedReferences[0];
         const typeQuantity = selectedReference.typeQuantity;
         const $button = $('#addArticleLigneSubmitAndRedirect');
-        const test = selectedReference.text;
-        const numCommande =  selectedReference.commande;
-        console.log(test + " - " +  numCommande);
+        $button.removeClass('d-none');
         if (typeQuantity === 'article') {
             $button.removeClass('d-none');
         } else {
@@ -353,7 +350,15 @@ function articleChanged($select) {
     if ($select.val() !== null) {
         let route = Routing.generate('is_urgent', true);
         let params = JSON.stringify($select.val());
+        let $button = $('#addArticleLigneSubmitAndRedirect');
         $.post(route, params, function (response) {
+            if (response.typeQuantity) {
+                if (response.typeQuantity === 'article') {
+                    $button.removeClass('d-none');
+                } else {
+                    $button.addClass('d-none');
+                }
+            }
             if (response.urgent) {
                 $('.emergency').removeClass('d-none');
                 $('.emergency-comment').text(response.comment);

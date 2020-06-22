@@ -122,10 +122,9 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $em = $this->getEntityManager();
 
-        $dql = "SELECT r.id, r.reference as text , r.typeQuantite as typeQuantity , rra.commande as commande
+        $dql = "SELECT r.id, r.reference as text , r.typeQuantite as typeQuantity 
           FROM App\Entity\ReferenceArticle r
-          LEFT JOIN r.statut s
-          LEFT JOIN r.receptionReferenceArticles rra
+          LEFT JOIN r.statut s          
           WHERE r.reference LIKE :search ";
 
         if ($activeOnly) {
