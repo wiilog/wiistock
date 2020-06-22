@@ -7,7 +7,6 @@ use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\Livraison;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use Doctrine\DBAL\Connection;
@@ -151,7 +150,7 @@ class ReferenceArticleRepository extends EntityRepository
         $dql = "SELECT r.id, r.${field} as text
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
-          WHERE r.reference LIKE :search ";
+          WHERE r.${field} LIKE :search ";
 
         if ($activeOnly) {
             $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";

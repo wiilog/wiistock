@@ -240,10 +240,11 @@ class ArticleRepository extends EntityRepository
 	{
 		$em = $this->getEntityManager();
 
-		$dql = "SELECT a.id, a.${field} as text
-          FROM App\Entity\Article a
-          LEFT JOIN a.statut s
-          WHERE a.reference LIKE :search";
+		$dql = "SELECT a.id,
+                       a.${field} as text
+                FROM App\Entity\Article a
+                LEFT JOIN a.statut s
+                WHERE a.${field} LIKE :search";
 
         if ($activeOnly) {
             $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";

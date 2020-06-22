@@ -1,0 +1,34 @@
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #e9e9e9;
+}
+
+.table {
+    thead {
+        background-color: $white;
+        font-weight: bold;
+
+        tbody {
+            th, td {
+                border-top: 1px solid $lightGrey !important;
+            }
+        }
+    }
+}
+
+.table-hover {
+    thead > tr > th:hover {
+        background-color: #130078;
+    }
+}
+
+.table > thead > tr > th, .table tbody > tr > td {
+    border: none;
+}
+
+.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+    vertical-align: middle;
+}
+
+.table-auto td {
+    white-space: unset !important;
+}

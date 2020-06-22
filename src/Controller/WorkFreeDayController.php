@@ -4,19 +4,13 @@
 namespace App\Controller;
 
 use App\Entity\WorkFreeDay;
-use App\Repository\WorkFreeDayRepository;
-use App\Repository\ParametrageGlobalRepository;
-use App\Service\GlobalParamService;
-use Doctrine\ORM\EntityManager;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\Request;
-use phpDocumentor\Reflection\Types\Mixed_;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Twig\Environment as Twig_Environment;
 
 /**
  * Class NonWorkedDaysController
@@ -58,14 +52,14 @@ class WorkFreeDayController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
-     * @throws \Exception
+     * @throws Exception
      */
     public function newNonWorkedDay(Request $request,
                                     EntityManagerInterface $entityManager)
     {
             if (!(empty($request->request->get('date')))) {
                 $nonWorkedDayToAdd = $request->request->get('date');
-                $date_input = new \DateTime($nonWorkedDayToAdd);
+                $date_input = new DateTime($nonWorkedDayToAdd);
                 $publicHolliday = new WorkFreeDay();
 
                 $nonWorkedDaysRepository = $entityManager->getRepository(WorkFreeDay::class);

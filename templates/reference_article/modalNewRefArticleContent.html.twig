@@ -28,9 +28,9 @@
                    value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}">
         </div>
     </div>
-    <div class="form-group col-4">
+    <div class="form-group col-4 d-flex align-items-center">
         <label>Synchronisation nomade ?</label>
-        <label class="switch">
+        <label class="switch ml-3">
             <input class="checkbox data" type="checkbox" name="mobileSync">
             <span class="slider round"></span>
         </label>
@@ -93,13 +93,15 @@
 
         </div>
     </div>
-    <div class="form-group col-2">
+    <div class="form-group col-4 mt-4">
         <div class="article d-none">
-            <label for="urgence">Urgence ? </label>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" name="urgence" onchange="toggleEmergency($(this))">
-                <span class="slider round"></span>
-            </label>
+            <div class="d-flex align-items-center">
+                <label for="urgence">Urgence ? </label>
+                <label class="switch ml-3">
+                    <input class="checkbox" type="checkbox" name="urgence" onchange="toggleEmergency($(this))">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
     </div>
     <div class="form-group col-4">

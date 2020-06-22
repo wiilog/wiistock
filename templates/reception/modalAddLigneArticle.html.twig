@@ -10,7 +10,7 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
-                    <div class="form-group col-11  w-100 mb-3">
+                    <div class="form-group col w-100 mb-3 ml-0">
                         <label for="reception-add-ligne" title="référence">{{ 'reference.référence'|trans }}*</label>
                         <select class="ajax-autocomplete data form-control needed" onchange="articleChanged($(this))"
                                 id="reception-add-ligne"
@@ -18,7 +18,7 @@
                         </select>
                     </div>
                     {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
-                        <div class="form-group col-1 row">
+                        <div class="form-group col-1 d-flex justify-content-end">
                         <span class="btn btn-primary m-0 align-self-end" onclick="addArticle()">
                             <i class="fa fa-plus"></i>
                         </span>
@@ -28,12 +28,14 @@
 
                     </div>
                 </div>
-                <div class="body-add-ref row p-3">
+                <div class="body-add-ref row">
+                    <div class="container">
                     <div class="form-group col-12 emergency d-none">
-                        <h1 class="mb-0"><i class="fa fa-exclamation-triangle mr-2"></i>Cette référence est en URGENCE.</h1>
-                        <div class="form-group commentOverflow">
-                            <p class="pl-0">Commentaire de l'urgence : <span class="emergency-comment"></span></p>
+                        <h1 class="my-0"><i class="fa fa-exclamation-triangle mr-2"></i>Cette référence est en URGENCE.</h1>
+                        <div class="form-group commentOverflow h-100 mw-50 text-justify mw-75">
+                            <p class="pl-0">Commentaire de l'urgence : <div class="emergency-comment"></div></p>
                         </div>
+                    </div>
                     </div>
 
                     <div class="form-group col-6">
@@ -42,13 +44,13 @@
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité à recevoir*</label>
-                        <input type="number" class="form-control data needed" name="quantiteAR" min=1>
+                        <input type="number" class="form-control dat a needed" name="quantiteAR" min=1>
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité reçue</label>
                         <input type="number" class="form-control data" name="quantite" min=0 disabled value="0">
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-6 pt-4">
                         <label>Anomalie</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="anomalie">
