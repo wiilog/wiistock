@@ -303,37 +303,11 @@ class DemandeLivraisonService
 
         // pour réf gérées par référence
         foreach ($demande->getLigneArticle() as $ligne) {
-            if (!$ligne->getToSplit()) {
-                $articleRef = $ligne->getReference();
-                $stock = $articleRef->getQuantiteStock();
-                $quantiteReservee = $ligne->getQuantite();
-
-                $listLigneArticleByRefArticle = $ligneArticleRepository->findByRefArticle($articleRef);
-
-                foreach ($listLigneArticleByRefArticle as $ligneArticle) {
-                    $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if (in_array($statusLabel, [Demande::STATUT_A_TRAITER, Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE])
-                        && $ligneArticle->getDemande()->getId() !== $demande->getId()) {
-                        $quantiteReservee += $ligneArticle->getQuantite();
-                    }
-                }
-
-                if ($quantiteReservee > $stock) {
-                    $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
-                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $quantiteReservee . ").";
-                }
-            } else {
-                $articleRef = $ligne->getReference();
-                $totalQuantity = (
-                    $articleRepository->getTotalQuantiteByRefAndStatusLabel($articleRef, Article::STATUT_ACTIF)
-                    - $articleRef->getQuantiteReservee()
-                );
-                if ($ligne->getQuantite() > $totalQuantity) {
-                    $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
-                    $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $totalQuantity . ").";
-                }
+            $articleRef = $ligne->getReference();
+            if ($ligne->getQuantite() > $articleRef->getQuantiteDisponible()) {
+                $response['success'] = false;
+                $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
+                $response['message'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
             }
         }
         if ($response['success']) {
