@@ -1027,7 +1027,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/valider-dl", name="api_validate_dl")
+     * @Rest\Post("/api/valider-dl", name="api_validate_dl", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
