@@ -102,6 +102,7 @@ class LitigeService
         $litigeRepository = $this->entityManager->getRepository(Litige::class);
 
     	$litigeId = $litige['id'];
+        $disputeNumber = $litigeRepository->getNumeroLitigeById($litigeId);
 		$acheteursArrivage = $litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
 		$acheteursReception = $litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
 
@@ -132,7 +133,7 @@ class LitigeService
 				'receptionNb' => $litige['numeroReception'] ?? '',
 				'receptionId' => $litige['receptionId']
 			]),
-            'id' => 'LA00'.$litigeId,
+            'disputeNumber' => $disputeNumber,
             'references' => $references,
 			'command' => $commands,
 			'numCommandeBl' => $numerosBL,
@@ -189,17 +190,5 @@ class LitigeService
                 );
             }
         }
-    }
-
-    public function createDisputeNumber($type) {
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-        $i = 1;
-        $cpt = sprintf('%04u', $i);
-        if ($type === 'arrivage') {
-            $disputeNumber = 'LA' . $date->format('ymd') . $cpt;
-        } else {
-            $disputeNumber = 'LR' . $date->format('ymd') . $cpt;
-        }
-        return $disputeNumber;
     }
 }

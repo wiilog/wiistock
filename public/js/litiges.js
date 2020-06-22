@@ -50,8 +50,8 @@ function initDatatableLitiges() {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
-            {"data": 'id', 'name': 'id', 'title': 'Numéro du litige'},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
             {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},

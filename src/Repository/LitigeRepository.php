@@ -431,4 +431,17 @@ class LitigeRepository extends EntityRepository
 		$result = $query->execute();
 		return array_column($result, 'reference');
 	}
+
+	public function getNumeroLitigeById(int $litigeId){
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+            "SELECT l.numeroLitige
+            FROM App\Entity\Litige l
+            WHERE l.id = :litigeId")
+            ->setParameter('litigeId', $litigeId);
+
+        $result = $query->execute();
+        return array_column($result, 'numeroLitige');
+    }
 }

@@ -975,12 +975,26 @@ class ArrivageController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $colisRepository = $entityManager->getRepository(Colis::class);
+            $litigeRepository = $entityManager->getRepository(Litige::class);
 
             $litige = new Litige();
+
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+            $dateTimeMin = date_time_set($date,0,0,1);
+            $dateTimeMax = date_time_set($date,23,59,59);
+
+            $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
+
+            $i = count($arrivalLitiges)+1;
+            $cpt = sprintf('%04u', $i);
+            $disputeNumber = 'LA' . $date->format('ymd') . $cpt;
+
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
-                ->setCreationDate(new DateTime('now'));
+                ->setCreationDate(new DateTime('now'))
+                ->setNumeroLitige($disputeNumber);
             $arrivage = null;
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);

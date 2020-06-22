@@ -113,7 +113,7 @@ class LitigeController extends AbstractController
 
         $user = $this->getUser();
         $fieldsInTab = [
-            ["key" => 'id', 'label' => 'Numéro du litige'],
+            ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
             ["key" => 'type', 'label' => 'Type'],
             ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
             ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
@@ -184,6 +184,7 @@ class LitigeController extends AbstractController
             $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [
+			    'Numéro de litige',
 			    'Type',
                 'Statut',
                 'Date création',
@@ -204,6 +205,7 @@ class LitigeController extends AbstractController
             foreach ($arrivalLitiges as $litige) {
                 $litigeData = [];
 
+                $litigeData[] = $litige->getNumeroLitige();
                 $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
                 $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
                 $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
@@ -263,6 +265,7 @@ class LitigeController extends AbstractController
             foreach ($receptionLitiges as $litige) {
                 $litigeData = [];
 
+                $litigeData[] = $litige->getNumeroLitige();
                 $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
                 $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
                 $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
