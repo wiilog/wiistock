@@ -29,6 +29,7 @@ class LitigeRepository extends EntityRepository
 		'updateDate' => 'updateDate',
         'status' => 'status',
         'urgence' => 'emergencyTriggered',
+        'disputeNumber' => 'disputeNumber'
 	];
 
     public function findByStatutSendNotifToBuyer()
@@ -370,6 +371,9 @@ class LitigeRepository extends EntityRepository
                         } else if ($column === 'numCommandeBl') {
                             $qb
                                 ->addOrderBy('numCommandeBl', $order);
+                        } else if ($column === 'disputeNumber') {
+                            $qb
+                                ->addOrderBy('l.numeroLitige', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);
