@@ -1160,7 +1160,8 @@ class ReferenceArticleController extends AbstractController
                 'prix unitaire',
                 'code barre',
 				'catégorie inventaire',
-				'date dernier inventaire'
+				'date dernier inventaire',
+                'synchronisation nomade'
             ];
 
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -1215,6 +1216,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
         $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getNeedsMobileSync() ? 'Oui' : 'Non');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
