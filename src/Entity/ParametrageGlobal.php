@@ -67,7 +67,8 @@ class ParametrageGlobal
 
 
     // étiquettes
-	const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
+    const INCLUDE_BL_IN_LABEL = 'INCLURE BL SUR ETIQUETTE';
+    const INCLUDE_QTT_IN_LABEL = 'INCLURE QTT SUR ETIQUETTE';
     const BARCODE_TYPE_IS_128 = 'barcode type';
     const FILE_FOR_LOGO = 'FILE FOR LOGO';
     const QR_CODE = [
