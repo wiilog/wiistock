@@ -22,7 +22,7 @@ class UpdateCustomFontCommand extends Command
     protected function configure()
     {
 		$this->setName('app:update:custom-font');
-		$this->setDescription('This commands generate the sass for custom font.');
+		$this->setDescription('This commands generate the scss for custom font.');
     }
 
     /**
@@ -32,7 +32,7 @@ class UpdateCustomFontCommand extends Command
      * @throws NonUniqueResultException
      */
     protected function execute(InputInterface $input, OutputInterface $output) {
-        $this->globalParamService->generateSassFile();
-        dump('assets/sass/_customFont.sass generated !');
+        $this->globalParamService->generateScssFile();
+        dump('assets/scss/_customFont.scss generated !');
     }
 }

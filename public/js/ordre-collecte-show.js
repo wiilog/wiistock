@@ -38,10 +38,10 @@ function handleRemovalErrors(data) {
 
 let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
 let modalFinishCollecte = $("#modalFinishCollecte");
-let submitFinishCollecte = $("#submitFinishCollecte");
+let $submitFinishCollecte = $("#submitFinishCollecte");
 
-submitFinishCollecte.on('click', function() {
-    finishCollecte();
+$submitFinishCollecte.on('click', function () {
+    finishCollecte($(this));
 });
 
 function toggleCheck($elem) {
@@ -64,7 +64,7 @@ function openLocationModal() {
     $('#modalFinishCollecte').modal('show');
 }
 
-function finishCollecte(withoutLocation = false) {
+function finishCollecte($button, withoutLocation = false) {
     // on récupère les lignes sélectionnées
     let $table = $('#tableArticle');
     let $rowsSelected = $table.find('tr.active');
@@ -73,7 +73,7 @@ function finishCollecte(withoutLocation = false) {
     $rowsSelected.each(function() {
         const $rowData = $(this).find('.ordre-collecte-data');
         rowsData.push({
-            'reference': $rowData.data('ref'),
+            'barcode': $rowData.data('bar-code'),
             'is_ref': $rowData.data('is-ref'),
             'quantity': $rowData.data('quantity')
         });
@@ -87,18 +87,20 @@ function finishCollecte(withoutLocation = false) {
             rows: rowsData,
             ...(depositLocationId ? {depositLocationId} : {})
         };
+        wrapLoadingOnActionButton($button, () => (
+            $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
+                modalFinishCollecte.find('.close').click();
+                $('.zone-entete').html(data);
+                $rowsToDelete.each(function() {
+                    tableArticle
+                        .row($(this))
+                        .remove()
+                        .draw();
+                });
+                tableArticle.ajax.reload();
+            })
+        ),false);
 
-        $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
-            modalFinishCollecte.find('.close').click();
-            $('.zone-entete').html(data);
-            $rowsToDelete.each(function() {
-                tableArticle
-                    .row($(this))
-                    .remove()
-                    .draw();
-            });
-            tableArticle.ajax.reload();
-        });
     } else {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
     }

@@ -273,10 +273,28 @@ class FournisseurController extends AbstractController
             $search = $request->query->get('term');
 
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseur = $fournisseurRepository->getIdAndLibelleBySearch($search);
+            $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
 
             return new JsonResponse(['results' => $fournisseur]);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("get-label-fournisseur", name ="demande_label_by_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getLabelsFournisseurs(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
+        $fournisseurs = $fournisseurRepository->getIdAndLabelseBySearch($search);
+        return new JsonResponse([
+            'results' => $fournisseurs
+        ]);
     }
 }

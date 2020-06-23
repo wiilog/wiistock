@@ -46,7 +46,6 @@ use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
-use App\Service\TranslationService;
 use App\Service\UserService;
 
 use App\Service\ValeurChampLibreService;
@@ -64,6 +63,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -123,7 +123,6 @@ class ReceptionController extends AbstractController
      * @var MouvementStockService
      */
     private $mouvementStockService;
-    private $translationService;
     private $mailerService;
 
     public function __construct(
@@ -137,8 +136,7 @@ class ReceptionController extends AbstractController
         AttachmentService $attachmentService,
         TransporteurRepository $transporteurRepository,
         ParametrageGlobalRepository $parametrageGlobalRepository,
-        MouvementStockService $mouvementStockService,
-        TranslationService $translationService
+        MouvementStockService $mouvementStockService
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
@@ -152,7 +150,6 @@ class ReceptionController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->transporteurRepository = $transporteurRepository;
         $this->mouvementStockService = $mouvementStockService;
-        $this->translationService = $translationService;
     }
 
 
@@ -178,7 +175,6 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
@@ -847,7 +843,7 @@ class ReceptionController extends AbstractController
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-            'acheteurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
+            'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
@@ -1004,6 +1000,7 @@ class ReceptionController extends AbstractController
             $statutBeforeName = $litige->getStatus()->getNom();
             $statutAfter = (int)$post->get('statutLitige');
             $litige
+                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
                 ->setUpdateDate(new \DateTime('now'))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setStatus($statutRepository->find($post->get('statutLitige')));
@@ -1087,7 +1084,7 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
             $isStatutChange = ($statutBefore !== $statutAfter);
             if ($isStatutChange) {
-                $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION, true);
+                $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
             }
             $response = [];
             return new JsonResponse($response);
@@ -1123,6 +1120,7 @@ class ReceptionController extends AbstractController
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
+                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
                 ->setCreationDate(new \DateTime('now'));
 
             if (!empty($colis = $post->get('colisLitige'))) {
@@ -1167,7 +1165,7 @@ class ReceptionController extends AbstractController
 
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
-            $litigeService->sendMailToAcheteurs($litige, LitigeService::CATEGORY_RECEPTION);
+            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
             $response = [];
 
             return new JsonResponse($response);
@@ -1210,7 +1208,7 @@ class ReceptionController extends AbstractController
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
                 'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
-                'acheteurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
+                'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
@@ -1650,6 +1648,7 @@ class ReceptionController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function getReceptionCSV(EntityManagerInterface $entityManager,
+                                    TranslatorInterface $translator,
                                     CSVExportService $CSVExportService,
                                     Request $request): Response
     {
@@ -1667,7 +1666,7 @@ class ReceptionController extends AbstractController
             $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
 
             $csvHeader = [
-                $this->translationService->getTranslation('réception', 'n° de réception'),
+                $translator->trans('réception.n° de réception'),
                 'n° de commande',
                 'fournisseur',
                 'utilisateur',
@@ -1748,6 +1747,7 @@ class ReceptionController extends AbstractController
      * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
      * @return Response
@@ -1758,6 +1758,7 @@ class ReceptionController extends AbstractController
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
+                                   TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
                                    Reception $reception): Response
     {
@@ -1798,7 +1799,9 @@ class ReceptionController extends AbstractController
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
-                $demande = $demandeLivraisonService->newDemande($data);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
+                $entityManager->persist($demande);
+                $entityManager->flush();
             }
 
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
@@ -1810,7 +1813,27 @@ class ReceptionController extends AbstractController
                 }
                 $this->articleDataService->newArticle($article, $demande ?? null, $reception);
             }
-
+            if (isset($demande) && $demande->getType()->getSendMail()) {
+                $nowDate = new DateTime('now');
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Réception d\'un colis '
+                    . 'de type «' . $demande->getType()->getLabel() . '».',
+                    $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
+                        'demande' => $demande,
+                        'fournisseur' => $reception->getFournisseur(),
+                        'isReception' => true,
+                        'title' => 'Une ' . $translator->trans('réception.réception')
+                            . ' '
+                            . $reception->getNumeroReception()
+                            . ' de type «'
+                            . $demande->getType()->getLabel()
+                            . '» a été réceptionnée le '
+                            . $nowDate->format('d/m/Y \à H:i')
+                            . '.',
+                    ]),
+                    $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                );
+            }
             $entityManager->flush();
 
             return new JsonResponse(true);

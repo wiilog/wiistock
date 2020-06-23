@@ -211,6 +211,7 @@ class RefArticleDataService
 
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
+            'Synchronisation nomade' =>$refArticle->getNeedsMobileSync(),
             'statut' => $refArticle->getStatut()->getNom(),
             'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
             'typeChampsLibres' => $typeChampLibre,
@@ -279,8 +280,7 @@ class RefArticleDataService
                         ]);
 
                         $entityManager->persist($articleFournisseur);
-                    }
-                    catch (Exception $exception) {
+                    } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                             $response['success'] = false;
                             $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
@@ -304,6 +304,7 @@ class RefArticleDataService
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
+            if (isset($data['mobileSync'])) $refArticle->setNeedsMobileSync($data['mobileSync']);
             if ($data['emergency-comment-input']) {
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
@@ -331,8 +332,7 @@ class RefArticleDataService
                         $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champLibre, $value);
                         $valeurChampLibre->addArticleReference($refArticle);
                         $entityManager->persist($valeurChampLibre);
-                    }
-                    else {
+                    } else {
                         $this->valeurChampLibreService->updateValue($valeurChampLibre, $value);
                     }
                     $entityManager->flush();
@@ -388,6 +388,7 @@ class RefArticleDataService
             "Seuil d'alerte" => $refArticle->getLimitWarning() ?? "Non défini",
             "Prix unitaire" => $refArticle->getPrixUnitaire() ?? "",
             'Urgence' => $refArticle->getIsUrgent() ? 'Oui' : 'Non',
+            'Synchronisation nomade' => $refArticle->getNeedsMobileSync() ? 'Oui' : 'Non',
             "Dernier inventaire" => $refArticle->getDateLastInventory() ? $refArticle->getDateLastInventory()->format('d/m/Y') : '',
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
@@ -403,50 +404,50 @@ class RefArticleDataService
      * @param array $data
      * @param ReferenceArticle $referenceArticle
      * @param Utilisateur $user
+     * @param bool $fromNomade
+     * @param EntityManagerInterface $entityManager
+     * @param Demande $demande
      * @return bool
      * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function addRefToDemand($data, $referenceArticle, Utilisateur $user)
+    public function addRefToDemand($data, $referenceArticle, Utilisateur $user, bool $fromNomade, EntityManagerInterface $entityManager, Demande $demande)
     {
         $resp = true;
-
-        $demandeRepository = $this->entityManager->getRepository(Demande::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
-        $ligneArticleRepository = $this->entityManager->getRepository(LigneArticle::class);
-
-        $demande = $demandeRepository->find($data['livraison']);
-
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
         // cas gestion quantité par référence
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+            if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setReference($referenceArticle)
                     ->setDemande($demande)
                     ->setQuantite(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
-                $this->entityManager->persist($ligneArticle);
+                $entityManager->persist($ligneArticle);
+                $demande->addLigneArticle($ligneArticle);
             } else {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
-            $this->editRefArticle($referenceArticle, $data, $user);
-
-            // cas gestion quantité par article
-        }
-        elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if ($this->userService->hasParamQuantityByRef()) {
-                if ($ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+            if (!$fromNomade) {
+                $this->editRefArticle($referenceArticle, $data, $user);
+            }
+        } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($fromNomade || $this->userService->hasParamQuantityByRef()) {
+                if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
                         ->setQuantite(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
                         ->setDemande($demande)
                         ->setToSplit(true);
-                    $this->entityManager->persist($ligneArticle);
+                    $entityManager->persist($ligneArticle);
+                    $demande->addLigneArticle($ligneArticle);
                 } else {
                     $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
                     $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0));
@@ -462,8 +463,6 @@ class RefArticleDataService
         } else {
             $resp = false;
         }
-
-        $this->entityManager->flush();
         return $resp;
     }
 
@@ -559,6 +558,8 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
     {
@@ -570,6 +571,8 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {

@@ -17,6 +17,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ObjectRepository;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
@@ -530,6 +531,8 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param bool $onFinish
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function updateRefArticlesQuantities(Preparation $preparation, $onFinish = true) {
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {

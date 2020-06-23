@@ -304,6 +304,10 @@ function displayFilterValue(elem) {
             type = 'text';
             datetimepicker = true;
             break;
+        case 'sync':
+            label = 'Oui / Non';
+            type = 'checkbox';
+            break;
         default:
             label = 'Contient';
     }
@@ -407,7 +411,9 @@ function initNewReferenceArticleEditor(modal) {
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+
     clearModal(modal);
 }
 
@@ -454,6 +460,7 @@ function addFournisseurEdit(button) {
             dataReponse = JSON.parse(this.responseText);
             $modal.find('#articleFournisseursEdit').parent().append(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
         }
     };
     let path = Routing.generate('ajax_render_add_fournisseur', true);

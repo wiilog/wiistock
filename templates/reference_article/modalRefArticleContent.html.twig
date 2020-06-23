@@ -14,7 +14,7 @@
         <input {{ disabled }} class="form-control data needed" type="text" name="libelle" value="{{ articleRef.libelle }}"
                               id="libelle">
     </div>
-    <div class="form-group col-6">
+    <div class="form-group col-4">
         {% if isADemand is not defined or not isADemand %}
             <div class="input-group radio-btn">
                 <label for="statut" class="mtb-auto mr-2">Statut</label>
@@ -35,6 +35,14 @@
                 <input type="hidden" name="statut" id="statut-edit" class="data" value="{{ statut }}">
             </div>
         {% endif %}
+    </div>
+    <div class="form-group col-4 d-flex align-items-center">
+        <label>Synchronisation nomade ?</label>
+        {% set checkedSync = articleRef.needsMobileSync ? 'checked' %}
+        <label class="switch ml-3">
+            <input class="checkbox data" type="checkbox" name="mobileSync" {{ checkedSync }}>
+            <span class="slider round"></span>
+        </label>
     </div>
 </div>
 
@@ -95,7 +103,7 @@
 
 {% set dnoneRef = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
 {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
-<div class="row mt-4 mb-3">
+<div class="row mt-4 mb-3 justify-content-left">
     {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4">
             <div class="radio-btn">
@@ -114,10 +122,10 @@
         </div>
     {% endif %}
 
-    <div class="form-group mt-4 mr-5">
-        <div class="article {{ dnone }}">
-            <label for="urgence">Urgence ? </label>
-            <label class="switch">
+    <div class="form-group col-4 mt-4">
+        <div class="article d-flex align-items-center {{ dnone }} ">
+            <label for="urgence">Urgence ?</label>
+            <label class="switch ml-3">
                 <input class="checkbox" type="checkbox" onchange="toggleEmergency($(this))" name="urgence"
                        value="{{ articleRef.isUrgent }}" {{ articleRef.isUrgent ? 'checked' : '' }}>
                 <span class="slider round"></span>
@@ -125,10 +133,10 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group col-4">
         <div class="emergency-comment {{ not articleRef.isUrgent ? 'd-none' }}">
             <label for="emergency-comment-input">Commentaire de l'urgence</label>
-            <input class="form-control data" type="text" name="emergency-comment-input" value="{{ articleRef.emergencyComment }}">
+            <input class="form-control data w-100" type="text" name="emergency-comment-input" value="{{ articleRef.emergencyComment }}">
         </div>
     </div>
 </div>

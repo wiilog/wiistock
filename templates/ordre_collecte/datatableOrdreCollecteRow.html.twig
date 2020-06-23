@@ -2,7 +2,7 @@
     <input type="hidden"
            class="ordre-collecte-data"
            data-is-ref='{{ refArticleId is defined ? 1 : 0 }}'
-           data-ref='{{ refRef is defined ? refRef : refArt }}'
+           data-bar-code='{{ barCode }}'
            data-quantity="{{ quantity }}"/>
     {% if modifiable %}
         <div class="action-on-click d-none sr-only"

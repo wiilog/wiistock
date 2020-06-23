@@ -192,6 +192,11 @@ class ReferenceArticle
      */
     private $mouvementTracas;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $needsMobileSync;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -875,6 +880,18 @@ class ReferenceArticle
     public function setUserThatTriggeredEmergency(?Utilisateur $userThatTriggeredEmergency): self
     {
         $this->userThatTriggeredEmergency = $userThatTriggeredEmergency;
+
+        return $this;
+    }
+
+    public function getNeedsMobileSync(): ?bool
+    {
+        return $this->needsMobileSync;
+    }
+
+    public function setNeedsMobileSync(?bool $needsMobileSync): self
+    {
+        $this->needsMobileSync = $needsMobileSync;
 
         return $this;
     }
