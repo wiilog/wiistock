@@ -1,0 +1,22 @@
+<form method="" class="modal fade" id="modalCancelReception" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Annuler <span title="la réception">{{ 'réception.la réception'|trans }}</span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Voulez-vous réellement annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span> ?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
+                <button type="button" class="btn" data-dismiss="modal">Retour</button>
+                <button id="submitCancelReception" type="button" data-dismiss="modal" class="btn btn-danger data">Annuler</button>
+            </div>
+        </div>
+    </div>
+</form>
