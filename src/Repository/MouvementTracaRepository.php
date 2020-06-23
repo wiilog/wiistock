@@ -66,6 +66,10 @@ class MouvementTracaRepository extends EntityRepository
             ->addSelect('statut.nom')
             ->join('mouvement.type', 'statut')
             ->groupBy('mouvement.colis')
+            ->addGroupBy('mouvement.id')
+            ->addGroupBy(
+                $queryBuilderExpr->max('mouvement.datetime')
+            )
             ->having('statut.nom = :depose')
             ->setParameter('depose', MouvementTraca::TYPE_DEPOSE)
             ->getQuery()
