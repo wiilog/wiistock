@@ -44,6 +44,46 @@ class ColisRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    public function getIdsByCode(string $code) {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('colis.id')
+            ->where(
+                $queryBuilderExpr->like('colis.code', "'" . $code . "'")
+            )
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @param array $mvt
+     * @throws DBALException
+     */
+    public function createFromMvt(array $mvt) {
+        $code = $mvt['colis'];
+        $id = $mvt['id'];
+        $sqlQuery = "
+            INSERT INTO colis (code, last_drop_id) VALUES ('${code}', '${id}')
+        ";
+        $connection = $this->getEntityManager()->getConnection();
+        $connection->executeQuery($sqlQuery, []);
+    }
+
+    public function updateByIds(array $ids, int $mvtId) {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $queryBuilder
+            ->update(Colis::class, 'colis')
+            ->set('colis.lastDrop', $mvtId)
+            ->where(
+                $queryBuilderExpr->in('colis.id', ':ids')
+            )
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param array $locations
      * @param array $naturesFilter

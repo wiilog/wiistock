@@ -54,6 +54,24 @@ class MouvementTracaRepository extends EntityRepository
             ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
     }
 
+    public function getLastDropsGroupedByColis() {
+        $queryBuilder = $this->createQueryBuilder('mouvement');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('mouvement.colis')
+            ->addSelect('mouvement.id')
+            ->addSelect(
+                $queryBuilderExpr->max('mouvement.datetime')
+            )
+            ->addSelect('statut.nom')
+            ->join('mouvement.type', 'statut')
+            ->groupBy('mouvement.colis')
+            ->having('statut.nom = :depose')
+            ->setParameter('depose', MouvementTraca::TYPE_DEPOSE)
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param $uniqueId
      * @return MouvementTraca

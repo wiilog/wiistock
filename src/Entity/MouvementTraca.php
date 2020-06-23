@@ -96,10 +96,16 @@ class MouvementTraca
      */
     private $article;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="lastDrop")
+     */
+    private $concernedColisLastDrops;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
         $this->emplacement = new ArrayCollection();
+        $this->concernedColisLastDrops = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -289,6 +295,37 @@ class MouvementTraca
     public function setArticle(?Article $article): self
     {
         $this->article = $article;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Colis[]
+     */
+    public function getConcernedColisLastDrops(): Collection
+    {
+        return $this->concernedColisLastDrops;
+    }
+
+    public function addConcernedColisLastDrop(Colis $concernedColisLastDrop): self
+    {
+        if (!$this->concernedColisLastDrops->contains($concernedColisLastDrop)) {
+            $this->concernedColisLastDrops[] = $concernedColisLastDrop;
+            $concernedColisLastDrop->setLastDrop($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConcernedColisLastDrop(Colis $concernedColisLastDrop): self
+    {
+        if ($this->concernedColisLastDrops->contains($concernedColisLastDrop)) {
+            $this->concernedColisLastDrops->removeElement($concernedColisLastDrop);
+            // set the owning side to null (unless already changed)
+            if ($concernedColisLastDrop->getLastDrop() === $this) {
+                $concernedColisLastDrop->setLastDrop(null);
+            }
+        }
 
         return $this;
     }
