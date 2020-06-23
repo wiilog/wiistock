@@ -257,6 +257,7 @@ class UrgencesController extends AbstractController
 
 		return new JsonResponse(['delete' => $delete, 'html' => $html]);
 	}
+
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
@@ -279,8 +280,6 @@ class UrgencesController extends AbstractController
         return $query->execute();
     }
 
-
-
     /**
      * @Route("/urgences-infos", name="get_urgence_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param EntityManagerInterface $entityManager
@@ -301,92 +300,52 @@ class UrgencesController extends AbstractController
 
             $urgenceRepositoty = $entityManager->getRepository(Urgence::class);
 
-            $articleRepository = $entityManager->getRepository(Article::class);
-
             $urgences = $urgenceRepositoty->findByDates($dateTimeMin, $dateTimeMax);
-
             // en-têtes champs fixes
             $headers = [
-                'demandeur',
-                'statut',
-                'destination',
-                'commentaire',
-                'date demande',
-                'date(s) validation(s)',
-                'numéro',
-                'type demande',
-                'code(s) préparation(s)',
-                'code(s) livraison(s)',
-                'référence article',
-                'libellé article',
-                'code-barre article',
-                'code-barre référence',
-                'quantité disponible',
-                'quantité à prélever'
+                'Debut delais livraison',
+                'Fin delais livraison',
+                'Numero de commande',
+                'Numero de poste',
+                'Contact PFF',
+                'Fournisseur',
+                'Transporteur',
+                'Numero tracking transporteur',
+                'Date Arrivage',
+                "Numero d'arrivage"
             ];
 
-            // en-têtes champs libres DL
+            $data = [$headers];
 
+            /** @var Urgence $urgence */
+            foreach ($urgences as $urgence) {
+                $dateStart = $urgence->getDateStart();
+                $dateEnd = $urgence->getDateEnd();
+                $dateArrival = $urgence->getLastArrival() ? $urgence->getLastArrival()->getDate() : null;
+                $urgenceData = [];
 
-            $data = [];
-            $data[] = $headers;
+                $urgenceData[] = date_format($dateStart, 'd/m/Y H:i:s');
+                $urgenceData[] = date_format($dateEnd, 'd/m/Y H:i:s');
+                $urgenceData[] = $urgence->getCommande() ? $urgence->getCommande() : '';
+                $urgenceData[] = $urgence->getPostNb() ? $urgence->getPostNb() : '';
+                $urgenceData[] = $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '';
+                $urgenceData[] = $urgence->getProvider() ? $urgence->getProvider()->getNom() : '';
+                $urgenceData[] = $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '';
+                $urgenceData[] = $urgence->getTrackingNb() ? $urgence->getTrackingNb() : '';
+                $urgenceData[] = $dateArrival ? date_format($dateArrival, 'd/m/Y H:i:s') : '';
+                $urgenceData[] = $dateArrival ? $urgence->getLastArrival()->getNumeroArrivage() : '';
 
-            $listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
-            $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-
-            foreach ($demandes as $demande) {
-                $infosDemand = $this->getCSVExportFromDemand($demande);
-                foreach ($demande->getLigneArticle() as $ligneArticle) {
-                    $demandeData = [];
-                    $articleRef = $ligneArticle->getReference();
-
-                    $availableQuantity = $articleRef->getQuantiteDisponible();
-
-                    array_push($demandeData, ...$infosDemand);
-                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
-                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
-                    $demandeData[] = '';
-                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
-                    $demandeData[] = $availableQuantity;
-                    $demandeData[] = $ligneArticle->getQuantite();
-
-                    // champs libres de l'article de référence
-                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
-                    $champsLibresArt = [];
-
-                    $data[] = $demandeData;
-                }
-                foreach ($articleRepository->findByDemande($demande) as $article) {
-                    $demandeData = [];
-
-                    array_push($demandeData, ...$infosDemand);
-                    $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
-                    $demandeData[] = $article->getLabel();
-                    $demandeData[] = $article->getBarCode();
-                    $demandeData[] = '';
-                    $demandeData[] = $article->getQuantite();
-                    $demandeData[] = $article->getQuantiteAPrelever();
-
-                    // champs libres de la demande
-                    $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
-
-                    // champs libres de l'article
-                    $champsLibresArt = [];
-
-                    $data[] = $demandeData;
-                }
+                $data[] = $urgenceData;
             }
+
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
         }
     }
 
-
-
-
-
-	private function getErrorMessageForDuplicate(bool $isSEDCurrentClient): string {
+    private function getErrorMessageForDuplicate(bool $isSEDCurrentClient): string
+    {
         $suffixErrorMessage = $isSEDCurrentClient ? ', le même numéro de commande et le même numéro de poste existe déjà' : ' et le même numéro de commande existe déjà';
         return "Une urgence sur la même période, avec le même fournisseur$suffixErrorMessage.";
     }
