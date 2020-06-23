@@ -34,6 +34,9 @@ final class Version20200623132732 extends AbstractMigration implements Container
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql("
+            ALTER TABLE colis ADD COLUMN last_drop_id int(11)
+        ");
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
     }
 
