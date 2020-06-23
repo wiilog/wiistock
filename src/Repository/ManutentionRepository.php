@@ -48,7 +48,7 @@ class ManutentionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @Lang DQL */
-        "SELECT m.id, m.dateAttendue, d.username as demandeur, m.commentaire, m.source, m.destination, m.libelle as objet
+        "SELECT m.id, m.dateAttendueDT, d.username as demandeur, m.commentaire, m.source, m.destination, m.libelle as objet
         FROM App\Entity\Manutention m
         JOIN m.demandeur d
         WHERE m.statut = :statut
