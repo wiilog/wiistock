@@ -1303,6 +1303,7 @@ class ReceptionController extends AbstractController
                             'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
                         ],
                         'litigeId' => $litige->getId(),
+                        'disputeNumber' => $litige->getNumeroLitige()
                     ]),
                     'urgence' => $litige->getEmergencyTriggered()
                 ];

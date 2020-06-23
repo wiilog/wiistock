@@ -5,9 +5,10 @@
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="d-none">
                     <div class="action-on-click" data-toggle='modal' data-target='#modalEditLitige'
-                         onclick="editRowLitigeReception($(this), openTableHisto, {{ receptionId }}, {{ litigeId }})">
+                         onclick="editRowLitigeReception($(this), openTableHisto, {{ receptionId }}, {{ litigeId }}, '{{ disputeNumber }}')">
                         <i class='fas fa-pencil-alt'></i>
                     </div>
+                    <script>console.log('{{ disputeNumber }}')</script>
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DELETE')) %}

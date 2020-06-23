@@ -1139,6 +1139,7 @@ class ArrivageController extends AbstractController
                             'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
                         ],
                         'litigeId' => $litige->getId(),
+                        'disputeNumber' => $litige->getNumeroLitige()
                     ]),
                     'urgence' => $litige->getEmergencyTriggered()
                 ];

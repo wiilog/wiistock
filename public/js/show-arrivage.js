@@ -186,14 +186,15 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
+function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
         litigeId: litigeId,
-        arrivageId: arrivageId
+        arrivageId: arrivageId,
+        disputeNumber: disputeNumber
     };
 
     $.post(path, JSON.stringify(params), function (data) {
@@ -204,6 +205,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     }, 'json');
 
     modal.find(submit).attr('value', litigeId);
+    $('#disputeNumberArrival').text(disputeNumber);
 }
 
 function deleteRowArrivage(button, modal, submit, hasLitige) {
