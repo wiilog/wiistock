@@ -89,14 +89,14 @@ function initDatatableLitiges() {
     tableLitiges = initDataTable('tableLitiges', tableLitigesConfig);
 }
 
-function editRowLitige(button, afterLoadingEditModal = () => {
-}, isArrivage, arrivageOrReceptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, litigeId, disputeNumber) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
     let path = Routing.generate(route, true);
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
     let params = {
-        litigeId: litigeId
+        litigeId: litigeId,
+        disputeNumber: disputeNumber
     };
 
     if (isArrivage) {
@@ -108,7 +108,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     $.post(path, JSON.stringify(params), function (data) {
         $modal.find('.error-msg').html('');
         $modal.find('.modal-body').html(data.html);
-
         if (isArrivage) {
             $modal.find('#colisEditLitige').val(data.colis).select2();
         } else {
@@ -136,6 +135,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     }, 'json');
 
     $modal.find($submit).attr('value', litigeId);
+    $('#disputeNumber').text(disputeNumber);
 }
 
 let tableHistoLitige;
@@ -170,3 +170,8 @@ function getCommentAndAddHisto() {
         commentLitige.val('');
     });
 }
+
+/*$('#modalEditLitige').on('load',function (){
+    console.log('Test');
+   $('#disputeNumber').text('Test');
+});*/

@@ -103,6 +103,7 @@ class LitigeService
 
     	$litigeId = $litige['id'];
         $disputeNumber = $litigeRepository->getNumeroLitigeById($litigeId);
+
 		$acheteursArrivage = $litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
 		$acheteursReception = $litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
 
@@ -125,7 +126,8 @@ class LitigeService
 				'litigeId' => $litige['id'],
 				'arrivageId' => $litige['arrivageId'],
 				'receptionId' => $litige['receptionId'],
-				'isArrivage' => !empty($litige['arrivageId']) ? 1 : 0
+				'isArrivage' => !empty($litige['arrivageId']) ? 1 : 0,
+                'disputeNumber' => $disputeNumber
 			]),
 			'type' => $litige['type'] ?? '',
 			'arrivalNumber' => $litige['numeroArrivage'] ?? '',
