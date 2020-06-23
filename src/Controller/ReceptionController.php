@@ -1124,12 +1124,9 @@ class ReceptionController extends AbstractController
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $dateTimeMin = date_time_set($date,0,0,1);
-            $dateTimeMax = date_time_set($date,23,59,59);
-
-            $arrivalLitiges = $litigeRepository->findReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
-
-            $i = count($arrivalLitiges)+1;
+            $lastNumeroLitige = $litigeRepository->getLastNumeroLitigeByPrefixeAndDate('LR', $date->format('ymd'));
+            $lastCpt = (int)substr($lastNumeroLitige, -4, 4);
+            $i = $lastCpt + 1;
             $cpt = sprintf('%04u', $i);
             $disputeNumber = 'LR' . $date->format('ymd') . $cpt;
 

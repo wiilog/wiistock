@@ -18,6 +18,7 @@ $(function () {
     initSelect2($('#carriers'), 'Transporteurs');
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#litigeOrigin'), 'Origines');
+    initSelect2($('#disputeNumberFilter'), 'Numero du litige');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -170,8 +171,3 @@ function getCommentAndAddHisto() {
         commentLitige.val('');
     });
 }
-
-/*$('#modalEditLitige').on('load',function (){
-    console.log('Test');
-   $('#disputeNumber').text('Test');
-});*/

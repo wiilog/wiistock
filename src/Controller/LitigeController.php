@@ -110,6 +110,7 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $litigeRepository = $entityManager->getRepository(Litige::class);
 
         $user = $this->getUser();
         $fieldsInTab = [
@@ -136,9 +137,10 @@ class LitigeController extends AbstractController
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
+			'disputeNumber' => $litigeRepository->findAllDisputeNumbers(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForLitige(),
+            'columnsVisibles' => $user->getColumnsVisibleForLitige()
 		]);
     }
 

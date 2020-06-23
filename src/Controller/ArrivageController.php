@@ -981,12 +981,9 @@ class ArrivageController extends AbstractController
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $dateTimeMin = date_time_set($date,0,0,1);
-            $dateTimeMax = date_time_set($date,23,59,59);
-
-            $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
-
-            $i = count($arrivalLitiges)+1;
+            $lastNumeroLitige = $litigeRepository->getLastNumeroLitigeByPrefixeAndDate('LA', $date->format('ymd'));
+            $lastCpt = (int)substr($lastNumeroLitige, -4, 4);
+            $i = $lastCpt + 1;
             $cpt = sprintf('%04u', $i);
             $disputeNumber = 'LA' . $date->format('ymd') . $cpt;
 

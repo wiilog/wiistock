@@ -74,7 +74,7 @@ class Litige
     private $emergencyTriggered;
 
     /**
-     * @ORM\Column(type="string", length=64, nullable=true)
+     * @ORM\Column(type="string", length=64, nullable=true, unique=true)
      */
     private $numeroLitige;
 

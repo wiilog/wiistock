@@ -312,6 +312,11 @@ class LitigeRepository extends EntityRepository
 						->andWhere('l.emergencyTriggered = :isUrgent')
 						->setParameter('isUrgent', $filter['value']);
 					break;
+                case 'disputeNumber':
+                    $qb
+                        ->andWhere('l.numeroLitige = :disputeNumber')
+                        ->setParameter('disputeNumber', $filter['value']);
+                    break;
 			}
 		}
 
@@ -448,5 +453,32 @@ class LitigeRepository extends EntityRepository
 
         $result = $query->execute();
         return array_column($result, 'numeroLitige');
+    }
+
+    public function findAllDisputeNumbers(){
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+            "SELECT l.numeroLitige
+             FROM App\Entity\Litige l"
+        );
+
+        $result = $query->execute();
+        return array_column($result,'numeroLitige');
+    }
+
+    public function getLastNumeroLitigeByPrefixeAndDate($prefixe, $date)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            'SELECT l.numeroLitige as numeroLitige
+			FROM App\Entity\Litige l
+			WHERE l.numeroLitige LIKE :value
+			ORDER BY l.creationDate DESC'
+        )->setParameter('value', $prefixe . $date . '%');
+
+        $result = $query->execute();
+        return $result ? $result[0]['numeroLitige'] : null;
     }
 }
