@@ -246,4 +246,38 @@ class UrgenceRepository extends EntityRepository
             'total' => $countTotal
         ];
     }
+
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Urgence[]|null
+     */
+    public function findByDates($dateMin, $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT u
+            FROM App\Entity\Demande u
+            WHERE  u.dateStart AND u.dateEnd BETWEEN :dateMin AND :dateMax'
+
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
+
+
+
+
+
+
+
+
+
+
 }

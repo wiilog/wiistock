@@ -4,6 +4,7 @@ namespace App\Controller;
 
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\SpecificService;
@@ -18,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 
 /**
  * @Route("/urgences")
@@ -255,6 +257,134 @@ class UrgencesController extends AbstractController
 
 		return new JsonResponse(['delete' => $delete, 'html' => $html]);
 	}
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Urgence[]|null
+     */
+    public function findByDates($dateMin, $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT u
+            FROM App\Entity\Urgence u
+            WHERE d.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
+
+
+
+    /**
+     * @Route("/urgences-infos", name="get_urgence_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function getUrgencesIntels(EntityManagerInterface $entityManager,
+                                      Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+
+            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+
+            $urgenceRepositoty = $entityManager->getRepository(Urgence::class);
+
+            $articleRepository = $entityManager->getRepository(Article::class);
+
+            $urgences = $urgenceRepositoty->findByDates($dateTimeMin, $dateTimeMax);
+
+            // en-têtes champs fixes
+            $headers = [
+                'demandeur',
+                'statut',
+                'destination',
+                'commentaire',
+                'date demande',
+                'date(s) validation(s)',
+                'numéro',
+                'type demande',
+                'code(s) préparation(s)',
+                'code(s) livraison(s)',
+                'référence article',
+                'libellé article',
+                'code-barre article',
+                'code-barre référence',
+                'quantité disponible',
+                'quantité à prélever'
+            ];
+
+            // en-têtes champs libres DL
+
+
+            $data = [];
+            $data[] = $headers;
+
+            $listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+            foreach ($demandes as $demande) {
+                $infosDemand = $this->getCSVExportFromDemand($demande);
+                foreach ($demande->getLigneArticle() as $ligneArticle) {
+                    $demandeData = [];
+                    $articleRef = $ligneArticle->getReference();
+
+                    $availableQuantity = $articleRef->getQuantiteDisponible();
+
+                    array_push($demandeData, ...$infosDemand);
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $demandeData[] = '';
+                    $demandeData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '';
+                    $demandeData[] = $availableQuantity;
+                    $demandeData[] = $ligneArticle->getQuantite();
+
+                    // champs libres de l'article de référence
+                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
+                    $champsLibresArt = [];
+
+                    $data[] = $demandeData;
+                }
+                foreach ($articleRepository->findByDemande($demande) as $article) {
+                    $demandeData = [];
+
+                    array_push($demandeData, ...$infosDemand);
+                    $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+                    $demandeData[] = $article->getLabel();
+                    $demandeData[] = $article->getBarCode();
+                    $demandeData[] = '';
+                    $demandeData[] = $article->getQuantite();
+                    $demandeData[] = $article->getQuantiteAPrelever();
+
+                    // champs libres de la demande
+                    $this->addChampsLibresDL($valeurChampLibreRepository, $demande, $listChampsLibresDL, $clDL, $demandeData);
+
+                    // champs libres de l'article
+                    $champsLibresArt = [];
+
+                    $data[] = $demandeData;
+                }
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+
+
+
 
 	private function getErrorMessageForDuplicate(bool $isSEDCurrentClient): string {
         $suffixErrorMessage = $isSEDCurrentClient ? ', le même numéro de commande et le même numéro de poste existe déjà' : ' et le même numéro de commande existe déjà';
