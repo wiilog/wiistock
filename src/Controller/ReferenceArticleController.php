@@ -259,6 +259,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Urgence',
 					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Synchronisation nomade',
+                    "data" => 'Synchronisation nomade',
+                    'name' => 'Synchronisation nomade',
+                    "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
+                ],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -565,6 +571,11 @@ class ReferenceArticleController extends AbstractController
             'typage' => 'number'
         ];
         $champF[] = [
+            'label' => 'Synchronisation nomade',
+            'id' => 0,
+            'typage' => 'booleen'
+        ];
+        $champF[] = [
             'label' => 'Dernier inventaire',
             'id' => 0,
             'typage' => 'date'
@@ -597,6 +608,12 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Fournisseur',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Synchronisation nomade',
+            'id' => 0,
+            'typage' => 'sync'
 
         ];
         $champsFText[] = [
@@ -1160,7 +1177,8 @@ class ReferenceArticleController extends AbstractController
                 'prix unitaire',
                 'code barre',
 				'catégorie inventaire',
-				'date dernier inventaire'
+				'date dernier inventaire',
+                'synchronisation nomade'
             ];
 
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -1215,6 +1233,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
         $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getNeedsMobileSync() ? 'Oui' : 'Non');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {

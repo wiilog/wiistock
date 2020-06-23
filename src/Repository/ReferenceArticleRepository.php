@@ -7,7 +7,6 @@ use App\Entity\ChampLibre;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\Livraison;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use Doctrine\DBAL\Connection;
@@ -43,7 +42,8 @@ class ReferenceArticleRepository extends EntityRepository
         'Code barre' => 'barCode',
         'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
-        'Dernier inventaire' => 'dateLastInventory'
+        'Dernier inventaire' => 'dateLastInventory',
+        'Synchronisation nomade' => 'needsMobileSync'
     ];
 
     public function getIdAndLibelle()
@@ -151,7 +151,7 @@ class ReferenceArticleRepository extends EntityRepository
         $dql = "SELECT r.id, r.${field} as text
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
-          WHERE r.reference LIKE :search ";
+          WHERE r.${field} LIKE :search ";
 
         if ($activeOnly) {
             $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
@@ -197,6 +197,7 @@ class ReferenceArticleRepository extends EntityRepository
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
+            'Synchronisation nomade' =>['field' => 'needsMobileSync', 'typage' => 'sync'],
         ];
 
         $qb
@@ -223,6 +224,17 @@ class ReferenceArticleRepository extends EntityRepository
                     $typage = $array['typage'];
 
                     switch ($typage) {
+                        case 'sync':
+                            if ($filter['value'] == 0 ){
+                                 $qb
+                                     ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
+                                     ->setParameter("value$index", $filter['value']);
+                            } else {
+                                $qb
+                                    ->andWhere("ra.needsMobileSync = :value$index")
+                                    ->setParameter("value$index", $filter['value']);
+                            }
+                            break;
                         case 'text':
                             $qb
                                 ->andWhere("ra." . $field . " LIKE :value" . $index)

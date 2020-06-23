@@ -58,7 +58,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
                 'inventoryMission.endPrevDate >= :now',
                 'inventoryEntry.id IS NULL'
             ))
-            ->setParameter('now', $now);
+            ->setParameter('now', $now->format('Y-m-d'));
 
 		return $queryBuilder
             ->getQuery()
@@ -93,7 +93,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
                 'inventoryMission.endPrevDate >= :now',
                 'inventoryEntry.id IS NULL'
             ))
-            ->setParameter('now', $now);
+            ->setParameter('now', $now->format('Y-m-d'));
 
 		return $queryBuilder
             ->getQuery()

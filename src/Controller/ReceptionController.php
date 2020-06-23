@@ -46,7 +46,6 @@ use App\Service\ReceptionService;
 use App\Service\AttachmentService;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
-use App\Service\TranslationService;
 use App\Service\UserService;
 
 use App\Service\ValeurChampLibreService;
