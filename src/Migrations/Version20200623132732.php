@@ -50,12 +50,19 @@ final class Version20200623132732 extends AbstractMigration implements Container
         $colisRepository = $em->getRepository(Colis::class);
 
         $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();
+        dump('Starting colis creation/update -> ' . count($lastDropsGroupedByColis));
+        $cpt = 0;
         foreach ($lastDropsGroupedByColis as $drop) {
             $colisIdsByCode = $colisRepository->getIdsByCode($drop['colis']);
             if (!empty($colisIdsByCode)) {
                 $colisRepository->updateByIds($colisIdsByCode, $drop['id']);
             } else {
                 $colisRepository->createFromMvt($drop);
+            }
+            $cpt++;
+            if ($cpt === 50) {
+                $cpt = 0;
+                dump('50 de plus');
             }
         }
         $em->flush();
