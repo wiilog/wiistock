@@ -307,6 +307,10 @@ function displayFilterValue(elem) {
             type = 'text';
             datetimepicker = true;
             break;
+        case 'sync':
+            label = 'Oui / Non';
+            type = 'checkbox';
+            break;
         default:
             label = 'Contient';
     }

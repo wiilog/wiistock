@@ -1027,7 +1027,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/valider-dl", name="api_validate_dl")
+     * @Rest\Post("/api/valider-dl", name="api_validate_dl", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1287,7 +1287,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             // prises en cours
             $stockTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
-        } else {
+        }
+        else {
             // livraisons
             $livraisons = [];
             $articlesLivraison = [];
@@ -1335,6 +1336,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         } else {
             $trackingTaking = [];
         }
+
         return [
             'emplacements' => $emplacementRepository->getIdAndNom(),
             'preparations' => $preparations,

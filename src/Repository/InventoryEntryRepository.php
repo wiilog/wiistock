@@ -50,6 +50,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('ra.libelle as label')
             ->addSelect('e.label as location')
             ->addSelect('ra.quantiteStock as quantity')
+            ->addSelect('ie.quantity as countedQuantity')
             ->addSelect('1 as is_ref')
             ->addSelect('0 as treated')
             ->addSelect('ra.barCode as barCode')
