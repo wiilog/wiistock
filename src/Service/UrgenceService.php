@@ -95,6 +95,7 @@ class UrgenceService
             'carrier' => $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '',
             'trackingNb' => $urgence->getTrackingNb() ?? '',
             'arrivalNb' => $urgence->getLastArrival() ? $urgence->getLastArrival()->getNumeroArrivage() : '',
+            'createdAt' =>$urgence->getCreatedAt() ? $urgence->getCreatedAt()->format('d/m/Y H:i') : '' ,
             'postNb' => $urgence->getPostNb() ?? '',
             'actions' => $this->templating->render('urgence/datatableUrgenceRow.html.twig', [
                 'urgence' => $urgence

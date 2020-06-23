@@ -37,6 +37,7 @@ function initPage() {
             { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : 'N° tracking transporteur' },
             { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val() },
             {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : "Numero d'arrivage"},
+            {"data": 'createdAt', 'name': 'createdAt', 'title': 'Date de creation'},
         ],
         drawConfig: {
             needsSearchOverride: true,

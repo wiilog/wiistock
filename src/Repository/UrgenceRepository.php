@@ -25,6 +25,7 @@ class UrgenceRepository extends EntityRepository
         "end" => 'dateEnd',
         'arrivalDate' => 'lastArrival',
         'arrivalNb' => 'arrivalNb',
+        'createdAt' => 'createdAt',
     ];
 
     /**

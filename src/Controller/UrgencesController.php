@@ -96,6 +96,7 @@ class UrgencesController extends AbstractController
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
 
         $urgence = new Urgence();
+
         $urgenceService->updateUrgence($urgence, $data);
 
         $response = [];
@@ -312,7 +313,8 @@ class UrgencesController extends AbstractController
                 'Transporteur',
                 'Numero tracking transporteur',
                 'Date Arrivage',
-                "Numero d'arrivage"
+                "Numero d'arrivage",
+                'Date de creation',
             ];
 
             $data = [$headers];
@@ -322,8 +324,8 @@ class UrgencesController extends AbstractController
                 $dateStart = $urgence->getDateStart();
                 $dateEnd = $urgence->getDateEnd();
                 $dateArrival = $urgence->getLastArrival() ? $urgence->getLastArrival()->getDate() : null;
+                $dateCreation = $urgence->getCreatedAt() ? $urgence->getCreatedAt() : null;
                 $urgenceData = [];
-
                 $urgenceData[] = date_format($dateStart, 'd/m/Y H:i:s');
                 $urgenceData[] = date_format($dateEnd, 'd/m/Y H:i:s');
                 $urgenceData[] = $urgence->getCommande() ? $urgence->getCommande() : '';
@@ -334,6 +336,7 @@ class UrgencesController extends AbstractController
                 $urgenceData[] = $urgence->getTrackingNb() ? $urgence->getTrackingNb() : '';
                 $urgenceData[] = $dateArrival ? date_format($dateArrival, 'd/m/Y H:i:s') : '';
                 $urgenceData[] = $dateArrival ? $urgence->getLastArrival()->getNumeroArrivage() : '';
+                $urgenceData[] = $dateCreation ? date_format($dateCreation, 'd/m/Y H:i:s') : '';
 
                 $data[] = $urgenceData;
             }
