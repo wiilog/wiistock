@@ -60,10 +60,10 @@ final class Version20200623132732 extends AbstractMigration implements Container
                 $colisRepository->createFromMvt($drop);
             }
             $cpt++;
-            if ($cpt === 50) {
+            if ($cpt === 500) {
                 $cpt = 0;
                 $em->clear();
-                dump('50 de plus');
+                dump('500 de plus');
             }
         }
         $em->flush();
