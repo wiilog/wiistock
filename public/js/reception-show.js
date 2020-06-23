@@ -277,7 +277,7 @@ function initDatatableConditionnement() {
     if (!statutVisible) {
         tableFromArticle.column('Statut:name').visible(false);
     }
-    if(!modalArticleAlreadyInit) {
+    if (!modalArticleAlreadyInit) {
         initModalCondit(tableFromArticle);
         modalArticleAlreadyInit = true;
     }
@@ -499,6 +499,30 @@ function validatePacking($button) {
     }
 }
 
+
+function demandeurChanged($select) {
+    const $locationSelect = $('#locationDemandeLivraison');
+    const [resultSelected] = $select.select2('data');
+    const curentUser = $('#currentUser');
+    if (resultSelected && !$locationSelect.data('is-prefilled')) {
+        let {idEmp, textEmp, text} = resultSelected;
+        const $locationInput = $('#locationDemandeLivraisonValue');
+        const originalValues = {
+            id: $locationInput.data('id'),
+            text: $locationInput.data('text')
+        };
+        if (!idEmp && text === curentUser.data('id')) {
+            idEmp = originalValues.id;
+            textEmp = originalValues.text;
+        }
+        $locationInput.data('id', idEmp);
+        $locationInput.data('text', textEmp);
+        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue', true);
+        $locationInput.data('id', originalValues.id);
+        $locationInput.data('text', originalValues.text);
+    }
+}
+
 function initNewLigneReception($button) {
     if (!editorNewLivraisonAlreadyDoneForDL) {
         initEditorInModal(modalNewLigneReception);
@@ -507,12 +531,13 @@ function initNewLigneReception($button) {
     initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
     initSelect2($('.select2-type'));
     initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route: 'get_user'});
+    initDisplaySelect2('#demandeurDL', '#currentUser');
     initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
     if ($('#locationDemandeLivraison').length > 0) {
-        initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -539,7 +564,8 @@ function initNewLigneReception($button) {
                             }
                         }
                     })
-                    .catch(() => {/* we handle form error */})
+                    .catch(() => {/* we handle form error */
+                    })
             ));
         }
     });
@@ -647,8 +673,7 @@ function toggleDLForm() {
     if ($input.is(':checked')) {
         $demandeForm.removeClass('d-none');
         $demandeForm.find('.data').attr('disabled', null);
-    }
-    else {
+    } else {
         $demandeForm.addClass('d-none');
         $demandeForm.find('.data').attr('disabled', 'disabled');
     }
@@ -673,8 +698,7 @@ function initConditionnementArticleFournisseurDefault() {
             },
             {},
             referenceArticle.defaultArticleFournisseur || {});
-    }
-    else {
+    } else {
         resetDefaultArticleFournisseur();
     }
 }
@@ -689,8 +713,7 @@ function resetDefaultArticleFournisseur(show = false) {
 
     if (show) {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
-    }
-    else {
+    } else {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }

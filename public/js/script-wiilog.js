@@ -650,11 +650,13 @@ function initSelect2($select,
     });
 }
 
-function initDisplaySelect2(select, inputValue) {
+function initDisplaySelect2(select, inputValue, force = false) {
     let data = $(inputValue).data();
     if (data.id && data.text) {
         let option = new Option(data.text, data.id, true, true);
         $(select).append(option).trigger('change');
+    } else if (force) {
+        $(select).val(null).trigger('change');
     }
 }
 

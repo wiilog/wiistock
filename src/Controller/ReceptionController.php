@@ -837,6 +837,7 @@ class ReceptionController extends AbstractController
         }
 
         $createDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $needsCurrentUser = $this->paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
@@ -848,7 +849,7 @@ class ReceptionController extends AbstractController
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
             'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
-
+            'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
         ]);
     }
