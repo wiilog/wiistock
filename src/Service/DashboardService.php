@@ -607,14 +607,16 @@ class DashboardService
                                         ?string $delay = null): ?array
     {
         $colisRepository = $this->entityManager->getRepository(Colis::class);
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
         $locations = $this->findEmplacementsParam($paramName);
+        $locationsId = array_map(function (Emplacement $emplacement) {
+            return $emplacement->getId();
+        }, $locations);
         if (!empty($locations)) {
             $response = [];
             $response['delay'] = null;
             if (!$isPack && $delay) {
-                $lastEnCours = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket, 'datetime', 1);
+                $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locations, $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = new DateTime($lastEnCours[0], new DateTimeZone('Europe/Paris'));
@@ -631,9 +633,7 @@ class DashboardService
                 },
                 ''
             );
-            $response['count'] = $isPack
-                ? $colisRepository->countPacksOnLocations($locations, $onDateBracket)
-                : count($mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket));
+            $response['count'] = $colisRepository->getDropsOnLocationsForDateBracket($locationsId, $onDateBracket);
         } else {
             $response = null;
         }

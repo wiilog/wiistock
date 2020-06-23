@@ -14,6 +14,7 @@ use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 class DashboardFeedCommand extends Command
 {
@@ -40,7 +41,7 @@ class DashboardFeedCommand extends Command
      * @param OutputInterface $output
      * @return int|void
      * @throws ORMException
-     * @throws Exception
+     * @throws Throwable
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

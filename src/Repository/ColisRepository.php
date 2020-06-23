@@ -134,6 +134,39 @@ class ColisRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+
+    public function getDropsOnLocationsForDateBracket(array $locations, array $dateBracket, bool $isCount = true, string $field = 'colis.id', ?int $limit = null) {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $queryBuilder
+            ->select($isCount ? ($queryBuilderExpr->count($field)) : $field)
+            ->join('colis.lastDrop', 'lastDrop')
+            ->join('lastDrop.emplacement', 'emplacement');
+        if (!empty($locations)) {
+            $queryBuilder
+                ->andWhere($queryBuilderExpr->in('emplacement.id', ':locations'))
+                ->setParameter('locations', $locations);
+        } if (!empty($dateBracket)) {
+            $queryBuilder
+                ->andWhere($queryBuilderExpr->between('lastDrop.datetime', ':dateFrom', ':dateTo'))
+                ->setParameter('dateFrom', $dateBracket['minDate'])
+                ->setParameter( 'dateTo', $dateBracket['maxDate']);
+        }
+        $queryBuilder
+            ->orderBy('lastDrop.datetime', 'desc');
+        if ($limit) {
+            $queryBuilder
+                ->setMaxResults($limit);
+        } if ($isCount) {
+            return $queryBuilder
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param array $onDateBracket
      * @return int|mixed|string
