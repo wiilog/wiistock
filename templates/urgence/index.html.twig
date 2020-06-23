@@ -21,10 +21,16 @@
                     </a>
 
                 </div>
-                <div class="btn btn-primary"
+                <button type="button" class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right"
                      onclick="generateCSV('get_urgence_for_csv', 'urgence')">
-                    <span title="exportCsvUrgence">Exporter au format CSV</span>
-                    <i class="fa fa-file-csv mx-1"></i>
+                    <div class="dropdown-item pointer"
+                         title="exportCsvUrgence">Exporter au format CSV
+                         <i class="fa fa-file-csv mx-1"></i>
+                    </div>
                 </div>
             </div>
         </div>
