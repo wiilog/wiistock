@@ -1318,7 +1318,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $manutentionRepository = $entityManager->getRepository(Manutention::class);
             $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
             $manutentions = array_map(function (array $manutention) {
-                dump($manutention);
+                $formattedDate = $manutention['date_attendue']->format('d/m/Y H:i:s');
+                $manutention['date_attendue'] = [];
+                $manutention['date_attendue']['date'] = $formattedDate;
+                return $manutention;
             }, $manutentions);
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
