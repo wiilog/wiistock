@@ -795,12 +795,16 @@ class DashboardService
             try {
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedDockData($entityManager);
+                dump('Finished Dock');
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedAdminData($entityManager);
+                dump('Finished Admin');
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedPackagingData($entityManager);
+                dump('Finished Packaging');
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertLastEnCours($entityManager);
+                dump('Finished Late');
                 $this->flushAndClearEm($entityManager);
             }
             catch (Throwable $throwable) {
@@ -832,6 +836,7 @@ class DashboardService
     {
         $dockData = $this->getDataForReceptionDockDashboard();
         $this->parseRetrievedDataAndPersistMeter($dockData, self::DASHBOARD_DOCK, $entityManager);
+        dump('Finished Dock Counter');
         $this->getAndSetGraphDataForDock($entityManager);
     }
 
@@ -871,6 +876,7 @@ class DashboardService
     {
         $adminData = $this->getDataForReceptionAdminDashboard();
         $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
+        dump('Finished Admin Counter');
         $this->getAndSetGraphDataForAdmin($entityManager, 1, self::DASHBOARD_ADMIN);
         $this->getAndSetGraphDataForAdmin($entityManager, 2, self::DASHBOARD_ADMIN);
     }
@@ -883,6 +889,7 @@ class DashboardService
     {
         $packagingData = $this->getDataForMonitoringPackagingDashboard();
         $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
+        dump('Finished Packaging Counter');
         $this->getAndSetGraphDataForPackaging($entityManager);
     }
 
@@ -939,6 +946,7 @@ class DashboardService
     {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
         $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        dump('Finished Late retrieve');
         $latePackRepository->clearTable();
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();

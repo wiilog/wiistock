@@ -51,7 +51,7 @@ final class Version20200623132732 extends AbstractMigration implements Container
 
         $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();
         dump('Starting colis creation/update -> ' . count($lastDropsGroupedByColis));
-        $cpt = 0;
+        $cpt = 0;d
         foreach ($lastDropsGroupedByColis as $drop) {
             $colisIdsByCode = $colisRepository->getIdsByCode($drop['colis']);
             if (!empty($colisIdsByCode)) {
