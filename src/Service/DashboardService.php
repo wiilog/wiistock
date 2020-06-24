@@ -357,7 +357,6 @@ class DashboardService
         $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) {
             $resCounter = $this->getDashboardCounter(
                 ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
-                true,
                 [
                     'minDate' => $dateMin,
                     'maxDate' => $dateMax
@@ -585,7 +584,7 @@ class DashboardService
                 $param = is_array($counterConfig[$key])
                     ? $counterConfig[$key][0]
                     : $counterConfig[$key];
-                $carry[$key] = $this->getDashboardCounter($param, false, [], $daysWorked, $delay);
+                $carry[$key] = $this->getDashboardCounter($param, [], $daysWorked, $delay);
                 return $carry;
             },
             []);
@@ -601,7 +600,6 @@ class DashboardService
      * @throws Exception
      */
     public function getDashboardCounter(string $paramName,
-                                        bool $isPack = false,
                                         array $onDateBracket = [],
                                         array $daysWorked = [],
                                         ?string $delay = null): ?array
@@ -615,7 +613,7 @@ class DashboardService
         if (!empty($locations)) {
             $response = [];
             $response['delay'] = null;
-            if (!$isPack && $delay) {
+            if ($delay) {
                 $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locations, [], $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
