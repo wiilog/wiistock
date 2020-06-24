@@ -173,6 +173,7 @@ class EnCoursService
 
         if ($onlyLate) {
             while (count($emplacementInfo) < 100) {
+                $oldestDrops = [];
                 $oldestDrops[] = $colisRepository->getDropsOnLocationsForDateBracket(
                     $locations,
                     $natures,
