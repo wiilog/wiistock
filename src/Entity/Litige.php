@@ -280,6 +280,21 @@ class Litige
         return $this->articles;
     }
 
+    /**
+     * @return array|Article[]
+     */
+    public function getFiveLastArticles(): array
+    {
+            $lastFive = [];
+             $allArticle = $this->articles;
+             $max = count($allArticle) < 5 ? count($allArticle) : 5 ;
+
+             for ($i=0 ;$i < $max; $i++) {
+                 $lastFive[$i] = $allArticle[$i];
+             }
+        return $lastFive;
+    }
+
     public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
