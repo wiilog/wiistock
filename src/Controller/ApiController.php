@@ -992,6 +992,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     });
                 } catch (Exception $exception) {
+                    dump($exception);
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -1235,7 +1236,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     private function getDataArray($user,
                                   UserService $userService,
-                                  EntityManagerInterface $entityManager) {
+                                  EntityManagerInterface $entityManager)
+    {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
@@ -1287,8 +1289,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             // prises en cours
             $stockTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_STOCK);
-        }
-        else {
+        } else {
             // livraisons
             $livraisons = [];
             $articlesLivraison = [];
@@ -1317,7 +1318,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $statutRepository = $entityManager->getRepository(Statut::class);
             $manutentionRepository = $entityManager->getRepository(Manutention::class);
             $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
-
+            $manutentions = array_map(function (array $manutention) {
+                $manutention['date_attendue'] = $manutention['dateAttendueDT']->format('d/m/Y H:i:s');
+                return $manutention;
+            }, $manutentions);
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [

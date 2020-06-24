@@ -1817,19 +1817,18 @@ class ReceptionController extends AbstractController
             if (isset($demande) && $demande->getType()->getSendMail()) {
                 $nowDate = new DateTime('now');
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Conditionnement d\'une '
-                    . $translator->trans('réception.réception')
-                    . ' vous concernant',
+                    'FOLLOW GT // Réception d\'un colis '
+                    . 'de type «' . $demande->getType()->getLabel() . '».',
                     $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
-                        'title' => 'Votre ' . $translator->trans('réception.réception')
+                        'title' => 'Une ' . $translator->trans('réception.réception')
                             . ' '
                             . $reception->getNumeroReception()
-                            . ' de type '
+                            . ' de type «'
                             . $demande->getType()->getLabel()
-                            . ' a bien été conditionnée le '
+                            . '» a été réceptionnée le '
                             . $nowDate->format('d/m/Y \à H:i')
                             . '.',
                     ]),
