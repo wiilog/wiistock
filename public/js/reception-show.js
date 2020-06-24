@@ -349,11 +349,15 @@ function initNewReferenceArticleEditor() {
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, false);
+    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, false, (data) => {
+        let option = new Option(data.text, data.id, true, true);
+        $('#reception-add-ligne').append(option).trigger('change');
+    });
 }
 
 function addArticle() {
@@ -386,9 +390,9 @@ function clearAddRefModal() {
     $('.body-add-ref').css('display', 'none');
 }
 
-function InitialiserModalRefArticleFromRecep(modal, submit, path, close = true) {
+function InitialiserModalRefArticleFromRecep(modal, submit, path, close = true, successCallback = null) {
     submit.click(function () {
-        submitActionRefArticleFromRecep(modal, path, close);
+        submitActionRefArticleFromRecep(modal, path, close, successCallback);
     });
 }
 
@@ -396,7 +400,7 @@ function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
 }
 
-function submitActionRefArticleFromRecep(modal, path, close) {
+function submitActionRefArticleFromRecep(modal, path, close, successCallback) {
     let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
@@ -405,6 +409,7 @@ function submitActionRefArticleFromRecep(modal, path, close) {
             if (data.success) {
                 $('#innerNewRef').html('');
                 modal.find('.error-msg').html('');
+                if (successCallback) successCallback(data);
             } else {
                 modal.find('.error-msg').html(data.msg);
             }

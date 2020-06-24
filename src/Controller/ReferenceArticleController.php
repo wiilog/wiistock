@@ -454,7 +454,12 @@ class ReferenceArticleController extends AbstractController
                     $entityManager->flush();
                 }
             }
-            return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
+            return new JsonResponse([
+                'success' => true,
+                'new' => $this->refArticleDataService->dataRowRefArticle($refArticle),
+                'id' => $refArticle->getId(),
+                'text' => $refArticle->getReference(),
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -771,7 +776,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function addFournisseur(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
