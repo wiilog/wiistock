@@ -99,6 +99,9 @@ Class ColisService
                         MouvementTraca::TYPE_DEPOSE,
                         ['from' => $arrivage]
                     );
+                    foreach ($mouvementDepose->getConcernedColisLastDrops() as $colisMvt) {
+                        $mouvementDepose->persist($colisMvt);
+                    }
                     $this->entityManager->persist($mouvementDepose);
                 }
                 $colisList[] = $colis;

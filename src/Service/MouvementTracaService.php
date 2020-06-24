@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
@@ -12,6 +13,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Repository\ColisRepository;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -156,6 +158,8 @@ class MouvementTracaService
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
+        /** @var ColisRepository $colisRepository */
+        $colisRepository = $entityManager->getRepository(Colis::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -187,12 +191,31 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
+        $colisExisting = $colisRepository->findBy([
+            'code' => $colis
+        ]);
+
+        if (empty($colisExisting)) {
+            $newColis = new Colis();
+            $newColis
+                ->setCode($colis);
+            $colisExisting[] = $newColis;
+        }
+        foreach ($colisExisting as $colisExist) {
+            if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
+                $mouvementTraca
+                    ->addConcernedColisLastDrop($colisExist);
+            } else {
+                $colisExist
+                    ->setLastDrop(null);
+            }
+        }
+
         $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $colis])
-                        ?: $articleRepository->findOneBy(['barCode' => $colis]);
+            ?: $articleRepository->findOneBy(['barCode' => $colis]);
         if ($refOrArticle instanceof ReferenceArticle) {
             $mouvementTraca->setReferenceArticle($refOrArticle);
-        }
-        else if ($refOrArticle instanceof Article) {
+        } else if ($refOrArticle instanceof Article) {
             $mouvementTraca->setArticle($refOrArticle);
         }
 
@@ -214,7 +237,8 @@ class MouvementTracaService
     }
 
     private function generateUniqueIdForMobile(EntityManagerInterface $entityManager,
-                                               DateTime $date): string {
+                                               DateTime $date): string
+    {
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
         $uniqueId = null;

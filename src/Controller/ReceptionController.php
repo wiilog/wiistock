@@ -1375,8 +1375,7 @@ class ReceptionController extends AbstractController
                     ->setReceptionOrder($reception)
                     ->setDate($now);
                 $entityManager->persist($mouvementStock);
-
-                $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1388,7 +1387,11 @@ class ReceptionController extends AbstractController
                         'mouvementStock' => $mouvementStock,
                         'from' => $reception
                     ]
-                ));
+                );
+                foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
+                    $entityManager->persist($colisMvt);
+                }
+                $entityManager->persist($createdMvt);
             } else {
                 $articles = $receptionRA->getArticles();
                 foreach ($articles as $article) {
@@ -1403,7 +1406,7 @@ class ReceptionController extends AbstractController
                         ->setDate($now);
                     $entityManager->persist($mouvementStock);
 
-                    $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                    $createdMvt = $mouvementTracaService->createMouvementTraca(
                         $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
@@ -1415,7 +1418,11 @@ class ReceptionController extends AbstractController
                             'mouvementStock' => $mouvementStock,
                             'from' => $reception
                         ]
-                    ));
+                    );
+                    foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
+                        $entityManager->persist($colisMvt);
+                    }
+                    $entityManager->persist($createdMvt);
                 }
             }
         }

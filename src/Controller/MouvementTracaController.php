@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
@@ -133,6 +134,9 @@ class MouvementTracaController extends AbstractController
                     $post->getInt('type'),
                     ['commentaire' => $commentaire]
                 );
+                foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
+                    $entityManager->persist($colisMvt);
+                }
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
             } else {
@@ -150,6 +154,9 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
+                    foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
+                        $entityManager->persist($colisMvt);
+                    }
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $createdMvt = $this->mouvementTracaService->createMouvementTraca(
@@ -162,6 +169,9 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
+                    foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
+                        $entityManager->persist($colisMvt);
+                    }
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                 }
@@ -256,6 +266,7 @@ class MouvementTracaController extends AbstractController
             $post = $request->request;
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $colisRepository = $entityManager->getRepository(Colis::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
@@ -266,6 +277,28 @@ class MouvementTracaController extends AbstractController
             $operator = $utilisateurRepository->find($post->get('operator'));
 
             $mvt = $mouvementTracaRepository->find($post->get('id'));
+            if ($type->getNom() === MouvementTraca::TYPE_PRISE) {
+                $mvtColis = $mvt->getConcernedColisLastDrops();
+                foreach ($mvtColis as $mvtColi) {
+                    $mvt->removeConcernedColisLastDrop($mvtColi);
+                }
+            } else if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
+                $colisExisting = $colisRepository->findBy([
+                    'code' => $post->get('colis')
+                ]);
+
+                if (empty($colisExisting)) {
+                    $newColis = new Colis();
+                    $newColis
+                        ->setCode($post->get('colis'));
+                    $colisExisting[] = $newColis;
+                }
+                foreach ($colisExisting as $colisExist) {
+                    $mvt
+                        ->addConcernedColisLastDrop($colisExist);
+                    $entityManager->persist($colisExist);
+                }
+            }
             $mvt
                 ->setDatetime($date)
                 ->setOperateur($operator)
@@ -339,8 +372,8 @@ class MouvementTracaController extends AbstractController
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
         }
-        catch(\Throwable $throwable) {}
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
@@ -374,7 +407,7 @@ class MouvementTracaController extends AbstractController
                     $row[] = $mouvement['typeName'] ?: '';
                     $row[] = $mouvement['operatorUsername'] ?: '';
                     $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
-                    $row[] = $attachmentsNameByMouvementTraca[(int) $mouvement['id']] ?? '';
+                    $row[] = $attachmentsNameByMouvementTraca[(int)$mouvement['id']] ?? '';
                     $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
                     $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
                         ? implode(', ', $mouvement['numeroCommandeListArrivage'])
@@ -383,8 +416,7 @@ class MouvementTracaController extends AbstractController
                     return [$row];
                 }
             );
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('404');
         }
     }
@@ -462,7 +494,8 @@ class MouvementTracaController extends AbstractController
      * @param FileBag|array $files
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager) {
+    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager)
+    {
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);

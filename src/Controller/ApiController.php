@@ -405,6 +405,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             foreach ($createdMvt->getAttachements() as $attachement) {
                                 $entityManager->persist($attachement);
                             }
+                            foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
+                                $entityManager->persist($colisMvt);
+                            }
                             $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
 
