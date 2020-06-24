@@ -564,8 +564,7 @@ function initNewLigneReception($button) {
                             }
                         }
                     })
-                    .catch(() => {/* we handle form error */
-                    })
+                    .catch(() => {/* we handle form error */})
             ));
         }
     });

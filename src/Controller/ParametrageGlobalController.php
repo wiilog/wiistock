@@ -438,16 +438,17 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/changer-parametres-reception", name="toggle_reception_param", options={"expose"=true}, methods="GET|POST")
+     * @Route("/changer-parametres", name="toggle_params", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function toggleReceptionParam(Request $request,
-                                             ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    public function toggleParams(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
             $em = $this->getDoctrine()->getManager();
             if ($ifExist) {
