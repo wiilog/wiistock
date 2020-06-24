@@ -73,7 +73,7 @@ function finishCollecte($button, withoutLocation = false) {
     $rowsSelected.each(function() {
         const $rowData = $(this).find('.ordre-collecte-data');
         rowsData.push({
-            'reference': $rowData.data('ref'),
+            'barcode': $rowData.data('bar-code'),
             'is_ref': $rowData.data('is-ref'),
             'quantity': $rowData.data('quantity')
         });
