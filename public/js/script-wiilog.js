@@ -698,6 +698,10 @@ function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
 }
 
+function ajaxAutoDisputeInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_litige'});
+}
+
 function ajaxAutoDemandCollectInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demand_collect'});
 }
@@ -1203,6 +1207,7 @@ function displayFiltersSup(data) {
             case 'carriers':
             case 'emplacement':
             case 'demCollecte':
+            case 'disputeNumber':
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);

@@ -45,7 +45,6 @@ class FiltreSupController extends AbstractController
                 'arrivage_string' => FiltreSup::FIELD_ARRIVAGE_STRING,
                 'reception_string' => FiltreSup::FIELD_RECEPTION_STRING,
                 'litigeOrigin' => FiltreSup::FIELD_LITIGE_ORIGIN,
-                'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER,
                 'commande' => FiltreSup::FIELD_COMMANDE,
                 'numArrivage' => FiltreSup::FIELD_NUM_ARRIVAGE,
                 'anomaly' => FiltreSup::FIELD_ANOMALY,
@@ -91,7 +90,8 @@ class FiltreSupController extends AbstractController
                 'providers' => FiltreSup::FIELD_PROVIDERS,
                 'demCollecte' => FiltreSup::FIELD_DEM_COLLECTE,
                 'demande' => FiltreSup::FIELD_DEMANDE,
-                'natures' => FiltreSup::FIELD_NATURES
+                'natures' => FiltreSup::FIELD_NATURES,
+                'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

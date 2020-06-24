@@ -468,4 +468,23 @@ class LitigeController extends AbstractController
 
         return new JsonResponse($user->getColumnsVisibleForLitige());
     }
+
+    /**
+     * @Route("/autocomplete", name="get_litige", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getLitigeAutoComplete(Request $request,
+                                        EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $utilisateurRepository = $entityManager->getRepository(Litige::class);
+            $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
+            return new JsonResponse(['results' => $user]);
+        }
+        throw new NotFoundHttpException("404");
+    }
 }

@@ -313,9 +313,10 @@ class LitigeRepository extends EntityRepository
 						->setParameter('isUrgent', $filter['value']);
 					break;
                 case 'disputeNumber':
+                    $value = explode(',', $filter['value']);
                     $qb
-                        ->andWhere('l.numeroLitige = :disputeNumber')
-                        ->setParameter('disputeNumber', $filter['value']);
+                        ->andWhere('l.id in (:disputeNumber)')
+                        ->setParameter('disputeNumber', $value);
                     break;
 			}
 		}
@@ -480,5 +481,17 @@ class LitigeRepository extends EntityRepository
 
         $result = $query->execute();
         return $result ? $result[0]['numeroLitige'] : null;
+    }
+
+    public function getIdAndDisputeNumberBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT l.id, l.numeroLitige as text
+          FROM App\Entity\Litige l
+          WHERE l.numeroLitige LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
     }
 }

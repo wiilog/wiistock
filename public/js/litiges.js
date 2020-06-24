@@ -18,14 +18,15 @@ $(function () {
     initSelect2($('#carriers'), 'Transporteurs');
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#litigeOrigin'), 'Origines');
-    initSelect2($('#disputeNumberFilter'), 'Numero du litige');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+    ajaxAutoDisputeInit($('.ajax-autocomplete-dispute'),'Numéro de litige');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_LITIGE_ARR);
     $.post(path, params, function (data) {
         displayFiltersSup(data);
+        console.log(data);
     }, 'json');
 
     initDatatableLitiges();
