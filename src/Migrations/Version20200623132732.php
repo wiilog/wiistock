@@ -62,6 +62,7 @@ final class Version20200623132732 extends AbstractMigration implements Container
             $cpt++;
             if ($cpt === 500) {
                 $cpt = 0;
+                $em->flush();
                 $em->clear();
                 dump('500 de plus');
             }

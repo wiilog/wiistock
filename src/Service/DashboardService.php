@@ -616,10 +616,10 @@ class DashboardService
             $response = [];
             $response['delay'] = null;
             if (!$isPack && $delay) {
-                $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locations, $onDateBracket, false, 'lastDrop.datetime', 1);
+                $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locations, [], $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-                    $lastEnCoursDateTime = new DateTime($lastEnCours[0], new DateTimeZone('Europe/Paris'));
+                    $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
                     $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime, $workFreeDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $delay);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
@@ -633,7 +633,7 @@ class DashboardService
                 },
                 ''
             );
-            $response['count'] = $colisRepository->getDropsOnLocationsForDateBracket($locationsId, $onDateBracket);
+            $response['count'] = $colisRepository->getDropsOnLocationsForDateBracket($locationsId, [], $onDateBracket);
         } else {
             $response = null;
         }
