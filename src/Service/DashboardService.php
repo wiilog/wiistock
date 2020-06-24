@@ -614,7 +614,7 @@ class DashboardService
             $response = [];
             $response['delay'] = null;
             if ($delay) {
-                $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locations, [], $onDateBracket, false, 'lastDrop.datetime', 1);
+                $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
