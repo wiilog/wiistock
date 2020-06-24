@@ -154,7 +154,7 @@ class ColisRepository extends EntityRepository
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
             ->select($isCount ? ($queryBuilderExpr->count($field)) : $field)
-            ->join('colis.nature', 'nature')
+            ->leftJoin('colis.nature', 'nature')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement');
         if (!empty($locations)) {
