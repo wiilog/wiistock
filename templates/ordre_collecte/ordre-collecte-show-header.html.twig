@@ -9,15 +9,15 @@
         {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
 
         {% if hasRightFinish %}
-            <div class="btn btn-primary btn-ripple {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
+            <button class="btn btn-primary btn-ripple {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
                     {% if collecte.demandeCollecte ? collecte.demandeCollecte.stockOrDestruct : false %}
                         onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement')), checkIfRowSelected(openLocationModal)"
                     {% else %}
-                        onclick="checkIfRowSelected(() => finishCollecte(true))"
+                        onclick="checkIfRowSelected(() => finishCollecte($(this), true))"
                     {% endif %}>
-                <i class='fas fa-check mr-2'></i>
+                <i class='fas fa-check mr-2 button-icon'></i>
                 Finir la collecte
-            </div>
+            </button>
         {% endif %}
         {% if (hasRightDemandeCollecte or hasRightDeleteOrdre) %}
             <button type="button"

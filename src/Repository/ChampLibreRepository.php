@@ -226,6 +226,24 @@ class ChampLibreRepository extends EntityRepository
 		return $query->execute();
 	}
 
+    public function findByCategoryTypeLabelsMulti($categoryTypeLabels,$categoryTypeLabels2)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.label
+            FROM App\Entity\ChampLibre c
+            JOIN c.type t
+            JOIN t.category cat
+            WHERE cat.label in (:categoryTypeLabels , :categoryTypeLabels2) "
+        )->setParameters(['categoryTypeLabels' => $categoryTypeLabels,
+            'categoryTypeLabels2' => $categoryTypeLabels2
+            ]);
+
+        return $query->getResult();
+    }
+
+
+
 	/**
 	 * @param string $categoryCL
 	 * @param string $label

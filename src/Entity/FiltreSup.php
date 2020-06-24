@@ -12,7 +12,8 @@ class FiltreSup
 	const FIELD_DATE_MIN = 'dateMin';
 	const FIELD_DATE_MAX = 'dateMax';
 	const FIELD_STATUT = 'statut';
-	const FIELD_USERS = 'utilisateurs';
+    const FIELD_USERS = 'utilisateurs';
+    const FIELD_DECLARANTS = 'declarants';
 	const FIELD_CARRIERS = 'carriers';
 	const FIELD_PROVIDERS = 'providers';
 	const FIELD_TYPE = 'type';

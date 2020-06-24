@@ -47,11 +47,16 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
  */
 function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true) {
     submit.click(function () {
-        submitAction(modal, path, table, callback, close, clear);
+        submitAction(modal, path, table, close, clear)
+            .then((data) => {
+                if (callback) {
+                    callback(data);
+                }
+            })
     });
 }
 
-function submitAction(modal, path, table = null, callback = null, close = true, clear = true) {
+function submitAction(modal, path, table = null, close = true, clear = true) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -190,28 +195,32 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         if (close == true) {
             modal.find('.close').click();
         }
-        $.post(path, JSON.stringify(Data), function (data) {
-            if (data.redirect) {
-                window.location.href = data.redirect;
-                return;
-            }
-            // pour mise à jour des données d'en-tête après modification
-            if (data.entete) {
-                $('.zone-entete').html(data.entete)
-            }
-            if (table) {
-                table.ajax.reload(null, false);
-            }
 
-            if (clear) {
-                clearModal(modal);
-            }
+        return $
+            .post({
+                url: path,
+                dataType: 'json',
+                data: JSON.stringify(Data)
+            })
+            .then((data) => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                // pour mise à jour des données d'en-tête après modification
+                if (data.entete) {
+                    $('.zone-entete').html(data.entete)
+                }
+                if (table) {
+                    table.ajax.reload(null, false);
+                }
 
-            if (callback !== null) {
-                callback(data);
-            }
-        }, 'json');
+                if (clear) {
+                    clearModal(modal);
+                }
 
+                return data;
+            });
     } else {
         // ... sinon on construit les messages d'erreur
         let msg = '';
@@ -265,6 +274,10 @@ function submitAction(modal, path, table = null, callback = null, close = true, 
         }
 
         modal.find('.error-msg').html(msg);
+
+        return new Promise((_, reject) => {
+            reject(false);
+        });
     }
 }
 
@@ -637,11 +650,14 @@ function initSelect2($select,
     });
 }
 
-function initDisplaySelect2(select, inputValue) {
+function initDisplaySelect2(select, inputValue, forceInit = false) {
     let data = $(inputValue).data();
+    const $select = $(select);
     if (data.id && data.text) {
         let option = new Option(data.text, data.id, true, true);
-        $(select).append(option).trigger('change');
+        $select.append(option).trigger('change');
+    } else if (forceInit) {
+        $select.val(null).trigger('change');
     }
 }
 
@@ -666,12 +682,13 @@ function ajaxAutoCompleteTransporteurInit(select) {
     initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
-function ajaxAutoRefArticleInit(select, typeQuantity = null) {
+function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference') {
     initSelect2(select, '', 1, {
         route: 'get_ref_articles',
         param:
             {
                 activeOnly: 1,
+                field,
                 typeQuantity
             }
     });
@@ -686,8 +703,8 @@ function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
     initSelect2(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
 }
 
-function ajaxAutoFournisseurInit(select, placeholder = '') {
-    initSelect2(select, placeholder, 1, {route: 'get_fournisseur'});
+function ajaxAutoFournisseurInit(select, placeholder = '', route = 'get_fournisseur') {
+    initSelect2(select, placeholder, 1, { route });
 }
 
 function ajaxAutoChauffeurInit(select) {
@@ -1108,7 +1125,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
     }
 }
 
-function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null) {
+function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YYYY', minDate = false, defaultHours = null, defaultMinutes = null, disableDates = null) {
     let options = {
         format: format,
         useCurrent: false,
@@ -1126,6 +1143,9 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax', format = 'DD/MM/YY
             selectDecade: 'Choisir la décennie',
         }
     };
+    if (disableDates) {
+        options.disabledDates = disableDates;
+    }
     if (minDate) {
         options.minDate = moment().hours(0).minutes(0).seconds(0);
     }
@@ -1201,6 +1221,7 @@ function displayFiltersSup(data) {
     data.forEach(function (element) {
         switch (element.field) {
             case 'utilisateurs':
+            case 'declarants':
             case 'providers':
             case 'reference':
             case 'statut':
@@ -1453,16 +1474,38 @@ function wrapLoadingOnActionButton($button, action, endLoading = true) {
         }
         $button.prepend($loader);
         $button.addClass(loadingClass);
-        action().then((success) => {
-            if (endLoading || !success) {
-                $button.find('.spinner-border').remove();
-                if ($buttonIcon.length > 0) {
-                    $buttonIcon.removeClass('d-none');
+        if(action) {
+            action().then((success) => {
+                if (endLoading || !success) {
+                    $button.find('.spinner-border').remove();
+                    if ($buttonIcon.length > 0) {
+                        $buttonIcon.removeClass('d-none');
+                    }
+                    $button.removeClass(loadingClass);
                 }
-                $button.removeClass(loadingClass);
-            }
-        });
+            });
+        }
     } else {
         alertSuccessMsg('L\'opération est en cours de traitement');
+    }
+}
+
+
+function fillDemandeurField($modal) {
+    const $operatorSelect = $modal.find('.select2-declarant');
+    const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
+    if ($loggedUserInput.data('id')) {
+        let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+        $operatorSelect
+            .select2()
+            .val(null)
+            .trigger('change')
+            .append(option)
+            .trigger('change');
+    } else {
+        $operatorSelect
+            .select2()
+            .val(null)
+            .trigger('change');
     }
 }

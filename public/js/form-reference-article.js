@@ -141,6 +141,31 @@ function addArticleFournisseurReferenceArticle($plusButton) {
 }
 
 function loadAndDisplayInfos($select) {
+    const $form = $select.parents('.ligneFournisseurArticle');
+    const $nomSelect = $form.find('.ajax-autocompleteFournisseurLabel');
+    if($select.val()) {
+        const [selected] = $select.select2('data');
+        if (selected) {
+            const {id, name} = selected;
+            const [nomSelectSelected] = $nomSelect.select2('data');
+            const selectNomFournisseur = () => {
+                let option = new Option(name, id, true, true);
+                $nomSelect.append(option).trigger('change');
+            }
+            if (nomSelectSelected) {
+                const {id: nomSelectId} = nomSelectSelected;
+                if (id !== nomSelectId) {
+                    selectNomFournisseur();
+                }
+            }
+            else {
+                selectNomFournisseur();
+            }
+        }
+    }
+    else {
+        $nomSelect.val(null).trigger('change');
+    }
     let $modal = $select.closest('.modal');
 
     $select.parent()
@@ -151,4 +176,31 @@ function loadAndDisplayInfos($select) {
     $modal.find('span[role="textbox"]').each(function () {
         $(this).parent().css('border-color', '');
     });
+}
+function loadAndDisplayLabels($select) {
+    const $form = $select.parents('.ligneFournisseurArticle');
+    const $codeSelect = $form.find('.ajax-autocompleteFournisseur');
+    if($select.val()) {
+        const [selected] = $select.select2('data');
+        if (selected) {
+            const {id, code} = selected;
+            const [codeSelectSelected] = $codeSelect.select2('data');
+            const selectCodeFournisseur = () => {
+                let option = new Option(code, id, true, true);
+                $codeSelect.append(option).trigger('change');
+            }
+            if (codeSelectSelected) {
+                const {id: codeSelectId} = codeSelectSelected;
+                if (id !== codeSelectId) {
+                    selectCodeFournisseur();
+                }
+            }
+            else {
+                selectCodeFournisseur();
+            }
+        }
+    }
+    else {
+        $codeSelect.val(null).trigger('change');
+    }
 }

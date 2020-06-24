@@ -1,0 +1,47 @@
+{% extends 'mails/mjml/template.html.twig' %}
+
+{% set isReception = (isReception is defined and isReception) %}
+{% block content %}
+    <table class="table" style="border: 1px solid black;">
+        <thead>
+        <tr>
+            <th class="th" style="border: 1px solid black; padding: 10px">{{ 'reference.référence'|trans }}</th>
+            <th class="th" style="border: 1px solid black; padding: 10px">Code barre {{ 'reference.référence'|trans }}</th>
+            <th class="th" style="border: 1px solid black; padding: 10px">Code barre article</th>
+            {% if isReception %}
+                <th class="th" style="border: 1px solid black; padding: 10px">Commande</th>
+                <th class="th" style="border: 1px solid black; padding: 10px">Fournisseur</th>
+            {% endif %}
+            <th class="th" style="border: 1px solid black; padding: 10px">Quantité</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for article in demande.articles %}
+            <tr>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.reference }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.articleFournisseur.referenceArticle.barCode }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.barCode }}</td>
+                {% if isReception %}
+                    <td class="td" style="border: 1px solid black; padding: 10px">{{ article.receptionReferenceArticle.commande }}</td>
+                    <th class="td" style="border: 1px solid black; padding: 10px">
+                        {{ article.articleFournisseur.fournisseur ? article.articleFournisseur.fournisseur.nom : ''}}</th>
+                {% endif %}
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ article.quantiteAPrelever == 0 ? article.quantite : article.quantiteAPrelever }}</td>
+            </tr>
+        {% endfor %}
+        {% for demandeRef in demande.ligneArticle %}
+            <tr>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.reference.reference }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.reference.barCode }}</td>
+                <td class="td" style="border: 1px solid black; padding: 10px"></td>
+                {% if fournisseur is defined %}
+                    <th class="th" style="border: 1px solid black; padding: 10px">{{ fournisseur }}</th>
+                {% endif %}
+                <td class="td" style="border: 1px solid black; padding: 10px">{{ demandeRef.quantite }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+{% endblock %}

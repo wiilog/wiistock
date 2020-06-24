@@ -1,5 +1,6 @@
 let allowedLogoExtensions = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg'];
 let pathDays = Routing.generate('days_param_api', true);
+let disabledDates = [];
 let tableDaysConfig = {
     ajax: {
         "url": pathDays,
@@ -19,7 +20,9 @@ let tableDaysConfig = {
         needsRowClickAction: true,
     }
 };
+
 let tableDays = initDataTable('tableDays', tableDaysConfig);
+let workFreeDaysTable;
 
 let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
@@ -38,8 +41,37 @@ $(function () {
     // config tableau de bord : emplacements
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
-    $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
+    $('#locationDemandeLivraison').on('change', function() {
+        editDemandeLivraisonDestination($(this));
+    });
     // config tableau de bord : transporteurs
+
+    const inputWorkFreeDayAlreadyAdd = JSON.parse($('#workFreeDays input[type="hidden"][name="already-work-free-days"]').val());
+    disabledDates = inputWorkFreeDayAlreadyAdd.map((dateStr) => moment(dateStr, 'YYYY-MM-DD'));
+    initDateTimePicker(
+        '#workFreeDays input[name="newWorkFreeDay"]',
+        "DD/MM/YYYY",
+        false,
+        null,
+        null,
+        disabledDates
+    );
+
+    let tableNonWorkedDaysConfig = {
+        ajax: {
+            "url": Routing.generate('workFreeDays_table_api', true),
+            "type": "GET"
+        },
+        columns: [
+            { "data": 'actions', className: 'noVis', orderable: false},
+            { "data": 'day', 'title': 'Jour', orderable: false },
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        order: [],
+    };
+    workFreeDaysTable = initDataTable('tableWorkFreeDays', tableNonWorkedDaysConfig);
 });
 
 function initSelect2ValuesForDashboard() {
@@ -81,8 +113,12 @@ function errorEditDays(data) {
     }
 }
 
-function updateToggledParam(switchButton, path) {
-    $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function (resp) {
+function updateToggledParam(switchButton) {
+    let params = {
+        val: switchButton.is(':checked'),
+        param: switchButton.data('param'),
+    };
+    $.post(Routing.generate('toggle_params', true), JSON.stringify(params), function (resp) {
         if (resp) {
             alertSuccessMsg('La modification du paramétrage a bien été prise en compte.');
         } else {
@@ -355,4 +391,50 @@ function fileToImagePreview($fileInput) {
             alertErrorMsg('Veuillez choisir une image valide (png, jpeg, jpg).', true)
         }
     }
+}
+
+function addWorkFreeDay($button) {
+    const $input = $button.siblings('input[name="newWorkFreeDay"]');
+    if ($input.val()) {
+        const date = moment($input.val(), 'DD/MM/YYYY').format('YYYY-MM-DD');
+        let path = Routing.generate('workFreeDay_new', true);
+        $.post(path, {date}, (resp) => {
+            if (resp.success) {
+                let datetimeMoment = moment(date);
+                disabledDates.push(datetimeMoment);
+                $input.data('DateTimePicker').disabledDates(disabledDates);
+                $input.val('');
+
+                workFreeDaysTable.ajax.reload();
+                alertSuccessMsg(resp.text);
+            } else {
+                alertErrorMsg(resp.text);
+            }
+        });
+    } else {
+        alertErrorMsg('Veuillez sélectionner une date valide.');
+    }
+}
+
+function deleteWorkFreeDay(id, date) {
+    $.ajax({
+        url: Routing.generate('workFreeDay_delete', true),
+        type: 'DELETE',
+        data: {id},
+        success: (resp) => {
+            if (resp.success) {
+                const $input = $('#workFreeDays input[name="newWorkFreeDay"]');
+                let datetimeToRemove = moment(date);
+                const indexOfDeleted = disabledDates.findIndex((dateSaved) => datetimeToRemove.isSame(dateSaved.format('YYYY-MM-DD')));
+                if (indexOfDeleted > -1) {
+                    disabledDates.splice(indexOfDeleted, 1);
+                    $input.data('DateTimePicker').disabledDates(disabledDates);
+                }
+                workFreeDaysTable.ajax.reload();
+                alertSuccessMsg(resp.message);
+            } else {
+                alertErrorMsg(resp.message);
+            }
+        }
+    });
 }

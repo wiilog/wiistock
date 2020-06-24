@@ -90,3 +90,12 @@ let modalDeleteLivraison = $('#modalDeleteLivraison');
 let submitDeleteLivraison = $('#submitDeleteLivraison');
 let urlDeleteLivraison = Routing.generate('livraison_delete', {'id': id}, true);
 InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);
+
+function endLivraison(livraisonId, $button) {
+    wrapLoadingOnActionButton($button, () => (
+        new Promise(function (resolve) {
+            window.location.href = Routing.generate('livraison_finish', {'id': livraisonId});
+            resolve(true);
+        })
+    ), false);
+}
