@@ -140,15 +140,29 @@ class ColisRepository extends EntityRepository
     }
 
 
-    public function getDropsOnLocationsForDateBracket(array $locations,
-                                                      array $natures,
-                                                      array $dateBracket,
-                                                      bool $isCount = true,
-                                                      string $field = 'colis.id',
-                                                      ?int $limit = null,
-                                                      ?int $start = null,
-                                                      string $order = 'desc',
-                                                      bool $onlyLate = false)
+    /**
+     * @param array $locations
+     * @param array $natures
+     * @param array $dateBracket
+     * @param bool $isCount
+     * @param string $field
+     * @param int|null $limit
+     * @param int|null $start
+     * @param string $order
+     * @param bool $onlyLate
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getCurrentPackOnLocations(array $locations,
+                                              array $natures,
+                                              array $dateBracket,
+                                              bool $isCount = true,
+                                              string $field = 'colis.id',
+                                              ?int $limit = null,
+                                              ?int $start = null,
+                                              string $order = 'desc',
+                                              bool $onlyLate = false)
     {
         $queryBuilder = $this->createQueryBuilder('colis');
         $queryBuilderExpr = $queryBuilder->expr();

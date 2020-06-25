@@ -614,7 +614,7 @@ class DashboardService
             $response = [];
             $response['delay'] = null;
             if ($delay) {
-                $lastEnCours = $colisRepository->getDropsOnLocationsForDateBracket($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
+                $lastEnCours = $colisRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
@@ -631,7 +631,7 @@ class DashboardService
                 },
                 ''
             );
-            $response['count'] = $colisRepository->getDropsOnLocationsForDateBracket($locationsId, [], $onDateBracket);
+            $response['count'] = $colisRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket);
         } else {
             $response = null;
         }

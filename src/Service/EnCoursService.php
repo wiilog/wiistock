@@ -174,7 +174,7 @@ class EnCoursService
         if ($onlyLate) {
             while (count($emplacementInfo) < 100) {
                 $oldestDrops = [];
-                $oldestDrops[] = $colisRepository->getDropsOnLocationsForDateBracket(
+                $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
                     $locations,
                     $natures,
                     [],
@@ -209,7 +209,7 @@ class EnCoursService
             }
             $emplacementInfo = array_slice($emplacementInfo, 0, 100);
         } else {
-            $oldestDrops[] = $colisRepository->getDropsOnLocationsForDateBracket(
+            $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
                 $locations,
                 $natures,
                 [],
