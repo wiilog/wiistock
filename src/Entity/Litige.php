@@ -285,14 +285,8 @@ class Litige
      */
     public function getFiveLastArticles(): array
     {
-            $lastFive = [];
-             $allArticle = $this->articles;
-             $max = count($allArticle) < 5 ? count($allArticle) : 5 ;
 
-             for ($i=0 ;$i < $max; $i++) {
-                 $lastFive[$i] = $allArticle[$i];
-             }
-        return $lastFive;
+        return array_slice($this->articles->toArray(), 0, 5);
     }
 
     public function addArticle(Article $article): self

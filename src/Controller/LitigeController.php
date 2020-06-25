@@ -489,22 +489,18 @@ class LitigeController extends AbstractController
      */
     public function articlesByLitige(Litige $litige): Response
     {
+        $rows = [];
+        $articlesInLitige = $litige->getFiveLastArticles();
 
-            $rows = [];
-            $articlesInLitige = $litige->getFiveLastArticles();
-
-            foreach ($articlesInLitige as $article)
-            {
-                $rows[] = [
-                    'codeArticle' => $article ? $article->getBarCode() : '',
-                    'status' => $article->getStatut() ? $article->getStatut()->getNom(): '',
-                    'libelle' => $article->getLabel() ? $article->getLabel() : '',
-                    'reference' => $article->getReference() ? $article->getReference() : '',
-                    'quantity' => $article ? $article->getQuantite() : 'non renseigné',
-                ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
-
-        throw new NotFoundHttpException('404');
+        foreach ($articlesInLitige as $article) {
+            $rows[] = [
+                'codeArticle' => $article ? $article->getBarCode() : '',
+                'status' => $article->getStatut() ? $article->getStatut()->getNom() : '',
+                'libelle' => $article->getLabel() ? $article->getLabel() : '',
+                'reference' => $article->getReference() ? $article->getReference() : '',
+                'quantity' => $article ? $article->getQuantite() : 'non renseigné',
+            ];
+        }
+        $data['data'] = $rows;
+        return new JsonResponse($data);
 }}

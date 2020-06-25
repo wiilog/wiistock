@@ -162,6 +162,8 @@ function openTableHisto() {
     openTableArticleLitige();
 }
 
+let tableArticleLitige;
+
 function openTableArticleLitige() {
 
     let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
