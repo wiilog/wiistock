@@ -40,7 +40,7 @@ class Colis
     private $nature;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="concernedColisLastDrops")
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrops")
      */
     private $lastDrop;
 

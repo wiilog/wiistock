@@ -395,9 +395,7 @@ class OrdreCollecteService
             MouvementTraca::TYPE_PRISE,
             ['mouvementStock' => $mouvementStock]
         );
-        foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
-            $createdMvt->persist($colisMvt);
-        }
+        $this->mouvementTracaService->persistSubEntities($this->entityManager, $createdMvt);
         $this->entityManager->persist($createdMvt);
 
         // si on est sur la supervision
@@ -415,9 +413,7 @@ class OrdreCollecteService
                 MouvementTraca::TYPE_DEPOSE,
                 ['mouvementStock' => $mouvementStock]
             );
-            foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
-                $createdMvt->persist($colisMvt);
-            }
+            $this->mouvementTracaService->persistSubEntities($this->entityManager, $createdMvt);
             $this->entityManager->persist($createdMvt);
 
             // On fini le mouvement de stock

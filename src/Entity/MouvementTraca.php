@@ -99,13 +99,13 @@ class MouvementTraca
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="lastDrop")
      */
-    private $concernedColisLastDrops;
+    private $linkedPackLastDrops;
 
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
         $this->emplacement = new ArrayCollection();
-        $this->concernedColisLastDrops = new ArrayCollection();
+        $this->linkedPackLastDrops = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -302,28 +302,28 @@ class MouvementTraca
     /**
      * @return Collection|Colis[]
      */
-    public function getConcernedColisLastDrops(): Collection
+    public function getLinkedPackLastDrops(): Collection
     {
-        return $this->concernedColisLastDrops;
+        return $this->linkedPackLastDrops;
     }
 
-    public function addConcernedColisLastDrop(Colis $concernedColisLastDrop): self
+    public function addLinkedPackLastDrop(Colis $linkedPackLastDrop): self
     {
-        if (!$this->concernedColisLastDrops->contains($concernedColisLastDrop)) {
-            $this->concernedColisLastDrops[] = $concernedColisLastDrop;
-            $concernedColisLastDrop->setLastDrop($this);
+        if (!$this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
+            $this->linkedPackLastDrops[] = $linkedPackLastDrop;
+            $linkedPackLastDrop->setLastDrop($this);
         }
 
         return $this;
     }
 
-    public function removeConcernedColisLastDrop(Colis $concernedColisLastDrop): self
+    public function removeLinkedPacksLastDrop(Colis $linkedPackLastDrop): self
     {
-        if ($this->concernedColisLastDrops->contains($concernedColisLastDrop)) {
-            $this->concernedColisLastDrops->removeElement($concernedColisLastDrop);
+        if ($this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
+            $this->linkedPackLastDrops->removeElement($linkedPackLastDrop);
             // set the owning side to null (unless already changed)
-            if ($concernedColisLastDrop->getLastDrop() === $this) {
-                $concernedColisLastDrop->setLastDrop(null);
+            if ($linkedPackLastDrop->getLastDrop() === $this) {
+                $linkedPackLastDrop->setLastDrop(null);
             }
         }
 

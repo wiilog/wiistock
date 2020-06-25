@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\MouvementTraca;
@@ -134,9 +133,7 @@ class MouvementTracaController extends AbstractController
                     $post->getInt('type'),
                     ['commentaire' => $commentaire]
                 );
-                foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
-                    $entityManager->persist($colisMvt);
-                }
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
             } else {
@@ -154,11 +151,10 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
-                    foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
-                        $entityManager->persist($colisMvt);
-                    }
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
+
                     $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                         $colis,
                         $emplacementDepose,
@@ -169,9 +165,7 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
-                    foreach ($createdMvt->getConcernedColisLastDrops() as $colisMvt) {
-                        $entityManager->persist($colisMvt);
-                    }
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                 }
@@ -256,6 +250,7 @@ class MouvementTracaController extends AbstractController
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
+                         MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -266,7 +261,6 @@ class MouvementTracaController extends AbstractController
             $post = $request->request;
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $colisRepository = $entityManager->getRepository(Colis::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
@@ -276,29 +270,16 @@ class MouvementTracaController extends AbstractController
             $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
 
+            /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
-            if ($type->getNom() === MouvementTraca::TYPE_PRISE) {
-                $mvtColis = $mvt->getConcernedColisLastDrops();
-                foreach ($mvtColis as $mvtColi) {
-                    $mvt->removeConcernedColisLastDrop($mvtColi);
-                }
-            } else if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
-                $colisExisting = $colisRepository->findBy([
-                    'code' => $post->get('colis')
-                ]);
+            $mouvementTracaService->managePackLinksWithTracking(
+                $mvt,
+                $entityManager,
+                $type,
+                $post->get('colis'),
+                true
+            );
 
-                if (empty($colisExisting)) {
-                    $newColis = new Colis();
-                    $newColis
-                        ->setCode($post->get('colis'));
-                    $colisExisting[] = $newColis;
-                }
-                foreach ($colisExisting as $colisExist) {
-                    $mvt
-                        ->addConcernedColisLastDrop($colisExist);
-                    $entityManager->persist($colisExist);
-                }
-            }
             $mvt
                 ->setDatetime($date)
                 ->setOperateur($operator)

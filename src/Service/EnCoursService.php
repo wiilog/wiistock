@@ -6,8 +6,6 @@ namespace App\Service;
 
 use App\Entity\Colis;
 use App\Entity\DaysWorked;
-use App\Entity\Emplacement;
-use App\Entity\MouvementTraca;
 use App\Entity\WorkFreeDay;
 use App\Repository\ColisRepository;
 use DateInterval;
@@ -149,7 +147,7 @@ class EnCoursService
      */
     public function getLastEnCoursForLate()
     {
-        return $this->getEnCours([], [], true, 100);
+        return $this->getEnCours([], [], true);
     }
 
     /**
@@ -160,7 +158,7 @@ class EnCoursService
      * @return array
      * @throws Exception
      */
-    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = null): array
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = 100): array
     {
         /** @var ColisRepository $colisRepository */
         $colisRepository = $this->entityManager->getRepository(Colis::class);
@@ -172,7 +170,8 @@ class EnCoursService
         $emplacementInfo = [];
 
         if ($onlyLate) {
-            while (count($emplacementInfo) < 100) {
+            $maxQueryResultLength = 200;
+            while (count($emplacementInfo) < $limitOnlyLate) {
                 $oldestDrops = [];
                 $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
                     $locations,
@@ -180,7 +179,7 @@ class EnCoursService
                     [],
                     false,
                     'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label',
-                    200,
+                    $maxQueryResultLength,
                     $dropsCounter,
                     'asc',
                     true
@@ -204,10 +203,13 @@ class EnCoursService
                             'emp' => $oldestDrop['label']
                         ];
                     }
+
+                    if (count($emplacementInfo) >= $limitOnlyLate) {
+                        break; // break foreach
+                    }
                 }
-                $dropsCounter += 200;
+                $dropsCounter += $maxQueryResultLength;
             }
-            $emplacementInfo = array_slice($emplacementInfo, 0, 100);
         } else {
             $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
                 $locations,

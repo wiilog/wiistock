@@ -13,7 +13,6 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ColisRepository;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
@@ -158,8 +157,6 @@ class MouvementTracaService
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
-        /** @var ColisRepository $colisRepository */
-        $colisRepository = $entityManager->getRepository(Colis::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -191,25 +188,13 @@ class MouvementTracaService
             ->setMouvementStock($mouvementStock)
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
-        $colisExisting = $colisRepository->findBy([
-            'code' => $colis
-        ]);
 
-        if (empty($colisExisting)) {
-            $newColis = new Colis();
-            $newColis
-                ->setCode($colis);
-            $colisExisting[] = $newColis;
-        }
-        foreach ($colisExisting as $colisExist) {
-            if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
-                $mouvementTraca
-                    ->addConcernedColisLastDrop($colisExist);
-            } else {
-                $colisExist
-                    ->setLastDrop(null);
-            }
-        }
+        $this->managePackLinksWithTracking(
+            $mouvementTraca,
+            $entityManager,
+            $type,
+            $colis
+        );
 
         $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $colis])
             ?: $articleRepository->findOneBy(['barCode' => $colis]);
@@ -252,5 +237,49 @@ class MouvementTracaService
         } while (!empty($existingMouvements));
 
         return $uniqueId;
+    }
+
+    public function persistSubEntities(EntityManagerInterface $entityManager,
+                                       MouvementTraca $mouvementTraca) {
+        foreach ($mouvementTraca->getLinkedPackLastDrops() as $colisMvt) {
+            $entityManager->persist($colisMvt);
+        }
+        foreach ($mouvementTraca->getAttachements() as $attachement) {
+            $entityManager->persist($attachement);
+        }
+    }
+
+    public function managePackLinksWithTracking(MouvementTraca $tracking,
+                                                EntityManagerInterface $entityManager,
+                                                Statut $type,
+                                                string $colis,
+                                                bool $persist = false): void {
+        $colisRepository = $entityManager->getRepository(Colis::class);
+        $packs = $tracking->getLinkedPackLastDrops();
+        // si c'est une prise ou une dépose on vide ses colis liés
+        foreach ($packs as $pack) {
+            $tracking->removeLinkedPacksLastDrop($pack);
+        }
+
+        if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
+            $existingPacks = $colisRepository->findBy([
+                'code' => $colis
+            ]);
+
+            if (empty($existingPacks)) {
+                $newColis = new Colis();
+                $newColis
+                    ->setCode($colis);
+                $existingPacks[] = $newColis;
+
+                if ($persist) {
+                    $entityManager->persist($newColis);
+                }
+            }
+
+            foreach ($existingPacks as $existingPack) {
+                $tracking->addLinkedPackLastDrop($existingPack);
+            }
+        }
     }
 }

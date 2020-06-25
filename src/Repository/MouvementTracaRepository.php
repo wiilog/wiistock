@@ -61,13 +61,16 @@ class MouvementTracaRepository extends EntityRepository
             ->select('mouvement.colis')
             ->addSelect('mouvement.id')
             ->addSelect(
-                $queryBuilderExpr->max('mouvement.datetime')
+                $queryBuilderExpr->max('mouvement.datetime') . ' AS datetime'
             )
             ->addSelect('statut.nom')
             ->join('mouvement.type', 'statut')
             ->groupBy('mouvement.colis')
             ->addGroupBy('mouvement.id')
             ->having('statut.nom = :depose')
+            ->orderBy(
+                $queryBuilderExpr->max('mouvement.datetime'), 'desc'
+            )
             ->setParameter('depose', MouvementTraca::TYPE_DEPOSE)
             ->getQuery()
             ->execute();

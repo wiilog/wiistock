@@ -5,13 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Colis;
-use App\Entity\Demande;
 use App\Entity\MouvementTraca;
-use App\Entity\ValeurChampLibre;
-use App\Repository\ColisRepository;
-use App\Repository\DemandeRepository;
-use App\Repository\MouvementTracaRepository;
-use App\Repository\ValeurChampLibreRepository;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,27 +38,31 @@ final class Version20200623132732 extends AbstractMigration implements Container
     {
         /** @var EntityManagerInterface $em */
         $em = $this->container->get('doctrine.orm.entity_manager');
-        /** @var MouvementTracaRepository $mouvementTracaRepository */
+
         $mouvementTracaRepository = $em->getRepository(MouvementTraca::class);
-        /** @var ColisRepository $colisRepository */
         $colisRepository = $em->getRepository(Colis::class);
 
         $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();
+
         dump('Starting colis creation/update -> ' . count($lastDropsGroupedByColis));
         $cpt = 0;
+        $alreadyTreated = [];
         foreach ($lastDropsGroupedByColis as $drop) {
-            $colisIdsByCode = $colisRepository->getIdsByCode($drop['colis']);
-            if (!empty($colisIdsByCode)) {
-                $colisRepository->updateByIds($colisIdsByCode, $drop['id']);
-            } else {
-                $colisRepository->createFromMvt($drop);
-            }
-            $cpt++;
-            if ($cpt === 500) {
-                $cpt = 0;
-                $em->flush();
-                $em->clear();
-                dump('500 de plus');
+            if (!in_array($drop['colis'], $alreadyTreated)) {
+                $alreadyTreated[] = $drop['colis'];
+                $colisIdsByCode = $colisRepository->getIdsByCode($drop['colis']);
+                if (!empty($colisIdsByCode)) {
+                    $colisRepository->updateByIds($colisIdsByCode, $drop['id']);
+                } else {
+                    $colisRepository->createFromMvt($drop);
+                }
+                $cpt++;
+                if ($cpt === 500) {
+                    $cpt = 0;
+                    $em->flush();
+                    $em->clear();
+                    dump('500 de plus');
+                }
             }
         }
         $em->flush();
