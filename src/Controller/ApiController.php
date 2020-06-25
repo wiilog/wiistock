@@ -402,9 +402,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $type,
                                 $options
                             );
-                            foreach ($createdMvt->getAttachements() as $attachement) {
-                                $entityManager->persist($attachement);
-                            }
+                            $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                             $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
 
