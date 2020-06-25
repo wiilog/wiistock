@@ -6,11 +6,10 @@
     thead {
         background-color: $white;
         font-weight: bold;
-
-        tbody {
-            th, td {
-                border-top: 1px solid $lightGrey !important;
-            }
+    }
+    tbody {
+        th, td {
+            border-top: 1px solid $lightGrey !important;
         }
     }
 }
