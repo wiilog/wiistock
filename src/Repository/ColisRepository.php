@@ -74,7 +74,9 @@ class ColisRepository extends EntityRepository
 
     public function updateByIds(array $ids, int $mvtId)
     {
-        $arrayColisId = implode(',', $ids);
+        $arrayColisId = implode(',', array_map(function(array $idsSub) {
+            return $idsSub['id'];
+        }, $ids));
         $sqlQuery = "
             UPDATE colis SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
         ";
