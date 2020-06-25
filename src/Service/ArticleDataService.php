@@ -694,6 +694,7 @@ class ArticleDataService
         $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
+        $quantityArticle = $article->getQuantite();
         $labelArticle = $article->getLabel();
         $champLibre = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
             ? $articleArray['bl']
@@ -706,6 +707,7 @@ class ArticleDataService
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
+            !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '',
             (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : ''
         ];
         return [
