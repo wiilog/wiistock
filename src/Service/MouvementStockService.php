@@ -11,8 +11,6 @@ use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 

@@ -6,9 +6,8 @@ namespace App\Service;
 
 use App\Entity\Colis;
 use App\Entity\DaysWorked;
-use App\Entity\Emplacement;
-use App\Entity\MouvementTraca;
 use App\Entity\WorkFreeDay;
+use App\Repository\ColisRepository;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -19,6 +18,9 @@ use Exception;
 
 class EnCoursService
 {
+    /**
+     * @var EntityManagerInterface $entityManager
+     */
     private $entityManager;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
@@ -34,7 +36,8 @@ class EnCoursService
      * EnCoursService constructor.
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager) {
+    public function __construct(EntityManagerInterface $entityManager)
+    {
         $this->entityManager = $entityManager;
     }
 
@@ -142,14 +145,9 @@ class EnCoursService
     /**
      * @throws Exception
      */
-    public function getLastEnCoursForLate() {
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $locationArrayWithPack = $emplacementRepository->findWhereArticleIs();
-        $locationIdWithPack = array_map(function($emplacementArray) {
-            return $emplacementArray['id'];
-        }, $locationArrayWithPack);
-        $locationWithPack = $emplacementRepository->findBy(['id' => $locationIdWithPack]);
-        return $this->getEnCours($locationWithPack, [], true, 100);
+    public function getLastEnCoursForLate()
+    {
+        return $this->getEnCours([], [], true);
     }
 
     /**
@@ -160,53 +158,80 @@ class EnCoursService
      * @return array
      * @throws Exception
      */
-    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = null): array {
+    public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = 100): array
+    {
+        /** @var ColisRepository $colisRepository */
+        $colisRepository = $this->entityManager->getRepository(Colis::class);
+        $dropsCounter = 0;
+        $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
+        $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
+        $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+        $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $emplacementInfo = [];
 
-        if (!empty($locations)) {
-            $locations = array_reduce(
-                is_array($locations) ? $locations : [$locations],
-                function (array $acc, Emplacement $location) {
-                    $acc[$location->getId()] = $location;
-                    return $acc;
-                },
-                []
-            );
-            $colisRepository = $this->entityManager->getRepository(Colis::class);
-            $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
-            $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
-            $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
-
-            $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
-            $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-
-            $packIntelList = empty($natures)
-                ? $mouvementTracaRepository->getLastOnLocations($locations)
-                : $colisRepository->getPackIntelOnLocations($locations, $natures);
-            foreach ($packIntelList as $packIntel) {
-                $dateMvt = $packIntel['lastTrackingDateTime'];
-                $currentLocationId = $packIntel['currentLocationId'];
-                $currentLocation = $locations[(int)$currentLocationId];
-
-                $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt, $freeWorkDays);
-                $dateMaxTime = $currentLocation->getDateMaxTime();
-
-                if ($dateMaxTime) {
+        if ($onlyLate) {
+            $maxQueryResultLength = 200;
+            while (count($emplacementInfo) < $limitOnlyLate) {
+                $oldestDrops = [];
+                $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
+                    $locations,
+                    $natures,
+                    [],
+                    false,
+                    'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label',
+                    $maxQueryResultLength,
+                    $dropsCounter,
+                    'asc',
+                    true
+                );
+                $oldestDrops = $oldestDrops[0];
+                if (empty($oldestDrops)) {
+                    break;
+                }
+                foreach ($oldestDrops as $oldestDrop) {
+                    $dateMvt = $oldestDrop['datetime'];
+                    $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt, $freeWorkDays);
+                    $dateMaxTime = $oldestDrop['dateMaxTime'];
                     $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                     $isLate = $timeInformation['countDownLateTimespan'] < 0;
-                    if (!$onlyLate || $isLate) {
+                    if ($isLate) {
                         $emplacementInfo[] = [
-                            'colis' => $packIntel['code'],
+                            'colis' => $oldestDrop['code'],
                             'delay' => $timeInformation['ageTimespan'],
                             'date' => $dateMvt->format('d/m/Y H:i:s'),
                             'late' => $isLate,
-                            'emp' => $currentLocation->getLabel()
+                            'emp' => $oldestDrop['label']
                         ];
-                        if ($onlyLate && isset($limitOnlyLate) && count($emplacementInfo) >= $limitOnlyLate) {
-                            break;
-                        }
+                    }
+
+                    if (count($emplacementInfo) >= $limitOnlyLate) {
+                        break; // break foreach
                     }
                 }
+                $dropsCounter += $maxQueryResultLength;
+            }
+        } else {
+            $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
+                $locations,
+                $natures,
+                [],
+                false,
+                'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label'
+            );
+            $oldestDrops = $oldestDrops[0];
+            foreach ($oldestDrops as $oldestDrop) {
+                $dateMvt = $oldestDrop['datetime'];
+                $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt, $freeWorkDays);
+                $dateMaxTime = $oldestDrop['dateMaxTime'];
+                $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
+                $isLate = $timeInformation['countDownLateTimespan'] < 0;
+                $emplacementInfo[] = [
+                    'colis' => $oldestDrop['code'],
+                    'delay' => $timeInformation['ageTimespan'],
+                    'date' => $dateMvt->format('d/m/Y H:i:s'),
+                    'late' => $isLate,
+                    'emp' => $oldestDrop['label']
+                ];
             }
         }
 
@@ -251,8 +276,7 @@ class EnCoursService
 
                                 if (($end < $movementDate) || ($now < $begin)) {
                                     $calculatedInterval = new DateInterval('P0Y');
-                                }
-                                else {
+                                } else {
                                     // si la date du mouvement est dans la fourchette => devient la date de begin
                                     if ($begin < $movementDate && $movementDate <= $end) {
                                         $begin = $movementDate;
@@ -299,7 +323,8 @@ class EnCoursService
         return $age;
     }
 
-    public function isDayInArray(DateTime $day, array $daysToCheck): bool {
+    public function isDayInArray(DateTime $day, array $daysToCheck): bool
+    {
         $isDayInArray = false;
         $dayIndex = 0;
         $daysToCheckCount = count($daysToCheck);
@@ -310,8 +335,7 @@ class EnCoursService
             $currentFormattedDay = $daysToCheck[$dayIndex]->format($comparisonFormat);
             if ($currentFormattedDay === $formattedDay) {
                 $isDayInArray = true;
-            }
-            else {
+            } else {
                 $dayIndex++;
             }
         }
