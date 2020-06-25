@@ -4,6 +4,7 @@ namespace App\Controller;
 
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\SpecificService;
@@ -18,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 
 /**
  * @Route("/urgences")
@@ -94,6 +96,7 @@ class UrgencesController extends AbstractController
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
 
         $urgence = new Urgence();
+
         $urgenceService->updateUrgence($urgence, $data);
 
         $response = [];
@@ -256,7 +259,96 @@ class UrgencesController extends AbstractController
 		return new JsonResponse(['delete' => $delete, 'html' => $html]);
 	}
 
-	private function getErrorMessageForDuplicate(bool $isSEDCurrentClient): string {
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Urgence[]|null
+     */
+    public function findByDates($dateMin, $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT u
+            FROM App\Entity\Urgence u
+            WHERE d.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
+
+    /**
+     * @Route("/urgences-infos", name="get_urgence_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function getUrgencesIntels(EntityManagerInterface $entityManager,
+                                      Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+
+            $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
+            $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
+
+
+            $urgenceRepositoty = $entityManager->getRepository(Urgence::class);
+
+            $urgences = $urgenceRepositoty->findByDates($dateTimeMin, $dateTimeMax);
+            // en-têtes champs fixes
+            $headers = [
+                'Debut delais livraison',
+                'Fin delais livraison',
+                'Numero de commande',
+                'Numero de poste',
+                'Contact PFF',
+                'Fournisseur',
+                'Transporteur',
+                'Numero tracking transporteur',
+                'Date Arrivage',
+                "Numero d'arrivage",
+                'Date de creation',
+            ];
+
+            $data = [$headers];
+
+            /** @var Urgence $urgence */
+            foreach ($urgences as $urgence) {
+                $dateStart = $urgence->getDateStart();
+                $dateEnd = $urgence->getDateEnd();
+                $dateArrival = $urgence->getLastArrival() ? $urgence->getLastArrival()->getDate() : null;
+                $dateCreation = $urgence->getCreatedAt() ? $urgence->getCreatedAt() : null;
+                $urgenceData = [];
+                $urgenceData[] = date_format($dateStart, 'd/m/Y H:i:s');
+                $urgenceData[] = date_format($dateEnd, 'd/m/Y H:i:s');
+                $urgenceData[] = $urgence->getCommande() ? $urgence->getCommande() : '';
+                $urgenceData[] = $urgence->getPostNb() ? $urgence->getPostNb() : '';
+                $urgenceData[] = $urgence->getBuyer() ? $urgence->getBuyer()->getUsername() : '';
+                $urgenceData[] = $urgence->getProvider() ? $urgence->getProvider()->getNom() : '';
+                $urgenceData[] = $urgence->getCarrier() ? $urgence->getCarrier()->getLabel() : '';
+                $urgenceData[] = $urgence->getTrackingNb() ? $urgence->getTrackingNb() : '';
+                $urgenceData[] = $dateArrival ? date_format($dateArrival, 'd/m/Y H:i:s') : '';
+                $urgenceData[] = $dateArrival ? $urgence->getLastArrival()->getNumeroArrivage() : '';
+                $urgenceData[] = $dateCreation ? date_format($dateCreation, 'd/m/Y H:i:s') : '';
+
+                $data[] = $urgenceData;
+            }
+
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+    private function getErrorMessageForDuplicate(bool $isSEDCurrentClient): string
+    {
         $suffixErrorMessage = $isSEDCurrentClient ? ', le même numéro de commande et le même numéro de poste existe déjà' : ' et le même numéro de commande existe déjà';
         return "Une urgence sur la même période, avec le même fournisseur$suffixErrorMessage.";
     }

@@ -2,8 +2,12 @@
     <div class="row">
         <div class="form-group col-8">
             <label for="typeLitige">Type*</label>
-            <select class="form-control data needed" id="typeLitige" name="typeLitige">
-                <option placeholder="" value="{{ litige.type.id }}" selected>{{ litige.type.label }}</option>
+            <select class="form-control data needed"
+                    id="typeLitige"
+                    name="typeLitige">
+                <option placeholder=""
+                        value="{{ litige.type.id }}"
+                        selected>{{ litige.type.label }}</option>
                 {% for type in typesLitige %}
                     {% if type.id != litige.type.id %}
                         <option value="{{ type.id }}">{{ type.label }}</option>
@@ -14,13 +18,17 @@
         <div class="form-group col-4 mt-4">
             <label>Urgence ?</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="emergency" {{ litige.emergencyTriggered ? 'checked': ''}}>
+                <input class="checkbox"
+                       type="checkbox"
+                       name="emergency" {{ litige.emergencyTriggered ? 'checked': ''}}>
                 <span class="slider round"></span>
             </label>
         </div>
         <div class="form-group col-12">
             <label for="statutLitige">Statut*</label>
-            <select class="form-control data needed" id="statutLitige" name="statutLitige">
+            <select class="form-control data needed"
+                    id="statutLitige"
+                    name="statutLitige">
                 {% for statut in statusLitige %}
                     {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
                     <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
@@ -29,7 +37,10 @@
         </div>
         <div class="form-group w-100 col-12">
             <label for="acheteursLitige">Acheteur(s)</label>
-            <select class="form-control data select2" name="acheteursLitige" id="acheteursLitigeEdit" multiple="multiple">
+            <select class="form-control data select2"
+                    name="acheteursLitige"
+                    id="acheteursLitigeEdit"
+                    multiple="multiple">
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
                 {% endfor %}
@@ -37,7 +48,9 @@
         </div>
         <div class="form-group w-100 col-12">
             <label for="declarantLitige">Déclarant*</label>
-            <select class="form-control data select2-declarant needed" name="declarantLitige" id="declarantLitige">
+            <select class="form-control data select2-declarant needed"
+                    name="declarantLitige"
+                    id="declarantLitige">
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
                 {% endfor %}
@@ -48,8 +61,12 @@
                    data-id="{{ litige.declarant ? litige.declarant.id : '' }}"/>
         </div>
         <div class="form-group w-100 col-12">
-            <label for="colisEditLitige" title="articles">{{ 'réception.articles'|trans }}*</label>
-            <select type="text" class="form-control data select2 needed select2-autocomplete-articles" name="colis" multiple="multiple"
+            <label for="colisEditLitige"
+                   title="articles">{{ 'réception.articles'|trans }}*</label>
+            <select type="text"
+                    class="form-control data select2 needed select2-autocomplete-articles"
+                    name="colis"
+                    multiple="multiple"
                     id="colisEditLitige">
             </select>
         </div>
@@ -58,8 +75,13 @@
             <label for="litige-edit-commentaire">Commentaire</label>
 
             <div class="d-flex">
-                <input type="text" id="litige-edit-commentaire" class="commentaire form-control data" name="commentaire">
-                <button type="button" class="btn form-group m-0 ml-2" onclick="getCommentAndAddHisto()">Ajouter</button>
+                <input type="text"
+                       id="litige-edit-commentaire"
+                       class="commentaire form-control data"
+                       name="commentaire">
+                <button type="button"
+                        class="btn form-group m-0 ml-2"
+                        onclick="getCommentAndAddHisto()">Ajouter</button>
             </div>
         </div>
         <div class="form-group col-12">
@@ -70,7 +92,16 @@
     </div>
     <div class="label">Historique</div>
     <div class="tableHistoric">
-        <table id="tableHistoLitige" class="table w-100"></table>
+        <table id="tableHistoLitige"
+               class="table w-100"></table>
     </div>
-    <input hidden value="{{ litige.id }}" id="litigeId" class="data">
+    <input hidden value="{{ litige.id }}"
+           id="litigeId"
+           class="data">
+    <div class="separatorDatatable my-4"></div>
+    <div class="label">Articles</div>
+    <div class="tableArticleLitige">
+        <table id="tableArticleInLitige"
+               class="table w-100"></table>
+    </div>
 </div>
