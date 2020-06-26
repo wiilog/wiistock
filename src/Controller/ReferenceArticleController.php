@@ -11,6 +11,7 @@ use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -111,6 +112,8 @@ class ReferenceArticleController extends AbstractController
     private $CSVExportService;
     private $valeurChampLibreService;
 
+    private $entityManager;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 GlobalParamService $globalParamService,
                                 SpecificService $specificService,
@@ -121,7 +124,8 @@ class ReferenceArticleController extends AbstractController
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 CSVExportService $CSVExportService,
-                                ValeurChampLibreService $valeurChampLibreService)
+                                ValeurChampLibreService $valeurChampLibreService,
+                                EntityManagerInterface $entityManager)
     {
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -134,6 +138,7 @@ class ReferenceArticleController extends AbstractController
         $this->user = $tokenStorage->getToken()->getUser();
         $this->CSVExportService = $CSVExportService;
         $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->entityManager = $entityManager;;
     }
 
     /**
@@ -1456,13 +1461,47 @@ class ReferenceArticleController extends AbstractController
 
             $data['data'] = array_map(
                 function(MouvementStock $mouvement) {
+                    $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+
+                    $orderPath = $orderId = $from = null;
+                    if ($mouvement->getPreparationOrder()) {
+                        $from = 'préparation';
+                        $orderPath = 'preparation_show';
+                        $orderId = $mouvement->getPreparationOrder()->getId();
+                    } else if ($mouvement->getLivraisonOrder()) {
+                        $from = 'livraison';
+                        $orderPath = 'livraison_show';
+                        $orderId = $mouvement->getLivraisonOrder()->getId();
+                    } else if ($mouvement->getCollecteOrder()) {
+                        $from = 'collecte';
+                        $orderPath = 'ordre_collecte_show';
+                        $orderId = $mouvement->getCollecteOrder()->getId();
+                    } else if ($mouvement->getReceptionOrder()) {
+                        $from = 'réception';
+                        $orderPath = 'reception_show';
+                        $orderId = $mouvement->getReceptionOrder()->getId();
+                    } else if ($mouvement->getImport()) {
+                        $from = 'import';
+                        $orderPath = 'import_index';
+                        $orderId = null;
+                    } else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
+                        $from = 'transfert de stock';
+                    }
+
                     return [
                         'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
                         'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
                         'Type' => $mouvement->getType(),
-                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
+                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun',
+                        'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
+                            'from' => $from,
+                            'mvt' => $mouvement,
+                            'orderPath' => $orderPath,
+                            'orderId' => $orderId
+                        ]),
+                        'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
                     ];
                 },
                 $mouvements
