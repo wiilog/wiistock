@@ -2,7 +2,15 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
+use App\Entity\ChampLibre;
+use App\Entity\Collecte;
+use App\Entity\Demande;
+use App\Entity\Litige;
+use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 
@@ -110,26 +118,40 @@ class TypeRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countUsedById($id)
+    public function isTypeUsed($typeId): bool
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(t)
-            FROM App\Entity\Type t
-            LEFT JOIN t.articles a
-            LEFT JOIN t.champsLibres cl
-            LEFT JOIN t.collectes c
-            LEFT JOIN t.demandesLivraison dl
-            LEFT JOIN t.litiges l
-            LEFT JOIN t.receptions r
-            LEFT JOIN t.referenceArticles ra
-            LEFT JOIN t.utilisateurs u
-            WHERE a.type = :id OR cl.type = :id OR c.type = :id OR dl.type = :id OR l.type = :id OR r.type = :id OR ra.type = :id
-           "
-        )->setParameter('id', $id);
 
-        return $query->getSingleScalarResult();
+        $tableConfig = [
+            ['class' => Article::class, 'where' => 'item.type = :id'],
+            ['class' => ChampLibre::class, 'where' => 'item.type = :id'],
+            ['class' => Collecte::class, 'where' => 'item.type = :id'],
+            ['class' => Demande::class, 'where' => 'item.type = :id'],
+            ['class' => Litige::class, 'where' => 'item.type = :id'],
+            ['class' => Reception::class, 'where' => 'item.type = :id'],
+            ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
+            ['class' => Utilisateur::class, 'where' => 'type = :id', 'join' => ['item.types', 'type']]
+        ];
+
+        $resultsCount = array_map(function (array $table) use ($entityManager, $typeId) {
+            $queryBuilder = $entityManager->createQueryBuilder()
+                ->select('COUNT(item)')
+                ->from($table['class'], 'item');
+
+            if (isset($table['join'])) {
+                $queryBuilder->join($table['join'][0], $table['join'][1]);
+            }
+
+            return $queryBuilder
+                ->where($table['where'])
+                ->setParameter(':id', $typeId)
+                ->getQuery()
+                ->getSingleScalarResult();
+        }, $tableConfig);
+
+        return count(array_filter($resultsCount, function($count) {
+            return ((int) $count) > 0;
+        })) > 0;
     }
 
     public function countByLabelDiff($label, $typeLabel, $category)

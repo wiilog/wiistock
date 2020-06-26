@@ -232,17 +232,15 @@ class ParamTypesController extends AbstractController
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $typeIsUsed = $typeRepository->countUsedById($typeId);
+            $canDelete = !$typeRepository->isTypeUsed($typeId);
 
-            if (!$typeIsUsed) {
-                $delete = true;
-                $html = $this->renderView('types/modalDeleteTypeRight.html.twig');
-            } else {
-                $delete = false;
-                $html = $this->renderView('types/modalDeleteTypeWrong.html.twig');
-            }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+
+            $html = $canDelete
+                ? $this->renderView('types/modalDeleteTypeRight.html.twig')
+                : $this->renderView('types/modalDeleteTypeWrong.html.twig');
+
+            return new JsonResponse(['delete' => $canDelete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
     }
