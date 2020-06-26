@@ -321,10 +321,15 @@ class MouvementTracaController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($data['mvt']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
+            }
+
+            foreach ($mvt->getLinkedPackLastDrops() as $pack) {
+                $pack->setLastDrop(null);
             }
 
             $entityManager->remove($mvt);
