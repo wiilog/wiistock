@@ -48,7 +48,7 @@ final class Version20200623132732 extends AbstractMigration implements Container
         $cpt = 0;
         $alreadyTreated = [];
         foreach ($lastDropsGroupedByColis as $drop) {
-            if (!in_array($drop['colis'], $alreadyTreated)) {
+            if ($drop['colis'] && !in_array($drop['colis'], $alreadyTreated)) {
                 $alreadyTreated[] = $drop['colis'];
                 $colisIdsByCode = $colisRepository->getIdsByCode($drop['colis']);
                 if (!empty($colisIdsByCode)) {
