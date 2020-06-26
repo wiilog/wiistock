@@ -74,17 +74,14 @@ class ColisRepository extends EntityRepository
 
     public function updateByIds(array $ids, int $mvtId)
     {
-        $queryBuilder = $this->createQueryBuilder('colis');
-        $queryBuilderExpr = $queryBuilder->expr();
-        $queryBuilder
-            ->update(Colis::class, 'colis')
-            ->set('colis.lastDrop', $mvtId)
-            ->where(
-                $queryBuilderExpr->in('colis.id', ':ids')
-            )
-            ->setParameter('ids', $ids)
-            ->getQuery()
-            ->execute();
+        $arrayColisId = implode(',', array_map(function(array $idsSub) {
+            return $idsSub['id'];
+        }, $ids));
+        $sqlQuery = "
+            UPDATE colis SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
+        ";
+        $connection = $this->getEntityManager()->getConnection();
+        $connection->executeQuery($sqlQuery, []);
     }
 
     /**
