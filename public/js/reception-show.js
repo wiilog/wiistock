@@ -748,3 +748,17 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }
+
+$("#submitDeleteArticle").on('click', function (e) {
+    console.log("Test");
+    const path = window.location.pathname;
+
+    $.ajax({
+        type : "POST",
+        url : path,
+        success: function() {
+            window.location.reload();
+;        }
+    })
+    e.preventDefault();
+});

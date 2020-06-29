@@ -581,6 +581,8 @@ class ArticleController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $article = $articleRepository->find($data['article']);
+            $article->getReceptionReferenceArticle()->setQuantite(0);
+
             $rows = $article->getId();
 
             // on vérifie que l'article n'est plus utilisé
