@@ -592,18 +592,12 @@ class ArticleController extends AbstractController
                 return new JsonResponse(false);
             }
 
-            if ($article->getLitiges()){
-                $message = '<div class="alert alert-success" role="alert">Cet article est lié à un litige, vous ne pouvez pas le supprimer.</div>';
-                echo $message;
-            }
-            else {
-                $entityManager->remove($article);
-                $entityManager->flush();
+            $entityManager->remove($article);
+            $entityManager->flush();
 
-                $response['delete'] = $rows;
-                return new JsonResponse($response);
+            $response['delete'] = $rows;
+            return new JsonResponse($response);
             }
-        }
         throw new NotFoundHttpException("404");
     }
 
@@ -626,12 +620,26 @@ class ArticleController extends AbstractController
             $article = $articleRepository->find($articleId);
             $articleIsUsed = $this->isArticleUsed($article);
 
+            if (count($article->getCollectes()) > 0) {
+                $location = "une ou plusieurs collectes";
+            } else if ($article->getDemande() !== null) {
+                $location = "une ou plusieurs demandes";
+            } else if (count($article->getLitiges()) > 0) {
+                $location = "un ou plusieurs litiges";
+            } else if (count($article->getInventoryMissions()) > 0) {
+                $location = "un ou plusieurs missions d'inventaire";
+            } else {
+                $location = "une ou plusieurs parties de l'application";
+            }
+
             if (!$articleIsUsed) {
                 $delete = true;
                 $html = $this->renderView('article/modalDeleteArticleRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('article/modalDeleteArticleWrong.html.twig');
+                $html = $this->renderView('article/modalDeleteArticleWrong.html.twig', [
+                    'location' => $location
+                ]);
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -645,7 +653,7 @@ class ArticleController extends AbstractController
      */
     private function isArticleUsed($article)
     {
-        if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
+        if (count($article->getCollectes()) > 0 || $article->getDemande() !== null || count($article->getLitiges()) > 0 || count($article->getInventoryEntries()) > 0) {
             return true;
         }
         return false;

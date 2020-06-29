@@ -166,7 +166,6 @@ class Article
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
         $this->mouvementTracas = new ArrayCollection();
 
         $this->quantite = 0;
