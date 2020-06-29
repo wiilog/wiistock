@@ -142,12 +142,12 @@ class UtilisateurController extends AbstractController
 			}
 
             $utilisateur = new Utilisateur();
-
             $role = $roleRepository->find($data['role']);
 
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
+                ->setSecondaryEmails($data['secondaryEmails'])
                 ->setRole($role)
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
@@ -283,6 +283,7 @@ class UtilisateurController extends AbstractController
 				]);
 			}
             $utilisateur
+                ->setSecondaryEmails($data['secondaryEmails'])
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
@@ -430,8 +431,8 @@ class UtilisateurController extends AbstractController
             $search = $request->query->get('term');
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $user = $utilisateurRepository->getIdAndLibelleBySearch($search);
-            return new JsonResponse(['results' => $user]);
+            $results = $utilisateurRepository->getIdAndLibelleAndDropzoneBySearch($search);
+            return new JsonResponse(['results' => $results]);
         }
         throw new NotFoundHttpException("404");
     }

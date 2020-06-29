@@ -11,7 +11,6 @@ use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use Doctrine\DBAL\Connection;
@@ -237,14 +236,15 @@ class ArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-	public function getIdAndRefBySearch($search, $activeOnly = false)
+	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference')
 	{
 		$em = $this->getEntityManager();
 
-		$dql = "SELECT a.id, a.reference as text
-          FROM App\Entity\Article a
-          LEFT JOIN a.statut s
-          WHERE a.reference LIKE :search";
+		$dql = "SELECT a.id,
+                       a.${field} as text
+                FROM App\Entity\Article a
+                LEFT JOIN a.statut s
+                WHERE a.${field} LIKE :search";
 
         if ($activeOnly) {
             $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
@@ -848,13 +848,15 @@ class ArticleRepository extends EntityRepository
 	private function getArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
-		"SELECT a.reference,
+		"SELECT ra.reference,
 			 e.label as location,
 			 a.label,
 			 a.quantite as quantity,
 			 0 as is_ref, oc.id as id_collecte,
 			 a.barCode
 			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			JOIN artf.referenceArticle ra
 			LEFT JOIN a.emplacement e
 			JOIN a.ordreCollecte oc
 			LEFT JOIN oc.statut s"
@@ -990,12 +992,12 @@ class ArticleRepository extends EntityRepository
      * @return mixed
      * @throws NonUniqueResultException
      */
-    public function getEntryDateByMission($mission, $artId)
+    public function getEntryByMission($mission, $artId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT e.date
+            "SELECT e.date, e.quantity
             FROM App\Entity\InventoryEntry e
             WHERE e.mission = :mission AND e.article = :art"
         )->setParameters([

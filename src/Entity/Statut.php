@@ -108,6 +108,11 @@ class Statut
      */
     private $arrivages;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendNotifToDeclarant;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -556,6 +561,18 @@ class Statut
     public function setCode(?string $code): self
     {
         $this->code = $code;
+
+        return $this;
+    }
+
+    public function getSendNotifToDeclarant(): ?bool
+    {
+        return $this->sendNotifToDeclarant;
+    }
+
+    public function setSendNotifToDeclarant(?bool $sendNotifToDeclarant): self
+    {
+        $this->sendNotifToDeclarant = $sendNotifToDeclarant;
 
         return $this;
     }

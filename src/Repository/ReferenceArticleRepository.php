@@ -42,7 +42,8 @@ class ReferenceArticleRepository extends EntityRepository
         'Code barre' => 'barCode',
         'Date d\'alerte' => 'dateEmergencyTriggered',
         'typeQuantite' => 'typeQuantite',
-        'Dernier inventaire' => 'dateLastInventory'
+        'Dernier inventaire' => 'dateLastInventory',
+        'Synchronisation nomade' => 'needsMobileSync'
     ];
 
     public function getIdAndLibelle()
@@ -113,19 +114,44 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
+    public function getByNeedsMobileSync()
+    {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('referenceArticle.barCode AS bar_code')
+            ->addSelect('referenceArticle.reference AS reference')
+            ->addSelect('referenceArticle.libelle AS label')
+            ->addSelect('referenceArticle.quantiteDisponible AS available_quantity')
+            ->addSelect('referenceArticle.typeQuantite AS type_quantity')
+            ->addSelect('emplacement.label AS location_label')
+            ->leftJoin('referenceArticle.emplacement', 'emplacement') // pour les références gérées par article
+            ->join('referenceArticle.statut', 'statut')
+            ->where($queryBuilderExpr->andX(
+                $queryBuilderExpr->eq('statut.nom', ':actif'),
+                $queryBuilderExpr->eq('referenceArticle.needsMobileSync', ':mobileSync')
+            ))
+            ->setParameter('actif', ReferenceArticle::STATUT_ACTIF)
+            ->setParameter('mobileSync', true)
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param string $search
      * @param bool $activeOnly
+     * @param null $typeQuantity
+     * @param $field
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = null)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $typeQuantity = null, $field = 'reference')
     {
         $em = $this->getEntityManager();
 
-        $dql = "SELECT r.id, r.reference as text
+        $dql = "SELECT r.id, r.${field} as text
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
-          WHERE r.reference LIKE :search ";
+          WHERE r.${field} LIKE :search ";
 
         if ($activeOnly) {
             $dql .= " AND s.nom = '" . ReferenceArticle::STATUT_ACTIF . "'";
@@ -171,6 +197,7 @@ class ReferenceArticleRepository extends EntityRepository
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
+            'Synchronisation nomade' =>['field' => 'needsMobileSync', 'typage' => 'sync'],
         ];
 
         $qb
@@ -197,6 +224,17 @@ class ReferenceArticleRepository extends EntityRepository
                     $typage = $array['typage'];
 
                     switch ($typage) {
+                        case 'sync':
+                            if ($filter['value'] == 0 ){
+                                 $qb
+                                     ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
+                                     ->setParameter("value$index", $filter['value']);
+                            } else {
+                                $qb
+                                    ->andWhere("ra.needsMobileSync = :value$index")
+                                    ->setParameter("value$index", $filter['value']);
+                            }
+                            break;
                         case 'text':
                             $qb
                                 ->andWhere("ra." . $field . " LIKE :value" . $index)
@@ -682,12 +720,12 @@ class ReferenceArticleRepository extends EntityRepository
      * @return mixed
      * @throws NonUniqueResultException
      */
-    public function getEntryDateByMission($mission, $refId)
+    public function getEntryByMission($mission, $refId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT e.date
+            "SELECT e.date, e.quantity
             FROM App\Entity\InventoryEntry e
             WHERE e.mission = :mission AND e.refArticle = :ref"
         )->setParameters([
@@ -928,12 +966,12 @@ class ReferenceArticleRepository extends EntityRepository
                     JOIN ra.articlesFournisseur af
                     JOIN af.articles a
                     JOIN a.statut s
-                    WHERE s.nom = :activeStatus
+                    WHERE s.nom != :inactiveStatus
                       AND ra = :refArt
                 ")
                 ->setParameters([
                     'refArt' => $referenceArticle->getId(),
-                    'activeStatus' => Article::STATUT_ACTIF
+                    'inactiveStatus' => Article::STATUT_INACTIF
                 ]);
             $stockQuantity = ($query->getSingleScalarResult() ?? 0);
         } else {
@@ -952,7 +990,7 @@ class ReferenceArticleRepository extends EntityRepository
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $em = $this->getEntityManager();
-            $query = $em
+            $queryForLignes = $em
                 ->createQuery("
                     SELECT SUM(ligneArticles.quantite)
                     FROM App\Entity\ReferenceArticle ra
@@ -965,9 +1003,23 @@ class ReferenceArticleRepository extends EntityRepository
                 ->setParameters([
                     'refArt' => $referenceArticle->getId(),
                     'preparationStatusToTreat' => Preparation::STATUT_A_TRAITER,
-                    'preparationStatusCurrent' => Preparation::STATUT_EN_COURS_DE_PREPARATION
+                    'preparationStatusCurrent' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
                 ]);
-            $reservedQuantity = ($query->getSingleScalarResult() ?? 0);
+            $queryForArticles = $em
+                ->createQuery("
+                        SELECT SUM(a.quantiteAPrelever)
+                        FROM App\Entity\Article a
+                        JOIN a.articleFournisseur artf
+                        JOIN a.statut statut
+                        WHERE artf.referenceArticle = :refArt
+                        AND statut.nom = :transitStatutArt
+                ")->setParameters([
+                    'refArt' => $referenceArticle->getId(),
+                    'transitStatutArt' => Article::STATUT_EN_TRANSIT
+                ]);
+            $reservedQuantityLignes = ($queryForLignes->getSingleScalarResult() ?? 0);
+            $reservedQuantityArticles = ($queryForArticles->getSingleScalarResult() ?? 0);
+            $reservedQuantity = $reservedQuantityLignes + $reservedQuantityArticles;
         } else {
             $reservedQuantity = $referenceArticle->getQuantiteReservee();
         }

@@ -73,6 +73,11 @@ class Litige
      */
     private $emergencyTriggered;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="litigesDeclarant")
+     */
+    private $declarant;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -275,6 +280,15 @@ class Litige
         return $this->articles;
     }
 
+    /**
+     * @return array|Article[]
+     */
+    public function getFiveLastArticles(): array
+    {
+
+        return array_slice($this->articles->toArray(), 0, 5);
+    }
+
     public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
@@ -345,6 +359,18 @@ class Litige
         if ($this->colis->contains($coli)) {
             $this->colis->removeElement($coli);
         }
+
+        return $this;
+    }
+
+    public function getDeclarant(): ?Utilisateur
+    {
+        return $this->declarant;
+    }
+
+    public function setDeclarant(?Utilisateur $declarant): self
+    {
+        $this->declarant = $declarant;
 
         return $this;
     }

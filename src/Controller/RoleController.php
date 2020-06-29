@@ -204,6 +204,7 @@ class RoleController extends AbstractController
      * @param RoleService $roleService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function edit(Request $request,
                          RoleService $roleService,
@@ -243,7 +244,6 @@ class RoleController extends AbstractController
                     unset($data[$id]);
                 }
             }
-
             $roleService->parseParameters($role, $data);
             $entityManager->flush();
             return new JsonResponse($role->getLabel());

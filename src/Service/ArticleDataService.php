@@ -370,7 +370,6 @@ class ArticleDataService
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
@@ -439,6 +438,12 @@ class ArticleDataService
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
+            $toInsert
+                ->setQuantiteAPrelever($toInsert->getQuantite());
+            if (count($demande->getPreparations()) > 0) {
+                $demande
+                    ->getPreparations()[0]->addArticle($toInsert);
+            }
         }
 
         // optionnel : ajout dans une réception
@@ -457,23 +462,26 @@ class ArticleDataService
                 $userThatTriggeredEmergency = $refArticle->getUserThatTriggeredEmergency();
                 if ($userThatTriggeredEmergency) {
                     if ($demande && $demande->getUtilisateur()) {
-                        $destinataires = [
-                            $userThatTriggeredEmergency->getEmail(),
-                            $demande->getUtilisateur()->getEmail()
-                        ];
+                        $destinataires = array_merge(
+                            $userThatTriggeredEmergency->getMainAndSecondaryEmails(),
+                            $demande->getUtilisateur()->getMainAndSecondaryEmails()
+                        );
                     } else {
-                        $destinataires = $userThatTriggeredEmergency->getEmail();
+                        $destinataires = $userThatTriggeredEmergency->getMainAndSecondaryEmails();
                     }
                 } else {
                     if ($demande && $demande->getUtilisateur()) {
-                        $destinataires = $demande->getUtilisateur()->getEmail();
+                        $destinataires = $demande->getUtilisateur()->getMainAndSecondaryEmails();
                     }
                 }
-                // on envoie un mail aux demandeurs
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // Article urgent réceptionné', $mailContent,
-                    $destinataires
-                );
+
+                if (!empty($destinataires)) {
+                    // on envoie un mail aux demandeurs
+                    $this->mailerService->sendMail(
+                        'FOLLOW GT // Article urgent réceptionné', $mailContent,
+                        $destinataires
+                    );
+                }
                 // on retire l'urgence
                 $refArticle
                     ->setIsUrgent(false)
@@ -653,13 +661,13 @@ class ArticleDataService
      */
     public function getBarcodeConfig(Article $article): array {
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         $articles = $articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
 
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
             && !isset($this->typeCLOnLabel)) {
-            $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
             $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
             $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
@@ -686,6 +694,7 @@ class ArticleDataService
         $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
+        $quantityArticle = $article->getQuantite();
         $labelArticle = $article->getLabel();
         $champLibre = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
             ? $articleArray['bl']
@@ -698,8 +707,13 @@ class ArticleDataService
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : ''
+            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
+        $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+        if ($wantsQTT === 'true') {
+            $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
+
+        }
         return [
             'code' => $article->getBarCode(),
             'labels' => array_filter($labels, function (string $label) {

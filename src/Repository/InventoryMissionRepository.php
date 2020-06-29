@@ -58,7 +58,7 @@ class InventoryMissionRepository extends ServiceEntityRepository
                 'inventoryMission.endPrevDate >= :now',
                 'inventoryEntry.id IS NULL'
             ))
-            ->setParameter('now', $now);
+            ->setParameter('now', $now->format('Y-m-d'));
 
 		return $queryBuilder
             ->getQuery()
@@ -78,20 +78,22 @@ class InventoryMissionRepository extends ServiceEntityRepository
 
         $queryBuilder
             ->select('inventoryMission.id AS id_mission')
-            ->addSelect('article.reference AS reference')
+            ->addSelect('referenceArticle.reference AS reference')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('emplacement.label AS location')
             ->addSelect('0 AS is_ref')
             ->addSelect('inventoryMission.id AS ied')
             ->join('inventoryMission.articles', 'article')
             ->join('article.emplacement', 'emplacement')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.article = article')
             ->where($exprBuilder->andX(
                 'inventoryMission.startPrevDate <= :now',
                 'inventoryMission.endPrevDate >= :now',
                 'inventoryEntry.id IS NULL'
             ))
-            ->setParameter('now', $now);
+            ->setParameter('now', $now->format('Y-m-d'));
 
 		return $queryBuilder
             ->getQuery()

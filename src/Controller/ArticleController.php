@@ -673,7 +673,7 @@ class ArticleController extends AbstractController
             $search = $request->query->get('term');
 
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly);
+            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode');
 
             return new JsonResponse(['results' => $articles]);
         }

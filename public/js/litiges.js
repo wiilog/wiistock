@@ -18,7 +18,8 @@ $(function () {
     initSelect2($('#carriers'), 'Transporteurs');
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#litigeOrigin'), 'Origines');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Acheteurs');
+    ajaxAutoUserInit($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
+    ajaxAutoUserInit($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -54,6 +55,7 @@ function initDatatableLitiges() {
             {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
+            {"data": 'declarant', 'name': 'declarant', 'title': 'Déclarant'},
             {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
@@ -95,7 +97,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
     let params = {
-        litigeId: litigeId,
+        litigeId: litigeId
     };
 
     if (isArrivage) {
@@ -128,7 +130,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {
 
             $modal.find('#acheteursLitigeEdit').val(data.acheteurs).select2();
         }
-
+        fillDemandeurField($modal);
         $modal.append('<input hidden class="data" name="isArrivage" value="' + isArrivage + '">');
         afterLoadingEditModal();
 
@@ -157,6 +159,33 @@ function openTableHisto() {
         }
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
+    openTableArticleLitige();
+}
+
+let tableArticleLitige;
+
+function openTableArticleLitige() {
+
+    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableArticleLitigeConfig = {
+        ajax: {
+            "url": pathArticleLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
+            {"data": 'status', 'name': 'status', 'title': 'Status'},
+            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
+            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        },
+        "paging": false,
+
+    };
+    tableArticleLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
 }
 
 function getCommentAndAddHisto() {

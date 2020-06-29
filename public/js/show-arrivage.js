@@ -200,6 +200,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
         modal.find('#colisEditLitige').val(data.colis).select2();
+        fillDemandeurField(modal);
         afterLoadingEditModal()
     }, 'json');
 

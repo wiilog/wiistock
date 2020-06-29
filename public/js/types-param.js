@@ -10,6 +10,7 @@ let tableTypesConfig = {
         {"data": 'Categorie', 'title': 'Catégorie'},
         {"data": 'Label', 'title': 'Label'},
         {"data": 'Description', 'title': 'Description'},
+        {"data": 'sendMail', 'title': 'Envoi de mails au demandeur'},
     ],
     rowConfig: {
         needsRowClickAction: true,
@@ -49,5 +50,17 @@ function displayErrorTypeEdit(data) {
     } else {
         modal.find('.close').click();
         alertSuccessMsg(data.msg);
+    }
+}
+
+function typeSelectChange($typeSelect) {
+    const $selectedOption = $typeSelect.find('option:selected');
+    const $mailCheckContainer = $('.send-mail');
+    const $mailCheck = $mailCheckContainer.find('input[name="sendMail"]');
+    $mailCheck.prop('checked', false);
+    if ($selectedOption.data('needs-send-mail')) {
+        $mailCheckContainer.removeClass('d-none');
+    } else {
+        $mailCheckContainer.addClass('d-none');
     }
 }

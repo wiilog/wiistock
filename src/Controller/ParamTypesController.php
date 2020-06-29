@@ -77,7 +77,9 @@ class ParamTypesController extends AbstractController
                         'Label' => $type->getLabel(),
                         'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
                         'Description' => $type->getDescription(),
-                        'Actions' => $type->getId(),
+                        'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
+                            ? ($type->getSendMail() ? 'Oui' : 'Non')
+                            : '',
                         'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
                             'url' => $url,
                             'typeId' => $type->getId(),
@@ -117,6 +119,7 @@ class ParamTypesController extends AbstractController
                 $type = new Type();
                 $type
                     ->setLabel($data['label'])
+                    ->setSendMail($data["sendMail"] ?? false)
                     ->setDescription($data['description'])
                     ->setCategory($category);
 
@@ -193,6 +196,7 @@ class ParamTypesController extends AbstractController
                 $category = $categoryTypeRepository->find($data['category']);
                 $type
                     ->setLabel($data['label'])
+                    ->setSendMail($data["sendMail"] ?? false)
                     ->setCategory($category)
                     ->setDescription($data['description']);
 
@@ -228,17 +232,15 @@ class ParamTypesController extends AbstractController
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $typeIsUsed = $typeRepository->countUsedById($typeId);
+            $canDelete = !$typeRepository->isTypeUsed($typeId);
 
-            if (!$typeIsUsed) {
-                $delete = true;
-                $html = $this->renderView('types/modalDeleteTypeRight.html.twig');
-            } else {
-                $delete = false;
-                $html = $this->renderView('types/modalDeleteTypeWrong.html.twig');
-            }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+
+            $html = $canDelete
+                ? $this->renderView('types/modalDeleteTypeRight.html.twig')
+                : $this->renderView('types/modalDeleteTypeWrong.html.twig');
+
+            return new JsonResponse(['delete' => $canDelete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
     }

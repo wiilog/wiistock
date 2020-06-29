@@ -11,10 +11,13 @@
                 <div class="row">
                     <div class="mb-3 form-group col-12">
                         <label for="category">Catégorie*</label>
-                        <select name="category" id="frequencies" class="data form-control needed">
+                        <select name="category" id="frequencies" class="data form-control needed" onchange="typeSelectChange($(this))">
                             <option placeholder="" disabled value="" selected></option>
                             {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.label }}</option>
+                                <option value="{{ category.id }}"
+                                        data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}">
+                                    {{ category.label }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -30,6 +33,15 @@
                     <div class="form-group col-12">
                         <label for="label">Description</label>
                         <input type="text" class="data form-control" name="description">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 form-group d-none send-mail">
+                        <label>Envoi de mails au demandeur ?</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="sendMail">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
             </div>
