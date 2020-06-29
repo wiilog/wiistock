@@ -99,6 +99,7 @@ Class ColisService
                         MouvementTraca::TYPE_DEPOSE,
                         ['from' => $arrivage]
                     );
+                    $this->mouvementTracaService->persistSubEntities($this->entityManager, $mouvementDepose);
                     $this->entityManager->persist($mouvementDepose);
                 }
                 $colisList[] = $colis;
