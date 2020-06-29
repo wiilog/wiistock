@@ -24,6 +24,8 @@ class UrgenceRepository extends EntityRepository
         "start" => 'dateStart',
         "end" => 'dateEnd',
         'arrivalDate' => 'lastArrival',
+        'arrivalNb' => 'arrivalNb',
+        'createdAt' => 'createdAt',
     ];
 
     /**
@@ -190,13 +192,15 @@ class UrgenceRepository extends EntityRepository
                         ->leftJoin('u.buyer', 'b_search')
                         ->leftJoin('u.provider', 'p_search')
                         ->leftJoin('u.carrier', 'c_search')
+                        ->leftJoin('u.lastArrival', 'a_search' )
                         ->andWhere($exprBuilder->orX(
                             'u.commande LIKE :value',
                             'u.postNb LIKE :value',
                             'u.trackingNb LIKE :value',
                             'b_search.username LIKE :value',
                             'p_search.nom LIKE :value',
-                            'c_search.label LIKE :value'
+                            'c_search.label LIKE :value',
+                            'a_search.numeroArrivage LIKE :value'
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -223,6 +227,11 @@ class UrgenceRepository extends EntityRepository
                                 ->leftJoin('u.buyer', 'b_order')
                                 ->orderBy('b_order.username', $order);
                             break;
+                        case 'arrivalNb':
+                            $qb
+                                ->leftJoin('u.lastArrival', 'a_order')
+                                ->orderBy('a_order.numeroArrivage', $order);
+                            break;
                         default:
                             $qb->orderBy('u.' . $column, $order);
                     }
@@ -245,5 +254,30 @@ class UrgenceRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Urgence[]|null
+     */
+    public function findByDates($dateMin, $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+        $qb
+            ->select('u')
+            ->from('App\Entity\Urgence ', 'u')
+            ->where('u.dateStart > :dateMin' )
+           ->andWhere('u.dateEnd < :dateMax')
+        ->setParameters([
+        'dateMin' => $dateMin,
+        'dateMax' => $dateMax
+    ]);
+        return $qb->getQuery()->getResult();
     }
 }

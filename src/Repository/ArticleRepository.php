@@ -848,13 +848,15 @@ class ArticleRepository extends EntityRepository
 	private function getArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
-		"SELECT a.reference,
+		"SELECT ra.reference,
 			 e.label as location,
 			 a.label,
 			 a.quantite as quantity,
 			 0 as is_ref, oc.id as id_collecte,
 			 a.barCode
 			FROM App\Entity\Article a
+			JOIN a.articleFournisseur artf
+			JOIN artf.referenceArticle ra
 			LEFT JOIN a.emplacement e
 			JOIN a.ordreCollecte oc
 			LEFT JOIN oc.statut s"

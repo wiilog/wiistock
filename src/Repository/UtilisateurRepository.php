@@ -89,6 +89,18 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $query->execute();
     }
 
+    public function getIdAndLibelleAndDropzoneBySearch($search) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT u.id, u.username as text, d.id as idEmp, d.label as textEmp
+          FROM App\Entity\Utilisateur u
+          LEFT JOIN u.dropzone d
+          WHERE u.username LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
     /**
      * @param $search
      * @return Utilisateur|null

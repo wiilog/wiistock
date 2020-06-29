@@ -871,6 +871,7 @@ class ReceptionController extends AbstractController
         }
 
         $createDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $needsCurrentUser = $this->paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
 
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
@@ -882,7 +883,7 @@ class ReceptionController extends AbstractController
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
             'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
-
+            'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
         ]);
     }
@@ -1361,14 +1362,16 @@ class ReceptionController extends AbstractController
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if ($data['confirmed'] === true) {
-                    $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
                     foreach ($listReceptionReferenceArticle as $receptionRA) {
                         if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
-                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    if (!$partielle) {
+                        $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    }
                     return new JsonResponse($partielle ? 0 : 1);
                 }
             }
@@ -1377,16 +1380,17 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param Reception $reception
      * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
      * @param MouvementTracaService $mouvementTracaService
-     * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
+    private function validateReception(EntityManagerInterface $entityManager,
+                                       $reception,
+                                       $listReceptionReferenceArticle,
+                                       MouvementTracaService $mouvementTracaService)
     {
-        $entityManager = $this->getDoctrine()->getManager();
-
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
@@ -1409,8 +1413,7 @@ class ReceptionController extends AbstractController
                     ->setReceptionOrder($reception)
                     ->setDate($now);
                 $entityManager->persist($mouvementStock);
-
-                $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1422,7 +1425,9 @@ class ReceptionController extends AbstractController
                         'mouvementStock' => $mouvementStock,
                         'from' => $reception
                     ]
-                ));
+                );
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
             } else {
                 $articles = $receptionRA->getArticles();
                 foreach ($articles as $article) {
@@ -1437,7 +1442,7 @@ class ReceptionController extends AbstractController
                         ->setDate($now);
                     $entityManager->persist($mouvementStock);
 
-                    $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                    $createdMvt = $mouvementTracaService->createMouvementTraca(
                         $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
@@ -1449,7 +1454,9 @@ class ReceptionController extends AbstractController
                             'mouvementStock' => $mouvementStock,
                             'from' => $reception
                         ]
-                    ));
+                    );
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
                 }
             }
         }
@@ -1850,19 +1857,18 @@ class ReceptionController extends AbstractController
             if (isset($demande) && $demande->getType()->getSendMail()) {
                 $nowDate = new DateTime('now');
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Conditionnement d\'une '
-                    . $translator->trans('réception.réception')
-                    . ' vous concernant',
+                    'FOLLOW GT // Réception d\'un colis '
+                    . 'de type «' . $demande->getType()->getLabel() . '».',
                     $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,
-                        'title' => 'Votre ' . $translator->trans('réception.réception')
+                        'title' => 'Une ' . $translator->trans('réception.réception')
                             . ' '
                             . $reception->getNumeroReception()
-                            . ' de type '
+                            . ' de type «'
                             . $demande->getType()->getLabel()
-                            . ' a bien été conditionnée le '
+                            . '» a été réceptionnée le '
                             . $nowDate->format('d/m/Y \à H:i')
                             . '.',
                     ]),

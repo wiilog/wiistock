@@ -189,6 +189,7 @@ class LitigeController extends AbstractController
                 'Date modification',
                 'Colis / Réferences',
                 'Code barre',
+                'QteArticle',
                 'Ordre arrivage / réception',
 				'N° Commande / BL',
                 'Déclarant',
@@ -214,6 +215,7 @@ class LitigeController extends AbstractController
                     $litigeData[] = $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y') : '';
                     $litigeData[] = $coli->getCode();
                     $litigeData[] = ' ';
+                    $litigeData[] = '' ;
 
                     $colis = $litige->getColis();
                     /** @var Arrivage $arrivage */
@@ -279,9 +281,11 @@ class LitigeController extends AbstractController
 
                     /** @var Article $firstArticle */
                     $firstArticle = ($articles->count() > 0 ? $articles->first() : null);
+                    $qteArticle = $article->getQuantite();
                     $receptionRefArticle = isset($firstArticle) ? $firstArticle->getReceptionReferenceArticle() : null;
                     $reception = isset($receptionRefArticle) ? $receptionRefArticle->getReception() : null;
                     $litigeData[] = $article->getBarCode();
+                    $litigeData[] = $qteArticle;
                     $litigeData[] = (isset($reception) ? $reception->getNumeroReception() : '');
 
                     $litigeData[] = (isset($reception) ? $reception->getReference() : null); // n° commande reception
@@ -461,7 +465,7 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -477,4 +481,26 @@ class LitigeController extends AbstractController
 
         return new JsonResponse($user->getColumnsVisibleForLitige());
     }
-}
+
+    /**
+     * @Route("/article/{litige}", name="article_litige_api", options={"expose"=true}, methods="POST|GET", condition="request.isXmlHttpRequest()")
+     * @param Litige $litige
+     * @return Response
+     */
+    public function articlesByLitige(Litige $litige): Response
+    {
+        $rows = [];
+        $articlesInLitige = $litige->getFiveLastArticles();
+
+        foreach ($articlesInLitige as $article) {
+            $rows[] = [
+                'codeArticle' => $article ? $article->getBarCode() : '',
+                'status' => $article->getStatut() ? $article->getStatut()->getNom() : '',
+                'libelle' => $article->getLabel() ? $article->getLabel() : '',
+                'reference' => $article->getReference() ? $article->getReference() : '',
+                'quantity' => $article ? $article->getQuantite() : 'non renseigné',
+            ];
+        }
+        $data['data'] = $rows;
+        return new JsonResponse($data);
+}}

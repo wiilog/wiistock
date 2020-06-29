@@ -189,7 +189,7 @@ class OrdreCollecteController extends AbstractController
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $ligneArticle->getId(),
                         'refArticleId' => $referenceArticle->getId(),
-                        'refRef' => $referenceArticle ? $referenceArticle->getReference() : '',
+                        'barCode' => $referenceArticle ? $referenceArticle->getBarCode() : '',
                         'quantity' => $ligneArticle->getQuantite(),
                         'modifiable' => $ordreCollecte->getStatut()
                             ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
@@ -208,7 +208,7 @@ class OrdreCollecteController extends AbstractController
                     'Quantité' => $article->getQuantite(),
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $article->getId(),
-                        'refArt' => $article->getReference(),
+                        'barCode' => $article->getBarCode(),
                         'quantity' => $article->getQuantite(),
                         'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
                         'articleId' =>$article->getId()

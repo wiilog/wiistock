@@ -33,6 +33,14 @@
             <span class="slider round"></span>
         </label>
     </div>
+    <div class="form-group">
+        <label for="param-bl-etiquette">Afficher la quantité sur étiquette d'article</label>
+        <label class="switch">
+            <input type="checkbox" class="checkbox col-3 data"
+                   name="param-qtt-etiquette" {{ wantsQTT ? 'checked' : '' }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
     <div class="form-group w-fit-content">
         <label for="param-type-etiquette">Type d'étiquette</label>
         <select name="param-type-etiquette" class="data form-control">

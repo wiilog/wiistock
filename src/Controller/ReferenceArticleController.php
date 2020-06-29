@@ -454,7 +454,12 @@ class ReferenceArticleController extends AbstractController
                     $entityManager->flush();
                 }
             }
-            return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
+            return new JsonResponse([
+                'success' => true,
+                'new' => $this->refArticleDataService->dataRowRefArticle($refArticle),
+                'id' => $refArticle->getId(),
+                'text' => $refArticle->getReference(),
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -771,15 +776,12 @@ class ReferenceArticleController extends AbstractController
      */
     public function addFournisseur(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $json =  $this->renderView('reference_article/fournisseurArticle.html.twig');
-            return new JsonResponse($json);
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new NotFoundHttpException("404");
+
+        $json = $this->renderView('reference_article/fournisseurArticle.html.twig');
+        return new JsonResponse($json);
     }
 
     /**

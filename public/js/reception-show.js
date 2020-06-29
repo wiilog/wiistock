@@ -233,6 +233,33 @@ function openTableHisto() {
         },
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
+    openTableArticleLitige();
+}
+
+let tableArticleInLitige;
+
+function openTableArticleLitige() {
+
+    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableArticleLitigeConfig = {
+        ajax: {
+            "url": pathArticleLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
+            {"data": 'status', 'name': 'status', 'title': 'Status'},
+            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
+            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        },
+        "paging": false,
+
+    };
+    tableArticleInLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
 }
 
 function initDatatableConditionnement() {
@@ -282,7 +309,7 @@ function initDatatableConditionnement() {
     if (!statutVisible) {
         tableFromArticle.column('Statut:name').visible(false);
     }
-    if(!modalArticleAlreadyInit) {
+    if (!modalArticleAlreadyInit) {
         initModalCondit(tableFromArticle);
         modalArticleAlreadyInit = true;
     }
@@ -354,11 +381,15 @@ function initNewReferenceArticleEditor() {
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, false);
+    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, false, (data) => {
+        let option = new Option(data.text, data.id, true, true);
+        $('#reception-add-ligne').append(option).trigger('change');
+    });
 }
 
 function addArticle() {
@@ -391,9 +422,9 @@ function clearAddRefModal() {
     $('.body-add-ref').css('display', 'none');
 }
 
-function InitialiserModalRefArticleFromRecep(modal, submit, path, close = true) {
+function InitialiserModalRefArticleFromRecep(modal, submit, path, close = true, successCallback = null) {
     submit.click(function () {
-        submitActionRefArticleFromRecep(modal, path, close);
+        submitActionRefArticleFromRecep(modal, path, close, successCallback);
     });
 }
 
@@ -401,7 +432,7 @@ function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
 }
 
-function submitActionRefArticleFromRecep(modal, path, close) {
+function submitActionRefArticleFromRecep(modal, path, close, successCallback) {
     let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
@@ -410,6 +441,7 @@ function submitActionRefArticleFromRecep(modal, path, close) {
             if (data.success) {
                 $('#innerNewRef').html('');
                 modal.find('.error-msg').html('');
+                if (successCallback) successCallback(data);
             } else {
                 modal.find('.error-msg').html(data.msg);
             }
@@ -504,6 +536,30 @@ function validatePacking($button) {
     }
 }
 
+
+function demandeurChanged($select) {
+    const $locationSelect = $('#locationDemandeLivraison');
+    const [resultSelected] = $select.select2('data');
+    const curentUser = $('#currentUser');
+    if (resultSelected && !$locationSelect.data('is-prefilled')) {
+        let {idEmp, textEmp, text} = resultSelected;
+        const $locationInput = $('#locationDemandeLivraisonValue');
+        const originalValues = {
+            id: $locationInput.data('id'),
+            text: $locationInput.data('text')
+        };
+        if (!idEmp && text === curentUser.data('id')) {
+            idEmp = originalValues.id;
+            textEmp = originalValues.text;
+        }
+        $locationInput.data('id', idEmp);
+        $locationInput.data('text', textEmp);
+        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue', true);
+        $locationInput.data('id', originalValues.id);
+        $locationInput.data('text', originalValues.text);
+    }
+}
+
 function initNewLigneReception($button) {
     if (!editorNewLivraisonAlreadyDoneForDL) {
         initEditorInModal(modalNewLigneReception);
@@ -512,12 +568,13 @@ function initNewLigneReception($button) {
     initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
     initSelect2($('.select2-type'));
     initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route: 'get_user'});
+    initDisplaySelect2('#demandeurDL', '#currentUser');
     initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
     if ($('#locationDemandeLivraison').length > 0) {
-        initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -652,8 +709,7 @@ function toggleDLForm() {
     if ($input.is(':checked')) {
         $demandeForm.removeClass('d-none');
         $demandeForm.find('.data').attr('disabled', null);
-    }
-    else {
+    } else {
         $demandeForm.addClass('d-none');
         $demandeForm.find('.data').attr('disabled', 'disabled');
     }
@@ -678,8 +734,7 @@ function initConditionnementArticleFournisseurDefault() {
             },
             {},
             referenceArticle.defaultArticleFournisseur || {});
-    }
-    else {
+    } else {
         resetDefaultArticleFournisseur();
     }
 }
@@ -694,8 +749,7 @@ function resetDefaultArticleFournisseur(show = false) {
 
     if (show) {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
-    }
-    else {
+    } else {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }

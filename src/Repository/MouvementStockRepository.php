@@ -415,11 +415,14 @@ class MouvementStockRepository extends EntityRepository
                     $qb
                         ->leftJoin('m.refArticle', 'ra3')
                         ->leftJoin('m.article', 'a3')
+                        ->leftJoin('a3.articleFournisseur', 'af3')
+                        ->leftJoin('af3.referenceArticle', 'ra4')
                         ->leftJoin('m.emplacementFrom', 'ef3')
                         ->leftJoin('m.emplacementTo', 'et3')
                         ->leftJoin('m.user', 'u3')
                         ->andWhere('(
 						ra3.reference LIKE :value OR
+						ra4.reference LIKE :value OR
 						ef3.label LIKE :value OR
 						ra3.barCode LIKE :value OR
 						a3.barCode LIKE :value OR

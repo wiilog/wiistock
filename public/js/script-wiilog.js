@@ -650,11 +650,14 @@ function initSelect2($select,
     });
 }
 
-function initDisplaySelect2(select, inputValue) {
+function initDisplaySelect2(select, inputValue, forceInit = false) {
     let data = $(inputValue).data();
+    const $select = $(select);
     if (data.id && data.text) {
         let option = new Option(data.text, data.id, true, true);
-        $(select).append(option).trigger('change');
+        $select.append(option).trigger('change');
+    } else if (forceInit) {
+        $select.val(null).trigger('change');
     }
 }
 
@@ -933,6 +936,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
     $submit.hide();
+    $modalBody.html(
+        '<div class="row justify-content-center">' +
+        '   <div class="col-auto">' +
+        '       <div class="spinner-border" role="status">' +
+        '           <span class="sr-only">Loading...</span>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>'
+    );
     $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
