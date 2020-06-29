@@ -39,6 +39,11 @@ class Colis
      */
     private $nature;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrops")
+     */
+    private $lastDrop;
+
     public function __construct()
     {
         $this->litiges = new ArrayCollection();
@@ -106,6 +111,18 @@ class Colis
     public function setNature(?Nature $nature): self
     {
         $this->nature = $nature;
+
+        return $this;
+    }
+
+    public function getLastDrop(): ?MouvementTraca
+    {
+        return $this->lastDrop;
+    }
+
+    public function setLastDrop(?MouvementTraca $lastDrop): self
+    {
+        $this->lastDrop = $lastDrop;
 
         return $this;
     }

@@ -21,7 +21,6 @@ function loadPage() {
     let idLocationsToDisplay = $('#emplacement').val();
     const $message = $('.error-msg');
     const locationFiltersCounter = idLocationsToDisplay.length;
-
     const min = Number($('#encours-min-location-filter').val());
     const max = Number($('#encours-max-location-filter').val());
     if (locationFiltersCounter < min || locationFiltersCounter > max) {
@@ -36,7 +35,6 @@ function loadPage() {
     }
     else {
         $message.addClass('d-none');
-
         $('.block-encours').each(function () {
             const $blockEncours = $(this);
             let $tableEncours = $blockEncours.find('.encours-table').filter(function() {
