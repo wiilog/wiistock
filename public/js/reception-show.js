@@ -749,7 +749,7 @@ function resetDefaultArticleFournisseur(show = false) {
     }
 }
 
-$("#submitDeleteArticle").on('click', function (e) {
+/*$("#submitDeleteArticle").on('click', function (e) {
     console.log("Test");
     const path = window.location.pathname;
 
@@ -761,4 +761,4 @@ $("#submitDeleteArticle").on('click', function (e) {
 ;        }
     })
     e.preventDefault();
-});
+});*/

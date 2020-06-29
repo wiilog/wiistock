@@ -592,11 +592,17 @@ class ArticleController extends AbstractController
                 return new JsonResponse(false);
             }
 
-            $entityManager->remove($article);
-            $entityManager->flush();
+            if ($article->getLitiges()){
+                $message = '<div class="alert alert-success" role="alert">Cet article est lié à un litige, vous ne pouvez pas le supprimer.</div>';
+                echo $message;
+            }
+            else {
+                $entityManager->remove($article);
+                $entityManager->flush();
 
-            $response['delete'] = $rows;
-            return new JsonResponse($response);
+                $response['delete'] = $rows;
+                return new JsonResponse($response);
+            }
         }
         throw new NotFoundHttpException("404");
     }
