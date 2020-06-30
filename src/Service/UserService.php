@@ -46,6 +46,16 @@ class UserService
         $this->entityManager = $entityManager;
     }
 
+    public static function CreateMobileLoginKey(int $length = 24): string {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+
     public function getUserRole($user = null)
     {
         if (!$user) $user = $this->user;
@@ -176,4 +186,14 @@ class UserService
 
 		return $nbDemandesLivraison + $nbDemandesCollecte + $nbOrdresLivraison + $nbOrdresCollecte + $nbManutentions + $nbPrepa + $nbReceptions > 0;
 	}
+
+	public function createUniqueMobileLoginKey(EntityManagerInterface $entityManager): string {
+	    $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        do {
+            $mobileLoginKey = UserService::CreateMobileLoginKey();
+            $userWithThisKey = $utilisateurRepository->findBy(['mobileLoginKey' => $mobileLoginKey]);
+        }
+        while(!empty($userWithThisKey));
+        return $mobileLoginKey;
+    }
 }

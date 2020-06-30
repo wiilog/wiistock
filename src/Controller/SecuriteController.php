@@ -89,11 +89,15 @@ class SecuriteController extends AbstractController
     /**
      * @Route("/register", name="register")
      * @param Request $request
+     * @param UserService $userService
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function register(Request $request,
+                             UserService $userService,
+                             UserPasswordEncoderInterface $passwordEncoder,
+                             EntityManagerInterface $entityManager)
     {
         $session = $request->getSession();
         $user = new Utilisateur();
@@ -103,6 +107,7 @@ class SecuriteController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
             $user
                 ->setStatus(true)
@@ -114,7 +119,8 @@ class SecuriteController extends AbstractController
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
                 ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
                 ->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
-                ->setRecherche(Utilisateur::SEARCH_DEFAULT);
+                ->setRecherche(Utilisateur::SEARCH_DEFAULT)
+                ->setMobileLoginKey($uniqueMobileKey);
             $entityManager->persist($user);
             $entityManager->flush();
             $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');

@@ -142,6 +142,7 @@ class UtilisateurController extends AbstractController
 			}
 
             $utilisateur = new Utilisateur();
+            $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
 
             $utilisateur
@@ -157,7 +158,8 @@ class UtilisateurController extends AbstractController
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
                 ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
 				->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
-                ->setRecherche(Utilisateur::SEARCH_DEFAULT);
+                ->setRecherche(Utilisateur::SEARCH_DEFAULT)
+                ->setMobileLoginKey($uniqueMobileKey);
 
             if ($password !== '') {
 				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
@@ -302,6 +304,23 @@ class UtilisateurController extends AbstractController
                     $utilisateur->addType($typeRepository->find($type));
                 }
             }
+
+            if (!empty($data['mobileLoginKey'])
+                && $data['mobileLoginKey'] !== $utilisateur->getMobileLoginKey()) {
+
+                $usersWithKey = $utilisateurRepository->findBy(['mobileLoginKey' => $data['mobileLoginKey']]);
+                if (!empty($usersWithKey)) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Cette clé de connexion est déjà utilisée.',
+                        'action' => 'edit'
+                    ]);
+                }
+                else {
+                    $utilisateur->setMobileLoginKey($data['mobileLoginKey']);
+                }
+            }
+
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
