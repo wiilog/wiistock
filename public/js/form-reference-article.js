@@ -132,6 +132,7 @@ function addArticleFournisseurReferenceArticle($plusButton) {
                 dataReponse = JSON.parse(this.responseText);
                 $('#addFournisseur').closest('div').before(dataReponse);
                 ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+                ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
             }
         };
         let path = Routing.generate('ajax_render_add_fournisseur', true);

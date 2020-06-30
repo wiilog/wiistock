@@ -1340,14 +1340,16 @@ class ReceptionController extends AbstractController
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if ($data['confirmed'] === true) {
-                    $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
                     foreach ($listReceptionReferenceArticle as $receptionRA) {
                         if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
-                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    if (!$partielle) {
+                        $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    }
                     return new JsonResponse($partielle ? 0 : 1);
                 }
             }
@@ -1356,16 +1358,17 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param Reception $reception
      * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
      * @param MouvementTracaService $mouvementTracaService
-     * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
+    private function validateReception(EntityManagerInterface $entityManager,
+                                       $reception,
+                                       $listReceptionReferenceArticle,
+                                       MouvementTracaService $mouvementTracaService)
     {
-        $entityManager = $this->getDoctrine()->getManager();
-
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
@@ -1388,8 +1391,7 @@ class ReceptionController extends AbstractController
                     ->setReceptionOrder($reception)
                     ->setDate($now);
                 $entityManager->persist($mouvementStock);
-
-                $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1401,7 +1403,9 @@ class ReceptionController extends AbstractController
                         'mouvementStock' => $mouvementStock,
                         'from' => $reception
                     ]
-                ));
+                );
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
             } else {
                 $articles = $receptionRA->getArticles();
                 foreach ($articles as $article) {
@@ -1416,7 +1420,7 @@ class ReceptionController extends AbstractController
                         ->setDate($now);
                     $entityManager->persist($mouvementStock);
 
-                    $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                    $createdMvt = $mouvementTracaService->createMouvementTraca(
                         $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
@@ -1428,7 +1432,9 @@ class ReceptionController extends AbstractController
                             'mouvementStock' => $mouvementStock,
                             'from' => $reception
                         ]
-                    ));
+                    );
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
                 }
             }
         }

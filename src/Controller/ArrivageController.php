@@ -653,6 +653,9 @@ class ArrivageController extends AbstractController
                 foreach ($arrivage->getColis() as $colis) {
                     $litiges = $colis->getLitiges();
                     foreach ($mouvementTracaRepository->getByColisAndPriorToDate($colis->getCode(), $arrivage->getDate()) as $mvtToDelete) {
+                        foreach ($mvtToDelete->getLinkedPackLastDrops() as $pack) {
+                            $pack->setLastDrop(null);
+                        }
                         $entityManager->remove($mvtToDelete);
                     }
                     $entityManager->remove($colis);

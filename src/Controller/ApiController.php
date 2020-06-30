@@ -402,9 +402,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $type,
                                 $options
                             );
-                            foreach ($createdMvt->getAttachements() as $attachement) {
-                                $entityManager->persist($attachement);
-                            }
+                            $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                             $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
 
@@ -413,7 +411,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $isDepose = ($mvt['type'] === MouvementTraca::TYPE_DEPOSE);
                                 $colis = $colisRepository->findOneBy(['code' => $mvt['ref_article']]);
 
-                                if ($isDepose && $colis && $location->getIsDeliveryPoint()) {
+                                if ($isDepose
+                                    && $colis
+                                    && $colis->getArrivage()
+                                    && $location->getIsDeliveryPoint()) {
                                     $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
                                     $fournisseur = $fournisseurRepository->findOneByColis($colis);
                                     $arrivage = $colis->getArrivage();

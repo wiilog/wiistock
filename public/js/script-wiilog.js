@@ -940,6 +940,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
     $submit.hide();
+    $modalBody.html(
+        '<div class="row justify-content-center">' +
+        '   <div class="col-auto">' +
+        '       <div class="spinner-border" role="status">' +
+        '           <span class="sr-only">Loading...</span>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>'
+    );
     $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
