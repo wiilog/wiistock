@@ -334,47 +334,51 @@ class LivraisonController extends AbstractController
         }
     }
 
-
     private function buildInfos(Livraison $livraison, &$data)
     {
         $demande = $livraison->getDemande();
-        if (isset($demande)) {
-            $dataLivraison =
-                [
-                    $livraison->getNumero() ?? '',
-                    $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
-                    $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
-                    $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
-                    $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-                    $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
-                ];
+        $preparation = $livraison->getPreparation();
+        if (isset($demande)
+            && isset($preparation)) {
+            $dataLivraison = [
+                $livraison->getNumero() ?? '',
+                $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
+                $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
+                $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
+                $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
+                $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
+            ];
 
-            foreach ($demande->getLigneArticle() as $ligneArticle) {
-                $referenceArticle = $ligneArticle->getReference();
+            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+                if ($ligneArticle->getQuantite() > 0) {
+                    $referenceArticle = $ligneArticle->getReference();
 
-                $data[] = array_merge($dataLivraison, [
-                    $referenceArticle->getReference() ?? '',
-                    $referenceArticle->getLibelle() ?? '',
-                    $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                    $ligneArticle->getQuantite() ?? 0,
-                    $referenceArticle->getQuantiteStock() ?? 0,
-                    $referenceArticle->getBarCode(),
-                ]);
+                    $data[] = array_merge($dataLivraison, [
+                        $referenceArticle->getReference() ?? '',
+                        $referenceArticle->getLibelle() ?? '',
+                        $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
+                        $ligneArticle->getQuantite() ?? 0,
+                        $referenceArticle->getQuantiteStock() ?? 0,
+                        $referenceArticle->getBarCode(),
+                    ]);
+                }
             }
 
-            foreach ($demande->getArticles() as $article) {
-                $articleFournisseur = $article->getArticleFournisseur();
-                $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-                $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+            foreach ($preparation->getArticles() as $article) {
+                if ($article->getQuantite() > 0) {
+                    $articleFournisseur = $article->getArticleFournisseur();
+                    $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+                    $reference = $referenceArticle ? $referenceArticle->getReference() : '';
 
-                $data[] = array_merge($dataLivraison, [
-                    $reference,
-                    $article->getLabel() ?? '',
-                    $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                    $article->getQuantiteAPrelever() ?? 0,
-                    $article->getQuantite() ?? 0,
-                    $article->getBarCode(),
-                ]);
+                    $data[] = array_merge($dataLivraison, [
+                        $reference,
+                        $article->getLabel() ?? '',
+                        $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
+                        $article->getQuantiteAPrelever() ?? 0,
+                        $article->getQuantite() ?? 0,
+                        $article->getBarCode(),
+                    ]);
+                }
             }
         }
     }

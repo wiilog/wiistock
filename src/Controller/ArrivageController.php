@@ -653,6 +653,9 @@ class ArrivageController extends AbstractController
                 foreach ($arrivage->getColis() as $colis) {
                     $litiges = $colis->getLitiges();
                     foreach ($mouvementTracaRepository->getByColisAndPriorToDate($colis->getCode(), $arrivage->getDate()) as $mvtToDelete) {
+                        foreach ($mvtToDelete->getLinkedPackLastDrops() as $pack) {
+                            $pack->setLastDrop(null);
+                        }
                         $entityManager->remove($mvtToDelete);
                     }
                     $entityManager->remove($colis);
@@ -976,6 +979,7 @@ class ArrivageController extends AbstractController
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
@@ -994,12 +998,17 @@ class ArrivageController extends AbstractController
             $colisRepository = $entityManager->getRepository(Colis::class);
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
+            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LA', $now);
+
             $litige = new Litige();
             $litige
                 ->setDeclarant($usersRepository->find($post->get('declarantLitige')))
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
-                ->setCreationDate(new DateTime('now'));
+                ->setCreationDate($now)
+                ->setNumeroLitige($disputeNumber);
+
             $arrivage = null;
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
@@ -1144,6 +1153,7 @@ class ArrivageController extends AbstractController
                             'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
                         ],
                         'litigeId' => $litige->getId(),
+                        'disputeNumber' => $litige->getNumeroLitige()
                     ]),
                     'urgence' => $litige->getEmergencyTriggered()
                 ];
@@ -1159,6 +1169,7 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
@@ -1167,7 +1178,6 @@ class ArrivageController extends AbstractController
                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
@@ -1180,7 +1190,6 @@ class ArrivageController extends AbstractController
             $colisCode = [];
             foreach ($litige->getColis() as $colis) {
                 $colisCode[] = $colis->getId();
-
             }
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);

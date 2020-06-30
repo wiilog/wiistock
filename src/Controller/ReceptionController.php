@@ -568,6 +568,40 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function cancel(Request $request,
+                           EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $receptionRepository = $entityManager->getRepository(Reception::class);
+
+            $statutPartialReception = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_PARTIELLE);
+            $reception = $receptionRepository->find($data['receptionId']);
+            if ($reception->getStatut()->getCode() === Reception::STATUT_RECEPTION_TOTALE) {
+                $reception->setStatut($statutPartialReception);
+                $entityManager->flush();
+            }
+            $data = [
+                "redirect" => $this->generateUrl('reception_show', [
+                    'id' => $reception->getId()
+                ])
+            ];
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
@@ -1119,11 +1153,16 @@ class ReceptionController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = new Litige();
+
+            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LR', $now);
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
-                ->setCreationDate(new \DateTime('now'));
+                ->setCreationDate($now)
+                ->setNumeroLitige($disputeNumber);
 
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
@@ -1218,8 +1257,6 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
      * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
@@ -1289,6 +1326,7 @@ class ReceptionController extends AbstractController
                             'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
                         ],
                         'litigeId' => $litige->getId(),
+                        'disputeNumber' => $litige->getNumeroLitige()
                     ]),
                     'urgence' => $litige->getEmergencyTriggered()
                 ];
@@ -1329,14 +1367,16 @@ class ReceptionController extends AbstractController
                 return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
             } else {
                 if ($data['confirmed'] === true) {
-                    $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
                     return new JsonResponse(1);
                 } else {
                     $partielle = false;
                     foreach ($listReceptionReferenceArticle as $receptionRA) {
                         if ($receptionRA->getQuantite() !== $receptionRA->getQuantiteAR()) $partielle = true;
                     }
-                    if (!$partielle) $this->validateReception($reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    if (!$partielle) {
+                        $this->validateReception($entityManager, $reception, $listReceptionReferenceArticle, $mouvementTracaService);
+                    }
                     return new JsonResponse($partielle ? 0 : 1);
                 }
             }
@@ -1345,16 +1385,17 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param Reception $reception
      * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
      * @param MouvementTracaService $mouvementTracaService
-     * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function validateReception($reception, $listReceptionReferenceArticle, MouvementTracaService $mouvementTracaService)
+    private function validateReception(EntityManagerInterface $entityManager,
+                                       $reception,
+                                       $listReceptionReferenceArticle,
+                                       MouvementTracaService $mouvementTracaService)
     {
-        $entityManager = $this->getDoctrine()->getManager();
-
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
@@ -1377,8 +1418,7 @@ class ReceptionController extends AbstractController
                     ->setReceptionOrder($reception)
                     ->setDate($now);
                 $entityManager->persist($mouvementStock);
-
-                $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1390,7 +1430,9 @@ class ReceptionController extends AbstractController
                         'mouvementStock' => $mouvementStock,
                         'from' => $reception
                     ]
-                ));
+                );
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
             } else {
                 $articles = $receptionRA->getArticles();
                 foreach ($articles as $article) {
@@ -1405,7 +1447,7 @@ class ReceptionController extends AbstractController
                         ->setDate($now);
                     $entityManager->persist($mouvementStock);
 
-                    $entityManager->persist($mouvementTracaService->createMouvementTraca(
+                    $createdMvt = $mouvementTracaService->createMouvementTraca(
                         $article->getBarCode(),
                         $receptionLocation,
                         $currentUser,
@@ -1417,7 +1459,9 @@ class ReceptionController extends AbstractController
                             'mouvementStock' => $mouvementStock,
                             'from' => $reception
                         ]
-                    ));
+                    );
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
                 }
             }
         }

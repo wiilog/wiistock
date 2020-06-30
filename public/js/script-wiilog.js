@@ -715,6 +715,10 @@ function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
 }
 
+function ajaxAutoDisputeNumberInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispute_number'});
+}
+
 function ajaxAutoDemandCollectInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demand_collect'});
 }
@@ -946,6 +950,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
     $submit.hide();
+    $modalBody.html(
+        '<div class="row justify-content-center">' +
+        '   <div class="col-auto">' +
+        '       <div class="spinner-border" role="status">' +
+        '           <span class="sr-only">Loading...</span>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>'
+    );
     $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
@@ -1234,6 +1247,7 @@ function displayFiltersSup(data) {
             case 'carriers':
             case 'emplacement':
             case 'demCollecte':
+            case 'disputeNumber':
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);

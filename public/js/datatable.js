@@ -219,7 +219,6 @@ function moveSearchInputToHeader($searchInputContainer) {
             ? $searchInputContainer.parents('.dt-parent').find('.wii-page-card-header')
             : $datatableCardHeader;
         if ($datatableCardHeader.length > 0) {
-            console.log($datatableCardHeader);
             $searchInput.addClass('search-input');
             $datatableCardHeader.prepend($searchInputContainerCol);
             $searchInputContainerCol.removeClass('d-none');
@@ -239,7 +238,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
         .addClass('w-100');
     datatableToReturn = $tableDom
         .on('error.dt', function (e, settings, techNote, message) {
-            console.log('An error has been reported by DataTables: ', message);
+            console.log('An error has been reported by DataTables: ', message, e, dtId);
         })
         .DataTable({
             autoWidth: true,
