@@ -65,6 +65,30 @@ class TranslationService {
         $env = $this->kernel->getEnvironment();
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
+        $projectDir = $this->kernel->getProjectDir();
+
+        // Recursively delete all sub-folders and files from a folder passed as parameter.
+        function rrmdir($dir) {
+            if (is_dir($dir)) {
+                $objects = scandir($dir);
+                foreach ($objects as $object) {
+                    if ($object != "." && $object != "..") {
+                        if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
+                            rrmdir($dir . DIRECTORY_SEPARATOR . $object);
+                        }
+                        else {
+                            unlink($dir . DIRECTORY_SEPARATOR . $object);
+                        }
+                    }
+                }
+                rmdir($dir);
+            }
+        }
+
+        // Delete the translations folder in production environment only
+        if ($env === 'prod') {
+            rrmdir($projectDir . '/var/cache/prod/translations');
+        }
 
 		$input = new ArrayInput(array(
 			'command' => 'cache:warmup',
