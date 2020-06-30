@@ -1150,23 +1150,17 @@ class ReceptionController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $litigeRepository = $entityManager->getRepository(Litige::class);
 
             $litige = new Litige();
 
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $lastNumeroLitige = $litigeRepository->getLastNumeroLitigeByPrefixeAndDate('LR', $date->format('ymd'));
-            $lastCpt = (int)substr($lastNumeroLitige, -4, 4);
-            $i = $lastCpt + 1;
-            $cpt = sprintf('%04u', $i);
-            $disputeNumber = 'LR' . $date->format('ymd') . $cpt;
-
+            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LR', $now);
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
-                ->setCreationDate(new \DateTime('now'))
+                ->setCreationDate($now)
                 ->setNumeroLitige($disputeNumber);
 
             if (!empty($colis = $post->get('colisLitige'))) {
@@ -1261,8 +1255,6 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
-
 
     /**
      * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")

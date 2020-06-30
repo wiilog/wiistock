@@ -128,7 +128,7 @@ class LitigeController extends AbstractController
             ["key" => 'updateDate', 'label' => 'Modifié le'],
             ["key" => 'status', 'label' => 'Statut'],
         ];
-        $fieldsCl =[];
+        $fieldsCl = [];
         $champs = array_merge($fieldsInTab,$fieldsCl);
 
 
@@ -137,7 +137,6 @@ class LitigeController extends AbstractController
             'carriers' => $this->transporteurRepository->findAllSorted(),
             'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
-			'disputeNumber' => $litigeRepository->findAllDisputeNumbers(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForLitige()
@@ -513,13 +512,13 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_litige", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete", name="get_dispute_number", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getLitigeAutoComplete(Request $request,
-                                          EntityManagerInterface $entityManager): Response
+    public function getDisputeNumberAutoComplete(Request $request,
+                                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');

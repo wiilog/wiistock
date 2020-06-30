@@ -20,7 +20,7 @@ $(function () {
     initSelect2($('#litigeOrigin'), 'Origines');
     ajaxAutoUserInit($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
     ajaxAutoUserInit($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
-    ajaxAutoDisputeInit($('.ajax-autocomplete-dispute'),'Numéro de litige');
+    ajaxAutoDisputeNumberInit($('.ajax-autocomplete-dispute'),'Numéro de litige');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -41,7 +41,7 @@ function initDatatableLitiges() {
     let tableLitigesConfig = {
         serverSide: true,
         processing: true,
-        order: [11, 'desc'],
+        order: [12, 'desc'],
         ajax: {
             "url": pathLitiges,
             "type": "POST",
@@ -98,8 +98,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
     let params = {
-        litigeId: litigeId,
-        disputeNumber: disputeNumber
+        litigeId: litigeId
     };
 
     if (isArrivage) {

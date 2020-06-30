@@ -193,8 +193,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
 
     let params = {
         litigeId: litigeId,
-        arrivageId: arrivageId,
-        disputeNumber: disputeNumber
+        arrivageId: arrivageId
     };
 
     $.post(path, JSON.stringify(params), function (data) {

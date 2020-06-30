@@ -6,7 +6,6 @@ use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
 use DateTime;
-use DateTimeZone;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -103,7 +102,6 @@ class LitigeService
         $litigeId = $litige['id'];
         $acheteursArrivage = $litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
         $acheteursReception = $litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
-        $disputeNumber = $litigeRepository->getNumeroLitigeById($litigeId);
 
         $lastHistoric = $litigeRepository->getLastHistoricByLitigeId($litigeId);
         $lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
@@ -125,7 +123,7 @@ class LitigeService
                 'arrivageId' => $litige['arrivageId'],
                 'receptionId' => $litige['receptionId'],
                 'isArrivage' => !empty($litige['arrivageId']) ? 1 : 0,
-                'disputeNumber' => $disputeNumber
+                'disputeNumber' => $litige['disputeNumber']
             ]),
             'type' => $litige['type'] ?? '',
             'arrivalNumber' => $litige['numeroArrivage'] ?? '',
@@ -133,7 +131,7 @@ class LitigeService
                 'receptionNb' => $litige['numeroReception'] ?? '',
                 'receptionId' => $litige['receptionId']
             ]),
-            'disputeNumber' => $disputeNumber,
+            'disputeNumber' => $litige['disputeNumber'],
             'references' => $references,
             'declarant' => $litige['declarantUsername'],
             'command' => $commands,
@@ -174,12 +172,14 @@ class LitigeService
                     );
                 }, []);
         }
+
         if ($wantSendToDeclarantMailStatusChange && $litige->getDeclarant()) {
             $mainAndSecondaryEmails = $litige->getDeclarant()->getMainAndSecondaryEmails();
             if (!empty($mainAndSecondaryEmails)) {
                 array_push($recipients, ...$mainAndSecondaryEmails);
             }
         }
+
         $translatedCategory = $isArrival ? $category : $this->translator->trans('réception.une réception');
         $title = !$isUpdate
             ? ('Un litige a été déclaré sur ' . $translatedCategory . ' vous concernant :')
@@ -199,5 +199,32 @@ class LitigeService
                 $recipients
             );
         }
+    }
+
+    public function createDisputeNumber(EntityManagerInterface $entityManager,
+                                        string $prefix,
+                                        DateTime $date): string {
+
+        $litigeRepository = $entityManager->getRepository(Litige::class);
+
+        $dateStr = $date->format('ymd');
+
+        $lastNumeroLitige = $litigeRepository->getLastNumeroLitigeByPrefixeAndDate($prefix, $dateStr);
+        if ($lastNumeroLitige) {
+            $lastCounter = (int) substr($lastNumeroLitige, -4, 4);
+            $currentCounter = ($lastCounter + 1);
+        }
+        else {
+            $currentCounter = 1;
+        }
+
+        $currentCounterStr = (
+            $currentCounter < 10 ? ('000' . $currentCounter) :
+            ($currentCounter < 100 ? ('00' . $currentCounter) :
+            ($currentCounter < 1000 ? ('0' . $currentCounter) :
+            $currentCounter))
+        );
+
+        return ($prefix . $dateStr . $currentCounterStr);
     }
 }

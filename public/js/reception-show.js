@@ -167,8 +167,7 @@ function displayErrorReception(data) {
     displayError($modal, msg, data);
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId, disputeNumber) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');

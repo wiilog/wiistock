@@ -4,17 +4,9 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Demande;
-use App\Entity\Litige;
-use App\Entity\ValeurChampLibre;
-use App\Repository\DemandeRepository;
-use App\Repository\LitigeRepository;
-use App\Repository\ValeurChampLibreRepository;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use DoctrineExtensions\Query\Mysql\DateFormat;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
@@ -41,16 +33,18 @@ final class Version20200624131135 extends AbstractMigration implements Container
             ->executeQuery('SELECT id, creation_date FROM litige')
             ->fetchAll();
 
-        $litigesInReception = array_map(function ($row) {
-            return $row['litige_id'];
-        }, $this->connection
-            ->executeQuery('SELECT litige_id FROM litige_article')
-            ->fetchAll());
+        $litigesInReception = array_map(
+            function ($row) {
+                return $row['litige_id'];
+            },
+            $this->connection
+                ->executeQuery('SELECT litige_id FROM litige_article')
+                ->fetchAll()
+        );
 
         $daysCounter = [];
 
         foreach ($litiges as $litige) {
-
             $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $litige['creation_date']);
             $dateStr = $creationDate->format('ymd');
 

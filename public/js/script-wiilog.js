@@ -715,8 +715,8 @@ function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
 }
 
-function ajaxAutoDisputeInit(select, placeholder = '') {
-    initSelect2(select, placeholder, 1, {route: 'get_litige'});
+function ajaxAutoDisputeNumberInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispute_number'});
 }
 
 function ajaxAutoDemandCollectInit(select) {
