@@ -28,7 +28,10 @@ let tableMvtConfig = {
     order: [[2, "desc"]],
     ajax: {
         "url": pathMvt,
-        "type": "POST"
+        "type": "POST",
+        'data': {
+            referenceBarCode: $('#referenceBarCode').val()
+        }
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -174,3 +177,4 @@ function switchMvtCreationType($input) {
         }
     });
 }
+

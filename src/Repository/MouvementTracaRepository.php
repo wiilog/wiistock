@@ -398,7 +398,16 @@ class MouvementTracaRepository extends EntityRepository
             ->from('App\Entity\MouvementTraca', 'm');
 
         $countTotal = $this->countAll();
-
+        $referenceBarCode = ($params->get('referenceBarCode'));
+        if (!empty($referenceBarCode)) {
+            $qb
+                ->leftJoin('m.referenceArticle', 'referenceBarCode_ra')
+                ->leftJoin('m.article' , 'referenceBarCode_article')
+                ->leftJoin('referenceBarCode_article.articleFournisseur', 'referenceBarCode_articleFournisseur')
+                ->leftJoin('referenceBarCode_articleFournisseur.referenceArticle', 'referenceBarCode_referenceArticle')
+                ->andWhere('(referenceBarCode_ra.barCode =:referenceBarCode  OR  referenceBarCode_referenceArticle.barCode =:referenceBarCode)')
+                ->setParameter('referenceBarCode', $referenceBarCode);
+        }
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -438,7 +447,7 @@ class MouvementTracaRepository extends EntityRepository
                         ->andWhere('m.colis LIKE :colis')
                         ->setParameter('colis', '%' . $filter['value'] . '%');
                     break;
-            }
+           }
         }
 
         //Filter search
@@ -697,5 +706,17 @@ class MouvementTracaRepository extends EntityRepository
             WHERE m.mouvementStock = :mouvementStock"
         )->setParameter('mouvementStock', $mouvementStock);
         return $query->getSingleScalarResult();
+    }
+
+    public function findMvtByArticles()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT * 
+            FROM App/entity/MouvementTraca ");
+            $result =  $query->getQuery()
+                            ->getSingleScalarResult();
+        return $result;
     }
 }

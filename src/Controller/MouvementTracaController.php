@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
@@ -13,6 +14,7 @@ use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
+use App\Repository\MouvementTracaRepository;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\MouvementTracaService;
@@ -69,16 +71,19 @@ class MouvementTracaController extends AbstractController
     }
 
     /**
-     * @Route("/", name="mvt_traca_index")
+     * @Route("/", name="mvt_traca_index", options={"expose"=true})
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager)
+    public function index(EntityManagerInterface $entityManager,
+                          Request $request)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        $referenceBarCode = $request->query->get('referenceBarCode');
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -86,7 +91,8 @@ class MouvementTracaController extends AbstractController
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
+            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
+            'referenceBarCode' => $referenceBarCode,
         ]);
     }
 
