@@ -623,11 +623,11 @@ class ArticleController extends AbstractController
             if (count($article->getCollectes()) > 0) {
                 $location = "une ou plusieurs collectes";
             } else if ($article->getDemande() !== null) {
-                $location = "une ou plusieurs demandes";
+                $location = "une ou plusieurs demandes de livraison";
             } else if (count($article->getLitiges()) > 0) {
                 $location = "un ou plusieurs litiges";
-            } else if (count($article->getInventoryMissions()) > 0) {
-                $location = "un ou plusieurs missions d'inventaire";
+            } else if (count($article->getInventoryEntries()) > 0) {
+                $location = "une ou plusieurs missions d'inventaire";
             } else {
                 $location = "une ou plusieurs parties de l'application";
             }
