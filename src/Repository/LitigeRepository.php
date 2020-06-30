@@ -30,6 +30,7 @@ class LitigeRepository extends EntityRepository
 		'updateDate' => 'updateDate',
         'status' => 'status',
         'urgence' => 'emergencyTriggered',
+        'disputeNumber' => 'disputeNumber'
 	];
 
     public function findByStatutSendNotifToBuyer()
@@ -221,38 +222,39 @@ class LitigeRepository extends EntityRepository
 
 		$qb
 			->select('distinct(l.id) as id')
-			->from('App\Entity\Litige', 'l')
-			->addSelect('l.creationDate')
+            ->addSelect('l.numeroLitige AS disputeNumber')
+            ->addSelect('l.creationDate')
             ->addSelect('l.emergencyTriggered')
-			->addSelect('l.updateDate')
+            ->addSelect('l.updateDate')
+            ->addSelect('t.label as type')
+            ->addSelect('s.nom as status')
+			->from('App\Entity\Litige', 'l')
 			->leftJoin('l.type', 't')
-			->addSelect('t.label as type')
 			->leftJoin('l.status', 's')
-			->addSelect('s.nom as status')
 			->leftJoin('l.litigeHistorics', 'lh')
 			// litiges sur arrivage
+            ->addSelect('declarant.username as declarantUsername')
+            ->addSelect('ach.username as achUsername')
+            ->addSelect('a.numeroArrivage')
+            ->addSelect('a.id as arrivageId')
             ->leftJoin('l.colis', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
             ->leftJoin('a.acheteurs', 'ach')
             ->leftJoin('l.buyers', 'buyers')
             ->leftJoin('l.declarant', 'declarant')
-            ->addSelect('declarant.username as declarantUsername')
-			->addSelect('ach.username as achUsername')
-			->addSelect('a.numeroArrivage')
-			->addSelect('a.id as arrivageId')
 			->leftJoin('a.fournisseur', 'aFourn')
 			// litiges sur réceptions
+            ->addSelect('r.numeroReception')
+            ->addSelect('r.reference')
+            ->addSelect('r.id as receptionId')
+            ->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
+            ->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl')
             ->leftJoin('l.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
 			->leftJoin('rra.reception', 'r')
-			->addSelect('r.numeroReception')
-			->addSelect('r.reference')
-			->addSelect('r.id as receptionId')
-			->leftJoin('r.fournisseur', 'rFourn')
-			->addSelect('(CASE WHEN aFourn.nom IS NOT NULL THEN aFourn.nom ELSE rFourn.nom END) as provider')
-			->addSelect('(CASE WHEN a.numeroCommandeList IS NOT NULL THEN a.numeroCommandeList ELSE r.reference END) as numCommandeBl');
+			->leftJoin('r.fournisseur', 'rFourn');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -318,6 +320,12 @@ class LitigeRepository extends EntityRepository
 						->andWhere('l.emergencyTriggered = :isUrgent')
 						->setParameter('isUrgent', $filter['value']);
 					break;
+                case 'disputeNumber':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->andWhere('l.id in (:disputeNumber)')
+                        ->setParameter('disputeNumber', $value);
+                    break;
 			}
 		}
 
@@ -343,7 +351,8 @@ class LitigeRepository extends EntityRepository
 						aFourn.nom LIKE :value OR
 						rFourn.nom LIKE :value OR
 						ra.reference LIKE :value OR
-						a.numeroCommandeList LIKE :value
+						a.numeroCommandeList LIKE :value OR
+						l.numeroLitige LIKE :value
 						)')
 						->setParameter('value', '%' . $search . '%');
 				}
@@ -381,6 +390,9 @@ class LitigeRepository extends EntityRepository
                         } else if ($column === 'numCommandeBl') {
                             $qb
                                 ->addOrderBy('numCommandeBl', $order);
+                        } else if ($column === 'disputeNumber') {
+                            $qb
+                                ->addOrderBy('l.numeroLitige', $order);
                         } else {
                             $qb
                                 ->addOrderBy('l.' . $column, $order);
@@ -479,4 +491,31 @@ class LitigeRepository extends EntityRepository
 		$result = $query->execute();
 		return array_column($result, 'reference');
 	}
+
+    public function getLastNumeroLitigeByPrefixeAndDate($prefixe, $date)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            'SELECT l.numeroLitige as numeroLitige
+			FROM App\Entity\Litige l
+			WHERE l.numeroLitige LIKE :value
+			ORDER BY l.creationDate DESC'
+        )->setParameter('value', $prefixe . $date . '%');
+
+        $result = $query->execute();
+        return $result ? $result[0]['numeroLitige'] : null;
+    }
+
+    public function getIdAndDisputeNumberBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT l.id, l.numeroLitige as text
+          FROM App\Entity\Litige l
+          WHERE l.numeroLitige LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
 }

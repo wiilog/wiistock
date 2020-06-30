@@ -109,9 +109,11 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $litigeRepository = $entityManager->getRepository(Litige::class);
 
         $user = $this->getUser();
         $fieldsInTab = [
+            ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
             ["key" => 'type', 'label' => 'Type'],
             ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
             ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
@@ -126,7 +128,7 @@ class LitigeController extends AbstractController
             ["key" => 'updateDate', 'label' => 'Modifié le'],
             ["key" => 'status', 'label' => 'Statut'],
         ];
-        $fieldsCl =[];
+        $fieldsCl = [];
         $champs = array_merge($fieldsInTab,$fieldsCl);
 
 
@@ -137,7 +139,7 @@ class LitigeController extends AbstractController
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForLitige(),
+            'columnsVisibles' => $user->getColumnsVisibleForLitige()
 		]);
     }
 
@@ -183,6 +185,7 @@ class LitigeController extends AbstractController
             $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [
+			    'Numéro de litige',
 			    'Type',
                 'Statut',
                 'Date création',
@@ -209,6 +212,8 @@ class LitigeController extends AbstractController
                 foreach ($colis as $coli) {
                     $litigeData = [];
 
+
+                    $litigeData[] = $litige->getNumeroLitige();
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
                     $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
@@ -270,6 +275,7 @@ class LitigeController extends AbstractController
                 foreach ($articles as $article) {
                     $litigeData = [];
 
+                    $litigeData[] = $litige->getNumeroLitige();
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
                     $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
@@ -503,4 +509,24 @@ class LitigeController extends AbstractController
         }
         $data['data'] = $rows;
         return new JsonResponse($data);
-}}
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_dispute_number", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getDisputeNumberAutoComplete(Request $request,
+                                                 EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $utilisateurRepository = $entityManager->getRepository(Litige::class);
+            $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
+            return new JsonResponse(['results' => $user]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+}

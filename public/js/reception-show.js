@@ -41,6 +41,11 @@ function InitiliserPageModals() {
     let urlDeleteReception = Routing.generate('reception_delete', true);
     InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception);
 
+    let ModalCancel = $("#modalCancelReception");
+    let SubmitCancel = $("#submitCancelReception");
+    let urlCancelReception = Routing.generate('reception_cancel', true);
+    InitialiserModal(ModalCancel, SubmitCancel, urlCancelReception);
+
     let modalModifyReception = $('#modalEditReception');
     let submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
@@ -162,15 +167,15 @@ function displayErrorReception(data) {
     displayError($modal, msg, data);
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
         litigeId: litigeId,
-        reception: receptionId
+        reception: receptionId,
+        disputeNumber: disputeNumber
     };
 
     $.post(path, JSON.stringify(params), function (data) {
@@ -195,6 +200,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {
     }, 'json');
 
     modal.find(submit).attr('value', litigeId);
+    $('#disputeNumberReception').text(disputeNumber);
 }
 
 function getCommentAndAddHisto() {
@@ -402,7 +408,7 @@ function finishReception(receptionId, confirmed, $button) {
             confirmed: confirmed
         }), function (data) {
             if (data === 1) {
-                window.location.href = Routing.generate('reception_index', true);
+                window.location.reload();
             } else if (data === 0) {
                 $('#finishReception').click();
             } else {

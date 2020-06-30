@@ -567,6 +567,40 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function cancel(Request $request,
+                           EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $receptionRepository = $entityManager->getRepository(Reception::class);
+
+            $statutPartialReception = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_PARTIELLE);
+            $reception = $receptionRepository->find($data['receptionId']);
+            if ($reception->getStatut()->getCode() === Reception::STATUT_RECEPTION_TOTALE) {
+                $reception->setStatut($statutPartialReception);
+                $entityManager->flush();
+            }
+            $data = [
+                "redirect" => $this->generateUrl('reception_show', [
+                    'id' => $reception->getId()
+                ])
+            ];
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
@@ -1118,11 +1152,16 @@ class ReceptionController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $litige = new Litige();
+
+            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+            $disputeNumber = $litigeService->createDisputeNumber($entityManager, 'LR', $now);
             $litige
                 ->setStatus($statutRepository->find($post->get('statutLitige')))
                 ->setType($typeRepository->find($post->get('typeLitige')))
                 ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
-                ->setCreationDate(new \DateTime('now'));
+                ->setCreationDate($now)
+                ->setNumeroLitige($disputeNumber);
 
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
@@ -1217,8 +1256,6 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
      * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
@@ -1288,6 +1325,7 @@ class ReceptionController extends AbstractController
                             'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
                         ],
                         'litigeId' => $litige->getId(),
+                        'disputeNumber' => $litige->getNumeroLitige()
                     ]),
                     'urgence' => $litige->getEmergencyTriggered()
                 ];
