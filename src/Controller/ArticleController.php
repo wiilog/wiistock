@@ -588,7 +588,7 @@ class ArticleController extends AbstractController
             // on vérifie que l'article n'est plus utilisé
             $articleIsUsed = $this->isArticleUsed($article);
 
-            if ($articleIsUsed) {
+        if ($articleIsUsed) {
                 return new JsonResponse(false);
             }
 
@@ -628,6 +628,8 @@ class ArticleController extends AbstractController
                 $location = "un ou plusieurs litiges";
             } else if (count($article->getInventoryEntries()) > 0) {
                 $location = "une ou plusieurs missions d'inventaire";
+            } else if (count($article->getMouvementTracas()) > 0) {
+                $location = "un ou plusieurs mouvements de traçabilité";
             } else {
                 $location = "une ou plusieurs parties de l'application";
             }
@@ -653,7 +655,11 @@ class ArticleController extends AbstractController
      */
     private function isArticleUsed($article)
     {
-        if (count($article->getCollectes()) > 0 || $article->getDemande() !== null || count($article->getLitiges()) > 0 || count($article->getInventoryEntries()) > 0) {
+        if (count($article->getCollectes()) > 0 ||
+            $article->getDemande() !== null ||
+            count($article->getLitiges()) > 0 ||
+            count($article->getInventoryEntries()) > 0 ||
+            count($article->getMouvementTracas()) > 0) {
             return true;
         }
         return false;
