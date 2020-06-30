@@ -7,8 +7,6 @@ namespace DoctrineMigrations;
 use App\Entity\Arrivage;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Doctrine\Migrations\Version\Version;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
@@ -42,6 +40,7 @@ final class Version20200616141011 extends AbstractMigration implements Container
         $doublonsNumeroArrivage = array_map(function (array $arrivage) {
             return $arrivage['numeroArrivage'];
         }, $queryBuilder->getQuery()->getResult());
+
         foreach ($doublonsNumeroArrivage as $doublon) {
             // On récupère les arrivages dont le numéro est en doublon
             $index = 0;

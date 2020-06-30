@@ -41,13 +41,11 @@ use App\Service\MailerService;
 use App\Service\ValeurChampLibreService;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\Exception\ConstraintViolationException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Exception;
+use Doctrine\ORM\ORMException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -246,7 +244,8 @@ class ArrivageController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\ORMException
+     * @throws ORMException
+     * @throws \Exception
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -273,14 +272,10 @@ class ArrivageController extends AbstractController
             $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $todayStart = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
-            $todayStart->setTime(0, 0);
-            $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
-            $todayEnd->setTime(23, 59);
-            $counter = $arrivageRepository->countByDates($todayStart, $todayEnd) + 1;
+            $counter = $arrivageRepository->countByDate($date) + 1;
             $suffix = $counter < 10 ? ("0" . $counter) : $counter;
-            // Si on ajoute l'id de 'utilisateur qui crée l'arrivage en plus du compteur les doublons seront forcement impossible entre deux utilisateurs qui feraient une requete simultanément
             $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
+
             $arrivage = new Arrivage();
             $arrivage
                 ->setIsUrgent(false)
@@ -318,8 +313,11 @@ class ArrivageController extends AbstractController
                 }
             }
             try {
+                // persist and flush in function below
                 $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
-            } catch (UniqueConstraintViolationException $e) {
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer.<br>"
@@ -1616,17 +1614,21 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
+     * @Route(
+     *     "/colonne-visible",
+     *     name="get_column_visible_for_arrivage",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @return Response
      */
-    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function getColumnVisible(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $user = $this->getUser();;
+        $user = $this->getUser();
 
         return new JsonResponse($user->getColumnsVisibleForArrivage());
     }

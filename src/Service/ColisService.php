@@ -34,8 +34,6 @@ Class ColisService
     public function persistColis(Arrivage $arrivage, Nature $nature): Colis {
 
         $arrivageNum = $arrivage->getNumeroArrivage();
-
-       // $highestCounter = $this->getHighestCodeByPrefix($arrivage) + 1;
         $newCounter = $arrivage->getColis()->count() + 1;
 
         if ($newCounter < 10) {
