@@ -10,7 +10,8 @@
             {% set checked = (DLAfterRecep == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_demande_livraison') }}')">
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::CREATE_DL_AFTER_RECEPTION') }}"
+                       onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-create-demande-livraison">Créer une demande de livraison après
@@ -22,10 +23,23 @@
             {% set checked = (prepaAfterDl == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
-                       onchange="updateToggledParam($(this), '{{ path('active_desactive_create_prepa') }}')">
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::CREATE_PREPA_AFTER_DL') }}"
+                       onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-create-prepa">Créer une préparation après demande de livraison</label>
+        </div>
+    </div>
+    <div class="row mt-2 mb-2">
+        <div class="col-12">
+            {% set checked = (paramDemandeurLivraison == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-demandeur-livraison"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::DEMANDEUR_DANS_DL') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-demandeur-livraison">Le demandeur est l'utilisateur de la session en cours</label>
         </div>
     </div>
     <div class="row mt-2">

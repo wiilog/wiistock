@@ -4,7 +4,7 @@
             onchange="ajaxEditArticle($(this))" name="article">
         <option value="">choisir un article</option>
         {% for article in articles %}
-        <option value="{{article.id}}">{{article.reference}}</option>
+        <option value="{{article.id}}">{{article.barCode}}</option>
         {% endfor %}
     </select>
 </div>

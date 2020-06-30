@@ -1,0 +1,338 @@
+*, *::after, *::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    height: 100%;
+    overflow: auto;
+
+    body {
+        font-family: $mainFont, Helvetica, Arial, sans-serif;
+        line-height: 20px;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        font-size: 1em;
+        color: $bodyColor;
+        overflow-x: hidden;
+        height: 100%;
+
+        .wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+;
+}
+
+h1, h2 {
+    color: #000;
+    line-height: initial;
+    margin: 20px 0;
+}
+
+h1 {
+    font-size: 1.5em;
+}
+
+td {
+    font-size: 0.8em;
+}
+
+a, a:link, a:visited {
+    text-decoration: none;
+
+    &:hover {
+        color: inherit;
+    }
+}
+
+.datepicker {
+    z-index: 1 !important;
+}
+
+.hide {
+    display: none !important;
+}
+
+input:-webkit-autofill {
+    box-shadow: 0 0 0 30px white inset !important;
+}
+
+//// FONTS ////
+.bold {
+    font-weight: 700;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.underlined {
+    text-decoration: underline !important;
+}
+
+.font-size-100 {
+    font-size: 100% !important;
+}
+
+.tahoma {
+    font-family: Tahoma, sans-serif !important;
+}
+
+.montserrat {
+    font-family: Montserrat, sans-serif !important;
+}
+
+.myriad {
+    font-family: "Myriad", sans-serif !important;
+}
+
+.medium-font {
+    font-size: 2.5vh;
+
+    @media (max-height: 950px) {
+        font-size: 1rem;
+    }
+}
+
+.display-font {
+    font-size: 2.5vw;
+}
+
+.little-font {
+    font-size: 0.8rem;
+}
+
+a {
+    color: unset;
+
+    &:hover {
+        color: white;
+    }
+}
+
+.alert {
+    position: unset;
+    text-align: center;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.cursor-default {
+    cursor: default;
+}
+
+.select2-container {
+    .select2-selection--single, .select2-selection--multiple {
+        cursor: inherit !important;
+
+        input {
+            cursor: inherit !important;
+        }
+    }
+;
+}
+
+.mtb-auto {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+//// COLORS ////
+
+.backDarkRed {
+    background-color: $redDark !important;
+}
+
+.backgreen {
+    background-color: $green !important;
+}
+
+.backblue {
+    background-color: $blueGT !important;
+}
+
+.backgrey {
+    background-color: $grey !important;
+}
+
+.backGreyFormLight {
+    background-color: $greyFormLight !important;
+}
+
+.red {
+    color: $red !important;
+}
+
+.green {
+    color: $green;
+}
+
+.bg-grey-transparent {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+//// HEIGHT ////
+.h-fit-content {
+    height: fit-content;
+}
+
+.h-90 {
+    height: 90%;
+}
+
+.mh-60px {
+    min-height: 60px;
+}
+
+//// WIDTH ////
+.minw-105px {
+    min-width: 105px;
+}
+
+.maxw-250px {
+    max-width: 250px;
+}
+
+.minw-150px {
+    min-width: 300px !important;
+}
+
+.minw-100px {
+    min-width: 100px !important;
+}
+
+.minw-200px {
+    min-width: 200px !important;
+}
+
+.minw-450px {
+    min-width: 450px !important;
+}
+
+.w-120px {
+    width: 120px;
+}
+
+.w-49 {
+    width: 49%;
+}
+
+.w-22 {
+    width: 22% !important;
+}
+
+.w-fit-content {
+    width: fit-content;
+}
+
+.w-100 {
+    + .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container {
+        width: 100% !important;
+
+        .select2-selection {
+            font-size: 1rem !important;
+            font-weight: 400 !important;
+            line-height: 1.5 !important;
+            color: #495057 !important;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem !important;
+        }
+    }
+}
+
+.border-radius-light {
+    border-radius: 10px !important;
+}
+
+//  reprise du form-control.is-invalid de bootstrap
+.is-invalid {
+    border-color: #dc3545 !important;
+    background-repeat: no-repeat;
+    background-position: center right calc(2.25rem / 4);
+    background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+
+    .select2-selection {
+        border: 1px solid red !important;
+    }
+
+    &:not(.select2-container) {
+        padding-right: 2.25rem;
+    }
+}
+
+.label {
+    color: $greyForm;
+}
+
+.no-disabled {
+    background-color: white;
+    border: none;
+}
+
+.progress-bar {
+    background-color: $blueGT;
+    font-family: $mainFont, Helvetica, Arial, sans-serif;
+}
+
+.sizeLoader {
+    width: 5rem;
+    height: 5rem;
+
+    &.mini-loader {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+}
+
+.logo-wrapper {
+    padding: 25px;
+}
+
+#modalShowRefArticle #input-group-nomenclature {
+    height: 150px;
+}
+
+.w-450px {
+    .select2-container {
+        width: 450px !important;
+    }
+}
+
+.w-211px {
+    .select2-container {
+        width: 211px !important;
+    }
+}
+
+.z-index-back {
+    z-index: -1;
+}
+
+.ellipsis {
+    word-break: break-all;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.user-select-none {
+    user-select: none;
+}
+
+.lh-1 {
+    line-height: 1;
+}
+
+.bg-primary-followgt {
+    background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark);
+}

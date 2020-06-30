@@ -1,0 +1,181 @@
+// boutons de type Annuler, Retour
+.btn {
+    text-decoration: none;
+    background-color: $grey;
+    color: $white;
+
+    &:hover {
+        background-color: $white;
+        color: $grey;
+        border-color: $grey;
+    }
+
+    &:focus {
+        box-shadow: none;
+    }
+}
+
+// boutons de type Ajouter, Modifier...
+.btn-primary,
+.btn-primary.dropdown-toggle {
+    background-color: $blueGT;
+    border-color: $blueGT;
+
+    &:hover {
+        background-color: $white;
+        color: $blueGT;
+        border-color: $blueGT;
+    }
+
+    &:focus {
+        background-color: $white;
+        color: $blueGT;
+        border-color: $blueGT;
+    }
+}
+
+#btn-add-colis-acheminement {
+    margin-top: 19px;
+}
+
+// boutons de type Valider, Enregistrer
+.btn-success {
+    background-color: $blueGT;
+    border-color: $blueGT;
+
+    &:hover {
+        background-color: $white;
+        color: $blueGT;
+        border-color: $blueGT;
+    }
+}
+
+// boutons de type Supprimer
+.btn-danger {
+    background-color: $red;
+    border-color: $red;
+
+    &:hover {
+        background-color: $white;
+        color: $red;
+        border-color: $red;
+    }
+}
+
+.btn-action {
+    min-width: 172px;
+}
+
+// boutons de la colonne Actions
+.btn-col-action {
+    background-color: $greyDark;
+
+    &:hover {
+        color: $greyDark;
+    }
+}
+
+.btn-icon {
+    width: 50px;
+    padding: 4px !important;
+    margin: 0 !important;
+}
+
+.btn-disabled {
+    background-color: $greyDark;
+    border-color: $greyDark;
+    pointer-events: none;
+}
+
+button:focus {
+    outline: 0 !important;
+}
+
+.btn-check {
+    background: white !important;
+    border-color: $greyDark !important;
+
+    i {
+        color: $greyDark;
+    }
+
+    &:hover {
+        background: $greenDark !important;
+        border-color: $greenDark !important;
+
+        i {
+            color: white;
+        }
+    }
+
+    &.active {
+        background: $greenDark !important;
+        border-color: $greenDark !important;
+
+        i {
+            color: white;
+        }
+    }
+}
+
+.btn-check-reverse {
+    background: $greenDark !important;
+
+    i {
+        color: white;
+    }
+
+    &:hover {
+        background: white !important;
+        border-color: $greenDark !important;
+
+        i {
+            color: $greenDark;
+        }
+    }
+}
+
+.btn-ripple {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    transition: all ease-in-out 0.5s;
+    box-shadow: 0.5px 0.5px 3px black;
+
+    &:hover {
+        background-color: $blueGT;
+        color: $white;
+        border-color: $blueGT;
+    }
+
+    &:focus {
+        background-color: $blueGT;
+        color: $white;
+        border-color: $blueGT;
+        box-shadow: 0.5px 0.5px 3px black;
+    }
+}
+
+.btn-ripple::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 25%;
+    height: 100%;
+    width: 50%;
+    background-color: $white;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transition: all ease-in-out 0.8s;
+    transform: scale(5, 5);
+}
+
+.btn-ripple:active::after {
+    padding: 0;
+    margin: 0;
+    opacity: 0.3;
+    transition: 0s;
+    transform: scale(0, 0);
+}

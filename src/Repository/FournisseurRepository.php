@@ -51,13 +51,29 @@ class FournisseurRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getIdAndLibelleBySearch($search)
+    public function getIdAndCodeBySearch($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT f.id, f.codeReference as text
+            "SELECT f.id, 
+                    f.codeReference as text,
+                    f.nom AS name
           FROM App\Entity\Fournisseur f
           WHERE f.codeReference LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
+    public function getIdAndLabelseBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f.id,
+                    f.codeReference AS code,
+                    f.nom as text
+          FROM App\Entity\Fournisseur f
+          WHERE f.nom LIKE :search"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();

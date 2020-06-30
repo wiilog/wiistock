@@ -267,8 +267,9 @@ class LivraisonController extends AbstractController
 
             $preparation = $livraison->getpreparation();
             $preparation->setStatut($statutP);
+            $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
             foreach ($preparation->getArticles() as $article) {
-                $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF));
+                $article->setStatut($statutTransit);
             }
             $preparation->setLivraison(null);
             $entityManager->remove($livraison);

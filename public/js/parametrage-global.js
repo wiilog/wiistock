@@ -41,7 +41,9 @@ $(function () {
     // config tableau de bord : emplacements
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
-    $('#locationDemandeLivraison').on('change', editDemandeLivraisonDestination);
+    $('#locationDemandeLivraison').on('change', function() {
+        editDemandeLivraisonDestination($(this));
+    });
     // config tableau de bord : transporteurs
 
     const inputWorkFreeDayAlreadyAdd = JSON.parse($('#workFreeDays input[type="hidden"][name="already-work-free-days"]').val());
@@ -111,8 +113,12 @@ function errorEditDays(data) {
     }
 }
 
-function updateToggledParam(switchButton, path) {
-    $.post(path, JSON.stringify({val: switchButton.is(':checked')}), function (resp) {
+function updateToggledParam(switchButton) {
+    let params = {
+        val: switchButton.is(':checked'),
+        param: switchButton.data('param'),
+    };
+    $.post(Routing.generate('toggle_params', true), JSON.stringify(params), function (resp) {
         if (resp) {
             alertSuccessMsg('La modification du paramétrage a bien été prise en compte.');
         } else {

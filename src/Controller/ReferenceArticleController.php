@@ -20,7 +20,9 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use App\Repository\DemandeRepository;
 use App\Service\DemandeCollecteService;
+use App\Service\MouvementStockService;
 use App\Service\ValeurChampLibreService;
 use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -258,6 +260,12 @@ class ReferenceArticleController extends AbstractController
 					'name' => 'Urgence',
 					"class" => (in_array('Urgence', $columnsVisible) ? 'display' : 'hide'),
 				],
+                [
+                    "title" => 'Synchronisation nomade',
+                    "data" => 'Synchronisation nomade',
+                    'name' => 'Synchronisation nomade',
+                    "class" => (in_array('Synchronisation nomade', $columnsVisible) ? 'display' : 'hide'),
+                ],
 			];
 			foreach ($champs as $champ) {
 				$columns[] = [
@@ -371,6 +379,7 @@ class ReferenceArticleController extends AbstractController
             }
             $refArticle = new ReferenceArticle();
             $refArticle
+                ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
@@ -446,7 +455,12 @@ class ReferenceArticleController extends AbstractController
                     $entityManager->flush();
                 }
             }
-            return new JsonResponse(['success' => true, 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle)]);
+            return new JsonResponse([
+                'success' => true,
+                'new' => $this->refArticleDataService->dataRowRefArticle($refArticle),
+                'id' => $refArticle->getId(),
+                'text' => $refArticle->getReference(),
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -563,6 +577,11 @@ class ReferenceArticleController extends AbstractController
             'typage' => 'number'
         ];
         $champF[] = [
+            'label' => 'Synchronisation nomade',
+            'id' => 0,
+            'typage' => 'booleen'
+        ];
+        $champF[] = [
             'label' => 'Dernier inventaire',
             'id' => 0,
             'typage' => 'date'
@@ -595,6 +614,12 @@ class ReferenceArticleController extends AbstractController
             'label' => 'Fournisseur',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Synchronisation nomade',
+            'id' => 0,
+            'typage' => 'sync'
 
         ];
         $champsFText[] = [
@@ -752,15 +777,12 @@ class ReferenceArticleController extends AbstractController
      */
     public function addFournisseur(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $json =  $this->renderView('reference_article/fournisseurArticle.html.twig');
-            return new JsonResponse($json);
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
         }
-        throw new NotFoundHttpException("404");
+
+        $json = $this->renderView('reference_article/fournisseurArticle.html.twig');
+        return new JsonResponse($json);
     }
 
     /**
@@ -820,21 +842,22 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-ref/{activeOnly}/type/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-ref/{activeOnly}/type/{field}/{typeQuantity}", name="get_ref_articles", options={"expose"=true}, methods="GET|POST")
      *
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param bool $activeOnly
      * @param null $typeQuantity
+     * @param string $field
      * @return JsonResponse
      */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null)
+    public function getRefArticles(Request $request, EntityManagerInterface $entityManager, $activeOnly = false, $typeQuantity = null, $field = 'reference')
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
+            $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field);
 
             return new JsonResponse(['results' => $refArticles]);
         }
@@ -868,6 +891,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param DemandeRepository $demandeRepository
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
      * @throws DBALException
@@ -887,11 +911,12 @@ class ReferenceArticleController extends AbstractController
             $json = true;
 
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
-
+            $demandeRepository = $entityManager->getRepository(Demande::class);
             $statusName = $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : '';
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
-                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser());
+				    $demande = $demandeRepository->find($data['livraison']);
+                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser(), false, $entityManager, $demande);
                     if ($json === 'article') {
 						$this->articleDataService->editArticle($data);
 						$json = true;
@@ -1155,7 +1180,8 @@ class ReferenceArticleController extends AbstractController
                 'prix unitaire',
                 'code barre',
 				'catégorie inventaire',
-				'date dernier inventaire'
+				'date dernier inventaire',
+                'synchronisation nomade'
             ];
 
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -1210,6 +1236,7 @@ class ReferenceArticleController extends AbstractController
         $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
         $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
         $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
+        $refData[] = $this->CSVExportService->escapeCSV($ref->getNeedsMobileSync() ? 'Oui' : 'Non');
 
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
@@ -1417,11 +1444,13 @@ class ReferenceArticleController extends AbstractController
      * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param MouvementStockService $mouvementStockService
      * @param ReferenceArticle $referenceArticle
      * @return Response
      */
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   Request $request,
+                                  MouvementStockService $mouvementStockService,
                                   ReferenceArticle $referenceArticle): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1429,14 +1458,26 @@ class ReferenceArticleController extends AbstractController
             $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
             $data['data'] = array_map(
-                function(MouvementStock $mouvement) {
+                function(MouvementStock $mouvement) use ($entityManager, $mouvementStockService) {
+                    $fromColumnConfig = $mouvementStockService->getFromColumnConfig($entityManager, $mouvement);
+                    $from = $fromColumnConfig['from'];
+                    $orderPath = $fromColumnConfig['orderPath'];
+                    $orderId = $fromColumnConfig['orderId'];
+
                     return [
                         'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
                         'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
                         'Type' => $mouvement->getType(),
-                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
+                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun',
+                        'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
+                            'from' => $from,
+                            'mvt' => $mouvement,
+                            'orderPath' => $orderPath,
+                            'orderId' => $orderId
+                        ]),
+                        'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
                     ];
                 },
                 $mouvements

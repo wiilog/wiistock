@@ -28,6 +28,11 @@ class Urgence
     private $dateEnd;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $createdAt;
+
+    /**
      * @ORM\Column(type="string", length=255)
      */
     private $commande;
@@ -61,6 +66,11 @@ class Urgence
      * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="urgences")
      */
     private $lastArrival;
+
+    public function __construct()
+    {
+        $this->createdAt = (new DateTime('NOW'));
+    }
 
     public function getId(): ?int
     {
@@ -169,6 +179,24 @@ class Urgence
     {
         $this->lastArrival = $lastArrival;
 
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getCreatedAt(): ?DateTime
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @param DateTime $createdAt
+     * @return Urgence
+     */
+    public function setCreatedAt(DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
         return $this;
     }
 }

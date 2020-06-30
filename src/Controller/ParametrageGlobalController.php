@@ -104,6 +104,7 @@ class ParametrageGlobalController extends AbstractController
                     'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
                     'prepaAfterDl' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL),
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
+                    'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL),
                 ],
                 'paramArrivages' => [
                     'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
@@ -117,6 +118,7 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
+                'wantsQTT' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL),
                 'blChosen' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS),
                 'cls' => $clsForLabels,
                 'paramTranslations' => [
@@ -171,6 +173,16 @@ class ParametrageGlobalController extends AbstractController
         $dimensions
             ->setHeight(intval($data['height']))
             ->setWidth(intval($data['width']));
+
+        $parametrageGlobalQtt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+
+        if (empty($parametrageGlobalQtt)) {
+            $parametrageGlobalQtt = new ParametrageGlobal();
+            $parametrageGlobalQtt->setLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+            $entityManager->persist($parametrageGlobalQtt);
+        }
+        $parametrageGlobalQtt->setValue($data['param-qtt-etiquette']);
+
 
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
@@ -437,17 +449,18 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/demlivr", name="active_desactive_create_demande_livraison", options={"expose"=true}, methods="GET|POST")
+     * @Route("/changer-parametres", name="toggle_params", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function actifDesactifCreateDemandeLivraison(Request $request,
-                                                        ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    public function toggleParams(Request $request,
+                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
             $em = $this->getDoctrine()->getManager();
             if ($ifExist) {
                 $ifExist->setValue($data['val']);
@@ -455,7 +468,7 @@ class ParametrageGlobalController extends AbstractController
             } else {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
-                    ->setLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION)
+                    ->setLabel($data['param'])
                     ->setValue($data['val']);
                 $em->persist($parametrage);
                 $em->flush();
@@ -463,125 +476,6 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/prepa", name="active_desactive_create_prepa", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function actifDesactifCreateprepa(Request $request,
-                                             ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist) {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            } else {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/redirection-switch", name="active_desactive_redirection", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function actifDesactifRedirectArrival(Request $request,
-                                                 ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist) {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            } else {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/autoprint-switch", name="active_desactive_auto_print", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function actifDesactifAutoPrint(Request $request,
-                                           ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::AUTO_PRINT_COLIS);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist) {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            } else {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::AUTO_PRINT_COLIS)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/send-mail-switch",
-     *     name="active_desactive_send_mail",
-     *     options={"expose"=true},
-     *     methods="GET|POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function toggleSendMail(Request $request,
-                                   ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
-        $em = $this->getDoctrine()->getManager();
-
-        if (empty($parametrageGlobal)) {
-            $parametrage = new ParametrageGlobal();
-            $parametrage->setLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
-            $em->persist($parametrage);
-        }
-
-        $parametrageGlobal->setValue($data['val']);
-        $em->flush();
-
-        return new JsonResponse(true);
     }
 
     /**
@@ -827,7 +721,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal->setValue($post->get('value'));
             $em->flush();
 
-            $globalParamService->generateSassFile();
+            $globalParamService->generateScssFile();
 
             return new JsonResponse(true);
         }

@@ -669,6 +669,9 @@ class ArrivageController extends AbstractController
                 foreach ($arrivage->getColis() as $colis) {
                     $litiges = $colis->getLitiges();
                     foreach ($mouvementTracaRepository->getByColisAndPriorToDate($colis->getCode(), $arrivage->getDate()) as $mvtToDelete) {
+                        foreach ($mvtToDelete->getLinkedPackLastDrops() as $pack) {
+                            $pack->setLastDrop(null);
+                        }
                         $entityManager->remove($mvtToDelete);
                     }
                     $entityManager->remove($colis);
@@ -857,10 +860,18 @@ class ArrivageController extends AbstractController
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $colisRepository = $entityManager->getRepository(Colis::class);
 
+            $colisData = $colisRepository->countColisByArrivageAndNature(
+                [
+                    $dateTimeMin->format('Y-m-d H:i:s'),
+                    $dateTimeMax->format('Y-m-d H:i:s')
+                ]
+            );
             $arrivals = $arrivageRepository->getByDates($dateTimeMin, $dateTimeMax);
             $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
-
+            $natureLabels = $natureRepository->findAllLabels();
             // en-têtes champs fixes
             $csvHeader = [
                 'n° arrivage',
@@ -876,15 +887,16 @@ class ArrivageController extends AbstractController
                 'statut',
                 'commentaire',
                 'date',
-                'utilisateur'
+                'utilisateur',
             ];
+            $csvHeader = array_merge($csvHeader, $natureLabels);
 
             return $CSVExportService->createCsvResponse(
                 'export.csv',
                 $arrivals,
                 $csvHeader,
-                function ($arrival) use ($buyersByArrival) {
-                    $arrivalId = (int)$arrival['id'];
+                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData) {
+                    $arrivalId = (int) $arrival['id'];
                     $row = [];
                     $row[] = $arrival['numeroArrivage'] ?: '';
                     $row[] = $arrival['recipientUsername'] ?: '';
@@ -902,6 +914,13 @@ class ArrivageController extends AbstractController
                     $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
                     $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
                     $row[] = $arrival['userUsername'] ?: '';
+
+                    foreach ($natureLabels as $natureLabel) {
+                        $count = (isset($colisData[$arrivalId]) && isset($colisData[$arrivalId][$natureLabel]))
+                            ? $colisData[$arrivalId][$natureLabel]
+                            : 0;
+                        $row[] = $count;
+                    }
                     return [$row];
                 }
             );

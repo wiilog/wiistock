@@ -153,26 +153,26 @@ Class GlobalParamService
 	/**
 	 * @throws NonUniqueResultException
 	 */
-	public function generateSassFile()
+	public function generateScssFile()
     {
         $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
 
         $projectDir = $this->kernel->getProjectDir();
-		$sassFile = $projectDir . '/assets/sass/_customFont.sass';
+		$scssFile = $projectDir . '/assets/scss/_customFont.scss';
 
 		$param = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
 		$font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
 
-		$sassText = '$mainFont: "' . $font . '"';
-		file_put_contents($sassFile, $sassText);
+		$scssText = '$mainFont: "' . $font . '";';
+		file_put_contents($scssFile, $scssText);
 
-		$this->compileSass();
+		$this->compileScss();
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	private function compileSass() {
+	private function compileScss() {
 		$env = $this->kernel->getEnvironment();
 
 		$command = $env == 'dev' ? 'dev' : 'production';

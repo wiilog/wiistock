@@ -44,10 +44,13 @@ function initPageElements() {
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
+            { "data": 'CodeBarre', 'title' : 'Code barre' },
             { "data": 'Label', 'title' : 'Libellé' },
             { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
             { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
-            { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
+            { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  },
+            { "data": 'QuantiteStock', 'title' : 'Quantité en stock', 'name' : 'quantitestock'  },
+            { "data": 'QuantiteComptee', 'title' : 'Quantité comptée', 'name' : 'quantitecomptee'  }
         ],
     };
     let tableArticle = initDataTable('tableMissionInvArticle', tableArticleConfig);
@@ -77,10 +80,13 @@ function initPageElements() {
         },
         columns:[
             { "data": 'Ref', 'title' : 'Reférence' },
+            { "data": 'CodeBarre', 'title' : 'Code barre' },
             { "data": 'Label', 'title' : 'Libellé' },
             { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
             { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
-            { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  }
+            { "data": 'Anomaly', 'title' : 'Anomalie', 'name' : 'anomaly'  },
+            { "data": 'QuantiteStock', 'title' : 'Quantité en stock', 'name' : 'quantitestock'  },
+            { "data": 'QuantiteComptee', 'title' : 'Quantité comptée', 'name' : 'quantitecomptee'  }
         ],
     };
     let tableRefArticle = initDataTable('tableMissionInvReferenceArticle', tableRefArticleConfig);

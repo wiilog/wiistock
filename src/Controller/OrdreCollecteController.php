@@ -189,7 +189,7 @@ class OrdreCollecteController extends AbstractController
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $ligneArticle->getId(),
                         'refArticleId' => $referenceArticle->getId(),
-                        'refRef' => $referenceArticle ? $referenceArticle->getReference() : '',
+                        'barCode' => $referenceArticle ? $referenceArticle->getBarCode() : '',
                         'quantity' => $ligneArticle->getQuantite(),
                         'modifiable' => $ordreCollecte->getStatut()
                             ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
@@ -208,7 +208,7 @@ class OrdreCollecteController extends AbstractController
                     'Quantité' => $article->getQuantite(),
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $article->getId(),
-                        'refArt' => $article->getReference(),
+                        'barCode' => $article->getBarCode(),
                         'quantity' => $article->getQuantite(),
                         'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
                         'articleId' =>$article->getId()
@@ -417,7 +417,8 @@ class OrdreCollecteController extends AbstractController
                 'libellé',
                 'emplacement',
                 'quantité à collecter',
-                'code-barre'
+                'code-barre',
+                'destination'
             ];
 
             $data = [];
@@ -443,7 +444,7 @@ class OrdreCollecteController extends AbstractController
                 $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
                 $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y h:i') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
-                $collecte->getType() ? $collecte->getType()->getLabel() : '',
+                $collecte->getType() ? $collecte->getType()->getLabel() : ''
             ];
 
         foreach ($ordreCollecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
@@ -454,7 +455,7 @@ class OrdreCollecteController extends AbstractController
                 $referenceArticle->getLibelle() ?? '',
                 $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
                 $ordreCollecteReference->getQuantite() ?? 0,
-                $referenceArticle->getBarCode(),
+                $referenceArticle->getBarCode()
             ]);
         }
 
@@ -469,6 +470,7 @@ class OrdreCollecteController extends AbstractController
                 $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                 $article->getQuantite() ?? 0,
                 $article->getBarCode(),
+                $collecte->getStockOrDestruct() ? 'Mise en stock' : 'Destruction'
             ]);
         }
     }

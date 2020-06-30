@@ -14,37 +14,38 @@
         {% set canReceive = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) and modifiable) %}
         {% set canDelete = (hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) and modifiable) %}
         {% set hasDemande = (hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) and reception.demandes|length > 0) %}
-        {% set dropdownNeedsToBeDisplayed = (canReceive or hasDemande or canDelete) %}
+        {% set dropdownNeedsToBeDisplayed = (not modifiable) or canReceive or hasDemande or canDelete %}
 
         {% if canReceive %}
             <button type="button"
                     data-target='#modalNewLigneReception'
                     data-toggle='modal'
-                    onclick='clearModalLigneReception("#modalNewLigneReception"); initNewLigneReception()'
+                    onclick='clearModalLigneReception("#modalNewLigneReception"); initNewLigneReception($(this))'
                     class="btn btn-primary btn-ripple split-button" title="réception">
                 {{ 'réception.réception'|trans }}
             </button>
             <button type="button"
                     class="btn btn-primary btn-ripple {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
-                    onclick="finishReception({{ reception.id }}, false)">
+                    onclick="finishReception({{ reception.id }}, false,$(this))"
+                    id="finishReceptionButton">
                 Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
             </button>
         {% endif %}
         {% if dropdownNeedsToBeDisplayed %}
-            <button type="button"
-                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if canReceive %}
-                    <a data-id='{{ reception.id }}'
-                       data-target='#modalEditReception'
-                       data-toggle='modal'
-                       class="dropdown-item pointer"
-                       onclick="editRow(
+        <button type="button"
+                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if canReceive %}
+                <a data-id='{{ reception.id }}'
+                   data-target='#modalEditReception'
+                   data-toggle='modal'
+                   class="dropdown-item pointer"
+                   onclick="editRow(
                            $(this),
                            Routing.generate('api_reception_edit', true),
                            $('#modalEditReception'),
@@ -54,23 +55,30 @@
                            false,
                            initEditReception
                        )">
-                        <i class="fa fa-edit mr-2"></i>Modifier
-                    </a>
-                {% endif %}
-                {% if hasDemande %}
-                    <a href="{{ path('demande_index', {'reception': reception.id }) }}"
-                       class="dropdown-item">
-                        <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes</a>
-                {% endif %}
-                {% if canDelete %}
-                    <a data-id='{{ reception.id }}'
-                       data-target='#modalDeleteReception'
-                       data-toggle='modal'
-                       class="dropdown-item pointer"
-                       onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
-                {% endif %}
-            </div>
+                    <i class="fa fa-edit mr-2"></i>Modifier
+                </a>
+            {% endif %}
+            {% if not modifiable %}
+                <a data-id='{{ reception.id }}'
+                   data-target='#modalCancelReception'
+                   data-toggle='modal'
+                   class="dropdown-item pointer">
+                    <i class="fa fa-trash mr-2"></i>Annuler <span title="cette réception">{{ 'réception.cette réception'|trans }}</span></a>
+            {% endif %}
+            {% if hasDemande %}
+                <a href="{{ path('demande_index', {'reception': reception.id }) }}"
+                   class="dropdown-item">
+                    <i class="mr-2 fas fa-external-link-alt"></i>Voir les demandes</a>
+            {% endif %}
+            {% if canDelete %}
+                <a data-id='{{ reception.id }}'
+                   data-target='#modalDeleteReception'
+                   data-toggle='modal'
+                   class="dropdown-item pointer"
+                   onclick="checkAndDeleteRow($(this), '#modalDeleteReception', 'reception_check_delete', '#submitDeleteReception')">
+                    <i class="fa fa-trash mr-2"></i>Supprimer</a>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 {% endblock %}

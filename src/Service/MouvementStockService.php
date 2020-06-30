@@ -11,8 +11,6 @@ use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 
@@ -50,8 +48,6 @@ class MouvementStockService
      * @param array|null $params
      * @return array
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -84,39 +80,29 @@ class MouvementStockService
 	 * @throws LoaderError
 	 * @throws RuntimeError
 	 * @throws SyntaxError
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
+     */
     public function dataRowMouvement($mouvement)
     {
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
+        $fromColumnConfig = $this->getFromColumnConfig($this->entityManager, $mouvement);
+        $from = $fromColumnConfig['from'];
+        $orderPath = $fromColumnConfig['orderPath'];
+        $orderId = $fromColumnConfig['orderId'];
 
-		$orderPath = $orderId = $from = null;
-		if ($mouvement->getPreparationOrder()) {
-			$from = 'préparation';
-			$orderPath = 'preparation_show';
-			$orderId = $mouvement->getPreparationOrder()->getId();
-		} else if ($mouvement->getLivraisonOrder()) {
-			$from = 'livraison';
-			$orderPath = 'livraison_show';
-			$orderId = $mouvement->getLivraisonOrder()->getId();
-		} else if ($mouvement->getCollecteOrder()) {
-			$from = 'collecte';
-			$orderPath = 'ordre_collecte_show';
-			$orderId = $mouvement->getCollecteOrder()->getId();
-		} else if ($mouvement->getReceptionOrder()) {
-			$from = 'réception';
-			$orderPath = 'reception_show';
-			$orderId = $mouvement->getReceptionOrder()->getId();
-		} else if ($mouvement->getImport()) {
-			$from = 'import';
-			$orderPath = 'import_index';
-			$orderId = null;
-		} else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
-			$from = 'transfert de stock';
-		}
+		$refArticleCheck = '';
+        if($mouvement->getArticle()) {
+            $articleFournisseur = $mouvement->getArticle()->getArticleFournisseur();
+            if($articleFournisseur) {
+                $referenceArticle = $articleFournisseur->getReferenceArticle();
+                if($referenceArticle) {
+                    $refArticleCheck = $referenceArticle->getReference() ?: '';
+                }
+            }
+        }
+        else {
+            $refArticleCheck = $mouvement->getRefArticle()->getReference();
+        }
 
-		$row = [
+		return [
 			'id' => $mouvement->getId(),
 			'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
 				'from' => $from,
@@ -125,8 +111,9 @@ class MouvementStockService
 				'orderId' => $orderId
 			]),
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
-			'refArticle' => $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : $mouvement->getRefArticle()->getReference(),
-			'quantite' => $mouvement->getQuantity(),
+			'refArticle' => $refArticleCheck,
+            'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
+            'quantite' => $mouvement->getQuantity(),
 			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
 			'type' => $mouvement->getType(),
@@ -135,8 +122,43 @@ class MouvementStockService
 				'mvt' => $mouvement,
 			])
 		];
+    }
 
-        return $row;
+    public function getFromColumnConfig(EntityManagerInterface $entityManager, MouvementStock $mouvement) {
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+
+        $orderPath = null;
+        $orderId = null;
+        $from = null;
+        if ($mouvement->getPreparationOrder()) {
+            $from = 'préparation';
+            $orderPath = 'preparation_show';
+            $orderId = $mouvement->getPreparationOrder()->getId();
+        } else if ($mouvement->getLivraisonOrder()) {
+            $from = 'livraison';
+            $orderPath = 'livraison_show';
+            $orderId = $mouvement->getLivraisonOrder()->getId();
+        } else if ($mouvement->getCollecteOrder()) {
+            $from = 'collecte';
+            $orderPath = 'ordre_collecte_show';
+            $orderId = $mouvement->getCollecteOrder()->getId();
+        } else if ($mouvement->getReceptionOrder()) {
+            $from = 'réception';
+            $orderPath = 'reception_show';
+            $orderId = $mouvement->getReceptionOrder()->getId();
+        } else if ($mouvement->getImport()) {
+            $from = 'import';
+            $orderPath = 'import_index';
+        } else if ($mouvementTracaRepository->countByMouvementStock($mouvement) > 0) {
+            $from = 'transfert de stock';
+        } else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
+            $from = 'inventaire';
+        }
+        return [
+            'orderPath' => $orderPath,
+            'orderId' => $orderId,
+            'from' => $from
+        ];
     }
 
     /**
