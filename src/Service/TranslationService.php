@@ -44,7 +44,9 @@ class TranslationService {
 
             $menus = [];
             foreach ($translations as $translation) {
-                $menus[$translation->getMenu()][$translation->getLabel()] = $translation->getTranslation();
+                $menus[$translation->getMenu()][$translation->getLabel()] = (
+                    $translation->getTranslation() ?: $translation->getLabel()
+                );
             }
 
             $yaml = Yaml::dump($menus);
@@ -67,28 +69,8 @@ class TranslationService {
         $application->setAutoExit(false);
         $projectDir = $this->kernel->getProjectDir();
 
-        // Recursively delete all sub-folders and files from a folder passed as parameter.
-        function rrmdir($dir) {
-            if (is_dir($dir)) {
-                $objects = scandir($dir);
-                foreach ($objects as $object) {
-                    if ($object != "." && $object != "..") {
-                        if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
-                            rrmdir($dir . DIRECTORY_SEPARATOR . $object);
-                        }
-                        else {
-                            unlink($dir . DIRECTORY_SEPARATOR . $object);
-                        }
-                    }
-                }
-                rmdir($dir);
-            }
-        }
-
-        // Delete the translations folder in production environment only
-        if ($env === 'prod') {
-            rrmdir($projectDir . '/var/cache/prod/translations');
-        }
+        // Delete the translations folder
+        $this->rrmdir($projectDir . "/var/cache/$env/translations");
 
 		$input = new ArrayInput(array(
 			'command' => 'cache:warmup',
@@ -107,4 +89,25 @@ class TranslationService {
 		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
 		$process->run();
 	}
+
+    /**
+     * Recursively delete all sub-folders and files from a folder passed as parameter.
+     * @param $dir
+     */
+	private function rrmdir(string $dir) {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
+                        $this->rrmdir($dir . DIRECTORY_SEPARATOR . $object);
+                    }
+                    else {
+                        unlink($dir . DIRECTORY_SEPARATOR . $object);
+                    }
+                }
+            }
+            rmdir($dir);
+        }
+    }
 }
