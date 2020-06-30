@@ -587,6 +587,8 @@ function initDatatableMovements(referenceArticleId) {
         },
         columns: [
             {"data": 'Date', 'title': 'Date', 'type': 'customDate'},
+            {"data": 'from', 'title': 'Issu de', className: 'noVis'},
+            {"data": 'ArticleCode', 'title': 'Code article'},
             {"data": 'Quantity', 'title': 'Quantité'},
             {"data": 'Origin', 'title': 'Origine'},
             {"data": 'Destination', 'title': 'Destination'},

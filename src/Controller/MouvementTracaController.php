@@ -133,6 +133,7 @@ class MouvementTracaController extends AbstractController
                     $post->getInt('type'),
                     ['commentaire' => $commentaire]
                 );
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
             } else {
@@ -150,8 +151,10 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
+
                     $createdMvt = $this->mouvementTracaService->createMouvementTraca(
                         $colis,
                         $emplacementDepose,
@@ -162,6 +165,7 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                 }
@@ -246,6 +250,7 @@ class MouvementTracaController extends AbstractController
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
+                         MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -265,7 +270,16 @@ class MouvementTracaController extends AbstractController
             $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
 
+            /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
+            $mouvementTracaService->managePackLinksWithTracking(
+                $mvt,
+                $entityManager,
+                $type,
+                $post->get('colis'),
+                true
+            );
+
             $mvt
                 ->setDatetime($date)
                 ->setOperateur($operator)
@@ -307,10 +321,15 @@ class MouvementTracaController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($data['mvt']);
 
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
+            }
+
+            foreach ($mvt->getLinkedPackLastDrops() as $pack) {
+                $pack->setLastDrop(null);
             }
 
             $entityManager->remove($mvt);
@@ -339,8 +358,8 @@ class MouvementTracaController extends AbstractController
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
         }
-        catch(\Throwable $throwable) {}
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
@@ -374,7 +393,7 @@ class MouvementTracaController extends AbstractController
                     $row[] = $mouvement['typeName'] ?: '';
                     $row[] = $mouvement['operatorUsername'] ?: '';
                     $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
-                    $row[] = $attachmentsNameByMouvementTraca[(int) $mouvement['id']] ?? '';
+                    $row[] = $attachmentsNameByMouvementTraca[(int)$mouvement['id']] ?? '';
                     $row[] = $mouvement['numeroArrivage'] ?: $mouvement['numeroReception'] ?: '';
                     $row[] = $mouvement['numeroCommandeListArrivage'] && !empty($mouvement['numeroCommandeListArrivage'])
                         ? implode(', ', $mouvement['numeroCommandeListArrivage'])
@@ -383,8 +402,7 @@ class MouvementTracaController extends AbstractController
                     return [$row];
                 }
             );
-        }
-        else {
+        } else {
             throw new NotFoundHttpException('404');
         }
     }
@@ -462,7 +480,8 @@ class MouvementTracaController extends AbstractController
      * @param FileBag|array $files
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager) {
+    private function persistAttachments(MouvementTraca $mouvementTraca, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager)
+    {
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
