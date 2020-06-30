@@ -334,22 +334,22 @@ class LivraisonController extends AbstractController
         }
     }
 
-
     private function buildInfos(Livraison $livraison, &$data)
     {
         $demande = $livraison->getDemande();
-        if (isset($demande)) {
-            $dataLivraison =
-                [
-                    $livraison->getNumero() ?? '',
-                    $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
-                    $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
-                    $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
-                    $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-                    $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
-                ];
+        $preparation = $livraison->getPreparation();
+        if (isset($demande)
+            && isset($preparation)) {
+            $dataLivraison = [
+                $livraison->getNumero() ?? '',
+                $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
+                $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
+                $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
+                $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
+                $demande ? $demande->getType() ? $demande->getType()->getLabel() : '' : '',
+            ];
 
-            foreach ($demande->getLigneArticle() as $ligneArticle) {
+            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
                 $referenceArticle = $ligneArticle->getReference();
 
                 $data[] = array_merge($dataLivraison, [
@@ -362,7 +362,7 @@ class LivraisonController extends AbstractController
                 ]);
             }
 
-            foreach ($demande->getArticles() as $article) {
+            foreach ($preparation->getArticles() as $article) {
                 $articleFournisseur = $article->getArticleFournisseur();
                 $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
                 $reference = $referenceArticle ? $referenceArticle->getReference() : '';
