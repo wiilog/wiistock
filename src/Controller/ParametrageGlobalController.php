@@ -118,6 +118,7 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
+                'wantsQTT' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL),
                 'blChosen' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS),
                 'cls' => $clsForLabels,
                 'paramTranslations' => [
@@ -172,6 +173,16 @@ class ParametrageGlobalController extends AbstractController
         $dimensions
             ->setHeight(intval($data['height']))
             ->setWidth(intval($data['width']));
+
+        $parametrageGlobalQtt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+
+        if (empty($parametrageGlobalQtt)) {
+            $parametrageGlobalQtt = new ParametrageGlobal();
+            $parametrageGlobalQtt->setLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+            $entityManager->persist($parametrageGlobalQtt);
+        }
+        $parametrageGlobalQtt->setValue($data['param-qtt-etiquette']);
+
 
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 

@@ -41,6 +41,11 @@ function InitiliserPageModals() {
     let urlDeleteReception = Routing.generate('reception_delete', true);
     InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception);
 
+    let ModalCancel = $("#modalCancelReception");
+    let SubmitCancel = $("#submitCancelReception");
+    let urlCancelReception = Routing.generate('reception_cancel', true);
+    InitialiserModal(ModalCancel, SubmitCancel, urlCancelReception);
+
     let modalModifyReception = $('#modalEditReception');
     let submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
@@ -230,6 +235,33 @@ function openTableHisto() {
         },
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
+    openTableArticleLitige();
+}
+
+let tableArticleInLitige;
+
+function openTableArticleLitige() {
+
+    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableArticleLitigeConfig = {
+        ajax: {
+            "url": pathArticleLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
+            {"data": 'status', 'name': 'status', 'title': 'Status'},
+            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
+            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        },
+        "paging": false,
+
+    };
+    tableArticleInLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
 }
 
 function initDatatableConditionnement() {
@@ -377,7 +409,7 @@ function finishReception(receptionId, confirmed, $button) {
             confirmed: confirmed
         }), function (data) {
             if (data === 1) {
-                window.location.href = Routing.generate('reception_index', true);
+                window.location.reload();
             } else if (data === 0) {
                 $('#finishReception').click();
             } else {

@@ -285,6 +285,15 @@ class Litige
         return $this->articles;
     }
 
+    /**
+     * @return array|Article[]
+     */
+    public function getFiveLastArticles(): array
+    {
+
+        return array_slice($this->articles->toArray(), 0, 5);
+    }
+
     public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
