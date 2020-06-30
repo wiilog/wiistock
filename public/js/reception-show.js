@@ -41,6 +41,11 @@ function InitiliserPageModals() {
     let urlDeleteReception = Routing.generate('reception_delete', true);
     InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception);
 
+    let ModalCancel = $("#modalCancelReception");
+    let SubmitCancel = $("#submitCancelReception");
+    let urlCancelReception = Routing.generate('reception_cancel', true);
+    InitialiserModal(ModalCancel, SubmitCancel, urlCancelReception);
+
     let modalModifyReception = $('#modalEditReception');
     let submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
@@ -402,7 +407,7 @@ function finishReception(receptionId, confirmed, $button) {
             confirmed: confirmed
         }), function (data) {
             if (data === 1) {
-                window.location.href = Routing.generate('reception_index', true);
+                window.location.reload();
             } else if (data === 0) {
                 $('#finishReception').click();
             } else {

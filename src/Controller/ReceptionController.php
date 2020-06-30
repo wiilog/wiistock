@@ -567,6 +567,40 @@ class ReceptionController extends AbstractController
     }
 
     /**
+     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function cancel(Request $request,
+                           EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $receptionRepository = $entityManager->getRepository(Reception::class);
+
+            $statutPartialReception = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_PARTIELLE);
+            $reception = $receptionRepository->find($data['receptionId']);
+            if ($reception->getStatut()->getCode() === Reception::STATUT_RECEPTION_TOTALE) {
+                $reception->setStatut($statutPartialReception);
+                $entityManager->flush();
+            }
+            $data = [
+                "redirect" => $this->generateUrl('reception_show', [
+                    'id' => $reception->getId()
+                ])
+            ];
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
