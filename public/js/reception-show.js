@@ -754,16 +754,15 @@ function resetDefaultArticleFournisseur(show = false) {
     }
 }
 
-/*$("#submitDeleteArticle").on('click', function (e) {
-    console.log("Test");
+$("#submitDeleteArticle").on('click', function (e) {
     const path = window.location.pathname;
 
     $.ajax({
-        type : "POST",
-        url : path,
-        success: function() {
-            window.location.reload();
-;        }
+        type: "POST",
+        url: path,
+        success: function () {
+            tableArticle.ajax.reload();
+        }
     })
     e.preventDefault();
-});*/
+});

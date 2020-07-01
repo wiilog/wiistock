@@ -26,7 +26,7 @@ class Article
     const USED_ASSOC_LITIGE = 2;
     const USED_ASSOC_INVENTORY = 3;
     const USED_ASSOC_MOUVEMENT = 4;
-    const USED_ASSOC_STATUT_DISPONIBLE = 5;
+    const USED_ASSOC_STATUT_NOT_AVAILABLE = 5;
     const USED_ASSOC_NONE = -1;
 
     const BARCODE_PREFIX = 'ART';
@@ -646,7 +646,7 @@ class Article
             (count($this->getLitiges()) > 0 ? self::USED_ASSOC_LITIGE :
             (count($this->getInventoryEntries()) > 0 ? self::USED_ASSOC_INVENTORY :
             (count($this->getMouvementTracas()) > 0 ? self::USED_ASSOC_MOUVEMENT :
-            ($this->getStatut()->getNom() !== 'disponible' ? self::USED_ASSOC_STATUT_DISPONIBLE :
+            ($this->getStatut()->getNom() !== self::STATUT_ACTIF ? self::USED_ASSOC_STATUT_NOT_AVAILABLE :
             self::USED_ASSOC_NONE)))))
         );
     }
