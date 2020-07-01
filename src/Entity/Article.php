@@ -21,6 +21,14 @@ class Article
     const STATUT_INACTIF = 'consommé';
     const STATUT_EN_TRANSIT = 'en transit';
 
+    const USED_ASSOC_COLLECTE = 0;
+    const USED_ASSOC_DEMANDE = 1;
+    const USED_ASSOC_LITIGE = 2;
+    const USED_ASSOC_INVENTORY = 3;
+    const USED_ASSOC_MOUVEMENT = 4;
+    const USED_ASSOC_STATUT_DISPONIBLE = 5;
+    const USED_ASSOC_NONE = -1;
+
     const BARCODE_PREFIX = 'ART';
 
     /**
@@ -35,10 +43,10 @@ class Article
      */
     private $reference;
 
-	/**
-	 * @ORM\Column(type="string", length=15, nullable=true)
-	 */
-	private $barCode;
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
+     */
+    private $barCode;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -103,18 +111,18 @@ class Article
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-	private $quantiteAPrelever;
+    private $quantiteAPrelever;
 
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
-	private $quantitePrelevee;
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $quantitePrelevee;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
-	 * @ORM\JoinColumn(nullable=true)
-	 */
-	private $receptionReferenceArticle;
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $receptionReferenceArticle;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
@@ -181,7 +189,8 @@ class Article
         return $this->reference;
     }
 
-    public function setReference(?string $reference): self {
+    public function setReference(?string $reference): self
+    {
         $this->reference = $reference;
 
         return $this;
@@ -291,6 +300,7 @@ class Article
 
         return $this;
     }
+
     public function getType(): ?Type
     {
         return $this->type;
@@ -302,6 +312,7 @@ class Article
 
         return $this;
     }
+
     /**
      * @return Collection|ValeurChampLibre[]
      */
@@ -331,23 +342,23 @@ class Article
     }
     public function getEmplacement(): ?Emplacement
     {
-        return  $this->emplacement;
+        return $this->emplacement;
     }
 
-    public function setEmplacement(?Emplacement  $emplacement): self
+    public function setEmplacement(?Emplacement $emplacement): self
     {
-        $this->emplacement =  $emplacement;
-        return  $this;
+        $this->emplacement = $emplacement;
+        return $this;
     }
     public function getDemande(): ?Demande
     {
-        return  $this->demande;
+        return $this->demande;
     }
 
-    public function setDemande(?Demande  $demande): self
+    public function setDemande(?Demande $demande): self
     {
-        $this->demande =  $demande;
-        return  $this;
+        $this->demande = $demande;
+        return $this;
     }
 
     public function getQuantiteAPrelever(): ?int
@@ -424,14 +435,15 @@ class Article
         return $this;
     }
 
-	/**
-	 * @return Collection|InventoryEntry[]
-	 */
-	public function getInventoryEntries(): Collection {
+    /**
+     * @return Collection|InventoryEntry[]
+     */
+    public function getInventoryEntries(): Collection {
         return $this->inventoryEntries;
     }
 
-    public function addInventoryEntry(InventoryEntry $inventoryEntry): self {
+    public function addInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
         if (!$this->inventoryEntries->contains($inventoryEntry)) {
             $this->inventoryEntries[] = $inventoryEntry;
             $inventoryEntry->setArticle($this);
@@ -440,7 +452,8 @@ class Article
         return $this;
     }
 
-    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self {
+    public function removeInventoryEntry(InventoryEntry $inventoryEntry): self
+    {
         if ($this->inventoryEntries->contains($inventoryEntry)) {
             $this->inventoryEntries->removeElement($inventoryEntry);
             // set the owning side to null (unless already changed)
@@ -622,4 +635,19 @@ class Article
         return $this;
     }
 
+    /**
+     * @return int
+     */
+    public function getUsedAssociation(): int
+    {
+        return (
+            count($this->getCollectes()) > 0 ? self::USED_ASSOC_COLLECTE :
+            ($this->getDemande() !== null ? self::USED_ASSOC_DEMANDE :
+            (count($this->getLitiges()) > 0 ? self::USED_ASSOC_LITIGE :
+            (count($this->getInventoryEntries()) > 0 ? self::USED_ASSOC_INVENTORY :
+            (count($this->getMouvementTracas()) > 0 ? self::USED_ASSOC_MOUVEMENT :
+            ($this->getStatut()->getNom() !== 'disponible' ? self::USED_ASSOC_STATUT_DISPONIBLE :
+            self::USED_ASSOC_NONE)))))
+        );
+    }
 }

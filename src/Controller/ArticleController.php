@@ -44,6 +44,15 @@ use App\Service\ValeurChampLibreService;
 class ArticleController extends AbstractController
 {
 
+    private const ARTICLE_IS_USED_MESSAGES = [
+        Article::USED_ASSOC_COLLECTE => "est lié à une ou plusieurs collectes",
+        Article::USED_ASSOC_DEMANDE => "est lié à une ou plusieurs demandes de livraison",
+        Article::USED_ASSOC_LITIGE => "est lié à un ou plusieurs litiges",
+        Article::USED_ASSOC_MOUVEMENT => "est lié à un ou plusieurs mouvements de traçabilité",
+        Article::USED_ASSOC_INVENTORY => "est lié à une ou plusieurs missions d'inventaire",
+        Article::USED_ASSOC_NONE
+    ];
+
     /**
      * @var ReceptionRepository
      */
@@ -586,9 +595,9 @@ class ArticleController extends AbstractController
             $rows = $article->getId();
 
             // on vérifie que l'article n'est plus utilisé
-            $articleIsUsed = $this->isArticleUsed($article);
+            $articleIsUsed = $article->getUsedAssociation();
 
-        if ($articleIsUsed) {
+            if ($articleIsUsed !== -1) {
                 return new JsonResponse(false);
             }
 
@@ -618,51 +627,20 @@ class ArticleController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $article = $articleRepository->find($articleId);
-            $articleIsUsed = $this->isArticleUsed($article);
+            $articleIsUsed = $article->getUsedAssociation();
 
-            if (count($article->getCollectes()) > 0) {
-                $location = "une ou plusieurs collectes";
-            } else if ($article->getDemande() !== null) {
-                $location = "une ou plusieurs demandes de livraison";
-            } else if (count($article->getLitiges()) > 0) {
-                $location = "un ou plusieurs litiges";
-            } else if (count($article->getInventoryEntries()) > 0) {
-                $location = "une ou plusieurs missions d'inventaire";
-            } else if (count($article->getMouvementTracas()) > 0) {
-                $location = "un ou plusieurs mouvements de traçabilité";
-            } else {
-                $location = "une ou plusieurs parties de l'application";
-            }
-
-            if (!$articleIsUsed) {
+            if (!isset(self::ARTICLE_IS_USED_MESSAGES[$articleIsUsed])) {
                 $delete = true;
                 $html = $this->renderView('article/modalDeleteArticleRight.html.twig');
             } else {
                 $delete = false;
                 $html = $this->renderView('article/modalDeleteArticleWrong.html.twig', [
-                    'location' => $location
+                    'location' => self::ARTICLE_IS_USED_MESSAGES[$articleIsUsed]
                 ]);
             }
-
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @param Article $article
-     * @return bool
-     */
-    private function isArticleUsed($article)
-    {
-        if (count($article->getCollectes()) > 0 ||
-            $article->getDemande() !== null ||
-            count($article->getLitiges()) > 0 ||
-            count($article->getInventoryEntries()) > 0 ||
-            count($article->getMouvementTracas()) > 0) {
-            return true;
-        }
-        return false;
     }
 
     /**
