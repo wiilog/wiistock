@@ -1488,12 +1488,24 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * * @Route("/{referenceArticle}/quantity", name="update_qte_refarticle", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
+     * @Route(
+     *     "/{referenceArticle}/quantity",
+     *     name="update_qte_refarticle",
+     *     options={"expose"=true},
+     *     methods="PATCH",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param ReferenceArticle $referenceArticle
+     * @param RefArticleDataService $refArticleDataService
+     * @return JsonResponse
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,
-                                   RefArticleDataService $refArticleDataService)
-    {
+                                   RefArticleDataService $refArticleDataService) {
 
         $refArticleDataService->updateRefArticleQuantities($referenceArticle);
         $entityManager->flush();
@@ -1501,6 +1513,5 @@ class ReferenceArticleController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(['success' => true]);
-
-  }
+    }
 }
