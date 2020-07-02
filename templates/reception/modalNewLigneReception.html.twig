@@ -9,6 +9,7 @@
             </div>
             <div class="modal-body">
                 <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
+                <input class="data" name="reftoselect" id="reftoselect" type="hidden" value=""/>
                 <!--
                 BLOCK DL
                 -->
@@ -144,7 +145,8 @@
                             <div class="form-group ">
                                 <label class="w-100">
                                     Référence
-                                    <select class="form-control select2-autocomplete-ref-articles w-100"
+                                    <select id="referenceConditionnement"
+                                            class="form-control select2-autocomplete-ref-articles w-100"
                                             name="refArticleCommande"
                                             onchange="initConditionnementArticleFournisseurDefault()"></select>
                                 </label>

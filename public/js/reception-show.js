@@ -27,7 +27,7 @@ function InitiliserPageModals() {
     let url = Routing.generate('reception_article_add', true);
 
     InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
-    InitialiserModal(modal, submitAndRedirect, url, tableArticle, createHandlerAddLigneArticleResponseandAndRedirect(modal), false, false);
+    InitialiserModal(modal, submitAndRedirect, url, tableArticle, createHandlerAddLigneArticleResponseAndRedirect(modal), false, false);
 
     let modalDeleteArticle = $("#modalDeleteLigneArticle");
     let submitDeleteArticle = $("#submitDeleteLigneArticle");
@@ -667,11 +667,34 @@ function createHandlerAddLigneArticleResponse($modal) {
     }
 }
 
-function createHandlerAddLigneArticleResponseandAndRedirect($modal) {
+function createHandlerAddLigneArticleResponseAndRedirect($modal) {
     return (data) => {
+        const [{text: refSelectedReference} = {}] = $modal.find('select[name="referenceArticle"]').select2('data') || [];
+        const commande = $modal.find('input[name="commande"]').val();
         createHandlerAddLigneArticleResponse($modal)(data);
         if (!data.errorMsg) {
             $('#modalNewLigneReception').modal('show');
+
+            $.get({
+                url: Routing.generate('get_ref_article_reception', {
+                    reception: $('#receptionId').val(),
+                    reference: refSelectedReference,
+                    commande
+                })
+            })
+            .then(({results}) => {
+                if (results && results.length > 0) {
+                    const [selected] = results;
+                    if (selected) {
+                        const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
+                        let newOption = new Option(selected.text, selected.id, true, true);
+                        $pickingSelect.append(newOption).trigger('change');
+                        const selectedPicking = $pickingSelect.select2('data');
+                        Object.assign(selectedPicking, selected);
+                        initConditionnementArticleFournisseurDefault();
+                    }
+                }
+            });
         }
     }
 }
@@ -694,16 +717,6 @@ function toggleDLForm() {
         $demandeForm.find('.data').attr('disabled', 'disabled');
     }
 }
-//
-// function initConditionnementReferenceDefault() {
-//     console.log(data);
-//     const $reference = $('#modalNewLigneReception')
-// }
-
-
-
-
-
 
 function initConditionnementArticleFournisseurDefault() {
     const $selectRefArticle = $('#modalNewLigneReception select[name="refArticleCommande"]');
@@ -723,7 +736,8 @@ function initConditionnementArticleFournisseurDefault() {
                 }
             },
             {},
-            referenceArticle.defaultArticleFournisseur || {});
+            referenceArticle.defaultArticleFournisseur || {}
+        );
     }
     else {
         resetDefaultArticleFournisseur();
@@ -745,17 +759,3 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }
-
-$('#quantiteAR').on('input', function () {
-    let quantiteAR = $('#quantiteAR');
-    let quantiteRecue = $('#quantiteRecue');
-    if ( quantiteAR.val() > 0 ) {
-        quantiteRecue.prop('disabled', false);
-    } else {
-        quantiteRecue.val(0);
-        quantiteRecue.prop('disabled', true);
-    }
-})
-
-
-

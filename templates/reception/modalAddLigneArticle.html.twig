@@ -24,7 +24,6 @@
                                title="référence">{{ 'reference.référence'|trans }}*</label>
                         <select class="ajax-autocomplete data form-control needed"
                                 onchange="articleChanged($(this))"
-                                id="reception-add-ligne"
                                 name="referenceArticle">
                         </select>
                     </div>
@@ -53,7 +52,8 @@
                         <label for="label">Numéro de commande d'achat*</label>
                         <input class="form-control data needed"
                                type="text"
-                               name="commande">
+                               name="commande"
+                               id="numCommandeAchat">
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité à recevoir*</label>

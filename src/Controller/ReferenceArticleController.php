@@ -133,6 +133,7 @@ class ReferenceArticleController extends AbstractController
         $this->user = $tokenStorage->getToken()->getUser();
         $this->CSVExportService = $CSVExportService;
         $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->refArticleDataService = $refArticleDataService;
     }
 
     /**
@@ -835,7 +836,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity);
-            dump($refArticles);
+
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
@@ -1031,7 +1032,8 @@ class ReferenceArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function isUrgent(Request $request, EntityManagerInterface $entityManager): Response
+    public function isUrgent(Request $request,
+                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
@@ -1039,7 +1041,6 @@ class ReferenceArticleController extends AbstractController
             }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $referenceArticle = $referenceArticleRepository->find($id);
-
             return new JsonResponse([
                 'urgent' => $referenceArticle->getIsUrgent() ?? false,
                 'comment' => $referenceArticle->getEmergencyComment(),
