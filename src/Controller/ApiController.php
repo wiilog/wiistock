@@ -1439,8 +1439,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';
             $this->successDataMsg['success'] = true;
-            $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-                "Aucune anomalie d'inventaire à synchroniser." : $numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s;
+            $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
+                ? "Aucune anomalie d'inventaire à synchroniser."
+                : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
         } else {
             $this->successDataMsg['success'] = false;
             $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";

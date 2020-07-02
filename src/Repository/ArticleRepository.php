@@ -1101,7 +1101,12 @@ class ArticleRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode, vcla.valeur as bl, cla.label as cl
+            "SELECT ra.libelle as refLabel,
+                    ra.reference as refRef,
+                    a.label as artLabel,
+                    a.barCode as barcode,
+                    vcla.valeur as bl,
+                    cla.label as cl
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra

@@ -108,7 +108,9 @@ class InventoryService
 		}
 
 		$entry = $inventoryEntryRepository->find($idEntry);
-		$entry->setAnomaly(false);
+		$entry
+            ->setQuantity($newQuantity)
+            ->setAnomaly(false);
 
 		$refOrArt->setDateLastInventory(new DateTime('now'));
 
