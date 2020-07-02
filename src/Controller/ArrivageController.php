@@ -1055,7 +1055,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer-litige", name="litige_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/supprimer-litige", name="litige_delete_arrivage", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response

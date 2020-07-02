@@ -462,8 +462,6 @@ class PreparationController extends AbstractController
                                    Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
-
-            $statutRepository = $entityManager->getRepository(Statut::class);
             $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 

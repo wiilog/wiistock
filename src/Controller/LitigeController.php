@@ -420,27 +420,51 @@ class LitigeController extends AbstractController
     }
 
 	/**
-	 * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+	 * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
 	 */
 	public function editLitige(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
-				return $this->redirectToRoute('access_denied');
-			}
+        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
-			$post = $request->request;
-			$isArrivage = $post->get('isArrivage');
+        $post = $request->request;
+        $isArrivage = $post->get('isArrivage');
 
-			$controller = $isArrivage ? 'App\Controller\ArrivageController' : 'App\Controller\ReceptionController';
+        $controller = $isArrivage ? 'App\Controller\ArrivageController' : 'App\Controller\ReceptionController';
 
-			return $this->forward($controller . '::editLitige', [
-				'request' => $request
-			]);
-
-		}
-		throw new NotFoundHttpException('404');
+        return $this->forward($controller . '::editLitige', [
+            'request' => $request
+        ]);
 	}
+
+    /**
+     * @Route("/supprimer", name="litige_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function deleteLitige(Request $request,
+                                 EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $dispute = $litigeRepository->find($data['litige']);
+
+            $articlesInDispute = $dispute->getArticles()->toArray();
+            $controller = !empty($articlesInDispute) ? 'App\Controller\ReceptionController' : 'App\Controller\ArrivageController';
+
+
+            return $this->forward($controller . '::deleteLitige', [
+                'request' => $request
+            ]);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
