@@ -420,15 +420,15 @@ class MouvementTracaRepository extends EntityRepository
             ->from('App\Entity\MouvementTraca', 'm');
 
         $countTotal = $this->countAll();
-        $referenceBarCode = ($params->get('referenceBarCode'));
-        if (!empty($referenceBarCode)) {
+        $referenceFilter = ($params->get('reference'));
+        if (!empty($referenceFilter)) {
             $qb
-                ->leftJoin('m.referenceArticle', 'referenceBarCode_ra')
-                ->leftJoin('m.article' , 'referenceBarCode_article')
-                ->leftJoin('referenceBarCode_article.articleFournisseur', 'referenceBarCode_articleFournisseur')
-                ->leftJoin('referenceBarCode_articleFournisseur.referenceArticle', 'referenceBarCode_referenceArticle')
-                ->andWhere('(referenceBarCode_ra.barCode =:referenceBarCode  OR  referenceBarCode_referenceArticle.barCode =:referenceBarCode)')
-                ->setParameter('referenceBarCode', $referenceBarCode);
+                ->leftJoin('m.referenceArticle', 'referenceFilter_referenceArticle_1')
+                ->leftJoin('m.article' , 'referenceFilter_article')
+                ->leftJoin('referenceFilter_article.articleFournisseur', 'referenceFilter_articleFournisseur')
+                ->leftJoin('referenceFilter_articleFournisseur.referenceArticle', 'referenceFilter_referenceArticle_2')
+                ->andWhere('(referenceFilter_referenceArticle_1.reference = :referenceFilter  OR  referenceFilter_referenceArticle_2.reference = :referenceFilter)')
+                ->setParameter('referenceFilter', $referenceFilter);
         }
         // filtres sup
         foreach ($filters as $filter) {
@@ -735,7 +735,7 @@ class MouvementTracaRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT * 
+            "SELECT *
             FROM App/entity/MouvementTraca ");
             $result =  $query->getQuery()
                             ->getSingleScalarResult();

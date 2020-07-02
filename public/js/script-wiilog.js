@@ -875,8 +875,6 @@ function saveFilters(page, tableSelector, callback) {
 
     const $filterDateMin = $('.filter-date-min');
     const $filterDateMax = $('.filter-date-max');
-    const $filterCodeBar = $('#referenceBarCode');
-    const $barCode = $filterCodeBar.val();
     const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
     const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
 
@@ -885,14 +883,6 @@ function saveFilters(page, tableSelector, callback) {
     }
     if ($filterDateMaxPicker) {
         $filterDateMaxPicker.format('YYYY-MM-DD');
-    }
-    if ($barCode != '') {
-        $('#referenceBarCodeHidden').val($barCode);
-        let path = Routing.generate('mvt_traca_index', {'referenceBarCode' :$barCode });
-         window.location.href = path;
-    } else {
-        let path = Routing.generate('mvt_traca_index');
-        window.location.href = path;
     }
 
     const valFunction = {

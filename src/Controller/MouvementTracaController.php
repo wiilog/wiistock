@@ -83,7 +83,7 @@ class MouvementTracaController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $referenceBarCode = $request->query->get('referenceBarCode');
+        $referenceFilter = $request->query->get('reference');
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -92,7 +92,7 @@ class MouvementTracaController extends AbstractController
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
-            'referenceBarCode' => $referenceBarCode,
+            'referenceFilter' => $referenceFilter,
         ]);
     }
 

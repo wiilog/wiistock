@@ -483,7 +483,7 @@ class ReceptionController extends AbstractController
                             'receptionId' => $reception->getId(),
                             'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                            'referenceBarCode' => $referenceArticle->getBarCode() ? $referenceArticle->getBarCode() : $ligneArticle->getReferenceArticle()->getBarCode(),
+                            'referenceFilter' => (isset($referenceArticle) ? $referenceArticle->getReference() : '')
                         ]
                     ),
                 ];

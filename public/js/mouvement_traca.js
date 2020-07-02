@@ -29,9 +29,9 @@ let tableMvtConfig = {
     ajax: {
         "url": pathMvt,
         "type": "POST",
-        'data': {
-            referenceBarCode: $('#referenceBarCode').val()
-        }
+        'data': () => ({
+            reference: $('#referenceFilter').val()
+        })
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -176,5 +176,16 @@ function switchMvtCreationType($input) {
             initFreeSelect2($('.select2-free'));
         }
     });
+}
+
+/**
+ * Used in mouvement_traca/index.html.twig
+ */
+function updateUrl() {
+    const referenceFilter = $('#referenceFilter').val();
+    const suffix = referenceFilter
+        ? `?reference=${encodeURIComponent(referenceFilter)}`
+        : '';
+    window.history.pushState({}, document.title,  `${window.location.pathname}${suffix}`);
 }
 
