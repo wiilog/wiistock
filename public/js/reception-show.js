@@ -41,6 +41,11 @@ function InitiliserPageModals() {
     let urlDeleteReception = Routing.generate('reception_delete', true);
     InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception);
 
+    let ModalCancel = $("#modalCancelReception");
+    let SubmitCancel = $("#submitCancelReception");
+    let urlCancelReception = Routing.generate('reception_cancel', true);
+    InitialiserModal(ModalCancel, SubmitCancel, urlCancelReception);
+
     let modalModifyReception = $('#modalEditReception');
     let submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
@@ -162,15 +167,15 @@ function displayErrorReception(data) {
     displayError($modal, msg, data);
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
         litigeId: litigeId,
-        reception: receptionId
+        reception: receptionId,
+        disputeNumber: disputeNumber
     };
 
     $.post(path, JSON.stringify(params), function (data) {
@@ -195,6 +200,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {
     }, 'json');
 
     modal.find(submit).attr('value', litigeId);
+    $('#disputeNumberReception').text(disputeNumber);
 }
 
 function getCommentAndAddHisto() {
@@ -228,6 +234,33 @@ function openTableHisto() {
         },
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
+    openTableArticleLitige();
+}
+
+let tableArticleInLitige;
+
+function openTableArticleLitige() {
+
+    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableArticleLitigeConfig = {
+        ajax: {
+            "url": pathArticleLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
+            {"data": 'status', 'name': 'status', 'title': 'Status'},
+            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
+            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        },
+        "paging": false,
+
+    };
+    tableArticleInLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
 }
 
 function initDatatableConditionnement() {
@@ -277,7 +310,7 @@ function initDatatableConditionnement() {
     if (!statutVisible) {
         tableFromArticle.column('Statut:name').visible(false);
     }
-    if(!modalArticleAlreadyInit) {
+    if (!modalArticleAlreadyInit) {
         initModalCondit(tableFromArticle);
         modalArticleAlreadyInit = true;
     }
@@ -375,7 +408,7 @@ function finishReception(receptionId, confirmed, $button) {
             confirmed: confirmed
         }), function (data) {
             if (data === 1) {
-                window.location.href = Routing.generate('reception_index', true);
+                window.location.reload();
             } else if (data === 0) {
                 $('#finishReception').click();
             } else {
@@ -504,6 +537,30 @@ function validatePacking($button) {
     }
 }
 
+
+function demandeurChanged($select) {
+    const $locationSelect = $('#locationDemandeLivraison');
+    const [resultSelected] = $select.select2('data');
+    const curentUser = $('#currentUser');
+    if (resultSelected && !$locationSelect.data('is-prefilled')) {
+        let {idEmp, textEmp, text} = resultSelected;
+        const $locationInput = $('#locationDemandeLivraisonValue');
+        const originalValues = {
+            id: $locationInput.data('id'),
+            text: $locationInput.data('text')
+        };
+        if (!idEmp && text === curentUser.data('id')) {
+            idEmp = originalValues.id;
+            textEmp = originalValues.text;
+        }
+        $locationInput.data('id', idEmp);
+        $locationInput.data('text', textEmp);
+        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue', true);
+        $locationInput.data('id', originalValues.id);
+        $locationInput.data('text', originalValues.text);
+    }
+}
+
 function initNewLigneReception($button) {
     if (!editorNewLivraisonAlreadyDoneForDL) {
         initEditorInModal(modalNewLigneReception);
@@ -512,12 +569,13 @@ function initNewLigneReception($button) {
     initSelect2($modalNewLigneReception.find('.ajax-autocompleteEmplacement'), '', 1, {route: 'get_emplacement'});
     initSelect2($('.select2-type'));
     initSelect2($modalNewLigneReception.find('.select2-user'), '', 1, {route: 'get_user'});
+    initDisplaySelect2('#demandeurDL', '#currentUser');
     initSelect2($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
     if ($('#locationDemandeLivraison').length > 0) {
-        initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
+        initDisplaySelect2('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
     }
 
     let urlNewLigneReception = Routing.generate(
@@ -652,8 +710,7 @@ function toggleDLForm() {
     if ($input.is(':checked')) {
         $demandeForm.removeClass('d-none');
         $demandeForm.find('.data').attr('disabled', null);
-    }
-    else {
+    } else {
         $demandeForm.addClass('d-none');
         $demandeForm.find('.data').attr('disabled', 'disabled');
     }
@@ -678,8 +735,7 @@ function initConditionnementArticleFournisseurDefault() {
             },
             {},
             referenceArticle.defaultArticleFournisseur || {});
-    }
-    else {
+    } else {
         resetDefaultArticleFournisseur();
     }
 }
@@ -694,8 +750,7 @@ function resetDefaultArticleFournisseur(show = false) {
 
     if (show) {
         $selectArticleFournisseurFormGroup.removeClass('d-none');
-    }
-    else {
+    } else {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }

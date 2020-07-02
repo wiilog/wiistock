@@ -587,6 +587,8 @@ function initDatatableMovements(referenceArticleId) {
         },
         columns: [
             {"data": 'Date', 'title': 'Date', 'type': 'customDate'},
+            {"data": 'from', 'title': 'Issu de', className: 'noVis'},
+            {"data": 'ArticleCode', 'title': 'Code article'},
             {"data": 'Quantity', 'title': 'Quantité'},
             {"data": 'Origin', 'title': 'Origine'},
             {"data": 'Destination', 'title': 'Destination'},
@@ -617,4 +619,21 @@ function toggleEmergency($switch) {
         $('.emergency-comment').addClass('d-none');
         $('.emergency-comment').val('');
     }
+}
+
+function updateQuantity(referenceArticleId) {
+    let path = Routing.generate('update_qte_refarticle', {referenceArticle: referenceArticleId}, true);
+    $.ajax({
+        url: path,
+        type: 'patch',
+        dataType: 'json',
+        success: (response) => {
+            if (response.success) {
+                tableRefArticle.ajax.reload();
+                alertSuccessMsg('Les quantités de la réference article ont bien été recalculées.');
+            } else {
+                alertErrorMsg('Une erreur lors du calcul des quantités est survenue');
+            }
+        }
+    });
 }

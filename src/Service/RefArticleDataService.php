@@ -170,7 +170,9 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getViewEditRefArticle($refArticle, $isADemand = false, $preloadCategories = true)
+    public function getViewEditRefArticle($refArticle,
+                                          $isADemand = false,
+                                          $preloadCategories = true)
     {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -233,7 +235,9 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function editRefArticle($refArticle, $data, Utilisateur $user)
+    public function editRefArticle($refArticle,
+                                   $data,
+                                   Utilisateur $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -414,7 +418,12 @@ class RefArticleDataService
      * @throws SyntaxError
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function addRefToDemand($data, $referenceArticle, Utilisateur $user, bool $fromNomade, EntityManagerInterface $entityManager, Demande $demande)
+    public function addRefToDemand($data,
+                                   $referenceArticle,
+                                   Utilisateur $user,
+                                   bool $fromNomade,
+                                   EntityManagerInterface $entityManager,
+                                   Demande $demande)
     {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -558,8 +567,6 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
     {
@@ -571,8 +578,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -586,8 +591,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
     {

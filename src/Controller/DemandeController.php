@@ -197,7 +197,6 @@ class DemandeController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;

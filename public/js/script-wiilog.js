@@ -650,11 +650,14 @@ function initSelect2($select,
     });
 }
 
-function initDisplaySelect2(select, inputValue) {
+function initDisplaySelect2(select, inputValue, forceInit = false) {
     let data = $(inputValue).data();
+    const $select = $(select);
     if (data.id && data.text) {
         let option = new Option(data.text, data.id, true, true);
-        $(select).append(option).trigger('change');
+        $select.append(option).trigger('change');
+    } else if (forceInit) {
+        $select.val(null).trigger('change');
     }
 }
 
@@ -710,6 +713,10 @@ function ajaxAutoChauffeurInit(select) {
 
 function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
+}
+
+function ajaxAutoDisputeNumberInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispute_number'});
 }
 
 function ajaxAutoDemandCollectInit(select) {
@@ -1230,6 +1237,7 @@ function displayFiltersSup(data) {
             case 'carriers':
             case 'emplacement':
             case 'demCollecte':
+            case 'disputeNumber':
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);

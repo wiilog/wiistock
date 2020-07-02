@@ -32,17 +32,21 @@
                         <div class="row">
                             <div class="col-4 form-group">
                                 <label for="destination">Destination*</label>
-                                <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed" id="locationDemandeLivraison">
+                                <select name="destination" class="data ajax-autocompleteEmplacement w-100 needed" id="locationDemandeLivraison"
+                                        data-is-prefilled="{{ livraisonLocation is not empty }}">
                                     <option></option>
                                 </select>
-                                <input hidden id="locationDemandeLivraisonValue" data-id="{{ livraisonLocation ? livraisonLocation.id }}" data-text="{{ livraisonLocation ? livraisonLocation.text }}">
+                                <input hidden id="locationDemandeLivraisonValue"
+                                       data-id="{{ livraisonLocation ? livraisonLocation.id : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.id) }}"
+                                       data-text="{{ livraisonLocation ? livraisonLocation.text : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.label) }}">
                             </div>
                             <div class="col-4 form-group">
                                 <label for="demandeur">Demandeur*</label>
-                                <select type="text" class="select2-user data w-100 needed" name="demandeur">
+                                <select type="text" class="select2-user data w-100 needed" name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
                                     <option></option>
                                 </select>
                             </div>
+                            <input hidden id="currentUser" data-id="{{ needsCurrentUser ? app.user.id }}" data-text="{{ needsCurrentUser ? app.user.username }}">
                             <div class="col-4 form-group">
                                 <label for="type">Type*</label>
                                 <select type="text" class="select2-type data w-100 needed" name="type"

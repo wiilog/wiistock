@@ -431,8 +431,8 @@ class UtilisateurController extends AbstractController
             $search = $request->query->get('term');
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $user = $utilisateurRepository->getIdAndLibelleBySearch($search);
-            return new JsonResponse(['results' => $user]);
+            $results = $utilisateurRepository->getIdAndLibelleAndDropzoneBySearch($search);
+            return new JsonResponse(['results' => $results]);
         }
         throw new NotFoundHttpException("404");
     }
