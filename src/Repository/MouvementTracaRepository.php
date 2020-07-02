@@ -427,7 +427,7 @@ class MouvementTracaRepository extends EntityRepository
                 ->leftJoin('m.article' , 'referenceFilter_article')
                 ->leftJoin('referenceFilter_article.articleFournisseur', 'referenceFilter_articleFournisseur')
                 ->leftJoin('referenceFilter_articleFournisseur.referenceArticle', 'referenceFilter_referenceArticle_2')
-                ->andWhere('(referenceFilter_referenceArticle_1.reference = :referenceFilter  OR  referenceFilter_referenceArticle_2.reference = :referenceFilter)')
+                ->andWhere('(referenceFilter_referenceArticle_1.reference = :referenceFilter OR referenceFilter_referenceArticle_2.reference = :referenceFilter)')
                 ->setParameter('referenceFilter', $referenceFilter);
         }
         // filtres sup
