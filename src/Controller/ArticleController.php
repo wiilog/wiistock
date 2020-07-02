@@ -44,6 +44,15 @@ use App\Service\ValeurChampLibreService;
 class ArticleController extends AbstractController
 {
 
+    private const ARTICLE_IS_USED_MESSAGES = [
+        Article::USED_ASSOC_COLLECTE => "est lié à une ou plusieurs collectes",
+        Article::USED_ASSOC_DEMANDE => "est lié à une ou plusieurs demandes de livraison",
+        Article::USED_ASSOC_LITIGE => "est lié à un ou plusieurs litiges",
+        Article::USED_ASSOC_MOUVEMENT => "est lié à un ou plusieurs mouvements de traçabilité",
+        Article::USED_ASSOC_INVENTORY => "est lié à une ou plusieurs missions d'inventaire",
+        Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "n'est pas disponible"
+    ];
+
     /**
      * @var ReceptionRepository
      */
@@ -585,12 +594,20 @@ class ArticleController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $article = $articleRepository->find($data['article']);
+
+            $receptionReferenceArticle = $article->getReceptionReferenceArticle();
+            if (isset($receptionReferenceArticle)) {
+                $articleQuantity = $article->getQuantite();
+                $receivedQuantity = $receptionReferenceArticle->getQuantite();
+                $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
+            }
+
             $rows = $article->getId();
 
             // on vérifie que l'article n'est plus utilisé
-            $articleIsUsed = $this->isArticleUsed($article);
+            $articleIsUsed = $article->getUsedAssociation();
 
-            if ($articleIsUsed) {
+            if ($articleIsUsed !== -1) {
                 return new JsonResponse(false);
             }
 
@@ -599,7 +616,7 @@ class ArticleController extends AbstractController
 
             $response['delete'] = $rows;
             return new JsonResponse($response);
-        }
+            }
         throw new NotFoundHttpException("404");
     }
 
@@ -620,31 +637,20 @@ class ArticleController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $article = $articleRepository->find($articleId);
-            $articleIsUsed = $this->isArticleUsed($article);
+            $articleIsUsed = $article->getUsedAssociation();
 
-            if (!$articleIsUsed) {
+            if (!isset(self::ARTICLE_IS_USED_MESSAGES[$articleIsUsed])) {
                 $delete = true;
                 $html = $this->renderView('article/modalDeleteArticleRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('article/modalDeleteArticleWrong.html.twig');
+                $html = $this->renderView('article/modalDeleteArticleWrong.html.twig', [
+                    'location' => self::ARTICLE_IS_USED_MESSAGES[$articleIsUsed]
+                ]);
             }
-
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @param Article $article
-     * @return bool
-     */
-    private function isArticleUsed($article)
-    {
-        if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
-            return true;
-        }
-        return false;
     }
 
     /**

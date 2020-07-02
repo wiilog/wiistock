@@ -325,7 +325,9 @@ function initModalCondit(tableFromArticle) {
     let modalDeleteInnerArticle = $("#modalDeleteArticle");
     let submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitialiserModal(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle);
+    InitialiserModal(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle, () => {
+        tableArticle.ajax.reload();
+    });
 }
 
 function initNewArticleEditor(modal) {
