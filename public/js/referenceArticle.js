@@ -620,3 +620,20 @@ function toggleEmergency($switch) {
         $('.emergency-comment').val('');
     }
 }
+
+function updateQuantity(referenceArticleId) {
+    let path = Routing.generate('update_qte_refarticle', {referenceArticle: referenceArticleId}, true);
+    $.ajax({
+        url: path,
+        type: 'patch',
+        dataType: 'json',
+        success: (response) => {
+            if (response.success) {
+                tableRefArticle.ajax.reload();
+                alertSuccessMsg('Les quantités de la réference article ont bien été recalculées.');
+            } else {
+                alertErrorMsg('Une erreur lors du calcul des quantités est survenue');
+            }
+        }
+    });
+}

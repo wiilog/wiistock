@@ -442,7 +442,6 @@ class DemandeLivraisonService
         $type = $demande->getType();
         $comment = $demande->getCommentaire();
 
-
         $detailsChampLibres = $demande
             ->getValeurChampLibre()
             ->map(function (ValeurChampLibre $valeurChampLibre) {
