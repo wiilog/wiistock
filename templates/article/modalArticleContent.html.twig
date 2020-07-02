@@ -51,6 +51,7 @@
                 {% set actif = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) ? 'active' : 'not-active' %}
                 {% set inactif = (statut == constant('App\\Entity\\Article::STATUT_INACTIF')) ? 'active' : 'not-active' %}
                 {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
+                {% set enLitige = (statut == constant('App\\Entity\\Article::STATUT_EN_LITIGE')) ? 'active' : 'not-active' %}
                 {% set isStatusEditable = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) %}
                 {% if isStatusEditable or actif == 'active' %}
                     <span class="btn {{ actif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
@@ -68,6 +69,11 @@
                     <span class="btn {{ transit }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
                             {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
+                    </span>
+                {% endif %}
+                {% if enLitige == 'active' %}
+                    <span class="btn {{ enLitige }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_LITIGE') }}">
+                        {{ constant('App\\Entity\\Article::STATUT_EN_LITIGE') | capitalize }}
                     </span>
                 {% endif %}
             </div>

@@ -567,8 +567,6 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
     {
@@ -580,8 +578,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -595,8 +591,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
     {

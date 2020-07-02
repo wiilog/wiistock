@@ -103,10 +103,12 @@ class ArticleController extends AbstractController
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
+     * @param ArticleDataService $articleDataService
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager,
+                          ArticleDataService $articleDataService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
             return $this->redirectToRoute('access_denied');
@@ -256,24 +258,27 @@ class ArticleController extends AbstractController
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
+
         return $this->render('article/index.html.twig', [
             'valeurChampLibre' => null,
             'champsSearch' => $champsSearch,
             'recherches' => $user->getRechercheForArticle(),
             'champs' => $champs,
             'columnsVisibles' => $user->getColumnsVisibleForArticle(),
-            'activeOnly' => !empty($filter) && $filter->getValue() === Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+            'activeOnly' => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
 
     /**
      * @Route("/show-actif-inactif", name="article_actif_inactif", options={"expose"=true})
-     * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ArticleDataService $articleDataService
+     * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function displayActifOrInactif(EntityManagerInterface $entityManager,
+                                          ArticleDataService $articleDataService,
                                           Request $request) : Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
@@ -291,12 +296,11 @@ class ArticleController extends AbstractController
 					$filter
 						->setUser($user)
 						->setField(FiltreSup::FIELD_STATUT)
-						->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT)
 						->setPage(FiltreSup::PAGE_ARTICLE);
 					$entityManager->persist($filter);
-				} else {
-					$filter->setValue(Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT);
 				}
+                $filter
+                    ->setValue($articleDataService->getActiveArticleFilterValue());
 			} else {
             	if (!empty($filter)) {
             		$entityManager->remove($filter);

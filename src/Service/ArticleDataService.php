@@ -374,7 +374,7 @@ class ArticleDataService
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
+        $statusLabel = (!isset($data['statut']) || ($data['statut'] === Article::STATUT_ACTIF)) ? Article::STATUT_ACTIF : Article::STATUT_INACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
@@ -549,7 +549,7 @@ class ArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             $filters = [[
                 'field' => FiltreSup::FIELD_STATUT,
-                'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+                'value' => $this->getActiveArticleFilterValue()
             ]];
         }
         $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
@@ -744,5 +744,13 @@ class ArticleDataService
                 break;
         }
         return $res;
+    }
+
+    public function getActiveArticleFilterValue(): string {
+        return Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT . ',' . Article::STATUT_EN_LITIGE;
+    }
+
+    public function articleCanBeAddedInDispute(Article $article): bool {
+        return in_array($article->getStatut()->getNom(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
     }
 }
