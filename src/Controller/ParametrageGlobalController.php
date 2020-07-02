@@ -493,15 +493,13 @@ class ParametrageGlobalController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
             foreach ($translations as $translation) {
-                if (!empty($translation['val'])) {
-                    $translationObject = $translationRepository->find($translation['id']);
-                    if ($translationObject) {
-                        $translationObject
-                            ->setTranslation($translation['val'])
-                            ->setUpdated(1);
-                    } else {
-                        return new JsonResponse(false);
-                    }
+                $translationObject = $translationRepository->find($translation['id']);
+                if ($translationObject) {
+                    $translationObject
+                        ->setTranslation($translation['val'] ?: null)
+                        ->setUpdated(1);
+                } else {
+                    return new JsonResponse(false);
                 }
             }
             $this->getDoctrine()->getManager()->flush();

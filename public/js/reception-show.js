@@ -167,15 +167,15 @@ function displayErrorReception(data) {
     displayError($modal, msg, data);
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {
-}, receptionId, litigeId) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
         litigeId: litigeId,
-        reception: receptionId
+        reception: receptionId,
+        disputeNumber: disputeNumber
     };
 
     $.post(path, JSON.stringify(params), function (data) {
@@ -200,6 +200,7 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {
     }, 'json');
 
     modal.find(submit).attr('value', litigeId);
+    $('#disputeNumberReception').text(disputeNumber);
 }
 
 function getCommentAndAddHisto() {

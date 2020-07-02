@@ -17,9 +17,11 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class Article
 {
     const CATEGORIE = 'article';
+
     const STATUT_ACTIF = 'disponible';
     const STATUT_INACTIF = 'consommé';
     const STATUT_EN_TRANSIT = 'en transit';
+    const STATUT_EN_LITIGE = 'en litige';
 
     const USED_ASSOC_COLLECTE = 0;
     const USED_ASSOC_DEMANDE = 1;

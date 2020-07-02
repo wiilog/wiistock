@@ -51,7 +51,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 			CategorieStatut::ARTICLE => [
 				Article::STATUT_ACTIF,
 				Article::STATUT_INACTIF,
-				Article::STATUT_EN_TRANSIT
+				Article::STATUT_EN_TRANSIT,
+				Article::STATUT_EN_LITIGE
 			],
 			CategorieStatut::DEM_COLLECTE => [
 				Collecte::STATUT_BROUILLON,

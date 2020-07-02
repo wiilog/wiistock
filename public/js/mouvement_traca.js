@@ -28,7 +28,10 @@ let tableMvtConfig = {
     order: [[2, "desc"]],
     ajax: {
         "url": pathMvt,
-        "type": "POST"
+        "type": "POST",
+        'data': () => ({
+            reference: $('#referenceFilter').val()
+        })
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -174,3 +177,15 @@ function switchMvtCreationType($input) {
         }
     });
 }
+
+/**
+ * Used in mouvement_traca/index.html.twig
+ */
+function updateUrl() {
+    const referenceFilter = $('#referenceFilter').val();
+    const suffix = referenceFilter
+        ? `?reference=${encodeURIComponent(referenceFilter)}`
+        : '';
+    window.history.pushState({}, document.title,  `${window.location.pathname}${suffix}`);
+}
+
