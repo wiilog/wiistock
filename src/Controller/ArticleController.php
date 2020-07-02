@@ -594,7 +594,13 @@ class ArticleController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $article = $articleRepository->find($data['article']);
-            $article->getReceptionReferenceArticle()->setQuantite(0);
+
+            $receptionReferenceArticle = $article->getReceptionReferenceArticle();
+            if (isset($receptionReferenceArticle)) {
+                $articleQuantity = $article->getQuantite();
+                $receivedQuantity = $receptionReferenceArticle->getQuantite();
+                $receptionReferenceArticle->setQuantite(max($receivedQuantity - $articleQuantity, 0));
+            }
 
             $rows = $article->getId();
 

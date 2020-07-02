@@ -325,7 +325,9 @@ function initModalCondit(tableFromArticle) {
     let modalDeleteInnerArticle = $("#modalDeleteArticle");
     let submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitialiserModal(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle);
+    InitialiserModal(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle, () => {
+        tableArticle.ajax.reload();
+    });
 }
 
 function initNewArticleEditor(modal) {
@@ -754,16 +756,3 @@ function resetDefaultArticleFournisseur(show = false) {
         $selectArticleFournisseurFormGroup.addClass('d-none');
     }
 }
-
-$("#submitDeleteArticle").on('click', function (e) {
-    const path = window.location.pathname;
-
-    $.ajax({
-        type: "POST",
-        url: path,
-        success: function () {
-            tableArticle.ajax.reload();
-        }
-    })
-    e.preventDefault();
-});
