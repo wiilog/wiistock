@@ -456,7 +456,6 @@ class PreparationController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function startSplitting(EntityManagerInterface $entityManager,
                                    Request $request): Response

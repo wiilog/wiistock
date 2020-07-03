@@ -11,6 +11,8 @@ use App\Entity\MouvementStock;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\DemandeToTreatExistsException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 
@@ -62,7 +64,8 @@ class InventoryService
      * @param string $comment
      * @param Utilisateur $user
      * @return bool
-     * @throws Exception
+     * @throws DemandeToTreatExistsException
+     * @throws ArticleNotAvailableException
      */
 	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
 	{
@@ -84,30 +87,38 @@ class InventoryService
 		if ($isRef) {
 			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantiteStock();
-
-			$demandeToTreatCounter = $refOrArt
-                ->getLigneArticles()
-                ->filter(function(LigneArticle $ligneArticle) use ($isDemandeToTreat) {
-                    $demande = $ligneArticle->getDemande();
-                    return $isDemandeToTreat($demande);
-                })
-                ->count();
-
 		} else {
+		    /** @var Article $refOrArt */
 			$refOrArt = $articleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantite();
-
-            $demande = $refOrArt->getDemande();
-            $demandeToTreatCounter = $isDemandeToTreat($demande) ? 1 : 0;
 		}
-
-        if ($demandeToTreatCounter > 0) {
-            throw new Exception('demande-exists');
-        }
 
 		$diff = $newQuantity - $quantity;
 
 		if ($diff != 0) {
+            if ($isRef) {
+                $demandeToTreatCounter = $refOrArt
+                    ->getLigneArticles()
+                    ->filter(function(LigneArticle $ligneArticle) use ($isDemandeToTreat) {
+                        $demande = $ligneArticle->getDemande();
+                        return $isDemandeToTreat($demande);
+                    })
+                    ->count();
+            }
+            else {
+                $demande = $refOrArt->getDemande();
+
+                if ($refOrArt->getStatut()->getNom() !== Article::STATUT_ACTIF) {
+                    throw new ArticleNotAvailableException();
+                }
+
+                $demandeToTreatCounter = $isDemandeToTreat($demande) ? 1 : 0;
+            }
+
+            if ($demandeToTreatCounter > 0) {
+                throw new DemandeToTreatExistsException();
+            }
+
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)

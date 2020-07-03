@@ -2,8 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\InventoryEntry;
+use App\Entity\Livraison;
+use App\Entity\Preparation;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
@@ -46,6 +49,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 
     public function getAnomaliesOnRef(bool $forceValidLocation = false, $anomaliesIds = []) {
 		$queryBuilder = $this->createQueryBuilder('ie')
+            ->distinct()
             ->select('ie.id')
             ->addSelect('ra.reference')
             ->addSelect('ra.libelle as label')
@@ -55,20 +59,37 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('1 as is_ref')
             ->addSelect('0 as treated')
             ->addSelect('ra.barCode as barCode')
-            ->addSelect('(CASE WHEN (
-                demandeStatut.id IS NULL
+            ->addSelect('MAX(CASE WHEN (
+                ligneArticles.id IS NULL
                 OR (
-                    demandeStatut.nom != :demandeStatusPrepared
-                    AND demandeStatut.nom != :demandeStatusTreated
+                    preparationStatus.nom != :preparationStatusToTreat
+                    AND preparationStatus.nom != :preparationStatusInProgress
+                    AND
+                    (
+                        livraison.id IS NULL
+                        OR livraisonStatus.nom != :livraisonStatusToTreat
+                    )
                 )
             ) THEN 1 ELSE 0 END) AS isTreatable')
             ->join('ie.refArticle', 'ra')
             ->leftJoin('ra.emplacement', 'e')
-            ->leftJoin('ra.ligneArticles', 'ligneArticles')
-            ->leftJoin('ligneArticles.demande', 'demande')
-            ->leftJoin('demande.statut', 'demandeStatut')
-            ->setParameter('demandeStatusPrepared', Demande::STATUT_PREPARE)
-            ->setParameter('demandeStatusTreated', Demande::STATUT_A_TRAITER)
+            ->leftJoin('ra.ligneArticlePreparations', 'ligneArticles')
+            ->leftJoin('ligneArticles.preparation', 'preparation')
+            ->leftJoin('preparation.statut', 'preparationStatus')
+            ->leftJoin('preparation.livraison', 'livraison')
+            ->leftJoin('livraison.statut', 'livraisonStatus')
+            ->groupBy('ie.id')
+            ->addGroupBy('ra.reference')
+            ->addGroupBy('label')
+            ->addGroupBy('location')
+            ->addGroupBy('quantity')
+            ->addGroupBy('countedQuantity')
+            ->addGroupBy('is_ref')
+            ->addGroupBy('treated')
+            ->addGroupBy('barCode')
+            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
+            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
+            ->setParameter('livraisonStatusToTreat', Livraison::STATUT_A_TRAITER)
             ->andWhere('ie.anomaly = 1');
 
 		if ($forceValidLocation) {
@@ -97,34 +118,33 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('0 as treated')
             ->addSelect('a.barCode as barCode')
             ->addSelect('(CASE WHEN
-                ((
-                    demandeRefStatut.id IS NULL
-                    OR (
-                        demandeRefStatut.nom != :demandeStatusPrepared
-                        AND demandeRefStatut.nom != :demandeStatusTreated
-                    )
-                )
-                AND
                 (
-                    demandeStatut.id IS NULL
-                    OR (
-                        demandeStatut.nom != :demandeStatusPrepared
-                        AND demandeStatut.nom != :demandeStatusTreated
+                    (
+                        preparation.id IS NULL
+                        OR (
+                            preparationStatus.nom != :preparationStatusToTreat
+                            AND preparationStatus.nom != :preparationStatusInProgress
+                            AND (
+                                livraison.id IS NULL
+                                OR livraisonStatus.nom != :livraisonStatusToTreat
+                            )
+                        )
                     )
-                ))
+                    AND articleStatus.nom = :articleStatusAvailable
+                )
                 THEN 1 ELSE 0 END) AS isTreatable')
             ->join('ie.article', 'a')
+            ->join('a.statut', 'articleStatus')
             ->leftJoin('a.emplacement', 'e')
-            ->leftJoin('a.articleFournisseur', 'articleFournisseur')
-            ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->leftJoin('referenceArticle.ligneArticles', 'ligneArticles')
-            ->leftJoin('ligneArticles.demande', 'demandeRef')
-            ->leftJoin('demandeRef.statut', 'demandeRefStatut')
-            ->leftJoin('a.demande', 'demande')
-            ->leftJoin('demande.statut', 'demandeStatut')
+            ->leftJoin('a.preparation', 'preparation')
+            ->leftJoin('preparation.statut', 'preparationStatus')
+            ->leftJoin('preparation.livraison', 'livraison')
+            ->leftJoin('livraison.statut', 'livraisonStatus')
             ->andWhere('ie.anomaly = 1')
-            ->setParameter('demandeStatusPrepared', Demande::STATUT_PREPARE)
-            ->setParameter('demandeStatusTreated', Demande::STATUT_A_TRAITER);
+            ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
+            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
+            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
+            ->setParameter('livraisonStatusToTreat', Livraison::STATUT_A_TRAITER);
 
         if ($forceValidLocation) {
             $queryBuilder->andWhere('e IS NOT NULL');

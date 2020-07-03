@@ -23,6 +23,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\DemandeToTreatExistsException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
@@ -1426,6 +1428,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $numberOfRowsInserted = 0;
 
             $anomalies = json_decode($request->request->get('anomalies'), true);
+            $errors = [];
             foreach ($anomalies as $anomaly) {
                 try {
                     $this->inventoryService->doTreatAnomaly(
@@ -1438,17 +1441,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     );
                     $numberOfRowsInserted++;
                 }
-                catch (Exception $exception) {
-                    if ($exception->getMessage() !== 'demande-exists') {
-                        throw $exception;
-                    }
+                catch (ArticleNotAvailableException|DemandeToTreatExistsException $exception) {
+                    $errors[] = $anomaly['id'];
                 }
             }
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';
             $this->successDataMsg['success'] = true;
+            $this->successDataMsg['errors'] = $errors;
             $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
-                ? "Aucune anomalie d'inventaire à synchroniser."
+                ? ($anomalies > 0
+                    ? 'Une ou plusieus erreurs, des ordres de livraison sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
+                    : "Aucune anomalie d'inventaire à synchroniser.")
                 : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
         } else {
             $this->successDataMsg['success'] = false;

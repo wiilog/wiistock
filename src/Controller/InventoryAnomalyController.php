@@ -6,6 +6,8 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\DemandeToTreatExistsException;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Service\InventoryService;
@@ -131,16 +133,13 @@ class InventoryAnomalyController extends AbstractController
                     'quantitiesAreEqual' => $quantitiesAreEqual
                 ];
             }
-            catch (Exception $exception) {
-                if ($exception->getMessage() === 'demande-exists') {
-                    $responseData = [
-                        'success' => false,
-                        'message' => 'Impossible : un ordre de livraison est en cours sur cette référence'
-                    ];
-                }
-                else {
-                    throw $exception;
-                }
+            catch (ArticleNotAvailableException|DemandeToTreatExistsException $exception) {
+                $responseData = [
+                    'success' => false,
+                    'message' => ($exception instanceof DemandeToTreatExistsException)
+                        ? 'Impossible : un ordre de livraison est en cours sur cet article'
+                        : 'Impossible : l\'article n\'est pas disponible'
+                ];
             }
 
 			return new JsonResponse($responseData);
