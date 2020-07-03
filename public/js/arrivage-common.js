@@ -59,6 +59,9 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                         },
                         arrivalsDatatable
                     );
+                    if (autoPrint) {
+                        printArrival(response);
+                    }
                 }
             });
         }
