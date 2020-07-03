@@ -66,8 +66,8 @@ class DashboardService
         $secondInADay = 60 * 60 * 24;
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
-            $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[intval($dayCounterKey)] = 0;
+            $dayCounterKey = date("d/m", $firstDayTime + ($secondInADay * $dayIncrement));
+            $rows[$dayCounterKey] = 0;
         }
 
         $receptionTracas = $receptionTracaRepository->countByDays($firstDay, $lastDay);
@@ -104,8 +104,8 @@ class DashboardService
         $secondInADay = 60 * 60 * 24;
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
-            $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[intval($dayCounterKey)] = [
+            $dayCounterKey = date( "d/m", $firstDayTime + ($secondInADay * $dayIncrement));
+            $rows[($dayCounterKey)] = [
                 'count' => 0,
                 'conform' => null
             ];
