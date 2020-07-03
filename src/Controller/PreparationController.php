@@ -14,6 +14,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Exceptions\NegativeQuantityException;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
@@ -75,22 +76,28 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"})
+     * @Route(
+     *     "/finish/{idPrepa}",
+     *     name="preparation_finish",
+     *     methods={"POST"},
+     *     options={"expose"=true},
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param $idPrepa
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PreparationsManagerService $preparationsManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @return JsonResponse
      * @throws LoaderError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
                                 EntityManagerInterface $entityManager,
-                                PreparationsManagerService $preparationsManager): Response
+                                PreparationsManagerService $preparationsManager): JsonResponse
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -102,7 +109,16 @@ class PreparationController extends AbstractController
         $preparation = $preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
-        $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+        try {
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+        }
+        catch(NegativeQuantityException $exception) {
+            $barcode = $exception->getArticle()->getBarCode();
+            return new JsonResponse([
+                'success' => false,
+                'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+            ]);
+        }
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
@@ -131,8 +147,11 @@ class PreparationController extends AbstractController
 
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison->getId(),
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('livraison_show', [
+                'id' => $livraison->getId()
+            ])
         ]);
     }
 
