@@ -1409,6 +1409,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function treatAnomalies(Request $request,
                                    EntityManagerInterface $entityManager)
@@ -1426,15 +1427,22 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             $anomalies = json_decode($request->request->get('anomalies'), true);
             foreach ($anomalies as $anomaly) {
-                $this->inventoryService->doTreatAnomaly(
-                    $anomaly['id'],
-                    $anomaly['reference'],
-                    $anomaly['is_ref'],
-                    $anomaly['quantity'],
-                    $anomaly['comment'],
-                    $nomadUser
-                );
-                $numberOfRowsInserted++;
+                try {
+                    $this->inventoryService->doTreatAnomaly(
+                        $anomaly['id'],
+                        $anomaly['reference'],
+                        $anomaly['is_ref'],
+                        $anomaly['quantity'],
+                        $anomaly['comment'],
+                        $nomadUser
+                    );
+                    $numberOfRowsInserted++;
+                }
+                catch (Exception $exception) {
+                    if ($exception->getMessage() !== 'demande-exists') {
+                        throw $exception;
+                    }
+                }
             }
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';

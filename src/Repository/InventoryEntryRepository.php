@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Demande;
 use App\Entity\InventoryEntry;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -54,8 +55,20 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('1 as is_ref')
             ->addSelect('0 as treated')
             ->addSelect('ra.barCode as barCode')
+            ->addSelect('(CASE WHEN (
+                demandeStatut.id IS NULL
+                OR (
+                    demandeStatut.nom != :demandeStatusPrepared
+                    AND demandeStatut.nom != :demandeStatusTreated
+                )
+            ) THEN 1 ELSE 0 END) AS isTreatable')
             ->join('ie.refArticle', 'ra')
             ->leftJoin('ra.emplacement', 'e')
+            ->leftJoin('ra.ligneArticles', 'ligneArticles')
+            ->leftJoin('ligneArticles.demande', 'demande')
+            ->leftJoin('demande.statut', 'demandeStatut')
+            ->setParameter('demandeStatusPrepared', Demande::STATUT_PREPARE)
+            ->setParameter('demandeStatusTreated', Demande::STATUT_A_TRAITER)
             ->andWhere('ie.anomaly = 1');
 
 		if ($forceValidLocation) {
@@ -83,9 +96,35 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('0 as is_ref')
             ->addSelect('0 as treated')
             ->addSelect('a.barCode as barCode')
+            ->addSelect('(CASE WHEN
+                ((
+                    demandeRefStatut.id IS NULL
+                    OR (
+                        demandeRefStatut.nom != :demandeStatusPrepared
+                        AND demandeRefStatut.nom != :demandeStatusTreated
+                    )
+                )
+                AND
+                (
+                    demandeStatut.id IS NULL
+                    OR (
+                        demandeStatut.nom != :demandeStatusPrepared
+                        AND demandeStatut.nom != :demandeStatusTreated
+                    )
+                ))
+                THEN 1 ELSE 0 END) AS isTreatable')
             ->join('ie.article', 'a')
             ->leftJoin('a.emplacement', 'e')
-            ->andWhere('ie.anomaly = 1');
+            ->leftJoin('a.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.ligneArticles', 'ligneArticles')
+            ->leftJoin('ligneArticles.demande', 'demandeRef')
+            ->leftJoin('demandeRef.statut', 'demandeRefStatut')
+            ->leftJoin('a.demande', 'demande')
+            ->leftJoin('demande.statut', 'demandeStatut')
+            ->andWhere('ie.anomaly = 1')
+            ->setParameter('demandeStatusPrepared', Demande::STATUT_PREPARE)
+            ->setParameter('demandeStatusTreated', Demande::STATUT_A_TRAITER);
 
         if ($forceValidLocation) {
             $queryBuilder->andWhere('e IS NOT NULL');

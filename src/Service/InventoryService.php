@@ -3,8 +3,10 @@
 namespace App\Service;
 
 use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
+use App\Entity\LigneArticle;
 use App\Entity\MouvementStock;
 
 use App\Entity\ReferenceArticle;
@@ -15,6 +17,7 @@ use App\Repository\InventoryMissionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Symfony\Component\Security\Core\Security;
 use DateTime;
 
@@ -59,7 +62,7 @@ class InventoryService
      * @param string $comment
      * @param Utilisateur $user
      * @return bool
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
 	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
 	{
@@ -69,13 +72,38 @@ class InventoryService
 
         $quantitiesAreEqual = true;
 
+        $isDemandeToTreat = function (Demande $demande) {
+            $demandeStatus = $demande->getStatut();
+            $demandeStatusName = $demandeStatus->getNom();
+            return (
+                $demandeStatusName === Demande::STATUT_A_TRAITER
+                || $demandeStatusName === Demande::STATUT_PREPARE
+            );
+        };
+
 		if ($isRef) {
 			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantiteStock();
+
+			$demandeToTreatCounter = $refOrArt
+                ->getLigneArticles()
+                ->filter(function(LigneArticle $ligneArticle) use ($isDemandeToTreat) {
+                    $demande = $ligneArticle->getDemande();
+                    return $isDemandeToTreat($demande);
+                })
+                ->count();
+
 		} else {
 			$refOrArt = $articleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantite();
+
+            $demande = $refOrArt->getDemande();
+            $demandeToTreatCounter = $isDemandeToTreat($demande) ? 1 : 0;
 		}
+
+        if ($demandeToTreatCounter > 0) {
+            throw new Exception('demande-exists');
+        }
 
 		$diff = $newQuantity - $quantity;
 

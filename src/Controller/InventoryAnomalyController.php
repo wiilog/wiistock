@@ -9,7 +9,9 @@ use App\Entity\Menu;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Service\InventoryService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -83,20 +85,18 @@ class InventoryAnomalyController extends AbstractController
 
 			$rows = [];
 			foreach ($anomalies as $anomaly) {
-				$rows[] =
-					[
-						'reference' => $anomaly['reference'],
-						'libelle' => $anomaly['label'],
-						'quantite' => $anomaly['quantity'],
-						'Actions' => $this->renderView('inventaire/datatableAnomaliesRow.html.twig',
-							[
-								'idEntry' => $anomaly['id'],
-								'reference' => $anomaly['reference'],
-								'isRef' => $anomaly['is_ref'],
-								'quantity' => $anomaly['quantity'],
-								'location' => $anomaly['location'],
-							]),
-					];
+				$rows[] = [
+                    'reference' => $anomaly['reference'],
+                    'libelle' => $anomaly['label'],
+                    'quantite' => $anomaly['quantity'],
+                    'Actions' => $this->renderView('inventaire/datatableAnomaliesRow.html.twig', [
+                        'idEntry' => $anomaly['id'],
+                        'reference' => $anomaly['reference'],
+                        'isRef' => $anomaly['is_ref'],
+                        'quantity' => $anomaly['quantity'],
+                        'location' => $anomaly['location'],
+                    ])
+                ];
 			}
 			$data['data'] = $rows;
 			return new JsonResponse($data);
@@ -104,9 +104,12 @@ class InventoryAnomalyController extends AbstractController
 		throw new NotFoundHttpException("404");
 	}
 
-	/**
-	 * @Route("/traitement", name="anomaly_treat", options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/traitement", name="anomaly_treat", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse|RedirectResponse
+     * @throws Exception
+     */
 	public function treatAnomaly(Request $request)
 	{
 		if ($request->isXmlHttpRequest()  && $data = json_decode($request->getContent(), true)) {
@@ -114,9 +117,33 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$quantitiesAreEqual = $this->inventoryService->doTreatAnomaly($data['id'], $data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['comment'], $this->getUser());
+            try {
+                $quantitiesAreEqual = $this->inventoryService->doTreatAnomaly(
+                    $data['id'],
+                    $data['reference'],
+                    $data['isRef'],
+                    (int)$data['newQuantity'],
+                    $data['comment'],
+                    $this->getUser()
+                );
+                $responseData = [
+                    'success' => true,
+                    'quantitiesAreEqual' => $quantitiesAreEqual
+                ];
+            }
+            catch (Exception $exception) {
+                if ($exception->getMessage() === 'demande-exists') {
+                    $responseData = [
+                        'success' => false,
+                        'message' => 'Impossible : un ordre de livraison est en cours sur cette référence'
+                    ];
+                }
+                else {
+                    throw $exception;
+                }
+            }
 
-			return new JsonResponse($quantitiesAreEqual);
+			return new JsonResponse($responseData);
 		}
 		throw new NotFoundHttpException("404");
 	}
