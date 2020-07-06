@@ -473,7 +473,7 @@ class PreparationsManagerService
             $articleRef = $ligneArticle->getReference();
             $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved && !empty($ligneArticle->getQuantitePrelevee())) {
-                if ($articleRef->getQuantiteStock() >= $ligneArticle->getQuantite()) {
+                if ($articleRef->getQuantiteStock() >= $ligneArticle->getQuantitePrelevee()) {
                     $mouvement = new MouvementStock();
                     $mouvement
                         ->setUser($user)
