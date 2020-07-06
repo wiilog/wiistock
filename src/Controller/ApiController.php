@@ -25,6 +25,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\DemandeToTreatExistsException;
+use App\Exceptions\NegativeQuantityException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
@@ -538,6 +539,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws NonUniqueResultException
      * @throws ORMException
      * @throws OptimisticLockException
+     * @throws Throwable
      */
     public function finishPrepa(Request $request,
                                 PreparationsManagerService $preparationsManager,
@@ -589,6 +591,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $articlesToKeep = [];
                             foreach ($mouvementsNomade as $mouvementNomade) {
                                 if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
+                                    /** @var Article $article */
                                     $article = $articleRepository->findOneByReference($mouvementNomade['reference']);
                                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                     if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
@@ -635,7 +638,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                             $entityManager->flush();
 
-                            $preparationsManager->updateRefArticlesQuantities($preparation);
+                            $preparationsManager->updateRefArticlesQuantities($preparation, true, $entityManager);
                         });
 
                         $resData['success'][] = [
@@ -653,9 +656,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_prepa' => $preparation->getId(),
 //TODO  CG msg prépa vide
                             'message' => (
-                            ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
+                                (($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                 (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
-                                    'Une erreur est survenue')
+                                'Une erreur est survenue'))
                             )
                         ];
                     }

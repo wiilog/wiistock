@@ -544,10 +544,11 @@ class PreparationsManagerService
     /**
      * @param Preparation $preparation
      * @param bool $onFinish
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @param EntityManagerInterface|null $entityManager
      */
-    public function updateRefArticlesQuantities(Preparation $preparation, $onFinish = true) {
+    public function updateRefArticlesQuantities(Preparation $preparation,
+                                                $onFinish = true,
+                                                EntityManagerInterface $entityManager = null) {
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
             $refArticle = $ligneArticle->getReference();
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -570,7 +571,11 @@ class PreparationsManagerService
             }
         }
 
-        $this->entityManager->flush();
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+
+        $entityManager->flush();
     }
 
     /**
