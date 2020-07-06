@@ -7,6 +7,7 @@ use App\Entity\Demande;
 use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
@@ -60,14 +61,17 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('0 as treated')
             ->addSelect('ra.barCode as barCode')
             ->addSelect('MAX(CASE WHEN (
-                ligneArticles.id IS NULL
-                OR (
-                    preparationStatus.nom != :preparationStatusToTreat
-                    AND preparationStatus.nom != :preparationStatusInProgress
-                    AND
-                    (
-                        livraison.id IS NULL
-                        OR livraisonStatus.nom != :livraisonStatusToTreat
+                referenceStatus.nom = :referenceStatusAvailable
+                AND (
+                    ligneArticles.id IS NULL
+                    OR (
+                        preparationStatus.nom != :preparationStatusToTreat
+                        AND preparationStatus.nom != :preparationStatusInProgress
+                        AND
+                        (
+                            livraison.id IS NULL
+                            OR livraisonStatus.nom != :livraisonStatusToTreat
+                        )
                     )
                 )
             ) THEN 1 ELSE 0 END) AS isTreatable')
@@ -78,6 +82,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->leftJoin('preparation.statut', 'preparationStatus')
             ->leftJoin('preparation.livraison', 'livraison')
             ->leftJoin('livraison.statut', 'livraisonStatus')
+            ->leftJoin('ra.statut', 'referenceStatus')
             ->groupBy('ie.id')
             ->addGroupBy('ra.reference')
             ->addGroupBy('label')
@@ -90,6 +95,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
             ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
             ->setParameter('livraisonStatusToTreat', Livraison::STATUT_A_TRAITER)
+            ->setParameter('referenceStatusAvailable', ReferenceArticle::STATUT_ACTIF)
             ->andWhere('ie.anomaly = 1');
 
 		if ($forceValidLocation) {

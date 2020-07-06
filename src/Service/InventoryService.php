@@ -19,7 +19,6 @@ use App\Repository\InventoryMissionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Exception;
 use Symfony\Component\Security\Core\Security;
 use DateTime;
 
@@ -97,6 +96,10 @@ class InventoryService
 
 		if ($diff != 0) {
             if ($isRef) {
+                if ($refOrArt->getStatut()->getNom() !== ReferenceArticle::STATUT_ACTIF) {
+                    throw new ArticleNotAvailableException();
+                }
+
                 $demandeToTreatCounter = $refOrArt
                     ->getLigneArticles()
                     ->filter(function(LigneArticle $ligneArticle) use ($isDemandeToTreat) {
@@ -106,12 +109,11 @@ class InventoryService
                     ->count();
             }
             else {
-                $demande = $refOrArt->getDemande();
-
                 if ($refOrArt->getStatut()->getNom() !== Article::STATUT_ACTIF) {
                     throw new ArticleNotAvailableException();
                 }
 
+                $demande = $refOrArt->getDemande();
                 $demandeToTreatCounter = $isDemandeToTreat($demande) ? 1 : 0;
             }
 
