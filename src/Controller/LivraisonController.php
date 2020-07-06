@@ -350,9 +350,8 @@ class LivraisonController extends AbstractController
             ];
 
             foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                if ($ligneArticle->getQuantite() > 0) {
+                if ($ligneArticle->getQuantitePrelevee() > 0) {
                     $referenceArticle = $ligneArticle->getReference();
-
                     $data[] = array_merge($dataLivraison, [
                         $referenceArticle->getReference() ?? '',
                         $referenceArticle->getLibelle() ?? '',
