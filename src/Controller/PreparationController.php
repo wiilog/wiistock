@@ -27,6 +27,7 @@ use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -87,17 +88,17 @@ class PreparationController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PreparationsManagerService $preparationsManager
-     * @return JsonResponse
+     * @return JsonResponse|RedirectResponse
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
                                 EntityManagerInterface $entityManager,
-                                PreparationsManagerService $preparationsManager): JsonResponse
+                                PreparationsManagerService $preparationsManager)
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -410,7 +411,6 @@ class PreparationController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param RefArticleDataService $refArticleDataService
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function delete(Preparation $preparation,

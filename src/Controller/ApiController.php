@@ -638,7 +638,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                             $entityManager->flush();
 
-                            $preparationsManager->updateRefArticlesQuantities($preparation, true, $entityManager);
+                            $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                         });
 
                         $resData['success'][] = [

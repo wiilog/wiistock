@@ -7,13 +7,17 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
+use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
+use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use App\Service\UserService;
 use DateTime;
@@ -76,7 +80,6 @@ class LivraisonController extends AbstractController
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -242,15 +245,17 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/supprimer/{id}", name="livraison_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
+     * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
+     * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
+                           LivraisonsManagerService $livraisonsManager,
                            PreparationsManagerService $preparationsManager,
+                           EntityManagerInterface $entityManager,
                            UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -258,24 +263,35 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
-
             $livraison = $livraisonRepository->find($data['livraison']);
 
-            $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-
             $preparation = $livraison->getpreparation();
-            $preparation->setStatut($statutP);
-            $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
-            foreach ($preparation->getArticles() as $article) {
-                $article->setStatut($statutTransit);
+
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
+
+            $livraisonStatus = $livraison->getStatut();
+            $demande = $livraison->getDemande();
+            $livraisonDestination = isset($demande) ? $demande->getDestination() : null;
+            if (isset($livraisonStatus) &&
+                in_array($livraisonStatus->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE]) &&
+                isset($livraisonDestination)) {
+                $livraisonsManager->resetStockMovementsOnDelete(
+                    $livraison,
+                    $livraisonDestination,
+                    $user,
+                    $entityManager
+                );
             }
+
+            $preparationsManager->resetPreparationToTreat($preparation, $entityManager);
+
+            $entityManager->flush();
+
             $preparation->setLivraison(null);
             $entityManager->remove($livraison);
             $entityManager->flush();
-
-            $preparationsManager->updateRefArticlesQuantities($preparation, false);
 
             $data = [
                 'redirect' => $this->generateUrl('preparation_show', [
