@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Demande;
 use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\Preparation;

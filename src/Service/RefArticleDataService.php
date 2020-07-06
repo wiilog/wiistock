@@ -21,13 +21,13 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -234,6 +234,8 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
      */
     public function editRefArticle($refArticle,
                                    $data,
@@ -249,7 +251,6 @@ class RefArticleDataService
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
-
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
@@ -313,10 +314,24 @@ class RefArticleDataService
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
-            if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-                if ($statut) $refArticle->setStatut($statut);
+                if ($statut) {
+                    $refArticle->setStatut($statut);
+                }
+            }
+            if (isset($data['quantite'])
+                && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $newQuantity = max(intval($data['quantite']), 0); // protection contre quantités négatives
+                if ($refArticle->getQuantiteStock() !== $newQuantity) {
+                    if ($refArticle->getStatut()->getNom() !== ReferenceArticle::STATUT_ACTIF) {
+                        throw new ArticleNotAvailableException();
+                    }
+                    else if ($refArticle->isInRequestsInProgress()) {
+                        throw new RequestNeedToBeProcessedException();
+                    }
+                    $refArticle->setQuantiteStock($newQuantity);
+                }
             }
             if (isset($data['type'])) {
                 $type = $typeRepository->find(intval($data['type']));

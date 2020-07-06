@@ -24,7 +24,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\DemandeToTreatExistsException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
@@ -1445,7 +1445,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     );
                     $numberOfRowsInserted++;
                 }
-                catch (ArticleNotAvailableException|DemandeToTreatExistsException $exception) {
+                catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
                     $errors[] = $anomaly['id'];
                 }
             }

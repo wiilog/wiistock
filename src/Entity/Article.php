@@ -652,4 +652,11 @@ class Article
             self::USED_ASSOC_NONE)))))
         );
     }
+
+    public function isInRequestsInProgress(): bool {
+        $request = $this->getDemande();
+        return isset($request)
+            ? $request->needsToBeProcessed()
+            : false;
+    }
 }

@@ -326,5 +326,15 @@ class Demande
         return $this;
     }
 
+    public function needsToBeProcessed(): bool {
+        $demandeStatus = $this->getStatut();
+        return (
+            $demandeStatus
+            && (
+                $demandeStatus->getNom() === Demande::STATUT_A_TRAITER
+                || $demandeStatus->getNom() === Demande::STATUT_PREPARE
+            )
+        );
+    }
 
 }
