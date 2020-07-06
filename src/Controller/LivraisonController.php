@@ -15,6 +15,7 @@ use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\NegativeQuantityException;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MouvementStockService;
@@ -74,7 +75,13 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route(
+     *     "/finir/{id}",
+     *     name="livraison_finish",
+     *     options={"expose"=true},
+     *     methods={"POST"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param Livraison $livraison
      * @param LivraisonsManagerService $livraisonsManager
      * @param UserService $userService
@@ -95,17 +102,32 @@ class LivraisonController extends AbstractController
         }
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
-            $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $livraisonsManager->finishLivraison(
-                $this->getUser(),
-                $livraison,
-                $dateEnd,
-                $livraison->getDemande()->getDestination()
-            );
-            $entityManager->flush();
+            try {
+                $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                /** @var Utilisateur $user */
+                $user = $this->getUser();
+                $livraisonsManager->finishLivraison(
+                    $user,
+                    $livraison,
+                    $dateEnd,
+                    $livraison->getDemande()->getDestination()
+                );
+                $entityManager->flush();
+            }
+            catch(NegativeQuantityException $exception) {
+                $barcode = $exception->getArticle()->getBarCode();
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+                ]);
+            }
         }
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison->getId()
+
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('livraison_show', [
+                'id' => $livraison->getId()
+            ])
         ]);
     }
 

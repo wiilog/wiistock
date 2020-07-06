@@ -13,6 +13,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\NegativeQuantityException;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,6 +73,7 @@ class LivraisonsManagerService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws NegativeQuantityException
      * @throws Exception
      */
     public function finishLivraison(Utilisateur $user,
@@ -136,8 +138,16 @@ class LivraisonsManagerService
                 if (!empty($pickedQuantity)) {
                     $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $pickedQuantity);
                     $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) - $pickedQuantity);
-                    $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
-                    $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+
+                    if ($newQuantiteStock >= 0
+                        && $newQuantiteReservee >= 0
+                        && $newQuantiteStock >= $newQuantiteReservee) {
+                        $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
+                        $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+                    }
+                    else {
+                        throw new NegativeQuantityException($refArticle);
+                    }
                 }
             }
 

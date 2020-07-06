@@ -306,10 +306,6 @@ function finishPrepa($button) {
                             emplacement: $('#modalSubmitPreparation').find('[name="emplacement"]').val()
                         }
                     })
-                        .then((data) => {
-                            console.log(data)
-                            return data
-                        })
                     .then(({success, redirect, message}) => {
                         if (success) {
                             window.location.href = redirect;
