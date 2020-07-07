@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalFinishCollecte" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Choisissez un point de dépose</h5>
@@ -8,12 +8,21 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group col-12">
-                    <label for="label">Point de dépose*</label>
-                    <select class="form-control ajax-autocompleteEmplacement depositLocation w-100">
-                    </select>
-                </div>
-            </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                Code barre
+                            </th>
+                            <th>
+                                Point de dépose
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button"

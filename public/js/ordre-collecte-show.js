@@ -61,7 +61,28 @@ function checkIfRowSelected(success) {
 }
 
 function openLocationModal() {
+    let $tbody = $("#modalFinishCollecte div.modal-body table.table > tbody");
+    $tbody.empty();
+    let $modalContent = $('#tableArticle tr.active').each(function () {
+        let $tr = $(this);
+        let $inputData = $tr.find("input[type='hidden'].ordre-collecte-data");
+        let location = $inputData.data('emplacement');
+        let isRef = $inputData.data('is-ref');
+        let barCode = $inputData.data('barCode');
+        const $newTr = $('<tr/>')
+            .append($('<td/>', {text: barCode}));
+        if (isRef === 0) {
+            const $select = $('<div class="form-group col-12"><select class="form-control ajax-autocompleteEmplacement depositLocation w-100"></select></div>');
+
+            $newTr.append($('<td/>').append($select));
+        } else {
+            $newTr.append($('<td/>').append(location));
+        }
+        $('tbody').append($newTr);
+    });
     $('#modalFinishCollecte').modal('show');
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+
 }
 
 function finishCollecte($button, withoutLocation = false) {
@@ -75,12 +96,14 @@ function finishCollecte($button, withoutLocation = false) {
         rowsData.push({
             'barcode': $rowData.data('bar-code'),
             'is_ref': $rowData.data('is-ref'),
-            'quantity': $rowData.data('quantity')
+            'quantity': $rowData.data('quantity'),
+            'emplacement':modalFinishCollecte.find('.depositLocation').val(),
         });
     });
 
-    // on récupère le point de dépose
-    let depositLocationId = modalFinishCollecte.find('.depositLocation').val();
+        let depositLocationId = modalFinishCollecte.find('.depositLocation').val();
+        // on récupère le point de dépose
+
 
     if (withoutLocation || depositLocationId) {
         let params = {

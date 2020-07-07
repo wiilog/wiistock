@@ -180,11 +180,11 @@ class OrdreCollecteController extends AbstractController
             $rows = [];
             foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
                 $referenceArticle = $ligneArticle->getReferenceArticle();
-
+                $location = $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '';
                 $rows[] = [
                     "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                     "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
-                    "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                    "Emplacement" => $location,
                     "Quantité" => $ligneArticle->getQuantite() ?? ' ',
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $ligneArticle->getId(),
@@ -194,24 +194,27 @@ class OrdreCollecteController extends AbstractController
                         'modifiable' => $ordreCollecte->getStatut()
                             ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
                             : false,
+                        'location' => $location,
                     ])
                 ];
             }
 
             foreach ($ordreCollecte->getArticles() as $article) {
+                $location = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
                 $rows[] = [
                     'Référence' => $article->getArticleFournisseur()
                         ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
                         : '',
                     'Libellé' => $article->getLabel(),
-                    "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                    "Emplacement" => $location,
                     'Quantité' => $article->getQuantite(),
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $article->getId(),
                         'barCode' => $article->getBarCode(),
                         'quantity' => $article->getQuantite(),
                         'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
-                        'articleId' =>$article->getId()
+                        'articleId' =>$article->getId(),
+                        "location" => $location,
                     ])
                 ];
             }
