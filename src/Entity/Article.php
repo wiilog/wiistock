@@ -655,11 +655,10 @@ class Article
 
     public function isInRequestsInProgress(): bool {
         $request = $this->getDemande();
-        $statusDraft = $request->getStatut();
         return (
             $request
-            && $statusDraft
-            && $statusDraft->getNom() !== Demande::STATUT_BROUILLON
+            && $request->getStatut()
+            && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
         );
     }
 }
