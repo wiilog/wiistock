@@ -272,7 +272,7 @@ class MouvementTracaService
 
         if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
             $existingPacks = ($colis instanceof Colis)
-                ? $colis
+                ? [$colis]
                 : $colisRepository->findBy(['code' => $colis]);
 
             if (empty($existingPacks)) {
