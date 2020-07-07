@@ -95,7 +95,7 @@ Class ColisService
                 $colis = $this->persistColis($arrivage, $nature);
                 if ($defaultEmpForMvt) {
                     $mouvementDepose = $this->mouvementTracaService->createMouvementTraca(
-                        $colis->getCode(),
+                        $colis,
                         $defaultEmpForMvt,
                         $user,
                         $now,
