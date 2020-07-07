@@ -999,7 +999,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     });
                 } catch (Exception $exception) {
-                    dump($exception);
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());

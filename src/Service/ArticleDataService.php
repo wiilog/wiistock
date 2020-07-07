@@ -308,9 +308,6 @@ class ArticleDataService
             return new RedirectResponse($this->router->generate('access_denied'));
         }
 
-
-        dump($data);
-
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
@@ -342,7 +339,7 @@ class ArticleDataService
                         if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
                             throw new ArticleNotAvailableException();
                         }
-                        else if ($article->getDemande()) {
+                        else if ($article->isInRequestsInProgress()) {
                             throw new RequestNeedToBeProcessedException();
                         }
                         $article->setQuantite($newQuantity); // protection contre quantités négatives

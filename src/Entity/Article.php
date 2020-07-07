@@ -655,8 +655,11 @@ class Article
 
     public function isInRequestsInProgress(): bool {
         $request = $this->getDemande();
-        return isset($request)
-            ? $request->needsToBeProcessed()
-            : false;
+        $statusDraft = $request->getStatut();
+        return (
+            $request
+            && $statusDraft
+            && $statusDraft->getNom() !== Demande::STATUT_BROUILLON
+        );
     }
 }

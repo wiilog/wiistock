@@ -1993,7 +1993,6 @@ class ReceptionController extends AbstractController
             })
             ->count();
 
-        dump($article->getBarCode(), $currentDisputesCounter);
         if ($currentDisputesCounter === 0) {
             $article->setStatut($articleStatusAvailable);
         }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\InventoryEntry;
 use App\Entity\Livraison;
 use App\Entity\Preparation;
@@ -125,15 +126,8 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('(CASE WHEN
                 (
                     (
-                        preparation.id IS NULL
-                        OR (
-                            preparationStatus.nom != :preparationStatusToTreat
-                            AND preparationStatus.nom != :preparationStatusInProgress
-                            AND (
-                                livraison.id IS NULL
-                                OR livraisonStatus.nom != :livraisonStatusToTreat
-                            )
-                        )
+                        demande.id IS NULL
+                        OR demandeStatus.nom = :draftRequestStatus
                     )
                     AND articleStatus.nom = :articleStatusAvailable
                 )
@@ -141,15 +135,11 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->join('ie.article', 'a')
             ->join('a.statut', 'articleStatus')
             ->leftJoin('a.emplacement', 'e')
-            ->leftJoin('a.preparation', 'preparation')
-            ->leftJoin('preparation.statut', 'preparationStatus')
-            ->leftJoin('preparation.livraison', 'livraison')
-            ->leftJoin('livraison.statut', 'livraisonStatus')
+            ->leftJoin('a.demande', 'demande')
+            ->leftJoin('demande.statut', 'demandeStatus')
             ->andWhere('ie.anomaly = 1')
             ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
-            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
-            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
-            ->setParameter('livraisonStatusToTreat', Livraison::STATUT_A_TRAITER);
+            ->setParameter('draftRequestStatus', Demande::STATUT_BROUILLON);
 
         if ($forceValidLocation) {
             $queryBuilder->andWhere('e IS NOT NULL');
