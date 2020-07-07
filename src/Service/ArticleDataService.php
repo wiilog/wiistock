@@ -733,7 +733,7 @@ class ArticleDataService
             (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
         $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
-        if ($wantsQTT === 'true') {
+        if ($wantsQTT) {
             $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
 
         }
