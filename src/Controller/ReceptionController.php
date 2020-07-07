@@ -769,12 +769,14 @@ class ReceptionController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function editArticle(EntityManagerInterface $entityManager,
                                 ReceptionService $receptionService,
-                                Request $request): Response
+                                Request $request,
+                                MouvementTracaService $mouvementTracaService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -806,6 +808,38 @@ class ReceptionController extends AbstractController
                     return new JsonResponse(false);
                 }
                 $receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
+
+                $currentUser = $this->getUser();
+                $receptionLocation = $reception->getLocation();
+                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+                $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+                $mouvementStock = new MouvementStock();
+                $mouvementStock
+                    ->setUser($currentUser)
+                    ->setEmplacementTo($receptionLocation)
+                    ->setQuantity($receptionReferenceArticle->getQuantite())
+                    ->setRefArticle($referenceArticle)
+                    ->setType($receptionReferenceArticle->getQuantite() < $quantite ? MouvementStock::TYPE_ENTREE : MouvementStock::TYPE_SORTIE)
+                    ->setReceptionOrder($reception)
+                    ->setDate($now);
+                $entityManager->persist($mouvementStock);
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
+                    $referenceArticle->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    MouvementTraca::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'from' => $reception
+                    ]
+                );
+
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
             }
 
             if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
@@ -813,13 +847,16 @@ class ReceptionController extends AbstractController
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
 
-            $entityManager->flush();
+            $entityManager->flush(); // ICI
 
             $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
 
-            $reception->setStatut($statut);
+            $reception
+                ->setStatut($statut)
+                ->setDateFinReception($now)
+                ->setDateCommande($now);
             $entityManager->flush();
 
             $json = [
@@ -1445,7 +1482,7 @@ class ReceptionController extends AbstractController
                     ->setType(MouvementStock::TYPE_ENTREE)
                     ->setReceptionOrder($reception)
                     ->setDate($now);
-                $entityManager->persist($mouvementStock);
+                $entityManager->persist($mouvementStock); // ICI
                 $createdMvt = $mouvementTracaService->createMouvementTraca(
                     $referenceArticle->getBarCode(),
                     $receptionLocation,
