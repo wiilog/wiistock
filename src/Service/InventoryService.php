@@ -9,6 +9,8 @@ use App\Entity\MouvementStock;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 
@@ -59,7 +61,8 @@ class InventoryService
      * @param string $comment
      * @param Utilisateur $user
      * @return bool
-     * @throws NonUniqueResultException
+     * @throws RequestNeedToBeProcessedException
+     * @throws ArticleNotAvailableException
      */
 	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
 	{
@@ -73,6 +76,7 @@ class InventoryService
 			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
+		    /** @var Article $refOrArt */
 			$refOrArt = $articleRepository->findOneByReference($reference);
 			$quantity = $refOrArt->getQuantite();
 		}
@@ -80,6 +84,15 @@ class InventoryService
 		$diff = $newQuantity - $quantity;
 
 		if ($diff != 0) {
+		    $statusRequired = $isRef ? ReferenceArticle::STATUT_ACTIF : Article::STATUT_ACTIF;
+            if ($refOrArt->getStatut()->getNom() !== $statusRequired) {
+                throw new ArticleNotAvailableException();
+            }
+
+            if ($refOrArt->isInRequestsInProgress()) {
+                throw new RequestNeedToBeProcessedException();
+            }
+
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)
@@ -108,7 +121,9 @@ class InventoryService
 		}
 
 		$entry = $inventoryEntryRepository->find($idEntry);
-		$entry->setAnomaly(false);
+		$entry
+            ->setQuantity($newQuantity)
+            ->setAnomaly(false);
 
 		$refOrArt->setDateLastInventory(new DateTime('now'));
 

@@ -44,7 +44,9 @@ class TranslationService {
 
             $menus = [];
             foreach ($translations as $translation) {
-                $menus[$translation->getMenu()][$translation->getLabel()] = $translation->getTranslation();
+                $menus[$translation->getMenu()][$translation->getLabel()] = (
+                    $translation->getTranslation() ?: $translation->getLabel()
+                );
             }
 
             $yaml = Yaml::dump($menus);
@@ -63,13 +65,15 @@ class TranslationService {
      */
     public function cacheClearWarmUp() {
         $env = $this->kernel->getEnvironment();
-		$command = $env == 'dev' ? 'warmup' : 'clear';
-
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
+        $projectDir = $this->kernel->getProjectDir();
+
+        // Delete the translations folder
+        $this->rrmdir($projectDir . "/var/cache/$env/translations");
 
 		$input = new ArrayInput(array(
-			'command' => 'cache:' . $command,
+			'command' => 'cache:warmup',
             '--env' => $env
         ));
 
@@ -85,4 +89,25 @@ class TranslationService {
 		$process = Process::fromShellCommandline('chmod a+' . $right . ' ' . $file);
 		$process->run();
 	}
+
+    /**
+     * Recursively delete all sub-folders and files from a folder passed as parameter.
+     * @param $dir
+     */
+	private function rrmdir(string $dir) {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
+                        $this->rrmdir($dir . DIRECTORY_SEPARATOR . $object);
+                    }
+                    else {
+                        unlink($dir . DIRECTORY_SEPARATOR . $object);
+                    }
+                }
+            }
+            rmdir($dir);
+        }
+    }
 }

@@ -109,9 +109,11 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $litigeRepository = $entityManager->getRepository(Litige::class);
 
         $user = $this->getUser();
         $fieldsInTab = [
+            ["key" => 'disputeNumber', 'label' => 'Numéro du litige'],
             ["key" => 'type', 'label' => 'Type'],
             ["key" => 'arrivalNumber', 'label' => $this->translator->trans('arrivage.n° d\'arrivage')],
             ["key" => 'receptionNumber', 'label' => $this->translator->trans('réception.n° de réception')],
@@ -126,7 +128,7 @@ class LitigeController extends AbstractController
             ["key" => 'updateDate', 'label' => 'Modifié le'],
             ["key" => 'status', 'label' => 'Statut'],
         ];
-        $fieldsCl =[];
+        $fieldsCl = [];
         $champs = array_merge($fieldsInTab,$fieldsCl);
 
 
@@ -137,7 +139,7 @@ class LitigeController extends AbstractController
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForLitige(),
+            'columnsVisibles' => $user->getColumnsVisibleForLitige()
 		]);
     }
 
@@ -183,6 +185,7 @@ class LitigeController extends AbstractController
             $arrivalLitiges = $litigeRepository->findArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
 
 			$headers = [
+			    'Numéro de litige',
 			    'Type',
                 'Statut',
                 'Date création',
@@ -209,6 +212,8 @@ class LitigeController extends AbstractController
                 foreach ($colis as $coli) {
                     $litigeData = [];
 
+
+                    $litigeData[] = $litige->getNumeroLitige();
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
                     $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
@@ -270,6 +275,7 @@ class LitigeController extends AbstractController
                 foreach ($articles as $article) {
                     $litigeData = [];
 
+                    $litigeData[] = $litige->getNumeroLitige();
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getStatus() ? $litige->getStatus()->getNom() : '');
                     $litigeData[] = $litige->getCreationDate() ? $litige->getCreationDate()->format('d/m/Y') : '';
@@ -414,27 +420,51 @@ class LitigeController extends AbstractController
     }
 
 	/**
-	 * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST")
+	 * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
 	 */
 	public function editLitige(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
-				return $this->redirectToRoute('access_denied');
-			}
+        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
-			$post = $request->request;
-			$isArrivage = $post->get('isArrivage');
+        $post = $request->request;
+        $isArrivage = $post->get('isArrivage');
 
-			$controller = $isArrivage ? 'App\Controller\ArrivageController' : 'App\Controller\ReceptionController';
+        $controller = $isArrivage ? 'App\Controller\ArrivageController' : 'App\Controller\ReceptionController';
 
-			return $this->forward($controller . '::editLitige', [
-				'request' => $request
-			]);
-
-		}
-		throw new NotFoundHttpException('404');
+        return $this->forward($controller . '::editLitige', [
+            'request' => $request
+        ]);
 	}
+
+    /**
+     * @Route("/supprimer", name="litige_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function deleteLitige(Request $request,
+                                 EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $dispute = $litigeRepository->find($data['litige']);
+
+            $articlesInDispute = $dispute->getArticles()->toArray();
+            $controller = !empty($articlesInDispute) ? 'App\Controller\ReceptionController' : 'App\Controller\ArrivageController';
+
+
+            return $this->forward($controller . '::deleteLitige', [
+                'request' => $request
+            ]);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
@@ -455,7 +485,6 @@ class LitigeController extends AbstractController
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $champs[] = "actions";
-            dump($champs);
             $user->setColumnsVisibleForLitige($champs);
             $entityManager->flush();
 
@@ -503,4 +532,24 @@ class LitigeController extends AbstractController
         }
         $data['data'] = $rows;
         return new JsonResponse($data);
-}}
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_dispute_number", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getDisputeNumberAutoComplete(Request $request,
+                                                 EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $utilisateurRepository = $entityManager->getRepository(Litige::class);
+            $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
+            return new JsonResponse(['results' => $user]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+}

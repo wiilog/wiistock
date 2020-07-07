@@ -93,9 +93,18 @@ InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison
 
 function endLivraison(livraisonId, $button) {
     wrapLoadingOnActionButton($button, () => (
-        new Promise(function (resolve) {
-            window.location.href = Routing.generate('livraison_finish', {'id': livraisonId});
-            resolve(true);
+        $.post({
+            url: Routing.generate('livraison_finish', {id: livraisonId})
         })
-    ), false);
+            .then(({success, redirect, message}) => {
+                if (success) {
+                    window.location.href = redirect;
+                }
+                else {
+                    alertErrorMsg(message);
+                }
+
+                return !success; // we do not hide loading if success
+            })
+    ));
 }

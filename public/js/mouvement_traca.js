@@ -28,7 +28,16 @@ let tableMvtConfig = {
     order: [[2, "desc"]],
     ajax: {
         "url": pathMvt,
-        "type": "POST"
+        "type": "POST",
+        'data': (data) => {
+            const referenceFilterValue = $('#referenceFilter').val()
+            return {
+                ...data,
+                ...(referenceFilterValue
+                    ? {reference: referenceFilterValue}
+                    : {})
+            };
+        }
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -37,8 +46,8 @@ let tableMvtConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
-        {"data": 'origin', 'name': 'origin', 'title': 'Issu de', className: 'noVis'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
+        {"data": 'origin', 'name': 'origin', 'title': 'Issu de', className: 'noVis', orderable: false},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": "reference", 'name': 'reference', 'title': 'Référence'},
@@ -47,14 +56,8 @@ let tableMvtConfig = {
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
     ],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: [0, 1]
-        }
-    ],
     headerCallback: function(thead) {
-        $(thead).find('th').eq(2).attr('title', "Colis");
+        $(thead).find('th').eq(3).attr('title', "Colis");
     },
 };
 let tableMvt = initDataTable('tableMvts', tableMvtConfig);
@@ -174,3 +177,15 @@ function switchMvtCreationType($input) {
         }
     });
 }
+
+/**
+ * Used in mouvement_traca/index.html.twig
+ */
+function updateUrl() {
+    const referenceFilter = $('#referenceFilter').val();
+    const suffix = referenceFilter
+        ? `?reference=${encodeURIComponent(referenceFilter)}`
+        : '';
+    window.history.pushState({}, document.title,  `${window.location.pathname}${suffix}`);
+}
+

@@ -203,20 +203,25 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
+                if (data.success === false && data.msg) {
+                    alertErrorMsg(data.msg, true);
                 }
-                // pour mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
-                if (table) {
-                    table.ajax.reload(null, false);
-                }
+                else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+                    // pour mise à jour des données d'en-tête après modification
+                    if (data.entete) {
+                        $('.zone-entete').html(data.entete)
+                    }
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
 
-                if (clear) {
-                    clearModal(modal);
+                    if (clear) {
+                        clearModal(modal);
+                    }
                 }
 
                 return data;
@@ -713,6 +718,10 @@ function ajaxAutoChauffeurInit(select) {
 
 function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
+}
+
+function ajaxAutoDisputeNumberInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispute_number'});
 }
 
 function ajaxAutoDemandCollectInit(select) {
@@ -1233,6 +1242,7 @@ function displayFiltersSup(data) {
             case 'carriers':
             case 'emplacement':
             case 'demCollecte':
+            case 'disputeNumber':
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);

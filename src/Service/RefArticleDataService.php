@@ -21,13 +21,13 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -170,7 +170,9 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getViewEditRefArticle($refArticle, $isADemand = false, $preloadCategories = true)
+    public function getViewEditRefArticle($refArticle,
+                                          $isADemand = false,
+                                          $preloadCategories = true)
     {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -232,8 +234,12 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
      */
-    public function editRefArticle($refArticle, $data, Utilisateur $user)
+    public function editRefArticle($refArticle,
+                                   $data,
+                                   Utilisateur $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -245,7 +251,6 @@ class RefArticleDataService
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
-
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
@@ -309,10 +314,24 @@ class RefArticleDataService
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
-            if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-                if ($statut) $refArticle->setStatut($statut);
+                if ($statut) {
+                    $refArticle->setStatut($statut);
+                }
+            }
+            if (isset($data['quantite'])
+                && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $newQuantity = max(intval($data['quantite']), 0); // protection contre quantités négatives
+                if ($refArticle->getQuantiteStock() !== $newQuantity) {
+                    if ($refArticle->getStatut()->getNom() !== ReferenceArticle::STATUT_ACTIF) {
+                        throw new ArticleNotAvailableException();
+                    }
+                    else if ($refArticle->isInRequestsInProgress()) {
+                        throw new RequestNeedToBeProcessedException();
+                    }
+                    $refArticle->setQuantiteStock($newQuantity);
+                }
             }
             if (isset($data['type'])) {
                 $type = $typeRepository->find(intval($data['type']));
@@ -414,7 +433,12 @@ class RefArticleDataService
      * @throws SyntaxError
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function addRefToDemand($data, $referenceArticle, Utilisateur $user, bool $fromNomade, EntityManagerInterface $entityManager, Demande $demande)
+    public function addRefToDemand($data,
+                                   $referenceArticle,
+                                   Utilisateur $user,
+                                   bool $fromNomade,
+                                   EntityManagerInterface $entityManager,
+                                   Demande $demande)
     {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -437,7 +461,8 @@ class RefArticleDataService
             if (!$fromNomade) {
                 $this->editRefArticle($referenceArticle, $data, $user);
             }
-        } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        }
+        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($fromNomade || $this->userService->hasParamQuantityByRef()) {
                 if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
@@ -558,8 +583,6 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
     {
@@ -571,8 +594,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -586,8 +607,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
     {
