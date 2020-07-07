@@ -57,14 +57,14 @@ final class Version20200707120628 extends AbstractMigration
 
 
         foreach ($duplicatePacks as $numArrivage => $packByArrivageId) {
-            $indexArrivage = 0;
+            $indexArrivage = 1;
             foreach ($packByArrivageId as $arrivageId => $packs) {
                 $newNumeroArrivage = $numArrivage . '-' . $indexArrivage;
-                $this->addSql("UPDATE arrivage SET arrivage.numero_arrivage = ${newNumeroArrivage} WHERE arrivage.id = ${arrivageId}");
+                $this->addSql("UPDATE arrivage SET arrivage.numero_arrivage = '${newNumeroArrivage}' WHERE arrivage.id = ${arrivageId}");
                 foreach ($packs as $pack) {
                     $packId = $pack['colisId'];
                     $newCode = $pack['colisCode'] . '-' . $indexArrivage;
-                    $this->addSql("UPDATE colis SET colis.code = ${newCode} WHERE colis.id = ${packId}");
+                    $this->addSql("UPDATE colis SET colis.code = '${newCode}' WHERE colis.id = ${packId}");
                 }
                 $indexArrivage++;
             }
