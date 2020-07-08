@@ -259,8 +259,9 @@ function ajaxEditArticle (select) {
             let quantityToTake = $('#quantityToTake');
             let valMax = $('#quantite').val();
 
-            let attrMax = quantityToTake.find('input').attr('max');
-            if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
+            if (valMax) {
+                quantityToTake.find('input').attr('max', valMax);
+            }
             quantityToTake.removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             $('.list-multiple').select2();
