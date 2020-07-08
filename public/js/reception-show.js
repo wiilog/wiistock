@@ -371,39 +371,32 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 
 function articleChanged($select) {
     const selectedReferences = $select.select2('data');
+    const $addArticleAndRedirectSubmit = $('#addArticleLigneSubmitAndRedirect');
+    const classDNone = 'd-none';
+
     if (selectedReferences.length > 0) {
         const selectedReference = selectedReferences[0];
         const typeQuantity = selectedReference.typeQuantity;
-        const $button = $('#addArticleLigneSubmitAndRedirect');
-        $button.removeClass('d-none');
         if (typeQuantity === 'article') {
-            $button.removeClass('d-none');
+            $addArticleAndRedirectSubmit.removeClass(classDNone);
         } else {
-            $button.addClass('d-none');
+            $addArticleAndRedirectSubmit.addClass(classDNone);
         }
-    }
 
-    if ($select.val() !== null) {
-        let route = Routing.generate('is_urgent', true);
-        let params = JSON.stringify($select.val());
-        let $button = $('#addArticleLigneSubmitAndRedirect');
-        $.post(route, params, function (response) {
-            if (response.typeQuantity) {
-                if (response.typeQuantity === 'article') {
-                    $button.removeClass('d-none');
-                } else {
-                    $button.addClass('d-none');
-                }
-            }
-            if (response.urgent) {
-                $('.emergency').removeClass('d-none');
-                $('.emergency-comment').text(response.comment);
-            } else {
-                $('.emergency').addClass('d-none');
-            }
-            $('.body-add-ref').css('display', 'flex');
-            $('#innerNewRef').html('');
-        });
+        const $emergencyContainer = $('.emergency');
+        const $emergencyCommentContainer =  $('.emergency-comment');
+        if (selectedReference.urgent) {
+            $emergencyContainer.removeClass(classDNone);
+            $emergencyCommentContainer.text(selectedReference.emergencyComment);
+        } else {
+            $emergencyContainer.addClass(classDNone);
+            $emergencyCommentContainer.text('');
+        }
+        $('.body-add-ref').css('display', 'flex');
+        $('#innerNewRef').html('');
+    }
+    else {
+        $addArticleAndRedirectSubmit.addClass(classDNone);
     }
 }
 
@@ -487,6 +480,11 @@ function submitActionRefArticleFromRecep(modal, path, close, successCallback) {
         let msg = buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
+}
+
+function openModalLigneReception($button) {
+    clearModalLigneReception('#modalNewLigneReception');
+    initNewLigneReception($button);
 }
 
 function clearModalLigneReception(modal) {
@@ -754,8 +752,10 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
                     if (selected) {
                         const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
                         let newOption = new Option(selected.text, selected.id, true, true);
-                        $pickingSelect.append(newOption).trigger('change');
-                        const selectedPicking = $pickingSelect.select2('data');
+                        $pickingSelect
+                            .append(newOption)
+                            .val(selected.id);
+                        const [selectedPicking] = $pickingSelect.select2('data');
                         Object.assign(selectedPicking, selected);
                         initConditionnementArticleFournisseurDefault();
                     }
@@ -815,6 +815,7 @@ function resetDefaultArticleFournisseur(show = false) {
     if ($selectArticleFournisseur.hasClass("select2-hidden-accessible")) {
         $selectArticleFournisseur.select2('destroy');
     }
+
     $selectArticleFournisseur.val(null).trigger('change');
 
     if (show) {

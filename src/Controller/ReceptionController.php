@@ -471,11 +471,10 @@ class ReceptionController extends AbstractController
                 $rows[] = [
                     "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
                     "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
-                    "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
-                    "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : 0),
+                    "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : 0),
                     "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
                     "Comment" => ($ligneArticle->getEmergencyComment() ?? ''),
-                    "referenceAndCommandeNumber" => $referenceArticle->getReference()." - ".$ligneArticle->getCommande() ,
                     'Actions' => $this->renderView(
                         'reception/datatableLigneRefArticleRow.html.twig',
                         [
@@ -787,14 +786,18 @@ class ReceptionController extends AbstractController
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
-            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
             $quantite = $data['quantite'];
+            $receivedQuantity = $receptionReferenceArticle->getQuantite();
+
+            if (empty($receivedQuantity)) {
+                $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
+                $receptionReferenceArticle->setReferenceArticle($refArticle);
+            }
 
             $receptionReferenceArticle
                 ->setCommande($data['commande'])
                 ->setAnomalie($data['anomalie'])
-                ->setReferenceArticle($refArticle)
                 ->setQuantiteAR(max($data['quantiteAR'], 0))// protection contre quantités négatives
                 ->setCommentaire($data['commentaire']);
 

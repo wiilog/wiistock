@@ -18,6 +18,7 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
+                <input type="hidden" class="data" name="reception" value="{{ reception.id }}"/>
                 <div class="row">
                     <div class="form-group col-11 w-100 mb-3 ml-0">
                         <label for="reception-add-ligne"
@@ -106,18 +107,15 @@
                 </button>
                 <button type="button"
                         id="addArticleLigneSubmit"
-                        class="btn btn-success data"
-                        name="reception"
-                        value="{{ reception.id }}"
+                        class="btn btn-success"
                         onclick="setCommentaire('.editor-container')">
                     Enregistrer
                 </button>
                 <button type="button"
                         id="addArticleLigneSubmitAndRedirect"
-                        class="btn btn-success data d-none"
-                        title="réception"
-                        value="{{ reception.id }}"
-                        onclick=" initNewLigneReception($(this))">
+                        class="btn btn-success d-none"
+                        title="Enregistrer et réception"
+                        onclick="openModalLigneReception($(this))">
                       Enregistrer et {{ 'réception.réception'|trans }}
                 </button>
             </div>

@@ -150,7 +150,9 @@ class ReferenceArticleRepository extends EntityRepository
 
         $dql = "SELECT r.id,
                 r.${field} as text,
-                r.typeQuantite as typeQuantity
+                r.typeQuantite as typeQuantity,
+                r.isUrgent as urgent,
+                r.emergencyComment as emergencyComment
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
           WHERE r.${field} LIKE :search ";
