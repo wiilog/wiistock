@@ -436,7 +436,7 @@ class DemandeLivraisonService
         $requester = $demande->getUtilisateur();
         $destination = $demande->getDestination();
         $date = $demande->getDate();
-        $validationDate = !$demande->getPreparations()->isEmpty() ? $demande->getPreparations()->first()->getDate() : null;
+        $validationDate = $demande->getValidationDate();
         $type = $demande->getType();
         $comment = $demande->getCommentaire();
 
