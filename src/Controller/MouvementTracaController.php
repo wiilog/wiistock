@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
@@ -14,7 +13,6 @@ use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
-use App\Repository\MouvementTracaRepository;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\MouvementTracaService;

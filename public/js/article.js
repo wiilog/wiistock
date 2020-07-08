@@ -61,10 +61,14 @@ let resetNewArticle = function (element) {
 
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-    let modalEditArticle = $("#modalEditArticle");
-    let submitEditArticle = $("#submitEditArticle");
+    let $modalEditArticle = $("#modalEditArticle");
+    let $submitEditArticle = $("#submitEditArticle");
     let urlEditArticle = Routing.generate('article_edit', true);
-    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+    InitialiserModal($modalEditArticle, $submitEditArticle, urlEditArticle, tableArticle, (data) => {
+        if (data && data.success) {
+            $modalEditArticle.modal('hide');
+        }
+    }, false);
 
     let modalNewArticle = $("#modalNewArticle");
     let submitNewArticle = $("#submitNewArticle");
@@ -81,7 +85,7 @@ function init() {
     let urlColumnVisible = Routing.generate('save_column_visible_for_article', true);
     InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 
-    tableArticle.on('responsive-resize', function (e, datatable) {
+    tableArticle.on('responsive-resize', function () {
         resizeTable();
     });
 

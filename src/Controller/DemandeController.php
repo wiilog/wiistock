@@ -31,6 +31,7 @@ use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -99,11 +100,12 @@ class DemandeController extends AbstractController
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
+     * @throws NoResultException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
@@ -636,7 +638,7 @@ class DemandeController extends AbstractController
                 'destination',
                 'commentaire',
                 'date demande',
-                'date(s) validation(s)',
+                'date validation',
                 'numéro',
                 'type demande',
                 'code(s) préparation(s)',
@@ -800,13 +802,16 @@ class DemandeController extends AbstractController
             })
             ->toArray();
 
+        $requestCreationDate = $demande->getDate();
+        $requestValidationDate = $demande->getValidationDate();
+
         return [
             $demande->getUtilisateur()->getUsername(),
             $demande->getStatut()->getNom(),
             $demande->getDestination()->getLabel(),
             strip_tags($demande->getCommentaire()),
-            $demande->getDate()->format('Y/m/d-H:i:s'),
-            $preparationOrders->count() > 0 ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
+            isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
+            isset($requestValidationDate) ? $requestValidationDate->format('d/m/Y H:i:s') : '',
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : '',
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
