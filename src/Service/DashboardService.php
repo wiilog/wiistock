@@ -65,15 +65,20 @@ class DashboardService
         $rows = [];
         $secondInADay = 60 * 60 * 24;
 
+        $keyFormat = 'd';
+        $counterKeyToString = function ($key) {
+            return ' ' . $key . ' ';
+        };
+
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
-            $dayCounterKey = date("d/m", $firstDayTime + ($secondInADay * $dayIncrement));
+            $dayCounterKey = $counterKeyToString(date($keyFormat, $firstDayTime + ($secondInADay * $dayIncrement)));
             $rows[$dayCounterKey] = 0;
         }
 
         $receptionTracas = $receptionTracaRepository->countByDays($firstDay, $lastDay);
         foreach ($receptionTracas as $qttPerDay) {
-            $dayCounterKey = $qttPerDay['date']->format('d');
-            $rows[intval($dayCounterKey)] += $qttPerDay['count'];
+            $dayCounterKey = $counterKeyToString($qttPerDay['date']->format($keyFormat));
+            $rows[$dayCounterKey] += $qttPerDay['count'];
         }
         return [
             'data' => $rows,
@@ -102,10 +107,14 @@ class DashboardService
 
         $rows = [];
         $secondInADay = 60 * 60 * 24;
+        $keyFormat = 'd';
+        $counterKeyToString = function ($key) {
+            return ' ' . $key . ' ';
+        };
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
-            $dayCounterKey = date( "d/m", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[($dayCounterKey)] = [
+            $dayCounterKey = $counterKeyToString(date( $keyFormat, $firstDayTime + ($secondInADay * $dayIncrement)));
+            $rows[$dayCounterKey] = [
                 'count' => 0,
                 'conform' => null
             ];
@@ -113,7 +122,7 @@ class DashboardService
 
         $arrivages = $arrivageRepository->countByDays($firstDay, $lastDay);
         foreach ($arrivages as $qttPerDay) {
-            $dayCounterKey = intval($qttPerDay['date']->format('d'));
+            $dayCounterKey = $counterKeyToString($qttPerDay['date']->format($keyFormat));
             if (!isset($rows[$dayCounterKey])) {
                 $rows[$dayCounterKey] = ['count' => 0];
             }
