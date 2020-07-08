@@ -29,6 +29,8 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
@@ -294,6 +296,12 @@ class ArticleDataService
         ]);
     }
 
+    /**
+     * @param $data
+     * @return bool|RedirectResponse
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
+     */
     public function editArticle($data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -316,13 +324,28 @@ class ArticleDataService
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
-                    ->setQuantite($data['quantite'] ? max($data['quantite'], 0) : 0)// protection contre quantités négatives
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
                     $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
-                    if ($statut) $article->setStatut($statut);
+                    if ($statut) {
+                        $article->setStatut($statut);
+                    }
                 }
+
+                if (isset($data['quantite'])) {
+                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
+                    if ($article->getQuantite() !== $newQuantity) {
+                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
+                            throw new ArticleNotAvailableException();
+                        }
+                        else if ($article->isInRequestsInProgress()) {
+                            throw new RequestNeedToBeProcessedException();
+                        }
+                        $article->setQuantite($newQuantity); // protection contre quantités négatives
+                    }
+                }
+
                 if ($data['emplacement']) {
                     $article->setEmplacement($emplacementRepository->find($data['emplacement']));
                 }
@@ -710,7 +733,7 @@ class ArticleDataService
             (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
         $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
-        if ($wantsQTT === 'true') {
+        if ($wantsQTT) {
             $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
 
         }

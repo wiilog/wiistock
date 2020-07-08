@@ -52,6 +52,22 @@ class ArrivageRepository extends EntityRepository
     }
 
     /**
+     * @param DateTime $date
+     * @return Arrivage[]|null
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDate(DateTime $date)
+    {
+		return $this->createQueryBuilder('arrivage')
+            ->select('COUNT(arrivage)')
+            ->where('arrivage.date = :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      * @return Arrivage[]|null

@@ -131,7 +131,7 @@ class MouvementTracaService
     }
 
     /**
-     * @param string $colis
+     * @param string|Colis $pack
      * @param Emplacement $location
      * @param Utilisateur $user
      * @param DateTime $date
@@ -146,7 +146,7 @@ class MouvementTracaService
      * @return MouvementTraca
      * @throws Exception
      */
-    public function createMouvementTraca(string $colis,
+    public function createMouvementTraca($pack,
                                          ?Emplacement $location,
                                          Utilisateur $user,
                                          DateTime $date,
@@ -159,6 +159,8 @@ class MouvementTracaService
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+
+        $codePack = $pack instanceof Colis ? $pack->getCode() : $pack;
 
         $type = ($typeMouvementTraca instanceof Statut)
             ? $typeMouvementTraca
@@ -178,7 +180,7 @@ class MouvementTracaService
 
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
-            ->setColis($colis)
+            ->setColis($codePack)
             ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null))
@@ -193,11 +195,11 @@ class MouvementTracaService
             $mouvementTraca,
             $entityManager,
             $type,
-            $colis
+            $pack
         );
 
-        $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $colis])
-            ?: $articleRepository->findOneBy(['barCode' => $colis]);
+        $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $codePack])
+            ?: $articleRepository->findOneBy(['barCode' => $codePack]);
         if ($refOrArticle instanceof ReferenceArticle) {
             $mouvementTraca->setReferenceArticle($refOrArticle);
         } else if ($refOrArticle instanceof Article) {
@@ -249,10 +251,17 @@ class MouvementTracaService
         }
     }
 
+    /**
+     * @param MouvementTraca $tracking
+     * @param EntityManagerInterface $entityManager
+     * @param Statut $type
+     * @param string|Colis $colis
+     * @param bool $persist
+     */
     public function managePackLinksWithTracking(MouvementTraca $tracking,
                                                 EntityManagerInterface $entityManager,
                                                 Statut $type,
-                                                string $colis,
+                                                $colis,
                                                 bool $persist = false): void {
         $colisRepository = $entityManager->getRepository(Colis::class);
         $packs = $tracking->getLinkedPackLastDrops();
@@ -262,9 +271,9 @@ class MouvementTracaService
         }
 
         if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
-            $existingPacks = $colisRepository->findBy([
-                'code' => $colis
-            ]);
+            $existingPacks = ($colis instanceof Colis)
+                ? [$colis]
+                : $colisRepository->findBy(['code' => $colis]);
 
             if (empty($existingPacks)) {
                 $newColis = new Colis();

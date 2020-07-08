@@ -39,17 +39,20 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
             if (!data) {
                 $('#cannotDelete').click();
             }
-            if (!data.success) {
-                alertErrorMsg(data.msg);
+            if (typeof data === 'object') {
+                if (!data.success) {
+                    alertErrorMsg(data.msg);
+                }
+                if (data.new) {
+                    tableRefArticle.row.add(data.new).draw(false);
+                } else if (data.delete) {
+                    tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
+                } else if (data.edit) {
+                    tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
+                    tableRefArticle.row.add(data.edit).draw(false);
+                }
             }
-            if (data.new) {
-                tableRefArticle.row.add(data.new).draw(false);
-            } else if (data.delete) {
-                tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
-            } else if (data.edit) {
-                tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
-                tableRefArticle.row.add(data.edit).draw(false);
-            }
+
             if (callback !== null) callback(data, modal);
 
             initRemove();
@@ -118,10 +121,10 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, false);
 
-let modalPlusDemande = $('#modalPlusDemande');
-let submitPlusDemande = $('#submitPlusDemande');
+let $modalPlusDemande = $('#modalPlusDemande');
+let $submitPlusDemande = $('#submitPlusDemande');
 let urlPlusDemande = Routing.generate('plus_demande', true);
-InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
+InitialiserModalRefArticle($modalPlusDemande, $submitPlusDemande, urlPlusDemande);
 
 let modalColumnVisible = $('#modalColumnVisible');
 let submitColumnVisible = $('#submitColumnVisible');
@@ -384,22 +387,25 @@ let ajaxPlusDemandeContent = function (button, demande) {
     xhttp.send(Json);
 }
 
-let ajaxEditArticle = function (select) {
-    let modalFooter = select.closest('.modal').find('.modal-footer');
-    let path = Routing.generate('article_api_edit', true);
-    let params = {id: select.val(), isADemand: 1};
+let ajaxEditArticle = function ($select) {
+    const selectVal = $select.val();
+    if (selectVal) {
+        let modalFooter = $select.closest('.modal').find('.modal-footer');
+        let path = Routing.generate('article_api_edit', true);
+        let params = {id: $select.val(), isADemand: 1};
 
-    $.post(path, JSON.stringify(params), function (data) {
-        if (data) {
-            $('.editChampLibre').html(data);
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-            $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
-            modalFooter.removeClass('d-none');
-            setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
-        }
-    }, 'json');
-    modalFooter.addClass('d-none');
+        $.post(path, JSON.stringify(params), function (data) {
+            if (data) {
+                $('.editChampLibre').html(data);
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+                toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
+                $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
+                modalFooter.removeClass('d-none');
+                setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
+            }
+        }, 'json');
+        modalFooter.addClass('d-none');
+    }
 }
 
 //initialisation editeur de texte une seule fois
