@@ -299,7 +299,24 @@ function finishPrepa($button) {
                 alertErrorMsg('Veuillez sélectionner un emplacement.', true);
             } else {
                 $('#modalSubmitPreparation').modal('hide');
-                wrapLoadingOnActionButton($button, null);
+                wrapLoadingOnActionButton($button, () => (
+                    $.post({
+                        url: Routing.generate('preparation_finish', {'idPrepa': $('#prepa-id').val()}),
+                        data: {
+                            emplacement: $('#modalSubmitPreparation').find('[name="emplacement"]').val()
+                        }
+                    })
+                    .then(({success, redirect, message}) => {
+                        if (success) {
+                            window.location.href = redirect;
+                        }
+                        else {
+                            alertErrorMsg(message);
+                        }
+
+                        return !success; // we do not hide loading if success
+                    })
+                ));
             }
         })
     }

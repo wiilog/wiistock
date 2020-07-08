@@ -8,7 +8,7 @@ let tableConfig = {
         needsRowClickAction: true
     },
     columns:[
-        { "data": 'Actions', 'title' : '', className: 'noVis', orderable: false, visible: false },
+        { "data": 'Actions', 'title' : '', className: 'noVis', orderable: false },
         { "data": 'reference', 'title' : 'Référence' },
         { "data": 'libelle', 'title' : 'Libellé' },
         { "data": 'quantite', 'title' : 'Quantité' },
@@ -38,11 +38,15 @@ let urlTreatAnomaly = Routing.generate('anomaly_treat', true);
 InitialiserModal(modalTreatAnomaly, submitTreatAnomaly, urlTreatAnomaly, table, alertSuccessMsgAnomaly);
 
 
-function alertSuccessMsgAnomaly(data)
-{
-    if (data) {
-        alertSuccessMsg("L'anomalie a bien été traitée.");
-    } else {
-        alertSuccessMsg("Un mouvement de stock correctif vient d'être créé.");
+function alertSuccessMsgAnomaly({success, message, quantitiesAreEqual}) {
+    if (success) {
+        if (quantitiesAreEqual) {
+            alertSuccessMsg("L'anomalie a bien été traitée.");
+        } else {
+            alertSuccessMsg("Un mouvement de stock correctif vient d'être créé.");
+        }
+    }
+    else {
+        alertErrorMsg(message);
     }
 }

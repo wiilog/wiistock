@@ -12,6 +12,7 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
+    displayActifOrInactif($('#toggleActivOrInactiv'), true, initTableRefArticle);
 });
 
 $('.select2').select2();
@@ -38,17 +39,20 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
             if (!data) {
                 $('#cannotDelete').click();
             }
-            if (!data.success) {
-                alertErrorMsg(data.msg);
+            if (typeof data === 'object') {
+                if (!data.success) {
+                    alertErrorMsg(data.msg);
+                }
+                if (data.new) {
+                    tableRefArticle.row.add(data.new).draw(false);
+                } else if (data.delete) {
+                    tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
+                } else if (data.edit) {
+                    tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
+                    tableRefArticle.row.add(data.edit).draw(false);
+                }
             }
-            if (data.new) {
-                tableRefArticle.row.add(data.new).draw(false);
-            } else if (data.delete) {
-                tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
-            } else if (data.edit) {
-                tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
-                tableRefArticle.row.add(data.edit).draw(false);
-            }
+
             if (callback !== null) callback(data, modal);
 
             initRemove();
@@ -117,10 +121,10 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, false);
 
-let modalPlusDemande = $('#modalPlusDemande');
-let submitPlusDemande = $('#submitPlusDemande');
+let $modalPlusDemande = $('#modalPlusDemande');
+let $submitPlusDemande = $('#submitPlusDemande');
 let urlPlusDemande = Routing.generate('plus_demande', true);
-InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
+InitialiserModalRefArticle($modalPlusDemande, $submitPlusDemande, urlPlusDemande);
 
 let modalColumnVisible = $('#modalColumnVisible');
 let submitColumnVisible = $('#submitColumnVisible');
@@ -132,10 +136,6 @@ let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_ref_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
-
-$(function () {
-    initTableRefArticle();
-});
 
 function initTableRefArticle() {
     let url = Routing.generate('ref_article_api', true);
@@ -307,6 +307,10 @@ function displayFilterValue(elem) {
             type = 'text';
             datetimepicker = true;
             break;
+        case 'sync':
+            label = 'Oui / Non';
+            type = 'checkbox';
+            break;
         default:
             label = 'Contient';
     }
@@ -383,22 +387,25 @@ let ajaxPlusDemandeContent = function (button, demande) {
     xhttp.send(Json);
 }
 
-let ajaxEditArticle = function (select) {
-    let modalFooter = select.closest('.modal').find('.modal-footer');
-    let path = Routing.generate('article_api_edit', true);
-    let params = {id: select.val(), isADemand: 1};
+let ajaxEditArticle = function ($select) {
+    const selectVal = $select.val();
+    if (selectVal) {
+        let modalFooter = $select.closest('.modal').find('.modal-footer');
+        let path = Routing.generate('article_api_edit', true);
+        let params = {id: $select.val(), isADemand: 1};
 
-    $.post(path, JSON.stringify(params), function (data) {
-        if (data) {
-            $('.editChampLibre').html(data);
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-            $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
-            modalFooter.removeClass('d-none');
-            setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
-        }
-    }, 'json');
-    modalFooter.addClass('d-none');
+        $.post(path, JSON.stringify(params), function (data) {
+            if (data) {
+                $('.editChampLibre').html(data);
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+                toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
+                $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
+                modalFooter.removeClass('d-none');
+                setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
+            }
+        }, 'json');
+        modalFooter.addClass('d-none');
+    }
 }
 
 //initialisation editeur de texte une seule fois
@@ -410,7 +417,9 @@ function initNewReferenceArticleEditor(modal) {
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+
     clearModal(modal);
 }
 
@@ -457,6 +466,7 @@ function addFournisseurEdit(button) {
             dataReponse = JSON.parse(this.responseText);
             $modal.find('#articleFournisseursEdit').parent().append(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
         }
     };
     let path = Routing.generate('ajax_render_add_fournisseur', true);
@@ -549,19 +559,20 @@ function printReferenceArticleBarCode($button, event) {
     }
 }
 
-function displayActifOrInactif(select) {
+function displayActifOrInactif(select, onInit, callback = null) {
     let donnees;
     if (select.is(':checked')) {
         donnees = 'actif';
     } else {
-        donnees = 'inactif';
+        donnees = 'consommé';
     }
 
     let params = {donnees: donnees};
     let path = Routing.generate('reference_article_actif_inactif');
 
     $.post(path, JSON.stringify(params), function () {
-        tableRefArticle.ajax.reload();
+        if (!onInit) tableRefArticle.ajax.reload();
+        if (callback) callback();
     });
 }
 
@@ -582,6 +593,8 @@ function initDatatableMovements(referenceArticleId) {
         },
         columns: [
             {"data": 'Date', 'title': 'Date', 'type': 'customDate'},
+            {"data": 'from', 'title': 'Issu de', className: 'noVis'},
+            {"data": 'ArticleCode', 'title': 'Code article'},
             {"data": 'Quantity', 'title': 'Quantité'},
             {"data": 'Origin', 'title': 'Origine'},
             {"data": 'Destination', 'title': 'Destination'},
@@ -612,4 +625,21 @@ function toggleEmergency($switch) {
         $('.emergency-comment').addClass('d-none');
         $('.emergency-comment').val('');
     }
+}
+
+function updateQuantity(referenceArticleId) {
+    let path = Routing.generate('update_qte_refarticle', {referenceArticle: referenceArticleId}, true);
+    $.ajax({
+        url: path,
+        type: 'patch',
+        dataType: 'json',
+        success: (response) => {
+            if (response.success) {
+                tableRefArticle.ajax.reload();
+                alertSuccessMsg('Les quantités de la réference article ont bien été recalculées.');
+            } else {
+                alertErrorMsg('Une erreur lors du calcul des quantités est survenue');
+            }
+        }
+    });
 }

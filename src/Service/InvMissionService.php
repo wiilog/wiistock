@@ -13,8 +13,6 @@ use App\Entity\ReferenceArticle;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -148,22 +146,22 @@ class InvMissionService
      * @param ReferenceArticle $ref
      * @param InventoryMission $mission
      * @return array
-     * @throws NonUniqueResultException
-     * @throws NoResultException
      */
     public function dataRowRefMission($ref, $mission)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $refDate = $referenceArticleRepository->getEntryDateByMission($mission, $ref);
+        $refDateAndQuantity = $referenceArticleRepository->getEntryByMission($mission, $ref);
 
         return $this->dataRowMissionArtRef(
             $ref->getEmplacement(),
             $ref->getReference(),
             $ref->getBarCode(),
             $ref->getLibelle(),
-            (!empty($refDate) && isset($refDate['date'])) ? $refDate['date'] : null,
-            $referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDate ? 'non' : '-')
+            (!empty($refDateAndQuantity) && isset($refDateAndQuantity['date'])) ? $refDateAndQuantity['date'] : null,
+            $referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDateAndQuantity ? 'non' : '-'),
+            $ref->getQuantiteStock(),
+            (!empty($refDateAndQuantity) && isset($refDateAndQuantity['quantity'])) ? $refDateAndQuantity['quantity'] : null
         );
     }
 
@@ -171,20 +169,20 @@ class InvMissionService
 	 * @param Article $art
 	 * @param InventoryMission $mission
 	 * @return array
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
+     */
     public function dataRowArtMission($art, $mission) {
         $articleRepository = $this->entityManager->getRepository(Article::class);
 
-        $artDate = $articleRepository->getEntryDateByMission($mission, $art);
+        $artDateAndQuantity = $articleRepository->getEntryByMission($mission, $art);
         return $this->dataRowMissionArtRef(
             $art->getEmplacement(),
             $art->getArticleFournisseur()->getReferenceArticle(),
             $art->getBarCode(),
             $art->getlabel(),
-            !empty($artDate) ? $artDate['date'] : null,
-            $articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDate ? 'non' : '-')
+            !empty($artDateAndQuantity) ? $artDateAndQuantity['date'] : null,
+            $articleRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDateAndQuantity ? 'non' : '-'),
+            $art->getQuantite(),
+            (!empty($artDateAndQuantity) && isset($artDateAndQuantity['quantity'])) ? $artDateAndQuantity['quantity'] : null
         );
     }
 
@@ -195,6 +193,8 @@ class InvMissionService
      * @param string|null $label
      * @param DateTimeInterface|null $date
      * @param string|null $anomaly
+     * @param string|null $quantiteStock
+     * @param string|null $quantiteComptee
      * @return array
      */
     private function dataRowMissionArtRef(?Emplacement $emplacement,
@@ -202,7 +202,10 @@ class InvMissionService
                                           ?string $codeBarre,
                                           ?string $label,
                                           ?DateTimeInterface $date,
-                                          ?string $anomaly): array {
+                                          ?string $anomaly,
+                                          ?string $quantiteStock,
+                                          ?string $quantiteComptee
+                                          ): array {
         if ($emplacement) {
             $location = $emplacement->getLabel();
             $emptyLocation = false;
@@ -218,6 +221,8 @@ class InvMissionService
             'Location' => $location,
             'Date' => isset($date) ? $date->format('d/m/Y') : '',
             'Anomaly' => $anomaly,
+            'QuantiteStock' => $quantiteStock,
+            'QuantiteComptee' => $quantiteComptee,
             'EmptyLocation' => $emptyLocation
         ];
     }

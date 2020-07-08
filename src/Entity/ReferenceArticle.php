@@ -192,6 +192,11 @@ class ReferenceArticle
      */
     private $mouvementTracas;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $needsMobileSync;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -877,6 +882,28 @@ class ReferenceArticle
         $this->userThatTriggeredEmergency = $userThatTriggeredEmergency;
 
         return $this;
+    }
+
+    public function getNeedsMobileSync(): ?bool
+    {
+        return $this->needsMobileSync;
+    }
+
+    public function setNeedsMobileSync(?bool $needsMobileSync): self
+    {
+        $this->needsMobileSync = $needsMobileSync;
+
+        return $this;
+    }
+
+    public function isInRequestsInProgress(): bool {
+        return $this
+            ->getLigneArticles()
+            ->filter(function(LigneArticle $ligneArticle) {
+                $demande = $ligneArticle->getDemande();
+                return $demande->needsToBeProcessed();
+            })
+            ->count() > 0;
     }
 
 }

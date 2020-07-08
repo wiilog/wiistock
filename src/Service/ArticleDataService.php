@@ -29,6 +29,8 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
@@ -294,6 +296,12 @@ class ArticleDataService
         ]);
     }
 
+    /**
+     * @param $data
+     * @return bool|RedirectResponse
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
+     */
     public function editArticle($data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -316,13 +324,28 @@ class ArticleDataService
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
-                    ->setQuantite($data['quantite'] ? max($data['quantite'], 0) : 0)// protection contre quantités négatives
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
                     $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
-                    if ($statut) $article->setStatut($statut);
+                    if ($statut) {
+                        $article->setStatut($statut);
+                    }
                 }
+
+                if (isset($data['quantite'])) {
+                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
+                    if ($article->getQuantite() !== $newQuantity) {
+                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
+                            throw new ArticleNotAvailableException();
+                        }
+                        else if ($article->isInRequestsInProgress()) {
+                            throw new RequestNeedToBeProcessedException();
+                        }
+                        $article->setQuantite($newQuantity); // protection contre quantités négatives
+                    }
+                }
+
                 if ($data['emplacement']) {
                     $article->setEmplacement($emplacementRepository->find($data['emplacement']));
                 }
@@ -374,7 +397,7 @@ class ArticleDataService
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
+        $statusLabel = (!isset($data['statut']) || ($data['statut'] === Article::STATUT_ACTIF)) ? Article::STATUT_ACTIF : Article::STATUT_INACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
@@ -438,6 +461,12 @@ class ArticleDataService
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
+            $toInsert
+                ->setQuantiteAPrelever($toInsert->getQuantite());
+            if (count($demande->getPreparations()) > 0) {
+                $demande
+                    ->getPreparations()[0]->addArticle($toInsert);
+            }
         }
 
         // optionnel : ajout dans une réception
@@ -543,7 +572,7 @@ class ArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             $filters = [[
                 'field' => FiltreSup::FIELD_STATUT,
-                'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+                'value' => $this->getActiveArticleFilterValue()
             ]];
         }
         $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
@@ -655,13 +684,13 @@ class ArticleDataService
      */
     public function getBarcodeConfig(Article $article): array {
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
         $articles = $articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
 
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
             && !isset($this->typeCLOnLabel)) {
-            $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
             $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
             $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
@@ -688,6 +717,7 @@ class ArticleDataService
         $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
+        $quantityArticle = $article->getQuantite();
         $labelArticle = $article->getLabel();
         $champLibre = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
             ? $articleArray['bl']
@@ -700,8 +730,13 @@ class ArticleDataService
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
             !empty($labelArticle) ? ('L/A : ' . $labelArticle) : '',
-            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : ''
+            (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
+        $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+        if ($wantsQTT) {
+            $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
+
+        }
         return [
             'code' => $article->getBarCode(),
             'labels' => array_filter($labels, function (string $label) {
@@ -732,5 +767,13 @@ class ArticleDataService
                 break;
         }
         return $res;
+    }
+
+    public function getActiveArticleFilterValue(): string {
+        return Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT . ',' . Article::STATUT_EN_LITIGE;
+    }
+
+    public function articleCanBeAddedInDispute(Article $article): bool {
+        return in_array($article->getStatut()->getNom(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
     }
 }

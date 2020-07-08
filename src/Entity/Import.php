@@ -61,6 +61,7 @@ class Import
         'label' => 'libellé',
         'libelle' => 'libellé',
         'articleFournisseur' => 'article fournisseur',
+        'needsMobileSync' => 'Synchronisation nomade',
         'prixUnitaire' => 'prix unitaire',
         'limitSecurity' => 'seuil de sécurité',
         'limitWarning' => "seuil d'alerte",

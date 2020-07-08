@@ -1,0 +1,121 @@
+.sidemenu-bg {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.37);
+    z-index: 99;
+}
+
+.sidemenu {
+    padding-top: 0;
+    padding-bottom: 0;
+    position: fixed;
+    top: 0;
+    display: table;
+    background-color: $grey;
+    z-index: 100;
+    height: 100%;
+    width: 130px;
+    color: $white;
+
+    .menu-header {
+        color: #fcfcfc;
+        text-align: center;
+
+        .version {
+            font-size: 0.8rem;
+            color: $blueGT;
+        }
+    }
+
+    .menu-item {
+        display: table-row;
+        padding: 10px 18px;
+
+        &:hover {
+            background-color: $red;
+        }
+
+        &.active {
+            background-color: $red;
+
+            .sidemenu-sub {
+                display: table-cell;
+            }
+        }
+
+        > a {
+            display: table-cell;
+            vertical-align: middle;
+            color: #fcfcfc;
+            text-align: center;
+        }
+
+        .sidemenu-sub {
+            display: none;
+            list-style-type: none;
+            background-color: $red;
+            width: 250px;
+            position: absolute;
+            top: 0;
+            left: 100%;
+            bottom: 0;
+            z-index: 101;
+
+            .sub-item {
+                display: block;
+                font-size: 0.9rem;
+                font-weight: 700;
+                padding: 10px 18px;
+
+                &:hover {
+                    color: $greyDark;
+                    background-color: $grey;
+                }
+            }
+
+            .sub-sub-item {
+                display: none;
+                background-color: $greyDark;
+
+                &:hover {
+                    color: $greyDark;
+                    background-color: $grey;
+                }
+            }
+
+            .sub-item:hover {
+                .sub-sub-item {
+                    display: block;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    padding-left: 30px;
+                }
+            }
+
+            .has-subitems {
+                padding: 10px 0;
+
+                .sub-item-title {
+                    padding: 10px 18px;
+                }
+
+                &:hover {
+                    background-color: $red;
+                    color: white;
+                }
+            }
+        }
+    }
+
+    h4 {
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 5px;
+        width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

@@ -126,29 +126,23 @@ InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDeman
 
 function getCompareStock(submit) {
     let path = Routing.generate('compare_stock', true);
-    let params = {'demande': submit.data('id')};
+    let params = {
+        'demande': submit.data('id'),
+        'fromNomade': false
+    };
 
     return $.post({
         url: path,
         dataType: 'json',
         data: JSON.stringify(params)
     })
-        .then(function (data) {
-            if (data.status === true) {
-                $('.zone-entete').html(data.entete);
-                $('#tableArticle_id').DataTable().ajax.reload();
+        .then(function (response) {
+            if (response.success) {
+                $('.zone-entete').html(response.message);
                 $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
                 tableArticle.ajax.reload();
-                return true;
             } else {
-                if (data.message) {
-                    alertErrorMsg(data.message)
-                }
-                else {
-                    $('#restantQuantite').html(data.stock);
-                    $('#negativStock').click();
-                }
-                return false;
+                alertErrorMsg(response.message);
             }
         });
 }
@@ -265,10 +259,12 @@ function ajaxEditArticle (select) {
             let quantityToTake = $('#quantityToTake');
             let valMax = $('#quantite').val();
 
-            let attrMax = quantityToTake.find('input').attr('max');
-            if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
+            if (valMax) {
+                quantityToTake.find('input').attr('max', valMax);
+            }
             quantityToTake.removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            $('.list-multiple').select2();
         }
     });
 }

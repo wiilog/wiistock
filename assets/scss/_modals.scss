@@ -1,0 +1,71 @@
+.modal {
+    overflow: auto !important;
+}
+
+.modal-body {
+    label {
+        color: $greyForm;
+    }
+}
+
+.error-msg, .password-error-msg, .row-error-msg {
+    color: $red;
+}
+
+.w-50 {
+    .select2-container {
+        width: 50% !important;
+    }
+}
+
+.comment {
+    height: auto;
+    min-height: calc(2.25rem + 2px);
+    max-height: 25vh;
+    overflow: auto;
+}
+
+.input {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+
+    &.disabled {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+}
+
+div {
+    &.disabled {
+        background-color: #e9ecef;
+        opacity: 1;
+    }
+}
+
+option {
+    &:disabled {
+        background-color: #e9ecef !important;
+        opacity: 1;
+    }
+}
+
+.formulaire {
+    margin-right: 15px;
+}
+
+#new-ref-inner-body {
+    border: 1px solid black;
+}
+
+.frame {
+    border: 1px solid $greyForm;
+    border-radius: 8px;
+    padding: 8px;
+}
+.separatorDatatable {
+  display: block;
+  content: '';
+  width: 100%;
+  height: 1px;
+  border: #B2B2B2 1px solid;
+}

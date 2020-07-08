@@ -96,10 +96,16 @@ class MouvementTraca
      */
     private $article;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="lastDrop")
+     */
+    private $linkedPackLastDrops;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
         $this->emplacement = new ArrayCollection();
+        $this->linkedPackLastDrops = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -289,6 +295,37 @@ class MouvementTraca
     public function setArticle(?Article $article): self
     {
         $this->article = $article;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Colis[]
+     */
+    public function getLinkedPackLastDrops(): Collection
+    {
+        return $this->linkedPackLastDrops;
+    }
+
+    public function addLinkedPackLastDrop(Colis $linkedPackLastDrop): self
+    {
+        if (!$this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
+            $this->linkedPackLastDrops[] = $linkedPackLastDrop;
+            $linkedPackLastDrop->setLastDrop($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLinkedPacksLastDrop(Colis $linkedPackLastDrop): self
+    {
+        if ($this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
+            $this->linkedPackLastDrops->removeElement($linkedPackLastDrop);
+            // set the owning side to null (unless already changed)
+            if ($linkedPackLastDrop->getLastDrop() === $this) {
+                $linkedPackLastDrop->setLastDrop(null);
+            }
+        }
 
         return $this;
     }

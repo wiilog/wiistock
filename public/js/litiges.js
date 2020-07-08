@@ -20,6 +20,7 @@ $(function () {
     initSelect2($('#litigeOrigin'), 'Origines');
     ajaxAutoUserInit($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
     ajaxAutoUserInit($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');
+    ajaxAutoDisputeNumberInit($('.ajax-autocomplete-dispute'),'Numéro de litige');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -40,7 +41,7 @@ function initDatatableLitiges() {
     let tableLitigesConfig = {
         serverSide: true,
         processing: true,
-        order: [11, 'desc'],
+        order: [12, 'desc'],
         ajax: {
             "url": pathLitiges,
             "type": "POST",
@@ -52,6 +53,7 @@ function initDatatableLitiges() {
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
             {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
             {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
@@ -90,8 +92,7 @@ function initDatatableLitiges() {
     tableLitiges = initDataTable('tableLitiges', tableLitigesConfig);
 }
 
-function editRowLitige(button, afterLoadingEditModal = () => {
-}, isArrivage, arrivageOrReceptionId, litigeId) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, litigeId, disputeNumber) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
     let path = Routing.generate(route, true);
     let $modal = $('#modalEditLitige');
@@ -109,7 +110,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     $.post(path, JSON.stringify(params), function (data) {
         $modal.find('.error-msg').html('');
         $modal.find('.modal-body').html(data.html);
-
         if (isArrivage) {
             $modal.find('#colisEditLitige').val(data.colis).select2();
         } else {
@@ -137,6 +137,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {
     }, 'json');
 
     $modal.find($submit).attr('value', litigeId);
+    $('#disputeNumber').text(disputeNumber);
 }
 
 let tableHistoLitige;
@@ -159,6 +160,33 @@ function openTableHisto() {
         }
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
+    openTableArticleLitige();
+}
+
+let tableArticleLitige;
+
+function openTableArticleLitige() {
+
+    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableArticleLitigeConfig = {
+        ajax: {
+            "url": pathArticleLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
+            {"data": 'status', 'name': 'status', 'title': 'Status'},
+            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
+            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        },
+        "paging": false,
+
+    };
+    tableArticleLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
 }
 
 function getCommentAndAddHisto() {

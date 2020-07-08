@@ -29,6 +29,7 @@ class MouvementStockRepository extends EntityRepository
         'destination' => 'emplacementTo',
         'type' => 'type',
         'operateur' => 'user',
+        'barCode' => 'barCode'
     ];
 
     public function countByEmplacement($emplacementId)
@@ -413,20 +414,25 @@ class MouvementStockRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->leftJoin('m.refArticle', 'ra3')
+                        ->leftJoin('m.article', 'a3')
+                        ->leftJoin('a3.articleFournisseur', 'af3')
+                        ->leftJoin('af3.referenceArticle', 'ra4')
                         ->leftJoin('m.emplacementFrom', 'ef3')
                         ->leftJoin('m.emplacementTo', 'et3')
                         ->leftJoin('m.user', 'u3')
-                        ->andWhere('
+                        ->andWhere('(
 						ra3.reference LIKE :value OR
+						ra4.reference LIKE :value OR
 						ef3.label LIKE :value OR
+						ra3.barCode LIKE :value OR
+						a3.barCode LIKE :value OR
 						et3.label LIKE :value OR
 						m.type LIKE :value OR
 						u3.username LIKE :value
-						')
+						)')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
@@ -448,6 +454,13 @@ class MouvementStockRepository extends EntityRepository
                         $qb
                             ->leftJoin('m.user', 'u2')
                             ->orderBy('u2.username', $order);
+                    } else if ($column === 'barCode') {
+                        $qb
+
+                            ->leftJoin('m.article','articleSort')
+                            ->leftJoin('m.refArticle', 'raSort')
+                            ->addOrderBy('raSort.barCode', $order)
+                            ->addOrderBy('articleSort.barCode', $order);
                     } else {
                         $qb
                             ->orderBy('m.' . $column, $order);

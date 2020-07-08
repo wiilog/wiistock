@@ -203,20 +203,25 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
+                if (data.success === false && data.msg) {
+                    alertErrorMsg(data.msg, true);
                 }
-                // pour mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
-                if (table) {
-                    table.ajax.reload(null, false);
-                }
+                else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+                    // pour mise à jour des données d'en-tête après modification
+                    if (data.entete) {
+                        $('.zone-entete').html(data.entete)
+                    }
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
 
-                if (clear) {
-                    clearModal(modal);
+                    if (clear) {
+                        clearModal(modal);
+                    }
                 }
 
                 return data;
@@ -650,11 +655,14 @@ function initSelect2($select,
     });
 }
 
-function initDisplaySelect2(select, inputValue) {
+function initDisplaySelect2(select, inputValue, forceInit = false) {
     let data = $(inputValue).data();
+    const $select = $(select);
     if (data.id && data.text) {
         let option = new Option(data.text, data.id, true, true);
-        $(select).append(option).trigger('change');
+        $select.append(option).trigger('change');
+    } else if (forceInit) {
+        $select.val(null).trigger('change');
     }
 }
 
@@ -679,12 +687,13 @@ function ajaxAutoCompleteTransporteurInit(select) {
     initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
-function ajaxAutoRefArticleInit(select, typeQuantity = null) {
+function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference') {
     initSelect2(select, '', 1, {
         route: 'get_ref_articles',
         param:
             {
                 activeOnly: 1,
+                field,
                 typeQuantity
             }
     });
@@ -699,8 +708,8 @@ function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
     initSelect2(select, '', 1, {route: 'get_article_reception', param: {reception: reception}});
 }
 
-function ajaxAutoFournisseurInit(select, placeholder = '') {
-    initSelect2(select, placeholder, 1, {route: 'get_fournisseur'});
+function ajaxAutoFournisseurInit(select, placeholder = '', route = 'get_fournisseur') {
+    initSelect2(select, placeholder, 1, { route });
 }
 
 function ajaxAutoChauffeurInit(select) {
@@ -709,6 +718,10 @@ function ajaxAutoChauffeurInit(select) {
 
 function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
+}
+
+function ajaxAutoDisputeNumberInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispute_number'});
 }
 
 function ajaxAutoDemandCollectInit(select) {
@@ -932,6 +945,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
     $submit.hide();
+    $modalBody.html(
+        '<div class="row justify-content-center">' +
+        '   <div class="col-auto">' +
+        '       <div class="spinner-border" role="status">' +
+        '           <span class="sr-only">Loading...</span>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>'
+    );
     $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
@@ -1220,6 +1242,7 @@ function displayFiltersSup(data) {
             case 'carriers':
             case 'emplacement':
             case 'demCollecte':
+            case 'disputeNumber':
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);

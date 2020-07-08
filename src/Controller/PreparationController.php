@@ -14,6 +14,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Exceptions\NegativeQuantityException;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
@@ -22,10 +23,10 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -75,22 +76,28 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"})
+     * @Route(
+     *     "/finish/{idPrepa}",
+     *     name="preparation_finish",
+     *     methods={"POST"},
+     *     options={"expose"=true},
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param $idPrepa
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param PreparationsManagerService $preparationsManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @return JsonResponse|RedirectResponse
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
+     * @throws Exception
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
                                 EntityManagerInterface $entityManager,
-                                PreparationsManagerService $preparationsManager): Response
+                                PreparationsManagerService $preparationsManager)
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -102,7 +109,16 @@ class PreparationController extends AbstractController
         $preparation = $preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
 
-        $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+        try {
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());
+        }
+        catch(NegativeQuantityException $exception) {
+            $barcode = $exception->getArticle()->getBarCode();
+            return new JsonResponse([
+                'success' => false,
+                'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+            ]);
+        }
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
@@ -131,8 +147,11 @@ class PreparationController extends AbstractController
 
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison->getId(),
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('livraison_show', [
+                'id' => $livraison->getId()
+            ])
         ]);
     }
 
@@ -368,11 +387,11 @@ class PreparationController extends AbstractController
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
             'articles' => $articleRepository->getIdRefLabelAndQuantity(),
             'headerConfig' => [
-                [ 'label' => 'Numéro', 'value' => $preparation->getNumero() ],
-                [ 'label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : '' ],
-                [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
-                [ 'label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : '' ],
-                [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+                ['label' => 'Numéro', 'value' => $preparation->getNumero()],
+                ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
+                ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
+                ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
+                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -391,7 +410,6 @@ class PreparationController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param RefArticleDataService $refArticleDataService
      * @return Response
-     * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function delete(Preparation $preparation,
@@ -413,11 +431,7 @@ class PreparationController extends AbstractController
         foreach ($preparation->getArticles() as $article) {
             $article->setPreparation(null);
             $article->setStatut($statutActifArticle);
-            if ($article->getQuantiteAPrelever()) {
-                $article->setQuantite($article->getQuantiteAPrelever());
-                $article->setQuantiteAPrelever(0);
-                $article->setQuantitePrelevee(0);
-            }
+            $article->setQuantitePrelevee(0);
         }
 
         $refToUpdate = [];
@@ -434,8 +448,7 @@ class PreparationController extends AbstractController
                 $quantiteStock = $refArticle->getQuantiteStock();
                 $newQuantiteDisponible = ($quantiteStock - $newQuantiteReservee);
                 $refArticle->setQuantiteDisponible($newQuantiteDisponible > 0 ? $newQuantiteDisponible : 0);
-            }
-            else {
+            } else {
                 $refToUpdate[] = $refArticle;
             }
             $entityManager->remove($ligneArticlePreparation);
@@ -461,14 +474,11 @@ class PreparationController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function startSplitting(EntityManagerInterface $entityManager,
                                    Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
-
-            $statutRepository = $entityManager->getRepository(Statut::class);
             $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -714,7 +724,7 @@ class PreparationController extends AbstractController
             }
         }
 
-    foreach ($preparation->getArticles() as $article) {
+        foreach ($preparation->getArticles() as $article) {
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
             $reference = $referenceArticle ? $referenceArticle->getReference() : '';

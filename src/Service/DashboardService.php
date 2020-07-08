@@ -65,15 +65,20 @@ class DashboardService
         $rows = [];
         $secondInADay = 60 * 60 * 24;
 
+        $keyFormat = 'd';
+        $counterKeyToString = function ($key) {
+            return ' ' . $key . ' ';
+        };
+
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
-            $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[intval($dayCounterKey)] = 0;
+            $dayCounterKey = $counterKeyToString(date($keyFormat, $firstDayTime + ($secondInADay * $dayIncrement)));
+            $rows[$dayCounterKey] = 0;
         }
 
         $receptionTracas = $receptionTracaRepository->countByDays($firstDay, $lastDay);
         foreach ($receptionTracas as $qttPerDay) {
-            $dayCounterKey = $qttPerDay['date']->format('d');
-            $rows[intval($dayCounterKey)] += $qttPerDay['count'];
+            $dayCounterKey = $counterKeyToString($qttPerDay['date']->format($keyFormat));
+            $rows[$dayCounterKey] += $qttPerDay['count'];
         }
         return [
             'data' => $rows,
@@ -102,10 +107,14 @@ class DashboardService
 
         $rows = [];
         $secondInADay = 60 * 60 * 24;
+        $keyFormat = 'd';
+        $counterKeyToString = function ($key) {
+            return ' ' . $key . ' ';
+        };
 
         for ($dayIncrement = 0; $dayIncrement < 7; $dayIncrement++) {
-            $dayCounterKey = date("d", $firstDayTime + ($secondInADay * $dayIncrement));
-            $rows[intval($dayCounterKey)] = [
+            $dayCounterKey = $counterKeyToString(date( $keyFormat, $firstDayTime + ($secondInADay * $dayIncrement)));
+            $rows[$dayCounterKey] = [
                 'count' => 0,
                 'conform' => null
             ];
@@ -113,7 +122,7 @@ class DashboardService
 
         $arrivages = $arrivageRepository->countByDays($firstDay, $lastDay);
         foreach ($arrivages as $qttPerDay) {
-            $dayCounterKey = intval($qttPerDay['date']->format('d'));
+            $dayCounterKey = $counterKeyToString($qttPerDay['date']->format($keyFormat));
             if (!isset($rows[$dayCounterKey])) {
                 $rows[$dayCounterKey] = ['count' => 0];
             }
@@ -353,17 +362,28 @@ class DashboardService
     {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-
-        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) {
-            $resCounter = $this->getDashboardCounter(
-                ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES,
-                true,
-                [
+        $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($entityManager) {
+            $colisRepository = $entityManager->getRepository(Colis::class);
+            $locations = $this->findEmplacementsParam(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
+            if (!empty($locations)) {
+                $response = [];
+                $response['delay'] = null;
+                $response['count'] = 0;
+                $response['label'] = array_reduce(
+                    $locations,
+                    function (string $carry, Emplacement $location) {
+                        return $carry . (!empty($carry) ? ', ' : '') . $location->getLabel();
+                    },
+                    ''
+                );
+                $response['count'] = $colisRepository->countPacksOnLocations($locations, [
                     'minDate' => $dateMin,
                     'maxDate' => $dateMax
-                ]
-            );
-            return !empty($resCounter['count']) ? $resCounter['count'] : 0;
+                ]);
+            } else {
+                $response = null;
+            }
+            return !empty($response['count']) ? $response['count'] : 0;
         }, $workFreeDays);
         $dashboardData = [
             'data' => $this->saveArrayForEncoding($packsCountByDays),
@@ -585,7 +605,7 @@ class DashboardService
                 $param = is_array($counterConfig[$key])
                     ? $counterConfig[$key][0]
                     : $counterConfig[$key];
-                $carry[$key] = $this->getDashboardCounter($param, false, [], $daysWorked, $delay);
+                $carry[$key] = $this->getDashboardCounter($param, [], $daysWorked, $delay);
                 return $carry;
             },
             []);
@@ -601,23 +621,24 @@ class DashboardService
      * @throws Exception
      */
     public function getDashboardCounter(string $paramName,
-                                        bool $isPack = false,
                                         array $onDateBracket = [],
                                         array $daysWorked = [],
                                         ?string $delay = null): ?array
     {
         $colisRepository = $this->entityManager->getRepository(Colis::class);
-        $mouvementTracaRepository = $this->entityManager->getRepository(MouvementTraca::class);
         $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
         $locations = $this->findEmplacementsParam($paramName);
+        $locationsId = array_map(function (Emplacement $emplacement) {
+            return $emplacement->getId();
+        }, $locations);
         if (!empty($locations)) {
             $response = [];
             $response['delay'] = null;
-            if (!$isPack && $delay) {
-                $lastEnCours = $mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket, 'datetime', 1);
+            if ($delay) {
+                $lastEnCours = $colisRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
-                    $lastEnCoursDateTime = new DateTime($lastEnCours[0], new DateTimeZone('Europe/Paris'));
+                    $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
                     $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime, $workFreeDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $delay);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
@@ -631,9 +652,7 @@ class DashboardService
                 },
                 ''
             );
-            $response['count'] = $isPack
-                ? $colisRepository->countPacksOnLocations($locations, $onDateBracket)
-                : count($mouvementTracaRepository->getForPacksOnLocations($locations, $onDateBracket));
+            $response['count'] = $colisRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket);
         } else {
             $response = null;
         }
@@ -795,12 +814,16 @@ class DashboardService
             try {
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedDockData($entityManager);
+                dump('Finished Dock');
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedAdminData($entityManager);
+                dump('Finished Admin');
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertParsedPackagingData($entityManager);
+                dump('Finished Packaging');
                 $this->flushAndClearEm($entityManager);
                 $this->retrieveAndInsertLastEnCours($entityManager);
+                dump('Finished Late');
                 $this->flushAndClearEm($entityManager);
             }
             catch (Throwable $throwable) {
@@ -832,6 +855,7 @@ class DashboardService
     {
         $dockData = $this->getDataForReceptionDockDashboard();
         $this->parseRetrievedDataAndPersistMeter($dockData, self::DASHBOARD_DOCK, $entityManager);
+        dump('Finished Dock Counter');
         $this->getAndSetGraphDataForDock($entityManager);
     }
 
@@ -871,6 +895,7 @@ class DashboardService
     {
         $adminData = $this->getDataForReceptionAdminDashboard();
         $this->parseRetrievedDataAndPersistMeter($adminData, self::DASHBOARD_ADMIN, $entityManager);
+        dump('Finished Admin Counter');
         $this->getAndSetGraphDataForAdmin($entityManager, 1, self::DASHBOARD_ADMIN);
         $this->getAndSetGraphDataForAdmin($entityManager, 2, self::DASHBOARD_ADMIN);
     }
@@ -883,6 +908,7 @@ class DashboardService
     {
         $packagingData = $this->getDataForMonitoringPackagingDashboard();
         $this->parseRetrievedDataAndPersistMeter($packagingData, self::DASHBOARD_PACKAGING, $entityManager);
+        dump('Finished Packaging Counter');
         $this->getAndSetGraphDataForPackaging($entityManager);
     }
 
@@ -939,6 +965,7 @@ class DashboardService
     {
         $latePackRepository = $entityManager->getRepository(LatePack::class);
         $lastLates = $this->enCoursService->getLastEnCoursForLate();
+        dump('Finished Late retrieve');
         $latePackRepository->clearTable();
         foreach ($lastLates as $lastLate) {
             $latePack = new LatePack();
