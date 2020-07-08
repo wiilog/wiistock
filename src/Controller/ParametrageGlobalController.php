@@ -181,8 +181,8 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobalQtt->setLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
             $entityManager->persist($parametrageGlobalQtt);
         }
-        $parametrageGlobalQtt->setValue($data['param-qtt-etiquette']);
-
+        $parametrageGlobalQtt
+            ->setValue((int) ($data['param-qtt-etiquette'] === 'true'));
 
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
@@ -191,14 +191,14 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobal->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
             $entityManager->persist($parametrageGlobal);
         }
-        $parametrageGlobal->setValue($data['param-bl-etiquette']);
+        $parametrageGlobal->setValue((int) ($data['param-bl-etiquette'] === 'true'));
 
 
         $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
 
         if (empty($parametrageGlobal128)) {
             $parametrageGlobal128 = new ParametrageGlobal();
-            $parametrageGlobal128->setLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $parametrageGlobal128->setLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
             $entityManager->persist($parametrageGlobal128);
         }
         $parametrageGlobal128->setValue($data['param-type-etiquette']);

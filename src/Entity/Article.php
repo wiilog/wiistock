@@ -652,4 +652,13 @@ class Article
             self::USED_ASSOC_NONE)))))
         );
     }
+
+    public function isInRequestsInProgress(): bool {
+        $request = $this->getDemande();
+        return (
+            $request
+            && $request->getStatut()
+            && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
+        );
+    }
 }

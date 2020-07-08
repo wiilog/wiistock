@@ -15,6 +15,8 @@ use App\Entity\CategoryType;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Service\CSVExportService;
@@ -562,17 +564,33 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function edit(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($data['article']) {
-                $this->articleDataService->editArticle($data);
-                $json = true;
+                try {
+                    $this->articleDataService->editArticle($data);
+                    $response = ['success' => true];
+                }
+                catch(ArticleNotAvailableException $exception) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
+                    ];
+                }
+                catch(RequestNeedToBeProcessedException $exception) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
+                    ];
+                }
             } else {
-                $json = false;
+                $response = ['success' => false];
             }
-            return new JsonResponse($json);
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }

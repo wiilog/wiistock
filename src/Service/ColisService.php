@@ -32,13 +32,18 @@ Class ColisService
     }
 
     public function persistColis(Arrivage $arrivage, Nature $nature): Colis {
-        $arrivageNum = $arrivage->getNumeroArrivage();
 
-        $highestCounter = $this->getHighestCodeByPrefix($arrivage) + 1;
-        $newCounter = sprintf('%05u', $highestCounter);
+        $arrivageNum = $arrivage->getNumeroArrivage();
+        $newCounter = $arrivage->getColis()->count() + 1;
+
+        if ($newCounter < 10) {
+            $newCounter = "00" . $newCounter;
+        } elseif ($newCounter < 100) {
+            $newCounter = "0" . $newCounter;
+        }
 
         $colis = new Colis();
-        $code = ($nature->getPrefix() ?? '') . $arrivageNum . '-' . $newCounter;
+        $code = ($nature->getPrefix(). $arrivageNum . $newCounter ?? '');
         $colis
             ->setCode($code)
             ->setNature($nature);
@@ -90,7 +95,7 @@ Class ColisService
                 $colis = $this->persistColis($arrivage, $nature);
                 if ($defaultEmpForMvt) {
                     $mouvementDepose = $this->mouvementTracaService->createMouvementTraca(
-                        $colis->getCode(),
+                        $colis,
                         $defaultEmpForMvt,
                         $user,
                         $now,
@@ -105,7 +110,6 @@ Class ColisService
                 $colisList[] = $colis;
             }
         }
-
         return $colisList;
     }
 }
