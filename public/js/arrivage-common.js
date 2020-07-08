@@ -19,7 +19,14 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             arrivageUrgentLoading = true;
                             $modal.find('.modal-footer-wrapper').addClass('d-none');
                             loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, alertConfig.postNb, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
+                            setArrivalUrgent(
+                                arrivalId,
+                                alertConfig.numeroCommande,
+                                alertConfig.postNb,
+                                {alertConfigs: nextAlertConfigs, ...response},
+                                isCreation,
+                                arrivalsDatatable
+                            );
                         }
                     }
                     else {
@@ -49,19 +56,17 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             alertConfigs: nextAlertConfigs.length > 0
                                 ? nextAlertConfigs
                                 : [{
-                                        autoHide: false,
-                                        message: 'Arrivage enregistré avec succès',
-                                        modalType: 'info',
-                                        iconType: 'success',
-                                        arrivalId
-                                    }],
+                                    autoHide: false,
+                                    autoPrint,
+                                    message: 'Arrivage enregistré avec succès',
+                                    modalType: 'info',
+                                    iconType: 'success',
+                                    arrivalId
+                                }],
                             ...response
                         },
                         arrivalsDatatable
                     );
-                    if (autoPrint) {
-                        printArrival(response);
-                    }
                 }
             });
         }
