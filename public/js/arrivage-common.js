@@ -50,6 +50,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                                 ? nextAlertConfigs
                                 : [{
                                         autoHide: false,
+                                        autoPrint,
                                         message: 'Arrivage enregistré avec succès',
                                         modalType: 'info',
                                         iconType: 'success',
