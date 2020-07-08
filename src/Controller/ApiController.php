@@ -23,6 +23,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Exceptions\NegativeQuantityException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
@@ -536,6 +539,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws NonUniqueResultException
      * @throws ORMException
      * @throws OptimisticLockException
+     * @throws Throwable
      */
     public function finishPrepa(Request $request,
                                 PreparationsManagerService $preparationsManager,
@@ -587,6 +591,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $articlesToKeep = [];
                             foreach ($mouvementsNomade as $mouvementNomade) {
                                 if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
+                                    /** @var Article $article */
                                     $article = $articleRepository->findOneByReference($mouvementNomade['reference']);
                                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                     if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
@@ -633,7 +638,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                             $entityManager->flush();
 
-                            $preparationsManager->updateRefArticlesQuantities($preparation);
+                            $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                         });
 
                         $resData['success'][] = [
@@ -651,9 +656,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_prepa' => $preparation->getId(),
 //TODO  CG msg prépa vide
                             'message' => (
-                            ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
+                                (($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                 (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
-                                    'Une erreur est survenue')
+                                'Une erreur est survenue'))
                             )
                         ];
                     }
@@ -993,7 +999,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     });
                 } catch (Exception $exception) {
-                    dump($exception);
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -1409,6 +1414,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function treatAnomalies(Request $request,
                                    EntityManagerInterface $entityManager)
@@ -1425,22 +1431,31 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $numberOfRowsInserted = 0;
 
             $anomalies = json_decode($request->request->get('anomalies'), true);
+            $errors = [];
             foreach ($anomalies as $anomaly) {
-                $this->inventoryService->doTreatAnomaly(
-                    $anomaly['id'],
-                    $anomaly['reference'],
-                    $anomaly['is_ref'],
-                    $anomaly['quantity'],
-                    $anomaly['comment'],
-                    $nomadUser
-                );
-                $numberOfRowsInserted++;
+                try {
+                    $this->inventoryService->doTreatAnomaly(
+                        $anomaly['id'],
+                        $anomaly['reference'],
+                        $anomaly['is_ref'],
+                        $anomaly['quantity'],
+                        $anomaly['comment'],
+                        $nomadUser
+                    );
+                    $numberOfRowsInserted++;
+                }
+                catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
+                    $errors[] = $anomaly['id'];
+                }
             }
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';
             $this->successDataMsg['success'] = true;
+            $this->successDataMsg['errors'] = $errors;
             $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
-                ? "Aucune anomalie d'inventaire à synchroniser."
+                ? ($anomalies > 0
+                    ? 'Une ou plusieus erreurs, des ordres de livraison sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
+                    : "Aucune anomalie d'inventaire à synchroniser.")
                 : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
         } else {
             $this->successDataMsg['success'] = false;

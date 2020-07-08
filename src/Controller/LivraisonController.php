@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
@@ -12,6 +11,8 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Exceptions\NegativeQuantityException;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
@@ -70,13 +71,18 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route(
+     *     "/finir/{id}",
+     *     name="livraison_finish",
+     *     options={"expose"=true},
+     *     methods={"POST"},
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @param Livraison $livraison
      * @param LivraisonsManagerService $livraisonsManager
      * @param UserService $userService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -92,17 +98,32 @@ class LivraisonController extends AbstractController
         }
 
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
-            $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $livraisonsManager->finishLivraison(
-                $this->getUser(),
-                $livraison,
-                $dateEnd,
-                $livraison->getDemande()->getDestination()
-            );
-            $entityManager->flush();
+            try {
+                $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                /** @var Utilisateur $user */
+                $user = $this->getUser();
+                $livraisonsManager->finishLivraison(
+                    $user,
+                    $livraison,
+                    $dateEnd,
+                    $livraison->getDemande()->getDestination()
+                );
+                $entityManager->flush();
+            }
+            catch(NegativeQuantityException $exception) {
+                $barcode = $exception->getArticle()->getBarCode();
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
+                ]);
+            }
         }
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison->getId()
+
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('livraison_show', [
+                'id' => $livraison->getId()
+            ])
         ]);
     }
 
@@ -242,15 +263,17 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/supprimer/{id}", name="livraison_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
+     * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
+     * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      * @return Response
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
+                           LivraisonsManagerService $livraisonsManager,
                            PreparationsManagerService $preparationsManager,
+                           EntityManagerInterface $entityManager,
                            UserService $userService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -258,24 +281,35 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
-
             $livraison = $livraisonRepository->find($data['livraison']);
 
-            $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-
             $preparation = $livraison->getpreparation();
-            $preparation->setStatut($statutP);
-            $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
-            foreach ($preparation->getArticles() as $article) {
-                $article->setStatut($statutTransit);
+
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
+
+            $livraisonStatus = $livraison->getStatut();
+            $demande = $livraison->getDemande();
+            $livraisonDestination = isset($demande) ? $demande->getDestination() : null;
+            if (isset($livraisonStatus) &&
+                in_array($livraisonStatus->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE]) &&
+                isset($livraisonDestination)) {
+                $livraisonsManager->resetStockMovementsOnDelete(
+                    $livraison,
+                    $livraisonDestination,
+                    $user,
+                    $entityManager
+                );
             }
+
+            $preparationsManager->resetPreparationToTreat($preparation, $entityManager);
+
+            $entityManager->flush();
+
             $preparation->setLivraison(null);
             $entityManager->remove($livraison);
             $entityManager->flush();
-
-            $preparationsManager->updateRefArticlesQuantities($preparation, false);
 
             $data = [
                 'redirect' => $this->generateUrl('preparation_show', [

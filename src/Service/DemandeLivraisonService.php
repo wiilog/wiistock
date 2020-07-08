@@ -9,7 +9,6 @@ use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
@@ -23,6 +22,7 @@ use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -245,13 +245,11 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
-        $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         if ($fromNomade) {
             /**
@@ -327,7 +325,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
     {

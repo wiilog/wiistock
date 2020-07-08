@@ -485,7 +485,6 @@ class LitigeController extends AbstractController
             $user = $this->getUser();
             /** @var $user Utilisateur */
             $champs[] = "actions";
-            dump($champs);
             $user->setColumnsVisibleForLitige($champs);
             $entityManager->flush();
 

@@ -41,9 +41,11 @@ use App\Service\MailerService;
 use App\Service\ValeurChampLibreService;
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\ORMException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -242,6 +244,8 @@ class ArrivageController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws ORMException
+     * @throws \Exception
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -258,6 +262,7 @@ class ArrivageController extends AbstractController
 
             $data = $request->request->all();
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
@@ -267,7 +272,9 @@ class ArrivageController extends AbstractController
             $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $numeroArrivage = $date->format('ymdHis');
+            $counter = $arrivageRepository->countByDate($date) + 1;
+            $suffix = $counter < 10 ? ("0" . $counter) : $counter;
+            $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
 
             $arrivage = new Arrivage();
             $arrivage
@@ -305,9 +312,18 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
+            try {
+                // persist and flush in function below
+                $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Une création d'arrivage était déjà en cours, veuillez réessayer.<br>"
+                ]);
+            }
 
-
-            $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
             $natures = [];
             foreach ($colis as $key => $value) {
@@ -339,7 +355,6 @@ class ArrivageController extends AbstractController
             }
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
-
             $entityManager->flush();
             if ($sendMail) {
                 $arrivageDataService->sendArrivalEmails($arrivage);
@@ -604,8 +619,7 @@ class ArrivageController extends AbstractController
                         $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, $value);
                         $valeurChampLibre->addArrivage($arrivage);
                         $entityManager->persist($valeurChampLibre);
-                    }
-                    else {
+                    } else {
                         $valeurChampLibreService->updateValue($valeurChampLibre, $value);
                     }
                     $entityManager->flush();
@@ -830,15 +844,16 @@ class ArrivageController extends AbstractController
      */
     public function getArrivageCSV(Request $request,
                                    CSVExportService $CSVExportService,
-                                   EntityManagerInterface $entityManager): Response {
+                                   EntityManagerInterface $entityManager): Response
+    {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
         try {
             $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
             $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
         }
-        catch(\Throwable $throwable) {}
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -1567,7 +1582,8 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
+    private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
+    {
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
@@ -1585,7 +1601,7 @@ class ArrivageController extends AbstractController
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() ) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -1604,17 +1620,21 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
+     * @Route(
+     *     "/colonne-visible",
+     *     name="get_column_visible_for_arrivage",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
      * @return Response
      */
-    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function getColumnVisible(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $user = $this->getUser();     ;
+        $user = $this->getUser();
 
         return new JsonResponse($user->getColumnsVisibleForArrivage());
     }

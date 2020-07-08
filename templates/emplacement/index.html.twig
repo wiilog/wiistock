@@ -43,8 +43,10 @@
                             Imprimer les étiquettes
                         </div>
                         <div class="statut dropdown-item">
-                            <div class="checkbox pl-0 pointer filters-container styled filter-checkbox">
+                            <div class="checkbox pl-0 pointer filters-container">
                                 {% set checked = active ? 'checked' : '' %}
+                                <input onchange="saveFilters(PAGE_EMPLACEMENT, '#tableEmplacement_id')"
+                                       class="styled filter-checkbox"
                                        id="actifInactif"
                                        name="statut"
                                        type="checkbox" {{ checked }}>

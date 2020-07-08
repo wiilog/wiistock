@@ -9,7 +9,6 @@ use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
-use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
@@ -1994,7 +1993,6 @@ class ReceptionController extends AbstractController
             })
             ->count();
 
-        dump($article->getBarCode(), $currentDisputesCounter);
         if ($currentDisputesCounter === 0) {
             $article->setStatut($articleStatusAvailable);
         }
