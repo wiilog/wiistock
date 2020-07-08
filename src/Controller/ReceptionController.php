@@ -807,7 +807,6 @@ class ReceptionController extends AbstractController
                 if ($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse(false);
                 }
-                $receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
 
                 $currentUser = $this->getUser();
                 $receptionLocation = $reception->getLocation();
@@ -820,7 +819,7 @@ class ReceptionController extends AbstractController
                     ->setEmplacementTo($receptionLocation)
                     ->setQuantity($receptionReferenceArticle->getQuantite())
                     ->setRefArticle($referenceArticle)
-                    ->setType($receptionReferenceArticle->getQuantite() < $quantite ? MouvementStock::TYPE_ENTREE : MouvementStock::TYPE_SORTIE)
+                    ->setType($receptionReferenceArticle->getQuantite() < $quantite ? MouvementStock::TYPE_SORTIE : MouvementStock::TYPE_ENTREE)
                     ->setReceptionOrder($reception)
                     ->setDate($now);
                 $entityManager->persist($mouvementStock);
@@ -838,6 +837,7 @@ class ReceptionController extends AbstractController
                     ]
                 );
 
+                $receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
             }
@@ -1860,6 +1860,7 @@ class ReceptionController extends AbstractController
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
+     * @param MouvementTracaService $mouvementTracaService
      * @return Response
      * @throws LoaderError
      * @throws NonUniqueResultException
@@ -1870,12 +1871,20 @@ class ReceptionController extends AbstractController
                                    DemandeLivraisonService $demandeLivraisonService,
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
-                                   Reception $reception): Response
+                                   Reception $reception,
+                                   MouvementTracaService $mouvementTracaService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $receptionLocation = $reception->getLocation();
+        $currentUser = $this->getUser();
+
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { // TEST
             $articles = $data['conditionnement'];
 
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
 
             $totalQuantities = [];
             foreach ($articles as $article) {
@@ -1884,6 +1893,33 @@ class ReceptionController extends AbstractController
                     $article['noCommande'],
                     $article['refArticle']
                 );
+
+                $mouvementStock = new MouvementStock();
+                $mouvementStock
+                    ->setUser($currentUser)
+                    ->setEmplacementTo($receptionLocation)
+                    ->setQuantity($article->getQuantite())
+                    ->setArticle($article)
+                    ->setType(MouvementStock::TYPE_ENTREE)
+                    ->setReceptionOrder($reception)
+                    ->setDate($now);
+                $entityManager->persist($mouvementStock);
+
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
+                    $article->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    MouvementTraca::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'from' => $reception
+                    ]
+                );
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
 
                 if (!isset($totalQuantities[$rra->getId()])) {
                     $totalQuantities[$rra->getId()] = ($rra->getQuantite() ?? 0);
