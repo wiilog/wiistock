@@ -169,16 +169,13 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 
 		if (!$dimensionEtiquette) {
             $dimensionEtiquette = new DimensionsEtiquettes();
-            $this->setDimensionLabel($dimensionEtiquette);
+            $dimensionEtiquette
+                ->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)
+                ->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
 		    $manager->persist($dimensionEtiquette);
         }
 
         $manager->flush();
-    }
-
-    private function setDimensionLabel(DimensionsEtiquettes $etiquette) {
-        $etiquette->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
-        return $etiquette;
     }
 
     public static function getGroups(): array
