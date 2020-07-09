@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\NegativeQuantityException;
+use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
@@ -86,17 +87,18 @@ class PreparationController extends AbstractController
      * @param $idPrepa
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
      * @return JsonResponse|RedirectResponse
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
                                 EntityManagerInterface $entityManager,
+                                LivraisonsManagerService $livraisonsManager,
                                 PreparationsManagerService $preparationsManager)
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
@@ -121,7 +123,7 @@ class PreparationController extends AbstractController
         }
 
         $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
+        $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation);
         $entityManager->persist($livraison);
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
@@ -153,77 +155,6 @@ class PreparationController extends AbstractController
                 'id' => $livraison->getId()
             ])
         ]);
-    }
-
-    /**
-     * @Route("/creer", name="", methods="POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws Exception
-     */
-    public function new(EntityManagerInterface $entityManager,
-                        Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
-        {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $demandeRepository = $entityManager->getRepository(Demande::class);
-
-            $preparation = new Preparation();
-            $entityManager = $this->getDoctrine()->getManager();
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $preparation->setNumero('P-' . $date->format('YmdHis'));
-            $preparation->setDate($date);
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-            $preparation->setStatut($statut);
-
-            foreach ($data as $key) {
-                $demande = $demandeRepository->find($key);
-                $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                $demande
-                    ->addPreparation($preparation)
-                    ->setStatut($statut);
-                $articles = $demande->getArticles();
-                foreach ($articles as $article) {
-                    $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                    $preparation->addArticle($article);
-                }
-                $lignesArticles = $demande->getLigneArticle();
-                foreach ($lignesArticles as $ligneArticle) {
-                    $lignesArticlePreparation = new LigneArticlePreparation();
-                    $lignesArticlePreparation
-                        ->setToSplit($ligneArticle->getToSplit())
-                        ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
-                        ->setQuantite($ligneArticle->getQuantite())
-                        ->setReference($ligneArticle->getReference())
-                        ->setPreparation($preparation);
-                    $entityManager->persist($lignesArticlePreparation);
-                    $preparation->addLigneArticlePreparation($lignesArticlePreparation);
-                }
-            }
-
-            $entityManager->persist($preparation);
-            $entityManager->flush();
-
-            $data = [
-                "preparation" => [
-                    "id" => $preparation->getId(),
-                    "numero" => $preparation->getNumero(),
-                    "date" => $preparation->getDate()->format("d/m/Y H:i:s"),
-                    "Statut" => $preparation->getStatut()->getNom()
-                ],
-                "message" => "Votre préparation à été enregistrée."
-            ];
-            $data = json_encode($data);
-            return new JsonResponse($data);
-        }
-
-        throw new NotFoundHttpException("404");
     }
 
     /**

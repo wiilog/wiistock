@@ -67,11 +67,13 @@ class DemandeLivraisonService
     private $mailerService;
     private $translator;
     private $valeurChampLibreService;
+    private $preparationsManager;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
+                                PreparationsManagerService $preparationsManager,
                                 ValeurChampLibreService $valeurChampLibreService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
@@ -81,6 +83,7 @@ class DemandeLivraisonService
                                 Twig_Environment $templating)
     {
         $this->receptionRepository = $receptionRepository;
+        $this->preparationsManager = $preparationsManager;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
         $this->stringService = $stringService;
@@ -204,8 +207,9 @@ class DemandeLivraisonService
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $preparation = new Preparation();
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
                 $preparation
-                    ->setNumero('P-' . $date->format('YmdHis'))
+                    ->setNumero($preparationNumber)
                     ->setDate($date);
                 $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
@@ -225,14 +229,17 @@ class DemandeLivraisonService
     private function generateNumeroForNewDL(EntityManagerInterface $entityManager)
     {
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
-        $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
         $demandeRepository = $entityManager->getRepository(Demande::class);
-        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
+        $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
+
+        $prefixeExist = $prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
+        $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
+        $yearMonth = $date->format('ym');
+        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $yearMonth);
         $lastCpt = (int)substr($lastNumero, -4, 4);
         $i = $lastCpt + 1;
         $cpt = sprintf('%04u', $i);
-        return ($prefixe . $date->format('ym') . $cpt);
+        return ($prefixe . $yearMonth . $cpt);
     }
 
     /**
@@ -325,19 +332,24 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
+    private function validateDLAfterCheck(EntityManagerInterface $entityManager,
+                                          Demande $demande,
+                                          bool $fromNomade = false): array
     {
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+
         // Creation d'une nouvelle preparation basée sur une selection de demandes
         $preparation = new Preparation();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+        $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
+
         $preparation
-            ->setNumero('P-' . $date->format('YmdHis'))
+            ->setNumero($preparationNumber)
             ->setDate($date);
 
         $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
