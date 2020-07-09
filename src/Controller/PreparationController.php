@@ -636,7 +636,7 @@ class PreparationController extends AbstractController
             [
                 $preparation->getNumero() ?? '',
                 $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
-                $preparation->getDate() ? $preparation->getDate()->format('d/m/Y h:i') : '',
+                $preparation->getDate() ? $preparation->getDate()->format('d/m/Y H:i') : '',
                 $preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : '',
                 $demande->getType() ? $demande->getType()->getLabel() : '',
             ];
