@@ -72,6 +72,8 @@ class ParametrageGlobal
     const INCLUDE_QTT_IN_LABEL = 'INCLURE QTT SUR ETIQUETTE';
     const BARCODE_TYPE_IS_128 = 'barcode type';
     const FILE_FOR_LOGO = 'FILE FOR LOGO';
+    const LABEL_HEIGHT_DEFAULT = 30;
+    const LABEL_WIDTH_DEFAULT = 50;
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code'

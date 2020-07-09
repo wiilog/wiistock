@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\ChampLibre;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
@@ -34,8 +35,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
     public function __construct(ParametrageGlobalRepository $parametrageGlobalRepository,
                                 SpecificService $specificService)
     {
-    	$this->parametreGlobalRepository = $parametrageGlobalRepository;
-    	$this->specificService = $specificService;
+        $this->parametreGlobalRepository = $parametrageGlobalRepository;
+        $this->specificService = $specificService;
     }
 
     public function load(ObjectManager $manager)
@@ -68,7 +69,8 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
         $statutRepository = $manager->getRepository(Statut::class);
         $statutConformeArrival = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
         $statutConformeArrivalId = isset ($statutConformeArrival) ? $statutConformeArrival->getId() : null;
-
+        $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
+        $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
 		$globalParameterLabels = [
 			ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
 			    'default' => false,
@@ -165,7 +167,18 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			}
 		}
 
+		if (!$dimensionEtiquette) {
+            $dimensionEtiquette = new DimensionsEtiquettes();
+            $this->setDimensionLabel($dimensionEtiquette);
+		    $manager->persist($dimensionEtiquette);
+        }
+
         $manager->flush();
+    }
+
+    private function setDimensionLabel(DimensionsEtiquettes $etiquette) {
+        $etiquette->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
+        return $etiquette;
     }
 
     public static function getGroups(): array
