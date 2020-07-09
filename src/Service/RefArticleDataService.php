@@ -150,7 +150,7 @@ class RefArticleDataService
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
                         'quantity' => array_reduce($articleFournisseur->getArticles()->toArray(), function (int $carry, Article $article) {
-                            return $article->getStatut()->getNom() === Article::STATUT_ACTIF
+                            return ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
                                 ? $carry + $article->getQuantite()
                                 : $carry;
                         }, 0)
