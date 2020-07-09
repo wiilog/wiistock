@@ -55,16 +55,16 @@ class InventoryService
 
     /**
      * @param int $idEntry
-     * @param string $reference
+     * @param $barCode
      * @param bool $isRef
      * @param int $newQuantity
      * @param string $comment
      * @param Utilisateur $user
      * @return bool
-     * @throws RequestNeedToBeProcessedException
      * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
      */
-	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
+	public function doTreatAnomaly($idEntry, $barCode, $isRef, $newQuantity, $comment, $user)
 	{
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -73,11 +73,11 @@ class InventoryService
         $quantitiesAreEqual = true;
 
 		if ($isRef) {
-			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
+			$refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode]) ?: $referenceArticleRepository->findOneByReference($barCode);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
 		    /** @var Article $refOrArt */
-			$refOrArt = $articleRepository->findOneByReference($reference);
+            $refOrArt = $articleRepository->findOneBy(['barCode' => $barCode]) ?: $articleRepository->findOneByReference($barCode);
 			$quantity = $refOrArt->getQuantite();
 		}
 

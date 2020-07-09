@@ -12,29 +12,7 @@ $(function () {
 
     initSearchDate(tableEntries);
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
-    $('.ajax-autocomplete-inv-entries').select2({
-        ajax: {
-            url: Routing.generate('get_ref_and_articles', {activeOnly: 0}, true),
-            dataType: 'json',
-            delay: 250,
-        },
-        placeholder: {
-            id: 0,
-            text: 'Référence',
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 3 caractères.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            },
-            noResults: function () {
-                return 'Aucun résultat.';
-            }
-        },
-        minimumInputLength: 3,
-    });
+    ajaxAutoRefArticleInit($('.ajax-autocomplete-inv-entries'), null, 'reference', 'Référence article', 0);
 });
 
 let mission = $('#missionId').val();
@@ -51,8 +29,9 @@ let tableEntriesConfig = {
         needsSearchOverride: true,
     },
     columns:[
-        { "data": 'Ref', 'title' : 'Reférence', 'name': 'reference' },
+        { "data": 'Ref', 'title' : 'Reférence article', 'name': 'reference' },
         { "data": 'Label', 'title' : 'Libellé' },
+        { "data": 'barCode', 'title' : 'Code barre' },
         { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
         { "data": 'Location', 'title' : 'Emplacement', 'name': 'location' },
         { "data": 'Operator', 'title' : 'Opérateur', 'name': 'operator' },
