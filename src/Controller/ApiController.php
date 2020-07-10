@@ -47,6 +47,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -533,6 +534,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishPrepa", name="api-finish-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
@@ -542,6 +544,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws Throwable
      */
     public function finishPrepa(Request $request,
+                                LivraisonsManagerService $livraisonsManager,
                                 PreparationsManagerService $preparationsManager,
                                 EntityManagerInterface $entityManager)
     {
@@ -571,6 +574,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $entityManager->transactional(function () use (
                             &$insertedPrepasIds,
                             $preparationsManager,
+                            $livraisonsManager,
                             $preparationArray,
                             $preparation,
                             $nomadUser,
@@ -586,7 +590,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $preparationsManager->setEntityManager($entityManager);
                             $mouvementsNomade = $preparationArray['mouvements'];
                             $totalQuantitiesWithRef = [];
-                            $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
+                            $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
                             $entityManager->persist($livraison);
                             $articlesToKeep = [];
                             foreach ($mouvementsNomade as $mouvementNomade) {
@@ -1045,7 +1049,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws DBALException
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
     {

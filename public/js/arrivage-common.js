@@ -19,7 +19,14 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             arrivageUrgentLoading = true;
                             $modal.find('.modal-footer-wrapper').addClass('d-none');
                             loadSpinner($modal.find('.spinner'));
-                            setArrivalUrgent(arrivalId, alertConfig.numeroCommande, alertConfig.postNb, {alertConfigs: nextAlertConfigs, ...response}, isCreation, arrivalsDatatable);
+                            setArrivalUrgent(
+                                arrivalId,
+                                alertConfig.numeroCommande,
+                                alertConfig.postNb,
+                                {alertConfigs: nextAlertConfigs, ...response},
+                                isCreation,
+                                arrivalsDatatable
+                            );
                         }
                     }
                     else {
@@ -28,7 +35,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                             if (isCreation) {
                                 treatArrivalCreation(response, arrivalsDatatable);
                             }
-                            $modal.modal('hide')
+                            $modal.modal('hide');
                         }
                         else {
                             arrivalCallback(isCreation, {alertConfigs: nextAlertConfigs, ...response}, arrivalsDatatable);
@@ -50,6 +57,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                                 ? nextAlertConfigs
                                 : [{
                                         autoHide: false,
+                                        autoPrint,
                                         message: 'Arrivage enregistré avec succès',
                                         modalType: 'info',
                                         iconType: 'success',

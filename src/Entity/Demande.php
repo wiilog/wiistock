@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -29,7 +30,7 @@ class Demande
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=false, unique=true)
      */
     private $numero;
 
@@ -335,6 +336,13 @@ class Demande
                 || $demandeStatus->getNom() === Demande::STATUT_PREPARE
             )
         );
+    }
+
+    public function getValidationDate(): ?DateTime {
+        $preparationOrders = $this->getPreparations();
+        return (!$preparationOrders->isEmpty())
+            ? $preparationOrders->first()->getDate()
+            : null;
     }
 
 }

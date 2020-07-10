@@ -471,8 +471,8 @@ class ReceptionController extends AbstractController
                 $rows[] = [
                     "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
                     "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
-                    "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : ''),
-                    "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : 0),
+                    "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : 0),
                     "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
                     "Comment" => ($ligneArticle->getEmergencyComment() ?? ''),
                     'Actions' => $this->renderView(
@@ -786,14 +786,18 @@ class ReceptionController extends AbstractController
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
-            $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
             $quantite = $data['quantite'];
+            $receivedQuantity = $receptionReferenceArticle->getQuantite();
+
+            if (empty($receivedQuantity)) {
+                $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
+                $receptionReferenceArticle->setReferenceArticle($refArticle);
+            }
 
             $receptionReferenceArticle
                 ->setCommande($data['commande'])
                 ->setAnomalie($data['anomalie'])
-                ->setReferenceArticle($refArticle)
                 ->setQuantiteAR(max($data['quantiteAR'], 0))// protection contre quantités négatives
                 ->setCommentaire($data['commentaire']);
 
@@ -856,7 +860,6 @@ class ReceptionController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-
         $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         $typeChampLibreDL = [];
 
@@ -909,8 +912,8 @@ class ReceptionController extends AbstractController
                 if ($articleDataService->articleCanBeAddedInDispute($article)) {
                     $articles[] = [
                         'id' => $article->getId(),
-                        'text' => $article->getBarCode()
-                    ];
+                        'text' => $article->getBarCode(),
+                        'numReception' => $article->getReceptionReferenceArticle()];
                 }
             }
         }
@@ -921,44 +924,49 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET")
+     * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      *
      * @param Request $request
      * @param Reception $reception
      *
      * @param EntityManagerInterface $entityManager
+     * @param RefArticleDataService $refArticleDataService
      * @return JsonResponse
      */
-    public function getRefTypeQtyArticle(Request $request, Reception $reception, EntityManagerInterface $entityManager)
+    public function getRefTypeQtyArticle(Request $request,
+                                         Reception $reception,
+                                         EntityManagerInterface $entityManager,
+                                         RefArticleDataService $refArticleDataService)
     {
-        if ($request->isXmlHttpRequest()) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $articlesFournisseurArrays = [];
-            $ref = array_map(
-                function ($item) use ($articleFournisseurRepository, &$articlesFournisseurArrays) {
-                    if (!isset($articlesFournisseurArrays[$item['reference']])) {
-                        $articlesFournisseurArrays[$item['reference']] = $articleFournisseurRepository->getIdAndLibelleByRefRef($item['reference']);
-                    }
-                    return [
-                        'id' => "{$item['reference']}_{$item['commande']}",
-                        'reference' => $item['reference'],
-                        'commande' => $item['commande'],
-                        'defaultArticleFournisseur' => count($articlesFournisseurArrays[$item['reference']]) === 1
-                            ? [
-                                'text' => $articlesFournisseurArrays[$item['reference']][0]['reference'],
-                                'value' => $articlesFournisseurArrays[$item['reference']][0]['id']
-                            ]
-                            : null,
-                        'text' => "{$item['reference']} – {$item['commande']}"
-                    ];
-                },
-                $referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId())
-            );
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $articlesFournisseurArrays = [];
 
-            return new JsonResponse(['results' => $ref]);
-        }
-        throw new NotFoundHttpException("404");
+        $selectedReference = $request->query->get('reference');
+        $selectedCommande = $request->query->get('commande');
+
+        $ref = array_map(
+            function ($item) use ($articleFournisseurRepository, &$articlesFournisseurArrays, $refArticleDataService) {
+                if (!isset($articlesFournisseurArrays[$item['reference']])) {
+                    $articlesFournisseurArrays[$item['reference']] = $articleFournisseurRepository->getIdAndLibelleByRefRef($item['reference']);
+                }
+                return [
+                    'id' => "{$item['reference']}_{$item['commande']}",
+                    'reference' => $item['reference'],
+                    'commande' => $item['commande'],
+                    'defaultArticleFournisseur' => count($articlesFournisseurArrays[$item['reference']]) === 1
+                        ? [
+                            'text' => $articlesFournisseurArrays[$item['reference']][0]['reference'],
+                            'value' => $articlesFournisseurArrays[$item['reference']][0]['id']
+                        ]
+                        : null,
+                    'text' => "{$item['reference']} – {$item['commande']}"
+                ];
+            },
+            $referenceArticleRepository->getRefTypeQtyArticleByReception($reception->getId(), $selectedReference, $selectedCommande)
+        );
+
+        return new JsonResponse(['results' => $ref]);
     }
 
     /**
@@ -969,7 +977,8 @@ class ReceptionController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function getLigneArticleCondtionnement(Request $request, EntityManagerInterface $entityManager)
+    public function getLigneArticleCondtionnement(Request $request,
+                                                  EntityManagerInterface $entityManager)
     {
         if ($request->isXmlHttpRequest()) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);

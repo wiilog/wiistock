@@ -23,8 +23,11 @@ $(function () {
 function InitiliserPageModals() {
     let modal = $("#modalAddLigneArticle");
     let submit = $("#addArticleLigneSubmit");
+    let submitAndRedirect = $('#addArticleLigneSubmitAndRedirect');
     let url = Routing.generate('reception_article_add', true);
+
     InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
+    InitialiserModal(modal, submitAndRedirect, url, tableArticle, createHandlerAddLigneArticleResponseAndRedirect(modal), false, false);
 
     let modalDeleteArticle = $("#modalDeleteLigneArticle");
     let submitDeleteArticle = $("#submitDeleteLigneArticle");
@@ -343,8 +346,17 @@ function initNewArticleEditor(modal) {
     clearModal(modal);
 
     const $commandField = $(modal).find('[name="commande"]');
-    const numCommand = $('#numCommandeReception').val();
-    $commandField.val(numCommand);
+    const $numCommand = $('#numCommandeReception').val();
+    $commandField.val($numCommand);
+
+    const $button = $('#addArticleLigneSubmitAndRedirect');
+    $button.addClass('d-none');
+
+    let $quantiteRecue =  $('#quantiteRecue');
+    let $quantiteAR = $('#quantiteAR');
+    $quantiteRecue.prop('disabled', true);
+    $quantiteRecue.val(0);
+    $quantiteAR.val(0);
 
     setTimeout(() => {
         openSelect2($select2refs);
@@ -357,20 +369,34 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
     initDatatableConditionnement();
 }
 
-function articleChanged(select) {
-    if (select.val() !== null) {
-        let route = Routing.generate('is_urgent', true);
-        let params = JSON.stringify(select.val());
-        $.post(route, params, function (response) {
-            if (response.urgent) {
-                $('.emergency').removeClass('d-none');
-                $('.emergency-comment').text(response.comment);
-            } else {
-                $('.emergency').addClass('d-none');
-            }
-            $('.body-add-ref').css('display', 'flex');
-            $('#innerNewRef').html('');
-        });
+function articleChanged($select) {
+    const selectedReferences = $select.select2('data');
+    const $addArticleAndRedirectSubmit = $('#addArticleLigneSubmitAndRedirect');
+    const classDNone = 'd-none';
+
+    if (selectedReferences.length > 0) {
+        const selectedReference = selectedReferences[0];
+        const typeQuantity = selectedReference.typeQuantity;
+        if (typeQuantity === 'article') {
+            $addArticleAndRedirectSubmit.removeClass(classDNone);
+        } else {
+            $addArticleAndRedirectSubmit.addClass(classDNone);
+        }
+
+        const $emergencyContainer = $('.emergency');
+        const $emergencyCommentContainer =  $('.emergency-comment');
+        if (selectedReference.urgent) {
+            $emergencyContainer.removeClass(classDNone);
+            $emergencyCommentContainer.text(selectedReference.emergencyComment);
+        } else {
+            $emergencyContainer.addClass(classDNone);
+            $emergencyCommentContainer.text('');
+        }
+        $('.body-add-ref').css('display', 'flex');
+        $('#innerNewRef').html('');
+    }
+    else {
+        $addArticleAndRedirectSubmit.addClass(classDNone);
     }
 }
 
@@ -454,6 +480,11 @@ function submitActionRefArticleFromRecep(modal, path, close, successCallback) {
         let msg = buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
+}
+
+function openModalLigneReception($button) {
+    clearModalLigneReception('#modalNewLigneReception');
+    initNewLigneReception($button);
 }
 
 function clearModalLigneReception(modal) {
@@ -700,6 +731,40 @@ function createHandlerAddLigneArticleResponse($modal) {
     }
 }
 
+function createHandlerAddLigneArticleResponseAndRedirect($modal) {
+    return (data) => {
+        const [{text: refSelectedReference} = {}] = $modal.find('select[name="referenceArticle"]').select2('data') || [];
+        const commande = $modal.find('input[name="commande"]').val();
+        createHandlerAddLigneArticleResponse($modal)(data);
+        if (!data.errorMsg) {
+            $('#modalNewLigneReception').modal('show');
+
+            $.get({
+                url: Routing.generate('get_ref_article_reception', {
+                    reception: $('#receptionId').val(),
+                    reference: refSelectedReference,
+                    commande
+                })
+            })
+            .then(({results}) => {
+                if (results && results.length > 0) {
+                    const [selected] = results;
+                    if (selected) {
+                        const $pickingSelect = $('#modalNewLigneReception').find('#referenceConditionnement');
+                        let newOption = new Option(selected.text, selected.id, true, true);
+                        $pickingSelect
+                            .append(newOption)
+                            .val(selected.id);
+                        const [selectedPicking] = $pickingSelect.select2('data');
+                        Object.assign(selectedPicking, selected);
+                        initConditionnementArticleFournisseurDefault();
+                    }
+                }
+            });
+        }
+    }
+}
+
 function updateQuantityToReceive($input) {
     $input.closest('.modal').find('[name="quantite"]').attr('max', $input.val());
 }
@@ -736,8 +801,10 @@ function initConditionnementArticleFournisseurDefault() {
                 }
             },
             {},
-            referenceArticle.defaultArticleFournisseur || {});
-    } else {
+            referenceArticle.defaultArticleFournisseur || {}
+        );
+    }
+    else {
         resetDefaultArticleFournisseur();
     }
 }
@@ -748,6 +815,7 @@ function resetDefaultArticleFournisseur(show = false) {
     if ($selectArticleFournisseur.hasClass("select2-hidden-accessible")) {
         $selectArticleFournisseur.select2('destroy');
     }
+
     $selectArticleFournisseur.val(null).trigger('change');
 
     if (show) {

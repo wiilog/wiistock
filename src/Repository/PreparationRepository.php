@@ -250,4 +250,18 @@ class PreparationRepository extends EntityRepository
 		return $query->execute();
 	}
 
+	public function countByNumero(string $numero) {
+	    $queryBuilder = $this
+            ->createQueryBuilder('preparation')
+            ->select('COUNT(preparation.id) AS counter')
+            ->where('preparation.numero = :numero')
+            ->setParameter('numero', $numero . '%');
+
+	    $result = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+	    return !empty($result) ? ($result[0]['counter'] ?? 0) : 0;
+    }
+
 }

@@ -148,7 +148,11 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $em = $this->getEntityManager();
 
-        $dql = "SELECT r.id, r.${field} as text
+        $dql = "SELECT r.id,
+                r.${field} as text,
+                r.typeQuantite as typeQuantity,
+                r.isUrgent as urgent,
+                r.emergencyComment as emergencyComment
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
           WHERE r.${field} LIKE :search ";
@@ -1169,25 +1173,37 @@ class ReferenceArticleRepository extends EntityRepository
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
     }
 
-    public function getRefTypeQtyArticleByReception($id)
+    public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
     {
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT ra.reference as reference,
-                         rra.commande as commande
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.receptionReferenceArticles rra
-            JOIN rra.reception r
-            WHERE r.id = :id
-              AND (rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)
-              AND ra.typeQuantite = :typeQty"
-        )->setParameters([
+
+        $queryBuilder = $this->createQueryBuilder('ra')
+            ->select('ra.reference as reference')
+            ->addSelect('rra.commande as commande')
+            ->join('ra.receptionReferenceArticles', 'rra')
+            ->join('rra.reception', 'r')
+            ->andWhere('r.id = :id')
+            ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
+            ->andWhere('ra.typeQuantite = :typeQty')
+            ->setParameters([
             'id' => $id,
             'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
         ]);
-        return $query->execute();
+
+        if (!empty($reference)) {
+            $queryBuilder
+                ->andWhere('ra.reference = :reference')
+                ->setParameter('reference', $reference);
+        }
+
+        if (!empty($commande)) {
+            $queryBuilder
+                ->andWhere('rra.commande = :commande')
+                ->setParameter('commande', $commande);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     private function array_values_recursive($array)

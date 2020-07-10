@@ -242,4 +242,18 @@ class LivraisonRepository extends EntityRepository
 		]);
 		return $query->execute();
 	}
+
+    public function countByNumero(string $numero) {
+        $queryBuilder = $this
+            ->createQueryBuilder('livraison')
+            ->select('COUNT(livraison.id) AS counter')
+            ->where('livraison.numero = :numero')
+            ->setParameter('numero', $numero . '%');
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return !empty($result) ? ($result[0]['counter'] ?? 0) : 0;
+    }
 }

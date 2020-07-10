@@ -1080,29 +1080,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function isUrgent(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $referenceArticle = $referenceArticleRepository->find($id);
-
-            return new JsonResponse([
-                'urgent' => $referenceArticle->getIsUrgent() ?? false,
-                'comment' => $referenceArticle->getEmergencyComment()
-            ]);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
      * @param Request $request
      * @param RefArticleDataService $refArticleDataService

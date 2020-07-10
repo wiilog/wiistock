@@ -28,6 +28,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		'Location' => 'location',
 		'Operator' => 'operator',
 		'Quantity' => 'quantity',
+		'barCode' => 'barCode',
 	];
 
 	public function __construct(ManagerRegistry $registry)
@@ -156,22 +157,28 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->getScalarResult();
 	}
 
-	/**
-	 * @param array|null $params
-	 * @param array|null $filters
-	 * @return array
-	 * @throws \Exception
-	 */
-	public function findByParamsAndFilters($params, $filters)
+    /**
+     * @param array|null $params
+     * @param array|null $filters
+     * @param bool $anomalyMode
+     * @return array
+     */
+	public function findByParamsAndFilters($params, $filters, $anomalyMode = false)
 	{
-		$em = $this->getEntityManager();
-		$qb = $em->createQueryBuilder();
+        $countTotalResult = $this->createQueryBuilder('ie')
+            ->select('COUNT(ie.id) AS count')
+            ->getQuery()
+            ->getResult();
 
-		$qb
-			->select('ie')
-			->from('App\Entity\InventoryEntry', 'ie');
+        $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
+            ? intval($countTotalResult[0]['count'])
+            : 0;
 
-		$countTotal = count($qb->getQuery()->getResult());
+        $qb = $this->createQueryBuilder('ie');
+
+        if ($anomalyMode) {
+            $qb->where('ie.anomaly = 1');
+        }
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -201,9 +208,11 @@ class InventoryEntryRepository extends ServiceEntityRepository
 				case 'reference':
 					$value = explode(':', $filter['value']);
 					$qb
-						->leftJoin('ie.refArticle', 'ra')
-						->leftJoin('ie.article', 'a')
-						->andWhere('ra.reference = :reference OR a.reference = :reference')
+                        ->leftJoin('ie.refArticle', 'filter_reference_refArticle')
+                        ->leftJoin('ie.article', 'filter_reference_article')
+                        ->leftJoin('filter_reference_article.articleFournisseur', 'filter_reference_articleFournisseur')
+                        ->leftJoin('filter_reference_articleFournisseur.referenceArticle', 'filter_reference_article_refArticle')
+						->andWhere('filter_reference_refArticle.reference = :reference OR filter_reference_article_refArticle.reference = :reference')
 						->setParameter('reference', $value[1]);
 			}
 		}
@@ -214,14 +223,23 @@ class InventoryEntryRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->leftJoin('ie.refArticle', 'ra2')
-						->leftJoin('ie.location', 'l2')
-						->leftJoin('ie.utilisateur', 'u2')
-						->andWhere('
-						ra2.reference LIKE :value OR
-						ra2.libelle LIKE :value OR
-						l2.label LIKE :value OR
-						u2.username LIKE :value')
+						->leftJoin('ie.refArticle', 'search_referenceArticle')
+						->leftJoin('ie.article', 'search_article')
+						->leftJoin('search_article.articleFournisseur', 'search_articleFournisseur')
+						->leftJoin('search_articleFournisseur.referenceArticle', 'search_article_referenceArticle')
+						->leftJoin('ie.location', 'search_location')
+						->leftJoin('ie.operator', 'search_operator')
+						->andWhere('(
+                            search_referenceArticle.reference LIKE :value OR
+                            search_referenceArticle.libelle LIKE :value OR
+                            search_referenceArticle.barCode LIKE :value OR
+                            search_article.label LIKE :value OR
+                            search_article.barCode LIKE :value OR
+                            search_article_referenceArticle.reference LIKE :value OR
+                            search_article_referenceArticle.barCode LIKE :value OR
+                            search_location.label LIKE :value OR
+                            search_operator.username LIKE :value
+                        )')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -235,21 +253,38 @@ class InventoryEntryRepository extends ServiceEntityRepository
 
 					if ($column === 'reference') {
 						$qb
-							->leftJoin('ie.refArticle', 'ra3')
-							->orderBy('ra3.reference', $order);
-					} else if ($column === 'label') {
+                            ->leftJoin('ie.refArticle', 'order_reference_refArticle')
+                            ->leftJoin('ie.article', 'order_reference_article')
+                            ->leftJoin('order_reference_article.articleFournisseur', 'order_reference_articleFournisseur')
+                            ->leftJoin('order_reference_articleFournisseur.referenceArticle', 'order_reference_article_refArticle')
+                            ->addSelect('(CASE WHEN order_reference_refArticle.id IS NOT NULL THEN order_reference_refArticle.reference ELSE order_reference_article_refArticle.reference END) AS order_reference')
+                            ->orderBy('order_reference', $order);
+					}
+					else if ($column === 'barCode') {
 						$qb
-							->leftJoin('ie.refArticle', 'ra3')
-							->orderBy('ra3.libelle', $order);
-					} else if ($column === 'location') {
+							->leftJoin('ie.refArticle', 'order_barCode_refArticle')
+							->leftJoin('ie.article', 'order_barCode_article')
+                            ->addSelect('(CASE WHEN order_barCode_article.id IS NOT NULL THEN order_barCode_article.barCode ELSE order_barCode_refArticle.barCode END) AS order_barCode')
+							->orderBy('order_barCode', $order);
+					}
+					else if ($column === 'label') {
+						$qb
+							->leftJoin('ie.refArticle', 'order_label_refArticle')
+							->leftJoin('ie.article', 'order_label_article')
+                            ->addSelect('(CASE WHEN order_label_article.id IS NOT NULL THEN order_label_article.label ELSE order_label_refArticle.libelle END) AS order_label')
+							->orderBy('order_label', $order);
+					}
+					else if ($column === 'location') {
 						$qb
 							->leftJoin('ie.location', 'l3')
 							->orderBy('l3.label', $order);
-					} else if ($column === 'operator') {
+					}
+					else if ($column === 'operator') {
 						$qb
 							->leftJoin('ie.operator', 'u3')
 							->orderBy('u3.username', $order);
-					} else {
+					}
+					else {
 						$qb
 							->orderBy('ie.' . $column, $order);
 					}

@@ -15,10 +15,11 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
+use App\Repository\ArticleRepository;
+use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\Persistence\ObjectRepository;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -162,45 +163,24 @@ class PreparationsManagerService
     }
 
     /**
-     * @param DateTime $dateEnd
-     * @param Preparation $preparation
-     * @return Livraison
-     * @throws NonUniqueResultException
-     */
-    public function createLivraison(DateTime $dateEnd, Preparation $preparation)
-    {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
-        $livraison = new Livraison();
-
-        $livraison
-            ->setPreparation($preparation)
-            ->setDate($dateEnd)
-            ->setNumero('L-' . $dateEnd->format('YmdHis'))
-            ->setStatut($statut);
-
-        return $livraison;
-    }
-
-
-    /**
      * @param Preparation $preparation
      * @param Demande $demande
-     * @param ObjectRepository $statutRepository
-     * @param ObjectRepository $articleRepository
+     * @param StatutRepository $statutRepository
+     * @param ArticleRepository $articleRepository
      * @param array $listOfArticleSplitted
      * @return Preparation
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
     private function persistPreparationFromOldOne(Preparation $preparation,
                                                   Demande $demande,
-                                                  ObjectRepository $statutRepository,
-                                                  ObjectRepository $articleRepository,
+                                                  StatutRepository $statutRepository,
+                                                  ArticleRepository $articleRepository,
                                                   array $listOfArticleSplitted): Preparation {
         $newPreparation = new Preparation();
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $number = $this->generateNumber($date, $this->entityManager);
         $newPreparation
-            ->setNumero('P-' . $date->format('YmdHis'))
+            ->setNumero($number)
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
 
@@ -613,5 +593,19 @@ class PreparationsManagerService
         foreach ($preparation->getArticles() as $article) {
             $article->setQuantitePrelevee(null);
         }
+    }
+
+    public function generateNumber(DateTime $date, EntityManagerInterface $entityManager): string {
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
+
+        $preparationNumber = ('P-' . $date->format('YmdHis'));
+        $preparationWithSameNumber = $preparationRepository->countByNumero($preparationNumber);
+        $preparationWithSameNumber++;
+
+        $currentCounterStr = $preparationWithSameNumber < 10
+            ? ('0' . $preparationWithSameNumber)
+            : $preparationWithSameNumber;
+
+        return ($preparationNumber . '-' . $currentCounterStr);
     }
 }
