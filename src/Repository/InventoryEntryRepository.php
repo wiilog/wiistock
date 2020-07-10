@@ -227,7 +227,6 @@ class InventoryEntryRepository extends ServiceEntityRepository
 						->leftJoin('ie.article', 'search_article')
 						->leftJoin('search_article.articleFournisseur', 'search_articleFournisseur')
 						->leftJoin('search_articleFournisseur.referenceArticle', 'search_article_referenceArticle')
-						->leftJoin('ie.article', 'search_article')
 						->leftJoin('ie.location', 'search_location')
 						->leftJoin('ie.operator', 'search_operator')
 						->andWhere('(
