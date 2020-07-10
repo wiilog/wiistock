@@ -133,7 +133,7 @@ class DemandeRepository extends EntityRepository
 			'SELECT d.numero
 			FROM App\Entity\Demande d
 			WHERE d.numero LIKE :value
-			ORDER BY d.date DESC'
+			ORDER BY d.numero DESC'
 		)->setParameter('value', $prefixe . $date . '%');
 
 		$result = $query->execute();
