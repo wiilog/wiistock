@@ -126,7 +126,8 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('a.barCode as barCode')
             ->addSelect('(CASE WHEN
                 (
-                    (
+                    preparation.id IS NULL
+                    AND (
                         demande.id IS NULL
                         OR demandeStatus.nom = :draftRequestStatus
                     )
@@ -137,6 +138,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->join('a.statut', 'articleStatus')
             ->leftJoin('a.emplacement', 'e')
             ->leftJoin('a.demande', 'demande')
+            ->leftJoin('a.preparation', 'preparation')
             ->leftJoin('demande.statut', 'demandeStatus')
             ->andWhere('ie.anomaly = 1')
             ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
