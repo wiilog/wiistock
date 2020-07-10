@@ -23,28 +23,6 @@ class LigneArticlePreparationRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param ReferenceArticle $referenceArticle
-     * @param Preparation $preparation
-     * @return LigneArticlePreparation|null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByRefArticleAndPreparationAndToSplit($referenceArticle, Preparation $preparation)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT l
-            FROM App\Entity\LigneArticlePreparation l
-            WHERE l.reference = :referenceArticle AND l.preparation = :preparation AND l.toSplit = 1
-            "
-        )->setParameters([
-            'referenceArticle' => $referenceArticle,
-            'preparation' => $preparation
-        ]);
-
-        return $query->getOneOrNullResult();
-    }
-
-    /**
      * @param $referenceArticle
      * @param $preparation
      * @return LigneArticlePreparation
@@ -66,32 +44,16 @@ class LigneArticlePreparationRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    // /**
-    //  * @return LigneArticlePreparation[] Returns an array of LigneArticlePreparation objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+    /**
+     * @param Preparation $preparation
+     * @return LigneArticlePreparation
+     */
+    public function findUnpicked(Preparation $preparation) {
+        $queryBuilder = $this->createQueryBuilder('ligneArticle')
+            ->where('ligneArticle.preparation = :preparation')
+            ->andWhere('(ligneArticle.quantitePrelevee IS NULL OR ligneArticle.quantitePrelevee = 0)')
+            ->setParameter('preparation', $preparation);
 
-    /*
-    public function findOneBySomeField($value): ?LigneArticlePreparation
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $queryBuilder->getQuery()->getResult();
     }
-    */
 }

@@ -107,19 +107,9 @@ class PreparationController extends AbstractController
 
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $preparationRepository = $entityManager->getRepository(Preparation::class);
-        $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
 
         $preparation = $preparationRepository->find($idPrepa);
         $locationEndPrepa = $emplacementRepository->find($request->request->get('emplacement'));
-
-        $ligneArticle = $ligneArticlePreparationRepository->findBy(['preparation' => $preparation->getId()]);
-
-        if(count($ligneArticlePreparationRepository->findBy(['preparation' => $preparation->getId()])) > 0) {
-            foreach ($ligneArticle as $ligne) {
-                $entityManager->remove($ligne);
-            }
-            $entityManager->flush();
-        }
 
         try {
             $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser());

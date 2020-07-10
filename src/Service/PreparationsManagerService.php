@@ -110,13 +110,22 @@ class PreparationsManagerService
      * @param $userNomade
      * @param Emplacement $emplacement
      * @param array $articlesToKeep
+     * @param EntityManagerInterface|null $entityManager
      * @return Preparation|null
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
-    public function treatPreparation(Preparation $preparation, $userNomade, Emplacement $emplacement, array $articlesToKeep): ?Preparation
+    public function treatPreparation(Preparation $preparation,
+                                     $userNomade,
+                                     Emplacement $emplacement,
+                                     array $articlesToKeep,
+                                     EntityManagerInterface $entityManager = null): ?Preparation
     {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
         $demande = $preparation->getDemande();
         foreach ($preparation->getArticles() as $article) {
             $artQuantitePrelevee = $article->getQuantitePrelevee();
@@ -139,7 +148,7 @@ class PreparationsManagerService
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
-            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $articleRepository, $articlesToKeep);
+            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $articleRepository, $articlesToKeep, $entityManager);
         } else {
             return null;
         }
@@ -168,17 +177,24 @@ class PreparationsManagerService
      * @param StatutRepository $statutRepository
      * @param ArticleRepository $articleRepository
      * @param array $listOfArticleSplitted
+     * @param EntityManagerInterface|null $entityManager
      * @return Preparation
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function persistPreparationFromOldOne(Preparation $preparation,
                                                   Demande $demande,
                                                   StatutRepository $statutRepository,
                                                   ArticleRepository $articleRepository,
-                                                  array $listOfArticleSplitted): Preparation {
+                                                  array $listOfArticleSplitted,
+                                                  EntityManagerInterface $entityManager = null): Preparation {
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+
         $newPreparation = new Preparation();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $number = $this->generateNumber($date, $this->entityManager);
+        $number = $this->generateNumber($date, $entityManager);
         $newPreparation
             ->setNumero($number)
             ->setDate($date)
@@ -194,7 +210,8 @@ class PreparationsManagerService
 
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
-            if ($ligneArticlePreparation->getQuantite() !== $ligneArticlePreparation->getQuantitePrelevee()) {
+            $pickedQuantity = $ligneArticlePreparation->getQuantitePrelevee();
+            if ($ligneArticlePreparation->getQuantite() !== $pickedQuantity) {
                 $newLigneArticle = new LigneArticlePreparation();
                 $selectedQuantityForPreviousLigne = $ligneArticlePreparation->getQuantitePrelevee() ?? 0;
                 $newQuantity = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
@@ -207,12 +224,17 @@ class PreparationsManagerService
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
                     ->setQuantite($newQuantity);
-                $this->entityManager->persist($newLigneArticle);
+
+                if (empty($pickedQuantity)) {
+                    $entityManager->remove($ligneArticlePreparation);
+                }
+
+                $entityManager->persist($newLigneArticle);
             }
         }
 
-        $this->entityManager->persist($newPreparation);
-        $this->entityManager->flush();
+        $entityManager->persist($newPreparation);
+        $entityManager->flush();
 
         return $newPreparation;
     }

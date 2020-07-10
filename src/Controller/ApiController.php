@@ -628,7 +628,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                             }
                             $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                            $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep);
+                            $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
 
                             if ($insertedPreparation) {
                                 $insertedPrepasIds[] = $insertedPreparation->getId();
