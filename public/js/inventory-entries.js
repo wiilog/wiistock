@@ -29,7 +29,7 @@ let tableEntriesConfig = {
         needsSearchOverride: true,
     },
     columns:[
-        { "data": 'Ref', 'title' : 'Reférence article', 'name': 'reference' },
+        { "data": 'Ref', 'title' : 'Référence article', 'name': 'reference' },
         { "data": 'Label', 'title' : 'Libellé' },
         { "data": 'barCode', 'title' : 'Code barre' },
         { "data": 'Date', 'title' : 'Date de saisie', 'name': 'date' },
