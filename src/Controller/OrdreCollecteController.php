@@ -140,19 +140,16 @@ class OrdreCollecteController extends AbstractController
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        if ($data = json_decode($request->getContent(), true)) {
-            if ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
-                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-                $ordreCollecteService->finishCollecte(
-                    $ordreCollecte,
-                    $this->getUser(),
-                    $date,
-                    isset($data['depositLocationId']) ? $emplacementRepository->find($data['depositLocationId']) : null,
-                    $data['rows']
-                );
-            }
+        $rows = $request->request->get('rows');
+        if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $ordreCollecteService->finishCollecte(
+                $ordreCollecte,
+                $this->getUser(),
+                $date,
+                $rows
+            );
             $data = $this->renderView('ordre_collecte/ordre-collecte-show-header.html.twig', [
                 'collecte' => $ordreCollecte,
                 'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
@@ -212,7 +209,9 @@ class OrdreCollecteController extends AbstractController
                         'id' => $article->getId(),
                         'barCode' => $article->getBarCode(),
                         'quantity' => $article->getQuantite(),
-                        'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                        'modifiable' => $ordreCollecte->getStatut()
+                            ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
+                            : false,
                         'articleId' =>$article->getId(),
                         "location" => $location,
                     ])

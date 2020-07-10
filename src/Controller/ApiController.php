@@ -947,8 +947,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $ordreCollecteService->setEntityManager($entityManager);
                         $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
 
-                        $endLocation = $emplacementRepository->findOneByLabel($collecteArray['location_to']);
-                        $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements'], true);
+                        $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                         $entityManager->flush();
 
                         if (!empty($newCollecte)) {
