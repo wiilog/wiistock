@@ -897,13 +897,16 @@ class ReferenceArticle
     }
 
     public function isInRequestsInProgress(): bool {
-        return $this
-            ->getLigneArticles()
-            ->filter(function(LigneArticle $ligneArticle) {
-                $demande = $ligneArticle->getDemande();
-                return $demande->needsToBeProcessed();
-            })
-            ->count() > 0;
+        $ligneArticles = $this->getLigneArticles();
+        $inProgress = false;
+        foreach ($ligneArticles as $ligneArticle) {
+            $demande = $ligneArticle->getDemande();
+            if ($demande->needsToBeProcessed()) {
+                $inProgress = true;
+                break;
+            }
+        }
+        return $inProgress;
     }
 
 }

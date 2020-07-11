@@ -656,14 +656,16 @@ class Article
     public function isInRequestsInProgress(): bool {
         $request = $this->getDemande();
         $preparation = $this->getPreparation();
+        $articleFournisseur = $this->getArticleFournisseur();
+        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
         return (
             (
                 $request
                 && $request->getStatut()
                 && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
             )
-            ||
-            $preparation
+            || $preparation
+            || ($referenceArticle && $referenceArticle->isInRequestsInProgress())
         );
     }
 }

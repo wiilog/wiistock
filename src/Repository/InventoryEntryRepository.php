@@ -115,42 +115,68 @@ class InventoryEntryRepository extends ServiceEntityRepository
 	}
 
     public function getAnomaliesOnArt(bool $forceValidLocation = false, $anomaliesIds = []) {
-        $queryBuilder = $this->createQueryBuilder('ie')
-            ->select('ie.id')
-            ->addSelect('a.reference')
-            ->addSelect('a.label')
-            ->addSelect('e.label as location')
-            ->addSelect('a.quantite as quantity')
+        $subQueryBuilder = $this->createQueryBuilder('sub_entry')
+            ->select('
+                MIN(CASE WHEN
+                    (
+                        sub_preparation.id IS NULL
+                        AND (
+                            sub_demande.id IS NULL
+                            OR sub_demandeStatus.nom = :draftRequestStatus
+                        )
+                        AND (
+                            sub_ligneArticle.id IS NULL
+                            OR (
+                                sub_ligneArticle_preparation_status.nom != :preparationStatusToTreat
+                                AND sub_ligneArticle_preparation_status.nom != :preparationStatusInProgress
+                            )
+                        )
+                        AND sub_articleStatus.nom = :articleStatusAvailable
+                    )
+                    THEN 1 ELSE 0 END) AS sub_isTreatable
+            ')
+            ->join('sub_entry.article', 'sub_article')
+            ->join('sub_article.statut', 'sub_articleStatus')
+            ->leftJoin('sub_article.demande', 'sub_demande')
+            ->leftJoin('sub_article.preparation', 'sub_preparation')
+            ->leftJoin('sub_demande.statut', 'sub_demandeStatus')
+            ->leftJoin('sub_article.articleFournisseur', 'sub_articleFournisseur')
+            ->leftJoin('sub_articleFournisseur.referenceArticle', 'sub_referenceArticle')
+            ->leftJoin('sub_referenceArticle.ligneArticlePreparations', 'sub_ligneArticle')
+            ->leftJoin('sub_ligneArticle.preparation', 'sub_ligneArticle_preparation')
+            ->leftJoin('sub_ligneArticle_preparation.statut', 'sub_ligneArticle_preparation_status')
+            ->where('sub_entry.id = entry.id')
+            ->groupBy('sub_entry.id');
+
+        $isTreatableDQL = $subQueryBuilder
+            ->getQuery()
+            ->getDQL();
+
+        $queryBuilder = $this->createQueryBuilder('entry')
+            ->select('entry.id')
+            ->addSelect('article.reference')
+            ->addSelect('article.label')
+            ->addSelect('articleLocation.label as location')
+            ->addSelect('article.quantite as quantity')
             ->addSelect('0 as is_ref')
             ->addSelect('0 as treated')
-            ->addSelect('a.barCode as barCode')
-            ->addSelect('(CASE WHEN
-                (
-                    preparation.id IS NULL
-                    AND (
-                        demande.id IS NULL
-                        OR demandeStatus.nom = :draftRequestStatus
-                    )
-                    AND articleStatus.nom = :articleStatusAvailable
-                )
-                THEN 1 ELSE 0 END) AS isTreatable')
-            ->join('ie.article', 'a')
-            ->join('a.statut', 'articleStatus')
-            ->leftJoin('a.emplacement', 'e')
-            ->leftJoin('a.demande', 'demande')
-            ->leftJoin('a.preparation', 'preparation')
-            ->leftJoin('demande.statut', 'demandeStatus')
-            ->andWhere('ie.anomaly = 1')
+            ->addSelect('article.barCode as barCode')
+            ->addSelect("($isTreatableDQL) AS isTreatable")
+            ->join('entry.article', 'article')
+            ->leftJoin('article.emplacement', 'articleLocation')
+            ->andWhere('entry.anomaly = 1')
             ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
-            ->setParameter('draftRequestStatus', Demande::STATUT_BROUILLON);
+            ->setParameter('draftRequestStatus', Demande::STATUT_BROUILLON)
+            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
+            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION);
 
         if ($forceValidLocation) {
-            $queryBuilder->andWhere('e IS NOT NULL');
+            $queryBuilder->andWhere('articleLocation IS NOT NULL');
         }
 
         if (!empty($anomaliesIds)) {
             $queryBuilder
-                ->andWhere('ie.id IN (:inventoryEntries)')
+                ->andWhere('entry.id IN (:inventoryEntries)')
                 ->setParameter("inventoryEntries", $anomaliesIds, Connection::PARAM_STR_ARRAY);
         }
 
