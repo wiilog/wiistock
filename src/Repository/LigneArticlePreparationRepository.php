@@ -42,17 +42,4 @@ class LigneArticlePreparationRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
-
-    /**
-     * @param Preparation $preparation
-     * @return LigneArticlePreparation
-     */
-    public function findUnpicked(Preparation $preparation) {
-        $queryBuilder = $this->createQueryBuilder('ligneArticle')
-            ->where('ligneArticle.preparation = :preparation')
-            ->andWhere('(ligneArticle.quantitePrelevee IS NULL OR ligneArticle.quantitePrelevee = 0)')
-            ->setParameter('preparation', $preparation);
-
-        return $queryBuilder->getQuery()->getResult();
-    }
 }

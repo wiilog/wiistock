@@ -82,19 +82,6 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findOneByLigneReception($ligne)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra
-            FROM App\Entity\ReferenceArticle ra
-            JOIN App\Entity\ReceptionReferenceArticle rra
-            WHERE rra.referenceArticle = ra AND rra = :ligne
-        "
-        )->setParameter('ligne', $ligne);
-        return $query->getOneOrNullResult();
-    }
-
     /**
      * @param $reference
      * @return ReferenceArticle|null
