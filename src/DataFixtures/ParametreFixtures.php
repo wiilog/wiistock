@@ -173,6 +173,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 ->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)
                 ->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
 		    $manager->persist($dimensionEtiquette);
+		    dump('création des dimensions étiquettes');
         }
 
         $manager->flush();
