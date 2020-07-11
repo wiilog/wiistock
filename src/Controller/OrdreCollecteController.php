@@ -8,7 +8,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
@@ -128,14 +127,17 @@ class OrdreCollecteController extends AbstractController
      * @param OrdreCollecte $ordreCollecte
      * @param OrdreCollecteService $ordreCollecteService
      * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
     public function finish(Request $request,
                            OrdreCollecte $ordreCollecte,
                            OrdreCollecteService $ordreCollecteService,
-                           UserService $userService, EntityManagerInterface $entityManager): Response
+                           UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -144,9 +146,13 @@ class OrdreCollecteController extends AbstractController
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
             $ordreCollecteService->finishCollecte(
                 $ordreCollecte,
-                $this->getUser(),
+                $loggedUser,
                 $date,
                 $rows
             );
