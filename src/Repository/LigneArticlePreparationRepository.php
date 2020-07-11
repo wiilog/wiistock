@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Preparation;
-use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\NonUniqueResultException;

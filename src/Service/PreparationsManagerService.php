@@ -160,12 +160,20 @@ class PreparationsManagerService
 
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
-            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) $complete = false;
+            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) {
+                $complete = false;
+                break;
+            }
         }
 
-        $lignesArticle = $preparation->getLigneArticlePreparations();
-        foreach ($lignesArticle as $ligneArticle) {
-            if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) $complete = false;
+        if ($complete) {
+            $lignesArticle = $preparation->getLigneArticlePreparations();
+            foreach ($lignesArticle as $ligneArticle) {
+                if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) {
+                    $complete = false;
+                    break;
+                }
+            }
         }
 
         return $complete;
@@ -346,7 +354,6 @@ class PreparationsManagerService
                         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                         $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                         $this->treatArticleSplitting($article, $mouvement['quantity'], $ligneArticle);
-                        // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
                     }
                 }
 
@@ -359,12 +366,19 @@ class PreparationsManagerService
         $this->entityManager->flush();
     }
 
-    public function treatArticleSplitting(Article $article, int $quantite, LigneArticlePreparation $ligneArticle)
+    public function treatArticleSplitting(Article $article,
+                                          int $quantite,
+                                          LigneArticlePreparation $ligneArticle,
+                                          ?Statut $statusArticle = null)
     {
         if ($quantite !== '' && $quantite > 0 && $quantite <= $article->getQuantite()) {
             if (!$article->getPreparation()) {
                 $article->setQuantiteAPrelever(0);
                 $article->setQuantitePrelevee(0);
+            }
+
+            if ($statusArticle) {
+                $article->setStatut($statusArticle);
             }
 
             $article->setPreparation($ligneArticle->getPreparation());
@@ -609,11 +623,11 @@ class PreparationsManagerService
         $preparation->getMouvements()->clear();
 
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-            $ligneArticle->setQuantitePrelevee(null);
+            $ligneArticle->setQuantitePrelevee(0);
         }
 
         foreach ($preparation->getArticles() as $article) {
-            $article->setQuantitePrelevee(null);
+            $article->setQuantitePrelevee(0);
         }
     }
 

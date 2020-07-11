@@ -10,7 +10,6 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
