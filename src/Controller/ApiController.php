@@ -24,7 +24,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\DemandeToTreatExistsException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
@@ -47,6 +47,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -533,6 +534,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishPrepa", name="api-finish-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
@@ -542,6 +544,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws Throwable
      */
     public function finishPrepa(Request $request,
+                                LivraisonsManagerService $livraisonsManager,
                                 PreparationsManagerService $preparationsManager,
                                 EntityManagerInterface $entityManager)
     {
@@ -571,6 +574,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $entityManager->transactional(function () use (
                             &$insertedPrepasIds,
                             $preparationsManager,
+                            $livraisonsManager,
                             $preparationArray,
                             $preparation,
                             $nomadUser,
@@ -586,7 +590,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $preparationsManager->setEntityManager($entityManager);
                             $mouvementsNomade = $preparationArray['mouvements'];
                             $totalQuantitiesWithRef = [];
-                            $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
+                            $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
                             $entityManager->persist($livraison);
                             $articlesToKeep = [];
                             foreach ($mouvementsNomade as $mouvementNomade) {
@@ -624,7 +628,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                             }
                             $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                            $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep);
+                            $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
 
                             if ($insertedPreparation) {
                                 $insertedPrepasIds[] = $insertedPreparation->getId();
@@ -998,7 +1002,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         }
                     });
                 } catch (Exception $exception) {
-                    dump($exception);
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -1045,7 +1048,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws DBALException
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
     {
@@ -1444,7 +1447,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     );
                     $numberOfRowsInserted++;
                 }
-                catch (ArticleNotAvailableException|DemandeToTreatExistsException $exception) {
+                catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
                     $errors[] = $anomaly['id'];
                 }
             }

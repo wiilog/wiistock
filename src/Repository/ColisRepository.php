@@ -265,7 +265,6 @@ class ColisRepository extends EntityRepository
      * @param array $naturesFilter
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]|[]
      * @return mixed
-     * @throws DBALException
      */
     private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = [], array $onDateBracket = []): QueryBuilder
     {

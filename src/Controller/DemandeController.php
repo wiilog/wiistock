@@ -638,7 +638,7 @@ class DemandeController extends AbstractController
                 'destination',
                 'commentaire',
                 'date demande',
-                'date(s) validation(s)',
+                'date validation',
                 'numéro',
                 'type demande',
                 'code(s) préparation(s)',
@@ -802,13 +802,16 @@ class DemandeController extends AbstractController
             })
             ->toArray();
 
+        $requestCreationDate = $demande->getDate();
+        $requestValidationDate = $demande->getValidationDate();
+
         return [
             $demande->getUtilisateur()->getUsername(),
             $demande->getStatut()->getNom(),
             $demande->getDestination()->getLabel(),
             strip_tags($demande->getCommentaire()),
-            $demande->getDate()->format('Y/m/d-H:i:s'),
-            $preparationOrders->count() > 0 ? $preparationOrders->last()->getDate()->format('Y/m/d-H:i:s') : '',
+            isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
+            isset($requestValidationDate) ? $requestValidationDate->format('d/m/Y H:i:s') : '',
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : '',
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',

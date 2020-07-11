@@ -59,6 +59,37 @@ class LivraisonsManagerService
         $this->mouvementStockService = $mouvementStockService;
     }
 
+    /**
+     * @param DateTime $dateEnd
+     * @param Preparation $preparation
+     * @param EntityManagerInterface|null $entityManager
+     * @return Livraison
+     */
+    public function createLivraison(DateTime $dateEnd,
+                                    Preparation $preparation,
+                                    EntityManagerInterface $entityManager = null)
+    {
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
+
+        $entityManager->getRepository(Livraison::class);
+
+        $livraison = new Livraison();
+
+        $livraisonNumber = $this->generateNumber($dateEnd, $entityManager);
+
+        $livraison
+            ->setPreparation($preparation)
+            ->setDate($dateEnd)
+            ->setNumero($livraisonNumber)
+            ->setStatut($statut);
+
+        return $livraison;
+    }
+
     public function setEntityManager(EntityManagerInterface $entityManager): self
     {
         $this->entityManager = $entityManager;
@@ -276,6 +307,20 @@ class LivraisonsManagerService
         );
 
         $entityManager->persist($mouvementStock);
+    }
+
+    public function generateNumber(DateTime $date, EntityManagerInterface $entityManager): string {
+        $livraisonRepository = $entityManager->getRepository(Livraison::class);
+
+        $livraisonNumber = ('L-' . $date->format('YmdHis'));
+        $livraisonWithSameNumber = $livraisonRepository->countByNumero($livraisonNumber);
+        $livraisonWithSameNumber++;
+
+        $currentCounterStr = $livraisonWithSameNumber < 10
+            ? ('0' . $livraisonWithSameNumber)
+            : $livraisonWithSameNumber;
+
+        return ($livraisonNumber . '-' . $currentCounterStr);
     }
 
 }

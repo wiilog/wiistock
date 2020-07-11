@@ -226,24 +226,6 @@ class ChampLibreRepository extends EntityRepository
 		return $query->execute();
 	}
 
-    public function findByCategoryTypeLabelsMulti($categoryTypeLabels,$categoryTypeLabels2)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label
-            FROM App\Entity\ChampLibre c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label in (:categoryTypeLabels , :categoryTypeLabels2) "
-        )->setParameters(['categoryTypeLabels' => $categoryTypeLabels,
-            'categoryTypeLabels2' => $categoryTypeLabels2
-            ]);
-
-        return $query->getResult();
-    }
-
-
-
 	/**
 	 * @param string $categoryCL
 	 * @param string $label
@@ -305,21 +287,4 @@ class ChampLibreRepository extends EntityRepository
 
 		return $query->execute();
 	}
-    /**
-     * @param string[] $categoryTypeLabels
-     * @return ChampLibre[]
-     */
-    public function findLabelByCategoryTypeLabels($categoryTypeLabels)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label as key , c.label as label
-            FROM App\Entity\ChampLibre c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label in (:categoryTypeLabels)"
-        )->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
-
-        return $query->execute();
-    }
 }

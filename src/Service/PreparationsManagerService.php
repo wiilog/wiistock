@@ -15,11 +15,11 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
+use App\Repository\ArticleRepository;
+use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ObjectRepository;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -110,13 +110,22 @@ class PreparationsManagerService
      * @param $userNomade
      * @param Emplacement $emplacement
      * @param array $articlesToKeep
+     * @param EntityManagerInterface|null $entityManager
      * @return Preparation|null
-     * @throws Exception
+     * @throws NonUniqueResultException
      */
-    public function treatPreparation(Preparation $preparation, $userNomade, Emplacement $emplacement, array $articlesToKeep): ?Preparation
+    public function treatPreparation(Preparation $preparation,
+                                     $userNomade,
+                                     Emplacement $emplacement,
+                                     array $articlesToKeep,
+                                     EntityManagerInterface $entityManager = null): ?Preparation
     {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
         $demande = $preparation->getDemande();
         foreach ($preparation->getArticles() as $article) {
             $artQuantitePrelevee = $article->getQuantitePrelevee();
@@ -139,7 +148,7 @@ class PreparationsManagerService
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
-            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $articleRepository, $articlesToKeep);
+            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $articleRepository, $articlesToKeep, $entityManager);
         } else {
             return null;
         }
@@ -151,57 +160,51 @@ class PreparationsManagerService
 
         $articles = $preparation->getArticles();
         foreach ($articles as $article) {
-            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) $complete = false;
+            if ($article->getQuantitePrelevee() < $article->getQuantiteAPrelever()) {
+                $complete = false;
+                break;
+            }
         }
 
-        $lignesArticle = $preparation->getLigneArticlePreparations();
-        foreach ($lignesArticle as $ligneArticle) {
-            if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) $complete = false;
+        if ($complete) {
+            $lignesArticle = $preparation->getLigneArticlePreparations();
+            foreach ($lignesArticle as $ligneArticle) {
+                if ($ligneArticle->getQuantitePrelevee() < $ligneArticle->getQuantite()) {
+                    $complete = false;
+                    break;
+                }
+            }
         }
 
         return $complete;
     }
 
     /**
-     * @param DateTime $dateEnd
-     * @param Preparation $preparation
-     * @return Livraison
-     * @throws NonUniqueResultException
-     */
-    public function createLivraison(DateTime $dateEnd, Preparation $preparation)
-    {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
-        $livraison = new Livraison();
-
-        $livraison
-            ->setPreparation($preparation)
-            ->setDate($dateEnd)
-            ->setNumero('L-' . $dateEnd->format('YmdHis'))
-            ->setStatut($statut);
-
-        return $livraison;
-    }
-
-
-    /**
      * @param Preparation $preparation
      * @param Demande $demande
-     * @param ObjectRepository $statutRepository
-     * @param ObjectRepository $articleRepository
+     * @param StatutRepository $statutRepository
+     * @param ArticleRepository $articleRepository
      * @param array $listOfArticleSplitted
+     * @param EntityManagerInterface|null $entityManager
      * @return Preparation
+     * @throws NonUniqueResultException
      * @throws Exception
      */
     private function persistPreparationFromOldOne(Preparation $preparation,
                                                   Demande $demande,
-                                                  ObjectRepository $statutRepository,
-                                                  ObjectRepository $articleRepository,
-                                                  array $listOfArticleSplitted): Preparation {
+                                                  StatutRepository $statutRepository,
+                                                  ArticleRepository $articleRepository,
+                                                  array $listOfArticleSplitted,
+                                                  EntityManagerInterface $entityManager = null): Preparation {
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+
         $newPreparation = new Preparation();
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $number = $this->generateNumber($date, $entityManager);
         $newPreparation
-            ->setNumero('P-' . $date->format('YmdHis'))
+            ->setNumero($number)
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
 
@@ -215,7 +218,8 @@ class PreparationsManagerService
 
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
-            if ($ligneArticlePreparation->getQuantite() !== $ligneArticlePreparation->getQuantitePrelevee()) {
+            $pickedQuantity = $ligneArticlePreparation->getQuantitePrelevee();
+            if ($ligneArticlePreparation->getQuantite() !== $pickedQuantity) {
                 $newLigneArticle = new LigneArticlePreparation();
                 $selectedQuantityForPreviousLigne = $ligneArticlePreparation->getQuantitePrelevee() ?? 0;
                 $newQuantity = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
@@ -228,12 +232,17 @@ class PreparationsManagerService
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
                     ->setQuantite($newQuantity);
-                $this->entityManager->persist($newLigneArticle);
+
+                if (empty($pickedQuantity)) {
+                    $entityManager->remove($ligneArticlePreparation);
+                }
+
+                $entityManager->persist($newLigneArticle);
             }
         }
 
-        $this->entityManager->persist($newPreparation);
-        $this->entityManager->flush();
+        $entityManager->persist($newPreparation);
+        $entityManager->flush();
 
         return $newPreparation;
     }
@@ -345,7 +354,6 @@ class PreparationsManagerService
                         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                         $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                         $this->treatArticleSplitting($article, $mouvement['quantity'], $ligneArticle);
-                        // et si ça n'a pas déjà été fait, on supprime le lien entre la réf article et la demande
                     }
                 }
 
@@ -358,12 +366,19 @@ class PreparationsManagerService
         $this->entityManager->flush();
     }
 
-    public function treatArticleSplitting(Article $article, int $quantite, LigneArticlePreparation $ligneArticle)
+    public function treatArticleSplitting(Article $article,
+                                          int $quantite,
+                                          LigneArticlePreparation $ligneArticle,
+                                          ?Statut $statusArticle = null)
     {
         if ($quantite !== '' && $quantite > 0 && $quantite <= $article->getQuantite()) {
             if (!$article->getPreparation()) {
                 $article->setQuantiteAPrelever(0);
                 $article->setQuantitePrelevee(0);
+            }
+
+            if ($statusArticle) {
+                $article->setStatut($statusArticle);
             }
 
             $article->setPreparation($ligneArticle->getPreparation());
@@ -474,7 +489,7 @@ class PreparationsManagerService
             $articleRef = $ligneArticle->getReference();
             $mouvementAlreadySaved = $mouvementRepository->findOneByRefAndPrepa($articleRef->getId(), $preparation->getId());
             if (!$mouvementAlreadySaved && !empty($ligneArticle->getQuantitePrelevee())) {
-                if ($articleRef->getQuantiteStock() >= $ligneArticle->getQuantite()) {
+                if ($articleRef->getQuantiteStock() >= $ligneArticle->getQuantitePrelevee()) {
                     $mouvement = new MouvementStock();
                     $mouvement
                         ->setUser($user)
@@ -608,11 +623,25 @@ class PreparationsManagerService
         $preparation->getMouvements()->clear();
 
         foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-            $ligneArticle->setQuantitePrelevee(null);
+            $ligneArticle->setQuantitePrelevee(0);
         }
 
         foreach ($preparation->getArticles() as $article) {
-            $article->setQuantitePrelevee(null);
+            $article->setQuantitePrelevee(0);
         }
+    }
+
+    public function generateNumber(DateTime $date, EntityManagerInterface $entityManager): string {
+        $preparationRepository = $entityManager->getRepository(Preparation::class);
+
+        $preparationNumber = ('P-' . $date->format('YmdHis'));
+        $preparationWithSameNumber = $preparationRepository->countByNumero($preparationNumber);
+        $preparationWithSameNumber++;
+
+        $currentCounterStr = $preparationWithSameNumber < 10
+            ? ('0' . $preparationWithSameNumber)
+            : $preparationWithSameNumber;
+
+        return ($preparationNumber . '-' . $currentCounterStr);
     }
 }

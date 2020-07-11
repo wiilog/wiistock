@@ -652,4 +652,20 @@ class Article
             self::USED_ASSOC_NONE)))))
         );
     }
+
+    public function isInRequestsInProgress(): bool {
+        $request = $this->getDemande();
+        $preparation = $this->getPreparation();
+        $articleFournisseur = $this->getArticleFournisseur();
+        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+        return (
+            (
+                $request
+                && $request->getStatut()
+                && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
+            )
+            || $preparation
+            || ($referenceArticle && $referenceArticle->isInRequestsInProgress())
+        );
+    }
 }

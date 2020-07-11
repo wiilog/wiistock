@@ -203,20 +203,25 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
+                if (data.success === false && data.msg) {
+                    alertErrorMsg(data.msg, true);
                 }
-                // pour mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
-                if (table) {
-                    table.ajax.reload(null, false);
-                }
+                else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+                    // pour mise à jour des données d'en-tête après modification
+                    if (data.entete) {
+                        $('.zone-entete').html(data.entete)
+                    }
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
 
-                if (clear) {
-                    clearModal(modal);
+                    if (clear) {
+                        clearModal(modal);
+                    }
                 }
 
                 return data;
@@ -682,15 +687,14 @@ function ajaxAutoCompleteTransporteurInit(select) {
     initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
-function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference') {
-    initSelect2(select, '', 1, {
+function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference', placeholder = '', activeOnly = 1) {
+    initSelect2(select, placeholder, 1, {
         route: 'get_ref_articles',
-        param:
-            {
-                activeOnly: 1,
-                field,
-                typeQuantity
-            }
+        param: {
+            activeOnly,
+            field,
+            typeQuantity
+        }
     });
 }
 

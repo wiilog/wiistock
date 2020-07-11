@@ -444,7 +444,7 @@ class OrdreCollecteController extends AbstractController
             [
                 $ordreCollecte->getNumero() ?? '',
                 $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
-                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y h:i') : '',
+                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y H:i') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
                 $collecte->getType() ? $collecte->getType()->getLabel() : ''
             ];

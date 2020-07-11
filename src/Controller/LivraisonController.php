@@ -3,14 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
-use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -18,7 +15,6 @@ use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
-use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use App\Service\UserService;
 use DateTime;
@@ -388,9 +384,8 @@ class LivraisonController extends AbstractController
             ];
 
             foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                if ($ligneArticle->getQuantite() > 0) {
+                if ($ligneArticle->getQuantitePrelevee() > 0) {
                     $referenceArticle = $ligneArticle->getReference();
-
                     $data[] = array_merge($dataLivraison, [
                         $referenceArticle->getReference() ?? '',
                         $referenceArticle->getLibelle() ?? '',

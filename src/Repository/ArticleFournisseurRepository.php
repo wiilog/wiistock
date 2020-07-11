@@ -72,18 +72,6 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByReferenceArticleFournisseur($reference)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT af
-            FROM App\Entity\ArticleFournisseur af
-            WHERE af.reference = :reference"
-        )->setParameter('reference', $reference);
-
-        return $query->getResult();
-    }
-
 	/**
 	 * @param int $refArticleId
 	 * @param int $fournisseurId
@@ -276,12 +264,12 @@ class ArticleFournisseurRepository extends EntityRepository
             ->execute();
     }
 
-	/**
- * @param string $reference
- * @return int
- * @throws NoResultException
- * @throws NonUniqueResultException
- */
+    /**
+     * @param string $reference
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function countByReference($reference): int
     {
         $entityManager = $this->getEntityManager();
@@ -291,29 +279,6 @@ class ArticleFournisseurRepository extends EntityRepository
            FROM App\Entity\ArticleFournisseur articleFournisseur
            WHERE articleFournisseur.reference = :reference"
         )->setParameter('reference', $reference);
-
-        return (int) $query->getSingleScalarResult();
-    }
-
-
-    /**
-     * @param string $reference
-     * @param int $referencearticle
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByReferenceAndReferenceArticle($reference, $referencearticle): int
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(articleFournisseur)
-           FROM App\Entity\ArticleFournisseur articleFournisseur
-           WHERE articleFournisseur.reference = :reference
-           AND articleFournisseur.referenceArticle = :referencearticle"
-        )   ->setParameter('referencearticle', $referencearticle)
-            ->setParameter('reference', $reference);
 
         return (int) $query->getSingleScalarResult();
     }
