@@ -69,20 +69,27 @@ function openLocationModal() {
         let location = $inputData.data('emplacement');
         let isRef = $inputData.data('is-ref');
         let barCode = $inputData.data('barCode');
-        const $newTr = $('<tr/>', {id: `finish-collecte-${barCode}`})
-            .append($('<td/>', {text: barCode}));
 
         const $contentLocation = isRef === 0
-            ? $('<div class="col-12"><select class="needed form-control ajax-autocompleteEmplacement depositLocation w-100 "></select></div>')
-            : $('<span/>', {text: location});
+            ? $('<div/>', {
+                class: 'col-12',
+                html: $('<select/>', {
+                    class: 'needed form-control ajax-autocompleteEmplacement depositLocation w-100'
+                })
+            })
+            : $('<span/>', {class: 'col-12', text: location});
 
-        $newTr.append($('<td/>', {html: $contentLocation}));
+        const $barCodeTd = $('<td/>', {text: barCode});
+        const $locationTd = $('<td/>', {html: $contentLocation});
+
+        const $newTr = $('<tr/>', {'data-barcode': barCode})
+            .append($barCodeTd)
+            .append($locationTd);
 
         $tbody.append($newTr);
     });
     $('#modalFinishCollecte').modal('show');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-
+    ajaxAutoCompleteEmplacementInit($("#modalFinishCollecte div.modal-body table.table > tbody").find('.ajax-autocompleteEmplacement'));
 }
 
 function finishCollecte($button, withoutLocation = false) {
@@ -97,7 +104,7 @@ function finishCollecte($button, withoutLocation = false) {
         const $rowData = $(this).find('.ordre-collecte-data');
         const barCode = $rowData.data('bar-code');
         const $select = modalFinishCollecte
-            .find(`#finish-collecte-${barCode}`)
+            .find(`tr[data-barcode="${barCode}"]`)
             .find('.depositLocation');
         const isRef = $rowData.data('is-ref');
         const depositLocationId = $select.val();

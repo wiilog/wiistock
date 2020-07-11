@@ -142,18 +142,19 @@ class OrdreCollecteService
 
 		// on construit la liste des lignes à transférer vers une nouvelle collecte
 		$rowsToRemove = [];
-		$listOrdreCollecteReference = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
+		$listOrdreCollecteReference = $ordreCollecte->getOrdreCollecteReferences();
 		foreach ($listOrdreCollecteReference as $ordreCollecteReference) {
 		    /** @var ReferenceArticle $refArticle */
 			$refArticle = $ordreCollecteReference->getReferenceArticle();
-			if (!isset($mouvmentByBarcode[$refArticle->getBarCode()])) {
+            $barCode = $refArticle->getBarCode();
+			if (!isset($mouvmentByBarcode[$barCode])) {
 				$rowsToRemove[] = [
 					'id' => $refArticle->getId(),
 					'isRef' => 1
 				];
 			}
 			else {
-                $quantity = $mouvmentByBarcode[$refArticle->getBarCode()]['quantity'];
+                $quantity = $mouvmentByBarcode[$barCode]['quantity'];
                 $oldQuantity = $ordreCollecteReference->getQuantite();
                 if($quantity > 0 && $quantity < $oldQuantity) {
                     $ordreCollecteReference->setQuantite($quantity);
@@ -161,16 +162,17 @@ class OrdreCollecteService
             }
 		}
 
-		$listArticles = $articleRepository->findByOrdreCollecteId($ordreCollecte->getId());
+		$listArticles = $ordreCollecte->getArticles();
 		foreach ($listArticles as $article) {
-			if (!isset($mouvmentByBarcode[$article->getBarCode()])) {
+		    $barCode = $article->getBarCode();
+			if (!isset($mouvmentByBarcode[$barCode])) {
 				$rowsToRemove[] = [
 					'id' => $article->getId(),
 					'isRef' => 0
 				];
 			}
 			else {
-                $quantity = $mouvmentByBarcode[$article->getBarCode()]['quantity'];
+                $quantity = $mouvmentByBarcode[$barCode]['quantity'];
                 $oldQuantity = $article->getQuantite();
                 if($quantity > 0 && $quantity < $oldQuantity) {
                     $article->setQuantite($quantity);
@@ -215,9 +217,8 @@ class OrdreCollecteService
 			$articles = $ordreCollecte->getArticles();
             foreach ($articles as $article) {
                 if (isset($mouvmentByBarcode[$article->getBarCode()])) {
-
                     $depositLocationId = $mouvmentByBarcode[$article->getBarCode()]['depositLocationId'];
-                    $depositLocation = $emplacementRepository->find($depositLocationId);
+                    $depositLocation = $depositLocationId ? $emplacementRepository->find($depositLocationId) : null;
                     if (!$fromNomade) {
                         $article->setEmplacement($depositLocation);
                     }
