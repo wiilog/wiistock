@@ -12,6 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
+use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -583,11 +584,14 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @param bool $fromCommand
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
+    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle, bool $fromCommand = false)
     {
         $this->updateStockQuantity($referenceArticle);
-        $this->updateReservedQuantity($referenceArticle);
+        $this->updateReservedQuantity($referenceArticle, $fromCommand);
         $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
     }
 
@@ -606,9 +610,12 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @param bool $fromCommand
      * @return void
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
+    private function updateReservedQuantity(ReferenceArticle $referenceArticle, bool $fromCommand = false): void
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
@@ -618,10 +625,17 @@ class RefArticleDataService
             $totalReservedQuantity = 0;
             $lignesArticlePrepaEnCours = $referenceArticle
                 ->getLigneArticlePreparations()
-                ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
+                ->filter(function (LigneArticlePreparation $ligneArticlePreparation) use ($fromCommand) {
                     $preparation = $ligneArticlePreparation->getPreparation();
+                    $livraison = $preparation->getLivraison();
                     return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
+                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER
+                        ||
+                        (
+                            $fromCommand &&
+                            $livraison &&
+                            $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                        );
                 });
             /**
              * @var LigneArticlePreparation $ligneArticlePrepaEnCours
