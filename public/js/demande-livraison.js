@@ -155,7 +155,6 @@ $(function () {
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
-
     if (val && val.length > 0) {
         let valuesStr = val.split(',');
         let valuesInt = [];
