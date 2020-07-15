@@ -756,7 +756,8 @@ class ReceptionController extends AbstractController
                 'reception/modalEditLigneArticleContent.html.twig',
                 [
                     'ligneArticle' => $ligneArticle,
-                    'canUpdateQuantity' => $canUpdateQuantity
+                    'canUpdateQuantity' => $canUpdateQuantity,
+                    'minValue' => $ligneArticle->getQuantite() ?? 0
                 ]
             );
             return new JsonResponse($json);
@@ -806,56 +807,70 @@ class ReceptionController extends AbstractController
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             if ($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-
+                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite();
+                $newReceivedQuantity = max((int)$quantite, 0);
+                $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
                 // protection quantité reçue <= quantité à recevoir
                 if ($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
-                    return new JsonResponse(false);
+                    return new JsonResponse([
+                        'status' => false,
+                        'msgError' => 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !'
+                    ]);
                 }
 
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
                 $receptionLocation = $reception->getLocation();
-                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
                 $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite();
-                $newReceivedQuantity = max((int)$quantite, 0);
-                $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
 
                 if ($diffReceivedQuantity != 0) {
-                    $mouvementStock = $this->mouvementStockService->createMouvementStock(
-                        $currentUser,
-                        null,
-                        abs($diffReceivedQuantity),
-                        $referenceArticle,
-                        $diffReceivedQuantity < 0 ? MouvementStock::TYPE_SORTIE : MouvementStock::TYPE_ENTREE
-                    );
-                    $mouvementStock->setReceptionOrder($reception);
+                    $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
+                    if ($newRefQuantity - $referenceArticle->getQuantiteReservee() < 0) {
+                        return new JsonResponse([
+                            'status' => false,
+                            'msgError' =>
+                                'Vous ne pouvez pas avoir reçu '
+                                . $newReceivedQuantity
+                                . ' : la quantité disponible de la référence est : '
+                                . $referenceArticle->getQuantiteDisponible()
+                        ]);
+                    } else {
+                        $mouvementStock = $this->mouvementStockService->createMouvementStock(
+                            $currentUser,
+                            null,
+                            abs($diffReceivedQuantity),
+                            $referenceArticle,
+                            $diffReceivedQuantity < 0 ? MouvementStock::TYPE_SORTIE : MouvementStock::TYPE_ENTREE
+                        );
+                        $mouvementStock->setReceptionOrder($reception);
 
-                    $this->mouvementStockService->finishMouvementStock(
-                        $mouvementStock,
-                        $now,
-                        $receptionLocation
-                    );
-                    $entityManager->persist($mouvementStock);
+                        $this->mouvementStockService->finishMouvementStock(
+                            $mouvementStock,
+                            $now,
+                            $receptionLocation
+                        );
+                        $entityManager->persist($mouvementStock);
+                        $createdMvt = $mouvementTracaService->createMouvementTraca(
+                            $referenceArticle->getBarCode(),
+                            $receptionLocation,
+                            $currentUser,
+                            $now,
+                            false,
+                            true,
+                            MouvementTraca::TYPE_DEPOSE,
+                            [
+                                'mouvementStock' => $mouvementStock,
+                                'from' => $reception
+                            ]
+                        );
 
-                    $createdMvt = $mouvementTracaService->createMouvementTraca(
-                        $referenceArticle->getBarCode(),
-                        $receptionLocation,
-                        $currentUser,
-                        $now,
-                        false,
-                        true,
-                        MouvementTraca::TYPE_DEPOSE,
-                        [
-                            'mouvementStock' => $mouvementStock,
-                            'from' => $reception
-                        ]
-                    );
-
-                    $receptionReferenceArticle->setQuantite($newReceivedQuantity); // protection contre quantités négatives
-                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
+                        $receptionReferenceArticle->setQuantite($newReceivedQuantity); // protection contre quantités négatives
+                        $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                        $referenceArticle->setQuantiteStock($newRefQuantity);
+                        $entityManager->persist($createdMvt);
+                    }
                 }
             }
 
@@ -867,6 +882,8 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
 
             $json = [
+                'status' => true,
+                'msgError' => '',
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,

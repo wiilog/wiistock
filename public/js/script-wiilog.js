@@ -193,7 +193,7 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
         && wrongNumberInputs.length == 0
         && passwordIsValid
         && datesAreValid) {
-        if (close == true) {
+        if (close === true) {
             modal.find('.close').click();
         }
 
@@ -205,7 +205,7 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
             })
             .then((data) => {
                 if (data.success === false && data.msg) {
-                    alertErrorMsg(data.msg, true);
+                    alertErrorMsg(data.msg, false);
                 }
                 else {
                     if (data.redirect) {
@@ -773,7 +773,7 @@ function clearInvalidInputs($modal) {
 }
 
 function displayError(modal, msg, success) {
-    if (success === false) {
+    if (!success) {
         modal.find('.error-msg').html(msg);
     } else {
         modal.find('.close').click();

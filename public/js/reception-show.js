@@ -166,8 +166,7 @@ function initDateTimePickerReception() {
 
 function displayErrorReception(data) {
     let $modal = $("#modalEditLigneArticle");
-    let msg = 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !';
-    displayError($modal, msg, data);
+    displayError($modal, data.msgError, data.status);
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {

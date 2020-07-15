@@ -21,7 +21,7 @@
                class="form-control data needed"
                value="{{ligneArticle.quantiteAR}}"
                name="quantiteAR"
-               min="0"
+               min="{{ minValue }}"
                onchange="updateQuantityToReceive($(this))"/>
     </div>
     <div class="form-group col-6">
