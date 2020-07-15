@@ -89,6 +89,43 @@ class LigneArticleRepository extends EntityRepository
         )->setParameter('demande', $demande);;
         return $query->getResult();
     }
+    /**
+     * @param $demandes
+     * @return LigneArticle[]
+     */
+    public function findByDemandes($demandes, $needAssoc = false)
+    {
+        $queryBuilder = $this->createQueryBuilder('ligne_article')
+            ->select('ligne_article');
+
+        if ($needAssoc) {
+            $queryBuilder->addSelect('demande.id AS demandeId');
+
+        }
+        $queryBuilder
+            ->join('ligne_article.demande' , 'demande')
+            ->where('ligne_article.demande IN (:demandes)')
+            ->setParameter('demandes', $demandes );
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+
+        if ($needAssoc) {
+            $result = array_reduce($result, function(array $carry, $current) {
+                $ligneArticle =  $current[0];
+                $demandeId = $current['demandeId'];
+
+                if (!isset($carry[$demandeId])) {
+                    $carry[$demandeId] = [];
+                }
+
+                $carry[$demandeId][] = $ligneArticle;
+                return $carry;
+            }, []);
+        }
+        return $result;
+    }
 
     public function countByRefArticleDemande($referenceArticle, $demande)
     {

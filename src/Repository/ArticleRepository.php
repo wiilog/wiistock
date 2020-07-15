@@ -116,19 +116,39 @@ class ArticleRepository extends EntityRepository
 	}
 
     /**
-     * @param Demande|int $demande
-     * @return Article[]|null
+     * @param $demandes
+     * @return Article[]
      */
-    public function findByDemande($demande)
+    public function findByDemandes($demandes, $needAssoc = false)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a
-             FROM App\Entity\Article a
-             WHERE a.demande =:demande
-            "
-        )->setParameter('demande', $demande);
-        return $query->execute();
+        $queryBuilder = $this->createQueryBuilder('article')
+            ->select('article');
+
+        if ($needAssoc) {
+            $queryBuilder->addSelect('demande.id AS demandeId');
+
+        }
+        $queryBuilder
+            ->join('article.demande' , 'demande')
+            ->where('article.demande IN (:demandes)')
+            ->setParameter('demandes', $demandes);
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        if ($needAssoc) {
+            $result = array_reduce($result, function(array $carry, $current) {
+                $article =  $current[0];
+                $demandeId = $current['demandeId'];
+
+                if (!isset($carry[$demandeId])) {
+                    $carry[$demandeId] = [];
+                }
+
+                $carry[$demandeId][] = $article;
+                return $carry;
+            }, []);
+        }
+        return $result;
     }
 
     public function getByDemandeAndType($demande, $type)
