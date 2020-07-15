@@ -1232,7 +1232,6 @@ function warningEmptyDatesForCsv() {
 }
 
 function displayFiltersSup(data) {
-    console.log(data);
     data.forEach(function (element) {
         switch (element.field) {
             case 'utilisateurs':
