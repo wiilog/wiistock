@@ -399,12 +399,15 @@ class DemandeLivraisonService
                 // recalcul du num
                 $number = $this->preparationsManager->generateNumber($preparation->getDate(), $entityManager);
                 $preparation->setNumero($number);
-
-                $response['success'] = false;
-                $response['message'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
             }
         }
         while (!$requestPersisted && $tryCounter < 5);
+
+        if (!$requestPersisted) {
+            $response['success'] = false;
+            $response['message'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
+            return $response;
+        }
 
         foreach ($refArticleToUpdateQuantities as $refArticle) {
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
