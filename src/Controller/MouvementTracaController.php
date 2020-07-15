@@ -85,7 +85,7 @@ class MouvementTracaController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $referenceFilter = $request->query->get('reference');
+        $referenceFilter = $request->query->get('colis');
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, FiltreSup::PAGE_MVT_TRACA, $this->getUser());
         if (empty($filter)) {
             $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, null, $this->getUser());

@@ -27,7 +27,7 @@
                     <i class="fas fa-external-link-alt mr-2"></i>Accéder à la demande
                 </div>
             {% endif %}
-            <a href="{{ path('mvt_traca_index') }}?reference={{ articleFilter }}" class="dropdown-item">
+            <a href="{{ path('mvt_traca_index') }}?colis={{ articleFilter }}" class="dropdown-item">
                 <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
             </a>
             {% if  hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
