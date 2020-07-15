@@ -20,7 +20,6 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
-use App\Repository\ValeurChampLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -32,6 +31,7 @@ use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -102,10 +102,10 @@ class DemandeController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,

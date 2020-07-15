@@ -253,7 +253,6 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
     {
@@ -396,6 +395,9 @@ class DemandeLivraisonService
             }
                 /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
+                if (!$entityManager->isOpen()) {
+                    $entityManager = $entityManager->create($entityManager->getConnection(), $entityManager->getConfiguration());
+                }
                 // recalcul du num
                 $number = $this->preparationsManager->generateNumber($preparation->getDate(), $entityManager);
                 $preparation->setNumero($number);
