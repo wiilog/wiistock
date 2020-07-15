@@ -159,6 +159,7 @@ class ReceptionController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
                         ValeurChampLibreService $valeurChampLibreService,
@@ -768,12 +769,14 @@ class ReceptionController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function editArticle(EntityManagerInterface $entityManager,
                                 ReceptionService $receptionService,
-                                Request $request): Response
+                                Request $request,
+                                MouvementTracaService $mouvementTracaService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
@@ -808,7 +811,52 @@ class ReceptionController extends AbstractController
                 if ($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse(false);
                 }
-                $receptionReferenceArticle->setQuantite(max($quantite, 0)); // protection contre quantités négatives
+
+                /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                $receptionLocation = $reception->getLocation();
+                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+                $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite();
+                $newReceivedQuantity = max((int)$quantite, 0);
+                $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
+
+                if ($diffReceivedQuantity != 0) {
+                    $mouvementStock = $this->mouvementStockService->createMouvementStock(
+                        $currentUser,
+                        null,
+                        abs($diffReceivedQuantity),
+                        $referenceArticle,
+                        $diffReceivedQuantity < 0 ? MouvementStock::TYPE_SORTIE : MouvementStock::TYPE_ENTREE
+                    );
+                    $mouvementStock->setReceptionOrder($reception);
+
+                    $this->mouvementStockService->finishMouvementStock(
+                        $mouvementStock,
+                        $now,
+                        $receptionLocation
+                    );
+                    $entityManager->persist($mouvementStock);
+
+                    $createdMvt = $mouvementTracaService->createMouvementTraca(
+                        $referenceArticle->getBarCode(),
+                        $receptionLocation,
+                        $currentUser,
+                        $now,
+                        false,
+                        true,
+                        MouvementTraca::TYPE_DEPOSE,
+                        [
+                            'mouvementStock' => $mouvementStock,
+                            'from' => $reception
+                        ]
+                    );
+
+                    $receptionReferenceArticle->setQuantite($newReceivedQuantity); // protection contre quantités négatives
+                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
+                }
             }
 
             if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
@@ -816,13 +864,6 @@ class ReceptionController extends AbstractController
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
 
-            $entityManager->flush();
-
-            $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
-            $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
-
-            $reception->setStatut($statut);
             $entityManager->flush();
 
             $json = [
@@ -1381,7 +1422,7 @@ class ReceptionController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param MouvementTracaService $mouvementTracaService
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function finish(Request $request,
                            EntityManagerInterface $entityManager,
@@ -1423,84 +1464,15 @@ class ReceptionController extends AbstractController
     /**
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
-     * @param ReceptionReferenceArticle[] $listReceptionReferenceArticle
-     * @param MouvementTracaService $mouvementTracaService
      * @throws Exception
      */
     private function validateReception(EntityManagerInterface $entityManager,
-                                       $reception,
-                                       $listReceptionReferenceArticle,
-                                       MouvementTracaService $mouvementTracaService)
+                                       $reception)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-        $receptionLocation = $reception->getLocation();
-        $currentUser = $this->getUser();
-
-        foreach ($listReceptionReferenceArticle as $receptionRA) {
-            $referenceArticle = $receptionRA->getReferenceArticle();
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteStock(($referenceArticle->getQuantiteStock() ?? 0) + $receptionRA->getQuantite());
-
-                $mouvementStock = new MouvementStock();
-                $mouvementStock
-                    ->setUser($currentUser)
-                    ->setEmplacementTo($receptionLocation)
-                    ->setQuantity($receptionRA->getQuantite())
-                    ->setRefArticle($referenceArticle)
-                    ->setType(MouvementStock::TYPE_ENTREE)
-                    ->setReceptionOrder($reception)
-                    ->setDate($now);
-                $entityManager->persist($mouvementStock);
-                $createdMvt = $mouvementTracaService->createMouvementTraca(
-                    $referenceArticle->getBarCode(),
-                    $receptionLocation,
-                    $currentUser,
-                    $now,
-                    false,
-                    true,
-                    MouvementTraca::TYPE_DEPOSE,
-                    [
-                        'mouvementStock' => $mouvementStock,
-                        'from' => $reception
-                    ]
-                );
-                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
-                $entityManager->persist($createdMvt);
-            } else {
-                $articles = $receptionRA->getArticles();
-                foreach ($articles as $article) {
-                    $mouvementStock = new MouvementStock();
-                    $mouvementStock
-                        ->setUser($currentUser)
-                        ->setEmplacementTo($receptionLocation)
-                        ->setQuantity($article->getQuantite())
-                        ->setArticle($article)
-                        ->setType(MouvementStock::TYPE_ENTREE)
-                        ->setReceptionOrder($reception)
-                        ->setDate($now);
-                    $entityManager->persist($mouvementStock);
-
-                    $createdMvt = $mouvementTracaService->createMouvementTraca(
-                        $article->getBarCode(),
-                        $receptionLocation,
-                        $currentUser,
-                        $now,
-                        false,
-                        true,
-                        MouvementTraca::TYPE_DEPOSE,
-                        [
-                            'mouvementStock' => $mouvementStock,
-                            'from' => $reception
-                        ]
-                    );
-                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
-                }
-            }
-        }
 
         $reception
             ->setStatut($statut)
@@ -1831,18 +1803,27 @@ class ReceptionController extends AbstractController
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
+     * @param MouvementTracaService $mouvementTracaService
+     * @param MouvementStockService $mouvementStockService
      * @return Response
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
-                                   Reception $reception): Response
+                                   Reception $reception,
+                                   MouvementTracaService $mouvementTracaService,
+                                   MouvementStockService $mouvementStockService): Response
     {
+
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $currentUser = $this->getUser();
+
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articles = $data['conditionnement'];
 
@@ -1855,7 +1836,6 @@ class ReceptionController extends AbstractController
                     $article['noCommande'],
                     $article['refArticle']
                 );
-
                 if (!isset($totalQuantities[$rra->getId()])) {
                     $totalQuantities[$rra->getId()] = ($rra->getQuantite() ?? 0);
                 }
@@ -1886,13 +1866,47 @@ class ReceptionController extends AbstractController
             }
 
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
-            $receptionLocation = $reception->getLocation();
             $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
             foreach ($articles as $article) {
                 if (isset($receptionLocationId)) {
                     $article['emplacement'] = $receptionLocationId;
                 }
-                $this->articleDataService->newArticle($article, $demande ?? null, $reception);
+                $article = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
+                $receptionLocation = $reception->getLocation();
+
+                $mouvementStock = $mouvementStockService->createMouvementStock(
+                    /** @var Utilisateur $currentUser */
+                    $currentUser,
+                    null,
+                    $article->getQuantite(),
+                    $article,
+                    MouvementStock::TYPE_ENTREE
+                );
+                $mouvementStock->setReceptionOrder($reception);
+
+                $mouvementStockService->finishMouvementStock(
+                    $mouvementStock,
+                    $now,
+                    $receptionLocation
+                );
+
+                $entityManager->persist($mouvementStock);
+
+                $createdMvt = $mouvementTracaService->createMouvementTraca(
+                    $article->getBarCode(),
+                    $receptionLocation,
+                    $currentUser,
+                    $now,
+                    false,
+                    true,
+                    MouvementTraca::TYPE_DEPOSE,
+                    [
+                        'mouvementStock' => $mouvementStock,
+                        'from' => $reception
+                    ]
+                );
+                $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                $entityManager->persist($createdMvt);
             }
             if (isset($demande) && $demande->getType()->getSendMail()) {
                 $nowDate = new DateTime('now');

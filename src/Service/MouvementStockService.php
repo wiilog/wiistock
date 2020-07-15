@@ -194,7 +194,7 @@ class MouvementStockService
      */
     public function finishMouvementStock(MouvementStock $mouvementStock,
                                          DateTime $date,
-                                         Emplacement $locationTo): void {
+                                         ?Emplacement $locationTo): void {
         $mouvementStock
             ->setDate($date)
             ->setEmplacementTo($locationTo);
