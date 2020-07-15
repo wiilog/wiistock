@@ -420,16 +420,6 @@ class MouvementTracaRepository extends EntityRepository
             ->from('App\Entity\MouvementTraca', 'm');
 
         $countTotal = $this->countAll();
-        $referenceFilter = ($params->get('reference'));
-        if (!empty($referenceFilter)) {
-            $qb
-                ->leftJoin('m.referenceArticle', 'referenceFilter_referenceArticle_1')
-                ->leftJoin('m.article' , 'referenceFilter_article')
-                ->leftJoin('referenceFilter_article.articleFournisseur', 'referenceFilter_articleFournisseur')
-                ->leftJoin('referenceFilter_articleFournisseur.referenceArticle', 'referenceFilter_referenceArticle_2')
-                ->andWhere('(referenceFilter_referenceArticle_1.reference = :referenceFilter OR referenceFilter_referenceArticle_2.reference = :referenceFilter)')
-                ->setParameter('referenceFilter', $referenceFilter);
-        }
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {

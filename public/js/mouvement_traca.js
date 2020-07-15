@@ -29,15 +29,6 @@ let tableMvtConfig = {
     ajax: {
         "url": pathMvt,
         "type": "POST",
-        'data': (data) => {
-            const referenceFilterValue = $('#referenceFilter').val()
-            return {
-                ...data,
-                ...(referenceFilterValue
-                    ? {reference: referenceFilterValue}
-                    : {})
-            };
-        }
     },
     drawConfig: {
         needsSearchOverride: true,
