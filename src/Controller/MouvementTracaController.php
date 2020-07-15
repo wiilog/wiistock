@@ -76,6 +76,7 @@ class MouvementTracaController extends AbstractController
      * @param FilterSupService $filterSupService
      * @param Request $request
      * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
@@ -85,17 +86,26 @@ class MouvementTracaController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $referenceFilter = $request->query->get('colis');
-        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, FiltreSup::PAGE_MVT_TRACA, $this->getUser());
-        if (empty($filter)) {
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, null, $this->getUser());
-            $entityManager->persist($filter);
-        }
-        $filter->setValue($referenceFilter);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $entityManager->flush();
+
+        $packFilter = $request->query->get('colis');
+
+        if (!empty($packFilter)) {
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
+            $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, FiltreSup::PAGE_MVT_TRACA, $loggedUser);
+            if (empty($filter)) {
+                $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, null, $loggedUser);
+                $entityManager->persist($filter);
+            }
+            $filter->setValue($packFilter);
+            $entityManager->flush();
+        }
+
         $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
