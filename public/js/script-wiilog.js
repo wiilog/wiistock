@@ -1251,9 +1251,14 @@ function displayFiltersSup(data) {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
                     let name = valueArray[1];
-                    const $optionToSelect = $select.find(`option[value="${name}"]`);
-                    if ($optionToSelect.length > 0) {
+                    const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
+                        ? $select.find(`option[value="${name}"]`)
+                        : $select.find(`option[value="${id}"]`).length > 0
+                            ? $select.find(`option[value="${id}"]`)
+                            : null;
+                    if ($optionToSelect) {
                         $optionToSelect.prop('selected', true);
+                        $select.trigger('change');
                     }
                     else {
                         let option = new Option(name, id, true, true);
