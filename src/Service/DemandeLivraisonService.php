@@ -190,7 +190,7 @@ class DemandeLivraisonService
         $demande
             ->setStatut($statut)
             ->setUtilisateur($utilisateur)
-            ->setdate($date)
+            ->setDate($date)
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($numero)
@@ -236,7 +236,7 @@ class DemandeLivraisonService
         $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
         $yearMonth = $date->format('ym');
         $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $yearMonth);
-        $lastCpt = (int)substr($lastNumero, -4, 4);
+        $lastCpt = !empty($lastNumero) ? ((int)substr($lastNumero, -4, 4)) : 0;
         $i = $lastCpt + 1;
         $cpt = sprintf('%04u', $i);
         return ($prefixe . $yearMonth . $cpt);

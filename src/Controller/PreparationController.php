@@ -24,7 +24,6 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -449,6 +448,7 @@ class PreparationController extends AbstractController
             }
             if (!empty($data['articles'])) {
                 $articleRepository = $entityManager->getRepository(Article::class);
+                $statutRepository = $entityManager->getRepository(Statut::class);
                 $preparationRepository = $entityManager->getRepository(Preparation::class);
                 $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
 
@@ -456,9 +456,11 @@ class PreparationController extends AbstractController
                 $articleFirst = $articleRepository->find(array_key_first($data['articles']));
                 $refArticle = $articleFirst->getArticleFournisseur()->getReferenceArticle();
                 $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
+
+                $inTransitStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
                 foreach ($data['articles'] as $idArticle => $quantite) {
                     $article = $articleRepository->find($idArticle);
-                    $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle);
+                    $this->preparationsManagerService->treatArticleSplitting($article, $quantite, $ligneArticle, $inTransitStatus);
                 }
                 $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle);
                 $entityManager->flush();

@@ -27,8 +27,9 @@ class Article
     const USED_ASSOC_DEMANDE = 1;
     const USED_ASSOC_LITIGE = 2;
     const USED_ASSOC_INVENTORY = 3;
-    const USED_ASSOC_MOUVEMENT = 4;
+    const USED_ASSOC_MOUVEMENT_TRACA = 4;
     const USED_ASSOC_STATUT_NOT_AVAILABLE = 5;
+    const USED_ASSOC_MOUVEMENT_STOCK = 6;
     const USED_ASSOC_NONE = -1;
 
     const BARCODE_PREFIX = 'ART';
@@ -647,18 +648,26 @@ class Article
             ($this->getDemande() !== null ? self::USED_ASSOC_DEMANDE :
             (count($this->getLitiges()) > 0 ? self::USED_ASSOC_LITIGE :
             (count($this->getInventoryEntries()) > 0 ? self::USED_ASSOC_INVENTORY :
-            (count($this->getMouvementTracas()) > 0 ? self::USED_ASSOC_MOUVEMENT :
+            (count($this->getMouvementTracas()) > 0 ? self::USED_ASSOC_MOUVEMENT_TRACA :
+            (count($this->getMouvements()) > 0 ? self::USED_ASSOC_MOUVEMENT_STOCK :
             ($this->getStatut()->getNom() !== self::STATUT_ACTIF ? self::USED_ASSOC_STATUT_NOT_AVAILABLE :
-            self::USED_ASSOC_NONE)))))
+            self::USED_ASSOC_NONE))))))
         );
     }
 
     public function isInRequestsInProgress(): bool {
         $request = $this->getDemande();
+        $preparation = $this->getPreparation();
+        $articleFournisseur = $this->getArticleFournisseur();
+        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
         return (
-            $request
-            && $request->getStatut()
-            && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
+            (
+                $request
+                && $request->getStatut()
+                && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
+            )
+            || $preparation
+            || ($referenceArticle && $referenceArticle->isInRequestsInProgress())
         );
     }
 }

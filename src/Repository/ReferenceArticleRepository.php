@@ -10,7 +10,6 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -81,19 +80,6 @@ class ReferenceArticleRepository extends EntityRepository
         )->setParameter('id', $id);
 
         return $query->execute();
-    }
-
-    public function findOneByLigneReception($ligne)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra
-            FROM App\Entity\ReferenceArticle ra
-            JOIN App\Entity\ReceptionReferenceArticle rra
-            WHERE rra.referenceArticle = ra AND rra = :ligne
-        "
-        )->setParameter('ligne', $ligne);
-        return $query->getOneOrNullResult();
     }
 
     /**

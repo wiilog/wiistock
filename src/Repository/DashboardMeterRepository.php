@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\DashboardMeter;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method DashboardMeter|null find($id, $lockMode = null, $lockVersion = null)

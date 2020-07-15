@@ -3,7 +3,8 @@
            class="ordre-collecte-data"
            data-is-ref='{{ refArticleId is defined ? 1 : 0 }}'
            data-bar-code='{{ barCode }}'
-           data-quantity="{{ quantity }}"/>
+           data-quantity="{{ quantity }}"
+           data-emplacement="{{ location }}">
     {% if modifiable %}
         <div class="action-on-click d-none sr-only"
              onclick="toggleCheck($(this))">
