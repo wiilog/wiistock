@@ -1523,3 +1523,17 @@ function fillDemandeurField($modal) {
             .trigger('change');
     }
 }
+
+function registerNumberInputProtection() {
+    const forbiddenChars = [
+        "e",
+        "+",
+        "-"
+    ];
+
+    $('input[type="number"]').on("keydown", function (e) {
+        if (forbiddenChars.includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+}

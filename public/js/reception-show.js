@@ -370,6 +370,7 @@ function articleChanged(select) {
             }
             $('.body-add-ref').css('display', 'flex');
             $('#innerNewRef').html('');
+            registerNumberInputProtection();
         });
     }
 }

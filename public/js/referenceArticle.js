@@ -419,7 +419,7 @@ function initNewReferenceArticleEditor(modal) {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-
+    registerNumberInputProtection();
     clearModal(modal);
 }
 

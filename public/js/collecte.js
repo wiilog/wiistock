@@ -155,7 +155,7 @@ function ajaxGetCollecteArticle(select) {
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
             $('.list-multiple').select2();
-
+            registerNumberInputProtection();
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true);
