@@ -29,6 +29,7 @@ use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\NonUniqueResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -432,7 +433,7 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
     public function addRefToDemand($data,
                                    $referenceArticle,
@@ -585,8 +586,6 @@ class RefArticleDataService
     /**
      * @param ReferenceArticle $referenceArticle
      * @param bool $fromCommand
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function updateRefArticleQuantities(ReferenceArticle $referenceArticle, bool $fromCommand = false)
     {
@@ -612,8 +611,6 @@ class RefArticleDataService
      * @param ReferenceArticle $referenceArticle
      * @param bool $fromCommand
      * @return void
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     private function updateReservedQuantity(ReferenceArticle $referenceArticle, bool $fromCommand = false): void
     {
@@ -630,8 +627,7 @@ class RefArticleDataService
                     $livraison = $preparation->getLivraison();
                     return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
                         || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER
-                        ||
-                        (
+                        || (
                             $fromCommand &&
                             $livraison &&
                             $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
