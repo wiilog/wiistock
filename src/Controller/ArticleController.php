@@ -50,7 +50,8 @@ class ArticleController extends AbstractController
         Article::USED_ASSOC_COLLECTE => "est lié à une ou plusieurs collectes",
         Article::USED_ASSOC_DEMANDE => "est lié à une ou plusieurs demandes de livraison",
         Article::USED_ASSOC_LITIGE => "est lié à un ou plusieurs litiges",
-        Article::USED_ASSOC_MOUVEMENT => "est lié à un ou plusieurs mouvements de traçabilité",
+        Article::USED_ASSOC_MOUVEMENT_TRACA => "est lié à un ou plusieurs mouvements de traçabilité",
+        Article::USED_ASSOC_MOUVEMENT_STOCK => "est lié à un ou plusieurs mouvements de stock",
         Article::USED_ASSOC_INVENTORY => "est lié à une ou plusieurs missions d'inventaire",
         Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "n'est pas disponible"
     ];
