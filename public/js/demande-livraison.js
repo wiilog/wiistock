@@ -160,7 +160,7 @@ $(function () {
         let valuesInt = [];
         valuesStr.forEach((value) => {
             valuesInt.push(parseInt(value));
-        })
+        });
         $('#statut').val(valuesInt).select2();
     } else {
         // sinon, filtres enregistrés en base pour chaque utilisateur
