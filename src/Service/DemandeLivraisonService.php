@@ -21,6 +21,7 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -252,7 +253,6 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
     {
@@ -317,9 +317,8 @@ class DemandeLivraisonService
         }
         if ($response['success']) {
             $entityManager->persist($demande);
-            $entityManager->flush();
+            $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade);
         }
-        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande, $fromNomade) : $response;
         return $response;
     }
 
@@ -384,7 +383,33 @@ class DemandeLivraisonService
             }
             $preparation->addLigneArticlePreparation($lignesArticlePreparation);
         }
-        $entityManager->flush();
+
+
+        $requestPersisted = false;
+        $tryCounter = 0;
+        do {
+            $tryCounter++;
+            try {
+                $entityManager->flush();
+                $requestPersisted = true;
+            }
+                /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                if (!$entityManager->isOpen()) {
+                    $entityManager = $entityManager->create($entityManager->getConnection(), $entityManager->getConfiguration());
+                }
+                // recalcul du num
+                $number = $this->preparationsManager->generateNumber($preparation->getDate(), $entityManager);
+                $preparation->setNumero($number);
+            }
+        }
+        while (!$requestPersisted && $tryCounter < 5);
+
+        if (!$requestPersisted) {
+            $response['success'] = false;
+            $response['message'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
+            return $response;
+        }
 
         foreach ($refArticleToUpdateQuantities as $refArticle) {
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
