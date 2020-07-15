@@ -53,6 +53,7 @@ function InitialiserModal(modal, submit, path, table = null, callback = null, cl
                     callback(data);
                 }
             })
+            .catch(() => {})
     });
 }
 
