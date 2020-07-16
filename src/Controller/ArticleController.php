@@ -9,6 +9,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
+use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -20,9 +21,14 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ParametrageGlobalRepository;
 use App\Repository\ReceptionRepository;
 use App\Service\CSVExportService;
+use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
+use App\Service\MouvementStockService;
+use App\Service\MouvementTracaService;
 use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
+use App\Service\PreparationsManagerService;
+use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -47,13 +53,11 @@ class ArticleController extends AbstractController
 {
 
     private const ARTICLE_IS_USED_MESSAGES = [
-        Article::USED_ASSOC_COLLECTE => "est lié à une ou plusieurs collectes",
-        Article::USED_ASSOC_DEMANDE => "est lié à une ou plusieurs demandes de livraison",
-        Article::USED_ASSOC_LITIGE => "est lié à un ou plusieurs litiges",
-        Article::USED_ASSOC_MOUVEMENT_TRACA => "est lié à un ou plusieurs mouvements de traçabilité",
-        Article::USED_ASSOC_MOUVEMENT_STOCK => "est lié à un ou plusieurs mouvements de stock",
-        Article::USED_ASSOC_INVENTORY => "est lié à une ou plusieurs missions d'inventaire",
-        Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "n'est pas disponible"
+        Article::USED_ASSOC_COLLECTE => "Cet article est lié à une ou plusieurs collectes.",
+        Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",
+        Article::USED_ASSOC_INVENTORY => "Cet article est lié à une ou plusieurs missions d'inventaire.",
+        Article::USED_ASSOC_STATUT_NOT_AVAILABLE => "Cet article n'est pas disponible.",
+        Article::USED_ASSOC_PREPA_IN_PROGRESS => "Cet article est dans une préparation en cours de traitement."
     ];
 
     /**
@@ -599,10 +603,20 @@ class ArticleController extends AbstractController
     /**
      * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
+     * @param MouvementStockService $mouvementStockService
+     * @param PreparationsManagerService $preparationsManagerService
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param RefArticleDataService $refArticleDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
+                           MouvementTracaService $mouvementTracaService,
+                           MouvementStockService $mouvementStockService,
+                           PreparationsManagerService $preparationsManagerService,
+                           DemandeLivraisonService $demandeLivraisonService,
+                           RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -612,6 +626,7 @@ class ArticleController extends AbstractController
 
             $articleRepository = $entityManager->getRepository(Article::class);
 
+            /** @var Article $article */
             $article = $articleRepository->find($data['article']);
 
             $receptionReferenceArticle = $article->getReceptionReferenceArticle();
@@ -623,12 +638,47 @@ class ArticleController extends AbstractController
 
             $rows = $article->getId();
 
-            // on vérifie que l'article n'est plus utilisé
-            $articleIsUsed = $article->getUsedAssociation();
-
-            if ($articleIsUsed !== -1) {
-                return new JsonResponse(false);
+            // Delete mvt traca
+            foreach ($article->getMouvementTracas() as $mouvementTraca) {
+                $mouvementTracaService->manageMouvementTracaPreRemove($mouvementTraca);
+                $entityManager->flush();
+                $entityManager->remove($mouvementTraca);
             }
+            $entityManager->flush();
+
+            // Delete mvt stock
+            foreach ($article->getMouvements() as $mouvementStock) {
+                $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager, $mouvementTracaService);
+                $entityManager->flush();
+                $entityManager->remove($mouvementStock);
+            }
+            $entityManager->flush();
+
+            // Delete prepa
+            $preparation = $article->getPreparation();
+            if ($preparation) {
+                $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+                $entityManager->flush();
+                $entityManager->remove($preparation);
+
+                // il faut que la preparation soit supprimée avant une maj des articles
+                $entityManager->flush();
+
+                foreach ($refToUpdate as $reference) {
+                    $refArticleDataService->updateRefArticleQuantities($reference);
+                }
+
+                $entityManager->flush();
+            }
+            // Delete demande
+
+            $demande = $article->getDemande();
+            if ($demande) {
+                $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
+                $entityManager->remove($demande);
+                $entityManager->flush();
+            }
+
 
             $entityManager->remove($article);
             $entityManager->flush();
@@ -653,21 +703,56 @@ class ArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+
             $articleRepository = $entityManager->getRepository(Article::class);
 
+            /** @var Article $article */
             $article = $articleRepository->find($articleId);
-            $articleIsUsed = $article->getUsedAssociation();
 
-            if (!isset(self::ARTICLE_IS_USED_MESSAGES[$articleIsUsed])) {
-                $delete = true;
-                $html = $this->renderView('article/modalDeleteArticleRight.html.twig');
-            } else {
-                $delete = false;
-                $html = $this->renderView('article/modalDeleteArticleWrong.html.twig', [
-                    'location' => self::ARTICLE_IS_USED_MESSAGES[$articleIsUsed]
+            $articleAssociations = $article->getUsedAssociation();
+
+            if ($articleAssociations !== null) {
+                return new JsonResponse([
+                    'delete' => false,
+                    'html' => $this->renderView('article/modalDeleteArticleWrong.html.twig', [
+                        'msg' => self::ARTICLE_IS_USED_MESSAGES[$articleAssociations]
+                    ])
                 ]);
+            } else {
+                $hasRightToDeleteOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE);
+                $hasRightToDeleteRequests = $this->userService->hasRightFunction(Menu::DEM, Action::DELETE);
+                $hasRightToDeleteTraca = $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE);
+                $hasRightToDeleteStock = $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE);
+
+                $articlesMvtTracaIsEmpty = $article->getMouvementTracas()->isEmpty();
+                $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
+                $articleRequest = $article->getDemande();
+                $articlePrepa = $article->getPreparation();
+
+                if (
+                    ($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
+                    && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
+                    && ($hasRightToDeleteRequests || empty($articleRequest))
+                    && ($hasRightToDeleteOrders || empty($articlePrepa))
+                ) {
+                    return new JsonResponse([
+                        'delete' => true,
+                        'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
+                            'prepa' => $articlePrepa ? $articlePrepa->getNumero() : null,
+                            'request' => $articleRequest ? $articleRequest->getNumero() : null,
+                            'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
+                            'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty
+                        ])
+                    ]);
+                } else {
+                    return new JsonResponse([
+                        'delete' => false,
+                        'html' => $this->renderView('article/modalDeleteArticleWrong.html.twig', [
+                            'msg' => 'Vous ne disposez pas de tous les droits de suppression sur la traçabilité/demande/ordre/stock pour pouvoir supprimer l\'article.'
+                        ])
+                    ]);
+                }
             }
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -721,7 +806,7 @@ class ArticleController extends AbstractController
      */
     public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticle = null;
@@ -830,7 +915,7 @@ class ArticleController extends AbstractController
     public function ajaxArticleNewContent(Request $request,
                                           EntityManagerInterface $entityManager): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
 
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -875,7 +960,7 @@ class ArticleController extends AbstractController
      */
     public function ajaxFournisseurByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {

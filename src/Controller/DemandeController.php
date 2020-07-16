@@ -314,6 +314,7 @@ class DemandeController extends AbstractController
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request,
+                           DemandeLivraisonService $demandeLivraisonService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -326,12 +327,7 @@ class DemandeController extends AbstractController
             $preparations = $demande->getPreparations();
 
             if ($preparations->count() === 0) {
-                foreach ($demande->getArticles() as $article) {
-                    $article->setDemande(null);
-                }
-                foreach ($demande->getLigneArticle() as $ligneArticle) {
-                    $entityManager->remove($ligneArticle);
-                }
+                $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
                 $entityManager->remove($demande);
                 $entityManager->flush();
                 $data = [
