@@ -10,6 +10,7 @@
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <button
                        data-id="22"
+                       id="delete-delivery-button"
                        class="btn btn-primary btn-ripple split-button"
                        onclick="endLivraison({{ livraison.id }}, $(this))">
                         <i class="fa fa-check mr-2 button-icon"></i>
@@ -30,11 +31,9 @@
 
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                <a class="dropdown-item" href=""
-                   onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
-                   data-id='{{ livraison.id }}'
-                   data-target='#modalDeleteLivraison' data-toggle='modal'>
-                        <i class="fa fa-trash mr-2"></i>Supprimer
+                <a class="dropdown-item pointer"
+                   onclick="askForDeleteDelivery()">
+                    <i class="fa fa-trash mr-2"></i>Supprimer
                 </a>
             {% endif %}
             <a href="{{ path('demande_show', {'id': demande.id}) }}" class="dropdown-item">

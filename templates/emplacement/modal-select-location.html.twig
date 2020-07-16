@@ -1,15 +1,37 @@
-<div class="modal fade" id="modal-select-location" role="dialog" aria-hidden="true">
+{% set modalTitle = (
+    type == 'validate-preparation' ? 'Valider la préparation' :
+    (type == 'delete-delivery' ? 'Supprimer la livraison')
+) %}
+{% set selectLabel = (
+    type == 'validate-preparation' ? 'Emplacement de préparation' :
+    (type == 'delete-delivery' ? 'Emplacement de dépose des articles')
+) %}
+{% set submitLabel = (
+    type == 'validate-preparation' ? 'Valider' :
+    (type == 'delete-delivery' ? 'Valider la suppression')
+) %}
+{% set submitColor = (
+    type == 'validate-preparation' ? 'btn-primary' :
+    (type == 'delete-delivery' ? 'btn-danger')
+) %}
+
+<div class="modal fade"
+     id="modal-select-location"
+     role="dialog"
+     aria-hidden="true"
+     data-keyboard="false"
+     data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Valider la préparation</h5>
+                <h5 class="modal-title">{{ modalTitle }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <label class="col-12" for="select-location-select">Emplacement de préparation</label>
+                    <label class="col-12" for="select-location-select">{{ selectLabel }}</label>
                     <div class="col-12">
                         <select class="data form-control select2 w-100 needed"
                                 required
@@ -26,8 +48,8 @@
                     Annuler
                 </button>
                 <button type="submit"
-                        class="btn btn-primary data">
-                    Valider
+                        class="btn {{ submitColor }}">
+                    {{ submitLabel }}
                 </button>
             </div>
         </div>

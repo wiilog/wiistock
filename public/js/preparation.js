@@ -238,7 +238,7 @@ function limitInput($input) {
     }
 }
 
-function clearEmplacementModal() {
+function clearValidatePreparationModal() {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
     $locationSelect.html('');
     $locationSelect.val('');
@@ -269,12 +269,14 @@ function finishPrepa($button) {
     if (allRowsEmpty) {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
     } else {
-        clearEmplacementModal();
+        clearValidatePreparationModal();
         $modalSubmitPreparation.modal('show');
 
-        const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
+        const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
+        const $submitButtonPreparation = $modalSubmitPreparation.find('button[type="submit"]');
 
-        $modalSubmitPreparation.find('button[type="submit"]').click(function () {
+        $submitButtonPreparation.off('click');
+        $submitButtonPreparation.on('click', function () {
             const value = $locationSelect.val();
             if (value) {
                 $modalSubmitPreparation.modal('hide');
@@ -303,7 +305,7 @@ function finishPrepa($button) {
             else {
                 alertErrorMsg('Veuillez sélectionner un emplacement.', true);
             }
-        })
+        });
     }
 }
 

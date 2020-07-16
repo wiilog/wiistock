@@ -173,8 +173,8 @@ class LivraisonsManagerService
                     if ($newQuantiteStock >= 0
                         && $newQuantiteReservee >= 0
                         && $newQuantiteStock >= $newQuantiteReservee) {
-                        $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
-                        $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+                        $refArticle->setQuantiteStock($newQuantiteStock);
+                        $refArticle->setQuantiteReservee($newQuantiteReservee);
                     }
                     else {
                         throw new NegativeQuantityException($refArticle);
