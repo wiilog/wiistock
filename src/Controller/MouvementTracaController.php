@@ -90,17 +90,13 @@ class MouvementTracaController extends AbstractController
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $packFilter = $request->query->get('colis');
-
         if (!empty($packFilter)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-
-            $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, FiltreSup::PAGE_MVT_TRACA, $loggedUser);
-            if (empty($filter)) {
-                $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, null, $loggedUser);
-                $entityManager->persist($filter);
-            }
-            $filter->setValue($packFilter);
+            $filtreSupRepository->clearFiltersByUserAndPage($loggedUser, FiltreSup::PAGE_MVT_TRACA);
+            $entityManager->flush();
+            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, $packFilter, $loggedUser);
+            $entityManager->persist($filter);
             $entityManager->flush();
         }
 

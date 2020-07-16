@@ -172,11 +172,7 @@ function switchMvtCreationType($input) {
 /**
  * Used in mouvement_traca/index.html.twig
  */
-function updateUrl() {
-    const referenceFilter = $('#referenceFilter').val();
-    const suffix = referenceFilter
-        ? `?reference=${encodeURIComponent(referenceFilter)}`
-        : '';
-    window.history.pushState({}, document.title,  `${window.location.pathname}${suffix}`);
+function clearURL() {
+    window.history.pushState({}, document.title,  `${window.location.pathname}`);
 }
 
