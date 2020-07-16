@@ -2,9 +2,16 @@
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
+
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="btn btn-col-action d-none action-on-click" data-toggle='modal' data-target='#modalEditLitige'
-                     onclick="editRowLitige($(this), openTableHisto, {{ isArrivage }}, {{ arrivageId ?? receptionId }}, {{ litigeId }})">
+                     onclick="editRowLitige($(this),
+                             openTableHisto,
+                             {{ isArrivage }},
+                             {{ arrivageId ?? receptionId }},
+                             {{ litigeId }},
+                             '{{ disputeNumber }}'
+                             )">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             {% endif %}

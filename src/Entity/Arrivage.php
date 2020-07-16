@@ -69,7 +69,7 @@ class Arrivage
     private $date;
 
     /**
-     * @ORM\Column(type="string", length=32, nullable=true)
+     * @ORM\Column(type="string", length=32, nullable=true, unique=true)
      */
     private $numeroArrivage;
 

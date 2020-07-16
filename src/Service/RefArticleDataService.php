@@ -12,6 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
+use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -21,13 +22,14 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -150,7 +152,7 @@ class RefArticleDataService
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
                         'quantity' => array_reduce($articleFournisseur->getArticles()->toArray(), function (int $carry, Article $article) {
-                            return $article->getStatut()->getNom() === Article::STATUT_ACTIF
+                            return ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
                                 ? $carry + $article->getQuantite()
                                 : $carry;
                         }, 0)
@@ -170,7 +172,9 @@ class RefArticleDataService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getViewEditRefArticle($refArticle, $isADemand = false, $preloadCategories = true)
+    public function getViewEditRefArticle($refArticle,
+                                          $isADemand = false,
+                                          $preloadCategories = true)
     {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -232,8 +236,12 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
      */
-    public function editRefArticle($refArticle, $data, Utilisateur $user)
+    public function editRefArticle($refArticle,
+                                   $data,
+                                   Utilisateur $user)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -245,7 +253,6 @@ class RefArticleDataService
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
-
 
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
@@ -309,10 +316,24 @@ class RefArticleDataService
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
             if (isset($data['limitSecurity'])) $refArticle->setLimitSecurity($data['limitSecurity']);
-            if (isset($data['quantite'])) $refArticle->setQuantiteStock(max(intval($data['quantite']), 0)); // protection contre quantités négatives
             if (isset($data['statut'])) {
                 $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-                if ($statut) $refArticle->setStatut($statut);
+                if ($statut) {
+                    $refArticle->setStatut($statut);
+                }
+            }
+            if (isset($data['quantite'])
+                && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $newQuantity = max(intval($data['quantite']), 0); // protection contre quantités négatives
+                if ($refArticle->getQuantiteStock() !== $newQuantity) {
+                    if ($refArticle->getStatut()->getNom() !== ReferenceArticle::STATUT_ACTIF) {
+                        throw new ArticleNotAvailableException();
+                    }
+                    else if ($refArticle->isInRequestsInProgress()) {
+                        throw new RequestNeedToBeProcessedException();
+                    }
+                    $refArticle->setQuantiteStock($newQuantity);
+                }
             }
             if (isset($data['type'])) {
                 $type = $typeRepository->find(intval($data['type']));
@@ -412,9 +433,14 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
-    public function addRefToDemand($data, $referenceArticle, Utilisateur $user, bool $fromNomade, EntityManagerInterface $entityManager, Demande $demande)
+    public function addRefToDemand($data,
+                                   $referenceArticle,
+                                   Utilisateur $user,
+                                   bool $fromNomade,
+                                   EntityManagerInterface $entityManager,
+                                   Demande $demande)
     {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -437,7 +463,8 @@ class RefArticleDataService
             if (!$fromNomade) {
                 $this->editRefArticle($referenceArticle, $data, $user);
             }
-        } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        }
+        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if ($fromNomade || $this->userService->hasParamQuantityByRef()) {
                 if ($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
@@ -558,21 +585,18 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @param bool $fromCommand
      */
-    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle)
+    public function updateRefArticleQuantities(ReferenceArticle $referenceArticle, bool $fromCommand = false)
     {
         $this->updateStockQuantity($referenceArticle);
-        $this->updateReservedQuantity($referenceArticle);
+        $this->updateReservedQuantity($referenceArticle, $fromCommand);
         $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
     }
 
     /**
      * @param ReferenceArticle $referenceArticle
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     private function updateStockQuantity(ReferenceArticle $referenceArticle): void
     {
@@ -585,11 +609,10 @@ class RefArticleDataService
 
     /**
      * @param ReferenceArticle $referenceArticle
+     * @param bool $fromCommand
      * @return void
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
-    private function updateReservedQuantity(ReferenceArticle $referenceArticle): void
+    private function updateReservedQuantity(ReferenceArticle $referenceArticle, bool $fromCommand = false): void
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
@@ -599,10 +622,16 @@ class RefArticleDataService
             $totalReservedQuantity = 0;
             $lignesArticlePrepaEnCours = $referenceArticle
                 ->getLigneArticlePreparations()
-                ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
+                ->filter(function (LigneArticlePreparation $ligneArticlePreparation) use ($fromCommand) {
                     $preparation = $ligneArticlePreparation->getPreparation();
+                    $livraison = $preparation->getLivraison();
                     return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
+                        || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER
+                        || (
+                            $fromCommand &&
+                            $livraison &&
+                            $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                        );
                 });
             /**
              * @var LigneArticlePreparation $ligneArticlePrepaEnCours

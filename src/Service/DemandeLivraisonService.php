@@ -9,7 +9,6 @@ use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
@@ -22,7 +21,9 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -67,11 +68,13 @@ class DemandeLivraisonService
     private $mailerService;
     private $translator;
     private $valeurChampLibreService;
+    private $preparationsManager;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
+                                PreparationsManagerService $preparationsManager,
                                 ValeurChampLibreService $valeurChampLibreService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
@@ -81,6 +84,7 @@ class DemandeLivraisonService
                                 Twig_Environment $templating)
     {
         $this->receptionRepository = $receptionRepository;
+        $this->preparationsManager = $preparationsManager;
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
         $this->stringService = $stringService;
@@ -187,7 +191,7 @@ class DemandeLivraisonService
         $demande
             ->setStatut($statut)
             ->setUtilisateur($utilisateur)
-            ->setdate($date)
+            ->setDate($date)
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($numero)
@@ -204,8 +208,9 @@ class DemandeLivraisonService
             if (isset($data['needPrepa']) && $data['needPrepa']) {
                 $preparation = new Preparation();
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
                 $preparation
-                    ->setNumero('P-' . $date->format('YmdHis'))
+                    ->setNumero($preparationNumber)
                     ->setDate($date);
                 $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statutP);
@@ -225,14 +230,17 @@ class DemandeLivraisonService
     private function generateNumeroForNewDL(EntityManagerInterface $entityManager)
     {
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
-        $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
         $demandeRepository = $entityManager->getRepository(Demande::class);
-        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
-        $lastCpt = (int)substr($lastNumero, -4, 4);
+        $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
+
+        $prefixeExist = $prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
+        $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
+        $yearMonth = $date->format('ym');
+        $lastNumero = $demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $yearMonth);
+        $lastCpt = !empty($lastNumero) ? ((int)substr($lastNumero, -4, 4)) : 0;
         $i = $lastCpt + 1;
         $cpt = sprintf('%04u', $i);
-        return ($prefixe . $date->format('ym') . $cpt);
+        return ($prefixe . $yearMonth . $cpt);
     }
 
     /**
@@ -245,13 +253,10 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\NoResultException
      */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
-        $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         if ($fromNomade) {
             /**
@@ -312,9 +317,8 @@ class DemandeLivraisonService
         }
         if ($response['success']) {
             $entityManager->persist($demande);
-            $entityManager->flush();
+            $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade);
         }
-        $response = $response['success'] ? $this->validateDLAfterCheck($entityManager, $demande, $fromNomade) : $response;
         return $response;
     }
 
@@ -327,19 +331,24 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Doctrine\ORM\NoResultException
      */
-    private function validateDLAfterCheck(EntityManagerInterface $entityManager, Demande $demande, bool $fromNomade = false): array
+    private function validateDLAfterCheck(EntityManagerInterface $entityManager,
+                                          Demande $demande,
+                                          bool $fromNomade = false): array
     {
         $response = [];
         $response['success'] = true;
         $response['message'] = '';
         $statutRepository = $entityManager->getRepository(Statut::class);
+
         // Creation d'une nouvelle preparation basée sur une selection de demandes
         $preparation = new Preparation();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+        $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
+
         $preparation
-            ->setNumero('P-' . $date->format('YmdHis'))
+            ->setNumero($preparationNumber)
             ->setDate($date);
 
         $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
@@ -374,7 +383,33 @@ class DemandeLivraisonService
             }
             $preparation->addLigneArticlePreparation($lignesArticlePreparation);
         }
-        $entityManager->flush();
+
+
+        $requestPersisted = false;
+        $tryCounter = 0;
+        do {
+            $tryCounter++;
+            try {
+                $entityManager->flush();
+                $requestPersisted = true;
+            }
+                /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                if (!$entityManager->isOpen()) {
+                    $entityManager = $entityManager->create($entityManager->getConnection(), $entityManager->getConfiguration());
+                }
+                // recalcul du num
+                $number = $this->preparationsManager->generateNumber($preparation->getDate(), $entityManager);
+                $preparation->setNumero($number);
+            }
+        }
+        while (!$requestPersisted && $tryCounter < 5);
+
+        if (!$requestPersisted) {
+            $response['success'] = false;
+            $response['message'] = $response['nomadMessage'] = 'Impossible de créer la préparation, veuillez rééssayer ultérieurement';
+            return $response;
+        }
 
         foreach ($refArticleToUpdateQuantities as $refArticle) {
             $this->refArticleDataService->updateRefArticleQuantities($refArticle);
@@ -438,10 +473,9 @@ class DemandeLivraisonService
         $requester = $demande->getUtilisateur();
         $destination = $demande->getDestination();
         $date = $demande->getDate();
-        $validationDate = !$demande->getPreparations()->isEmpty() ? $demande->getPreparations()->last()->getDate() : null;
+        $validationDate = $demande->getValidationDate();
         $type = $demande->getType();
         $comment = $demande->getCommentaire();
-
 
         $detailsChampLibres = $demande
             ->getValeurChampLibre()

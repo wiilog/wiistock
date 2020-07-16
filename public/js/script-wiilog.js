@@ -55,6 +55,7 @@ function InitialiserModal(modal, submit, path, table = null, callback = null, cl
                     callback(data);
                 }
             })
+            .catch(() => {})
     });
 }
 
@@ -216,7 +217,7 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
         && wrongNumberInputs.length == 0
         && passwordIsValid
         && datesAreValid) {
-        if (close == true) {
+        if (close === true) {
             modal.find('.close').click();
         }
 
@@ -227,20 +228,25 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                    return;
+                if (data.success === false && data.msg) {
+                    alertErrorMsg(data.msg, false);
                 }
-                // pour mise à jour des données d'en-tête après modification
-                if (data.entete) {
-                    $('.zone-entete').html(data.entete)
-                }
-                if (table) {
-                    table.ajax.reload(null, false);
-                }
+                else {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+                    // pour mise à jour des données d'en-tête après modification
+                    if (data.entete) {
+                        $('.zone-entete').html(data.entete)
+                    }
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
 
-                if (clear) {
-                    clearModal(modal);
+                    if (clear) {
+                        clearModal(modal);
+                    }
                 }
 
                 return data;
@@ -710,15 +716,14 @@ function ajaxAutoCompleteTransporteurInit(select) {
     initSelect2(select, '', 1, {route: 'get_transporteurs'});
 }
 
-function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference') {
-    initSelect2(select, '', 1, {
+function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference', placeholder = '', activeOnly = 1) {
+    initSelect2(select, placeholder, 1, {
         route: 'get_ref_articles',
-        param:
-            {
-                activeOnly: 1,
-                field,
-                typeQuantity
-            }
+        param: {
+            activeOnly,
+            field,
+            typeQuantity
+        }
     });
 }
 
@@ -741,6 +746,10 @@ function ajaxAutoChauffeurInit(select) {
 
 function ajaxAutoUserInit(select, placeholder = '') {
     initSelect2(select, placeholder, 1, {route: 'get_user'});
+}
+
+function ajaxAutoDisputeNumberInit(select, placeholder = '') {
+    initSelect2(select, placeholder, 1, {route: 'get_dispute_number'});
 }
 
 function ajaxAutoDemandCollectInit(select) {
@@ -792,7 +801,7 @@ function clearInvalidInputs($modal) {
 }
 
 function displayError(modal, msg, success) {
-    if (success === false) {
+    if (!success) {
         modal.find('.error-msg').html(msg);
     } else {
         modal.find('.close').click();
@@ -964,6 +973,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
 
     let param = JSON.stringify(id);
     $submit.hide();
+    $modalBody.html(
+        '<div class="row justify-content-center">' +
+        '   <div class="col-auto">' +
+        '       <div class="spinner-border" role="status">' +
+        '           <span class="sr-only">Loading...</span>' +
+        '       </div>' +
+        '   </div>' +
+        '</div>'
+    );
     $.post(Routing.generate(route), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
@@ -1252,6 +1270,7 @@ function displayFiltersSup(data) {
             case 'carriers':
             case 'emplacement':
             case 'demCollecte':
+            case 'disputeNumber':
             case 'demande':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
@@ -1260,9 +1279,14 @@ function displayFiltersSup(data) {
                     let valueArray = value.split(':');
                     let id = valueArray[0];
                     let name = valueArray[1];
-                    const $optionToSelect = $select.find(`option[value="${name}"]`);
-                    if ($optionToSelect.length > 0) {
+                    const $optionToSelect = $select.find(`option[value="${name}"]`).length > 0
+                        ? $select.find(`option[value="${name}"]`)
+                        : $select.find(`option[value="${id}"]`).length > 0
+                            ? $select.find(`option[value="${id}"]`)
+                            : null;
+                    if ($optionToSelect) {
                         $optionToSelect.prop('selected', true);
+                        $select.trigger('change');
                     }
                     else {
                         let option = new Option(name, id, true, true);

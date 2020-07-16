@@ -9,6 +9,8 @@ use App\Entity\MouvementStock;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 
@@ -53,15 +55,16 @@ class InventoryService
 
     /**
      * @param int $idEntry
-     * @param string $reference
+     * @param $barCode
      * @param bool $isRef
      * @param int $newQuantity
      * @param string $comment
      * @param Utilisateur $user
      * @return bool
-     * @throws NonUniqueResultException
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
      */
-	public function doTreatAnomaly($idEntry, $reference, $isRef, $newQuantity, $comment, $user)
+	public function doTreatAnomaly($idEntry, $barCode, $isRef, $newQuantity, $comment, $user)
 	{
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -70,16 +73,26 @@ class InventoryService
         $quantitiesAreEqual = true;
 
 		if ($isRef) {
-			$refOrArt = $referenceArticleRepository->findOneByReference($reference);
+			$refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode]) ?: $referenceArticleRepository->findOneByReference($barCode);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
-			$refOrArt = $articleRepository->findOneByReference($reference);
+		    /** @var Article $refOrArt */
+            $refOrArt = $articleRepository->findOneBy(['barCode' => $barCode]) ?: $articleRepository->findOneByReference($barCode);
 			$quantity = $refOrArt->getQuantite();
 		}
 
 		$diff = $newQuantity - $quantity;
 
 		if ($diff != 0) {
+		    $statusRequired = $isRef ? ReferenceArticle::STATUT_ACTIF : Article::STATUT_ACTIF;
+            if ($refOrArt->getStatut()->getNom() !== $statusRequired) {
+                throw new ArticleNotAvailableException();
+            }
+
+            if ($refOrArt->isInRequestsInProgress()) {
+                throw new RequestNeedToBeProcessedException();
+            }
+
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)
@@ -108,7 +121,9 @@ class InventoryService
 		}
 
 		$entry = $inventoryEntryRepository->find($idEntry);
-		$entry->setAnomaly(false);
+		$entry
+            ->setQuantity($newQuantity)
+            ->setAnomaly(false);
 
 		$refOrArt->setDateLastInventory(new DateTime('now'));
 

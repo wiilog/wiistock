@@ -44,6 +44,46 @@ class ColisRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    public function getIdsByCode(string $code)
+    {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        return $queryBuilder
+            ->select('colis.id')
+            ->where(
+                $queryBuilderExpr->like('colis.code', "'" . $code . "'")
+            )
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * @param array $mvt
+     * @throws DBALException
+     */
+    public function createFromMvt(array $mvt)
+    {
+        $code = $mvt['colis'];
+        $id = $mvt['id'];
+        $sqlQuery = "
+            INSERT INTO colis (code, last_drop_id) VALUES ('${code}', '${id}')
+        ";
+        $connection = $this->getEntityManager()->getConnection();
+        $connection->executeQuery($sqlQuery, []);
+    }
+
+    public function updateByIds(array $ids, int $mvtId)
+    {
+        $arrayColisId = implode(',', array_map(function(array $idsSub) {
+            return $idsSub['id'];
+        }, $ids));
+        $sqlQuery = "
+            UPDATE colis SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
+        ";
+        $connection = $this->getEntityManager()->getConnection();
+        $connection->executeQuery($sqlQuery, []);
+    }
+
     /**
      * @param array $locations
      * @param array $naturesFilter
@@ -59,7 +99,8 @@ class ColisRepository extends EntityRepository
      * ]
      * @throws DBALException
      */
-    public function getPackIntelOnLocations(array $locations, array $naturesFilter = [], ?int $limit = null): array {
+    public function getPackIntelOnLocations(array $locations, array $naturesFilter = [], ?int $limit = null): array
+    {
         $queryBuilder = $this->createPacksOnLocationsQueryBuilder($locations, $naturesFilter)
             ->select('nature.id as natureId')
             ->addSelect('nature.label as natureLabel')
@@ -86,12 +127,93 @@ class ColisRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countPacksOnLocations(array $locations, array $onDateBracket = []): int {
+    public function countPacksOnLocations(array $locations, array $onDateBracket = []): int
+    {
         return $this
             ->createPacksOnLocationsQueryBuilder($locations, [], $onDateBracket)
             ->select('COUNT(colis.id)')
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+
+    /**
+     * @param array $locations
+     * @param array $natures
+     * @param array $dateBracket
+     * @param bool $isCount
+     * @param string $field
+     * @param int|null $limit
+     * @param int|null $start
+     * @param string $order
+     * @param bool $onlyLate
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function getCurrentPackOnLocations(array $locations,
+                                              array $natures,
+                                              array $dateBracket,
+                                              bool $isCount = true,
+                                              string $field = 'colis.id',
+                                              ?int $limit = null,
+                                              ?int $start = null,
+                                              string $order = 'desc',
+                                              bool $onlyLate = false)
+    {
+        $queryBuilder = $this->createQueryBuilder('colis');
+        $queryBuilderExpr = $queryBuilder->expr();
+        $queryBuilder
+            ->select($isCount ? ($queryBuilderExpr->count($field)) : $field)
+            ->leftJoin('colis.nature', 'nature')
+            ->join('colis.lastDrop', 'lastDrop')
+            ->join('lastDrop.emplacement', 'emplacement');
+        if (!empty($locations)) {
+            $queryBuilder
+                ->andWhere(
+                    $queryBuilderExpr->in('emplacement.id', ':locations')
+                )
+                ->setParameter('locations', $locations);
+        }
+        if (!empty($dateBracket)) {
+            $queryBuilder
+                ->andWhere(
+                    $queryBuilderExpr->between('lastDrop.datetime', ':dateFrom', ':dateTo')
+                )
+                ->setParameter('dateFrom', $dateBracket['minDate'])
+                ->setParameter('dateTo', $dateBracket['maxDate']);
+        }
+        if (!empty($natures)) {
+            $queryBuilder
+                ->andWhere(
+                    $queryBuilderExpr->in('nature.id', ':natures')
+                )
+                ->setParameter('natures', $natures);
+        }
+        $queryBuilder
+            ->orderBy('lastDrop.datetime', $order);
+        if ($onlyLate) {
+            $queryBuilder
+                ->andWhere(
+                    $queryBuilderExpr->isNotNull('emplacement.dateMaxTime')
+                );
+        }
+        if ($start) {
+            $queryBuilder
+                ->setFirstResult($start);
+        }
+        if ($limit) {
+            $queryBuilder
+                ->setMaxResults($limit);
+        }
+        if ($isCount) {
+            return $queryBuilder
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     /**
@@ -109,9 +231,9 @@ class ColisRepository extends EntityRepository
             ->select('count(colis.id) as nbColis')
             ->addSelect('nature.label AS natureLabel')
             ->addSelect('arrivage.id AS arrivageId')
-            ->join ('colis.nature', 'nature')
-            ->join ('colis.arrivage', 'arrivage')
-            ->groupBy ('nature.id')
+            ->join('colis.nature', 'nature')
+            ->join('colis.arrivage', 'arrivage')
+            ->groupBy('nature.id')
             ->addGroupBy('arrivage.id')
             ->where(
                 $queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo')
@@ -143,9 +265,9 @@ class ColisRepository extends EntityRepository
      * @param array $naturesFilter
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]|[]
      * @return mixed
-     * @throws DBALException
      */
-    private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = [], array $onDateBracket = []): QueryBuilder {
+    private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = [], array $onDateBracket = []): QueryBuilder
+    {
         $entityManager = $this->getEntityManager();
         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
         $firstTrackingForColis = $mouvementTracaRepository->getFirstIdForPacksOnLocations($locations, $onDateBracket);

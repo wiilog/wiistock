@@ -60,9 +60,9 @@ class ArticleQuantityNotifier
         $articleFournisseur = $article->getArticleFournisseur();
         if (isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
-			$this->refArticleService->treatAlert($referenceArticle);
             $this->refArticleService->updateRefArticleQuantities($referenceArticle);
-
+            $entityManager->flush();
+            $this->refArticleService->treatAlert($referenceArticle);
             $entityManager->flush();
         }
     }

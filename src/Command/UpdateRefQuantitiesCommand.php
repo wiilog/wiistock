@@ -58,7 +58,7 @@ class UpdateRefQuantitiesCommand extends Command
             ->writeln('..........Mise à jour..........');
         $output
             ->writeln('');
-        $this->refArticleService->updateRefArticleQuantities($referenceArticleToUpdate);
+        $this->refArticleService->updateRefArticleQuantities($referenceArticleToUpdate, true);
         $this->em->flush();
         $this->refArticleService->treatAlert($referenceArticleToUpdate);
         $this->em->flush();
@@ -76,7 +76,8 @@ class UpdateRefQuantitiesCommand extends Command
                 $preparation = $ligneArticlePreparation->getPreparation();
                 return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
                     || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
-            })->map(function (LigneArticlePreparation $ligneArticlePreparation) {
+            })
+            ->map(function (LigneArticlePreparation $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 return $preparation->getNumero();
             });

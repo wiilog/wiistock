@@ -20,8 +20,11 @@ use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\DemandeRepository;
 use App\Service\DemandeCollecteService;
+use App\Service\MouvementStockService;
 use App\Service\ValeurChampLibreService;
 use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -705,7 +708,6 @@ class ReferenceArticleController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -730,7 +732,21 @@ class ReferenceArticleController extends AbstractController
                 ]);
             }
             if ($refArticle) {
-                $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
+                try {
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
+                }
+                catch (ArticleNotAvailableException $exception) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence inactive."
+                    ];
+                }
+                catch (RequestNeedToBeProcessedException $exception) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un ordre de livraison en cours."
+                    ];
+                }
             } else {
                 $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
             }
@@ -917,8 +933,22 @@ class ReferenceArticleController extends AbstractController
 				    $demande = $demandeRepository->find($data['livraison']);
                     $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser(), false, $entityManager, $demande);
                     if ($json === 'article') {
-						$this->articleDataService->editArticle($data);
-						$json = true;
+                        try {
+                            $this->articleDataService->editArticle($data);
+                            $json = true;
+                        }
+                        catch(ArticleNotAvailableException $exception) {
+                            $json = [
+                                'success' => false,
+                                'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
+                            ];
+                        }
+                        catch(RequestNeedToBeProcessedException $exception) {
+                            $json = [
+                                'success' => false,
+                                'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
+                            ];
+                        }
 					}
 
 				} elseif (array_key_exists('collecte', $data) && $data['collecte']) {
@@ -1045,29 +1075,6 @@ class ReferenceArticleController extends AbstractController
             $em->flush();
 
             return new JsonResponse(['success' => true]);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/est-urgent", name="is_urgent", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function isUrgent(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_REFE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $referenceArticle = $referenceArticleRepository->find($id);
-
-            return new JsonResponse([
-                'urgent' => $referenceArticle->getIsUrgent() ?? false,
-                'comment' => $referenceArticle->getEmergencyComment()
-            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -1443,11 +1450,13 @@ class ReferenceArticleController extends AbstractController
      * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
+     * @param MouvementStockService $mouvementStockService
      * @param ReferenceArticle $referenceArticle
      * @return Response
      */
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   Request $request,
+                                  MouvementStockService $mouvementStockService,
                                   ReferenceArticle $referenceArticle): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1455,14 +1464,26 @@ class ReferenceArticleController extends AbstractController
             $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
             $data['data'] = array_map(
-                function(MouvementStock $mouvement) {
+                function(MouvementStock $mouvement) use ($entityManager, $mouvementStockService) {
+                    $fromColumnConfig = $mouvementStockService->getFromColumnConfig($entityManager, $mouvement);
+                    $from = $fromColumnConfig['from'];
+                    $orderPath = $fromColumnConfig['orderPath'];
+                    $orderId = $fromColumnConfig['orderId'];
+
                     return [
                         'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
                         'Quantity' => $mouvement->getQuantity(),
                         'Origin' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : 'aucun',
                         'Destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : 'aucun',
                         'Type' => $mouvement->getType(),
-                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun'
+                        'Operator' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : 'aucun',
+                        'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
+                            'from' => $from,
+                            'mvt' => $mouvement,
+                            'orderPath' => $orderPath,
+                            'orderId' => $orderId
+                        ]),
+                        'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
                     ];
                 },
                 $mouvements
@@ -1470,5 +1491,33 @@ class ReferenceArticleController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route(
+     *     "/{referenceArticle}/quantity",
+     *     name="update_qte_refarticle",
+     *     options={"expose"=true},
+     *     methods="PATCH",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param ReferenceArticle $referenceArticle
+     * @param RefArticleDataService $refArticleDataService
+     * @return JsonResponse
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    public function updateQuantity(EntityManagerInterface $entityManager,
+                                   ReferenceArticle $referenceArticle,
+                                   RefArticleDataService $refArticleDataService) {
+
+        $refArticleDataService->updateRefArticleQuantities($referenceArticle, true);
+        $entityManager->flush();
+        $refArticleDataService->treatAlert($referenceArticle);
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 }

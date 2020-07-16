@@ -148,7 +148,7 @@ initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, table
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
-let urlDeleteLitige = Routing.generate('litige_delete', true);
+let urlDeleteLitige = Routing.generate('litige_delete_arrivage', true);
 InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableArrivageLitiges);
 
 let modalModifyArrivage = $('#modalEditArrivage');
@@ -186,7 +186,7 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId) {
+function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
@@ -205,6 +205,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
     }, 'json');
 
     modal.find(submit).attr('value', litigeId);
+    $('#disputeNumberArrival').text(disputeNumber);
 }
 
 function deleteRowArrivage(button, modal, submit, hasLitige) {

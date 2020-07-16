@@ -145,26 +145,34 @@ class ChampLibreRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param Type $type
-	 * @param string $categorieCLLabel
-	 * @return ChampLibre[]
-	 */
-	public function findByTypeAndCategorieCLLabel($type, $categorieCLLabel)
+    /**
+     * @param Type|Type[] $types
+     * @param string $categorieCLLabel
+     * @return ChampLibre[]
+     */
+	public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel)
 	{
+        if (!is_array($types)){
+            $types = [$types];
+        }
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
-			"SELECT c
-            FROM App\Entity\ChampLibre c
-            JOIN c.categorieCL ccl
-            WHERE c.type = :type AND ccl.label = :categorieCLLabel"
-		)->setParameters(
-			[
-				'type' => $type,
-				'categorieCLLabel' => $categorieCLLabel,
-			]
-		);;
-		return $query->execute();
+			"SELECT champLibre
+            FROM App\Entity\ChampLibre champLibre
+            JOIN champLibre.categorieCL categorieChampLibre
+            JOIN champLibre.type type
+            WHERE type.id IN (:types)  AND categorieChampLibre.label = :categorieCLLabel "
+        )
+            ->setParameter(
+                'types',
+                array_map( function (Type $type) {
+                    return $type->getId();
+                } , $types),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter('categorieCLLabel', $categorieCLLabel);
+
+        return $query->execute();
 	}
 
     /**
@@ -225,24 +233,6 @@ class ChampLibreRepository extends EntityRepository
 
 		return $query->execute();
 	}
-
-    public function findByCategoryTypeLabelsMulti($categoryTypeLabels,$categoryTypeLabels2)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label
-            FROM App\Entity\ChampLibre c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label in (:categoryTypeLabels , :categoryTypeLabels2) "
-        )->setParameters(['categoryTypeLabels' => $categoryTypeLabels,
-            'categoryTypeLabels2' => $categoryTypeLabels2
-            ]);
-
-        return $query->getResult();
-    }
-
-
 
 	/**
 	 * @param string $categoryCL
@@ -305,21 +295,4 @@ class ChampLibreRepository extends EntityRepository
 
 		return $query->execute();
 	}
-    /**
-     * @param string[] $categoryTypeLabels
-     * @return ChampLibre[]
-     */
-    public function findLabelByCategoryTypeLabels($categoryTypeLabels)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label as key , c.label as label
-            FROM App\Entity\ChampLibre c
-            JOIN c.type t
-            JOIN t.category cat
-            WHERE cat.label in (:categoryTypeLabels)"
-        )->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
-
-        return $query->execute();
-    }
 }

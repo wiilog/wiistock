@@ -2,6 +2,9 @@
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
+                    <a href="{{ path('mvt_traca_index')}}?reference={{ referenceFilter }}" class="dropdown-item">
+                <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
+            </a>
             {% if modifiable %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
                     <div class="d-none">

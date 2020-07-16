@@ -7,6 +7,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\Statut;
 
 use App\Entity\Utilisateur;
@@ -89,10 +90,18 @@ class MouvementStockController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
             $mouvement = $mouvementStockRepository->find($data['mvt']);
 
             if (!$userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
+            }
+
+            if (!empty($mouvementTracaRepository->findBy(['mouvementStock' => $mouvement]))) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce mouvement de stock est lié à des mouvements de traçabilité.'
+                ]);
             }
 
             $entityManager->remove($mouvement);

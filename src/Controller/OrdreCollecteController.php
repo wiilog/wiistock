@@ -8,7 +8,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
@@ -128,31 +127,35 @@ class OrdreCollecteController extends AbstractController
      * @param OrdreCollecte $ordreCollecte
      * @param OrdreCollecteService $ordreCollecteService
      * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws LoaderError
+     * @throws NonUniqueResultException
+     * @throws RuntimeError
+     * @throws SyntaxError
      * @throws Exception
      */
     public function finish(Request $request,
                            OrdreCollecte $ordreCollecte,
                            OrdreCollecteService $ordreCollecteService,
-                           UserService $userService, EntityManagerInterface $entityManager): Response
+                           UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        if ($data = json_decode($request->getContent(), true)) {
-            if ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER) {
-                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-                $ordreCollecteService->finishCollecte(
-                    $ordreCollecte,
-                    $this->getUser(),
-                    $date,
-                    isset($data['depositLocationId']) ? $emplacementRepository->find($data['depositLocationId']) : null,
-                    $data['rows']
-                );
-            }
+        $rows = $request->request->get('rows');
+        if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
+            $ordreCollecteService->finishCollecte(
+                $ordreCollecte,
+                $loggedUser,
+                $date,
+                $rows
+            );
             $data = $this->renderView('ordre_collecte/ordre-collecte-show-header.html.twig', [
                 'collecte' => $ordreCollecte,
                 'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
@@ -180,11 +183,11 @@ class OrdreCollecteController extends AbstractController
             $rows = [];
             foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
                 $referenceArticle = $ligneArticle->getReferenceArticle();
-
+                $location = $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '';
                 $rows[] = [
                     "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                     "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
-                    "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
+                    "Emplacement" => $location,
                     "Quantité" => $ligneArticle->getQuantite() ?? ' ',
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $ligneArticle->getId(),
@@ -194,24 +197,29 @@ class OrdreCollecteController extends AbstractController
                         'modifiable' => $ordreCollecte->getStatut()
                             ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
                             : false,
+                        'location' => $location,
                     ])
                 ];
             }
 
             foreach ($ordreCollecte->getArticles() as $article) {
+                $location = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
                 $rows[] = [
                     'Référence' => $article->getArticleFournisseur()
                         ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
                         : '',
                     'Libellé' => $article->getLabel(),
-                    "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                    "Emplacement" => $location,
                     'Quantité' => $article->getQuantite(),
                     "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                         'id' => $article->getId(),
                         'barCode' => $article->getBarCode(),
                         'quantity' => $article->getQuantite(),
-                        'modifiable' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
-                        'articleId' =>$article->getId()
+                        'modifiable' => $ordreCollecte->getStatut()
+                            ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
+                            : false,
+                        'articleId' =>$article->getId(),
+                        "location" => $location,
                     ])
                 ];
             }
@@ -442,7 +450,7 @@ class OrdreCollecteController extends AbstractController
             [
                 $ordreCollecte->getNumero() ?? '',
                 $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
-                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y h:i') : '',
+                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y H:i') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
                 $collecte->getType() ? $collecte->getType()->getLabel() : ''
             ];
