@@ -106,10 +106,10 @@ class ArticleDataService
             } else {
                 $articles = [];
             }
-            if (count($articles) < 1) {
+            if (empty($articles)) {
                 $articles[] = [
                     'id' => '',
-                    'reference' => 'aucun article disponible',
+                    'barCode' => 'aucun article disponible',
                 ];
             }
             $quantity = $refArticle->getQuantiteDisponible();
