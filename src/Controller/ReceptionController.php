@@ -483,7 +483,8 @@ class ReceptionController extends AbstractController
                             'receptionId' => $reception->getId(),
                             'showPrint' => $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                            'referenceFilter' => (isset($referenceArticle) ? $referenceArticle->getReference() : '')
+                            'packFilter' => (isset($referenceArticle) ? $referenceArticle->getBarCode() : ''),
+                            'showTrackingMovementsLink' => isset($referenceArticle) && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
                         ]
                     ),
                 ];

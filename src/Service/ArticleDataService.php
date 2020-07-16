@@ -651,7 +651,8 @@ class ArticleDataService
             'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
-                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
+                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
+                'articleFilter' => $article->getBarCode()
             ]),
         ];
 

@@ -29,15 +29,6 @@ let tableMvtConfig = {
     ajax: {
         "url": pathMvt,
         "type": "POST",
-        'data': (data) => {
-            const referenceFilterValue = $('#referenceFilter').val()
-            return {
-                ...data,
-                ...(referenceFilterValue
-                    ? {reference: referenceFilterValue}
-                    : {})
-            };
-        }
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -181,11 +172,7 @@ function switchMvtCreationType($input) {
 /**
  * Used in mouvement_traca/index.html.twig
  */
-function updateUrl() {
-    const referenceFilter = $('#referenceFilter').val();
-    const suffix = referenceFilter
-        ? `?reference=${encodeURIComponent(referenceFilter)}`
-        : '';
-    window.history.pushState({}, document.title,  `${window.location.pathname}${suffix}`);
+function clearURL() {
+    window.history.pushState({}, document.title,  `${window.location.pathname}`);
 }
 

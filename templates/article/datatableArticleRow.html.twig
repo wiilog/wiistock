@@ -27,6 +27,9 @@
                     <i class="fas fa-external-link-alt mr-2"></i>Accéder à la demande
                 </div>
             {% endif %}
+            <a href="{{ path('mvt_traca_index') }}{{ articleFilter is defined and articleFilter is not empty ? ('?colis=' ~ articleFilter) }}" class="dropdown-item">
+                <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
+            </a>
             {% if  hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
                 <div class="dropdown-item"
                      onclick="checkAndDeleteRow($(this), '#modalDeleteArticle', 'article_check_delete', '#submitDeleteArticle')"
