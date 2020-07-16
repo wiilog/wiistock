@@ -92,19 +92,22 @@ let urlDeleteLivraison = Routing.generate('livraison_delete', {'id': id}, true);
 InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);
 
 function endLivraison(livraisonId, $button) {
-    wrapLoadingOnActionButton($button, () => (
-        $.post({
-            url: Routing.generate('livraison_finish', {id: livraisonId})
-        })
-            .then(({success, redirect, message}) => {
-                if (success) {
-                    window.location.href = redirect;
-                }
-                else {
-                    alertErrorMsg(message);
-                }
-
-                return !success; // we do not hide loading if success
+    wrapLoadingOnActionButton(
+        $button,
+        () => (
+            $.post({
+                url: Routing.generate('livraison_finish', {id: livraisonId})
             })
-    ));
+                .then(({success, redirect, message}) => {
+                    if (success) {
+                        window.location.href = redirect;
+                    }
+                    else {
+                        alertErrorMsg(message);
+                    }
+
+                    return success;
+                })
+        ),
+        false);
 }

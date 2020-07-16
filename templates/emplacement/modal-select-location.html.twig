@@ -1,4 +1,4 @@
-<div class="modal fade" id="modalSubmitPreparation" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modal-select-location" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,14 +8,15 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row no-gutters align-items-center">
-                    <label class="col-6" for="article">Emplacement de préparation</label>
-                    <select class="col-6 data form-control select2"
-                            value=""
-                            required="true"
-                            name="emplacement"
-                            id="preparation-emplacement">
-                    </select>
+                <div class="row">
+                    <label class="col-12" for="select-location-select">Emplacement de préparation</label>
+                    <div class="col-12">
+                        <select class="data form-control select2 w-100 needed"
+                                required
+                                name="location"
+                                id="select-location-select">
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -24,8 +25,7 @@
                         data-dismiss="modal">
                     Annuler
                 </button>
-                <button id="submitPreparationButton"
-                        name='mvt'
+                <button type="submit"
                         class="btn btn-primary data">
                     Valider
                 </button>
