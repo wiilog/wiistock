@@ -29,6 +29,7 @@ class Livraison
      */
     private $destination;
     /**
+     * @var Statut
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="livraisons")
      */
     private $statut;
@@ -179,5 +180,15 @@ class Livraison
         }
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCompleted(): bool {
+        return (
+            isset($this->statut)
+            && in_array($this->statut->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE])
+        );
     }
 }

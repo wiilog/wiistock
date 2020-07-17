@@ -2,16 +2,16 @@ $('.select2').select2();
 
 let prepaHasBegun = false;
 let tableArticleSplitting;
-let modalSubmitPreparation = "#modalSubmitPreparation";
-let $modalSubmitPreparation = $(modalSubmitPreparation);
+let $modalSubmitPreparation = $('#modal-select-location');
 
 $(function () {
+    const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
+
     initDateTimePicker();
     initSelect2($('#statut'), 'Statuts');
 
     ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
-    ajaxAutoCompleteEmplacementInit($('#preparation-emplacement'));
-    $('#preparation-emplacement + .select2').addClass('col-6');
+    ajaxAutoCompleteEmplacementInit($locationSelect);
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
 
     let $filterDemand = $('.filters-container .filter-demand');
@@ -227,17 +227,6 @@ function addToScissionAll($checkbox) {
 }
 
 function limitInput($input) {
-    // if (input.val().includes('.')) {
-    //     input.val(Math.trunc(input.val()));
-    // }
-    // if (input.val().includes('-')) {
-    //     input.val(input.val().replace('-', ''));
-    // }
-    // if (input.val().includes(',')) {
-    //
-    // }
-    //
-
     // vérification quantité disponible référence
     let value = Number($input.val());
     let thisMax = Number($input.attr('max'));
@@ -247,23 +236,12 @@ function limitInput($input) {
     } else {
         $input.parent().find('.row-error-msg').html('');
     }
-
-    // let max = Math.min(
-    //     parseFloat($('#quantiteRestante').html()),
-    //     $input.data('quantite')
-    // );
-    //
-    // if ($input.val() !== '' && $input.val() > max) {
-    //     $input.parent().find('.error-msg').html('valeur max : ' + max);
-    // //     input.val(Math.min(input.val(), (max >= 0 ? max : 0)));
-    // }
-
 }
 
-function clearEmplacementModal() {
-    $('#preparation-emplacement').html('');
-    $('#preparation-emplacement').val('');
-    $('#select2-preparation-emplacement-container').html('');
+function clearValidatePreparationModal() {
+    const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
+    $locationSelect.html('');
+    $locationSelect.val('');
 }
 
 function beginPrepa() {
@@ -279,7 +257,6 @@ function beginPrepa() {
 
 function finishPrepa($button) {
     let allRowsEmpty = true;
-    let $submitPreparationButton = $modalSubmitPreparation.find("#submitPreparationButton");
 
     let rows = tableArticle
         .column('quantitePrelevee:name')
@@ -292,33 +269,43 @@ function finishPrepa($button) {
     if (allRowsEmpty) {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
     } else {
-        clearEmplacementModal();
-        $('#modalSubmitPreparation').modal('show');
-        $submitPreparationButton.click(function () {
-            if ($('#preparation-emplacement').has('option').length == 0) {
-                alertErrorMsg('Veuillez sélectionner un emplacement.', true);
-            } else {
-                $('#modalSubmitPreparation').modal('hide');
-                wrapLoadingOnActionButton($button, () => (
-                    $.post({
-                        url: Routing.generate('preparation_finish', {'idPrepa': $('#prepa-id').val()}),
-                        data: {
-                            emplacement: $('#modalSubmitPreparation').find('[name="emplacement"]').val()
-                        }
-                    })
-                    .then(({success, redirect, message}) => {
-                        if (success) {
-                            window.location.href = redirect;
-                        }
-                        else {
-                            alertErrorMsg(message);
-                        }
+        clearValidatePreparationModal();
+        $modalSubmitPreparation.modal('show');
 
-                        return !success; // we do not hide loading if success
-                    })
-                ));
+        const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
+        const $submitButtonPreparation = $modalSubmitPreparation.find('button[type="submit"]');
+
+        $submitButtonPreparation.off('click');
+        $submitButtonPreparation.on('click', function () {
+            const value = $locationSelect.val();
+            if (value) {
+                $modalSubmitPreparation.modal('hide');
+                wrapLoadingOnActionButton(
+                    $button,
+                    () => (
+                        $.post({
+                            url: Routing.generate('preparation_finish', {'idPrepa': $('#prepa-id').val()}),
+                            data: {
+                                emplacement: value
+                            }
+                        })
+                        .then(({success, redirect, message}) => {
+                            if (success) {
+                                window.location.href = redirect;
+                            }
+                            else {
+                                alertErrorMsg(message);
+                            }
+
+                            return success;
+                        })
+                    ),
+                    false);
             }
-        })
+            else {
+                alertErrorMsg('Veuillez sélectionner un emplacement.', true);
+            }
+        });
     }
 }
 

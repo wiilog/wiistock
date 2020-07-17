@@ -1483,8 +1483,9 @@ function saveExportFile(routeName, params = null) {
  * Set status of button to 'loading' and prevent other click until first finished.
  * @param {*} $button jQuery button element
  * @param {function} action Function retuning a promise
+ * @param {boolean} endLoading default to true
  */
-function wrapLoadingOnActionButton($button, action, endLoading = true) {
+function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
     const loadingClass = 'loading';
     if (!$button.hasClass(loadingClass)) {
         let $buttonIcon = $button.find('.button-icon');

@@ -4,6 +4,7 @@
 {% block titleLink path('livraison_index') %}
 
 {% block page_content %}
+    <input type="hidden" name="delivery-id" value="{{ livraison.id }}"/>
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -30,15 +31,11 @@
             </div>
         </div>
     </div>
-    {% include "livraison/modalDeleteLivraison.html.twig" %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
     {% include 'article/modalShowArticle.html.twig' %}
+    {% include 'emplacement/modal-select-location.html.twig' with {type: 'delete-delivery'} %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{ livraison.id }};
-    </script>
-
-    <script src="{{ asset('js/livraison.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/livraison-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
