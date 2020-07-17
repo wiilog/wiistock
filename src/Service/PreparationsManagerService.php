@@ -653,12 +653,15 @@ class PreparationsManagerService
     public function managePreRemovePreparation(Preparation $preparation, EntityManagerInterface $entityManager): array {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $demande = $preparation->getDemande();
+
+        $requestStatusDraft = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+
         if ($demande->getPreparations()->count() === 1) {
             $demande
-                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+                ->setStatut($requestStatusDraft);
         }
 
-        $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         foreach ($preparation->getArticles() as $article) {
             $article->setPreparation(null);
             $article->setStatut($statutActifArticle);
