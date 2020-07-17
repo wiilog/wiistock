@@ -61,7 +61,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('1 as is_ref')
             ->addSelect('0 as treated')
             ->addSelect('ra.barCode as barCode')
-            ->addSelect('MAX(CASE WHEN (
+            ->addSelect('MIN(CASE WHEN (
                 referenceStatus.nom = :referenceStatusAvailable
                 AND (
                     ligneArticles.id IS NULL
