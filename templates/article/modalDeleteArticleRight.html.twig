@@ -1,26 +1,38 @@
 <div>
     {% if request is not null %}
-        Cet article est lié à la demande {{ request }}.<br/>
+        <p>Cet article est lié à la demande {{ request }}.</p>
     {% endif %}
     {% if prepa is not null %}
-        Cet article est lié à la préparation {{ prepa }}.<br/>
+        <p>Cet article est lié à la préparation {{ prepa }}.</p>
     {% endif %}
     {% if not mvtStockIsEmpty %}
-        Cet article est lié à des mouvements de stock.<br/>
+        <p>Cet article est lié à des mouvements de stock.</p>
     {% endif %}
     {% if not mvtTracaIsEmpty %}
-        Cet article est lié à des mouvements de traçabilité.<br/>
+        <p>Cet article est lié à des mouvements de traçabilité.</p>
     {% endif %}
-    {% if request is not null or prepa is not null or not mvtStockIsEmpty or not mvtTracaIsEmpty %}
-    La suppression de l'article supprimera donc :
+    {% if askQuestion is defined
+        and askQuestion
+        and (
+            request is not null
+            or prepa is not null
+            or not mvtStockIsEmpty
+            or not mvtTracaIsEmpty
+        )
+    %}
+        <br/>
+        La suppression de l'article supprimera donc :
         <ul>
-            {% if request %}<li>{{ 'la demande' }}</li>{% endif %}
-            {% if prepa %}<li>{{ 'la préparation' }}</li>{% endif %}
-            {% if not mvtStockIsEmpty %}<li>{{ 'les mouvements de stock' }}</li>{% endif %}
-            {% if not mvtTracaIsEmpty %}<li>{{ 'les mouvements de traçabilité' }}</li>{% endif %}
+            {% if request %}<li class="pl-3">{{ ' - la demande' }}</li>{% endif %}
+            {% if prepa %}<li class="pl-3">{{ ' - la préparation' }}</li>{% endif %}
+            {% if not mvtStockIsEmpty %}<li class="pl-3">{{ ' - les mouvements de stock' }}</li>{% endif %}
+            {% if not mvtTracaIsEmpty %}<li class="pl-3">{{ ' - les mouvements de traçabilité' }}</li>{% endif %}
         </ul>
         <br/>
+        Êtes vous sur de vouloir supprimer cet article ?
+    {% else %}
+        <br/>
+        Vous ne pouvez pas supprimer cet article.
     {% endif %}
-    {{ askQuestion is defined and askQuestion ? 'Êtes vous sur de vouloir supprimer cet article ?' }}
 </div>
 <div class='error-msg mt-2'></div>

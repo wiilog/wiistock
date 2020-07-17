@@ -701,7 +701,7 @@ class ArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $isFromReception = $request->request->getBoolean('fromReception');
+            $isFromReception = $request->query->getBoolean('fromReception');
 
             $articleRepository = $entityManager->getRepository(Article::class);
 
