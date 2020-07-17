@@ -240,8 +240,8 @@ class LivraisonController extends AbstractController
         return $this->render('livraison/show.html.twig', [
             'demande' => $demande,
             'livraison' => $livraison,
-            'preparation' => $preparationRepository->find($livraison->getPreparation()->getId()),
-            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE),
+            'preparation' => $livraison->getPreparation(),
+            'finished' => $livraison->isCompleted(),
             'headerConfig' => [
                 [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
                 [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
@@ -299,6 +299,7 @@ class LivraisonController extends AbstractController
             if (empty($articlesDestination)) {
                 $articlesDestination = isset($demande) ? $demande->getDestination() : null;
             }
+
             if (isset($livraisonStatus) &&
                 isset($articlesDestination)) {
                 $livraisonsManager->resetStockMovementsOnDelete(

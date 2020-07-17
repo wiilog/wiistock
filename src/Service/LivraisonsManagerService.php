@@ -229,11 +229,12 @@ class LivraisonsManagerService
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
+        $livraisonStatus = $livraison->getStatut();
+        $livraisonStatusName = $livraisonStatus->getNom();
 
         foreach ($preparation->getArticles() as $article) {
             $pickedQuantity = $article->getQuantite();
             if (!empty($pickedQuantity)) {
-                $article->setStatut($statutTransit);
                 $this->resetStockMovementOnDeleteForArticle(
                     $user,
                     $article,
@@ -243,11 +244,14 @@ class LivraisonsManagerService
                     $now,
                     $entityManager,
                     (
-                        $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                        ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
                             ? MouvementStock::TYPE_TRANSFERT
                             : MouvementStock::TYPE_ENTREE
                     )
                 );
+                $article
+                    ->setStatut($statutTransit)
+                    ->setEmplacement($destination);
             }
         }
 
@@ -261,7 +265,7 @@ class LivraisonsManagerService
             $pickedQuantity = $ligneArticle->getQuantitePrelevee();
             $refArticle = $ligneArticle->getReference();
             if (!empty($pickedQuantity)) {
-                if ($livraison->getStatut()->getNom() !== Livraison::STATUT_A_TRAITER) {
+                if ($livraison->isCompleted()) {
                     $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $pickedQuantity);
                     $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) + $pickedQuantity);
                     $refArticle->setQuantiteStock($newQuantiteStock);
@@ -277,9 +281,9 @@ class LivraisonsManagerService
                         $now,
                         $entityManager,
                         (
-                        $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
-                            ? MouvementStock::TYPE_TRANSFERT
-                            : MouvementStock::TYPE_ENTREE
+                            ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
+                                ? MouvementStock::TYPE_TRANSFERT
+                                : MouvementStock::TYPE_ENTREE
                         )
                     );
                 }
