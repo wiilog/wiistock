@@ -644,4 +644,49 @@ class PreparationsManagerService
 
         return ($preparationNumber . '-' . $currentCounterStr);
     }
+
+    /**
+     * @param Preparation $preparation
+     * @param EntityManagerInterface $entityManager
+     * @return ReferenceArticle[]
+     */
+    public function managePreRemovePreparation(Preparation $preparation, EntityManagerInterface $entityManager): array {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $demande = $preparation->getDemande();
+
+        $requestStatusDraft = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+
+        if ($demande->getPreparations()->count() === 1) {
+            $demande
+                ->setStatut($requestStatusDraft);
+        }
+
+        foreach ($preparation->getArticles() as $article) {
+            $article->setPreparation(null);
+            $article->setStatut($statutActifArticle);
+            $article->setQuantitePrelevee(0);
+        }
+
+        $refToUpdate = [];
+
+        foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
+            $refArticle = $ligneArticlePreparation->getReference();
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $quantiteReservee = $refArticle->getQuantiteReservee();
+                $quantiteAPrelever = $ligneArticlePreparation->getQuantite();
+                $newQuantiteReservee = ($quantiteReservee - $quantiteAPrelever);
+                $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+
+                $newQuantiteReservee = $refArticle->getQuantiteReservee();
+                $quantiteStock = $refArticle->getQuantiteStock();
+                $newQuantiteDisponible = ($quantiteStock - $newQuantiteReservee);
+                $refArticle->setQuantiteDisponible($newQuantiteDisponible > 0 ? $newQuantiteDisponible : 0);
+            } else {
+                $refToUpdate[] = $refArticle;
+            }
+            $entityManager->remove($ligneArticlePreparation);
+        }
+        return $refToUpdate;
+    }
 }

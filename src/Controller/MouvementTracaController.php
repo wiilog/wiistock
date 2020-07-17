@@ -331,10 +331,12 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
+                           MouvementTracaService $mouvementTracaService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -346,9 +348,8 @@ class MouvementTracaController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            foreach ($mvt->getLinkedPackLastDrops() as $pack) {
-                $pack->setLastDrop(null);
-            }
+            $mouvementTracaService->manageMouvementTracaPreRemove($mvt);
+            $entityManager->flush();
 
             $entityManager->remove($mvt);
             $entityManager->flush();

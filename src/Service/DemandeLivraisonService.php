@@ -511,4 +511,17 @@ class DemandeLivraisonService
             ]
         );
     }
+
+    /**
+     * @param Demande $demande
+     * @param EntityManagerInterface $entityManager
+     */
+    public function managePreRemoveDeliveryRequest(Demande $demande, EntityManagerInterface $entityManager) {
+        foreach ($demande->getArticles() as $article) {
+            $article->setDemande(null);
+        }
+        foreach ($demande->getLigneArticle() as $ligneArticle) {
+            $entityManager->remove($ligneArticle);
+        }
+    }
 }

@@ -938,7 +938,7 @@ function saveFilters(page, tableSelector, callback) {
     }, 'json');
 }
 
-function checkAndDeleteRow(icon, modalName, route, submit) {
+function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
     let $modalBody = $(modalName).find('.modal-body');
     let $submit = $(submit);
     let id = icon.data('id');
@@ -954,7 +954,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
         '   </div>' +
         '</div>'
     );
-    $.post(Routing.generate(route), param, function (resp) {
+
+    const getParamsStr = getParams
+        ? Object
+            .keys(getParams)
+            .map((key) => (key + "=" + encodeURIComponent(getParams[key])))
+            .join('&')
+        : '';
+
+    $.post(Routing.generate(route) + (getParamsStr ? `?${getParamsStr}` : ''), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
             $submit.hide();
