@@ -9,7 +9,6 @@ use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
-use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -679,13 +678,12 @@ class ArticleController extends AbstractController
                 $entityManager->flush();
             }
 
-
             $entityManager->remove($article);
             $entityManager->flush();
 
             $response['delete'] = $rows;
             return new JsonResponse($response);
-            }
+        }
         throw new NotFoundHttpException("404");
     }
 
@@ -703,6 +701,7 @@ class ArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $isFromReception = $request->request->getBoolean('fromReception');
 
             $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -729,19 +728,18 @@ class ArticleController extends AbstractController
                 $articleRequest = $article->getDemande();
                 $articlePrepa = $article->getPreparation();
 
-                if (
-                    ($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
+                if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
                     && ($hasRightToDeleteRequests || empty($articleRequest))
-                    && ($hasRightToDeleteOrders || empty($articlePrepa))
-                ) {
+                    && ($hasRightToDeleteOrders || empty($articlePrepa))) {
                     return new JsonResponse([
-                        'delete' => true,
+                        'delete' => $isFromReception,
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
                             'prepa' => $articlePrepa ? $articlePrepa->getNumero() : null,
                             'request' => $articleRequest ? $articleRequest->getNumero() : null,
                             'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
-                            'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty
+                            'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
+                            'askQuestion' => $isFromReception
                         ])
                     ]);
                 } else {
