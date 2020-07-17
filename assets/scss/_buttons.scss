@@ -166,13 +166,13 @@ button:focus {
 
     &:hover {
         background-color: $blueGT;
-        color: $white;
+        color: $white !important;
         border-color: $blueGT;
     }
 
     &:focus {
         background-color: $blueGT;
-        color: $white;
+        color: $white !important;
         border-color: $blueGT;
         box-shadow: 0.5px 0.5px 3px black;
     }

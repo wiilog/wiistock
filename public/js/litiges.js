@@ -141,6 +141,7 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 }
 
 let tableHistoLitige;
+let tableArticleLitige;
 
 function openTableHisto() {
 
@@ -160,33 +161,7 @@ function openTableHisto() {
         }
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
-    openTableArticleLitige();
-}
-
-let tableArticleLitige;
-
-function openTableArticleLitige() {
-
-    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
-    let tableArticleLitigeConfig = {
-        ajax: {
-            "url": pathArticleLitige,
-            "type": "POST"
-        },
-        columns: [
-            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
-            {"data": 'status', 'name': 'status', 'title': 'Status'},
-            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
-            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
-            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        },
-        "paging": false,
-
-    };
-    tableArticleLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
+    tableArticleLitige = initTableArticleLitige();
 }
 
 function getCommentAndAddHisto() {

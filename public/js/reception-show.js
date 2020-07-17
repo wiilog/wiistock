@@ -216,6 +216,8 @@ function getCommentAndAddHisto() {
     });
 }
 
+let tableArticleLitige;
+
 function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
     let tableHistoLitigeConfig = {
@@ -236,33 +238,7 @@ function openTableHisto() {
         },
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
-    openTableArticleLitige();
-}
-
-let tableArticleInLitige;
-
-function openTableArticleLitige() {
-
-    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
-    let tableArticleLitigeConfig = {
-        ajax: {
-            "url": pathArticleLitige,
-            "type": "POST"
-        },
-        columns: [
-            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
-            {"data": 'status', 'name': 'status', 'title': 'Status'},
-            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
-            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
-            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        },
-        "paging": false,
-
-    };
-    tableArticleInLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
+    tableArticleLitige = initTableArticleLitige();
 }
 
 function initDatatableConditionnement() {
