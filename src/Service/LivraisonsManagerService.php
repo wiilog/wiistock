@@ -241,7 +241,12 @@ class LivraisonsManagerService
                     $destination,
                     $pickedQuantity,
                     $now,
-                    $entityManager
+                    $entityManager,
+                    (
+                        $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                            ? MouvementStock::TYPE_TRANSFERT
+                            : MouvementStock::TYPE_ENTREE
+                    )
                 );
             }
         }
@@ -256,11 +261,12 @@ class LivraisonsManagerService
             $pickedQuantity = $ligneArticle->getQuantitePrelevee();
             $refArticle = $ligneArticle->getReference();
             if (!empty($pickedQuantity)) {
-                $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $pickedQuantity);
-                $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) + $pickedQuantity);
-                $refArticle->setQuantiteStock($newQuantiteStock);
-                $refArticle->setQuantiteReservee($newQuantiteReservee);
-
+                if ($livraison->getStatut()->getNom() !== Livraison::STATUT_A_TRAITER) {
+                    $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $pickedQuantity);
+                    $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) + $pickedQuantity);
+                    $refArticle->setQuantiteStock($newQuantiteStock);
+                    $refArticle->setQuantiteReservee($newQuantiteReservee);
+                }
                 if (isset($livraisonDestination)) {
                     $this->resetStockMovementOnDeleteForArticle(
                         $user,
@@ -269,7 +275,12 @@ class LivraisonsManagerService
                         $destination,
                         $pickedQuantity,
                         $now,
-                        $entityManager
+                        $entityManager,
+                        (
+                        $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER
+                            ? MouvementStock::TYPE_TRANSFERT
+                            : MouvementStock::TYPE_ENTREE
+                        )
                     );
                 }
             }
@@ -284,6 +295,7 @@ class LivraisonsManagerService
      * @param int $quantity
      * @param DateTime $date
      * @param EntityManagerInterface $entityManager
+     * @param string $movementType
      */
     private function resetStockMovementOnDeleteForArticle(Utilisateur $user,
                                                           $article,
@@ -291,13 +303,14 @@ class LivraisonsManagerService
                                                           Emplacement $destination,
                                                           int $quantity,
                                                           DateTime $date,
-                                                          EntityManagerInterface $entityManager) {
+                                                          EntityManagerInterface $entityManager,
+                                                          string $movementType) {
         $mouvementStock = $this->mouvementStockService->createMouvementStock(
             $user,
             $from,
             $quantity,
             $article,
-            MouvementStock::TYPE_ENTREE
+            $movementType
         );
 
         $this->mouvementStockService->finishMouvementStock(

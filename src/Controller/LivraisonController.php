@@ -300,7 +300,6 @@ class LivraisonController extends AbstractController
                 $articlesDestination = isset($demande) ? $demande->getDestination() : null;
             }
             if (isset($livraisonStatus) &&
-                in_array($livraisonStatus->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE]) &&
                 isset($articlesDestination)) {
                 $livraisonsManager->resetStockMovementsOnDelete(
                     $livraison,
