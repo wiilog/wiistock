@@ -14,10 +14,10 @@
         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple mb-3"
+                    <button data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary btn-ripple"
                        onclick='initNewCollecteEditor("#modalNewCollecte"), clearModal("#modalNewCollecte")'>
                         <span class="fa fa-plus mr-2"></span>Nouvelle collecte
-                    </a>
+                    </button>
                 </div>
             </div>
         {% endif %}

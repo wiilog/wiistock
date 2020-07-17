@@ -998,7 +998,7 @@ class ReferenceArticleController extends AbstractController
     public function ajaxPlusDemandeContent(EntityManagerInterface $entityManager,
                                            Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
