@@ -727,13 +727,13 @@ class ArticleController extends AbstractController
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
                 $articleRequest = $article->getDemande();
                 $articlePrepa = $article->getPreparation();
-
+                $isNotUsedInAssoc = $articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && empty($articleRequest) && empty($articlePrepa);
                 if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
                     && ($hasRightToDeleteRequests || empty($articleRequest))
                     && ($hasRightToDeleteOrders || empty($articlePrepa))) {
                     return new JsonResponse([
-                        'delete' => $isFromReception,
+                        'delete' => $isFromReception || $isNotUsedInAssoc,
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
                             'prepa' => $articlePrepa ? $articlePrepa->getNumero() : null,
                             'request' => $articleRequest ? $articleRequest->getNumero() : null,
