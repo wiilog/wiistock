@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Role;
+use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\UserService;
+use Twig\Environment as Twig_Environment;
 
 
 class SecuriteController extends AbstractController
@@ -37,13 +39,28 @@ class SecuriteController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var MailerService
+     */
+    private $mailerService;
+
+    /**
+     * @var Twig_Environment
+     */
+    private $templating;
+
+
     public function __construct(PasswordService $passwordService,
                                 UserService $userService,
-                                UserPasswordEncoderInterface $passwordEncoder)
+                                UserPasswordEncoderInterface $passwordEncoder,
+                                MailerService $mailerService,
+                                Twig_Environment $templating)
     {
         $this->passwordService = $passwordService;
         $this->userService = $userService;
         $this->passwordEncoder = $passwordEncoder;
+        $this->mailerService = $mailerService;
+        $this->templating = $templating;
     }
 
     /**
@@ -93,17 +110,21 @@ class SecuriteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function register(Request $request,
+                             UserPasswordEncoderInterface $passwordEncoder,
+                             EntityManagerInterface $entityManager)
     {
         $session = $request->getSession();
         $user = new Utilisateur();
 
         $form = $this->createForm(UtilisateurType::class, $user);
         $roleRepository = $entityManager->getRepository(Role::class);
+        $utilisateur = $entityManager->getRepository(Utilisateur::class);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
+            $userMailByRole = $utilisateur->getUserMailByRole(Role::SUPER_ADMIN);
             $user
                 ->setStatus(true)
                 ->setPassword($password)
@@ -117,6 +138,18 @@ class SecuriteController extends AbstractController
                 ->setRecherche(Utilisateur::SEARCH_DEFAULT);
             $entityManager->persist($user);
             $entityManager->flush();
+
+            if(!empty($userMailByRole)) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                    $this->templating->render('mails/mailNouvelUtilisateur.html.twig', [
+                        'user' => $user->getUsername(),
+                        'mail' => $user->getEmail()
+                    ]),
+                    $userMailByRole
+                );
+            }
+
             $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
 
             return $this->redirectToRoute('login');

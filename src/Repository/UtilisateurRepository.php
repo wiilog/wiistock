@@ -298,4 +298,19 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             return $acc;
         }, []);
     }
+
+    public function getUserMailByRole(string $roleLabel)
+    {
+        $queryBuilder = $this->createQueryBuilder('utilisateur')
+            ->select('utilisateur.email AS email')
+            ->join('utilisateur.role','role' )
+            ->where('role.label = :roleLabel')
+            ->setParameter('roleLabel', $roleLabel)
+            ->getQuery()
+            ->execute();
+
+        return array_map(function (array $userMail) {
+            return $userMail['email'];
+        }, $queryBuilder);
+    }
 }
