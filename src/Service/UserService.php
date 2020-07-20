@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Acheminements;
 use App\Entity\Action;
 use App\Entity\Collecte;
 use App\Entity\Demande;
@@ -164,16 +165,27 @@ class UserService
 	    $ordreCollecteRepository = $this->entityManager->getRepository(OrdreCollecte::class);
 	    $manutentionRepository = $this->entityManager->getRepository(Manutention::class);
 	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
-	    $receptionRepository = $this->entityManager->getRepository(Reception::class);
+        $receptionRepository = $this->entityManager->getRepository(Reception::class);
+        $acheminementRepository = $this->entityManager->getRepository(Acheminements::class);
 
-		$nbDemandesLivraison = $demandeRepository->countByUser($user);
-		$nbDemandesCollecte = $collecteRepository->countByUser($user);
-		$nbOrdresLivraison = $livraisonRepository->countByUser($user);
-		$nbOrdresCollecte = $ordreCollecteRepository->countByUser($user);
-		$nbManutentions = $manutentionRepository->countByUser($user);
-		$nbPrepa = $preparationRepository->countByUser($user);
-		$nbReceptions = $receptionRepository->countByUser($user);
+        $isUsedInRequests = $demandeRepository->countByUser($user) > 0;
+        $isUsedInCollects = $collecteRepository->countByUser($user) > 0;
+        $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user) > 0;
+        $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user) > 0;
+        $isUsedInManutentions = $manutentionRepository->countByUser($user) > 0;
+        $isUsedInPreparationOrders = $preparationRepository->countByUser($user) > 0;
+        $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
+        $isUsedInAcheminements = $acheminementRepository->countByUser($user) > 0;
 
-		return $nbDemandesLivraison + $nbDemandesCollecte + $nbOrdresLivraison + $nbOrdresCollecte + $nbManutentions + $nbPrepa + $nbReceptions > 0;
+		return (
+            $isUsedInRequests
+            || $isUsedInCollects
+            || $isUsedInDeliveryOrders
+            || $isUsedInCollectOrders
+            || $isUsedInManutentions
+            || $isUsedInPreparationOrders
+            || $isUsedInReceptions
+            || $isUsedInAcheminements
+        );
 	}
 }
