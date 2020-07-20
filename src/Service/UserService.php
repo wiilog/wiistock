@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Acheminements;
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Livraison;
@@ -167,6 +168,7 @@ class UserService
 	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
         $acheminementRepository = $this->entityManager->getRepository(Acheminements::class);
+        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user) > 0;
         $isUsedInCollects = $collecteRepository->countByUser($user) > 0;
@@ -176,6 +178,7 @@ class UserService
         $isUsedInPreparationOrders = $preparationRepository->countByUser($user) > 0;
         $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
         $isUsedInAcheminements = $acheminementRepository->countByUser($user) > 0;
+        $isUsedInArrivals = $arrivageRepository->countByUser($user) > 0;
 
 		return (
             $isUsedInRequests
@@ -186,6 +189,7 @@ class UserService
             || $isUsedInPreparationOrders
             || $isUsedInReceptions
             || $isUsedInAcheminements
+            || $isUsedInArrivals
         );
 	}
 }
