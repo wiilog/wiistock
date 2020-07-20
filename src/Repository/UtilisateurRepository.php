@@ -304,8 +304,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         $queryBuilder = $this->createQueryBuilder('utilisateur')
             ->select('utilisateur.email AS email')
             ->join('utilisateur.role','role' )
-            ->where('role.label = :roleLabel')
-            ->setParameter('roleLabel', $roleLabel)
+            ->where('role.isMailSendAccountCreation = :isMailSend')
+            ->setParameter('isMailSend', true)
             ->getQuery()
             ->execute();
 
