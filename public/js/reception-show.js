@@ -374,6 +374,7 @@ function articleChanged($select) {
     const classDNone = 'd-none';
 
     if (selectedReferences.length > 0) {
+
         const selectedReference = selectedReferences[0];
         const typeQuantity = selectedReference.typeQuantity;
         if (typeQuantity === 'article') {
@@ -393,6 +394,7 @@ function articleChanged($select) {
         }
         $('.body-add-ref').css('display', 'flex');
         $('#innerNewRef').html('');
+        registerNumberInputProtection();
     }
     else {
         $addArticleAndRedirectSubmit.addClass(classDNone);

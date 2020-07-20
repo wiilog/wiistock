@@ -1020,8 +1020,7 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $qb = $this->getDataAlert();
 
-        $countTotal = count($qb->getQuery()->getResult());
-        return $countTotal;
+        return count($qb->getQuery()->getResult());
     }
 
     public function getDataAlert()
@@ -1043,14 +1042,17 @@ class ReferenceArticleRepository extends EntityRepository
                 ra.quantiteDisponible,
                 t.label as type')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.dateEmergencyTriggered IS NOT NULL')
             ->join('ra.type', 't')
+            ->join('ra.statut', 'status')
+            ->andWhere('status.nom = :activeStatus')
+            ->andWhere('ra.dateEmergencyTriggered IS NOT NULL')
             ->andWhere(
                 $qb->expr()->orX(
                     $qb->expr()->gt('ra.limitSecurity', 0),
                     $qb->expr()->gt('ra.limitWarning', 0)
                 )
-            );
+            )
+            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
         return $qb;
     }
 

@@ -173,8 +173,8 @@ class LivraisonsManagerService
                     if ($newQuantiteStock >= 0
                         && $newQuantiteReservee >= 0
                         && $newQuantiteStock >= $newQuantiteReservee) {
-                        $refArticle->setQuantiteStock($newQuantiteStock > 0 ? $newQuantiteStock : 0);
-                        $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
+                        $refArticle->setQuantiteStock($newQuantiteStock);
+                        $refArticle->setQuantiteReservee($newQuantiteReservee);
                     }
                     else {
                         throw new NegativeQuantityException($refArticle);
@@ -229,11 +229,12 @@ class LivraisonsManagerService
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
+        $livraisonStatus = $livraison->getStatut();
+        $livraisonStatusName = $livraisonStatus->getNom();
 
         foreach ($preparation->getArticles() as $article) {
             $pickedQuantity = $article->getQuantite();
             if (!empty($pickedQuantity)) {
-                $article->setStatut($statutTransit);
                 $this->resetStockMovementOnDeleteForArticle(
                     $user,
                     $article,
@@ -241,8 +242,16 @@ class LivraisonsManagerService
                     $destination,
                     $pickedQuantity,
                     $now,
-                    $entityManager
+                    $entityManager,
+                    (
+                        ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
+                            ? MouvementStock::TYPE_TRANSFERT
+                            : MouvementStock::TYPE_ENTREE
+                    )
                 );
+                $article
+                    ->setStatut($statutTransit)
+                    ->setEmplacement($destination);
             }
         }
 
@@ -256,11 +265,12 @@ class LivraisonsManagerService
             $pickedQuantity = $ligneArticle->getQuantitePrelevee();
             $refArticle = $ligneArticle->getReference();
             if (!empty($pickedQuantity)) {
-                $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $pickedQuantity);
-                $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) + $pickedQuantity);
-                $refArticle->setQuantiteStock($newQuantiteStock);
-                $refArticle->setQuantiteReservee($newQuantiteReservee);
-
+                if ($livraison->isCompleted()) {
+                    $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $pickedQuantity);
+                    $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) + $pickedQuantity);
+                    $refArticle->setQuantiteStock($newQuantiteStock);
+                    $refArticle->setQuantiteReservee($newQuantiteReservee);
+                }
                 if (isset($livraisonDestination)) {
                     $this->resetStockMovementOnDeleteForArticle(
                         $user,
@@ -269,7 +279,12 @@ class LivraisonsManagerService
                         $destination,
                         $pickedQuantity,
                         $now,
-                        $entityManager
+                        $entityManager,
+                        (
+                            ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
+                                ? MouvementStock::TYPE_TRANSFERT
+                                : MouvementStock::TYPE_ENTREE
+                        )
                     );
                 }
             }
@@ -284,6 +299,7 @@ class LivraisonsManagerService
      * @param int $quantity
      * @param DateTime $date
      * @param EntityManagerInterface $entityManager
+     * @param string $movementType
      */
     private function resetStockMovementOnDeleteForArticle(Utilisateur $user,
                                                           $article,
@@ -291,13 +307,14 @@ class LivraisonsManagerService
                                                           Emplacement $destination,
                                                           int $quantity,
                                                           DateTime $date,
-                                                          EntityManagerInterface $entityManager) {
+                                                          EntityManagerInterface $entityManager,
+                                                          string $movementType) {
         $mouvementStock = $this->mouvementStockService->createMouvementStock(
             $user,
             $from,
             $quantity,
             $article,
-            MouvementStock::TYPE_ENTREE
+            $movementType
         );
 
         $this->mouvementStockService->finishMouvementStock(

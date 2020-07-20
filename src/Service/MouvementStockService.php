@@ -199,4 +199,19 @@ class MouvementStockService
             ->setDate($date)
             ->setEmplacementTo($locationTo);
     }
+
+    /**
+     * @param MouvementStock $mouvementStock
+     * @param EntityManagerInterface $entityManager
+     * @param MouvementTracaService $mouvementTracaService
+     */
+    public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
+                                                  EntityManagerInterface $entityManager,
+                                                  MouvementTracaService $mouvementTracaService) {
+        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+        foreach ($mouvementTracaRepository->findBy(['mouvementStock' => $mouvementStock]) as $mvtTraca) {
+            $mouvementTracaService->manageMouvementTracaPreRemove($mvtTraca);
+            $entityManager->remove($mvtTraca);
+        }
+    }
 }

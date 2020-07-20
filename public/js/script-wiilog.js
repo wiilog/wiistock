@@ -27,7 +27,7 @@ const STATUT_EN_TRANSIT = 'en transit';
 const COMMENT_MAX_LENGTH = 200;
 
 /** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,21}$/;
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
@@ -966,7 +966,7 @@ function saveFilters(page, tableSelector, callback) {
     }, 'json');
 }
 
-function checkAndDeleteRow(icon, modalName, route, submit) {
+function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
     let $modalBody = $(modalName).find('.modal-body');
     let $submit = $(submit);
     let id = icon.data('id');
@@ -982,7 +982,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
         '   </div>' +
         '</div>'
     );
-    $.post(Routing.generate(route), param, function (resp) {
+
+    const getParamsStr = getParams
+        ? Object
+            .keys(getParams)
+            .map((key) => (key + "=" + encodeURIComponent(getParams[key])))
+            .join('&')
+        : '';
+
+    $.post(Routing.generate(route) + (getParamsStr ? `?${getParamsStr}` : ''), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
             $submit.hide();
@@ -1503,8 +1511,9 @@ function saveExportFile(routeName, params = null) {
  * Set status of button to 'loading' and prevent other click until first finished.
  * @param {*} $button jQuery button element
  * @param {function} action Function retuning a promise
+ * @param {boolean} endLoading default to true
  */
-function wrapLoadingOnActionButton($button, action, endLoading = true) {
+function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
     const loadingClass = 'loading';
     if (!$button.hasClass(loadingClass)) {
         let $buttonIcon = $button.find('.button-icon');
@@ -1555,4 +1564,18 @@ function fillDemandeurField($modal) {
             .val(null)
             .trigger('change');
     }
+}
+
+function registerNumberInputProtection() {
+    const forbiddenChars = [
+        "e",
+        "+",
+        "-"
+    ];
+
+    $('input[type="number"]').on("keydown", function (e) {
+        if (forbiddenChars.includes(e.key)) {
+            e.preventDefault();
+        }
+    });
 }

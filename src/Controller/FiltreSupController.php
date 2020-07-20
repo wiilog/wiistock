@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\FiltreSup;
+use App\Service\FilterSupService;
 use App\Service\LitigeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -24,11 +25,12 @@ class FiltreSupController extends AbstractController
     /**
      * @Route("/creer", name="filter_sup_new", options={"expose"=true})
      * @param EntityManagerInterface $entityManager
+     * @param FilterSupService $filterSupService
      * @param Request $request
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
+                        FilterSupService $filterSupService,
                         Request $request): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -62,11 +64,7 @@ class FiltreSupController extends AbstractController
                     if (!empty($value)) {
                         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $user);
                         if (!$filter) {
-                            $filter = new FiltreSup();
-                            $filter
-                                ->setField($filterName)
-                                ->setPage($page)
-                                ->setUser($user);
+                            $filter = $filterSupService->createFiltreSup($page, $filterName, null, $user);
                             $entityManager->persist($filter);
                         }
 
@@ -99,11 +97,7 @@ class FiltreSupController extends AbstractController
                     if (!empty($data[$filterLabel])) {
                         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $user);
                         if (!$filter) {
-                            $filter = new FiltreSup();
-                            $filter
-                                ->setField($filterName)
-                                ->setPage($page)
-                                ->setUser($user);
+                            $filter = $filterSupService->createFiltreSup($page, $filterName, null, $user);
                             $entityManager->persist($filter);
                         }
                         if (is_array($data[$filterLabel])) {

@@ -344,45 +344,15 @@ class PreparationController extends AbstractController
      */
     public function delete(Preparation $preparation,
                            EntityManagerInterface $entityManager,
+                           PreparationsManagerService $preparationsManagerService,
                            RefArticleDataService $refArticleDataService): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $demande = $preparation->getDemande();
-        if ($demande->getPreparations()->count() === 1) {
-            $demande
-                ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
-        }
-
-        $statutActifArticle = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
-        foreach ($preparation->getArticles() as $article) {
-            $article->setPreparation(null);
-            $article->setStatut($statutActifArticle);
-            $article->setQuantitePrelevee(0);
-        }
-
-        $refToUpdate = [];
-
-        foreach ($preparation->getLigneArticlePreparations() as $ligneArticlePreparation) {
-            $refArticle = $ligneArticlePreparation->getReference();
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $quantiteReservee = $refArticle->getQuantiteReservee();
-                $quantiteAPrelever = $ligneArticlePreparation->getQuantite();
-                $newQuantiteReservee = ($quantiteReservee - $quantiteAPrelever);
-                $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
-
-                $newQuantiteReservee = $refArticle->getQuantiteReservee();
-                $quantiteStock = $refArticle->getQuantiteStock();
-                $newQuantiteDisponible = ($quantiteStock - $newQuantiteReservee);
-                $refArticle->setQuantiteDisponible($newQuantiteDisponible > 0 ? $newQuantiteDisponible : 0);
-            } else {
-                $refToUpdate[] = $refArticle;
-            }
-            $entityManager->remove($ligneArticlePreparation);
-        }
+        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+        $entityManager->flush();
 
         $entityManager->remove($preparation);
 

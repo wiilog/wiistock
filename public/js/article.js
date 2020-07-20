@@ -135,6 +135,7 @@ let getArticleFournisseur = function () {
                 $('.error-msg').html(data.error)
             }
         }
+        registerNumberInputProtection();
     }
     path = Routing.generate('ajax_article_new_content', true)
     let data = {};
