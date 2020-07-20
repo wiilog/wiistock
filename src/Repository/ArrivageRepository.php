@@ -457,7 +457,7 @@ class ArrivageRepository extends EntityRepository
         /** @lang DQL */
             "SELECT COUNT(a)
             FROM App\Entity\Arrivage a
-            WHERE a.utilisateur = :user"
+            WHERE a.utilisateur = :user OR a.destinataire = :user"
         )->setParameter('user', $user);
 
         return $query->getSingleScalarResult();
