@@ -176,6 +176,7 @@ class MouvementTracaService
         $mouvementStock = $options['mouvementStock'] ?? null;
         $fileBag = $options['fileBag'] ?? null;
         $from = $options['from'] ?? null;
+        $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
 
         $mouvementTraca = new MouvementTraca();
@@ -212,6 +213,10 @@ class MouvementTracaService
             } else if ($from instanceof Reception) {
                 $mouvementTraca->setReception($from);
             }
+        }
+
+        if (isset($receptionReferenceArticle)) {
+            $mouvementTraca->setReceptionReferenceArticle($receptionReferenceArticle);
         }
 
         if (isset($fileBag)) {
