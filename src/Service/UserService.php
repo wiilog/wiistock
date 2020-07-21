@@ -28,6 +28,9 @@ use Twig\Error\SyntaxError;
 
 class UserService
 {
+
+    public const MIN_MOBILE_KEY_LENGTH = 24;
+
      /**
      * @var Twig_Environment
      */
@@ -48,7 +51,7 @@ class UserService
         $this->entityManager = $entityManager;
     }
 
-    public static function CreateMobileLoginKey(int $length = 24): string {
+    public static function CreateMobileLoginKey(int $length = self::MIN_MOBILE_KEY_LENGTH): string {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';

@@ -106,12 +106,12 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $mouvements;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=false, unique=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $apiKey;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=false, unique=true)
      */
     private $mobileLoginKey;
 

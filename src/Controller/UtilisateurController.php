@@ -308,8 +308,14 @@ class UtilisateurController extends AbstractController
             if (!empty($data['mobileLoginKey'])
                 && $data['mobileLoginKey'] !== $utilisateur->getMobileLoginKey()) {
 
-                $usersWithKey = $utilisateurRepository->findBy(['mobileLoginKey' => $data['mobileLoginKey']]);
-                if (!empty($usersWithKey)) {
+                $usersWithKey = $utilisateurRepository->findBy([
+                    'mobileLoginKey' => $data['mobileLoginKey']
+                ]);
+                if (!empty($usersWithKey)
+                    && (
+                        count($usersWithKey) > 1
+                        || $usersWithKey[0]->getId() !== $utilisateur->getId()
+                    )) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Cette clé de connexion est déjà utilisée.',
@@ -317,7 +323,18 @@ class UtilisateurController extends AbstractController
                     ]);
                 }
                 else {
-                    $utilisateur->setMobileLoginKey($data['mobileLoginKey']);
+                    $mobileLoginKey = $data['mobileLoginKey'];
+                    if (empty($mobileLoginKey)
+                        || strlen($mobileLoginKey) !== UserService::MIN_MOBILE_KEY_LENGTH) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => 'La longueur de la clé de connexion doit être de ' . UserService::MIN_MOBILE_KEY_LENGTH . ' caractères.',
+                            'action' => 'edit'
+                        ]);
+                    }
+                    else {
+                        $utilisateur->setMobileLoginKey($mobileLoginKey);
+                    }
                 }
             }
 

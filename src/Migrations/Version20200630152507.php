@@ -38,7 +38,7 @@ final class Version20200630152507 extends AbstractMigration
             }
             while(in_array($mobileLoginKey, $alreadyGeneratedKeys));
             $alreadyGeneratedKeys[] = $mobileLoginKey;
-            $this->addSql(`UPDATE utilisateur SET mobile_login_key = '$mobileLoginKey' WHERE utilisateur.id = $userId`);
+            $this->addSql("UPDATE utilisateur SET mobile_login_key = '$mobileLoginKey' WHERE utilisateur.id = $userId");
         }
     }
 
