@@ -1596,7 +1596,7 @@ class ReceptionController extends AbstractController
                 $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-                if (intval($nbArticles) === 0) {
+                if (intval($nbArticles) > 0) {
                     $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
                 } else {
                     $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig', [
