@@ -1596,11 +1596,15 @@ class ReceptionController extends AbstractController
                 $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig', [
-                    'msg' => 'En effet, cela décrémenterait le stock de '
-                        . $ligneArticle->getQuantite() . ' alors que la quantité disponible de la référence est de '
-                        . $reference->getQuantiteDisponible() . '.'
-                ]);
+                if (intval($nbArticles) === 0) {
+                    $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                } else {
+                    $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig', [
+                        'msg' => 'En effet, cela décrémenterait le stock de '
+                            . $ligneArticle->getQuantite() . ' alors que la quantité disponible de la référence est de '
+                            . $reference->getQuantiteDisponible() . '.'
+                    ]);
+                }
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
