@@ -645,6 +645,16 @@ class ReceptionController extends AbstractController
                 'receptionReferenceArticle' => $ligneArticle
             ]);
 
+            $reference = $ligneArticle->getReferenceArticle();
+            if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
+                $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
+                if ($newRefAvailableQuantity < 0) {
+                    return new JsonResponse(false);
+                }
+                $reference->setQuantiteStock($newRefQuantity);
+            }
+
             foreach ($associatedMvts as $associatedMvt) {
                 $mouvementTracaService->manageMouvementTracaPreRemove($associatedMvt);
                 $entityManager->flush();
@@ -1577,12 +1587,20 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $nbArticles = $receptionReferenceArticleRepository->countArticlesByRRA($id);
-            if ($nbArticles == 0) {
+            $ligneArticle = $receptionReferenceArticleRepository->find($id);
+            $reference = $ligneArticle->getReferenceArticle();
+            $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
+            $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
+            if (intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)) {
                 $delete = true;
                 $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig', [
+                    'msg' => 'En effet, cela décrémenterait le stock de '
+                        . $ligneArticle->getQuantite() . ' alors que la quantité disponible de la référence est de '
+                        . $reference->getQuantiteDisponible() . '.'
+                ]);
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
