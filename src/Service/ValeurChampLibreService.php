@@ -2,7 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\Reception;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use DateTime;
 use DateTimeZone;
@@ -107,4 +110,64 @@ class ValeurChampLibreService {
 
         $valeurChampLibre->setValeur($formattedValue);
     }
+
+    public function manageJSONFreeField(ChampLibre $champLibre, $value): array {
+        return [
+            'value' => $value,
+            'label' => $champLibre->getLabel(),
+            'requiredCreate' => $champLibre->getRequiredCreate(),
+            'requiredEdit' => $champLibre->getRequiredEdit(),
+            'typage' => $champLibre->getTypage(),
+            'defaultValue' => $champLibre->getDefaultValue(),
+            'id' => $champLibre->getId(),
+            'elements' => $champLibre->getElements(),
+        ];
+    }
+
+
+    public function manageJSONFreeFieldCreationForEntity(EntityManagerInterface $entityManager, string $entity, array $freeField) {
+        switch ($entity) {
+            case CategoryType::RECEPTION:
+                $receptionRepository = $entityManager->getRepository(Reception::class);
+                $allReceptions = $receptionRepository->findAll();
+                foreach ($allReceptions as $reception) {
+                    $reception
+                        ->addFreeField($freeField);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public function manageJSONFreeFieldDeletionForEntity(EntityManagerInterface $entityManager, string $entity, array $freeField) {
+        switch ($entity) {
+            case CategoryType::RECEPTION:
+                $receptionRepository = $entityManager->getRepository(Reception::class);
+                $allReceptions = $receptionRepository->findAll();
+                foreach ($allReceptions as $reception) {
+                    $reception
+                        ->removeFreeField($freeField);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public function manageJSONFreeFieldUpdateForEntity(EntityManagerInterface $entityManager, string $entity, array $freeField) {
+        switch ($entity) {
+            case CategoryType::RECEPTION:
+                $receptionRepository = $entityManager->getRepository(Reception::class);
+                $allReceptions = $receptionRepository->findAll();
+                foreach ($allReceptions as $reception) {
+                    $reception
+                        ->updateFreeField($freeField);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
 }

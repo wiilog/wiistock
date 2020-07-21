@@ -8,8 +8,10 @@ use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
 use App\Entity\Menu;
+use App\Entity\Reception;
 use App\Entity\Type;
 use App\Service\UserService;
+use App\Service\ValeurChampLibreService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -120,10 +122,12 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
+                        ValeurChampLibreService $valeurChampLibreService,
                         EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -158,6 +162,13 @@ class ChampLibreController extends AbstractController
 			$em = $this->getDoctrine()->getManager();
 			$em->persist($champLibre);
 			$em->flush();
+
+			$valeurChampLibreService->manageJSONFreeFieldCreationForEntity(
+			    $entityManager,
+                $champLibre->getType()->getCategory()->getLabel(),
+                $valeurChampLibreService->manageJSONFreeField($champLibre, "")
+            );
+            $em->flush();
 
 			return new JsonResponse($data);
 		} else {
@@ -195,10 +206,12 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
+                         ValeurChampLibreService $valeurChampLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -227,16 +240,25 @@ class ChampLibreController extends AbstractController
 		$em = $this->getDoctrine()->getManager();
 		$em->flush();
 
-		return new JsonResponse();
+        $valeurChampLibreService->manageJSONFreeFieldUpdateForEntity(
+            $entityManager,
+            CategoryType::RECEPTION,
+            $valeurChampLibreService->manageJSONFreeField($champLibre, "")
+        );
+
+        $em->flush();
+        return new JsonResponse();
     }
 
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
+                           ValeurChampLibreService $valeurChampLibreService,
                            EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -248,6 +270,11 @@ class ChampLibreController extends AbstractController
 		foreach ($filters as $filter) {
 		    $entityManager->remove($filter);
         }
+        $valeurChampLibreService->manageJSONFreeFieldDeletionForEntity(
+            $entityManager,
+            CategoryType::RECEPTION,
+            $valeurChampLibreService->manageJSONFreeField($champLibre, "")
+        );
 		$entityManager->remove($champLibre);
 		$entityManager->flush();
 

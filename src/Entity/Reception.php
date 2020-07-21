@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReceptionRepository")
  */
-class Reception
+class Reception extends FreeFieldEntity
 {
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
@@ -161,7 +161,7 @@ class Reception
 
     public function __toString()
     {
-        return $this->commentaire;
+        return $this->commentaire ?? '';
     }
 
     public function getDate(): ?\DateTimeInterface
@@ -458,5 +458,28 @@ class Reception
         }
 
         return $this;
+    }
+
+    public function addFreeField(array $freeField) {
+        $this->freeFields[] = $freeField;
+    }
+
+    public function removeFreeField(array $freeFieldToDelete) {
+        foreach ($this->freeFields as $index => $freeField) {
+            if (intval($freeField['id']) === $freeFieldToDelete['id']) {
+                array_splice($this->freeFields, $index, 1);
+            }
+        }
+    }
+
+    public function updateFreeField(array $freeFieldToUpdate) {
+        foreach ($this->freeFields as $index => $freeField) {
+            if (intval($freeField['id']) === $freeFieldToUpdate['id']) {
+                $freeFieldToUpdate['value'] = $freeField['value'];
+                array_splice($this->freeFields, $index, 1);
+                $this
+                    ->freeFields[] = $freeFieldToUpdate;
+            }
+        }
     }
 }

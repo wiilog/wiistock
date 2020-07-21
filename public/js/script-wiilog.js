@@ -134,6 +134,7 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
             && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
             && $input.is(':disabled') === false) {
             // on enlève l'éventuelle * du nom du label
+            console.log(label);
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $input.addClass('is-invalid');
