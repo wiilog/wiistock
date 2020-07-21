@@ -420,7 +420,6 @@ class MouvementTracaRepository extends EntityRepository
             ->from('App\Entity\MouvementTraca', 'm');
 
         $countTotal = $this->countAll();
-
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
@@ -460,7 +459,7 @@ class MouvementTracaRepository extends EntityRepository
                         ->andWhere('m.colis LIKE :colis')
                         ->setParameter('colis', '%' . $filter['value'] . '%');
                     break;
-            }
+           }
         }
 
         //Filter search
@@ -719,5 +718,17 @@ class MouvementTracaRepository extends EntityRepository
             WHERE m.mouvementStock = :mouvementStock"
         )->setParameter('mouvementStock', $mouvementStock);
         return $query->getSingleScalarResult();
+    }
+
+    public function findMvtByArticles()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT *
+            FROM App/entity/MouvementTraca ");
+            $result =  $query->getQuery()
+                            ->getSingleScalarResult();
+        return $result;
     }
 }

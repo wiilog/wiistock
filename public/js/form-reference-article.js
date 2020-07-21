@@ -200,8 +200,8 @@ function loadAndDisplayLabels($select) {
                 selectCodeFournisseur();
             }
         }
-    }
     else {
         $codeSelect.val(null).trigger('change');
+    }
     }
 }

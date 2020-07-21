@@ -23,6 +23,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Exceptions\NegativeQuantityException;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
@@ -44,6 +47,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -530,14 +534,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/finishPrepa", name="api-finish-prepa", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ORMException
      * @throws OptimisticLockException
+     * @throws Throwable
      */
     public function finishPrepa(Request $request,
+                                LivraisonsManagerService $livraisonsManager,
                                 PreparationsManagerService $preparationsManager,
                                 EntityManagerInterface $entityManager)
     {
@@ -567,6 +574,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $entityManager->transactional(function () use (
                             &$insertedPrepasIds,
                             $preparationsManager,
+                            $livraisonsManager,
                             $preparationArray,
                             $preparation,
                             $nomadUser,
@@ -582,11 +590,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $preparationsManager->setEntityManager($entityManager);
                             $mouvementsNomade = $preparationArray['mouvements'];
                             $totalQuantitiesWithRef = [];
-                            $livraison = $preparationsManager->createLivraison($dateEnd, $preparation);
+                            $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
                             $entityManager->persist($livraison);
                             $articlesToKeep = [];
                             foreach ($mouvementsNomade as $mouvementNomade) {
                                 if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
+                                    /** @var Article $article */
                                     $article = $articleRepository->findOneByReference($mouvementNomade['reference']);
                                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                                     if (!isset($totalQuantitiesWithRef[$refArticle->getReference()])) {
@@ -619,7 +628,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                             }
                             $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-                            $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep);
+                            $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
 
                             if ($insertedPreparation) {
                                 $insertedPrepasIds[] = $insertedPreparation->getId();
@@ -633,7 +642,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                             $entityManager->flush();
 
-                            $preparationsManager->updateRefArticlesQuantities($preparation);
+                            $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                         });
 
                         $resData['success'][] = [
@@ -651,9 +660,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id_prepa' => $preparation->getId(),
 //TODO  CG msg prépa vide
                             'message' => (
-                            ($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
+                                ($exception instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
+                                (($exception->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
                                 (($exception->getMessage() === PreparationsManagerService::ARTICLE_ALREADY_SELECTED) ? "L'article n'est pas sélectionnable" :
-                                    'Une erreur est survenue')
+                                'Une erreur est survenue'))
                             )
                         ];
                     }
@@ -900,6 +910,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ORMException
+     * @throws Throwable
      */
     public function finishCollecte(Request $request,
                                    OrdreCollecteService $ordreCollecteService,
@@ -923,7 +934,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             // on termine les collectes
             foreach ($collectes as $collecteArray) {
                 $collecte = $ordreCollecteRepository->find($collecteArray['id']);
-                try {
+//                try {
                     $entityManager->transactional(function ()
                     use (
                         $entityManager,
@@ -941,8 +952,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $ordreCollecteService->setEntityManager($entityManager);
                         $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
 
-                        $endLocation = $emplacementRepository->findOneByLabel($collecteArray['location_to']);
-                        $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $endLocation, $collecteArray['mouvements'], true);
+                        $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                         $entityManager->flush();
 
                         if (!empty($newCollecte)) {
@@ -992,33 +1002,33 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             );
                         }
                     });
-                } catch (Exception $exception) {
-                    dump($exception);
-                    // we create a new entity manager because transactional() can call close() on it if transaction failed
-                    if (!$entityManager->isOpen()) {
-                        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
-                        $ordreCollecteService->setEntityManager($entityManager);
-
-                        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-                        $articleRepository = $entityManager->getRepository(Article::class);
-                        $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
-                        $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
-                        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-                    }
-
-                    $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
-
-                    $resData['errors'][] = [
-                        'numero_collecte' => $collecte->getNumero(),
-                        'id_collecte' => $collecte->getId(),
-
-                        'message' => (
-                        ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
-                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
-                                'Une erreur est survenue')
-                        )
-                    ];
-                }
+//                }
+//                catch (Exception $exception) {
+//                    // we create a new entity manager because transactional() can call close() on it if transaction failed
+//                    if (!$entityManager->isOpen()) {
+//                        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+//                        $ordreCollecteService->setEntityManager($entityManager);
+//
+//                        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+//                        $articleRepository = $entityManager->getRepository(Article::class);
+//                        $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
+//                        $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+//                        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+//                    }
+//
+//                    $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
+//
+//                    $resData['errors'][] = [
+//                        'numero_collecte' => $collecte->getNumero(),
+//                        'id_collecte' => $collecte->getId(),
+//
+//                        'message' => (
+//                        ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
+//                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
+//                                'Une erreur est survenue')
+//                        )
+//                    ];
+//                }
             }
         } else {
             $statusCode = Response::HTTP_UNAUTHORIZED;
@@ -1040,7 +1050,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws DBALException
-     * @throws \Doctrine\ORM\NoResultException
+     * @throws NoResultException
      */
     public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
     {
@@ -1275,6 +1285,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             /// collecte
             $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+
+            /// On tronque le commentaire à 200 caractères (sans les tags)
+            $collectes = array_map(function ($collecteArray) {
+                if(!empty($collecteArray['comment'])) {
+                    $collecteArray['comment'] = substr(strip_tags($collecteArray['comment']), 0, 200);
+                }
+                return $collecteArray;
+            }, $collectes);
+
             $collectesIds = array_map(function ($collecteArray) {
                 return $collecteArray['id'];
             }, $collectes);
@@ -1409,6 +1428,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function treatAnomalies(Request $request,
                                    EntityManagerInterface $entityManager)
@@ -1425,22 +1445,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $numberOfRowsInserted = 0;
 
             $anomalies = json_decode($request->request->get('anomalies'), true);
+            $errors = [];
             foreach ($anomalies as $anomaly) {
-                $this->inventoryService->doTreatAnomaly(
-                    $anomaly['id'],
-                    $anomaly['reference'],
-                    $anomaly['is_ref'],
-                    $anomaly['quantity'],
-                    $anomaly['comment'],
-                    $nomadUser
-                );
-                $numberOfRowsInserted++;
+                try {
+                    $this->inventoryService->doTreatAnomaly(
+                        $anomaly['id'],
+                        $anomaly['reference'],
+                        $anomaly['is_ref'],
+                        $anomaly['quantity'],
+                        $anomaly['comment'],
+                        $nomadUser
+                    );
+                    $numberOfRowsInserted++;
+                }
+                catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
+                    $errors[] = $anomaly['id'];
+                }
             }
 
             $s = $numberOfRowsInserted > 1 ? 's' : '';
             $this->successDataMsg['success'] = true;
-            $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-                "Aucune anomalie d'inventaire à synchroniser." : $numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s;
+            $this->successDataMsg['errors'] = $errors;
+            $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0)
+                ? ($anomalies > 0
+                    ? 'Une ou plusieus erreurs, des ordres de livraison sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
+                    : "Aucune anomalie d'inventaire à synchroniser.")
+                : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
         } else {
             $this->successDataMsg['success'] = false;
             $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";

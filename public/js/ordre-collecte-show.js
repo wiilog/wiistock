@@ -61,7 +61,35 @@ function checkIfRowSelected(success) {
 }
 
 function openLocationModal() {
+    let $tbody = $("#modalFinishCollecte div.modal-body table.table > tbody");
+    $tbody.empty();
+    $('#tableArticle tr.active').each(function () {
+        let $tr = $(this);
+        let $inputData = $tr.find("input[type='hidden'].ordre-collecte-data");
+        let location = $inputData.data('emplacement');
+        let isRef = $inputData.data('is-ref');
+        let barCode = $inputData.data('barCode');
+
+        const $contentLocation = isRef === 0
+            ? $('<div/>', {
+                class: 'col-12',
+                html: $('<select/>', {
+                    class: 'needed form-control ajax-autocompleteEmplacement depositLocation w-100'
+                })
+            })
+            : $('<span/>', {class: 'col-12', text: location});
+
+        const $barCodeTd = $('<td/>', {text: barCode});
+        const $locationTd = $('<td/>', {html: $contentLocation});
+
+        const $newTr = $('<tr/>', {'data-barcode': barCode})
+            .append($barCodeTd)
+            .append($locationTd);
+
+        $tbody.append($newTr);
+    });
     $('#modalFinishCollecte').modal('show');
+    ajaxAutoCompleteEmplacementInit($("#modalFinishCollecte div.modal-body table.table > tbody").find('.ajax-autocompleteEmplacement'));
 }
 
 function finishCollecte($button, withoutLocation = false) {
@@ -69,26 +97,39 @@ function finishCollecte($button, withoutLocation = false) {
     let $table = $('#tableArticle');
     let $rowsSelected = $table.find('tr.active');
     let $rowsToDelete = $table.find('tr:not(.active)');
-    let rowsData = [];
-    $rowsSelected.each(function() {
+    const rowsData = [];
+    let invalidForm = false;
+
+    $rowsSelected.each(function () {
         const $rowData = $(this).find('.ordre-collecte-data');
-        rowsData.push({
-            'barcode': $rowData.data('bar-code'),
-            'is_ref': $rowData.data('is-ref'),
-            'quantity': $rowData.data('quantity')
-        });
+        const barCode = $rowData.data('bar-code');
+        const $select = modalFinishCollecte
+            .find(`tr[data-barcode="${barCode}"]`)
+            .find('.depositLocation');
+        const isRef = $rowData.data('is-ref');
+        const depositLocationId = $select.val();
+        if (withoutLocation || depositLocationId || isRef === 1 ) {
+            rowsData.push({
+                'barcode': barCode,
+                'is_ref': isRef,
+                'quantity': $rowData.data('quantity'),
+                depositLocationId
+            });
+        } else {
+            invalidForm = true;
+            return false;
+        }
     });
 
-    // on récupère le point de dépose
-    let depositLocationId = modalFinishCollecte.find('.depositLocation').val();
-
-    if (withoutLocation || depositLocationId) {
+    if (invalidForm) {
+        alertErrorMsg('Veuillez sélectionner tous les emplacements de dépose.', true);
+    }
+    else if (withoutLocation || (rowsData && rowsData.length > 0)) {
         let params = {
             rows: rowsData,
-            ...(depositLocationId ? {depositLocationId} : {})
         };
         wrapLoadingOnActionButton($button, () => (
-            $.post(urlFinishCollecte, JSON.stringify(params), (data) => {
+            $.post(urlFinishCollecte, params , (data) => {
                 modalFinishCollecte.find('.close').click();
                 $('.zone-entete').html(data);
                 $rowsToDelete.each(function() {
@@ -99,8 +140,7 @@ function finishCollecte($button, withoutLocation = false) {
                 });
                 tableArticle.ajax.reload();
             })
-        ),false);
-
+        ), false);
     } else {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
     }

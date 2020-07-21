@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Menu;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,22 +18,5 @@ class MenuRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Menu::class);
     }
-
-	/**
-	 * @param string $menu
-	 * @param string $submenu
-	 * @return Menu
-	 * @throws NonUniqueResultException
-	 */
-	public function findOneByMenuAndSubmenu($menu, $submenu)
-	{
-		return $this->createQueryBuilder('mc')
-			->andWhere('m.menu = :menu')
-			->setParameter('menu', $menu)
-			->andWhere('m.submenu = :submenu')
-			->setParameter('submenu', $submenu)
-			->getQuery()
-			->getOneOrNullResult();
-	}
 
 }

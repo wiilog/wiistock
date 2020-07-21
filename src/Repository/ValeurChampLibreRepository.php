@@ -11,6 +11,8 @@ use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampLibre;
+use DateTime;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -80,18 +82,112 @@ class ValeurChampLibreRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.articleReference a
-            WHERE a.id = :refArticle AND v.champLibre = :champLibre"
+        FROM App\Entity\ValeurChampLibre v
+        JOIN v.articleReference a
+        WHERE a.id = :refArticle AND v.champLibre = :champLibre"
         );
         $query->setParameters([
             "refArticle" => $refArticleId,
             "champLibre" => $champLibre
         ]);
 
-        //        return $query->getOneOrNullResult();
         $result = $query->execute();
         return $result ? $result[0] : null;
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @param $champLibres
+     * @return ValeurChampLibre|null
+     */
+    public function getByDemandesAndChampLibres(DateTime $dateMin, DateTime $dateMax, $champLibres)
+    {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "SELECT valeurCL.valeur AS value,
+                        champLibre.label AS label,
+                        reference.id AS referenceId
+                FROM App\Entity\ValeurChampLibre valeurCL
+                JOIN valeurCL.champLibre champLibre
+                JOIN valeurCL.articleReference reference
+                JOIN reference.ligneArticles ligneArticle
+                JOIN ligneArticle.demande demande
+                WHERE demande.date BETWEEN :dateMin AND :dateMax AND champLibre.id IN (:champLibresId)"
+            )
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax)
+            ->setParameter(
+                'champLibresId',
+                array_map(function (ChampLibre $champLibre) {
+                    return $champLibre->getId();
+                }, $champLibres),
+                Connection::PARAM_STR_ARRAY
+            );
+        $result = $query->execute();
+
+        return array_reduce($result, function(array $carry, $current) {
+            $value =  $current['value'];
+            $label =  $current['label'];
+            $referenceId = $current['referenceId'];
+
+            if (!isset($carry[$referenceId])) {
+                $carry[$referenceId] = [];
+            }
+
+            $carry[$referenceId][$label] = $value;
+            return $carry;
+        }, []);
+    }
+
+    /**
+     * @param $demandes
+     * @param $champLibres
+     * @return ValeurChampLibre|null
+     */
+    public function getByDemandesAndChampLibresArticles($demandes, $champLibres)
+    {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "SELECT champLibre.label AS label,
+                        valeurCL.valeur AS value,
+                        article.id AS articleId
+                FROM App\Entity\ValeurChampLibre valeurCL
+                JOIN valeurCL.champLibre champLibre
+                JOIN valeurCL.article article
+                JOIN article.demande demande
+                WHERE demande.id IN (:demandesId) AND champLibre.id IN (:champLibresId)"
+            )
+            ->setParameter(
+                'demandesId',
+                array_map( function (Demande $demande) {
+                    return $demande->getId();
+                }, $demandes),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter(
+                'champLibresId',
+                array_map(function (ChampLibre $champLibre) {
+                    return $champLibre->getId();
+                }, $champLibres),
+                Connection::PARAM_STR_ARRAY
+            );
+        $result = $query->execute();
+
+        return array_reduce($result, function(array $carry, $current) {
+            $value =  $current['value'];
+            $label =  $current['label'];
+            $articleId = $current['articleId'];
+
+            if (!isset($carry[$articleId])) {
+                $carry[$articleId] = [];
+            }
+
+            $carry[$articleId][$label] = $value;
+            return $carry;
+        }, []);
     }
 
     public function getByRefArticle($idArticle)
@@ -216,21 +312,49 @@ class ValeurChampLibreRepository extends EntityRepository
 	 * @return mixed
 	 * @throws NonUniqueResultException
 	 */
-	public function findOneByDemandeLivraisonAndChampLibre($demande, $champLibre)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT v
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.demandesLivraison d
-            WHERE v.champLibre = :champLibre AND v.id IN (:demandeVCL)"
-		);
-		$query->setParameters([
-			'champLibre' => $champLibre,
-			'demandeVCL' => $demande->getValeurChampLibre()
-		]);
-		return $query->getOneOrNullResult();
-	}
+    public function getByDemandeLivraisonAndChampLibre($demandes, $champLibres)
+    {
+        $em = $this->getEntityManager();
+        $query = $em
+            ->createQuery(
+                "
+                SELECT champLibre.label AS label,
+                        valeurCL.valeur AS value,
+                        demande.id AS demandeId
+            FROM App\Entity\ValeurChampLibre valeurCL
+            JOIN valeurCL.demandesLivraison demande
+            JOIN valeurCL.champLibre AS champLibre
+            WHERE demande.id IN (:demandesId) AND champLibre.id IN (:champLibresId)"
+            )
+            ->setParameter(
+                'demandesId',
+                array_map(function (Demande $demande) {
+                    return $demande->getId();
+                }, $demandes),
+                Connection::PARAM_STR_ARRAY
+            )
+            ->setParameter(
+                'champLibresId',
+                array_map(function (ChampLibre $champLibre) {
+                    return $champLibre->getId();
+                }, $champLibres),
+                Connection::PARAM_STR_ARRAY
+            );
+        $result = $query->execute();
+
+        return array_reduce($result, function (array $carry, $current) {
+            $value = $current['value'];
+            $label = $current['label'];
+            $demandeId = $current['demandeId'];
+
+            if (!isset($carry[$demandeId])) {
+                $carry[$demandeId] = [];
+            }
+
+            $carry[$demandeId][$label] = $value;
+            return $carry;
+        }, []);
+    }
 
 	/**
 	 * @param Collecte $demandeCollecte

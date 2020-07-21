@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
 use App\Entity\Demande;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
@@ -68,21 +67,6 @@ class ArticleRepository extends EntityRepository
 		return array_column($query->execute(), 'reference');
 	}
 
-    /**
-     * @param $id
-     * @return Article[]|null
-     */
-    public function findByReception($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Article a
-            WHERE a.reception = :id'
-        )->setParameter('id', $id);
-        return $query->execute();
-    }
-
     public function setNullByReception($id)
     {
         $entityManager = $this->getEntityManager();
@@ -131,19 +115,39 @@ class ArticleRepository extends EntityRepository
 	}
 
     /**
-     * @param Demande|int $demande
-     * @return Article[]|null
+     * @param $demandes
+     * @return Article[]
      */
-    public function findByDemande($demande)
+    public function findByDemandes($demandes, $needAssoc = false)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a
-             FROM App\Entity\Article a
-             WHERE a.demande =:demande
-            "
-        )->setParameter('demande', $demande);
-        return $query->execute();
+        $queryBuilder = $this->createQueryBuilder('article')
+            ->select('article');
+
+        if ($needAssoc) {
+            $queryBuilder->addSelect('demande.id AS demandeId');
+
+        }
+        $queryBuilder
+            ->join('article.demande' , 'demande')
+            ->where('article.demande IN (:demandes)')
+            ->setParameter('demandes', $demandes);
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        if ($needAssoc) {
+            $result = array_reduce($result, function(array $carry, $current) {
+                $article =  $current[0];
+                $demandeId = $current['demandeId'];
+
+                if (!isset($carry[$demandeId])) {
+                    $carry[$demandeId] = [];
+                }
+
+                $carry[$demandeId][] = $article;
+                return $carry;
+            }, []);
+        }
+        return $result;
     }
 
     public function getByDemandeAndType($demande, $type)
@@ -158,31 +162,6 @@ class ArticleRepository extends EntityRepository
             'demande' => $demande,
             'type' => $type
         ]);
-        return $query->execute();
-    }
-
-
-    public function findByEmplacement($empl)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Article a
-            WHERE a.emplacement = :empl'
-        )->setParameter('empl', $empl);;
-        return $query->execute();
-    }
-
-
-
-    public function findByStatut($statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a
-            FROM App\Entity\Article a
-            WHERE a.statut = :statut "
-        )->setParameter('statut', $statut);;
         return $query->execute();
     }
 
@@ -265,19 +244,6 @@ class ArticleRepository extends EntityRepository
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id =:id
-            "
-        )->setParameter('id', $id);
-        return $query->getResult();
-    }
-
-    public function findByPreparation($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a
-            FROM App\Entity\Article a
-            JOIN a.preparations p
-            WHERE p.id =:id
             "
         )->setParameter('id', $id);
         return $query->getResult();
@@ -378,29 +344,6 @@ class ArticleRepository extends EntityRepository
 	    return $queryBuilder;
 
 	}
-
-    public function findByEtat($etat)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Article a
-            WHERE a.etat = :etat'
-        )->setParameter('etat', $etat);;
-        return $query->execute();
-    }
-
-    public function findAllSortedByName()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a.nom, a.id, a.quantite
-          FROM App\Entity\Article a
-          ORDER BY a.nom
-          "
-        );
-        return $query->execute();
-    }
 
 	/**
 	 * @param array|null $params
@@ -627,25 +570,6 @@ class ArticleRepository extends EntityRepository
             'total' => $countTotal];
     }
 
-    /**
-     * @param ArticleFournisseur[] $listAf
-     * @return Article[]|null
-     */
-    public function findByListAF($listAf)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT a
-          FROM App\Entity\Article a
-          JOIN a.articleFournisseur af
-          WHERE af IN (:articleFournisseur)"
-        )->setParameters([
-            'articleFournisseur' => $listAf,
-        ]);
-
-        return $query->execute();
-    }
-
     public function countActiveArticles()
     {
         $entityManager = $this->getEntityManager();
@@ -670,23 +594,6 @@ class ArticleRepository extends EntityRepository
 
         return $query->getSingleScalarResult();
     }
-
-	/**
-	 * @param int $limit
-	 * @return Article[]|null
-	 */
-    public function findByQuantityMoreThan($limit)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT a
-			FROM App\Entity\Article a
-			WHERE a.quantite > :limit"
-		)->setParameter('limit', $limit);
-
-		return $query->execute();
-	}
 
     /**
      * @return Article[]|null
@@ -901,62 +808,6 @@ class ArticleRepository extends EntityRepository
 	}
 
 	/**
-	 * @param Demande $demande
-	 * @param Article $article
-	 * @return Article|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByDemandeAndArticle(Demande $demande, Article $article)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur artf
-			WHERE a.demande = :demande
-			AND a.label = :label
-			AND artf = :af
-			AND artf.referenceArticle = :ar"
-        )->setParameters([
-            'demande' => $demande,
-            'label' => $article->getLabel(),
-            'af' => $article->getArticleFournisseur(),
-            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
-        ]);
-
-        return $query->getOneOrNullResult();
-    }
-
-	/**
-	 * @param Demande $demande
-	 * @param Article $article
-	 * @return Article|null
-	 * @throws NonUniqueResultException
-	 */
-    public function findOneByAndArticle(Demande $demande, Article $article)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur artf
-			WHERE a.demande = :demande
-			AND a.label = :label
-			AND artf = :af
-			AND artf.referenceArticle = :ar"
-        )->setParameters([
-            'demande' => $demande,
-            'label' => $article->getLabel(),
-            'af' => $article->getArticleFournisseur(),
-            'ar' => $article->getArticleFournisseur()->getReferenceArticle()
-        ]);
-
-        return $query->getOneOrNullResult();
-    }
-
-	/**
 	 * @param string $reference
 	 * @return Article|null
 	 */
@@ -1101,7 +952,12 @@ class ArticleRepository extends EntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT ra.libelle as refLabel, ra.reference as refRef, a.label as artLabel, a.barCode as barcode, vcla.valeur as bl, cla.label as cl
+            "SELECT ra.libelle as refLabel,
+                    ra.reference as refRef,
+                    a.label as artLabel,
+                    a.barCode as barcode,
+                    vcla.valeur as bl,
+                    cla.label as cl
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra

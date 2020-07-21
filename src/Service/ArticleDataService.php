@@ -29,12 +29,12 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -104,10 +104,10 @@ class ArticleDataService
             } else {
                 $articles = [];
             }
-            if (count($articles) < 1) {
+            if (empty($articles)) {
                 $articles[] = [
                     'id' => '',
-                    'reference' => 'aucun article disponible',
+                    'barCode' => 'aucun article disponible',
                 ];
             }
             $quantity = $refArticle->getQuantiteDisponible();
@@ -294,6 +294,12 @@ class ArticleDataService
         ]);
     }
 
+    /**
+     * @param $data
+     * @return bool|RedirectResponse
+     * @throws ArticleNotAvailableException
+     * @throws RequestNeedToBeProcessedException
+     */
     public function editArticle($data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -316,13 +322,28 @@ class ArticleDataService
                     ->setPrixUnitaire($price)
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
-                    ->setQuantite($data['quantite'] ? max($data['quantite'], 0) : 0)// protection contre quantités négatives
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
                     $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $data['statut']);
-                    if ($statut) $article->setStatut($statut);
+                    if ($statut) {
+                        $article->setStatut($statut);
+                    }
                 }
+
+                if (isset($data['quantite'])) {
+                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
+                    if ($article->getQuantite() !== $newQuantity) {
+                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
+                            throw new ArticleNotAvailableException();
+                        }
+                        else if ($article->isInRequestsInProgress()) {
+                            throw new RequestNeedToBeProcessedException();
+                        }
+                        $article->setQuantite($newQuantity); // protection contre quantités négatives
+                    }
+                }
+
                 if ($data['emplacement']) {
                     $article->setEmplacement($emplacementRepository->find($data['emplacement']));
                 }
@@ -374,7 +395,7 @@ class ArticleDataService
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
-        $statusLabel = isset($data['statut']) ? ($data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF) : Article::STATUT_ACTIF;
+        $statusLabel = (!isset($data['statut']) || ($data['statut'] === Article::STATUT_ACTIF)) ? Article::STATUT_ACTIF : Article::STATUT_INACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $formattedDate = $date->format('ym');
@@ -522,7 +543,7 @@ class ArticleDataService
         $articles = $ligne->getArticles();
         $rows = [];
         foreach ($articles as $article) {
-            $rows[] = $this->dataRowArticle($article);
+            $rows[] = $this->dataRowArticle($article, true);
         }
         return ['data' => $rows];
     }
@@ -531,9 +552,6 @@ class ArticleDataService
      * @param null $params
      * @param Utilisateur $user
      * @return array
-     * @throws DBALException
-     * @throws ORMException
-     * @throws OptimisticLockException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -549,7 +567,7 @@ class ArticleDataService
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             $filters = [[
                 'field' => FiltreSup::FIELD_STATUT,
-                'value' => Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT
+                'value' => $this->getActiveArticleFilterValue()
             ]];
         }
         $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
@@ -576,13 +594,13 @@ class ArticleDataService
 
     /**
      * @param Article $article
+     * @param bool $fromReception
      * @return array
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
-    public function dataRowArticle($article)
+    public function dataRowArticle($article, bool $fromReception = false)
     {
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
 
@@ -628,7 +646,9 @@ class ArticleDataService
             'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
-                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null
+                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
+                'articleFilter' => $article->getBarCode(),
+                'fromReception' => $fromReception
             ]),
         ];
 
@@ -636,10 +656,9 @@ class ArticleDataService
         return $rows;
     }
 
-	/**
-	 * @return string
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @return string
+     */
 	public function generateBarCode()
 	{
         $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -710,7 +729,7 @@ class ArticleDataService
             (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
         $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
-        if ($wantsQTT === 'true') {
+        if ($wantsQTT) {
             $labels[] = !empty($quantityArticle) ? ('Qte : '. $quantityArticle) : '';
 
         }
@@ -744,5 +763,13 @@ class ArticleDataService
                 break;
         }
         return $res;
+    }
+
+    public function getActiveArticleFilterValue(): string {
+        return Article::STATUT_ACTIF . ',' . Article::STATUT_EN_TRANSIT . ',' . Article::STATUT_EN_LITIGE;
+    }
+
+    public function articleCanBeAddedInDispute(Article $article): bool {
+        return in_array($article->getStatut()->getNom(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
     }
 }

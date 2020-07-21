@@ -250,4 +250,59 @@ class PreparationRepository extends EntityRepository
 		return $query->execute();
 	}
 
+    public function getFirstDatePreparationGroupByDemande (array $demandes)
+    {
+        $queryBuilder = $this->createQueryBuilder('preparation')
+            ->select('demande.id AS demandeId')
+            ->addSelect('MIN(preparation.date) AS firstDate')
+            ->join('preparation.demande', 'demande')
+            ->where('preparation.demande in (:demandes)')
+            ->groupBy('demande.id')
+            ->setParameter('demandes', $demandes);
+
+        $lastDatePreparationDemande = $queryBuilder->getQuery()->execute();;
+        return array_reduce($lastDatePreparationDemande, function(array $carry, $current) {
+            $demandeId = $current['demandeId'];
+            $firstDate = $current['firstDate'];
+
+            $carry[$demandeId] = $firstDate;
+            return $carry;
+        }, []);
+    }
+
+    public function getNumeroPrepaGroupByDemande (array $demandes)
+    {
+        $queryBuilder = $this->createQueryBuilder('preparation')
+            ->select('demande.id AS demandeId')
+            ->addSelect('preparation.numero AS numeroPreparation')
+            ->join('preparation.demande', 'demande')
+            ->where('preparation.demande in (:demandes)')
+            ->setParameter('demandes', $demandes);
+
+        $result = $queryBuilder->getQuery()->execute();
+        return array_reduce($result, function (array $carry, $current) {
+
+            $demandeId = $current['demandeId'];
+            $numeroPreparation = $current['numeroPreparation'];
+            if (!isset($carry[$demandeId])) {
+                $carry[$demandeId] = [];
+            }
+            $carry[$demandeId][] = $numeroPreparation;
+            return $carry;
+        }, []);
+    }
+	public function countByNumero(string $numero) {
+	    $queryBuilder = $this
+            ->createQueryBuilder('preparation')
+            ->select('COUNT(preparation.id) AS counter')
+            ->where('preparation.numero = :numero')
+            ->setParameter('numero', $numero . '%');
+
+	    $result = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+	    return !empty($result) ? ($result[0]['counter'] ?? 0) : 0;
+    }
+
 }

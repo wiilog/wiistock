@@ -4,12 +4,19 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\InventoryEntry;
 use App\Entity\Menu;
 
+use App\Entity\ReferenceArticle;
+use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\InventoryEntryRepository;
+use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -69,44 +76,52 @@ class InventoryAnomalyController extends AbstractController
 	/**
 	 * @Route("/api", name="inv_anomalies_api", options={"expose"=true}, methods="GET|POST")
 	 */
-	public function apiAnomalies(Request $request)
+	public function apiAnomalies(Request $request,
+                                 InventoryEntryService $inventoryEntryService)
 	{
 		if ($request->isXmlHttpRequest()) {
 			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
-            $anomaliesOnArt = $this->inventoryEntryRepository->getAnomaliesOnArt();
-            $anomaliesOnRef = $this->inventoryEntryRepository->getAnomaliesOnRef();
-
-            $anomalies = array_merge($anomaliesOnArt, $anomaliesOnRef);
+            $anomaliesData = $this->inventoryEntryRepository->findByParamsAndFilters($request->request, [], true);
 
 			$rows = [];
-			foreach ($anomalies as $anomaly) {
-				$rows[] =
-					[
-						'reference' => $anomaly['reference'],
-						'libelle' => $anomaly['label'],
-						'quantite' => $anomaly['quantity'],
-						'Actions' => $this->renderView('inventaire/datatableAnomaliesRow.html.twig',
-							[
-								'idEntry' => $anomaly['id'],
-								'reference' => $anomaly['reference'],
-								'isRef' => $anomaly['is_ref'],
-								'quantity' => $anomaly['quantity'],
-								'location' => $anomaly['location'],
-							]),
-					];
+			foreach ($anomaliesData['data'] as $anomalyRes) {
+                $anomaly = $anomalyRes instanceof InventoryEntry ? $anomalyRes : $anomalyRes[0];
+
+                $article = $anomaly->getArticle() ?: $anomaly->getRefArticle();
+                $quantity = $article instanceof ReferenceArticle ? $article->getQuantiteStock() : $article->getQuantite();
+
+                $row = $inventoryEntryService->dataRowInvEntry($anomaly);
+
+				$row['Actions'] = $this->renderView('inventaire/datatableAnomaliesRow.html.twig', [
+                    'idEntry' => $anomaly->getId(),
+                    'reference' => $row['Ref'],
+                    'isRef' => $article instanceof ReferenceArticle ? 1 : 0,
+                    'label' => $row['Label'],
+                    'barCode' => $row['barCode'],
+                    'quantity' => $quantity,
+                    'location' => $row['Location'],
+                ]);
+                $rows[] = $row;
 			}
-			$data['data'] = $rows;
-			return new JsonResponse($data);
+
+			return new JsonResponse([
+			    'data' => $rows,
+                'recordsFiltered' => $anomaliesData['count'],
+                'recordsTotal' => $anomaliesData['total'],
+            ]);
 		}
 		throw new NotFoundHttpException("404");
 	}
 
-	/**
-	 * @Route("/traitement", name="anomaly_treat", options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/traitement", name="anomaly_treat", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse|RedirectResponse
+     * @throws Exception
+     */
 	public function treatAnomaly(Request $request)
 	{
 		if ($request->isXmlHttpRequest()  && $data = json_decode($request->getContent(), true)) {
@@ -114,9 +129,30 @@ class InventoryAnomalyController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
 
-			$quantitiesAreEqual = $this->inventoryService->doTreatAnomaly($data['id'], $data['reference'], $data['isRef'], (int)$data['newQuantity'], $data['comment'], $this->getUser());
+            try {
+                $quantitiesAreEqual = $this->inventoryService->doTreatAnomaly(
+                    $data['id'],
+                    $data['barCode'],
+                    $data['isRef'],
+                    (int)$data['newQuantity'],
+                    $data['comment'],
+                    $this->getUser()
+                );
+                $responseData = [
+                    'success' => true,
+                    'quantitiesAreEqual' => $quantitiesAreEqual
+                ];
+            }
+            catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
+                $responseData = [
+                    'success' => false,
+                    'message' => ($exception instanceof RequestNeedToBeProcessedException)
+                        ? 'Impossible : un ordre de livraison est en cours sur cet article'
+                        : 'Impossible : l\'article n\'est pas disponible'
+                ];
+            }
 
-			return new JsonResponse($quantitiesAreEqual);
+			return new JsonResponse($responseData);
 		}
 		throw new NotFoundHttpException("404");
 	}

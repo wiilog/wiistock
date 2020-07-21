@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -47,6 +48,22 @@ class ArrivageRepository extends EntityRepository
     {
 		return $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->select('COUNT(arrivage)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param DateTime $date
+     * @return Arrivage[]|null
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countByDate(DateTime $date)
+    {
+		return $this->createQueryBuilder('arrivage')
+            ->select('COUNT(arrivage)')
+            ->where('arrivage.date = :date')
+            ->setParameter('date', $date)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -425,6 +442,25 @@ class ArrivageRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    /**
+     * @param Utilisateur $user
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countByUser($user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Arrivage a
+            WHERE a.utilisateur = :user OR a.destinataire = :user"
+        )->setParameter('user', $user);
+
+        return $query->getSingleScalarResult();
     }
 
 }

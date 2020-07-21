@@ -55,7 +55,7 @@ class FournisseurRepository extends EntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT f.id, 
+            "SELECT f.id,
                     f.codeReference as text,
                     f.nom AS name
           FROM App\Entity\Fournisseur f
@@ -87,19 +87,6 @@ class FournisseurRepository extends EntityRepository
           FROM App\Entity\Fournisseur f
           WHERE f.nom LIKE :search"
         )->setParameter('search', '%' . $search . '%');
-
-        return $query->execute();
-    }
-
-    public function findByRefArticle($refArticle)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f
-          FROM App\Entity\Fournisseur f
-          WHERE f.refenceArticle = :refArticle
-          "
-        )->setParameter('refArticle', $refArticle);
 
         return $query->execute();
     }

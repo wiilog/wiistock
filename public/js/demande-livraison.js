@@ -155,13 +155,12 @@ $(function () {
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
-
     if (val && val.length > 0) {
         let valuesStr = val.split(',');
         let valuesInt = [];
         valuesStr.forEach((value) => {
             valuesInt.push(parseInt(value));
-        })
+        });
         $('#statut').val(valuesInt).select2();
     } else {
         // sinon, filtres enregistrés en base pour chaque utilisateur
@@ -206,6 +205,7 @@ function ajaxGetAndFillArticle($select) {
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
 
             setMaxQuantity($select);
+            registerNumberInputProtection();
         }, 'json');
     }
 }
@@ -259,8 +259,9 @@ function ajaxEditArticle (select) {
             let quantityToTake = $('#quantityToTake');
             let valMax = $('#quantite').val();
 
-            let attrMax = quantityToTake.find('input').attr('max');
-            if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
+            if (valMax) {
+                quantityToTake.find('input').attr('max', valMax);
+            }
             quantityToTake.removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             $('.list-multiple').select2();

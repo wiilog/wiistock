@@ -10,7 +10,6 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -83,19 +82,6 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findOneByLigneReception($ligne)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT ra
-            FROM App\Entity\ReferenceArticle ra
-            JOIN App\Entity\ReceptionReferenceArticle rra
-            WHERE rra.referenceArticle = ra AND rra = :ligne
-        "
-        )->setParameter('ligne', $ligne);
-        return $query->getOneOrNullResult();
-    }
-
     /**
      * @param $reference
      * @return ReferenceArticle|null
@@ -148,7 +134,11 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $em = $this->getEntityManager();
 
-        $dql = "SELECT r.id, r.${field} as text
+        $dql = "SELECT r.id,
+                r.${field} as text,
+                r.typeQuantite as typeQuantity,
+                r.isUrgent as urgent,
+                r.emergencyComment as emergencyComment
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
           WHERE r.${field} LIKE :search ";
@@ -966,12 +956,12 @@ class ReferenceArticleRepository extends EntityRepository
                     JOIN ra.articlesFournisseur af
                     JOIN af.articles a
                     JOIN a.statut s
-                    WHERE s.nom != :inactiveStatus
+                    WHERE s.nom NOT IN (:inactiveStatus)
                       AND ra = :refArt
                 ")
                 ->setParameters([
                     'refArt' => $referenceArticle->getId(),
-                    'inactiveStatus' => Article::STATUT_INACTIF
+                    'inactiveStatus' => [Article::STATUT_INACTIF, Article::STATUT_EN_LITIGE]
                 ]);
             $stockQuantity = ($query->getSingleScalarResult() ?? 0);
         } else {
@@ -1030,8 +1020,7 @@ class ReferenceArticleRepository extends EntityRepository
     {
         $qb = $this->getDataAlert();
 
-        $countTotal = count($qb->getQuery()->getResult());
-        return $countTotal;
+        return count($qb->getQuery()->getResult());
     }
 
     public function getDataAlert()
@@ -1053,14 +1042,17 @@ class ReferenceArticleRepository extends EntityRepository
                 ra.quantiteDisponible,
                 t.label as type')
             ->from('App\Entity\ReferenceArticle', 'ra')
-            ->where('ra.dateEmergencyTriggered IS NOT NULL')
             ->join('ra.type', 't')
+            ->join('ra.statut', 'status')
+            ->andWhere('status.nom = :activeStatus')
+            ->andWhere('ra.dateEmergencyTriggered IS NOT NULL')
             ->andWhere(
                 $qb->expr()->orX(
                     $qb->expr()->gt('ra.limitSecurity', 0),
                     $qb->expr()->gt('ra.limitWarning', 0)
                 )
-            );
+            )
+            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
         return $qb;
     }
 
@@ -1169,25 +1161,37 @@ class ReferenceArticleRepository extends EntityRepository
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
     }
 
-    public function getRefTypeQtyArticleByReception($id)
+    public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
     {
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT ra.reference as reference,
-                         rra.commande as commande
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.receptionReferenceArticles rra
-            JOIN rra.reception r
-            WHERE r.id = :id
-              AND (rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)
-              AND ra.typeQuantite = :typeQty"
-        )->setParameters([
+
+        $queryBuilder = $this->createQueryBuilder('ra')
+            ->select('ra.reference as reference')
+            ->addSelect('rra.commande as commande')
+            ->join('ra.receptionReferenceArticles', 'rra')
+            ->join('rra.reception', 'r')
+            ->andWhere('r.id = :id')
+            ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
+            ->andWhere('ra.typeQuantite = :typeQty')
+            ->setParameters([
             'id' => $id,
             'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
         ]);
-        return $query->execute();
+
+        if (!empty($reference)) {
+            $queryBuilder
+                ->andWhere('ra.reference = :reference')
+                ->setParameter('reference', $reference);
+        }
+
+        if (!empty($commande)) {
+            $queryBuilder
+                ->andWhere('rra.commande = :commande')
+                ->setParameter('commande', $commande);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     private function array_values_recursive($array)

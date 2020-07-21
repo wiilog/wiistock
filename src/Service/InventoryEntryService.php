@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\ArticleFournisseur;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryEntry;
 use Symfony\Component\Security\Core\Security;
@@ -62,7 +63,7 @@ class InventoryEntryService
 
 		$rows = [];
 		foreach ($invEntries as $invEntry) {
-			$rows[] = $this->dataRowInvEntry($invEntry);
+			$rows[] = $this->dataRowInvEntry($invEntry instanceof InventoryEntry ? $invEntry : $invEntry[0]);
 		}
 
 		return [
@@ -78,25 +79,34 @@ class InventoryEntryService
 	 */
     public function dataRowInvEntry($entry)
     {
-		if ($article = $entry->getArticle()) {
+        $article = $entry->getArticle();
+        $refArticle = $entry->getRefArticle();
+
+		if ($article) {
 			$label = $article->getLabel();
-			$ref = $article->getReference();
-		} else if ($refArticle = $entry->getRefArticle()) {
+			/** @var ArticleFournisseur $articleFournisseur */
+			$articleFournisseur = $article->getArticleFournisseur();
+			$referenceArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
+            $ref = isset($referenceArticle) ? $referenceArticle->getReference() : '';
+            $barCode = $article->getBarCode();
+		} else if ($refArticle) {
 			$label = $refArticle->getLibelle();
-			$ref = $refArticle->getReference();
+            $ref = $refArticle->getReference();
+            $barCode = $refArticle->getBarCode();
 		} else {
-			$ref = $label = '';
+			$ref = '';
+            $label = '';
+            $barCode = '';
 		}
-		$row =
-		[
+
+		return [
 			'Ref' => $ref,
 			'Label' => $label,
+			'barCode' => $barCode,
 			'Operator' => $entry->getOperator() ? $entry->getOperator()->getUsername() : '',
 			'Location' => $entry->getLocation() ? $entry->getLocation()->getLabel() : '',
 			'Date' => $entry->getDate() ? $entry->getDate()->format('d/m/Y') : '',
 			'Quantity' => $entry->getQuantity(),
 		];
-
-		return $row;
     }
 }

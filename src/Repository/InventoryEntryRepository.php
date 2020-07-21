@@ -2,7 +2,12 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\InventoryEntry;
+use App\Entity\Livraison;
+use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
@@ -23,6 +28,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 		'Location' => 'location',
 		'Operator' => 'operator',
 		'Quantity' => 'quantity',
+		'barCode' => 'barCode',
 	];
 
 	public function __construct(ManagerRegistry $registry)
@@ -45,6 +51,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
 
     public function getAnomaliesOnRef(bool $forceValidLocation = false, $anomaliesIds = []) {
 		$queryBuilder = $this->createQueryBuilder('ie')
+            ->distinct()
             ->select('ie.id')
             ->addSelect('ra.reference')
             ->addSelect('ra.libelle as label')
@@ -54,8 +61,42 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->addSelect('1 as is_ref')
             ->addSelect('0 as treated')
             ->addSelect('ra.barCode as barCode')
+            ->addSelect('MIN(CASE WHEN (
+                referenceStatus.nom = :referenceStatusAvailable
+                AND (
+                    ligneArticles.id IS NULL
+                    OR (
+                        preparationStatus.nom != :preparationStatusToTreat
+                        AND preparationStatus.nom != :preparationStatusInProgress
+                        AND
+                        (
+                            livraison.id IS NULL
+                            OR livraisonStatus.nom != :livraisonStatusToTreat
+                        )
+                    )
+                )
+            ) THEN 1 ELSE 0 END) AS isTreatable')
             ->join('ie.refArticle', 'ra')
             ->leftJoin('ra.emplacement', 'e')
+            ->leftJoin('ra.ligneArticlePreparations', 'ligneArticles')
+            ->leftJoin('ligneArticles.preparation', 'preparation')
+            ->leftJoin('preparation.statut', 'preparationStatus')
+            ->leftJoin('preparation.livraison', 'livraison')
+            ->leftJoin('livraison.statut', 'livraisonStatus')
+            ->leftJoin('ra.statut', 'referenceStatus')
+            ->groupBy('ie.id')
+            ->addGroupBy('ra.reference')
+            ->addGroupBy('label')
+            ->addGroupBy('location')
+            ->addGroupBy('quantity')
+            ->addGroupBy('countedQuantity')
+            ->addGroupBy('is_ref')
+            ->addGroupBy('treated')
+            ->addGroupBy('barCode')
+            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
+            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
+            ->setParameter('livraisonStatusToTreat', Livraison::STATUT_A_TRAITER)
+            ->setParameter('referenceStatusAvailable', ReferenceArticle::STATUT_ACTIF)
             ->andWhere('ie.anomaly = 1');
 
 		if ($forceValidLocation) {
@@ -74,26 +115,68 @@ class InventoryEntryRepository extends ServiceEntityRepository
 	}
 
     public function getAnomaliesOnArt(bool $forceValidLocation = false, $anomaliesIds = []) {
-        $queryBuilder = $this->createQueryBuilder('ie')
-            ->select('ie.id')
-            ->addSelect('a.reference')
-            ->addSelect('a.label')
-            ->addSelect('e.label as location')
-            ->addSelect('a.quantite as quantity')
+        $subQueryBuilder = $this->createQueryBuilder('sub_entry')
+            ->select('
+                MIN(CASE WHEN
+                    (
+                        sub_preparation.id IS NULL
+                        AND (
+                            sub_demande.id IS NULL
+                            OR sub_demandeStatus.nom = :draftRequestStatus
+                        )
+                        AND (
+                            sub_ligneArticle.id IS NULL
+                            OR (
+                                sub_ligneArticle_preparation_status.nom != :preparationStatusToTreat
+                                AND sub_ligneArticle_preparation_status.nom != :preparationStatusInProgress
+                            )
+                        )
+                        AND sub_articleStatus.nom = :articleStatusAvailable
+                    )
+                    THEN 1 ELSE 0 END) AS sub_isTreatable
+            ')
+            ->join('sub_entry.article', 'sub_article')
+            ->join('sub_article.statut', 'sub_articleStatus')
+            ->leftJoin('sub_article.demande', 'sub_demande')
+            ->leftJoin('sub_article.preparation', 'sub_preparation')
+            ->leftJoin('sub_demande.statut', 'sub_demandeStatus')
+            ->leftJoin('sub_article.articleFournisseur', 'sub_articleFournisseur')
+            ->leftJoin('sub_articleFournisseur.referenceArticle', 'sub_referenceArticle')
+            ->leftJoin('sub_referenceArticle.ligneArticlePreparations', 'sub_ligneArticle')
+            ->leftJoin('sub_ligneArticle.preparation', 'sub_ligneArticle_preparation')
+            ->leftJoin('sub_ligneArticle_preparation.statut', 'sub_ligneArticle_preparation_status')
+            ->where('sub_entry.id = entry.id')
+            ->groupBy('sub_entry.id');
+
+        $isTreatableDQL = $subQueryBuilder
+            ->getQuery()
+            ->getDQL();
+
+        $queryBuilder = $this->createQueryBuilder('entry')
+            ->select('entry.id')
+            ->addSelect('article.reference')
+            ->addSelect('article.label')
+            ->addSelect('articleLocation.label as location')
+            ->addSelect('article.quantite as quantity')
             ->addSelect('0 as is_ref')
             ->addSelect('0 as treated')
-            ->addSelect('a.barCode as barCode')
-            ->join('ie.article', 'a')
-            ->leftJoin('a.emplacement', 'e')
-            ->andWhere('ie.anomaly = 1');
+            ->addSelect('article.barCode as barCode')
+            ->addSelect("($isTreatableDQL) AS isTreatable")
+            ->join('entry.article', 'article')
+            ->leftJoin('article.emplacement', 'articleLocation')
+            ->andWhere('entry.anomaly = 1')
+            ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
+            ->setParameter('draftRequestStatus', Demande::STATUT_BROUILLON)
+            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
+            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION);
 
         if ($forceValidLocation) {
-            $queryBuilder->andWhere('e IS NOT NULL');
+            $queryBuilder->andWhere('articleLocation IS NOT NULL');
         }
 
         if (!empty($anomaliesIds)) {
             $queryBuilder
-                ->andWhere('ie.id IN (:inventoryEntries)')
+                ->andWhere('entry.id IN (:inventoryEntries)')
                 ->setParameter("inventoryEntries", $anomaliesIds, Connection::PARAM_STR_ARRAY);
         }
 
@@ -102,22 +185,28 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->getScalarResult();
 	}
 
-	/**
-	 * @param array|null $params
-	 * @param array|null $filters
-	 * @return array
-	 * @throws \Exception
-	 */
-	public function findByParamsAndFilters($params, $filters)
+    /**
+     * @param array|null $params
+     * @param array|null $filters
+     * @param bool $anomalyMode
+     * @return array
+     */
+	public function findByParamsAndFilters($params, $filters, $anomalyMode = false)
 	{
-		$em = $this->getEntityManager();
-		$qb = $em->createQueryBuilder();
+        $countTotalResult = $this->createQueryBuilder('ie')
+            ->select('COUNT(ie.id) AS count')
+            ->getQuery()
+            ->getResult();
 
-		$qb
-			->select('ie')
-			->from('App\Entity\InventoryEntry', 'ie');
+        $countTotal = (!empty($countTotalResult) && !empty($countTotalResult[0]))
+            ? intval($countTotalResult[0]['count'])
+            : 0;
 
-		$countTotal = count($qb->getQuery()->getResult());
+        $qb = $this->createQueryBuilder('ie');
+
+        if ($anomalyMode) {
+            $qb->where('ie.anomaly = 1');
+        }
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -147,9 +236,11 @@ class InventoryEntryRepository extends ServiceEntityRepository
 				case 'reference':
 					$value = explode(':', $filter['value']);
 					$qb
-						->leftJoin('ie.refArticle', 'ra')
-						->leftJoin('ie.article', 'a')
-						->andWhere('ra.reference = :reference OR a.reference = :reference')
+                        ->leftJoin('ie.refArticle', 'filter_reference_refArticle')
+                        ->leftJoin('ie.article', 'filter_reference_article')
+                        ->leftJoin('filter_reference_article.articleFournisseur', 'filter_reference_articleFournisseur')
+                        ->leftJoin('filter_reference_articleFournisseur.referenceArticle', 'filter_reference_article_refArticle')
+						->andWhere('filter_reference_refArticle.reference = :reference OR filter_reference_article_refArticle.reference = :reference')
 						->setParameter('reference', $value[1]);
 			}
 		}
@@ -160,14 +251,23 @@ class InventoryEntryRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->leftJoin('ie.refArticle', 'ra2')
-						->leftJoin('ie.location', 'l2')
-						->leftJoin('ie.utilisateur', 'u2')
-						->andWhere('
-						ra2.reference LIKE :value OR
-						ra2.libelle LIKE :value OR
-						l2.label LIKE :value OR
-						u2.username LIKE :value')
+						->leftJoin('ie.refArticle', 'search_referenceArticle')
+						->leftJoin('ie.article', 'search_article')
+						->leftJoin('search_article.articleFournisseur', 'search_articleFournisseur')
+						->leftJoin('search_articleFournisseur.referenceArticle', 'search_article_referenceArticle')
+						->leftJoin('ie.location', 'search_location')
+						->leftJoin('ie.operator', 'search_operator')
+						->andWhere('(
+                            search_referenceArticle.reference LIKE :value OR
+                            search_referenceArticle.libelle LIKE :value OR
+                            search_referenceArticle.barCode LIKE :value OR
+                            search_article.label LIKE :value OR
+                            search_article.barCode LIKE :value OR
+                            search_article_referenceArticle.reference LIKE :value OR
+                            search_article_referenceArticle.barCode LIKE :value OR
+                            search_location.label LIKE :value OR
+                            search_operator.username LIKE :value
+                        )')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -181,21 +281,38 @@ class InventoryEntryRepository extends ServiceEntityRepository
 
 					if ($column === 'reference') {
 						$qb
-							->leftJoin('ie.refArticle', 'ra3')
-							->orderBy('ra3.reference', $order);
-					} else if ($column === 'label') {
+                            ->leftJoin('ie.refArticle', 'order_reference_refArticle')
+                            ->leftJoin('ie.article', 'order_reference_article')
+                            ->leftJoin('order_reference_article.articleFournisseur', 'order_reference_articleFournisseur')
+                            ->leftJoin('order_reference_articleFournisseur.referenceArticle', 'order_reference_article_refArticle')
+                            ->addSelect('(CASE WHEN order_reference_refArticle.id IS NOT NULL THEN order_reference_refArticle.reference ELSE order_reference_article_refArticle.reference END) AS order_reference')
+                            ->orderBy('order_reference', $order);
+					}
+					else if ($column === 'barCode') {
 						$qb
-							->leftJoin('ie.refArticle', 'ra3')
-							->orderBy('ra3.libelle', $order);
-					} else if ($column === 'location') {
+							->leftJoin('ie.refArticle', 'order_barCode_refArticle')
+							->leftJoin('ie.article', 'order_barCode_article')
+                            ->addSelect('(CASE WHEN order_barCode_article.id IS NOT NULL THEN order_barCode_article.barCode ELSE order_barCode_refArticle.barCode END) AS order_barCode')
+							->orderBy('order_barCode', $order);
+					}
+					else if ($column === 'label') {
+						$qb
+							->leftJoin('ie.refArticle', 'order_label_refArticle')
+							->leftJoin('ie.article', 'order_label_article')
+                            ->addSelect('(CASE WHEN order_label_article.id IS NOT NULL THEN order_label_article.label ELSE order_label_refArticle.libelle END) AS order_label')
+							->orderBy('order_label', $order);
+					}
+					else if ($column === 'location') {
 						$qb
 							->leftJoin('ie.location', 'l3')
 							->orderBy('l3.label', $order);
-					} else if ($column === 'operator') {
+					}
+					else if ($column === 'operator') {
 						$qb
 							->leftJoin('ie.operator', 'u3')
 							->orderBy('u3.username', $order);
-					} else {
+					}
+					else {
 						$qb
 							->orderBy('ie.' . $column, $order);
 					}

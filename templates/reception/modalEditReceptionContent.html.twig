@@ -26,7 +26,7 @@
             <input type="text" class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? 'needed' : '' }}"
                    name="dateCommande" id="dateCommande"
                    placeholder="jj/mm/aaaa"
-                   value="{{ reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d') }}"
+                   value="{{ reception.dateCommande is empty ? '' : (reception.dateCommande | date('d/m/Y')) }}"
                    required="true">
         </div>
     {% endif %}
@@ -36,7 +36,7 @@
             <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? '*' : '' }}</label>
             <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? 'needed' : '' }}"
                    name="dateAttendue" id='dateAttendue'
-                   value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d') }}"
+                   value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('d/m/Y') }}"
                    placeholder="jj/mm/aaaa"
                    required="true">
         </div>

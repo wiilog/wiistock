@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -57,24 +58,12 @@ class ManutentionRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findOneForAPI($id) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @Lang DQL */
-            "SELECT m.id, m.dateAttendue as date_attendue, d.username as demandeur, m.commentaire, m.source, m.destination
-        FROM App\Entity\Manutention m
-        JOIN m.demandeur d
-        WHERE m.id = :id
-        "
-        )->setParameter('id', $id);
-        return $query->getOneOrNullResult();
-    }
-
-	/**
-	 * @param Utilisateur $user
-	 * @return int
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param Utilisateur $user
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
 	public function countByUser($user)
 	{
 		$em = $this->getEntityManager();

@@ -3,7 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Acheminements;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 
 /**
@@ -56,39 +59,39 @@ class AcheminementsRepository extends EntityRepository
             }
         }
         if (!empty($params)) {
-        if (!empty($params->get('search'))) {
-            $search = $params->get('search')['value'];
-            if (!empty($search)) {
-                $qb
-                    ->andWhere('a.colis LIKE :value OR a.date LIKE :value')
-                    ->setParameter('value', '%' . $search . '%');
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('a.colis LIKE :value OR a.date LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
             }
-        }
-        if (!empty($params->get('order')))
-        {
-            $order = $params->get('order')[0]['dir'];
-            if (!empty($order))
+            if (!empty($params->get('order')))
             {
-                $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                if ($column === 'statut') {
-                    $qb
-                        ->leftJoin('a.statut', 's2')
-                        ->orderBy('s2.nom', $order);
-                } else if ($column === 'requester') {
-                    $qb
-                        ->leftJoin('a.requester', 'u2')
-                        ->orderBy('u2.username', $order);
-                } else if ($column === 'receiver') {
-                    $qb
-                        ->leftJoin('a.receiver', 'u2')
-                        ->orderBy('u2.username', $order);
-                } else {
-                    $qb
-                        ->orderBy('a.' . $column, $order);
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'statut') {
+                        $qb
+                            ->leftJoin('a.statut', 's2')
+                            ->orderBy('s2.nom', $order);
+                    } else if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('a.requester', 'u2')
+                            ->orderBy('u2.username', $order);
+                    } else if ($column === 'receiver') {
+                        $qb
+                            ->leftJoin('a.receiver', 'u2')
+                            ->orderBy('u2.username', $order);
+                    } else {
+                        $qb
+                            ->orderBy('a.' . $column, $order);
+                    }
                 }
             }
         }
-    }
 
         // compte éléments filtrés
         $countFiltered = count($qb->getQuery()->getResult());
@@ -105,5 +108,24 @@ class AcheminementsRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    /**
+     * @param Utilisateur $user
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countByUser($user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Acheminements a
+            WHERE a.receiver = :user"
+        )->setParameter('user', $user);
+
+        return $query->getSingleScalarResult();
     }
 }
