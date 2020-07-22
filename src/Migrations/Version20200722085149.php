@@ -26,8 +26,29 @@ final class Version20200722085149 extends AbstractMigration
         $this
             ->addSql('ALTER TABLE reference_article ADD free_fields JSON DEFAULT NULL;');
 
+
         $refArticleCategoryTypeLabel = CategoryType::ARTICLE;
         $refArticleCategoryCLabel = CategorieCL::REFERENCE_ARTICLE;
+
+        $refsFreeFields =
+            $this
+                ->connection
+                ->executeQuery("
+                    SELECT
+                        champ_libre.id
+                        FROM champ_libre
+                        INNER JOIN categorie_cl cc on champ_libre.categorie_cl_id = cc.id
+                        INNER JOIN type ON type.id = champ_libre.type_id
+                        INNER JOIN category_type ON category_type.id = type.category_id
+                        WHERE category_type.label = '${refArticleCategoryTypeLabel}' AND cc.label = '${refArticleCategoryCLabel}'
+                ")->fetchAll();
+
+        $refsFreeFieldIds = array_map(function(array $freeField) {
+            return intval($freeField['id']);
+        }, $refsFreeFields);
+
+        $refsFreeFieldIdsString = implode(',', $refsFreeFieldIds);
+
         $allRefs =
             $this
                 ->connection
@@ -63,7 +84,7 @@ final class Version20200722085149 extends AbstractMigration
                         INNER JOIN categorie_cl cc on champ_libre.categorie_cl_id = cc.id
                         INNER JOIN type t on champ_libre.type_id = t.id
                         INNER JOIN category_type ON t.category_id = category_type.id
-                        WHERE reference_article.id = '${refId}' AND category_type.label = '${refArticleCategoryTypeLabel}' AND cc.label = '${refArticleCategoryCLabel}'
+                        WHERE reference_article.id = '${refId}' AND champ_libre.id IN (${refsFreeFieldIdsString})
                     ")->fetchAll();
 
             foreach ($refsFreeFieldValuesInDB as $freeFieldValue) {
@@ -95,6 +116,10 @@ final class Version20200722085149 extends AbstractMigration
             $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
             $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
             $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
+            if ($refId === 19369) {
+                dump($encodedFreeFields);
+                die();
+            }
             $this
                 ->addSql("UPDATE reference_article SET free_fields = '${encodedFreeFields}' WHERE reference_article.id = ${refId}");
         }
