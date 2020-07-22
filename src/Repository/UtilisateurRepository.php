@@ -299,9 +299,9 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, []);
     }
 
-    public function getUserMailByRole(string $roleLabel)
+    public function getUserMailByIsMailSendRole()
     {
-        $queryBuilder = $this->createQueryBuilder('utilisateur')
+        $result = $this->createQueryBuilder('utilisateur')
             ->select('utilisateur.email AS email')
             ->join('utilisateur.role','role' )
             ->where('role.isMailSendAccountCreation = :isMailSend')
@@ -311,6 +311,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
         return array_map(function (array $userMail) {
             return $userMail['email'];
-        }, $queryBuilder);
+        }, $result);
     }
 }

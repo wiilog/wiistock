@@ -124,7 +124,6 @@ class SecuriteController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
-            $userMailByRole = $utilisateur->getUserMailByRole(Role::SUPER_ADMIN);
             $user
                 ->setStatus(true)
                 ->setPassword($password)
@@ -139,6 +138,7 @@ class SecuriteController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            $userMailByRole = $utilisateur->getUserMailByIsMailSendRole();
             if(!empty($userMailByRole)) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Notification de création d\'un compte utilisateur',
