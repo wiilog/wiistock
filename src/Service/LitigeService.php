@@ -191,7 +191,7 @@ class LitigeService
         if (!empty($recipients)) {
             $this->mailerService->sendMail(
                 $subject,
-                $this->templating->render('mails/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
+                $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
                     'litiges' => [$litige],
                     'title' => $title,
                     'urlSuffix' => ($isArrival ? 'arrivage' : 'reception')

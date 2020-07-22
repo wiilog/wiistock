@@ -427,7 +427,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $this->mailerService->sendMail(
                                             'FOLLOW GT // Dépose effectuée',
                                             $this->renderView(
-                                                'mails/mailDeposeTraca.html.twig',
+                                                'mails/contents/mailDeposeTraca.html.twig',
                                                 [
                                                     'title' => 'Votre colis a été livré.',
                                                     'colis' => $colis->getCode(),
@@ -1285,6 +1285,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             /// collecte
             $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+
+            /// On tronque le commentaire à 200 caractères (sans les tags)
+            $collectes = array_map(function ($collecteArray) {
+                if(!empty($collecteArray['comment'])) {
+                    $collecteArray['comment'] = substr(strip_tags($collecteArray['comment']), 0, 200);
+                }
+                return $collecteArray;
+            }, $collectes);
+
             $collectesIds = array_map(function ($collecteArray) {
                 return $collecteArray['id'];
             }, $collectes);

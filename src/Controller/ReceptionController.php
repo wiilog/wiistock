@@ -1931,7 +1931,7 @@ class ReceptionController extends AbstractController
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Réception d\'un colis '
                     . 'de type «' . $demande->getType()->getLabel() . '».',
-                    $this->renderView('mails/mailDemandeLivraisonValidate.html.twig', [
+                    $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
                         'isReception' => true,

@@ -3,7 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Acheminements;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 
 /**
@@ -105,5 +108,24 @@ class AcheminementsRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    /**
+     * @param Utilisateur $user
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countByUser($user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Acheminements a
+            WHERE a.receiver = :user"
+        )->setParameter('user', $user);
+
+        return $query->getSingleScalarResult();
     }
 }

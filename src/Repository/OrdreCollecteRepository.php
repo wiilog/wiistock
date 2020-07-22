@@ -83,6 +83,7 @@ class OrdreCollecteRepository extends EntityRepository
             ->addSelect('dc.stockOrDestruct as forStock')
             ->addSelect('demandeur.username as requester')
             ->addSelect('typeDemandeCollecte.label as type')
+            ->addSelect('dc.commentaire as comment')
             ->leftJoin('oc.demandeCollecte', 'dc')
             ->leftJoin('dc.demandeur', 'demandeur')
             ->leftJoin('dc.pointCollecte', 'pc')

@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
-use Doctrine\ORM\EntityManagerInterface;
 
 class FilterSupService
 {

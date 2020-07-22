@@ -1,0 +1,98 @@
+{% extends 'mails/template.html.twig' %}
+
+{% set isReception = (isReception is defined and isReception) %}
+{% block content %}
+    <table class="table"
+           style="border: 1px solid black; border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                {{ 'reference.référence'|trans }}
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Code barre {{ 'reference.référence'|trans }}
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Code barre article
+            </th>
+            {% if isReception %}
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Commande
+                </th>
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Fournisseur
+                </th>
+            {% endif %}
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Quantité
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for article in demande.articles %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.barCode }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.barCode }}
+                </td>
+                {% if isReception %}
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ article.receptionReferenceArticle.commande }}
+                    </td>
+                    <th class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        {{ article.articleFournisseur.fournisseur ? article.articleFournisseur.fournisseur.nom : ''}}
+                    </th>
+                {% endif %}
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.quantiteAPrelever == 0 ? article.quantite : article.quantiteAPrelever }}
+                </td>
+            </tr>
+        {% endfor %}
+        {% for demandeRef in demande.ligneArticle %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ demandeRef.reference.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ demandeRef.reference.barCode }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                </td>
+                {% if fournisseur is defined %}
+                    <th class="th"
+                        style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                        {{ fournisseur }}
+                    </th>
+                {% endif %}
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ demandeRef.quantite }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+
+{% endblock %}

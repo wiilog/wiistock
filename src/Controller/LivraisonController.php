@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
@@ -239,8 +240,8 @@ class LivraisonController extends AbstractController
         return $this->render('livraison/show.html.twig', [
             'demande' => $demande,
             'livraison' => $livraison,
-            'preparation' => $preparationRepository->find($livraison->getPreparation()->getId()),
-            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE || $livraison->getStatut()->getNom() === Livraison::STATUT_INCOMPLETE),
+            'preparation' => $livraison->getPreparation(),
+            'finished' => $livraison->isCompleted(),
             'headerConfig' => [
                 [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
                 [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
@@ -261,8 +262,8 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer/{id}", name="livraison_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
+     * @Route("/{livraison}", name="livraison_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
+     * @param Livraison $livraison
      * @param LivraisonsManagerService $livraisonsManager
      * @param PreparationsManagerService $preparationsManager
      * @param EntityManagerInterface $entityManager
@@ -271,19 +272,20 @@ class LivraisonController extends AbstractController
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
+                           Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
                            PreparationsManagerService $preparationsManager,
                            EntityManagerInterface $entityManager,
                            UserService $userService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $livraisonRepository = $entityManager->getRepository(Livraison::class);
-            $livraison = $livraisonRepository->find($data['livraison']);
-
+        if (!$userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
+            $data = [
+                'success' => true,
+                'redirect' => $this->generateUrl('access_denied'),
+            ];
+        }
+        else {
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $preparation = $livraison->getpreparation();
 
             /** @var Utilisateur $user */
@@ -291,13 +293,18 @@ class LivraisonController extends AbstractController
 
             $livraisonStatus = $livraison->getStatut();
             $demande = $livraison->getDemande();
-            $livraisonDestination = isset($demande) ? $demande->getDestination() : null;
+
+            $articleDestinationId = $request->request->get('dropLocation');
+            $articlesDestination = !empty($articleDestinationId) ? $emplacementRepository->find($articleDestinationId) : null;
+            if (empty($articlesDestination)) {
+                $articlesDestination = isset($demande) ? $demande->getDestination() : null;
+            }
+
             if (isset($livraisonStatus) &&
-                in_array($livraisonStatus->getNom(), [Livraison::STATUT_LIVRE, Livraison::STATUT_INCOMPLETE]) &&
-                isset($livraisonDestination)) {
+                isset($articlesDestination)) {
                 $livraisonsManager->resetStockMovementsOnDelete(
                     $livraison,
-                    $livraisonDestination,
+                    $articlesDestination,
                     $user,
                     $entityManager
                 );
@@ -312,14 +319,13 @@ class LivraisonController extends AbstractController
             $entityManager->flush();
 
             $data = [
+                'success' => true,
                 'redirect' => $this->generateUrl('preparation_show', [
                     'id' => $preparation->getId()
                 ]),
             ];
-
-            return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404');
+        return new JsonResponse($data);
     }
 
 	/**

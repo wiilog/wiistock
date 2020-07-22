@@ -178,7 +178,7 @@ class ArrivageDataService
             $this->mailerService->sendMail(
                 'FOLLOW GT // Arrivage' . ($isUrgentArrival ? ' urgent' : ''),
                 $this->templating->render(
-                    'mails/mailArrivage.html.twig',
+                    'mails/contents/mailArrivage.html.twig',
                     [
                         'title' => 'Arrivage ' . ($isUrgentArrival ? 'urgent ' : '') . 'reçu',
                         'arrival' => $arrival,
