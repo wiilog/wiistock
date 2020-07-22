@@ -329,7 +329,7 @@ class UtilisateurController extends AbstractController
                         || strlen($mobileLoginKey) > UserService::MAX_MOBILE_KEY_LENGTH) {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => 'La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . 'caractères.',
+                            'msg' => 'La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.',
                             'action' => 'edit'
                         ]);
                     }

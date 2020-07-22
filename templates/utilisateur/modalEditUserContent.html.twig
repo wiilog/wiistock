@@ -37,11 +37,11 @@
         </div>
         <div class="col-12 form-group">
             <label for="mobileLoginKey">Clé de connexion nomade*</label>
-            <input type="text" class="form-control data needed" name="mobileLoginKey" id="mobileLoginKey" value="{{ user.mobileLoginKey }}"/>
+            <input type="text" class="form-control data needed is-barcode" name="mobileLoginKey" id="mobileLoginKey" value="{{ user.mobileLoginKey }}"/>
         </div>
         <div class="form-group col-12 w-100">
             <label for="inputEditType">Type</label>
-            <select type="text" name="type" class="form-control data select2" multiple="multiple"
+            <select type="text" name="type" class="form-control data select2 " multiple="multiple"
                     id="inputEditType">
                 {% for type in types %}
                     <option value="{{ type.id }}">{{ type.label }}</option>
