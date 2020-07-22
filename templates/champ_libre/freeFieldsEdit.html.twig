@@ -24,7 +24,7 @@
                     <select class="form-control data {{ champLibre['requiredEdit'] ? 'needed' : '' }}" id="{{ champLibre['id'] ~ 'edit' }}"
                             name="{{ champLibre['id'] }}" id="input">
                         <option value="">aucune selection...</option>
-                        {% for elem in champLibre['elements']  %}
+                        {% for elem in json_decode(champLibre['elements'])  %}
                             {% set selected = elem == ( champLibre['value'] is defined ? champLibre['value'] : '' ) ? 'selected' : '' %}
                             <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                         {% endfor %}
@@ -34,7 +34,7 @@
                     <select id="{{ champLibre['id'] ~ 'edit' }}"
                             class="form-control data list-multiple  {{ champLibre['requiredEdit'] ? 'needed' : '' }}"
                             name="{{ champLibre['id'] }}" multiple="multiple">
-                        {% for elem in champLibre['elements'] %}
+                        {% for elem in json_decode(champLibre['elements']) %}
                             {% set selected = elem in champLibre['value'] ? 'selected' : '' %}
                             <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                         {% endfor %}

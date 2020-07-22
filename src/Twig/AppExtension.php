@@ -30,7 +30,8 @@ class AppExtension extends AbstractExtension
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
-			new TwigFunction('displayMenu', [$this, 'displayMenuFunction'])
+            new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
+            new TwigFunction('json_decode', [$this, 'jsonDecode'])
         ];
     }
 
@@ -38,8 +39,8 @@ class AppExtension extends AbstractExtension
 	{
 		return [
 			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
-            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction'])
-		];
+            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
+        ];
 	}
 
 	public function hasRightFunction(string $menuCode, string $actionLabel)
@@ -60,5 +61,9 @@ class AppExtension extends AbstractExtension
 
 	public function isFieldRequiredFunction(array $config, string $fieldName, string $action): bool {
         return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
+    }
+
+    public function jsonDecode(string $toArray) {
+        return json_decode($toArray);
     }
 }
