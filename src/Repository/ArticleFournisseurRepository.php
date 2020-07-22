@@ -35,6 +35,36 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->execute();
     }
 
+    public function getGroupedByRefArticle() {
+
+        $queryBuilder = $this->createQueryBuilder('article_fournisseur');
+
+        $articlesFournisseurs = $queryBuilder
+            ->addSelect('article_fournisseur.label as providerArticleLabel')
+            ->addSelect('reference_article.id as idRef')
+            ->addSelect('fournisseur.nom as providerName')
+            ->join('article_fournisseur.referenceArticle', 'reference_article')
+            ->join('article_fournisseur.fournisseur', 'fournisseur')
+            ->getQuery()
+            ->execute();
+
+        return array_reduce($articlesFournisseurs, function(array $accumulator, array $articleFournisseur) {
+            $idRef = $articleFournisseur['idRef'];
+            $providerArticleLabel = $articleFournisseur['providerArticleLabel'];
+            $providerName = $articleFournisseur['providerName'];
+            if (!isset($accumulator[$idRef])) {
+                $accumulator[$idRef] = [
+                    'providerNames' => '',
+                    'providerArticlesLabels' => ''
+                ];
+            }
+            $accumulator[$idRef]['providerNames'] .= ((!empty($accumulator[$idRef]['providerNames']) ? ', ' : '') . $providerName);
+            $accumulator[$idRef]['providerArticlesLabels'] .= ((!empty($accumulator[$idRef]['providerArticlesLabels']) ? ', ' : '') . $providerArticleLabel);
+
+            return $accumulator;
+        }, []);
+    }
+
     public function getByFournisseur($fournisseurId)
     {
         $em = $this->getEntityManager();

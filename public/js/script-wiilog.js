@@ -1468,30 +1468,27 @@ function openSelect2($select2) {
     $select2.select2('open');
 }
 
-function saveExportFile(routeName, params = null) {
+function saveExportFile(routeName, needsDateFilters = true) {
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
     const path = Routing.generate(routeName, true);
 
-    const filtersData = {};
+    const data = {};
     $('.filterService input').each(function () {
         const $input = $(this);
         const name = $input.attr('name');
         const val = $input.val();
         if (name && val) {
-            filtersData[name] = val;
+            data[name] = val;
         }
     });
 
-    const data = {
-        ...filtersData,
-        ...(params || {})
-    }
-
-    if (data.dateMin && data.dateMax) {
-        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    if ((data.dateMin && data.dateMax) || !needsDateFilters) {
+        if (data.dateMin && data.dateMax) {
+            data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+            data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        }
 
         const dataKeys = Object.keys(data);
 

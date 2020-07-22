@@ -12,7 +12,7 @@
             <label>Références</label>
         </div>
         <div class='row justify-content-center'>
-            <div class="btn btn-primary" onclick='initExport($(this), "ref")'>
+            <div class="btn btn-primary" onclick="saveExportFile('export_all_refs', false)">
                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
             </div>
         </div>
@@ -35,4 +35,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/exports.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -56,6 +56,35 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
+
+    public function getAll() {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+        return $queryBuilder
+            ->addSelect('referenceArticle.id')
+            ->addSelect('referenceArticle.reference')
+            ->addSelect('referenceArticle.libelle')
+            ->addSelect('referenceArticle.quantiteStock')
+            ->addSelect('typeRef.label as type')
+            ->addSelect('referenceArticle.typeQuantite')
+            ->addSelect('statutRef.nom as statut')
+            ->addSelect('referenceArticle.commentaire')
+            ->addSelect('emplacementRef.label as emplacement')
+            ->addSelect('referenceArticle.limitSecurity')
+            ->addSelect('referenceArticle.limitWarning')
+            ->addSelect('referenceArticle.prixUnitaire')
+            ->addSelect('referenceArticle.barCode')
+            ->addSelect('categoryRef.label as category')
+            ->addSelect('referenceArticle.dateLastInventory')
+            ->addSelect('referenceArticle.needsMobileSync')
+
+            ->leftJoin('referenceArticle.statut', 'statutRef')
+            ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
+            ->leftJoin('referenceArticle.type', 'typeRef')
+            ->leftJoin('referenceArticle.category', 'categoryRef')
+            ->getQuery()
+            ->execute();
+    }
+
     public function getBetweenLimits($min, $step)
     {
         $entityManager = $this->getEntityManager();

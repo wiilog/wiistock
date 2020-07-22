@@ -30,6 +30,7 @@ use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Validator\Constraints\Date;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
@@ -1099,6 +1100,98 @@ class ReferenceArticleController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+
+    /**
+     * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     * @return Response
+     * @throws Exception
+     */
+    public function exportAllRefs(EntityManagerInterface $entityManager,
+                              CSVExportService $CSVExportService): Response
+    {
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $category = CategoryType::ARTICLE;
+        $champs = array_reduce(
+            $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL),
+            function (array $acc, array $cl) {
+                $acc[] = $cl['label'];
+                return $acc;
+            },
+            []
+        );
+        $headers = array_merge(
+            [
+                'reference',
+                'libellé',
+                'quantité',
+                'type',
+                'type quantité',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'fournisseurs',
+                'articles fournisseurs',
+                'seuil sécurite',
+                'seuil alerte',
+                'prix unitaire',
+                'code barre',
+                'catégorie inventaire',
+                'date dernier inventaire',
+                'synchronisation nomade'
+            ]
+        );
+
+        $references = $referenceArticleRepository->getAll();
+        $articlesFournisseurs = $articleFournisseurRepository->getGroupedByRefArticle();
+
+        $today = new \DateTime();
+        return $CSVExportService->createCsvResponse(
+            'export-references-' . $today->format('d-m-Y H:i:s') . '.csv',
+            $references,
+            $headers,
+            function ($reference) use ($articlesFournisseurs) {
+                $idRef = $reference['id'];
+                $providerArticlesLabels = isset($articlesFournisseurs[$idRef])
+                    ? $articlesFournisseurs[$idRef]['providerArticlesLabels']
+                    : '';
+
+                $providerNames = isset($articlesFournisseurs[$idRef])
+                    ? $articlesFournisseurs[$idRef]['providerNames']
+                    : '';
+
+                return [
+                    [
+                        $reference['reference'],
+                        $reference['libelle'],
+                        $reference['quantiteStock'],
+                        $reference['type'],
+                        $reference['typeQuantite'],
+                        $reference['statut'],
+                        $reference['commentaire'] ? strip_tags($reference['commentaire']) : '',
+                        $reference['emplacement'],
+                        $providerNames,
+                        $providerArticlesLabels,
+                        $reference['limitSecurity'],
+                        $reference['limitWarning'],
+                        $reference['prixUnitaire'],
+                        $reference['barCode'],
+                        $reference['category'],
+                        $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                        $reference['needsMobileSync'],
+                    ]
+                ];
+            }
+        );
+    }
+
+
 
     /**
      * @Route("/exporter/{min}/{max}", name="reference_article_export", options={"expose"=true}, methods="GET|POST")
