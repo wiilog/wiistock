@@ -108,7 +108,7 @@ final class Version20200722085149 extends AbstractMigration
                         'typage' => $freeFieldValue['typage'],
                         'defaultValue' => $freeFieldValue['default_value'],
                         'id' => $freeFieldId,
-                        'elements' => $refFreeField['elements'] ?? []
+                        'elements' => $freeFieldValue["elements"] ?? []
                     ];
                 }
             }
@@ -116,10 +116,6 @@ final class Version20200722085149 extends AbstractMigration
             $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
             $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
             $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
-            if ($refId === 19369) {
-                dump($encodedFreeFields);
-                die();
-            }
             $this
                 ->addSql("UPDATE reference_article SET free_fields = '${encodedFreeFields}' WHERE reference_article.id = ${refId}");
         }
