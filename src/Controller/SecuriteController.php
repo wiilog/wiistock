@@ -142,9 +142,10 @@ class SecuriteController extends AbstractController
             if(!empty($userMailByRole)) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Notification de création d\'un compte utilisateur',
-                    $this->templating->render('mails/mailNouvelUtilisateur.html.twig', [
+                    $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
                         'user' => $user->getUsername(),
-                        'mail' => $user->getEmail()
+                        'mail' => $user->getEmail(),
+                        'title' => 'Création d\'un nouvel utilisateur'
                     ]),
                     $userMailByRole
                 );
