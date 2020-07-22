@@ -1,0 +1,20 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
+    <div>Fournisseur : {{ fournisseur }}</div>
+    <div>Colis : {{ colis }}</div>
+    <div>Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</div>
+    <div>Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</div>
+    <div>Opérateur : {{ operateur }}</div>
+    {% if pjs is not empty %}
+        <div>Pièces jointes :</div>
+        {% for pj in pjs %}
+            <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}">
+                {{ pj.OriginalName }}
+            </a>
+            <br>
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}

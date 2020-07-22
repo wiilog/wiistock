@@ -1,0 +1,72 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
+    <div>Numéro : {{ demande.numero }}</div>
+    <div>Date de demande : {{ demande.date|date('d/m/Y') }}</div>
+    <div>Demandeur : {{ demande.demandeur.username }}</div>
+    <div>Point de collecte : {{ demande.pointCollecte.label }}</div>
+    {% if (demande.commentaire is not empty and demande.commentaire != '<p><br></p>') %}
+        <div>Commentaire : {{ demande.commentaire|raw }}</div>
+    {% endif %}
+    <br>
+    <br>
+    <div>Liste des articles :</div>
+    <br>
+
+    <table class="table"
+           style="border: 1px solid black; border-collapse: collapse;">
+        <thead>
+         <tr>
+             <th class="th"
+                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;"
+                 title="référence">
+                 {{ 'reference.référence'|trans }}
+             </th>
+             <th class="th"
+                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
+                 Libellé
+             </th>
+             <th class="th"
+                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
+                 Quantité
+             </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for article in collecte.articles %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.libelle }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.quantite }}
+                </td>
+            </tr>
+        {% endfor %}
+        {% for collecteRef in collecte.ordreCollecteReferences %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ collecteRef.referenceArticle.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ collecteRef.referenceArticle.libelle }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ collecteRef.quantite }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

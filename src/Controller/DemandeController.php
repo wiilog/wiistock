@@ -102,7 +102,6 @@ class DemandeController extends AbstractController
      * @return Response
      * @throws DBALException
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
