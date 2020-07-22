@@ -15,12 +15,12 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20200722085149 extends AbstractMigration
 {
-    public function getDescription() : string
+    public function getDescription(): string
     {
         return '';
     }
 
-    public function up(Schema $schema) : void
+    public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this
@@ -28,28 +28,6 @@ final class Version20200722085149 extends AbstractMigration
 
         $refArticleCategoryTypeLabel = CategoryType::ARTICLE;
         $refArticleCategoryCLabel = CategorieCL::REFERENCE_ARTICLE;
-
-        $refsFreeFields =
-            $this
-                ->connection
-                ->executeQuery("
-                    SELECT
-                            champ_libre.id,
-                            champ_libre.typage,
-                            champ_libre.default_value,
-                            champ_libre.elements,
-                            champ_libre.required_create,
-                            champ_libre.required_edit,
-                            champ_libre.label,
-                            champ_libre.elements,
-                            type.id as typeId
-                        FROM champ_libre
-                        INNER JOIN categorie_cl cc on champ_libre.categorie_cl_id = cc.id
-                        INNER JOIN type ON type.id = champ_libre.type_id
-                        INNER JOIN category_type ON category_type.id = type.category_id
-                        WHERE category_type.label = '${refArticleCategoryTypeLabel}' AND cc.label = '${refArticleCategoryCLabel}'
-                ")->fetchAll();
-
         $allRefs =
             $this
                 ->connection
@@ -62,43 +40,51 @@ final class Version20200722085149 extends AbstractMigration
             $freeFieldsToBeInsertedInJSON = [];
             $refId = intval($ref['id']);
             $typeId = intval($ref['typeId']);
-            foreach ($refsFreeFields as $refFreeField) {
-                $freeFieldId = intval($refFreeField['id']);
-                $clTypeId = intval($refFreeField['typeId']);
-                $refsFreeFieldInDB = $this
-                    ->connection
-                    ->executeQuery("
+            $refsFreeFieldValuesInDB = $this
+                ->connection
+                ->executeQuery("
                         SELECT
                             reference_article.id,
                             valeur_champ_libre.valeur,
+                            champ_libre.id as freeFieldId,
+                            champ_libre.typage,
+                            champ_libre.label,
+                            champ_libre.required_create,
+                            champ_libre.required_edit,
+                            champ_libre.elements,
+                            champ_libre.default_value,
                             t.id as typeId
                         FROM reference_article
-                        INNER JOIN valeur_champ_libre_reference_article vclra on reference_article.id = vclra.reference_article_id
-                        INNER JOIN valeur_champ_libre ON valeur_champ_libre.id = vclra.valeur_champ_libre_id
-                        INNER JOIN champ_libre ON champ_libre.id = valeur_champ_libre.champ_libre_id
-                        INNER JOIN type t on reference_article.type_id = t.id
-                        WHERE champ_libre.id = '${freeFieldId}' AND reference_article.id = '${refId}'
+                        LEFT JOIN valeur_champ_libre_reference_article vclra on reference_article.id = vclra.reference_article_id
+                        LEFT JOIN valeur_champ_libre ON valeur_champ_libre.id = vclra.valeur_champ_libre_id
+                        LEFT JOIN champ_libre ON champ_libre.id = valeur_champ_libre.champ_libre_id
+                        LEFT JOIN categorie_cl cc on champ_libre.categorie_cl_id = cc.id
+                        LEFT JOIN type t on champ_libre.type_id = t.id
+                        LEFT JOIN category_type ON t.category_id = category_type.id
+                        WHERE reference_article.id = '${refId}' AND category_type.label = '${refArticleCategoryTypeLabel}' AND cc.label = '${refArticleCategoryCLabel}'
                     ")->fetchAll();
 
-                $value = count($refsFreeFieldInDB) > 0
-                    ? (isset($refsFreeFieldInDB[0]['valeur'])
-                        ? $refsFreeFieldInDB[0]['valeur']
-                        : "")
+            foreach ($refsFreeFieldValuesInDB as $freeFieldValue) {
+                $freeFieldId = intval($freeFieldValue['freeFieldId']);
+                $clTypeId = intval($freeFieldValue['typeId']);
+
+                $value = !empty($freeFieldValue['valeur'])
+                    ? $freeFieldValue['valeur']
                     : "";
                 if ($typeId === $clTypeId) {
-                    $value = $refFreeField['typage'] === ChampLibre::TYPE_BOOL
+                    $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
                         ? (empty($value)
                             ? "0"
                             : "1")
                         : $value;
                     $freeFieldsToBeInsertedInJSON[] = [
                         'value' => strval($value),
-                        'label' => $refFreeField['label'],
-                        'requiredCreate' => $refFreeField['required_create'],
-                        'requiredEdit' => $refFreeField['required_edit'],
-                        'typage' => $refFreeField['typage'],
-                        'defaultValue' => $refFreeField['default_value'],
-                        'id' => $refFreeField['id'],
+                        'label' => $freeFieldValue['label'],
+                        'requiredCreate' => $freeFieldValue['required_create'],
+                        'requiredEdit' => $freeFieldValue['required_edit'],
+                        'typage' => $freeFieldValue['typage'],
+                        'defaultValue' => $freeFieldValue['default_value'],
+                        'id' => $freeFieldId,
                         'elements' => json_decode($refFreeField['elements'] ?? "")
                     ];
                 }
@@ -111,7 +97,7 @@ final class Version20200722085149 extends AbstractMigration
         }
     }
 
-    public function down(Schema $schema) : void
+    public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
 
