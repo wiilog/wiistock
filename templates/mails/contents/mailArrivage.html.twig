@@ -1,11 +1,10 @@
-{% extends 'mails/mjml/template.html.twig' %}
+{% extends 'mails/template.html.twig' %}
 
 {% block content %}
-    <p> Bonjour, </p>
-    <p> Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée : </p>
+    <p>Bonjour,</p>
+    <p>Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée :</p>
     <ul>
-        <li>{{ "arrivage.n° d'arrivage"|trans }}
-            : {{ arrival.numeroArrivage }}</li>
+        <li>{{ "arrivage.n° d'arrivage"|trans }}: {{ arrival.numeroArrivage }}</li>
 
         {% set numeroCommandeList = (
             (emergencies|length > 0 and emergencies[0].commande)
@@ -13,8 +12,7 @@
                 : arrival.numeroCommandeList
             ) %}
         {% if numeroCommandeList|length > 0 %}
-            <li> Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }}
-                : {{ numeroCommandeList|join(', ') }}</li>
+            <li>Numéro de commande{{ numeroCommandeList|length > 1 ? 's' }}: {{ numeroCommandeList|join(', ') }}</li>
         {% endif %}
 
         {% if arrival.fournisseur %}
@@ -29,9 +27,13 @@
     </ul>
     {% if isUrgentArrival and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
         {% if arrival.duty  %}
-            <p style="font-weight: bold">La réception de cette commande sera effectuée après dédouanement.</p>
+            <p style="font-weight: bold">
+                La réception de cette commande sera effectuée après dédouanement.
+            </p>
         {% else %}
-            <p>La réception de cette commande sera effectuée sous deux heures.</p>
+            <p style="font-weight: bold">
+                La réception de cette commande sera effectuée sous deux heures.
+            </p>
         {% endif %}
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
         <p>Votre colis sera livré en dropzone en milieu d'après-midi.</p>

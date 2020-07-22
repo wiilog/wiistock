@@ -194,7 +194,7 @@ class LivraisonsManagerService
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Livraison effectuée',
-                $this->templating->render('mails/mailLivraisonDone.html.twig', [
+                $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
                     'livraison' => $demande,
                     'title' => 'Votre demande a bien été livrée.',
                 ]),

@@ -7,15 +7,13 @@
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <div class="btn-group">
-                        <button type="button"
-                                data-toggle="modal"
-                                data-target="#modalNewArticleFournisseur"
-                                onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur')), clearModal($('#modalNewArticleFournisseur'))"
-                                class="btn btn-primary btn-ripple">
-                            <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
-                        </button>
-                    </div>
+                    <button type="button"
+                            data-toggle="modal"
+                            data-target="#modalNewArticleFournisseur"
+                            onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur')), clearModal($('#modalNewArticleFournisseur'))"
+                            class="btn btn-primary btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>Nouvel article fournisseur
+                    </button>
                 </div>
             </div>
         {% endif %}

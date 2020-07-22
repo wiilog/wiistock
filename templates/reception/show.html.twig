@@ -121,8 +121,8 @@
 {% block javascripts %}
     {{ parent() }}
 
+    <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/form-reference-article.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/reception-show.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

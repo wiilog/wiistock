@@ -13,6 +13,9 @@ let modalColumnVisible = $('#modalColumnVisibleLitige');
 let submitColumnVisible = $('#submitColumnVisibleLitige');
 let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
 
+let tableHistoLitige;
+let tableArticleLitige;
+
 $(function () {
     initDateTimePicker();
     initSelect2($('#carriers'), 'Transporteurs');
@@ -140,8 +143,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
     $('#disputeNumber').text(disputeNumber);
 }
 
-let tableHistoLitige;
-
 function openTableHisto() {
 
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
@@ -160,33 +161,7 @@ function openTableHisto() {
         }
     };
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
-    openTableArticleLitige();
-}
-
-let tableArticleLitige;
-
-function openTableArticleLitige() {
-
-    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
-    let tableArticleLitigeConfig = {
-        ajax: {
-            "url": pathArticleLitige,
-            "type": "POST"
-        },
-        columns: [
-            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code Article'},
-            {"data": 'status', 'name': 'status', 'title': 'Status'},
-            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
-            {"data": 'reference', 'name': 'reference', 'title': 'Référence'},
-            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'},
-        ],
-        domConfig: {
-            needsPartialDomOverride: true,
-        },
-        "paging": false,
-
-    };
-    tableArticleLitige = initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
+    tableArticleLitige = initTableArticleLitige();
 }
 
 function getCommentAndAddHisto() {
