@@ -162,7 +162,7 @@ class ValeurChampLibreService
 
     public function manageJSONFreeFieldCreationForEntity(EntityManagerInterface $entityManager,
                                                          array $freeField,
-                                                         string $className,
+                                                         ?string $className,
                                                          Type $type)
     {
         if ($className) {
@@ -178,7 +178,7 @@ class ValeurChampLibreService
         }
     }
 
-    public function manageJSONFreeFieldDeletionForEntity(EntityManagerInterface $entityManager, array $freeField, string $className, Type $type)
+    public function manageJSONFreeFieldDeletionForEntity(EntityManagerInterface $entityManager, array $freeField, ?string $className, Type $type)
     {
         if ($className) {
             $freeFieldEntityRepository = $entityManager->getRepository($className);
@@ -193,7 +193,7 @@ class ValeurChampLibreService
         }
     }
 
-    public function manageJSONFreeFieldUpdateForEntity(EntityManagerInterface $entityManager, array $freeField, string $className, Type $type)
+    public function manageJSONFreeFieldUpdateForEntity(EntityManagerInterface $entityManager, array $freeField, ?string $className, Type $type)
     {
         if ($className) {
             $freeFieldEntityRepository = $entityManager->getRepository($className);
