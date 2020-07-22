@@ -96,7 +96,10 @@
 </head>
 <body style="width: 100%; margin: 0; padding: 0 !important; mso-line-height-rule: exactly">
 <div class="mail">
-    {% include 'mails/logo-gtlogistics.html.twig' %}
+    <img alt="GT Logistics"
+         width="300px"
+         src="{{ 'assets/img/gtlogistics.jpg'|fileToBase64Data }}"/>
+
     {% if title is defined %}
         <h1>
             {{ title }}
