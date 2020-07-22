@@ -93,7 +93,7 @@ final class Version20200722085149 extends AbstractMigration
             }
 
             $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
-
+            $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
             $this
                 ->addSql("UPDATE reference_article SET free_fields = '${encodedFreeFields}' WHERE reference_article.id = ${refId}");
         }
