@@ -1,4 +1,9 @@
 <p class='error-msg'>
     Vous ne pouvez pas supprimer cette ligne.<br>
-    En effet, il y a eu réception <span title="d'articles">{{ "réception.d'articles"|trans }}</span> sur <span title="cette réception">{{ 'réception.cette réception'|trans }}</span>.
+    {% if msg is defined %}
+        {{ msg }}
+    {% else %}
+        En effet, il y a eu réception <span title="d'articles">{{ "réception.d'articles"|trans }}</span> sur <span
+        title="cette réception">{{ 'réception.cette réception'|trans }}</span>.
+    {% endif %}
 </p>
