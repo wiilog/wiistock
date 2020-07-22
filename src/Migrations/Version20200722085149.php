@@ -108,7 +108,7 @@ final class Version20200722085149 extends AbstractMigration
                         'typage' => $freeFieldValue['typage'],
                         'defaultValue' => $freeFieldValue['default_value'],
                         'id' => $freeFieldId,
-                        'elements' => json_decode($refFreeField['elements'] ?? "")
+                        'elements' => $refFreeField['elements'] ?? []
                     ];
                 }
             }
