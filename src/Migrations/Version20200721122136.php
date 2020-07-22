@@ -45,7 +45,7 @@ final class Version20200721122136 extends AbstractMigration
                         FROM champ_libre
                         INNER JOIN type ON type.id = champ_libre.type_id
                         INNER JOIN category_type ON category_type.id = type.category_id
-                        WHERE category_type.label = '${$receptionFreeFieldLabel}'
+                        WHERE category_type.label = '${receptionFreeFieldLabel}'
                 ")->fetchAll();
 
         $allReceptions =
