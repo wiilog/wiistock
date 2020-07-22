@@ -36,7 +36,9 @@ final class Version20200722085149 extends AbstractMigration
                     FROM reference_article
                     INNER JOIN type t on reference_article.type_id = t.id
                 ')->fetchAll();
-        foreach ($allRefs as $ref) {
+
+        foreach ($allRefs as $index => $ref) {
+            if ($index % 500 === 0) dump('500 de plus!');
             $freeFieldsToBeInsertedInJSON = [];
             $refId = intval($ref['id']);
             $typeId = intval($ref['typeId']);
