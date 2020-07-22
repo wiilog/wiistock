@@ -13,6 +13,9 @@ let modalColumnVisible = $('#modalColumnVisibleLitige');
 let submitColumnVisible = $('#submitColumnVisibleLitige');
 let urlColumnVisible = Routing.generate('save_column_visible_for_litige', true);
 
+let tableHistoLitige;
+let tableArticleLitige;
+
 $(function () {
     initDateTimePicker();
     initSelect2($('#carriers'), 'Transporteurs');
@@ -139,9 +142,6 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
     $modal.find($submit).attr('value', litigeId);
     $('#disputeNumber').text(disputeNumber);
 }
-
-let tableHistoLitige;
-let tableArticleLitige;
 
 function openTableHisto() {
 

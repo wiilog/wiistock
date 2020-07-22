@@ -6,6 +6,7 @@ let tableLitigesReception;
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
 let modalArticleAlreadyInit = false;
+let tableArticleLitige;
 
 $(function () {
     $('.select2').select2();
@@ -215,8 +216,6 @@ function getCommentAndAddHisto() {
         commentLitige.val('');
     });
 }
-
-let tableArticleLitige;
 
 function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
