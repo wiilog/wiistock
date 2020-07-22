@@ -146,8 +146,6 @@ class ValeurChampLibreService
                 : $value);
 
         $elements = json_encode($champLibre->getElements());
-        $encodedElements = str_replace("\\", "\\\\", $elements);
-        $encodedElements = str_replace("'", "''", $encodedElements);
 
         return [
             'value' => strval($value),
@@ -157,7 +155,7 @@ class ValeurChampLibreService
             'typage' => $champLibre->getTypage(),
             'defaultValue' => $champLibre->getDefaultValue(),
             'id' => strval($champLibre->getId()),
-            'elements' => $encodedElements
+            'elements' => $elements
         ];
     }
 
