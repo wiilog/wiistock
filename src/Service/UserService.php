@@ -29,7 +29,8 @@ use Twig\Error\SyntaxError;
 class UserService
 {
 
-    public const MIN_MOBILE_KEY_LENGTH = 24;
+    public const MIN_MOBILE_KEY_LENGTH = 14;
+    public const MAX_MOBILE_KEY_LENGTH = 24;
 
      /**
      * @var Twig_Environment
