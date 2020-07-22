@@ -432,7 +432,7 @@ class DemandeLivraisonService
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
-                $this->templating->render('mails/mailDemandeLivraisonValidate.html.twig', [
+                $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()

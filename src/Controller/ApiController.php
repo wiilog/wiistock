@@ -428,7 +428,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $this->mailerService->sendMail(
                                             'FOLLOW GT // Dépose effectuée',
                                             $this->renderView(
-                                                'mails/mailDeposeTraca.html.twig',
+                                                'mails/contents/mailDeposeTraca.html.twig',
                                                 [
                                                     'title' => 'Votre colis a été livré.',
                                                     'colis' => $colis->getCode(),

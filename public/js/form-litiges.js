@@ -18,3 +18,26 @@ function openNewLitigeModal($button) {
     }
 }
 
+function initTableArticleLitige() {
+
+    let pathArticleLitige = Routing.generate('article_litige_api', {litige: $('#litigeId').val()}, true);
+    let tableArticleLitigeConfig = {
+        ajax: {
+            "url": pathArticleLitige,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'codeArticle', 'name': 'codeArticle', 'title': 'Code article'},
+            {"data": 'status', 'name': 'status', 'title': 'Statut'},
+            {"data": 'libelle', 'name': 'libelle', 'title': 'Libellé'},
+            {"data": 'reference', 'name': 'reference', 'title': 'Référence article'},
+            {"data": 'quantity', 'name': 'quantity', 'title': 'Quantité'}
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        },
+        "paging": false,
+
+    };
+    return initDataTable('tableArticleInLitige', tableArticleLitigeConfig);
+}

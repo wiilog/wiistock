@@ -250,7 +250,7 @@ class OrdreCollecteService
             $this->mailerService->sendMail(
                 'FOLLOW GT // Collecte effectuée',
                 $this->templating->render(
-                    'mails/mailCollecteDone.html.twig',
+                    'mails/contents/mailCollecteDone.html.twig',
                     [
                         'title' => $partialCollect ?
 							'Votre demande de collecte a été partiellement effectuée.' :

@@ -22,6 +22,13 @@
         <div class="main-form-wrapper mt-3">
             <div class="row">
                 <div class="box-login wii-page-card">
+                    {% for flashMessage in app.session.flashbag.get('success') %}
+                        {% if flashMessage is defined %}
+                            <div class="alert alert-success">
+                                {{ flashMessage }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                     <div class="col-md-12 login-header">
                         Connexion
                     </div>

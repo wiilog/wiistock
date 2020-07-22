@@ -98,9 +98,14 @@
                         </div>
                     {% endfor %}
                 </div>
-
+                <div class="input-group mb-3">
+                    <span class="mr-2 mtb-auto" onclick="$(this).closest('div').find('.checkbox').click();">Réception mail création nouveau compte</span>
+                    <label class="switch">
+                        <input type="checkbox" class="data checkbox col-3" name="isMailSendAccountCreation">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
-
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
