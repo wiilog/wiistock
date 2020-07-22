@@ -58,9 +58,9 @@ final class Version20200722085149 extends AbstractMigration
                         LEFT JOIN valeur_champ_libre_reference_article vclra on reference_article.id = vclra.reference_article_id
                         LEFT JOIN valeur_champ_libre ON valeur_champ_libre.id = vclra.valeur_champ_libre_id
                         LEFT JOIN champ_libre ON champ_libre.id = valeur_champ_libre.champ_libre_id
-                        LEFT JOIN categorie_cl cc on champ_libre.categorie_cl_id = cc.id
-                        LEFT JOIN type t on champ_libre.type_id = t.id
-                        LEFT JOIN category_type ON t.category_id = category_type.id
+                        INNER JOIN categorie_cl cc on champ_libre.categorie_cl_id = cc.id
+                        INNER JOIN type t on champ_libre.type_id = t.id
+                        INNER JOIN category_type ON t.category_id = category_type.id
                         WHERE reference_article.id = '${refId}' AND category_type.label = '${refArticleCategoryTypeLabel}' AND cc.label = '${refArticleCategoryCLabel}'
                     ")->fetchAll();
 
