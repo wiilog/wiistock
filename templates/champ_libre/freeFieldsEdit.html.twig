@@ -53,7 +53,7 @@
 
                 {% elseif champLibre['typage'] == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
                     <input
-                        type="text"
+                        type="date"
                         class="form-control data date-cl {{ champLibre['requiredEdit'] ? 'needed' : '' }}"
                         name="{{ champLibre['id'] }}"
                         id="{{ champLibre.label ~ 'edit' }}"

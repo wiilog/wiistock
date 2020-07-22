@@ -42,6 +42,7 @@ use App\Service\MouvementTracaService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
+use App\Service\ValeurChampLibreService;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
@@ -1044,15 +1045,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @return Response
+     * @throws ArticleNotAvailableException
+     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
-     * @throws NoResultException
      */
-    public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
+    public function checkAndValidateDL(Request $request,
+                                       EntityManagerInterface $entityManager,
+                                       DemandeLivraisonService $demandeLivraisonService,
+                                       ValeurChampLibreService $valeurChampLibreService): Response
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -1060,7 +1066,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser) {
             $demandeArray = json_decode($request->request->get('demande'), true);
             $demandeArray['demandeur'] = $nomadUser;
-            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $demandeArray, true);
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
+                $entityManager,
+                $demandeArray,
+                true,
+                $valeurChampLibreService
+            );
         } else {
             $responseAfterQuantitiesCheck = [
                 'success' => false,

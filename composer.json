@@ -12,6 +12,7 @@
         "knplabs/knp-snappy-bundle": "^1.7",
         "nelmio/cors-bundle": "^1.5",
         "nikitospush/barcode-bundle": "^3.0",
+        "scienta/doctrine-json-functions": "^4.1",
         "sensio/framework-extra-bundle": "^5.2",
         "sensiolabs/security-checker": "5.0",
         "symfony/asset": "^4.4",

@@ -235,7 +235,7 @@ class ReceptionController extends AbstractController
             $em->persist($reception);
             $em->flush();
 
-            $receptionService->manageFreeFields($reception, $data, $entityManager, $valeurChampLibreService);
+            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
 
             $entityManager->flush();
 
@@ -310,7 +310,7 @@ class ReceptionController extends AbstractController
 
             $entityManager->flush();
 
-            $receptionService->manageFreeFields($reception, $data, $entityManager, $valeurChampLibreService);
+            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
             $entityManager->flush();
 
             $json = [

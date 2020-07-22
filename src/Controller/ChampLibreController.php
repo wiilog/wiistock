@@ -3,12 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
+use App\Entity\Collecte;
+use App\Entity\Demande;
+use App\Entity\Litige;
+use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Service\UserService;
 use App\Service\ValeurChampLibreService;
@@ -25,6 +32,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class ChampLibreController extends AbstractController
 {
+
+
+    const CATEGORY_CL_TO_CLASSNAMES = [
+        CategorieCL::RECEPTION => Reception::class,
+        CategorieCL::ARTICLE => Article::class,
+        CategorieCL::REFERENCE_ARTICLE => ReferenceArticle::class,
+        CategorieCL::ARRIVAGE => Arrivage::class,
+        CategorieCL::DEMANDE_COLLECTE => Collecte::class,
+        CategorieCL::DEMANDE_LIVRAISON => Demande::class,
+        CategorieCL::AUCUNE => null
+    ];
 
     /**
      * @Route("/", name="champ_libre_index", methods={"GET"})
@@ -165,8 +183,9 @@ class ChampLibreController extends AbstractController
 
 			$valeurChampLibreService->manageJSONFreeFieldCreationForEntity(
 			    $entityManager,
-                $champLibre->getType()->getCategory()->getLabel(),
-                $valeurChampLibreService->manageJSONFreeField($champLibre, "")
+                $valeurChampLibreService->manageJSONFreeField($champLibre, ""),
+                self::CATEGORY_CL_TO_CLASSNAMES[$champLibre->getCategorieCL()->getLabel()],
+                $type
             );
             $em->flush();
 
@@ -242,8 +261,9 @@ class ChampLibreController extends AbstractController
 
         $valeurChampLibreService->manageJSONFreeFieldUpdateForEntity(
             $entityManager,
-            CategoryType::RECEPTION,
-            $valeurChampLibreService->manageJSONFreeField($champLibre, "")
+            $valeurChampLibreService->manageJSONFreeField($champLibre, ""),
+            self::CATEGORY_CL_TO_CLASSNAMES[$champLibre->getCategorieCL()->getLabel()],
+            $champLibre->getType()
         );
 
         $em->flush();
@@ -272,8 +292,9 @@ class ChampLibreController extends AbstractController
         }
         $valeurChampLibreService->manageJSONFreeFieldDeletionForEntity(
             $entityManager,
-            CategoryType::RECEPTION,
-            $valeurChampLibreService->manageJSONFreeField($champLibre, "")
+            $valeurChampLibreService->manageJSONFreeField($champLibre, ""),
+            self::CATEGORY_CL_TO_CLASSNAMES[$champLibre->getCategorieCL()->getLabel()],
+            $champLibre->getType()
         );
 		$entityManager->remove($champLibre);
 		$entityManager->flush();

@@ -306,6 +306,8 @@ class CollecteController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function addArticle(Request $request,
                                ValeurChampLibreService $valeurChampLibreService,
@@ -341,7 +343,7 @@ class CollecteController extends AbstractController
                 if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                     return $this->redirectToRoute('access_denied');
                 }
-                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
+                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $valeurChampLibreService);
             }
             elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 //TODO patch temporaire CEA

@@ -191,24 +191,4 @@ class ReceptionService
                 : []
         );
     }
-
-    public function manageFreeFields(Reception $reception,
-                                     array $data,
-                                     EntityManagerInterface $entityManager,
-                                     ValeurChampLibreService $valeurChampLibreService)
-    {
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $freeFields = [];
-        $champsLibresKey = array_keys($data);
-        foreach ($champsLibresKey as $champs) {
-            if (gettype($champs) === 'integer') {
-                $champLibre = $champLibreRepository->find($champs);
-                if ($champLibre) {
-                    $freeFields[] = $valeurChampLibreService->manageJSONFreeField($champLibre, $data[$champs]);
-                }
-            }
-        }
-        $reception
-            ->setFreeFields($freeFields);
-    }
 }

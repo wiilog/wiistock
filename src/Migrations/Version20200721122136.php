@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Controller\ChampLibreController;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\Validator\Constraints\Json;
@@ -24,10 +27,12 @@ final class Version20200721122136 extends AbstractMigration
         $this
             ->addSql('ALTER TABLE reception ADD free_fields JSON DEFAULT NULL;');
 
+        $receptionFreeFieldLabel = CategoryType::RECEPTION;
+
         $receptionFreeFields =
             $this
                 ->connection
-                ->executeQuery('
+                ->executeQuery("
                     SELECT
                             champ_libre.id,
                             champ_libre.typage,
@@ -40,8 +45,8 @@ final class Version20200721122136 extends AbstractMigration
                         FROM champ_libre
                         INNER JOIN type ON type.id = champ_libre.type_id
                         INNER JOIN category_type ON category_type.id = type.category_id
-                        WHERE category_type.label = \'réception\'
-                ')->fetchAll();
+                        WHERE category_type.label = '${$receptionFreeFieldLabel}'
+                ")->fetchAll();
 
         $allReceptions =
             $this

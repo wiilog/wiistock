@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
  */
-class ReferenceArticle
+class ReferenceArticle extends FreeFieldEntity
 {
     const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';

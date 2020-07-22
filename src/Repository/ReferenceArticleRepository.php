@@ -168,7 +168,6 @@ class ReferenceArticleRepository extends EntityRepository
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
         $index = 0;
-        $subQueries = [];
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
@@ -259,70 +258,58 @@ class ReferenceArticleRepository extends EntityRepository
                     }
                 } // cas champ libre
                 else if ($filter['champLibre']) {
-                    $champLibreLabelAlias = "champLibreLabel_$index";
-                    $qbSub = $em->createQueryBuilder();
-                    $qbSub
-                        ->select('ra' . $index . '.id')
-                        ->from('App\Entity\ReferenceArticle', 'ra' . $index)
-                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
-                        ->where("vcl$index.champLibre = :$champLibreLabelAlias")
-                        ->setParameter($champLibreLabelAlias, $filter['champLibre']);
+                    $value = $filter['value'];
+                    $clId = $filter['champLibre'];
                     switch ($filter['typage']) {
                         case ChampLibre::TYPE_BOOL:
-                            if ($filter['value'] === "1") {
-                                $qbSub
-                                    ->andWhere('vcl' . $index . '.valeur = 1');
-                            } else {
-                                $forbiddenIds = $this->array_values_recursive($qbSub->getQuery()->getResult());
-                                $qbSub = $em->createQueryBuilder()
-                                    ->select('raWithoutCL' . $index . '.id')
-                                    ->from('App\Entity\ReferenceArticle', 'raWithoutCL' . $index)
-                                    ->where('raWithoutCL' . $index . '.id NOT IN (:ids)')
-                                    ->setParameter('ids', $forbiddenIds, Connection::PARAM_STR_ARRAY);
-                            }
+                            $value = empty($value) ? "0" : $value;
                             break;
                         case ChampLibre::TYPE_TEXT:
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
-                                ->setParameter('value' . $index, '%' . $filter['value'] . '%');
+                            $value = '%' . $value . '%';
                             break;
-                        case ChampLibre::TYPE_NUMBER:
-                        case ChampLibre::TYPE_LIST:
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.valeur = :value' . $index)
-                                ->setParameter('value' . $index, $filter['value']);
-                            break;
-                        case ChampLibre::TYPE_LIST_MULTIPLE:
-                            $conditions = [];
-                            foreach (explode(',', $filter['value']) as $listElement) {
-                                $conditions[] = 'vcl' . $index . ".valeur LIKE '%" . $listElement . "%'";
-                            }
-                            $qbSub
-                                ->andWhere(
-                                    $qbSub->expr()->andX()->addMultiple($conditions)
-                                );
+                        case ChampLibre::TYPE_DATETIME:
+                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
+                            $value = '%' . $formattedDate->format('Y-m-d') . '%';
                             break;
                         case ChampLibre::TYPE_DATE:
-                        case ChampLibre::TYPE_DATETIME:
-                            $date = explode('/', $filter['value']);
-                            $formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
-                            $qbSub
-                                ->andWhere("vcl$index.valeur LIKE :value$index")
-                                ->setParameter("value$index", $formattedDated);
+                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
+                            $value = $formattedDate->format('Y-m-d');
+                            break;
+                        case ChampLibre::TYPE_LIST:
+                        case ChampLibre::TYPE_LIST_MULTIPLE:
+                            $value = '%' . str_replace(',', ';', $value) . '%';
+                            break;
+                        case ChampLibre::TYPE_NUMBER:
                             break;
                     }
-                    $subQueries[] = $qbSub->getQuery()->getResult();
+                    $jsonSearchQuery = "
+                                    JSON_SEARCH(
+                                        ra.freeFields,
+                                        'one',
+                                        '${value}',
+                                        NULL,
+                                        CONCAT(
+                                            SUBSTRING(
+                                                JSON_SEARCH(
+                                                    ra.freeFields,
+                                                    'one',
+                                                    '${clId}',
+                                                    NULL,
+                                                    '$**.id'
+                                                ),
+                                                2,
+                                                4
+                                            ),
+                                            '.value'
+                                        )
+                                    )";
+
+                    // https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html
+                    $qb
+                        ->andWhere($jsonSearchQuery . ' IS NOT NULL');
+
                 }
             }
-        }
-
-        foreach ($subQueries as $subQuery) {
-            $ids = [];
-            foreach ($subQuery as $idArray) { //TODO optim php natif ?
-                $ids[] = $idArray['id'];
-            }
-            if (empty($ids)) $ids = 0;
-            $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
         // prise en compte des paramètres issus du datatable
@@ -332,6 +319,8 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($searchValue)) {
                     $ids = [];
                     $query = [];
+                    $isClSearch = false;
+                    $jsonSearchQuery = '';
                     foreach ($user->getRecherche() as $key => $searchField) {
                         switch ($searchField) {
                             case 'Fournisseur':
@@ -376,37 +365,56 @@ class ReferenceArticleRepository extends EntityRepository
 
                                     // champs libres
                                 } else {
-                                    $subqb = $em->createQueryBuilder();
-                                    $subqb
-                                        ->select('ra.id')
-                                        ->from('App\Entity\ReferenceArticle', 'ra');
-                                    $subqb
-                                        ->leftJoin('ra.valeurChampsLibres', 'vclra')
-                                        ->leftJoin('vclra.champLibre', 'clra')
-                                        ->andWhere('clra.label = :searchField')
-                                        ->andWhere('vclra.valeur LIKE :searchValue')
-                                        ->setParameters([
-                                            'searchValue' => '%' . $searchValue . '%',
-                                            'searchField' => $searchField
-                                        ]);
-
-                                    foreach ($subqb->getQuery()->execute() as $idArray) {
-                                        $ids[] = $idArray['id'];
-                                    }
+                                    $isClSearch = true;
+                                    $value = '%' . $searchValue . '%';
+                                    $field = strtolower($searchField);
+                                    $jsonSearchQuery = "
+                                        JSON_SEARCH(
+                                            ra.freeFields,
+                                            'one',
+                                            '${value}',
+                                            NULL,
+                                            CONCAT(
+                                                SUBSTRING(
+                                                    JSON_SEARCH(
+                                                        ra.freeFields,
+                                                        'one',
+                                                        '${field}',
+                                                        NULL,
+                                                        '$**.label'
+                                                    ),
+                                                    2,
+                                                    4
+                                                ),
+                                                '.value'
+                                            )
+                                        )";
                                 }
                                 break;
                         }
                     }
 
-                    // si le résultat de la recherche est vide on renvoie []
-                    if (empty($ids)) {
-                        $ids = [0];
-                    }
-
                     foreach ($ids as $id) {
                         $query[] = 'ra.id  = ' . $id;
                     }
-                    $qb->andWhere(implode(' OR ', $query));
+
+                    if ($isClSearch && !empty($query)) {
+                        $qb
+                            ->andWhere(
+                                $qb->expr()->orX(
+                                    implode(' OR ', $query),
+                                    $jsonSearchQuery . ' IS NOT NULL'
+                                )
+                            );
+                    } else if ($isClSearch) {
+                        $qb
+                            ->andWhere($jsonSearchQuery . ' IS NOT NULL');
+                    } else if (!empty($query)) {
+                        $qb
+                            ->andWhere(
+                                    implode(' OR ', $query)
+                            );
+                    }
                 }
             }
             if (!empty($params->get('order'))) {
@@ -469,15 +477,31 @@ class ReferenceArticleRepository extends EntityRepository
         $qb
             ->select('ra');
         if ($needCLOrder) {
-            $paramsQuery = $qb->getParameters();
-            $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
+
+            $orderField = $needCLOrder[1];
+
+            $jsonOrderQuery = "
+                JSON_EXTRACT(
+                    ra.freeFields,
+                    CONCAT(
+                        SUBSTRING(
+                            JSON_SEARCH(
+                                ra.freeFields,
+                                'one',
+                                '${orderField}',
+                                NULL,
+                                '$**.label'
+                            ),
+                            2,
+                            4
+                        ),
+                        '.value'
+                    )
+                )";
+
             $qb
-                ->addSelect('MAX((CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END)) as vsort')
-                ->leftJoin('ra.valeurChampsLibres', 'vclra')
-                ->leftJoin('vclra.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
-                ->groupBy('ra')
-                ->orderBy('vsort', $needCLOrder[0])
-                ->setParameters($paramsQuery);
+                ->orderBy($jsonOrderQuery, $needCLOrder[0]);
+            dump($qb->getDQL());
         }
         return [
             'data' => $qb->getQuery()->getResult(),

@@ -159,6 +159,7 @@ class ReferenceArticleController extends AbstractController
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnVisible();
             $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+
             $category = CategoryType::ARTICLE;
             $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
@@ -309,6 +310,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param ValeurChampLibreService $valeurChampLibreService
+     * @param EntityManagerInterface $entityManager
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws DBALException
@@ -319,14 +321,13 @@ class ReferenceArticleController extends AbstractController
      */
     public function new(Request $request,
                         ValeurChampLibreService $valeurChampLibreService,
+                        EntityManagerInterface $entityManager,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $entityManager = $this->getDoctrine()->getManager();
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -346,7 +347,6 @@ class ReferenceArticleController extends AbstractController
 					'codeError' => 'DOUBLON-REF'
 				]);
             }
-            $requiredCreate = true;
 
             $type = $typeRepository->find($data['type']);
 
@@ -355,19 +355,6 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             };
-            $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
-            $msgMissingCL = '';
-            foreach ($CLRequired as $CL) {
-                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-                    $requiredCreate = false;
-                    if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
-                    $msgMissingCL .= $CL['label'];
-                }
-            }
-
-            if (!$requiredCreate) {
-                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
-            }
 
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
@@ -447,16 +434,9 @@ class ReferenceArticleController extends AbstractController
             $entityManager->persist($refArticle);
             $entityManager->flush();
 
-            $champsLibresKey = array_keys($data);
+            $valeurChampLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
-            foreach ($champsLibresKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-                    $valeurChampLibre->addArticleReference($refArticle);
-                    $entityManager->persist($valeurChampLibre);
-                    $entityManager->flush();
-                }
-            }
+            $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
                 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle),
@@ -705,13 +685,15 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -733,7 +715,7 @@ class ReferenceArticleController extends AbstractController
             }
             if ($refArticle) {
                 try {
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $valeurChampLibreService);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -906,17 +888,20 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param DemandeRepository $demandeRepository
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
+     * @throws ArticleNotAvailableException
      * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 DemandeCollecteService $demandeCollecteService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -931,7 +916,15 @@ class ReferenceArticleController extends AbstractController
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
 				    $demande = $demandeRepository->find($data['livraison']);
-                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser(), false, $entityManager, $demande);
+                    $json = $this->refArticleDataService->addRefToDemand(
+                        $data,
+                        $refArticle,
+                        $this->getUser(),
+                        false,
+                        $entityManager,
+                        $demande,
+                        $valeurChampLibreService
+                    );
                     if ($json === 'article') {
                         try {
                             $this->articleDataService->editArticle($data);

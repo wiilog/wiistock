@@ -98,21 +98,29 @@ class DemandeController extends AbstractController
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws DBALException
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
+                                 ValeurChampLibreService $valeurChampLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
+                $entityManager,
+                $data,
+                false,
+                $valeurChampLibreService
+            );
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
         throw new NotFoundHttpException('404');
@@ -459,13 +467,17 @@ class DemandeController extends AbstractController
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
-    public function addArticle(Request $request, EntityManagerInterface $entityManager): Response
+    public function addArticle(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -476,7 +488,15 @@ class DemandeController extends AbstractController
             $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $demande = $demandeRepository->find($data['livraison']);
-            $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle, $this->getUser(), false, $entityManager, $demande);
+            $resp = $this->refArticleDataService->addRefToDemand(
+                $data,
+                $referenceArticle,
+                $this->getUser(),
+                false,
+                $entityManager,
+                $demande,
+                $valeurChampLibreService
+            );
             if ($resp === 'article') {
                 $this->articleDataService->editArticle($data);
                 $resp = true;

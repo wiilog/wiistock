@@ -33,7 +33,7 @@ class FreeFieldEntity
 
     public function removeFreeField(array $freeFieldToDelete) {
         foreach ($this->freeFields as $index => $freeField) {
-            if (intval($freeField['id']) === $freeFieldToDelete['id']) {
+            if (intval($freeField['id']) === intval($freeFieldToDelete['id'])) {
                 array_splice($this->freeFields, $index, 1);
             }
         }
@@ -41,13 +41,31 @@ class FreeFieldEntity
 
     public function updateFreeField(array $freeFieldToUpdate) {
         foreach ($this->freeFields as $index => $freeField) {
-            if (intval($freeField['id']) === $freeFieldToUpdate['id']) {
+            if (intval($freeField['id']) === intval($freeFieldToUpdate['id'])) {
                 $freeFieldToUpdate['value'] = $freeField['value'];
                 array_splice($this->freeFields, $index, 1);
                 $this
                     ->freeFields[] = $freeFieldToUpdate;
             }
         }
+    }
+
+    public function hasFreeField(int $id): bool {
+        foreach ($this->freeFields as $index => $freeField) {
+            if (intval($freeField['id']) === $id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function getFreeFieldValue(int $id): string {
+        foreach ($this->freeFields as $index => $freeField) {
+            if (intval($freeField['id']) === $id) {
+                return $freeField['value'];
+            }
+        }
+        return null;
     }
 
 }

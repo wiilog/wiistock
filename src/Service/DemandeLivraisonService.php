@@ -246,14 +246,20 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param array $demandeArray
      * @param bool $fromNomade
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @return array
      * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
-    public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
+    public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
+                                            array $demandeArray,
+                                            bool $fromNomade = false,
+                                            ValeurChampLibreService $valeurChampLibreService): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -274,7 +280,15 @@ class DemandeLivraisonService
                 $referenceArticle = $referenceArticleRepository->findOneBy([
                     'barCode' => $reference['barCode']
                 ]);
-                $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $demandeArray['demandeur'], true, $entityManager, $demande);
+                $this->refArticleDataService->addRefToDemand(
+                    $reference,
+                    $referenceArticle,
+                    $demandeArray['demandeur'],
+                    true,
+                    $entityManager,
+                    $demande,
+                    $valeurChampLibreService
+                );
             }
         } else {
             $demande = $demandeRepository->find($demandeArray['demande']);
