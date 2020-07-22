@@ -36,7 +36,3 @@ yarn-error.log
 /SnoreToast.lnk
 /assets/scss/_customFont.scss
 ###< wiistock ###
-
-###> assoconnect/mjml-bundle ###
-/templates/mails/mjml/*.html.twig
-###< assoconnect/mjml-bundle ###

@@ -1,40 +1,69 @@
-{% extends 'mails/mjml/template.html.twig' %}
+{% extends 'mails/template.html.twig' %}
 
 {% block content %}
 
-    Numéro : {{ demande.numero }}<br>
-    Date de demande : {{ demande.date|date('d/m/Y') }}<br>
-    Demandeur : {{ demande.demandeur.username }}<br>
-    Point de collecte : {{ demande.pointCollecte.label }}<br>
+    <div>Numéro : {{ demande.numero }}</div>
+    <div>Date de demande : {{ demande.date|date('d/m/Y') }}</div>
+    <div>Demandeur : {{ demande.demandeur.username }}</div>
+    <div>Point de collecte : {{ demande.pointCollecte.label }}</div>
     {% if (demande.commentaire is not empty and demande.commentaire != '<p><br></p>') %}
-        Commentaire : {{ demande.commentaire|raw }}<br>
+        <div>Commentaire : {{ demande.commentaire|raw }}</div>
     {% endif %}
     <br>
     <br>
-    Liste des articles :<br>
+    <div>Liste des articles :</div>
     <br>
 
-    <table class="table">
+    <table class="table"
+           style="border: 1px solid black; border-collapse: collapse;">
         <thead>
          <tr>
-            <th class="th" title="référence">{{ 'reference.référence'|trans }}</th>
-            <th class="th">Libellé</th>
-            <th class="th">Quantité</th>
+             <th class="th"
+                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;"
+                 title="référence">
+                 {{ 'reference.référence'|trans }}
+             </th>
+             <th class="th"
+                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
+                 Libellé
+             </th>
+             <th class="th"
+                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
+                 Quantité
+             </th>
         </tr>
         </thead>
         <tbody>
         {% for article in collecte.articles %}
             <tr>
-                <td class="td">{{ article.articleFournisseur.referenceArticle.reference }}</td>
-                <td class="td">{{ article.articleFournisseur.referenceArticle.libelle }}</td>
-                <td class="td">{{ article.quantite }}</td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.libelle }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.quantite }}
+                </td>
             </tr>
         {% endfor %}
         {% for collecteRef in collecte.ordreCollecteReferences %}
             <tr>
-                <td class="td">{{ collecteRef.referenceArticle.reference }}</td>
-                <td class="td">{{ collecteRef.referenceArticle.libelle }}</td>
-                <td class="td">{{ collecteRef.quantite }}</td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ collecteRef.referenceArticle.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ collecteRef.referenceArticle.libelle }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ collecteRef.quantite }}
+                </td>
             </tr>
         {% endfor %}
         </tbody>

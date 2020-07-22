@@ -1,0 +1,134 @@
+<html lang="fr">
+<head>
+    <style>
+
+        /* RESET FOR OUTLOOK */
+        html,
+        body {
+            margin: 0 auto !important;
+
+            padding: 0 !important;
+
+            height: 100% !important;
+
+            width: 100% !important;
+        }
+
+        * {
+            -ms-text-size-adjust: 100%;
+        }
+
+        table,
+        td {
+            mso-table-lspace: 0pt !important;
+
+            mso-table-rspace: 0pt !important;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        a {
+            text-decoration: none;
+            text-transform: none;
+        }
+
+        /* END RESET */
+
+        @font-face {
+            font-family: "Open Sans";
+            src: url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+        }
+
+        * {
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        h1 {
+            color: #212b35;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        body {
+            width: 100%;
+            margin: 0;
+            padding: 0 !important;
+            mso-line-height-rule: exactly;
+        }
+
+        .mail {
+            margin: 0px auto;
+            max-width: 600px;
+            background-color: white;
+            width: 100%;
+        }
+
+        .content {
+            font-size: 15px;
+        }
+
+        .gt-button {
+            background-color: #130078;
+            color: white;
+            display: inline-block;
+            font-size: 13px;
+            font-weight: normal;
+            padding: 10px 25px !important;
+            border-radius: 3px !important;
+        }
+
+        .gt-button a {
+            color: white;
+        }
+
+        .redirect-to {
+            margin-top: 30px;
+            display: inline-block;
+            position: relative;
+        }
+
+    </style>
+    <title>
+        {{ title }}
+    </title>
+</head>
+<body style="width: 100%; margin: 0; padding: 0 !important; mso-line-height-rule: exactly">
+<div class="mail">
+    {% include 'mails/logo-gtlogistics.html.twig' %}
+    {% if title is defined %}
+        <h1>
+            {{ title }}
+        </h1>
+    {% endif %}
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+    <div>
+        L'équipe GT Logistics
+    </div>
+    <div>
+        {% block postScriptum %}{% endblock %}
+    </div>
+    <div style="text-align: center; width: 100%">
+    <div class="redirect-to">
+        <table>
+            <tr>
+                <td class="gt-button">
+                    {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
+                    <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">
+                        {% if buttonText is defined %}
+                            {{ buttonText }}
+                        {% else %}
+                            Cliquez ici pour accéder à Follow GT
+                        {% endif %}
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    </div>
+</div>
+</body>
+</html>

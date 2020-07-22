@@ -1,14 +1,14 @@
-{% extends 'mails/mjml/template.html.twig' %}
+{% extends 'mails/template.html.twig' %}
 
 {% block content %}
-    Date de demande : {{ manut.date|date('d/m/Y') }}<br>
-    Date de réalisation : {{ manut.dateEnd|date('d/m/Y') }}<br>
-    Libellé : {{ manut.libelle }}<br>
-    Demandeur : {{ manut.demandeur.username }}<br>
-    Source : {{ manut.source }}<br>
-    Destination : {{ manut.destination }}<br>
+    <div>Date de demande : {{ manut.date|date('d/m/Y') }}</div>>
+    <div>Date de réalisation : {{ manut.dateEnd|date('d/m/Y') }}</div>>
+    <div>Libellé : {{ manut.libelle }}</div>>
+    <div>Demandeur : {{ manut.demandeur.username }}</div>>
+    <div>Source : {{ manut.source }}</div>>
+    <div>Destination : {{ manut.destination }}</div>>
     {% if (manut.commentaire is not empty and manut.commentaire != '<p><br></p>') %}
-        Commentaire : {{ manut.commentaire|raw }}<br>
+        <div>Commentaire : {{ manut.commentaire|raw }}</div>>
     {% endif %}
     <br>
     <br>
