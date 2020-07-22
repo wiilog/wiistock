@@ -24,8 +24,10 @@ const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
 
+const COMMENT_MAX_LENGTH = 200;
+
 /** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \-]{1,21}$/;
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,21}$/;
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
@@ -71,6 +73,8 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
     let name;
     let datesToCheck = {};
     let vals = [];
+    let commentErrors = [];
+
     inputsArray.each(function () {
         name = $(this).attr("name");
         vals.push($(this).val());
@@ -92,6 +96,25 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
             Data[multipleKey][objectIndex][name] = val;
         } else {
             Data[name] = val;
+        }
+
+        const $editorContainer = $input.siblings('.editor-container')
+        if ($editorContainer.length > 0) {
+            const maxLength = parseInt($input.attr('max'));
+            if (maxLength) {
+                const $commentStrWithoutTag = $($input.val()).text();
+                if ($commentStrWithoutTag.length <= maxLength) {
+                    $editorContainer.removeClass('is-invalid');
+                    $editorContainer.css('border-top', '0px');
+                } else {
+                    commentErrors.push('Le commentaire excède les ' + maxLength + ' caractères maximum.');
+                    $editorContainer.addClass('is-invalid');
+                    $editorContainer.css({
+                        'padding-right': '0',
+                        'border-top': '#dc3545 1px solid'
+                    });
+                }
+            }
         }
 
         const $formGroupLabel = $input.closest('.form-group').find('label');
@@ -190,6 +213,7 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
     // si tout va bien on envoie la requête ajax...
     if (!barcodeIsInvalid
         && missingInputs.length == 0
+        && commentErrors.length == 0
         && wrongNumberInputs.length == 0
         && passwordIsValid
         && datesAreValid) {
@@ -261,7 +285,8 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                             msg += ' doit être inférieure ou égal à ' + max + ".<br>";
                         } else if (typeof (max) == 'undefined') {
                             msg += ' doit être supérieure ou égal à ' + min + ".<br>";
-                        } else if (min < 1) {
+                        }
+                        else if (min < 1) {
                             msg += ' ne peut pas être rempli'
                         }
                     }
@@ -277,6 +302,9 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
         // cas où les dates ne sont pas dans le bon ordre
         if (!datesAreValid) {
             msg += "La date de début doit être antérieure à la date de fin.<br>";
+        }
+        if (commentErrors.length > 0) {
+            msg += commentErrors[0];
         }
 
         modal.find('.error-msg').html(msg);
@@ -938,7 +966,7 @@ function saveFilters(page, tableSelector, callback) {
     }, 'json');
 }
 
-function checkAndDeleteRow(icon, modalName, route, submit) {
+function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
     let $modalBody = $(modalName).find('.modal-body');
     let $submit = $(submit);
     let id = icon.data('id');
@@ -954,7 +982,15 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
         '   </div>' +
         '</div>'
     );
-    $.post(Routing.generate(route), param, function (resp) {
+
+    const getParamsStr = getParams
+        ? Object
+            .keys(getParams)
+            .map((key) => (key + "=" + encodeURIComponent(getParams[key])))
+            .join('&')
+        : '';
+
+    $.post(Routing.generate(route) + (getParamsStr ? `?${getParamsStr}` : ''), param, function (resp) {
         $modalBody.html(resp.html);
         if (resp.delete == false) {
             $submit.hide();
@@ -1475,8 +1511,9 @@ function saveExportFile(routeName, params = null) {
  * Set status of button to 'loading' and prevent other click until first finished.
  * @param {*} $button jQuery button element
  * @param {function} action Function retuning a promise
+ * @param {boolean} endLoading default to true
  */
-function wrapLoadingOnActionButton($button, action, endLoading = true) {
+function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
     const loadingClass = 'loading';
     if (!$button.hasClass(loadingClass)) {
         let $buttonIcon = $button.find('.button-icon');

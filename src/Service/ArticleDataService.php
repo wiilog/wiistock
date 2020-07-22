@@ -35,8 +35,6 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -545,7 +543,7 @@ class ArticleDataService
         $articles = $ligne->getArticles();
         $rows = [];
         foreach ($articles as $article) {
-            $rows[] = $this->dataRowArticle($article);
+            $rows[] = $this->dataRowArticle($article, true);
         }
         return ['data' => $rows];
     }
@@ -554,9 +552,6 @@ class ArticleDataService
      * @param null $params
      * @param Utilisateur $user
      * @return array
-     * @throws DBALException
-     * @throws ORMException
-     * @throws OptimisticLockException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -599,13 +594,13 @@ class ArticleDataService
 
     /**
      * @param Article $article
+     * @param bool $fromReception
      * @return array
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
-    public function dataRowArticle($article)
+    public function dataRowArticle($article, bool $fromReception = false)
     {
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
 
@@ -652,7 +647,8 @@ class ArticleDataService
                 'url' => $url,
                 'articleId' => $article->getId(),
                 'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
-                'articleFilter' => $article->getBarCode()
+                'articleFilter' => $article->getBarCode(),
+                'fromReception' => $fromReception
             ]),
         ];
 
@@ -660,10 +656,9 @@ class ArticleDataService
         return $rows;
     }
 
-	/**
-	 * @return string
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @return string
+     */
 	public function generateBarCode()
 	{
         $articleRepository = $this->entityManager->getRepository(Article::class);

@@ -291,4 +291,13 @@ class MouvementTracaService
             }
         }
     }
+
+    /**
+     * @param MouvementTraca $mouvementTraca
+     */
+    public function manageMouvementTracaPreRemove(MouvementTraca $mouvementTraca) {
+        foreach ($mouvementTraca->getLinkedPackLastDrops() as $pack) {
+            $pack->setLastDrop(null);
+        }
+    }
 }

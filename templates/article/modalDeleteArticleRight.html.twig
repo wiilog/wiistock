@@ -1,4 +1,34 @@
-<p>
-    Voulez-vous réellement supprimer cet article ?
-</p>
+<div>
+    {% set isUsedInAssoc = request is not null or prepa is not null or not mvtStockIsEmpty or not mvtTracaIsEmpty %}
+    {% set needsQuestion = askQuestion is defined and askQuestion %}
+    {% if request is not null %}
+        <p>Cet article est lié à la demande {{ request }}.</p>
+    {% endif %}
+    {% if prepa is not null %}
+        <p>Cet article est lié à la préparation {{ prepa }}.</p>
+    {% endif %}
+    {% if not mvtStockIsEmpty %}
+        <p>Cet article est lié à des mouvements de stock.</p>
+    {% endif %}
+    {% if not mvtTracaIsEmpty %}
+        <p>Cet article est lié à des mouvements de traçabilité.</p>
+    {% endif %}
+    {% if needsQuestion and isUsedInAssoc %}
+        <br/>
+        La suppression de l'article supprimera donc :
+        <ul>
+            {% if request %}<li class="pl-3">{{ ' - la demande' }}</li>{% endif %}
+            {% if prepa %}<li class="pl-3">{{ ' - la préparation' }}</li>{% endif %}
+            {% if not mvtStockIsEmpty %}<li class="pl-3">{{ ' - les mouvements de stock' }}</li>{% endif %}
+            {% if not mvtTracaIsEmpty %}<li class="pl-3">{{ ' - les mouvements de traçabilité' }}</li>{% endif %}
+        </ul>
+        <br/>
+    {% endif %}
+    {% if needsQuestion or not isUsedInAssoc %}
+        Êtes vous sur de vouloir supprimer cet article ?
+    {% else %}
+        <br/>
+        Vous ne pouvez pas supprimer cet article.
+    {% endif %}
+</div>
 <div class='error-msg mt-2'></div>

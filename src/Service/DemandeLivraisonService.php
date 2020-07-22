@@ -23,7 +23,6 @@ use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -510,5 +509,18 @@ class DemandeLivraisonService
                 ]
             ]
         );
+    }
+
+    /**
+     * @param Demande $demande
+     * @param EntityManagerInterface $entityManager
+     */
+    public function managePreRemoveDeliveryRequest(Demande $demande, EntityManagerInterface $entityManager) {
+        foreach ($demande->getArticles() as $article) {
+            $article->setDemande(null);
+        }
+        foreach ($demande->getLigneArticle() as $ligneArticle) {
+            $entityManager->remove($ligneArticle);
+        }
     }
 }

@@ -24,13 +24,10 @@ class Article
     const STATUT_EN_LITIGE = 'en litige';
 
     const USED_ASSOC_COLLECTE = 0;
-    const USED_ASSOC_DEMANDE = 1;
-    const USED_ASSOC_LITIGE = 2;
-    const USED_ASSOC_INVENTORY = 3;
-    const USED_ASSOC_MOUVEMENT_TRACA = 4;
-    const USED_ASSOC_STATUT_NOT_AVAILABLE = 5;
-    const USED_ASSOC_MOUVEMENT_STOCK = 6;
-    const USED_ASSOC_NONE = -1;
+    const USED_ASSOC_LITIGE = 1;
+    const USED_ASSOC_INVENTORY = 2;
+    const USED_ASSOC_STATUT_NOT_AVAILABLE = 3;
+    const USED_ASSOC_PREPA_IN_PROGRESS = 4;
 
     const BARCODE_PREFIX = 'ART';
 
@@ -639,19 +636,29 @@ class Article
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getUsedAssociation(): int
+    public function getUsedAssociation(): ?int
     {
+        $preparationCannotBeDeleted = $this->getPreparation()
+                ? $this->getPreparation()->getStatut()->getNom() !== Preparation::STATUT_A_TRAITER
+                : false;
         return (
-            count($this->getCollectes()) > 0 ? self::USED_ASSOC_COLLECTE :
-            ($this->getDemande() !== null ? self::USED_ASSOC_DEMANDE :
-            (count($this->getLitiges()) > 0 ? self::USED_ASSOC_LITIGE :
-            (count($this->getInventoryEntries()) > 0 ? self::USED_ASSOC_INVENTORY :
-            (count($this->getMouvementTracas()) > 0 ? self::USED_ASSOC_MOUVEMENT_TRACA :
-            (count($this->getMouvements()) > 0 ? self::USED_ASSOC_MOUVEMENT_STOCK :
-            ($this->getStatut()->getNom() !== self::STATUT_ACTIF ? self::USED_ASSOC_STATUT_NOT_AVAILABLE :
-            self::USED_ASSOC_NONE))))))
+            count($this->getCollectes()) > 0
+                ? self::USED_ASSOC_COLLECTE
+                : (count($this->getLitiges()) > 0
+                    ? self::USED_ASSOC_LITIGE
+                    : (count($this->getInventoryEntries()) > 0
+                        ? self::USED_ASSOC_INVENTORY
+                        : ($this->getStatut()->getNom() === self::STATUT_INACTIF
+                            ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
+                            : ($preparationCannotBeDeleted
+                                ? self::USED_ASSOC_PREPA_IN_PROGRESS
+                                : null
+                            )
+                        )
+                    )
+                )
         );
     }
 
