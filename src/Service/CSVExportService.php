@@ -41,7 +41,6 @@ class CSVExportService {
             }
             fclose($fileBuffer);
             unset($fileBuffer);
-            fwrite($masterCSVFile, "\n");
         }
         fclose($masterCSVFile);
         unset($masterCSVFile);
