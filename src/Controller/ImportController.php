@@ -22,10 +22,12 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -67,7 +69,6 @@ class ImportController extends AbstractController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NonUniqueResultException
      */
     public function api(Request $request, ImportService $importDataService, UserService $userService): Response
     {
@@ -88,7 +89,6 @@ class ImportController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param ImportService $importService
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function new(Request $request,
                         UserService $userService,
@@ -335,4 +335,16 @@ class ImportController extends AbstractController
         return new JsonResponse();
     }
 
+    /**
+     * @Route("/template/{type}", name="import_template", options={"expose"=true})
+     * @param Request $request
+     * @return BinaryFileResponse
+     */
+    public function downloadImportTemplates(Request $request)
+    {
+        $type = implode($request->attributes->get('_route_params'));
+        $response = new BinaryFileResponse('uploads/modele/modele-import-'.$type.'.csv');
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'modele-import-'.$type.'.csv');
+        return $response;
+    }
 }

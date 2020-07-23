@@ -176,3 +176,45 @@ function launchImport(importId, force = false) {
         alertErrorMsg('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.');
     }
 }
+
+function importTemplate() {
+    const $dataTypeImport = $('#dataTypeImport option:selected');
+    const $fileTemplateAsk = $('#fileTemplateAsk');
+    const $linkToTemplate = $('#linkToTemplate');
+
+    const askForTemplate = 'Un fichier de modèle d\'import est disponible pour les';
+    const download = 'Télécharger';
+    const successClass = 'class="btn btn-primary ml-3 mt-3"';
+
+    if (!$fileTemplateAsk.empty() || !$linkToTemplate.empty()){
+        $fileTemplateAsk.empty();
+        $linkToTemplate.empty();
+    }
+
+    if ($dataTypeImport.val() === 'ART') {
+        url = Routing.generate('import_template', {type : 'articles'});
+        $fileTemplateAsk.append(askForTemplate + ' articles.');
+        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
+    }
+    else if ($dataTypeImport.val() === 'REF') {
+        url = Routing.generate('import_template', {type : 'references'});
+        $fileTemplateAsk.append(askForTemplate + ' références.');
+        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
+    }
+    else if ($dataTypeImport.val() === 'FOU') {
+        url = Routing.generate('import_template', {type : 'fournisseurs'});
+        $fileTemplateAsk.append(askForTemplate + ' fournisseurs.');
+        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
+    }
+    else if ($dataTypeImport.val() === 'ART_FOU') {
+        url = Routing.generate('import_template', {type : 'articles-fournisseurs'});
+        $fileTemplateAsk.append(askForTemplate + ' articles fournisseurs.');
+        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
+    }
+    else if ($dataTypeImport.val() === '') {
+        $fileTemplateAsk.append('Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.');
+    }
+    else {
+        $fileTemplateAsk.append('Aucun modèle d\'import n\'est disponible pour ce type de données.');
+    }
+}
