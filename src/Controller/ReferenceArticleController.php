@@ -67,7 +67,7 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 class ReferenceArticleController extends AbstractController
 {
 
-    const MAX_CSV_FILE_LENGTH = 4000;
+    const MAX_CSV_FILE_LENGTH = 5000;
 
     /**
      * @var FiltreRefRepository
@@ -1162,15 +1162,15 @@ class ReferenceArticleController extends AbstractController
         $today = new \DateTime();
         $globalTile = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
         $referencesExportFiles = [];
-        $allReferencesCount = $referenceArticleRepository->countAll();
+        $allReferencesCount = intval($referenceArticleRepository->countAll());
         $step = self::MAX_CSV_FILE_LENGTH;
-        for ($i = 0; $i < $allReferencesCount; $i += $step) {
-            dump($i);
-            $references = $referenceArticleRepository->getAllWithLimits($i, $step);
-            dump('OK - refs');
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, ($i === 0 ? $headers : null), $freeFieldsIds);
-            unset($references);
-        }
+        $start = 0;
+        do {
+            $references = $referenceArticleRepository->getAllWithLimits($start, $step);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $references = null;
+            $start += $step;
+        } while ($start < $allReferencesCount);
         $masterCSVFile = $CSVExportService
             ->mergeCSVFiles($referencesExportFiles);
         return $CSVExportService
