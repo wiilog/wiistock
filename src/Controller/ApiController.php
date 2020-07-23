@@ -18,6 +18,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\OrdreCollecteReference;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -1530,6 +1531,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $orderCollecteStatusInProgressId = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER)
+            ->getId();
 
         $resData = [];
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
@@ -1539,14 +1545,27 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             if (!empty($barCode) && !empty($location)) {
                 $statusCode = Response::HTTP_OK;
                 $resData['success'] = true;
-                $resData['articles'] = array_merge(
-                    $referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
-                    $articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
-                );
+
+                $referenceArticleArray = $referenceArticleRepository->getOneReferenceByBarCodeAndLocation($barCode, $location);
+                if (!empty($referenceArticleArray)) {
+                    $referenceArticle = $referenceArticleRepository->find($referenceArticleArray['id']);
+                    $orderCollecteInProgress = $referenceArticle
+                        ->getOrdreCollecteReferences()
+                        ->filter(function (OrdreCollecteReference $ordreCollecteReference) use ($orderCollecteStatusInProgressId) {
+                            $ordreCollecte = $ordreCollecteReference->getOrdreCollecte();
+                            $ordreCollecteStatus = $ordreCollecte ? $ordreCollecte->getStatut() : null;
+                            return !isset($ordreCollecteStatus) || ($ordreCollecteStatus->getId() === $orderCollecteStatusInProgressId);
+                        });
+                    $referenceArticleArray['ordre_collecte_in_progress'] = !$orderCollecteInProgress->isEmpty();
+                    $resData['article'] = $referenceArticleArray;
+                }
+                else {
+                    $resData['article'] = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+                }
             } else {
                 $statusCode = Response::HTTP_BAD_REQUEST;
                 $resData['success'] = false;
-                $resData['articles'] = [];
+                $resData['article'] = null;
             }
         } else {
             $statusCode = Response::HTTP_UNAUTHORIZED;
