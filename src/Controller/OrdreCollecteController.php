@@ -380,6 +380,10 @@ class OrdreCollecteController extends AbstractController
                     }
                     $entityManager->remove($cr);
                 }
+
+                $collecte
+                    ->setValidationDate(null);
+
                 $entityManager->remove($ordreCollecte);
                 $entityManager->flush();
                 $data = [
@@ -450,7 +454,7 @@ class OrdreCollecteController extends AbstractController
             [
                 $ordreCollecte->getNumero() ?? '',
                 $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
-                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y H:i') : '',
+                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
                 $collecte->getType() ? $collecte->getType()->getLabel() : ''
             ];
