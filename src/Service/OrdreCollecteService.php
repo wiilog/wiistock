@@ -14,6 +14,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
 use App\Repository\MailerServerRepository;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -100,6 +101,7 @@ class OrdreCollecteService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws ArticleNotAvailableException
      */
     public function finishCollecte(OrdreCollecte $ordreCollecte,
                                    Utilisateur $user,
@@ -110,9 +112,10 @@ class OrdreCollecteService
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
-		$articleRepository = $em->getRepository(Article::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
+
+        $statusActiveReference = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
 		$demandeCollecte = $ordreCollecte->getDemandeCollecte();
 
@@ -143,6 +146,11 @@ class OrdreCollecteService
 		foreach ($listOrdreCollecteReference as $ordreCollecteReference) {
 		    /** @var ReferenceArticle $refArticle */
 			$refArticle = $ordreCollecteReference->getReferenceArticle();
+
+			if ($refArticle->getStatut()->getId() !== $statusActiveReference->getId()) {
+                throw new ArticleNotAvailableException();
+            }
+
             $barCode = $refArticle->getBarCode();
 			if (!isset($mouvmentByBarcode[$barCode])) {
 				$rowsToRemove[] = [

@@ -130,17 +130,21 @@ function finishCollecte($button, withoutLocation = false) {
         };
         wrapLoadingOnActionButton($button, () => (
             $.post(urlFinishCollecte, params , (data) => {
-                modalFinishCollecte.find('.close').click();
-                $('.zone-entete').html(data);
-                $rowsToDelete.each(function() {
-                    tableArticle
-                        .row($(this))
-                        .remove()
-                        .draw();
-                });
-                tableArticle.ajax.reload();
+                if (data.success) {
+                    $('.zone-entete').html(data.entete);
+                    $rowsToDelete.each(function () {
+                        tableArticle
+                            .row($(this))
+                            .remove()
+                            .draw();
+                    });
+                    tableArticle.ajax.reload();
+                }
+                else {
+                    alertErrorMsg(data.msg);
+                }
             })
-        ), false);
+        ));
     } else {
         modalFinishCollecte.find('.error-msg').html('Veuillez choisir un point de dépose.');
     }
