@@ -101,6 +101,11 @@ class MouvementTraca
      */
     private $linkedPackLastDrops;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="mouvementsTraca")
+     */
+    private $receptionReferenceArticle;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -326,6 +331,18 @@ class MouvementTraca
                 $linkedPackLastDrop->setLastDrop(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getReceptionReferenceArticle(): ?ReceptionReferenceArticle
+    {
+        return $this->receptionReferenceArticle;
+    }
+
+    public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        $this->receptionReferenceArticle = $receptionReferenceArticle;
 
         return $this;
     }

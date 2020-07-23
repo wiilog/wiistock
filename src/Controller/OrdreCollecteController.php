@@ -15,6 +15,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
@@ -129,10 +130,8 @@ class OrdreCollecteController extends AbstractController
      * @param UserService $userService
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function finish(Request $request,
                            OrdreCollecte $ordreCollecte,
@@ -150,17 +149,29 @@ class OrdreCollecteController extends AbstractController
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
 
-            $ordreCollecteService->finishCollecte(
-                $ordreCollecte,
-                $loggedUser,
-                $date,
-                $rows
-            );
-            $data = $this->renderView('ordre_collecte/ordre-collecte-show-header.html.twig', [
-                'collecte' => $ordreCollecte,
-                'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
-                'showDetails' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
-            ]);
+            try {
+                $ordreCollecteService->finishCollecte(
+                    $ordreCollecte,
+                    $loggedUser,
+                    $date,
+                    $rows
+                );
+
+                $data = [
+                    'success' => true,
+                    'entete' => $this->renderView('ordre_collecte/ordre-collecte-show-header.html.twig', [
+                        'collecte' => $ordreCollecte,
+                        'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
+                        'showDetails' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
+                    ])
+                ];
+            }
+            catch(ArticleNotAvailableException $exception) {
+                $data = [
+                    'success' => false,
+                    'msg' => 'Une référence de la collecte n\'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.'
+                ];
+            }
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -380,6 +391,10 @@ class OrdreCollecteController extends AbstractController
                     }
                     $entityManager->remove($cr);
                 }
+
+                $collecte
+                    ->setValidationDate(null);
+
                 $entityManager->remove($ordreCollecte);
                 $entityManager->flush();
                 $data = [
@@ -450,7 +465,7 @@ class OrdreCollecteController extends AbstractController
             [
                 $ordreCollecte->getNumero() ?? '',
                 $ordreCollecte->getStatut() ? $ordreCollecte->getStatut()->getNom() : '',
-                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y H:i') : '',
+                $ordreCollecte->getDate() ? $ordreCollecte->getDate()->format('d/m/Y') : '',
                 $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '',
                 $collecte->getType() ? $collecte->getType()->getLabel() : ''
             ];

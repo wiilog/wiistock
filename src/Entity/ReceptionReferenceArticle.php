@@ -78,9 +78,15 @@ class ReceptionReferenceArticle
      */
     private $emergencyComment;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="receptionReferenceArticle")
+     */
+    private $mouvementsTraca;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->mouvementsTraca = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -247,6 +253,37 @@ class ReceptionReferenceArticle
     public function setEmergencyComment(?string $emergencyComment): self
     {
         $this->emergencyComment = $emergencyComment;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getMouvementsTraca(): Collection
+    {
+        return $this->mouvementsTraca;
+    }
+
+    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca[] = $mouvementsTraca;
+            $mouvementsTraca->setReceptionReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    {
+        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
+            $this->mouvementsTraca->removeElement($mouvementsTraca);
+            // set the owning side to null (unless already changed)
+            if ($mouvementsTraca->getReceptionReferenceArticle() === $this) {
+                $mouvementsTraca->setReceptionReferenceArticle(null);
+            }
+        }
 
         return $this;
     }

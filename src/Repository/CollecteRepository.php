@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Collecte;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 
 /**
  * @method Collecte|null find($id, $lockMode = null, $lockVersion = null)
@@ -66,7 +68,8 @@ class CollecteRepository extends EntityRepository
     /**
      * @param Utilisateur $user
      * @return int
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function countByUser($user)
     {
@@ -169,11 +172,6 @@ class CollecteRepository extends EntityRepository
 							$qb
 								->leftJoin('c.demandeur', 'd2')
 								->orderBy('d2.username', $order);
-							break;
-						case 'date':
-							$qb
-								->leftJoin('c.ordreCollecte', 'oc2')
-								->orderBy('oc2.date', $order);
 							break;
 						default:
 							$qb->orderBy('c.' . $column, $order);

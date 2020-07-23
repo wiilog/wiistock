@@ -18,6 +18,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\OrdreCollecteReference;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -931,7 +932,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             // on termine les collectes
             foreach ($collectes as $collecteArray) {
                 $collecte = $ordreCollecteRepository->find($collecteArray['id']);
-//                try {
+                try {
                     $entityManager->transactional(function ()
                     use (
                         $entityManager,
@@ -999,33 +1000,34 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             );
                         }
                     });
-//                }
-//                catch (Exception $exception) {
-//                    // we create a new entity manager because transactional() can call close() on it if transaction failed
-//                    if (!$entityManager->isOpen()) {
-//                        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
-//                        $ordreCollecteService->setEntityManager($entityManager);
-//
-//                        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-//                        $articleRepository = $entityManager->getRepository(Article::class);
-//                        $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
-//                        $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
-//                        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-//                    }
-//
-//                    $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
-//
-//                    $resData['errors'][] = [
-//                        'numero_collecte' => $collecte->getNumero(),
-//                        'id_collecte' => $collecte->getId(),
-//
-//                        'message' => (
-//                        ($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
-//                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
-//                                'Une erreur est survenue')
-//                        )
-//                    ];
-//                }
+                }
+                catch (Exception $exception) {
+                    // we create a new entity manager because transactional() can call close() on it if transaction failed
+                    if (!$entityManager->isOpen()) {
+                        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                        $ordreCollecteService->setEntityManager($entityManager);
+
+                        $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+                        $articleRepository = $entityManager->getRepository(Article::class);
+                        $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
+                        $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+                        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+                    }
+
+                    $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
+
+                    $resData['errors'][] = [
+                        'numero_collecte' => $collecte->getNumero(),
+                        'id_collecte' => $collecte->getId(),
+
+                        'message' => (
+                            ($exception instanceof ArticleNotAvailableException) ? ("Une référence de la collecte n'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.") :
+                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
+                            (($exception->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
+                            'Une erreur est survenue'))
+                        )
+                    ];
+                }
             }
         } else {
             $statusCode = Response::HTTP_UNAUTHORIZED;
@@ -1529,6 +1531,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $orderCollecteStatusInProgressId = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER)
+            ->getId();
 
         $resData = [];
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
@@ -1538,14 +1545,27 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             if (!empty($barCode) && !empty($location)) {
                 $statusCode = Response::HTTP_OK;
                 $resData['success'] = true;
-                $resData['articles'] = array_merge(
-                    $referenceArticleRepository->getReferenceByBarCodeAndLocation($barCode, $location),
-                    $articleRepository->getArticleByBarCodeAndLocation($barCode, $location)
-                );
+
+                $referenceArticleArray = $referenceArticleRepository->getOneReferenceByBarCodeAndLocation($barCode, $location);
+                if (!empty($referenceArticleArray)) {
+                    $referenceArticle = $referenceArticleRepository->find($referenceArticleArray['id']);
+                    $orderCollecteInProgress = $referenceArticle
+                        ->getOrdreCollecteReferences()
+                        ->filter(function (OrdreCollecteReference $ordreCollecteReference) use ($orderCollecteStatusInProgressId) {
+                            $ordreCollecte = $ordreCollecteReference->getOrdreCollecte();
+                            $ordreCollecteStatus = $ordreCollecte ? $ordreCollecte->getStatut() : null;
+                            return !isset($ordreCollecteStatus) || ($ordreCollecteStatus->getId() === $orderCollecteStatusInProgressId);
+                        });
+                    $referenceArticleArray['ordre_collecte_in_progress'] = !$orderCollecteInProgress->isEmpty();
+                    $resData['article'] = $referenceArticleArray;
+                }
+                else {
+                    $resData['article'] = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+                }
             } else {
                 $statusCode = Response::HTTP_BAD_REQUEST;
                 $resData['success'] = false;
-                $resData['articles'] = [];
+                $resData['article'] = null;
             }
         } else {
             $statusCode = Response::HTTP_UNAUTHORIZED;

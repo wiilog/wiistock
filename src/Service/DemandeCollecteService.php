@@ -159,7 +159,7 @@ class DemandeCollecteService
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
                 [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
-                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y H:i') : '' ],
+                [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
                 [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
                 [ 'label' => 'Destination', 'value' => $collecte->getStockOrDestruct() ? 'Mise en stock' : 'Destruction' ],
                 [ 'label' => 'Objet', 'value' => $object ],
