@@ -56,7 +56,7 @@ class MouvementTracaController extends AbstractController
     private $mouvementTracaService;
 
     /**
-     * ArrivageController constructor.
+     * MouvementTracaController constructor.
      * @param MouvementTracaService $mouvementTracaService
      * @param AttachmentService $attachmentService
      * @param UserService $userService

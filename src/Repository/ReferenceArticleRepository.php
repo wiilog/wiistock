@@ -1125,15 +1125,18 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getReferenceByBarCodeAndLocation(string $barCode, string $location)
+    public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
     {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
             ->select('referenceArticle.reference as reference')
+            ->addSelect('referenceArticle.id as id')
+            ->addSelect('referenceArticle.barCode as barCode')
             ->addSelect('referenceArticle.quantiteDisponible as quantity')
             ->addSelect('1 as is_ref');
 
-        return $queryBuilder->getQuery()->execute();
+        $result = $queryBuilder->getQuery()->execute();
+        return !empty($result) ? $result[0] : null;
     }
 
     public function findReferenceByBarCodeAndLocation(string $barCode, string $location)

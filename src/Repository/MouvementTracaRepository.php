@@ -567,11 +567,17 @@ class MouvementTracaRepository extends EntityRepository
                                                      string $type,
                                                      array $filterDemandeCollecteIds = [])
     {
-        $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
-            ? 'mouvementTraca.mouvementStock IS NOT NULL'
-            : 'mouvementTraca.mouvementStock IS NULL'; // MOUVEMENT_TRACA_DEFAULT
 
-        $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'))
+        $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'));
+
+        $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
+            ? 'mouvementStock.id IS NOT NULL'
+            : 'mouvementStock.id IS NULL'; // MOUVEMENT_TRACA_DEFAULT
+        if ($type === self::MOUVEMENT_TRACA_STOCK) {
+            $queryBuilder->addSelect('mouvementStock.quantity');
+        }
+
+        $queryBuilder
             ->join('mouvementTraca.type', 'mouvementTracaType')
             ->join('mouvementTraca.operateur', 'operator')
             ->join('mouvementTraca.emplacement', 'location')

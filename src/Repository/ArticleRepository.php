@@ -999,14 +999,16 @@ class ArticleRepository extends EntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-	public function getArticleByBarCodeAndLocation(string $barCode, string $location) {
+	public function getOneArticleByBarCodeAndLocation(string $barCode, string $location) {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
-            ->select('article.reference as reference')
+            ->select('article.barCode as barCode')
+            ->select('article.id as id')
             ->addSelect('article.quantite as quantity')
             ->addSelect('0 as is_ref');
 
-        return $queryBuilder->getQuery()->execute();
+        $result = $queryBuilder->getQuery()->execute();
+        return !empty($result) ? $result[0] : null;
     }
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
