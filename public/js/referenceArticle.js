@@ -13,6 +13,7 @@ $(function () {
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
     displayActifOrInactif($('#toggleActivOrInactiv'), true, initTableRefArticle);
+    registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
 });
 
 $('.select2').select2();
@@ -419,7 +420,6 @@ function initNewReferenceArticleEditor(modal) {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-    registerNumberInputProtection();
     clearModal(modal);
 }
 

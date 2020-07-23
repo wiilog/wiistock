@@ -149,13 +149,13 @@ function ajaxGetCollecteArticle(select) {
             $selection.html(data.selection);
             if (data.modif) {
                 $editNewArticle.html(data.modif);
+                registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
             }
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
             $('.list-multiple').select2();
-            registerNumberInputProtection();
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true);
