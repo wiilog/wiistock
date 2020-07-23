@@ -2,6 +2,7 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax');
     initSelect2($('#statut'), 'Statuts');
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_IMPORT);
@@ -62,6 +63,9 @@ function displayFirstModal(importId = null) {
         if (importId) {
             $inputImportId.val(importId);
         }
+
+        importTemplateChanged();
+
         $modalNewImport.modal({
             backdrop: 'static',
             show: true
@@ -177,44 +181,29 @@ function launchImport(importId, force = false) {
     }
 }
 
-function importTemplate() {
-    const $dataTypeImport = $('#dataTypeImport option:selected');
-    const $fileTemplateAsk = $('#fileTemplateAsk');
+function importTemplateChanged($dataTypeImport = null) {
     const $linkToTemplate = $('#linkToTemplate');
 
-    const askForTemplate = 'Un fichier de modèle d\'import est disponible pour les';
-    const download = 'Télécharger';
-    const successClass = 'class="btn btn-primary ml-3 mt-3"';
+    $linkToTemplate.empty();
 
-    if (!$fileTemplateAsk.empty() || !$linkToTemplate.empty()){
-        $fileTemplateAsk.empty();
-        $linkToTemplate.empty();
-    }
+    const configDownloadLink = {
+        ART: {label: 'articles', importTemplateType: 'articles'},
+        REF: {label: 'références', importTemplateType: 'references'},
+        FOU: {label: 'fournisseurs', importTemplateType: 'fournisseurs'},
+        ART_FOU: {label: 'articles fournisseurs', importTemplateType: 'articles-fournisseurs'}
+    };
 
-    if ($dataTypeImport.val() === 'ART') {
-        url = Routing.generate('import_template', {type : 'articles'});
-        $fileTemplateAsk.append(askForTemplate + ' articles.');
-        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
+    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    if (configDownloadLink[valTypeImport]) {
+        url = Routing.generate('import_template', {type : configDownloadLink[valTypeImport].importTemplateType});
+        $linkToTemplate
+            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${configDownloadLink[valTypeImport].label}.</div>`)
+            .append(`<div class="col-12"><a class="btn btn-primary" href="${url}">Télécharger</a></div>`);
     }
-    else if ($dataTypeImport.val() === 'REF') {
-        url = Routing.generate('import_template', {type : 'references'});
-        $fileTemplateAsk.append(askForTemplate + ' références.');
-        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
-    }
-    else if ($dataTypeImport.val() === 'FOU') {
-        url = Routing.generate('import_template', {type : 'fournisseurs'});
-        $fileTemplateAsk.append(askForTemplate + ' fournisseurs.');
-        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
-    }
-    else if ($dataTypeImport.val() === 'ART_FOU') {
-        url = Routing.generate('import_template', {type : 'articles-fournisseurs'});
-        $fileTemplateAsk.append(askForTemplate + ' articles fournisseurs.');
-        $linkToTemplate.append('<a ' + successClass + ' href="' + url + '">' + download + '</a>');
-    }
-    else if ($dataTypeImport.val() === '') {
-        $fileTemplateAsk.append('Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.');
+    else if (valTypeImport === '') {
+        $linkToTemplate.append('<div class="col-12">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>');
     }
     else {
-        $fileTemplateAsk.append('Aucun modèle d\'import n\'est disponible pour ce type de données.');
+        $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
     }
 }

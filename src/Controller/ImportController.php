@@ -336,13 +336,17 @@ class ImportController extends AbstractController
     }
 
     /**
-     * @Route("/template/{type}", name="import_template", options={"expose"=true})
-     * @param Request $request
+     * @Route(
+     *     "/template/{type}",
+     *     name="import_template",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     requirements={"page"="(articles)|(references)|(fournisseurs)|(articles-fournisseurs)"}
+     * )
+     * @param string $type
      * @return BinaryFileResponse
      */
-    public function downloadImportTemplates(Request $request)
-    {
-        $type = implode($request->attributes->get('_route_params'));
+    public function downloadImportTemplates(string $type) {
         $response = new BinaryFileResponse('uploads/modele/modele-import-'.$type.'.csv');
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'modele-import-'.$type.'.csv');
         return $response;
