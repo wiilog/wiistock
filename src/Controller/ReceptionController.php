@@ -235,7 +235,15 @@ class ReceptionController extends AbstractController
             $em->persist($reception);
             $em->flush();
 
-            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
+            $champsLibresKey = array_keys($data);
+            foreach ($champsLibresKey as $champs) {
+                if (gettype($champs) === 'integer') {
+                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
+                    $valeurChampLibre->addReception($reception);
+                    $em->persist($valeurChampLibre);
+                    $em->flush();
+                }
+            }
 
             $entityManager->flush();
 
@@ -310,7 +318,24 @@ class ReceptionController extends AbstractController
 
             $entityManager->flush();
 
-            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
+            $champLibreKey = array_keys($data);
+            foreach ($champLibreKey as $champ) {
+                if (gettype($champ) === 'integer') {
+                    $champLibre = $champLibreRepository->find($champ);
+                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $value = $data[$champ];
+                    // si la valeur n'existe pas, on la crée
+                    if (!$valeurChampLibre) {
+                        $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
+                        $valeurChampLibre->addReception($reception);
+                        $entityManager->persist($valeurChampLibre);
+                    }
+                    else {
+                        $valeurChampLibreService->updateValue($valeurChampLibre, $value);
+                    }
+                    $entityManager->flush();
+                }
+            }
             $entityManager->flush();
 
             $json = [

@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReceptionRepository")
  */
-class Reception extends FreeFieldEntity
+class Reception
 {
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
