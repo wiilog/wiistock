@@ -538,10 +538,12 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
+                           MouvementTracaService $mouvementTracaService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -558,6 +560,14 @@ class ReceptionController extends AbstractController
                 $entityManager->remove($receptionArticle);
                 $articleRepository->setNullByReception($receptionArticle);
             }
+
+            foreach ($reception->getMouvementsTraca() as $receptionMvtTraca) {
+                $mouvementTracaService->manageMouvementTracaPreRemove($receptionMvtTraca);
+                $entityManager->flush();
+                $entityManager->remove($receptionMvtTraca);
+            }
+            $entityManager->flush();
+
             $entityManager->remove($reception);
             $entityManager->flush();
             $data = [
@@ -606,12 +616,14 @@ class ReceptionController extends AbstractController
      * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param ReceptionService $receptionService
+     * @param MouvementTracaService $mouvementTracaService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
+                                  MouvementTracaService $mouvementTracaService,
                                   Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -621,12 +633,34 @@ class ReceptionController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
 
             if (!$ligneArticle) return new JsonResponse(false);
 
             $reception = $ligneArticle->getReception();
+
+            $associatedMvts = $mouvementTracaRepository->findBy([
+                'receptionReferenceArticle' => $ligneArticle
+            ]);
+
+            $reference = $ligneArticle->getReferenceArticle();
+            if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
+                $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
+                if ($newRefAvailableQuantity < 0) {
+                    return new JsonResponse(false);
+                }
+                $reference->setQuantiteStock($newRefQuantity);
+            }
+
+            foreach ($associatedMvts as $associatedMvt) {
+                $mouvementTracaService->manageMouvementTracaPreRemove($associatedMvt);
+                $entityManager->flush();
+                $entityManager->remove($associatedMvt);
+            }
+            $entityManager->flush();
 
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
@@ -863,7 +897,8 @@ class ReceptionController extends AbstractController
                             MouvementTraca::TYPE_DEPOSE,
                             [
                                 'mouvementStock' => $mouvementStock,
-                                'from' => $reception
+                                'from' => $reception,
+                                'receptionReferenceArticle' => $receptionReferenceArticle
                             ]
                         );
 
@@ -1552,12 +1587,24 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $nbArticles = $receptionReferenceArticleRepository->countArticlesByRRA($id);
-            if ($nbArticles == 0) {
+            $ligneArticle = $receptionReferenceArticleRepository->find($id);
+            $reference = $ligneArticle->getReferenceArticle();
+            $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
+            $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
+            if (intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)) {
                 $delete = true;
                 $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                if (intval($nbArticles) > 0) {
+                    $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig');
+                } else {
+                    $html = $this->renderView('reception/modalDeleteLigneArticleWrong.html.twig', [
+                        'msg' => 'En effet, cela décrémenterait le stock de '
+                            . $ligneArticle->getQuantite() . ' alors que la quantité disponible de la référence est de '
+                            . $reference->getQuantiteDisponible() . '.'
+                    ]);
+                }
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
