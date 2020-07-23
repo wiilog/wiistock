@@ -205,7 +205,7 @@ function ajaxGetAndFillArticle($select) {
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
 
             setMaxQuantity($select);
-            registerNumberInputProtection();
+            registerNumberInputProtection($selection.find('input[type="number"]'));
         }, 'json');
     }
 }
