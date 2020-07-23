@@ -94,15 +94,12 @@ class OrdreCollecteService
      * @param OrdreCollecte $ordreCollecte
      * @param Utilisateur $user
      * @param DateTime $date
-     * @param Emplacement $depositLocation
      * @param array $mouvements
      * @param bool $fromNomade
      * @return OrdreCollecte|null
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws Exception
      */
     public function finishCollecte(OrdreCollecte $ordreCollecte,
                                    Utilisateur $user,
@@ -456,9 +453,9 @@ class OrdreCollecteService
             $demandeCollecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_INCOMPLETE));
 
             $entityManager->flush();
-        } else {
-
-            $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_COLLECTE, OrdreCollecte::STATUT_A_TRAITER);
+        }
+        else {
+            $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE);
             // cas de collecte totale
             $demandeCollecte
                 ->setStatut($statutCollecte)
