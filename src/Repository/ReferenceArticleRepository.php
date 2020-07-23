@@ -57,7 +57,8 @@ class ReferenceArticleRepository extends EntityRepository
     }
 
 
-    public function getAll() {
+    public function getAll()
+    {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
         return $queryBuilder
             ->addSelect('referenceArticle.id')
@@ -76,7 +77,6 @@ class ReferenceArticleRepository extends EntityRepository
             ->addSelect('categoryRef.label as category')
             ->addSelect('referenceArticle.dateLastInventory')
             ->addSelect('referenceArticle.needsMobileSync')
-
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
@@ -215,7 +215,7 @@ class ReferenceArticleRepository extends EntityRepository
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
-            'Synchronisation nomade' =>['field' => 'needsMobileSync', 'typage' => 'sync'],
+            'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
         ];
 
         $qb
@@ -243,10 +243,10 @@ class ReferenceArticleRepository extends EntityRepository
 
                     switch ($typage) {
                         case 'sync':
-                            if ($filter['value'] == 0 ){
-                                 $qb
-                                     ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
-                                     ->setParameter("value$index", $filter['value']);
+                            if ($filter['value'] == 0) {
+                                $qb
+                                    ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
+                                    ->setParameter("value$index", $filter['value']);
                             } else {
                                 $qb
                                     ->andWhere("ra.needsMobileSync = :value$index")
@@ -306,7 +306,7 @@ class ReferenceArticleRepository extends EntityRepository
                             break;
                         case ChampLibre::TYPE_LIST:
                         case ChampLibre::TYPE_LIST_MULTIPLE:
-                            $value = array_map(function(string $value) {
+                            $value = array_map(function (string $value) {
                                 return '%' . $value . '%';
                             }, explode(',', $value));
                             break;
@@ -342,8 +342,6 @@ class ReferenceArticleRepository extends EntityRepository
                 if (!empty($searchValue)) {
                     $ids = [];
                     $query = [];
-                    $isClSearch = false;
-                    $jsonSearchQuery = '';
                     foreach ($user->getRecherche() as $key => $searchField) {
                         switch ($searchField) {
                             case 'Fournisseur':
@@ -386,11 +384,11 @@ class ReferenceArticleRepository extends EntityRepository
                                     $qb->setParameter('valueSearch', '%' . $searchValue . '%');
                                     // champs libres
                                 } else {
-                                    $isClSearch = true;
                                     $value = '%' . $searchValue . '%';
-                                    $clId = $freeFields[trim(mb_strtolower($searchField))];
-                                    $jsonSearchQuery = "
-                                        JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"')  IS NOT NULL";
+                                    $clId = $freeFields[trim(mb_strtolower($searchField))] ?? null;
+                                    if ($clId) {
+                                        $query[] = " JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"') IS NOT NULL";
+                                    }
                                 }
                                 break;
                         }
@@ -400,21 +398,10 @@ class ReferenceArticleRepository extends EntityRepository
                         $query[] = 'ra.id  = ' . $id;
                     }
 
-                    if ($isClSearch && !empty($query)) {
+                    if (!empty($query)) {
                         $qb
                             ->andWhere(
-                                $qb->expr()->orX(
-                                    implode(' OR ', $query),
-                                    $jsonSearchQuery
-                                )
-                            );
-                    } else if ($isClSearch) {
-                        $qb
-                            ->andWhere($jsonSearchQuery);
-                    } else if (!empty($query)) {
-                        $qb
-                            ->andWhere(
-                                    implode(' OR ', $query)
+                                implode(' OR ', $query)
                             );
                     }
                 }
@@ -480,11 +467,12 @@ class ReferenceArticleRepository extends EntityRepository
             ->select('ra');
         if ($needCLOrder) {
             $orderField = $needCLOrder[1];
-            $clId = $freeFields[trim(mb_strtolower($orderField))];
-            $jsonOrderQuery = "REPLACE(CAST(JSON_EXTRACT(ra.freeFields, '$.\"${clId}\"') AS CHAR), ' ', '')";
-
-            $qb
-                ->orderBy($jsonOrderQuery, $needCLOrder[0]);
+            $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
+            if ($clId) {
+                $jsonOrderQuery = "CAST(JSON_EXTRACT(ra.freeFields, '$.\"${clId}\"') AS CHAR)";
+                $qb
+                    ->orderBy($jsonOrderQuery, $needCLOrder[0]);
+            }
         }
         return [
             'data' => $qb->getQuery()->getResult(),
@@ -1180,9 +1168,9 @@ class ReferenceArticleRepository extends EntityRepository
             ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
             ->andWhere('ra.typeQuantite = :typeQty')
             ->setParameters([
-            'id' => $id,
-            'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
-        ]);
+                'id' => $id,
+                'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+            ]);
 
         if (!empty($reference)) {
             $queryBuilder
