@@ -57,7 +57,7 @@ class ReferenceArticleRepository extends EntityRepository
     }
 
 
-    public function getAll()
+    public function getAllWithLimits(int $start, int $limit)
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
         return $queryBuilder
@@ -81,6 +81,9 @@ class ReferenceArticleRepository extends EntityRepository
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
+            ->orderBy('referenceArticle.id', 'ASC')
+            ->setFirstResult($start)
+            ->setMaxResults($limit)
             ->getQuery()
             ->execute();
     }

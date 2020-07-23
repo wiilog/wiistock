@@ -1139,8 +1139,6 @@ class ReferenceArticleController extends AbstractController
                 'statut',
                 'commentaire',
                 'emplacement',
-                'fournisseurs',
-                'articles fournisseurs',
                 'seuil sécurite',
                 'seuil alerte',
                 'prix unitaire',
@@ -1150,25 +1148,28 @@ class ReferenceArticleController extends AbstractController
                 'synchronisation nomade'
             ]
         );
-
-        $references = $referenceArticleRepository->getAll();
-        $articlesFournisseurs = $articleFournisseurRepository->getGroupedByRefArticle();
-
         $today = new \DateTime();
-        return $CSVExportService->createCsvResponse(
-            'export-references-' . $today->format('d-m-Y H:i:s') . '.csv',
+        $globalTile = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
+        $referencesExportFiles = [];
+        $allReferencesCount = $referenceArticleRepository->countAll();
+        $step = $allReferencesCount / 5;
+        for ($i = 0; $i < $allReferencesCount; $i+=$step) {
+            $references = $referenceArticleRepository->getAllWithLimits($i, $step);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, $i === 0 ? $headers : null);
+            unset($references);
+        }
+        $masterCSVFile = $CSVExportService
+            ->mergeCSVFiles($referencesExportFiles);
+        return $CSVExportService
+            ->fileToBinaryResponse($masterCSVFile, $globalTile);
+    }
+
+
+    public function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers) {
+        return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) use ($articlesFournisseurs) {
-                $idRef = $reference['id'];
-                $providerArticlesLabels = isset($articlesFournisseurs[$idRef])
-                    ? $articlesFournisseurs[$idRef]['providerArticlesLabels']
-                    : '';
-
-                $providerNames = isset($articlesFournisseurs[$idRef])
-                    ? $articlesFournisseurs[$idRef]['providerNames']
-                    : '';
-
+            function ($reference) {
                 return [
                     [
                         $reference['reference'],
@@ -1179,8 +1180,6 @@ class ReferenceArticleController extends AbstractController
                         $reference['statut'],
                         $reference['commentaire'] ? strip_tags($reference['commentaire']) : '',
                         $reference['emplacement'],
-                        $providerNames,
-                        $providerArticlesLabels,
                         $reference['limitSecurity'],
                         $reference['limitWarning'],
                         $reference['prixUnitaire'],
@@ -1193,7 +1192,6 @@ class ReferenceArticleController extends AbstractController
             }
         );
     }
-
 
 
     /**
