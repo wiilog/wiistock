@@ -77,6 +77,7 @@ class ReferenceArticleRepository extends EntityRepository
             ->addSelect('categoryRef.label as category')
             ->addSelect('referenceArticle.dateLastInventory')
             ->addSelect('referenceArticle.needsMobileSync')
+            ->addSelect('referenceArticle.freeFields')
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')

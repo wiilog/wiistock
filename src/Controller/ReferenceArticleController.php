@@ -67,6 +67,8 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 class ReferenceArticleController extends AbstractController
 {
 
+    const MAX_CSV_FILE_LENGTH = 4000;
+
     /**
      * @var FiltreRefRepository
      */
@@ -1118,11 +1120,19 @@ class ReferenceArticleController extends AbstractController
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
-        $champs = array_reduce(
-            $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL),
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $freeFieldsIds = array_reduce(
+            $freeFields,
+            function (array $acc, array $cl) {
+                $acc[] = $cl['id'];
+                return $acc;
+            },
+            []
+        );
+        $freeFieldsHeader = array_reduce(
+            $freeFields,
             function (array $acc, array $cl) {
                 $acc[] = $cl['label'];
                 return $acc;
@@ -1146,16 +1156,19 @@ class ReferenceArticleController extends AbstractController
                 'catégorie inventaire',
                 'date dernier inventaire',
                 'synchronisation nomade'
-            ]
+            ],
+            $freeFieldsHeader
         );
         $today = new \DateTime();
         $globalTile = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
         $referencesExportFiles = [];
         $allReferencesCount = $referenceArticleRepository->countAll();
-        $step = $allReferencesCount / 5;
-        for ($i = 0; $i < $allReferencesCount; $i+=$step) {
+        $step = self::MAX_CSV_FILE_LENGTH;
+        for ($i = 0; $i < $allReferencesCount; $i += $step) {
+            dump($i);
             $references = $referenceArticleRepository->getAllWithLimits($i, $step);
-            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, $i === 0 ? $headers : null);
+            dump('OK - refs');
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, ($i === 0 ? $headers : null), $freeFieldsIds);
             unset($references);
         }
         $masterCSVFile = $CSVExportService
@@ -1165,29 +1178,33 @@ class ReferenceArticleController extends AbstractController
     }
 
 
-    public function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers) {
+    public function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers, array $freeFields) {
         return $CSVExportService->createCsvFile(
             $references,
             $headers,
-            function ($reference) {
+            function ($reference) use ($freeFields) {
+                $referenceArray = [
+                    $reference['reference'],
+                    $reference['libelle'],
+                    $reference['quantiteStock'],
+                    $reference['type'],
+                    $reference['typeQuantite'],
+                    $reference['statut'],
+                    $reference['commentaire'] ? strip_tags($reference['commentaire']) : '',
+                    $reference['emplacement'],
+                    $reference['limitSecurity'],
+                    $reference['limitWarning'],
+                    $reference['prixUnitaire'],
+                    $reference['barCode'],
+                    $reference['category'],
+                    $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                    $reference['needsMobileSync'],
+                ];
+                foreach ($freeFields as $freeField) {
+                    $referenceArray[] = $reference['freeFields'][$freeField] ?? "";
+                }
                 return [
-                    [
-                        $reference['reference'],
-                        $reference['libelle'],
-                        $reference['quantiteStock'],
-                        $reference['type'],
-                        $reference['typeQuantite'],
-                        $reference['statut'],
-                        $reference['commentaire'] ? strip_tags($reference['commentaire']) : '',
-                        $reference['emplacement'],
-                        $reference['limitSecurity'],
-                        $reference['limitWarning'],
-                        $reference['prixUnitaire'],
-                        $reference['barCode'],
-                        $reference['category'],
-                        $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
-                        $reference['needsMobileSync'],
-                    ]
+                    $referenceArray
                 ];
             }
         );
