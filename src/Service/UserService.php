@@ -28,6 +28,10 @@ use Twig\Error\SyntaxError;
 
 class UserService
 {
+
+    public const MIN_MOBILE_KEY_LENGTH = 14;
+    public const MAX_MOBILE_KEY_LENGTH = 24;
+
      /**
      * @var Twig_Environment
      */
@@ -46,6 +50,16 @@ class UserService
         $this->user = $security->getUser();
         $this->templating = $templating;
         $this->entityManager = $entityManager;
+    }
+
+    public static function CreateMobileLoginKey(int $length = self::MIN_MOBILE_KEY_LENGTH): string {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
     }
 
     public function getUserRole($user = null)
@@ -192,4 +206,14 @@ class UserService
             || $isUsedInArrivals
         );
 	}
+
+	public function createUniqueMobileLoginKey(EntityManagerInterface $entityManager): string {
+	    $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        do {
+            $mobileLoginKey = UserService::CreateMobileLoginKey();
+            $userWithThisKey = $utilisateurRepository->findBy(['mobileLoginKey' => $mobileLoginKey]);
+        }
+        while(!empty($userWithThisKey));
+        return $mobileLoginKey;
+    }
 }

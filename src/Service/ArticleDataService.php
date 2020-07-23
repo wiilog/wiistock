@@ -35,8 +35,6 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -477,7 +475,7 @@ class ArticleDataService
             $entityManager->flush();
             // gestion des urgences
             if ($refArticle->getIsUrgent()) {
-                $mailContent = $this->templating->render('mails/mailArticleUrgentReceived.html.twig', [
+                $mailContent = $this->templating->render('mails/contents/mailArticleUrgentReceived.html.twig', [
                     'article' => $toInsert,
                     'title' => 'Votre article urgent a bien été réceptionné.',
                 ]);

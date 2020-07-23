@@ -49,6 +49,14 @@ a, a:link, a:visited {
     }
 }
 
+strong {
+    font-weight: bolder !important;
+}
+
+em {
+    font-style: italic !important;
+}
+
 .datepicker {
     z-index: 1 !important;
 }

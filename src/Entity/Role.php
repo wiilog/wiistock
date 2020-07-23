@@ -52,6 +52,11 @@ class Role
      */
     private $dashboardsVisible;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isMailSendAccountCreation;
+
     public function __construct()
     {
         $this->actions = new ArrayCollection();
@@ -187,6 +192,18 @@ class Role
     public function setDashboardsVisible(?array $dashboardsVisible): self
     {
         $this->dashboardsVisible = $dashboardsVisible;
+
+        return $this;
+    }
+
+    public function getIsMailSendAccountCreation(): ?bool
+    {
+        return $this->isMailSendAccountCreation;
+    }
+
+    public function setIsMailSendAccountCreation(bool $isMailSendAccountCreation): self
+    {
+        $this->isMailSendAccountCreation = $isMailSendAccountCreation;
 
         return $this;
     }

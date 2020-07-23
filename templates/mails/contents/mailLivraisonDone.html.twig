@@ -1,0 +1,75 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
+    <div>Numéro : {{ livraison.numero }}</div>
+    <div>Date de demande : {{ livraison.date|date('d/m/Y') }}</div>
+    <div>Demandeur : {{ livraison.utilisateur.username }}</div>
+    <div>Destination : {{ livraison.destination.label }}</div>
+    {% if (livraison.commentaire is not empty and livraison.commentaire != '<p><br></p>') %}
+        <div>Commentaire : {{ livraison.commentaire|raw }}</div>
+    {% endif %}
+    <br>
+    <br>
+    <div>Liste des articles :</div>
+    <br>
+    <table class="table"
+           style="border: 1px solid black;border-collapse: collapse;"
+           role="presentation"
+           cellspacing="0"
+           border="0">
+        <thead>
+        <tr>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;" title="référence">
+                {{ 'reference.référence'|trans }}
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Libellé
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Quantité
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for ligneArticle in livraison.ligneArticle %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ ligneArticle.reference.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ ligneArticle.reference.libelle }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ ligneArticle.quantite }}
+                </td>
+            </tr>
+        {% endfor %}
+        {% for article in livraison.articles %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.articleFournisseur.referenceArticle.reference }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.label }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ article.quantite }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+
+{% endblock %}

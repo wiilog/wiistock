@@ -23,7 +23,6 @@ use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -419,7 +418,7 @@ class DemandeLivraisonService
             $nowDate = new DateTime('now');
             $this->mailerService->sendMail(
                 'FOLLOW GT // Validation d\'une demande vous concernant',
-                $this->templating->render('mails/mailDemandeLivraisonValidate.html.twig', [
+                $this->templating->render('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                     'demande' => $demande,
                     'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
                         . $demande->getType()->getLabel()

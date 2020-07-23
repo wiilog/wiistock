@@ -112,7 +112,7 @@ class ManutentionService
     public function sendTreatedEmail(Manutention $manutention): void {
         $this->mailerService->sendMail(
             'FOLLOW GT // Manutention effectuée',
-            $this->templating->render('mails/mailManutentionDone.html.twig', [
+            $this->templating->render('mails/contents/mailManutentionDone.html.twig', [
                 'manut' => $manutention,
                 'title' => 'Votre demande de manutention a bien été effectuée.',
             ]),
