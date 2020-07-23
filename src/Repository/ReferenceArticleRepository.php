@@ -191,7 +191,7 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, $user)
+    public function findByFiltersAndParams($filters, $params, $user, $freeFields)
     {
         $needCLOrder = null;
         $em = $this->getEntityManager();
@@ -306,36 +306,30 @@ class ReferenceArticleRepository extends EntityRepository
                             break;
                         case ChampLibre::TYPE_LIST:
                         case ChampLibre::TYPE_LIST_MULTIPLE:
-                            $value = '%' . str_replace(',', ';', $value) . '%';
+                            $value = array_map(function(string $value) {
+                                return '%' . $value . '%';
+                            }, explode(',', $value));
                             break;
                         case ChampLibre::TYPE_NUMBER:
                             break;
                     }
-                    $jsonSearchQuery = "
-                                    JSON_SEARCH(
-                                        ra.freeFields,
-                                        'one',
-                                        '${value}',
-                                        NULL,
-                                        CONCAT(
-                                            SUBSTRING(
-                                                JSON_SEARCH(
-                                                    ra.freeFields,
-                                                    'one',
-                                                    '${clId}',
-                                                    NULL,
-                                                    '$**.id'
-                                                ),
-                                                2,
-                                                4
-                                            ),
-                                            '.value'
-                                        )
-                                    )";
-
+                    $jsonSearchQuery = '';
+                    if (is_array($value)) {
+                        foreach ($value as $key => $items) {
+                            if ($key === 0) {
+                                $jsonSearchQuery = "(JSON_SEARCH(ra.freeFields, 'one', '${items}', NULL, '$.\"${clId}\"') IS NOT NULL";
+                            } else {
+                                $jsonSearchQuery .= " OR JSON_SEARCH(ra.freeFields, 'one', '${items}', NULL, '$.\"${clId}\"') IS NOT NULL";
+                            }
+                        }
+                        $jsonSearchQuery .= ')';
+                    } else {
+                        $jsonSearchQuery = "
+                        JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"')  IS NOT NULL";
+                    }
                     // https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html
                     $qb
-                        ->andWhere($jsonSearchQuery . ' IS NOT NULL');
+                        ->andWhere($jsonSearchQuery);
 
                 }
             }
@@ -386,38 +380,17 @@ class ReferenceArticleRepository extends EntityRepository
                             default:
                                 $metadatas = $em->getClassMetadata(ReferenceArticle::class);
                                 $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
-
                                 // champs fixes
                                 if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
                                     $query[] = 'ra.' . $field . ' LIKE :valueSearch';
                                     $qb->setParameter('valueSearch', '%' . $searchValue . '%');
-
                                     // champs libres
                                 } else {
                                     $isClSearch = true;
                                     $value = '%' . $searchValue . '%';
-                                    $field = strtolower($searchField);
+                                    $clId = $freeFields[trim(mb_strtolower($searchField))];
                                     $jsonSearchQuery = "
-                                        JSON_SEARCH(
-                                            ra.freeFields,
-                                            'one',
-                                            '${value}',
-                                            NULL,
-                                            CONCAT(
-                                                SUBSTRING(
-                                                    JSON_SEARCH(
-                                                        ra.freeFields,
-                                                        'one',
-                                                        '${field}',
-                                                        NULL,
-                                                        '$**.label'
-                                                    ),
-                                                    2,
-                                                    4
-                                                ),
-                                                '.value'
-                                            )
-                                        )";
+                                        JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"')  IS NOT NULL";
                                 }
                                 break;
                         }
@@ -432,12 +405,12 @@ class ReferenceArticleRepository extends EntityRepository
                             ->andWhere(
                                 $qb->expr()->orX(
                                     implode(' OR ', $query),
-                                    $jsonSearchQuery . ' IS NOT NULL'
+                                    $jsonSearchQuery
                                 )
                             );
                     } else if ($isClSearch) {
                         $qb
-                            ->andWhere($jsonSearchQuery . ' IS NOT NULL');
+                            ->andWhere($jsonSearchQuery);
                     } else if (!empty($query)) {
                         $qb
                             ->andWhere(
@@ -506,31 +479,12 @@ class ReferenceArticleRepository extends EntityRepository
         $qb
             ->select('ra');
         if ($needCLOrder) {
-
             $orderField = $needCLOrder[1];
-
-            $jsonOrderQuery = "
-                JSON_EXTRACT(
-                    ra.freeFields,
-                    CONCAT(
-                        SUBSTRING(
-                            JSON_SEARCH(
-                                ra.freeFields,
-                                'one',
-                                '${orderField}',
-                                NULL,
-                                '$**.label'
-                            ),
-                            2,
-                            4
-                        ),
-                        '.value'
-                    )
-                )";
+            $clId = $freeFields[trim(mb_strtolower($orderField))];
+            $jsonOrderQuery = "REPLACE(CAST(JSON_EXTRACT(ra.freeFields, '$.\"${clId}\"') AS CHAR), ' ', '')";
 
             $qb
                 ->orderBy($jsonOrderQuery, $needCLOrder[0]);
-            dump($qb->getDQL());
         }
         return [
             'data' => $qb->getQuery()->getResult(),

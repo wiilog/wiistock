@@ -627,6 +627,7 @@ class ReferenceArticleController extends AbstractController
         $inventoryCategories = $inventoryCategoryRepository->findAll();
         $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];
+        $freeFieldsGroupedByTypes = [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
             $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -635,12 +636,14 @@ class ReferenceArticleController extends AbstractController
                 'typeId' => $type->getId(),
                 'champsLibres' => $champsLibres,
             ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
         $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsSearch' => $champsSearch,
+            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'recherches' => $search,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
@@ -1421,10 +1424,19 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
+        $category = CategoryType::ARTICLE;
+        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
+            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+            return $accumulator;
+        }, []);
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user, $champs);
         $refs = $queryResult['data'];
         $refs = array_map(function($refArticle) {
             return is_array($refArticle) ? $refArticle[0] : $refArticle;

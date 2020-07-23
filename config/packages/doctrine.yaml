@@ -31,3 +31,5 @@ doctrine:
             string_functions:
                 JSON_SEARCH: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonSearch
                 JSON_EXTRACT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Mysql\JsonExtract
+                REPLACE: DoctrineExtensions\Query\Mysql\Replace
+                CAST: DoctrineExtensions\Query\Mysql\Cast

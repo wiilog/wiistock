@@ -112,10 +112,19 @@ class RefArticleDataService
     public function getRefArticleDataByParams($params = null)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
+        $category = CategoryType::ARTICLE;
+        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
+            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+            return $accumulator;
+        }, []);
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user, $champs);
         $refs = $queryResult['data'];
         $rows = [];
         foreach ($refs as $refArticle) {
@@ -180,6 +189,7 @@ class RefArticleDataService
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
@@ -189,6 +199,16 @@ class RefArticleDataService
             ? $inventoryCategoryRepository->findAll()
             : [];
 
+        $freeFieldsGroupedByTypes = [];
+        foreach ($types as $type) {
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $typeChampLibre[] = [
+                'typeLabel' =>  $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
         $typeChampLibre = [];
         foreach ($types as $type) {
             $typeChampLibre[] = [
@@ -199,6 +219,7 @@ class RefArticleDataService
 
         return $this->templating->render('reference_article/modalRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
+            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'Synchronisation nomade' =>$refArticle->getNeedsMobileSync(),
             'statut' => $refArticle->getStatut()->getNom(),
             'typeChampsLibres' => $typeChampLibre,

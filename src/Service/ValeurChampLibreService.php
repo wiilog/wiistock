@@ -127,7 +127,7 @@ class ValeurChampLibreService
             if (gettype($champs) === 'integer') {
                 $champLibre = $champLibreRepository->find($champs);
                 if ($champLibre) {
-                    $freeFields[] = $this->manageJSONFreeField($champLibre, $data[$champs]);
+                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$champs]);
                 }
             }
         }
@@ -135,7 +135,7 @@ class ValeurChampLibreService
             ->setFreeFields($freeFields);
     }
 
-    public function manageJSONFreeField(ChampLibre $champLibre, $value): array
+    public function manageJSONFreeField(ChampLibre $champLibre, $value): string
     {
         $value = $champLibre->getTypage() === ChampLibre::TYPE_BOOL
             ? empty($value)
@@ -145,67 +145,7 @@ class ValeurChampLibreService
                 ? implode(';', $value)
                 : $value);
 
-        $elements = json_encode($champLibre->getElements());
-
-        return [
-            'value' => strval($value),
-            'label' => $champLibre->getLabel(),
-            'requiredCreate' => $champLibre->getRequiredCreate(),
-            'requiredEdit' => $champLibre->getRequiredEdit(),
-            'typage' => $champLibre->getTypage(),
-            'defaultValue' => $champLibre->getDefaultValue(),
-            'id' => strval($champLibre->getId()),
-            'elements' => $elements
-        ];
-    }
-
-
-    public function manageJSONFreeFieldCreationForEntity(EntityManagerInterface $entityManager,
-                                                         array $freeField,
-                                                         ?string $className,
-                                                         Type $type)
-    {
-        if ($className) {
-            $freeFieldEntityRepository = $entityManager->getRepository($className);
-            $allFreeFieldsEntityChosen = $freeFieldEntityRepository->findBy([
-                'type' => $type
-            ]);
-            /** @var FreeFieldEntity $freeFieldEntityChosen */
-            foreach ($allFreeFieldsEntityChosen as $freeFieldEntityChosen) {
-                $freeFieldEntityChosen
-                    ->addFreeField($freeField);
-            }
-        }
-    }
-
-    public function manageJSONFreeFieldDeletionForEntity(EntityManagerInterface $entityManager, array $freeField, ?string $className, Type $type)
-    {
-        if ($className) {
-            $freeFieldEntityRepository = $entityManager->getRepository($className);
-            $allFreeFieldsEntityChosen = $freeFieldEntityRepository->findBy([
-                'type' => $type
-            ]);
-            /** @var FreeFieldEntity $freeFieldEntityChosen */
-            foreach ($allFreeFieldsEntityChosen as $freeFieldEntityChosen) {
-                $freeFieldEntityChosen
-                    ->removeFreeField($freeField);
-            }
-        }
-    }
-
-    public function manageJSONFreeFieldUpdateForEntity(EntityManagerInterface $entityManager, array $freeField, ?string $className, Type $type)
-    {
-        if ($className) {
-            $freeFieldEntityRepository = $entityManager->getRepository($className);
-            $allFreeFieldsEntityChosen = $freeFieldEntityRepository->findBy([
-                'type' => $type
-            ]);
-            /** @var FreeFieldEntity $freeFieldEntityChosen */
-            foreach ($allFreeFieldsEntityChosen as $freeFieldEntityChosen) {
-                $freeFieldEntityChosen
-                    ->updateFreeField($freeField);
-            }
-        }
+        return strval($value);
     }
 
 }

@@ -179,14 +179,6 @@ class ChampLibreController extends AbstractController
 			}
 			$em = $this->getDoctrine()->getManager();
 			$em->persist($champLibre);
-			$em->flush();
-
-			$valeurChampLibreService->manageJSONFreeFieldCreationForEntity(
-			    $entityManager,
-                $valeurChampLibreService->manageJSONFreeField($champLibre, ""),
-                self::CATEGORY_CL_TO_CLASSNAMES[$champLibre->getCategorieCL()->getLabel()],
-                $type
-            );
             $em->flush();
 
 			return new JsonResponse($data);
@@ -258,15 +250,6 @@ class ChampLibreController extends AbstractController
 		}
 		$em = $this->getDoctrine()->getManager();
 		$em->flush();
-
-        $valeurChampLibreService->manageJSONFreeFieldUpdateForEntity(
-            $entityManager,
-            $valeurChampLibreService->manageJSONFreeField($champLibre, ""),
-            self::CATEGORY_CL_TO_CLASSNAMES[$champLibre->getCategorieCL()->getLabel()],
-            $champLibre->getType()
-        );
-
-        $em->flush();
         return new JsonResponse();
     }
 
@@ -290,12 +273,6 @@ class ChampLibreController extends AbstractController
 		foreach ($filters as $filter) {
 		    $entityManager->remove($filter);
         }
-        $valeurChampLibreService->manageJSONFreeFieldDeletionForEntity(
-            $entityManager,
-            $valeurChampLibreService->manageJSONFreeField($champLibre, ""),
-            self::CATEGORY_CL_TO_CLASSNAMES[$champLibre->getCategorieCL()->getLabel()],
-            $champLibre->getType()
-        );
 		$entityManager->remove($champLibre);
 		$entityManager->flush();
 

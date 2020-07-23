@@ -100,16 +100,7 @@ final class Version20200722085149 extends AbstractMigration
                             ? "0"
                             : "1")
                         : $value;
-                    $freeFieldsToBeInsertedInJSON[] = [
-                        'value' => strval($value),
-                        'label' => $freeFieldValue['label'],
-                        'requiredCreate' => $freeFieldValue['required_create'],
-                        'requiredEdit' => $freeFieldValue['required_edit'],
-                        'typage' => $freeFieldValue['typage'],
-                        'defaultValue' => $freeFieldValue['default_value'],
-                        'id' => $freeFieldId,
-                        'elements' => $freeFieldValue["elements"] ?? []
-                    ];
+                    $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
                 }
             }
 

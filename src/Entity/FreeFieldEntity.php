@@ -54,19 +54,14 @@ class FreeFieldEntity
     }
 
     public function hasFreeField(int $id): bool {
-        foreach ($this->freeFields as $index => $freeField) {
-            if (intval($freeField['id']) === $id) {
-                return true;
-            }
-        }
-        return false;
+        return isset($this->freeFields[$id]);
     }
 
     public function getFreeFieldValue(int $id): string {
-        foreach ($this->freeFields as $index => $freeField) {
-            if (intval($freeField['id']) === $id) {
-                return $freeField['value'];
-            }
+        if ($this->hasFreeField($id)) {
+            return is_array($this->freeFields[$id])
+                ? implode(';', $this->freeFields[$id])
+                : $this->freeFields[$id];
         }
         return null;
     }
