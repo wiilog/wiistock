@@ -111,6 +111,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $apiKey;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=false, unique=true)
+     */
+    private $mobileLoginKey;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="demandeur")
      */
     private $manutentions;
@@ -1267,6 +1272,22 @@ class Utilisateur implements UserInterface, EquatableInterface
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMobileLoginKey(): string {
+        return $this->mobileLoginKey;
+    }
+
+    /**
+     * @param string $mobileLoginKey
+     * @return Utilisateur
+     */
+    public function setMobileLoginKey(string $mobileLoginKey): self {
+        $this->mobileLoginKey = $mobileLoginKey;
         return $this;
     }
 

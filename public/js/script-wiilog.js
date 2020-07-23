@@ -27,7 +27,7 @@ const STATUT_EN_TRANSIT = 'en transit';
 const COMMENT_MAX_LENGTH = 200;
 
 /** Constants which define a valid barcode */
-const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,21}$/;
+const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
@@ -297,7 +297,7 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
 
         // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
         if (barcodeIsInvalid) {
-            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 21 caractères (lettres ou chiffres).<br>";
+            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 24 caractères (lettres ou chiffres, sans caractères accentués).<br>";
         }
 
         // cas où les dates ne sont pas dans le bon ordre

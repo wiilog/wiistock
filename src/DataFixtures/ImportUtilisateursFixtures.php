@@ -6,6 +6,7 @@ use App\Entity\Emplacement;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Service\PasswordService;
+use App\Service\UserService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -23,12 +24,15 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
      * @var UserPasswordEncoderInterface
      */
     private $encoder;
+    private $userService;
 
     public function __construct(PasswordService $passwordService,
+                                UserService $userService,
                                 UserPasswordEncoderInterface $encoder)
     {
         $this->passwordService = $passwordService;
         $this->encoder = $encoder;
+        $this->userService = $userService;
     }
 
     public function load(ObjectManager $manager)
@@ -70,6 +74,9 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
                             ->setIsActive(true);
                         $manager->persist($emplacement);
                     }
+
+                    $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($manager);
+
                     $utilisateur = new Utilisateur();
 					$utilisateur
                         ->setUsername($username)
@@ -84,7 +91,8 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 						->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
                         ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
                         ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
-                        ->setPassword($this->encoder->encodePassword($utilisateur, $pass));
+                        ->setPassword($this->encoder->encodePassword($utilisateur, $pass))
+                        ->setMobileLoginKey($uniqueMobileKey);
 
 					$manager->persist($utilisateur);
         			$manager->flush();

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Service\MailerService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,6 +21,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\UserService;
 use Twig\Environment as Twig_Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 
 class SecuriteController extends AbstractController
@@ -109,6 +113,9 @@ class SecuriteController extends AbstractController
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function register(Request $request,
                              UserPasswordEncoderInterface $passwordEncoder,
@@ -123,6 +130,7 @@ class SecuriteController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
             $user
                 ->setStatus(true)
@@ -134,7 +142,8 @@ class SecuriteController extends AbstractController
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
                 ->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT)
                 ->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT)
-                ->setRecherche(Utilisateur::SEARCH_DEFAULT);
+                ->setRecherche(Utilisateur::SEARCH_DEFAULT)
+                ->setMobileLoginKey($uniqueMobileKey);
             $entityManager->persist($user);
             $entityManager->flush();
 
@@ -164,6 +173,9 @@ class SecuriteController extends AbstractController
 
     /**
      * @Route("/check_last_login", name="check_last_login")
+     * @param EntityManagerInterface $em
+     * @return RedirectResponse
+     * @throws Exception
      */
     public function checkLastLogin(EntityManagerInterface $em)
     {
@@ -232,6 +244,8 @@ class SecuriteController extends AbstractController
 
     /**
      * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function change_password(Request $request)
     {

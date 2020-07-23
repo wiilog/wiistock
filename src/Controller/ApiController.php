@@ -169,45 +169,42 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/connect", name="api-connect", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      * @return Response
      */
-    public function connection(Request $request,
+    public function postApiKey(Request $request,
                                EntityManagerInterface $entityManager,
                                UserService $userService)
     {
-        $response = new Response();
-
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $user = $utilisateurRepository->findOneBy(['username' => $request->request->get('login')]);
+        $mobileKey = $request->request->get('loginKey');
 
-        if ($user !== null) {
-            if ($this->passwordEncoder->isPasswordValid($user, $request->request->get('password'))) {
-                $apiKey = $this->apiKeyGenerator();
+        $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey]);
+        $data = [];
 
-                $user->setApiKey($apiKey);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+        if (!empty($loggedUser)) {
+            $apiKey = $this->apiKeyGenerator();
+            $loggedUser->setApiKey($apiKey);
+            $entityManager->flush();
 
-                $this->successDataMsg['success'] = true;
-                $this->successDataMsg['data'] = [
-                    'apiKey' => $apiKey,
-                    'rights' => $this->getMenuRights($user, $userService),
-                    'userId' => $user->getId()
-                ];
-            }
+            $data['success'] = true;
+            $data['data'] = [
+                'apiKey' => $apiKey,
+                'rights' => $this->getMenuRights($loggedUser, $userService),
+                'username' => $loggedUser->getUsername(),
+                'userId' => $loggedUser->getId()
+            ];
+        }
+        else {
+            $data['success'] = false;
         }
 
-        $response->setContent(json_encode($this->successDataMsg));
-        return $response;
+        return new JsonResponse($data);
     }
 
     /**
