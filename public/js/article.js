@@ -128,6 +128,7 @@ let getArticleFournisseur = function () {
                 modalfooter.removeClass('d-none')
                 $articleFourn.parent('div').addClass('d-block');
                 $articleFourn.html(data.content);
+                registerNumberInputProtection($articleFourn.find('input[type="number"]'));
                 $('.error-msg').html('')
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
                 initNewArticleEditor("#modalNewArticle");
@@ -135,7 +136,6 @@ let getArticleFournisseur = function () {
                 $('.error-msg').html(data.error)
             }
         }
-        registerNumberInputProtection();
     }
     path = Routing.generate('ajax_article_new_content', true)
     let data = {};
