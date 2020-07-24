@@ -230,11 +230,10 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         <div class="row">
-            {% include 'champ_libre/freeFieldsEdit.html.twig'
-                with {
-                    'champsLibres' : freeFieldsGroupedByTypes[articleRef.type.id] is defined? freeFieldsGroupedByTypes[articleRef.type.id] : [],
-                    'entity' : articleRef
-                } %}
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: freeFieldsGroupedByTypes[articleRef.type.id] is defined ? freeFieldsGroupedByTypes[articleRef.type.id] : [],
+                freeFieldValues: articleRef.freeFields
+            } %}
         </div>
     </div>
 </div>

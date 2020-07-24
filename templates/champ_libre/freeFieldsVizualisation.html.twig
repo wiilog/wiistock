@@ -1,0 +1,68 @@
+{% for freeField in freeFields %}
+    <div class="col-4 my-2">
+        <div class="row form-group">
+            <div class="col-12">
+                <label for="input">{{ freeField.label }}{{ freeField.requiredEdit ? '*' : '' }}</label>
+            </div>
+            <div class="col-12">
+                {% if freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
+                    <div class="mt-2">
+                        {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : "0" %}
+                        {% set checked = (entityValue == "1" ? 'checked') %}
+                        <label class="switch">
+                            <input type="checkbox" class="data checkbox {{ freeField.requiredEdit ? 'needed' : '' }}" {{ checked }}
+                                   name="{{ freeField.id }}">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
+                    <input type="number" id="{{ freeField.id ~ 'edit' }}"
+                           class="form-control data {{ freeField.requiredEdit ? 'needed' : '' }}"
+                           value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}"
+                           name="{{ freeField.id }}" id="input">
+
+                {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
+                    <select class="form-control data {{ freeField.requiredEdit ? 'needed' : '' }}" id="{{ freeField.id ~ 'edit' }}"
+                            name="{{ freeField.id }}" id="input">
+                        <option value="">aucune selection...</option>
+                        {% for elem in freeField.elements  %}
+                            {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' %}
+                            {% set selected = (elem == entityValue ? 'selected' : '') %}
+                            <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
+                        {% endfor %}
+                    </select>
+
+                {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
+                    <select id="{{ freeField.id ~ 'edit' }}"
+                            class="form-control data list-multiple  {{ freeField.requiredEdit ? 'needed' : '' }}"
+                            name="{{ freeField.id }}" multiple="multiple">
+                        {% for elem in freeField.elements %}
+                            {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : [] %}
+                            {% set selected = (elem in entityValue ? 'selected' : '') %}
+                            <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
+                        {% endfor %}
+                    </select>
+
+                {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
+                    <input type="text" id="{{ freeField.id ~ 'edit' }}"
+                           class="form-control data {{ ( freeField.requiredEdit) ? 'needed' : '' }}"
+                           value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}"
+                           name="{{ freeField.id }}" id="input">
+
+                {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
+                    <input type="datetime-local" name="{{ freeField.id }}" id="{{ freeField.id ~ 'edit' }}"
+                           class="form-control data {{ freeField.requiredEdit ? 'needed' : '' }}"
+                           value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}">
+
+                {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
+                    <input
+                        type="date"
+                        class="form-control data date-cl {{ freeField.requiredEdit ? 'needed' : '' }}"
+                        name="{{ freeField.id }}"
+                        id="{{ freeField.label ~ 'edit' }}"
+                        value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
