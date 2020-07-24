@@ -186,18 +186,19 @@ function importTemplateChanged($dataTypeImport = null) {
 
     $linkToTemplate.empty();
 
+    const templateDirectory = '/uploads/modele';
     const configDownloadLink = {
-        ART: {label: 'articles', importTemplateType: 'articles'},
-        REF: {label: 'références', importTemplateType: 'references'},
-        FOU: {label: 'fournisseurs', importTemplateType: 'fournisseurs'},
-        ART_FOU: {label: 'articles fournisseurs', importTemplateType: 'articles-fournisseurs'}
+        ART: {label: 'articles', url: `${templateDirectory}/modele-import-articles.csv`},
+        REF: {label: 'références', url: `${templateDirectory}/modele-import-references.csv`},
+        FOU: {label: 'fournisseurs', url: `${templateDirectory}/modele-import-fournisseurs.csv`},
+        ART_FOU: {label: 'articles fournisseurs', url: `${templateDirectory}/modele-import-articles-fournisseurs.csv`}
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
     if (configDownloadLink[valTypeImport]) {
-        url = Routing.generate('import_template', {type : configDownloadLink[valTypeImport].importTemplateType});
+        const {url, label} = configDownloadLink[valTypeImport];
         $linkToTemplate
-            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${configDownloadLink[valTypeImport].label}.</div>`)
+            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${ilabel}.</div>`)
             .append(`<div class="col-12"><a class="btn btn-primary" href="${url}">Télécharger</a></div>`);
     }
     else if (valTypeImport === '') {

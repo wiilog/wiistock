@@ -334,21 +334,4 @@ class ImportController extends AbstractController
 
         return new JsonResponse();
     }
-
-    /**
-     * @Route(
-     *     "/template/{type}",
-     *     name="import_template",
-     *     options={"expose"=true},
-     *     methods="GET",
-     *     requirements={"page"="(articles)|(references)|(fournisseurs)|(articles-fournisseurs)"}
-     * )
-     * @param string $type
-     * @return BinaryFileResponse
-     */
-    public function downloadImportTemplates(string $type) {
-        $response = new BinaryFileResponse('uploads/modele/modele-import-'.$type.'.csv');
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'modele-import-'.$type.'.csv');
-        return $response;
-    }
 }
