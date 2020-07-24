@@ -231,7 +231,10 @@
         <div class="row">
             {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
                 freeFields: freeFieldsGroupedByTypes[articleRef.type.id] is defined ? freeFieldsGroupedByTypes[articleRef.type.id] : [],
-                freeFieldValues: articleRef.freeFields
+                freeFieldValues: articleRef.freeFields,
+                colType: 'col-4',
+                requiredType: 'requiredEdit',
+                actionType: 'edit'
             } %}
         </div>
     </div>

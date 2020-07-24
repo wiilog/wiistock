@@ -152,6 +152,7 @@ class DemandeController extends AbstractController
 
             $typeChampLibre = [];
 
+            $freeFieldsGroupedByTypes = [];
             foreach ($listTypes as $type) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 $champsLibresArray = [];
@@ -171,12 +172,14 @@ class DemandeController extends AbstractController
                     'typeId' => $type->getId(),
                     'champsLibres' => $champsLibresArray,
                 ];
+                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
             }
 
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
                 'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-                'typeChampsLibres' => $typeChampLibre
+                'typeChampsLibres' => $typeChampLibre,
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);
 
             return new JsonResponse($json);
@@ -207,6 +210,14 @@ class DemandeController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
+
+            $category = CategoryType::DEMANDE_LIVRAISON;
+            $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
+                $acc[$freeField['id']] = $freeField['label'];
+                return $acc;
+            }, []);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
@@ -229,12 +240,13 @@ class DemandeController extends AbstractController
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-                $this->demandeLivraisonService->checkAndPersistIfClIsOkay($demande, $data);
+                $valeurChampLibreService->manageFreeFields($demande, $data, $entityManager);
+                $em->flush();
                 $response = [
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
+                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande, $champs)
                     ]),
                 ];
 
@@ -252,16 +264,17 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager);
+            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $valeurChampLibreService);
             $entityManager->persist($demande);
             $entityManager->flush();
             return new JsonResponse([
@@ -387,7 +400,14 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
+        $category = CategoryType::DEMANDE_LIVRAISON;
+        $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
+            $acc[$freeField['id']] = $freeField['label'];
+            return $acc;
+        }, []);
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
@@ -395,7 +415,7 @@ class DemandeController extends AbstractController
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
-            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
+            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande, $champs)
         ]);
     }
 
@@ -651,9 +671,13 @@ class DemandeController extends AbstractController
             $preparationRepository = $entityManager->getRepository(Preparation::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
+            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
+            $category = CategoryType::DEMANDE_LIVRAISON;
+            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             // en-têtes champs fixes
             $headers = [
@@ -675,29 +699,18 @@ class DemandeController extends AbstractController
                 'quantité à prélever'
             ];
 
-            // en-têtes champs libres DL
-            $clDL = $champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
-            foreach ($clDL as $champLibre) {
-                $headers[] = $champLibre->getLabel();
-            }
+            $freeFieldsIds = [];
 
-            // en-têtes champs libres articles
-            $clAR = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
-            foreach ($clAR as $champLibre) {
-                $headers[] = $champLibre->getLabel();
+            // en-têtes champs libres DL
+            foreach ($freeFields as $freeField) {
+                $headers[] = $freeField['label'];
+                $freeFieldsIds[] = $freeField['id'];
             }
 
             $data = [];
             $data[] = $headers;
 
-            $listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-            $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
-            $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
-            $listChampsLibresDemandeAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesDL, CategorieCL::DEMANDE_LIVRAISON);
-            $valeurCLRefAll = $valeurChampLibreRepository->getByDemandesAndChampLibres($dateTimeMin, $dateTimeMax, $listChampsLibresRefAll);
-            $valeurCLArticle = $valeurChampLibreRepository->getByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
-            $valeurCLDemande = $valeurChampLibreRepository->getByDemandeLivraisonAndChampLibre($demandes, $listChampsLibresDemandeAll);
             $firstDates = $preparationRepository->getFirstDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
@@ -715,18 +728,13 @@ class DemandeController extends AbstractController
                 $demandes,
                 $headers,
                 function (Demande $demande)
-                use ($valeurChampLibreRepository,
-                     $listChampsLibresDL,
-                     $clDL,
-                     $clAR,
-                     $valeurCLRefAll,
-                     $valeurCLArticle,
-                     $valeurCLDemande,
+                use ($listChampsLibresDL,
                      $firstDates,
                      $prepartionOrders,
                      $livraisonOrders,
                      $articles,
-                     $ligneArticles
+                     $ligneArticles,
+                     $freeFieldsIds
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -740,7 +748,6 @@ class DemandeController extends AbstractController
                         foreach ($ligneArticles[$demandeId] as $ligneArticle) {
                             $demandeData = [];
                             $articleRef = $ligneArticle->getReference();
-                            $referenceId = $articleRef->getId();
 
                             $availableQuantity = $articleRef->getQuantiteDisponible();
 
@@ -751,12 +758,10 @@ class DemandeController extends AbstractController
                             $demandeData[] = $articleRef ? $articleRef->getBarCode() : '';
                             $demandeData[] = $availableQuantity;
                             $demandeData[] = $ligneArticle->getQuantite();
-
-                            $rows[] = array_merge(
-                                $demandeData,
-                                $this->addChampsLibresCsvExport($valeurCLDemande, $demandeId, $clDL),
-                                $this->addChampsLibresCsvExport($valeurCLRefAll, $referenceId, $clAR)
-                            );
+                            foreach ($freeFieldsIds as $freeField) {
+                                $demandeData[] = $demande->getFreeFields()[$freeField] ?? "";
+                            }
+                            $rows[] = $demandeData;
                         }
                     }
 
@@ -764,7 +769,6 @@ class DemandeController extends AbstractController
                         /** @var Article $article */
                         foreach ($articles[$demandeId] as $article) {
                             $demandeData = [];
-                            $articleId = $article->getId();
 
                             array_push($demandeData, ...$infosDemand);
                             $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
@@ -773,12 +777,10 @@ class DemandeController extends AbstractController
                             $demandeData[] = '';
                             $demandeData[] = $article->getQuantite();
                             $demandeData[] = $article->getQuantiteAPrelever();
-
-                            $rows[] = array_merge(
-                                $demandeData,
-                                $this->addChampsLibresCsvExport($valeurCLDemande, $demandeId, $clDL),
-                                $this->addChampsLibresCsvExport($valeurCLArticle, $articleId, $clAR)
-                            );
+                            foreach ($freeFieldsIds as $freeField) {
+                                $demandeData[] = $demande->getFreeFields()[$freeField] ?? "";
+                            }
+                            $rows[] = $demandeData;
                         }
                     }
                     return $rows;
@@ -788,29 +790,6 @@ class DemandeController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
-
-    /**
-     * @param $valeurCLAll
-     * @param $id
-     * @param $champLibres
-     * @return array
-     */
-	private function addChampsLibresCsvExport($valeurCLAll, $id, $champLibres)
-	{
-        $data = [];
-	    $valeursChampLibre = [];
-        if (isset($valeurCLAll[$id])) {
-            $valeursChampLibre = $valeurCLAll[$id];
-        }
-        foreach ($champLibres as $type) {
-            if (array_key_exists($type->getLabel(), $valeursChampLibre)) {
-                $data[] = $valeursChampLibre[$type->getLabel()];
-            } else {
-                $data[] = '';
-            }
-        }
-        return $data;
-	}
 
     private function getCSVExportFromDemand(Demande $demande,
                                             $firstDatePrepaStr,
@@ -832,7 +811,7 @@ class DemandeController extends AbstractController
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : '',
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
-            !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND'
+            !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND',
         ];
     }
 

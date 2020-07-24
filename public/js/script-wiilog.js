@@ -777,7 +777,7 @@ let toggleRequiredChampsLibres = function (select, require) {
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    const $formControl = bloc.find('#' + element + require);
+                    const $formControl = bloc.find('[name="' + element + '"]');
                     const $label = $formControl.siblings('label');
                     $label.append($('<span class="is-required-label">&nbsp;*</span>'));
                     $formControl.addClass('needed');

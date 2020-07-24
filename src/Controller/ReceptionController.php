@@ -1871,6 +1871,7 @@ class ReceptionController extends AbstractController
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param MouvementTracaService $mouvementTracaService
      * @param MouvementStockService $mouvementStockService
      * @return Response
@@ -1878,13 +1879,13 @@ class ReceptionController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
                                    Reception $reception,
+                                   ValeurChampLibreService $valeurChampLibreService,
                                    MouvementTracaService $mouvementTracaService,
                                    MouvementStockService $mouvementStockService): Response
     {
@@ -1928,7 +1929,7 @@ class ReceptionController extends AbstractController
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $valeurChampLibreService);
                 $entityManager->persist($demande);
                 $entityManager->flush();
             }
