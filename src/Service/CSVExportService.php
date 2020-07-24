@@ -34,13 +34,14 @@ class CSVExportService {
 
         $masterCSVFile = fopen($tmpCsvFileName, "w+");
 
-        foreach($csvFiles as $file) {
-            $fileBuffer = fopen($file, "r");
+        foreach($csvFiles as $fileName) {
+            $fileBuffer = fopen($fileName, "r");
             while (!feof($fileBuffer)) {
                 fwrite($masterCSVFile, fgets($fileBuffer));
             }
             fclose($fileBuffer);
             unset($fileBuffer);
+            unlink($fileName);
         }
         fclose($masterCSVFile);
         unset($masterCSVFile);
@@ -77,12 +78,12 @@ class CSVExportService {
         return $tmpCsvFileName;
     }
 
-    public function createCsvResponse(string $fileName, array $data, array $csvHeader = null, callable $flatMapper = null): Response {
+    public function createBinaryResponseFromData(string $fileName, array $data, array $csvHeader = null, callable $flatMapper = null): Response {
         $tempFileName = $this->createCsvFile($data, $csvHeader, $flatMapper);
-        return $this->fileToBinaryResponse($tempFileName, $fileName);
+        return $this->createBinaryResponseFromFile($tempFileName, $fileName);
     }
 
-    public function fileToBinaryResponse(string $tempFileName, string $fileName): Response {
+    public function createBinaryResponseFromFile(string $tempFileName, string $fileName): Response {
         $response = new BinaryFileResponse($tempFileName);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
         $response->deleteFileAfterSend(true);

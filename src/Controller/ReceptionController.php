@@ -1805,7 +1805,7 @@ class ReceptionController extends AbstractController
                 'code-barre article',
             ];
 
-            return $CSVExportService->createCsvResponse(
+            return $CSVExportService->createBinaryResponseFromData(
                 'export.csv',
                 $receptions,
                 $csvHeader,

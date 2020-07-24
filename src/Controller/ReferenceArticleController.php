@@ -1123,21 +1123,18 @@ class ReferenceArticleController extends AbstractController
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $freeFieldsIds = array_reduce(
-            $freeFields,
-            function (array $acc, array $cl) {
-                $acc[] = $cl['id'];
-                return $acc;
+
+        $freeFieldsIds = array_map(
+            function (array $cl) {
+                return $cl['id'];
             },
-            []
+            $freeFields
         );
-        $freeFieldsHeader = array_reduce(
-            $freeFields,
-            function (array $acc, array $cl) {
-                $acc[] = $cl['label'];
-                return $acc;
+        $freeFieldsHeader = array_map(
+            function (array $cl) {
+                return $cl['label'];
             },
-            []
+            $freeFields
         );
         $headers = array_merge(
             [
@@ -1160,7 +1157,7 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsHeader
         );
         $today = new \DateTime();
-        $globalTile = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
+        $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
         $referencesExportFiles = [];
         $allReferencesCount = intval($referenceArticleRepository->countAll());
         $step = self::MAX_CSV_FILE_LENGTH;
@@ -1171,14 +1168,14 @@ class ReferenceArticleController extends AbstractController
             $references = null;
             $start += $step;
         } while ($start < $allReferencesCount);
-        $masterCSVFile = $CSVExportService
+        $masterCSVFileName = $CSVExportService
             ->mergeCSVFiles($referencesExportFiles);
         return $CSVExportService
-            ->fileToBinaryResponse($masterCSVFile, $globalTile);
+            ->createBinaryResponseFromFile($masterCSVFileName, $globalTitle);
     }
 
 
-    public function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers, array $freeFields) {
+    private function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers, array $freeFields): string {
         return $CSVExportService->createCsvFile(
             $references,
             $headers,

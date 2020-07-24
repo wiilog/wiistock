@@ -710,7 +710,7 @@ class DemandeController extends AbstractController
                 $listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
             }
             $nowStr = date("d-m-Y H:i");
-            return $CSVExportService->createCsvResponse(
+            return $CSVExportService->createBinaryResponseFromData(
                 "dem-livr $nowStr.csv",
                 $demandes,
                 $headers,
