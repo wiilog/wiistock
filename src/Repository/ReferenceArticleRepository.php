@@ -293,20 +293,18 @@ class ReferenceArticleRepository extends EntityRepository
                 else if ($filter['champLibre']) {
                     $value = $filter['value'];
                     $clId = $filter['champLibre'];
-                    switch ($filter['typage']) {
+                    $freeFieldType = $filter['typage'];
+                    switch ($freeFieldType) {
                         case ChampLibre::TYPE_BOOL:
                             $value = empty($value) ? "0" : $value;
                             break;
                         case ChampLibre::TYPE_TEXT:
                             $value = '%' . $value . '%';
                             break;
+                        case ChampLibre::TYPE_DATE:
                         case ChampLibre::TYPE_DATETIME:
                             $formattedDate = new \DateTime(str_replace('/', '-', $value));
                             $value = '%' . $formattedDate->format('Y-m-d') . '%';
-                            break;
-                        case ChampLibre::TYPE_DATE:
-                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
-                            $value = $formattedDate->format('Y-m-d');
                             break;
                         case ChampLibre::TYPE_LIST:
                         case ChampLibre::TYPE_LIST_MULTIPLE:
@@ -317,23 +315,23 @@ class ReferenceArticleRepository extends EntityRepository
                         case ChampLibre::TYPE_NUMBER:
                             break;
                     }
-                    $jsonSearchQuery = '';
-                    if (is_array($value)) {
-                        foreach ($value as $key => $items) {
-                            if ($key === 0) {
-                                $jsonSearchQuery = "(JSON_SEARCH(ra.freeFields, 'one', '${items}', NULL, '$.\"${clId}\"') IS NOT NULL";
-                            } else {
-                                $jsonSearchQuery .= " OR JSON_SEARCH(ra.freeFields, 'one', '${items}', NULL, '$.\"${clId}\"') IS NOT NULL";
-                            }
-                        }
-                        $jsonSearchQuery .= ')';
-                    } else {
-                        $jsonSearchQuery = "
-                        JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"')  IS NOT NULL";
+                    if (!is_array($value)) {
+                        $value = [$value];
                     }
-                    // https://dev.mysql.com/doc/refman/8.0/en/json-search-functions.html
+
+                    $jsonSearchesQueryArray = array_map(function(string $item) use ($clId, $freeFieldType) {
+                        $conditionType = ' IS NOT NULL';
+                        if ($item === "0" && $freeFieldType === ChampLibre::TYPE_BOOL) {
+                            $item = "1";
+                            $conditionType = ' IS NULL';
+                        }
+                        return "JSON_SEARCH(ra.freeFields, 'one', '${item}', NULL, '$.\"${clId}\"')" . $conditionType;
+                    }, $value);
+
+                    $jsonSearchesQueryString = '(' . implode(' OR ', $jsonSearchesQueryArray) . ')';
+
                     $qb
-                        ->andWhere($jsonSearchQuery);
+                        ->andWhere($jsonSearchesQueryString);
 
                 }
             }
@@ -391,7 +389,7 @@ class ReferenceArticleRepository extends EntityRepository
                                     $value = '%' . $searchValue . '%';
                                     $clId = $freeFields[trim(mb_strtolower($searchField))] ?? null;
                                     if ($clId) {
-                                        $query[] = " JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"') IS NOT NULL";
+                                        $query[] = "JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"') IS NOT NULL";
                                     }
                                 }
                                 break;

@@ -37,7 +37,7 @@ class FreeFieldEntity
                 ? implode(';', $this->freeFields[$id])
                 : $this->freeFields[$id];
         }
-        return null;
+        return "";
     }
 
 }

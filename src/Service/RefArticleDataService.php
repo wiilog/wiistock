@@ -357,30 +357,20 @@ class RefArticleDataService
      */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $rows = $valeurChampLibreRepository->getLabelCLAndValueByRefArticle($refArticle);
 
         $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
         $category = CategoryType::ARTICLE;
         $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $refArticleCLValues = [];
+        $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $refArticleCLValues[] = [
-                'valeur' => $refArticle->hasFreeField($champ['id'])
-                    ? $refArticle->getFreeFieldValue($champ['id'])
-                    : "",
+            $rowCL[$champ['label']] = $this->valeurChampLibreService->formatValeurChampLibreForDatatable([
+                'valeur' => $refArticle->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
-                'label' => $champ['label']
-            ];
-        }
-
-        $rowCL = [];
-        foreach ($refArticleCLValues as $refArticleCLValue) {
-            $rowCL[$refArticleCLValue['label']] = $this->valeurChampLibreService->formatValeurChampLibreForDatatable($refArticleCLValue);
+            ]);
         }
 
         $availableQuantity = $refArticle->getQuantiteDisponible();
@@ -410,8 +400,7 @@ class RefArticleDataService
             ]),
         ];
 
-        $rows = array_merge($rowCL, $rowCF);
-        return $rows;
+        return array_merge($rowCL, $rowCF);
     }
 
     /**
