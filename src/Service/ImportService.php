@@ -1026,8 +1026,9 @@ class ImportService
                     $value = $row[$col];
                     break;
             }
+            // TODO art import
             if ($refOrArt instanceof ReferenceArticle) {
-                $freeFieldsToInsert[$champLibre->getId()] = $value;
+                $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
             } else if ($refOrArt instanceof Article) {
                 $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
                 $valeurCL = null;
@@ -1043,6 +1044,7 @@ class ImportService
                 $refOrArt->addValeurChampLibre($valeurCL);
             }
         }
+        // TODO
         if ($refOrArt instanceof ReferenceArticle) {
             $refOrArt
                 ->setFreeFields($freeFieldsToInsert);
