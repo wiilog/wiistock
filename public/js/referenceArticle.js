@@ -25,8 +25,8 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 }
 
 function afterLoadingEditModal($button) {
-    toggleRequiredChampsLibres($button, 'edit');
     initRequiredChampsFixes($button);
+    $('.list-multiple').select2();
 }
 
 function submitActionRefArticle(modal, path, callback = null, close = true) {
