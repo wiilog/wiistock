@@ -198,7 +198,7 @@ function importTemplateChanged($dataTypeImport = null) {
     if (configDownloadLink[valTypeImport]) {
         const {url, label} = configDownloadLink[valTypeImport];
         $linkToTemplate
-            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${ilabel}.</div>`)
+            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${label}.</div>`)
             .append(`<div class="col-12"><a class="btn btn-primary" href="${url}">Télécharger</a></div>`);
     }
     else if (valTypeImport === '') {
