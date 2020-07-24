@@ -26,7 +26,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 
 function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
-    $('.list-multiple').select2();
+    $('#typeContentEdit .list-multiple').select2();
 }
 
 function submitActionRefArticle(modal, path, callback = null, close = true) {

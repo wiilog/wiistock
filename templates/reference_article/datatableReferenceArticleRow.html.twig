@@ -9,7 +9,16 @@
                          data-toggle='modal'
                          class="action-on-click"
                          onclick="clearDiv(),
-                         editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true, '.editor-container-edit', false, () => afterLoadingEditModal($(this)))">
+                         editRow(
+                             $(this),
+                            Routing.generate('reference_article_edit_api', true),
+                            $('#modalEditRefArticle'),
+                            $('#submitEditRefArticle'),
+                            true,
+                            '.editor-container-edit',
+                            false,
+                            () => afterLoadingEditModal($(this)),
+                            false)">
                         <i class='fas fa-pencil-alt mr-2'></i>Modifier
                     </div>
                 </div>

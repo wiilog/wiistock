@@ -257,8 +257,6 @@ class RefArticleDataService
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         //modification champsFixes
         $entityManager = $this->entityManager;

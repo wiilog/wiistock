@@ -362,10 +362,15 @@ function showRow(button, path, modal) {
  * @param {Document} modal la modalde modification
  * @param {Document} submit le bouton de validation du form pour le edit
  *
+ * @param editorToInit
+ * @param editor
+ * @param setMaxQuantity
+ * @param afterLoadingEditModal
+ * @param wantsFreeFieldsRequireCheck
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
-}) {
+}, wantsFreeFieldsRequireCheck = true) {
     let id = button.data('id');
     let ref = button.data('ref');
 
@@ -386,7 +391,9 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
         $('.list-multiple').select2();
-        toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+        if (wantsFreeFieldsRequireCheck) {
+            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+        }
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
 
