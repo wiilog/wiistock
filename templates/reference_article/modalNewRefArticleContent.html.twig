@@ -152,13 +152,13 @@
         </h3>
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-            {% for type in typeChampsLibres %}
+        {% for type in typeChampsLibres %}
             <div class="d-none row" id="{{ type.typeId }}-new">
                 {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
                     freeFields: type.champsLibres,
                     freeFieldValues: []
                 } %}
             </div>
-            {% endfor %}
-        </div>
+        {% endfor %}
+    </div>
 </div>
