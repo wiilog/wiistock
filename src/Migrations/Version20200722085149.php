@@ -94,17 +94,15 @@ final class Version20200722085149 extends AbstractMigration
                 $value = !empty($freeFieldValue['valeur'])
                     ? $freeFieldValue['valeur']
                     : "";
-                if ($typeId === $clTypeId) {
-                    $validData = true;
-                    $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
-                        ? (empty($value)
-                            ? "0"
-                            : "1")
-                        : $value;
-                    if ($freeFieldValue['typage'] === ChampLibre::TYPE_LIST && !in_array($value, json_decode($freeFieldValue['elements']))) {
-                        $validData = false;
+                $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
+                    ? (empty($value)
+                        ? "0"
+                        : "1")
+                    : $value;
+                if ($typeId === $clTypeId && ($value || $value === "0")) {
+                    if ($freeFieldValue['typage'] !== ChampLibre::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
+                        $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
                     }
-                    if ($validData) $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
                 }
             }
 
