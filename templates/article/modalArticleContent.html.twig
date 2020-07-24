@@ -35,7 +35,7 @@
         </div>
     </div>
     <div class="form-group col-6 w-100">
-        <label for="emplacement">Emplacement</label>
+        <label for="emplacement">Emplacement*</label>
         <select {{ disabled }} class="ajax-autocompleteEmplacement-edit data form-control needed" name="emplacement">
             {% if article.emplacement != null %}
             <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>

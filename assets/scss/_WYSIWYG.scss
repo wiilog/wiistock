@@ -8,6 +8,11 @@
     }
 }
 
+.editor-container.is-invalid {
+    padding-right: 0;
+    border-top: #dc3545 1px solid;
+}
+
 .editor-container-article.ql-container.ql-snow {
     height: 80%;
 }

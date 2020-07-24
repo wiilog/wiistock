@@ -750,6 +750,7 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
 
                 $json = [
+                    'success' => true,
 					'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
@@ -759,7 +760,8 @@ class ReceptionController extends AbstractController
 			}
 			else {
 				$json = [
-					'errorMsg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.'
+				    'success' => false,
+					'msg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.'
 				];
 			}
             return new JsonResponse($json);
@@ -849,8 +851,8 @@ class ReceptionController extends AbstractController
                 // protection quantité reçue <= quantité à recevoir
                 if ($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse([
-                        'status' => false,
-                        'msgError' => 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !'
+                        'success' => false,
+                        'msg' => 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir.'
                     ]);
                 }
 
@@ -864,8 +866,8 @@ class ReceptionController extends AbstractController
                     $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
                     if ($newRefQuantity - $referenceArticle->getQuantiteReservee() < 0) {
                         return new JsonResponse([
-                            'status' => false,
-                            'msgError' =>
+                            'success' => false,
+                            'msg' =>
                                 'Vous ne pouvez pas avoir reçu '
                                 . $newReceivedQuantity
                                 . ' : la quantité disponible de la référence est : '
@@ -918,8 +920,8 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
 
             $json = [
-                'status' => true,
-                'msgError' => '',
+                'success' => true,
+                'msg' => '',
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
@@ -1136,7 +1138,6 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -1327,9 +1328,10 @@ class ReceptionController extends AbstractController
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
-            $response = [];
 
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException("404");
     }

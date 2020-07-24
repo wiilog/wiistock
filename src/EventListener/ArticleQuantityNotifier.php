@@ -8,8 +8,6 @@ use App\Entity\Article;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
 use Exception;
 
@@ -51,8 +49,6 @@ class ArticleQuantityNotifier
 
     /**
      * @param Article $article
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     private function treatAlertAndUpdateRefArticleQuantities(Article $article) {

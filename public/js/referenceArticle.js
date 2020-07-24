@@ -130,7 +130,7 @@ InitialiserModalRefArticle($modalPlusDemande, $submitPlusDemande, urlPlusDemande
 let modalColumnVisible = $('#modalColumnVisible');
 let submitColumnVisible = $('#submitColumnVisible');
 let urlColumnVisible = Routing.generate('save_column_visible', true);
-InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');

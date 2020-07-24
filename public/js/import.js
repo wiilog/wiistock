@@ -56,7 +56,12 @@ function displayFirstModal(importId = null) {
     $inputImportId.val('');
     $submitNewImport.off();
     let urlNewImportFirst = Routing.generate('import_new', true);
-    initModalWithAttachments($modalNewImport, $submitNewImport, urlNewImportFirst, tableImport, displaySecondModal, false);
+    InitModalWithAttachments(
+        $modalNewImport,
+        $submitNewImport,
+        urlNewImportFirst,
+        {tables: tableImport, success: displaySecondModal, keepModal: true}
+    );
 
     $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function (resp) {
         $modalNewImport.find('.modal-body').html(resp);
@@ -81,9 +86,15 @@ function displaySecondModal(data) {
         $submitNewImport.off();
 
         let urlNewImportSecond = Routing.generate('import_links', true);
-        InitialiserModal($modalNewImport, $submitNewImport, urlNewImportSecond, null, (data) => displayConfirmationModal(importId, data), false);
-    } else {
-        $modalNewImport.find('.error-msg').html(data.msg);
+        InitModal(
+            $modalNewImport,
+            $submitNewImport,
+            urlNewImportSecond,
+            {
+                keepModal: true,
+                success: (data) => displayConfirmationModal(importId, data)
+            }
+        );
     }
 }
 

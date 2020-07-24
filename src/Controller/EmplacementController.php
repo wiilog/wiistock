@@ -401,14 +401,14 @@ class EmplacementController extends AbstractController
             if ($emplacementAlreadyExist) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre."
+                    'msg' => "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre."
                 ]);
             }
         }
         else {
             return new JsonResponse([
                 'success' => false,
-                'message' => "Vous devez donner un nom valide."
+                'msg' => "Vous devez donner un nom valide."
             ]);
         }
         return null;
@@ -426,7 +426,7 @@ class EmplacementController extends AbstractController
             if (empty($resultFormat)) {
                 return new JsonResponse([
                     'success' => false,
-                    'message' => "Le délai saisi est invalide."
+                    'msg' => "Le délai saisi est invalide."
                 ]);
             }
         }

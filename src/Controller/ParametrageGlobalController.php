@@ -828,35 +828,6 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/tracking-movement-redirect", name="edit_tracking_movement_redirect", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editTrackingMovementsRedirect(Request $request,
-                                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist) {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            } else {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/modifier-destination-arrivage",
      *     name="set_arrivage_default_dest",
      *     options={"expose"=true},

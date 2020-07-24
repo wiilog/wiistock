@@ -33,10 +33,11 @@ $(function () {
     }, 'json');
 
     initDatatableLitiges();
-    InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
-    initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
-    InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
-    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+
+    // TODO InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
+    InitModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
+    // TODO InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
 function initDatatableLitiges() {

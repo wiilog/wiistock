@@ -523,13 +523,13 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
-
+     *
      * @param Request $request
      * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
-
+     *
      * @return Response
-
+     *
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError

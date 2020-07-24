@@ -264,6 +264,7 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param MouvementTracaService $mouvementTracaService
      * @param Request $request
      * @return Response
      */
@@ -322,7 +323,9 @@ class MouvementTracaController extends AbstractController
 
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

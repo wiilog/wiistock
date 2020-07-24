@@ -19,17 +19,17 @@ let tableRoles = initDataTable('tableRoles', tableRolesConfig);
 let modalNewRole = $("#modalNewRole");
 let submitNewRole = $("#submitNewRole");
 let urlNewRole = Routing.generate('role_new', true);
-InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayErrorExistingRole, false);
+InitModal(modalNewRole, submitNewRole, urlNewRole, {tables: [tableRoles], success: displayErrorExistingRole, keepModal: false});
 
 let modalEditRole = $('#modalEditRole');
 let submitEditRole = $('#submitEditRole');
 let urlEditRole = Routing.generate('role_edit', true);
-InitialiserModal(modalEditRole, submitEditRole, urlEditRole, tableRoles, displayAlertRole);
+InitModal(modalEditRole, submitEditRole, urlEditRole, {tables: [tableRoles], success: displayAlertRole});
 
 let ModalDeleteRole = $("#modalDeleteRole");
 let SubmitDeleteRole = $("#submitDeleteRole");
 let urlDeleteRole = Routing.generate('role_delete', true)
-InitialiserModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, tableRoles);
+InitModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, {tables: [tableRoles]});
 
 function displayErrorExistingRole(data) {
     let modal = $("#modalNewRole");
