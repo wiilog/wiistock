@@ -138,9 +138,14 @@ class ReferenceArticleRepository extends EntityRepository
                 r.${field} as text,
                 r.typeQuantite as typeQuantity,
                 r.isUrgent as urgent,
-                r.emergencyComment as emergencyComment
+                r.emergencyComment as emergencyComment,
+                r.libelle,
+                r.barCode,
+                e.label as location,
+                r.quantiteDisponible
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
+          LEFT JOIN r.emplacement e
           WHERE r.${field} LIKE :search ";
 
         if ($activeOnly) {

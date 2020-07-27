@@ -387,4 +387,14 @@ class Collecte
     {
         return $this->ordreCollecte;
     }
+
+    public function needsToBeProcessed(): bool {
+        $demandeStatus = $this->getStatut();
+        return (
+            $demandeStatus
+            && (
+                $demandeStatus->getNom() === Collecte::STATUT_A_TRAITER
+            )
+        );
+    }
 }

@@ -878,7 +878,6 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch($search, $activeOnly, $typeQuantity, $field);
-
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new NotFoundHttpException("404");
