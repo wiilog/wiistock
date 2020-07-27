@@ -132,13 +132,15 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     }
 
     if (!keepModal) {
-        $modal
-            .find('.close')
-            .click();
+        $modal.modal('hide');
     }
 
     if (!keepForm) {
         clearModal($modal);
+    }
+
+    if (data.msg) {
+        alertSuccessMsg(data.msg);
     }
     return true;
 }
