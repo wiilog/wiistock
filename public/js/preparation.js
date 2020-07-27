@@ -30,6 +30,15 @@ $(function () {
             displayFiltersSup(data);
         }, 'json');
     }
+
+    $("#tableArticle_id").on('click', function () {
+        let $startPicking = $("#startPicking");
+        let onClickValue = $startPicking.attr('onclick');
+        $startPicking.removeAttr('onclick');
+        setTimeout(function () {
+            $startPicking.attr('onclick', onClickValue);
+        }, 500);
+    });
 });
 
 let path = Routing.generate('preparation_api');
