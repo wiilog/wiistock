@@ -669,15 +669,15 @@ class ReceptionController extends AbstractController
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
 
-            $json = [
+            $entityManager->flush();
+            return new JsonResponse([
+                'success' => true,
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
-            ];
-            $entityManager->flush();
-            return new JsonResponse($json);
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -751,6 +751,7 @@ class ReceptionController extends AbstractController
 
                 $json = [
                     'success' => true,
+                    'msg' => 'La référence a été ajoutée à la réception',
 					'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,

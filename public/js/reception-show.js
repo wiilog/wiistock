@@ -22,24 +22,18 @@ $(function () {
 });
 
 function InitiliserPageModals() {
-    let $modal = $("#modalAddLigneArticle");
-    let $submit = $("#addArticleLigneSubmit");
-    let $submitAndRedirect = $('#addArticleLigneSubmitAndRedirect');
-    let url = Routing.generate('reception_article_add', true);
-    InitModal($modal, $submit, url, {
+    let $modalAddLigneArticle = $("#modalAddLigneArticle");
+    let $submitAddLigneArticle = $("#addArticleLigneSubmit");
+    let $submitAndRedirectLigneArticle = $('#addArticleLigneSubmitAndRedirect');
+    let urlAddLigneArticle = Routing.generate('reception_article_add', true);
+    InitModal($modalAddLigneArticle, $submitAddLigneArticle, urlAddLigneArticle, {tables: [tableArticle]});
+    InitModal($modalAddLigneArticle, $submitAndRedirectLigneArticle, urlAddLigneArticle, {
         tables: [tableArticle],
-        success: () => {
-            alertSuccessMsg('La référence a été ajoutée à la réception', true);
-            clearModal($modal);
-        }
-    });
-    InitModal($modal, $submitAndRedirect, url, {
-        tables: [tableArticle],
-        success: createHandlerAddLigneArticleResponseAndRedirect($modal),
+        success: createHandlerAddLigneArticleResponseAndRedirect($modalAddLigneArticle),
         keepForm: true,
         keepModal: true
     });
-    registerNumberInputProtection($modal.find('input[type="number"]'));
+    registerNumberInputProtection($modalAddLigneArticle.find('input[type="number"]'));
 
     let $modalDeleteArticle = $("#modalDeleteLigneArticle");
     let $submitDeleteArticle = $("#submitDeleteLigneArticle");
@@ -303,22 +297,12 @@ function initModalCondit(tableFromArticle) {
     let $modalEditInnerArticle = $("#modalEditArticle");
     let $submitEditInnerArticle = $("#submitEditArticle");
     let urlEditInnerArticle = Routing.generate('article_edit', true);
-    InitModal(
-        $modalEditInnerArticle,
-        $submitEditInnerArticle,
-        urlEditInnerArticle,
-        {tables: [tableFromArticle]}
-    );
+    InitModal($modalEditInnerArticle, $submitEditInnerArticle, urlEditInnerArticle, {tables: [tableFromArticle]});
 
     let $modalDeleteInnerArticle = $("#modalDeleteArticle");
     let $submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {
-        tables: [tableFromArticle],
-        success: () => {
-            tableArticle.ajax.reload();
-        }
-    });
+    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {tables: [tableFromArticle, tableArticle]});
 }
 
 function initNewArticleEditor(modal) {
