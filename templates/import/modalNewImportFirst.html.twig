@@ -5,7 +5,9 @@
     </div>
     <div class="form-group col-4">
         <label>Type de données à importer</label>
-        <select class="form-control data needed" name="entity">
+        <select class="form-control data needed"
+                name="entity"
+                onchange="importTemplateChanged($(this))">
             <option></option>
             <option value="{{ constant('App\\Entity\\Import::ENTITY_ART') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_ART') ? 'selected' }}>Articles</option>
             <option value="{{ constant('App\\Entity\\Import::ENTITY_REF') }}" {{ import and import.entity == constant('App\\Entity\\Import::ENTITY_REF') ? 'selected' }}>Références</option>
@@ -29,4 +31,8 @@
 
 <div class="row">
     <p class="col">Attention : Le délimiteur est le point virgule et l'encodage UTF-8.</p>
+</div>
+
+<div class="row mt-3">
+    <p class="class-12" id="linkToTemplate"></p>
 </div>

@@ -134,7 +134,6 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
             && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
             && $input.is(':disabled') === false) {
             // on enlève l'éventuelle * du nom du label
-            console.log(label);
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $input.addClass('is-invalid');
@@ -383,7 +382,8 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     modal.find('#inputId').attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
-        modal.find('.modal-body').html(resp);
+        const $modalBody = modal.find('.modal-body');
+        $modalBody.html(resp);
         modal.find('.select2').select2();
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
@@ -394,6 +394,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
+        registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
 
@@ -1568,14 +1569,14 @@ function fillDemandeurField($modal) {
     }
 }
 
-function registerNumberInputProtection() {
+function registerNumberInputProtection($inputs) {
     const forbiddenChars = [
         "e",
         "+",
         "-"
     ];
 
-    $('input[type="number"]').on("keydown", function (e) {
+    $inputs.on("keydown", function (e) {
         if (forbiddenChars.includes(e.key)) {
             e.preventDefault();
         }

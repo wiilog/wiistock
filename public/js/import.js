@@ -2,6 +2,7 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax');
     initSelect2($('#statut'), 'Statuts');
     ajaxAutoUserInit($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_IMPORT);
@@ -62,6 +63,9 @@ function displayFirstModal(importId = null) {
         if (importId) {
             $inputImportId.val(importId);
         }
+
+        importTemplateChanged();
+
         $modalNewImport.modal({
             backdrop: 'static',
             show: true
@@ -174,5 +178,33 @@ function launchImport(importId, force = false) {
         });
     } else {
         alertErrorMsg('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.');
+    }
+}
+
+function importTemplateChanged($dataTypeImport = null) {
+    const $linkToTemplate = $('#linkToTemplate');
+
+    $linkToTemplate.empty();
+
+    const templateDirectory = '/uploads/modele';
+    const configDownloadLink = {
+        ART: {label: 'articles', url: `${templateDirectory}/modele-import-articles.csv`},
+        REF: {label: 'références', url: `${templateDirectory}/modele-import-references.csv`},
+        FOU: {label: 'fournisseurs', url: `${templateDirectory}/modele-import-fournisseurs.csv`},
+        ART_FOU: {label: 'articles fournisseurs', url: `${templateDirectory}/modele-import-articles-fournisseurs.csv`}
+    };
+
+    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    if (configDownloadLink[valTypeImport]) {
+        const {url, label} = configDownloadLink[valTypeImport];
+        $linkToTemplate
+            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${label}.</div>`)
+            .append(`<div class="col-12"><a class="btn btn-primary" href="${url}">Télécharger</a></div>`);
+    }
+    else if (valTypeImport === '') {
+        $linkToTemplate.append('<div class="col-12">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>');
+    }
+    else {
+        $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
     }
 }

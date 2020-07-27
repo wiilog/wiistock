@@ -29,6 +29,7 @@ function InitiliserPageModals() {
 
     InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
     InitialiserModal(modal, submitAndRedirect, url, tableArticle, createHandlerAddLigneArticleResponseAndRedirect(modal), false, false);
+    registerNumberInputProtection(modal.find('input[type="number"]'));
 
     let modalDeleteArticle = $("#modalDeleteLigneArticle");
     let submitDeleteArticle = $("#submitDeleteLigneArticle");
@@ -369,7 +370,6 @@ function articleChanged($select) {
         }
         $('.body-add-ref').css('display', 'flex');
         $('#innerNewRef').html('');
-        registerNumberInputProtection();
     }
     else {
         $addArticleAndRedirectSubmit.addClass(classDNone);
