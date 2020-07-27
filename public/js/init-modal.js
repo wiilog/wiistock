@@ -268,7 +268,10 @@ function processInputsForm($modal) {
             .text();
 
         // on enlève l'éventuelle * du nom du label
-        const label = (dirtyLabel || '').replace(/\*/, '');
+        const label = (dirtyLabel || '')
+            .replace(/\*/g, '')
+            .replace(/\n/g, ' ')
+            .trim();
 
         // validation données obligatoires
         if ($input.hasClass('needed')
