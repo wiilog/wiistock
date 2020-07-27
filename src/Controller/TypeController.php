@@ -133,9 +133,14 @@ class TypeController extends AbstractController
                     ->setCategory($category);
                 $entityManager->persist($type);
                 $entityManager->flush();
-                return new JsonResponse($data);
+                return new JsonResponse([
+                    'success' => true
+                ]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce nom de type existe déjà. Veuillez en choisir un autre.'
+                ]);
             }
         }
         throw new NotFoundHttpException("404");

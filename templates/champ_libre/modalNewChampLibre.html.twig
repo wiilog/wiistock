@@ -1,50 +1,78 @@
-<form method="" class="modal fade" id="modalNewChampLibre" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<form method=""
+      class="modal fade"
+      id="modalNewChampLibre"
+      role="dialog"
+      aria-labelledby="dataModalCenterTitle"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"
+         role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Créer un champ libre</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title"
+                    id="exampleModalLongTitle">
+                    Créer un champ libre
+                </h5>
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
 
             <div class="modal-body modal-input container-fluid" id="body">
                 <div class="form-group">
-                    <label for="label">Nom*</label>
-                    <input type="text" class="form-control data needed" name="label" value="" required="true">
+                    <label for="label">Libellé*</label>
+                    <input type="text"
+                           class="form-control data needed"
+                           name="label" value=""
+                           required="true">
                 </div>
                 <div class="form-group">
-                    <label for="categorieCL">S'applique sur*</label>
-                    <select name="categorieCL" class="form-control data needed" id="">
+                    <label for="categorieCL">S'applique à*</label>
+                    <select name="categorieCL"
+                            class="form-control data needed"
+                            id="">
                         {% for categorieCL in categoriesCL %}
-                        <option value="{{categorieCL.id}}">{{categorieCL.label}}</option>
+                            <option value="{{ categorieCL.id }}">
+                                {{ categorieCL.label }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="typage">Typage*</label>
-                    <select class="form-control data needed" onchange="defaultValueForTypage($(this))" name="typage"
-                        id='typage'>
-                        <option value="">choisir un typage...</option>
+                    <select class="form-control data needed"
+                            onchange="defaultValueForTypage($(this))"
+                            name="typage"
+                            id='typage'>
+                        <option value="">
+                            choisir un typage...
+                        </option>
                         {% for typage in typages %}
-                        <option value="{{typage.value}}">{{typage.label}}</option>
+                            <option value="{{ typage.value }}">
+                                {{ typage.label }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="switch">
-                        <input class="checkbox data" type="checkbox" name="requiredCreate">
+                        <input class="checkbox data"
+                               type="checkbox"
+                               name="requiredCreate">
                         <span class="slider round"></span>
                     </label>
-                    <label>Obligatoire à la création </label>
+                    <label>Obligatoire à la création</label>
                 </div>
                 <div class="form-group">
                     <label class="switch">
-                        <input class="checkbox data" type="checkbox" name="requiredEdit">
+                        <input class="checkbox data"
+                               type="checkbox"
+                               name="requiredEdit">
                         <span class="slider round"></span>
                     </label>
-                    <label>Obligatoire à la modification </label>
+                    <label>Obligatoire à la modification</label>
                 </div>
 
                 <div class="valueDefault">
@@ -53,9 +81,18 @@
 
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitChampLibreNew" name='type' value='{{type.id}}' type="button"
-                    class="btn btn-success data">Enregistrer</button>
+                <button type="button"
+                        class="btn"
+                        data-dismiss="modal">
+                    Annuler
+                </button>
+                <button id="submitChampLibreNew"
+                        name='type'
+                        value='{{ type.id }}'
+                        type="button"
+                        class="btn btn-success data">
+                    Enregistrer
+                </button>
             </div>
         </div>
     </div>

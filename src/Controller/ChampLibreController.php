@@ -159,9 +159,14 @@ class ChampLibreController extends AbstractController
 			$em->persist($champLibre);
 			$em->flush();
 
-			return new JsonResponse($data);
+			return new JsonResponse([
+			    'success' => true
+            ]);
 		} else {
-			return new JsonResponse(false);
+			return new JsonResponse([
+			    'success' => false,
+                'msg' => 'Ce nom de champ libre existe déjà. Veuillez en choisir un autre.'
+            ]);
 		}
     }
 

@@ -97,6 +97,8 @@ class ChauffeurController extends AbstractController
 
     /**
      * @Route("/creer", name="chauffeur_new", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -120,7 +122,9 @@ class ChauffeurController extends AbstractController
             $data['id'] = $chauffeur->getId();
             $data['text'] = $data['nom'];
 
-            return new JsonResponse($data);
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
@@ -178,7 +182,9 @@ class ChauffeurController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -251,7 +257,9 @@ class ChauffeurController extends AbstractController
 				$entityManager->remove($chauffeur);
 				$entityManager->flush();
 			}
-			return new JsonResponse();
+			return new JsonResponse([
+			    'success' => true
+            ]);
 		}
 		throw new NotFoundHttpException("404");
 	}
