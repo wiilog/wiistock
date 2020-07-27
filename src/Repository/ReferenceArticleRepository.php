@@ -1128,7 +1128,7 @@ class ReferenceArticleRepository extends EntityRepository
     public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
     {
         $queryBuilder = $this
-            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location, false)
             ->select('referenceArticle.reference as reference')
             ->addSelect('referenceArticle.id as id')
             ->addSelect('referenceArticle.barCode as barCode')
@@ -1148,20 +1148,26 @@ class ReferenceArticleRepository extends EntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location, bool $onlyActive = true): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
-        return $queryBuilder
+        $queryBuilder
             ->join('referenceArticle.emplacement', 'emplacement')
-            ->join('referenceArticle.statut', 'status')
             ->andWhere('emplacement.label = :location')
             ->andWhere('referenceArticle.barCode = :barCode')
-            ->andWhere('status.nom = :activeStatus')
             ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF)
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        if ($onlyActive) {
+            $queryBuilder
+                ->join('referenceArticle.statut', 'status')
+                ->andWhere('status.nom = :activeStatus')
+                ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
+        }
+
+        return $queryBuilder;
     }
 
     public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
