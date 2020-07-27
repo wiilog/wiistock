@@ -775,8 +775,13 @@ class ReferenceArticleController extends AbstractController
             if (count($refArticle->getCollecteReferences()) > 0
                 || count($refArticle->getLigneArticles()) > 0
                 || count($refArticle->getReceptionReferenceArticles()) > 0
+                || count($refArticle->getMouvements()) > 0
+                || count($refArticle->getMouvementTracas()) > 0
                 || count($refArticle->getArticlesFournisseur()) > 0) {
-                return new JsonResponse(false, 250);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La référence est liée à d\'autres données, vous pouvez passer son statut en inactif pour ne plus l\'utiliser.'
+                ]);
             }
             $entityManager->remove($refArticle);
             $entityManager->flush();
