@@ -637,7 +637,12 @@ class ReceptionController extends AbstractController
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
 
-            if (!$ligneArticle) return new JsonResponse(false);
+            if (!$ligneArticle) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La référence est introuvable'
+                ]);
+            }
 
             $reception = $ligneArticle->getReception();
 
@@ -650,7 +655,10 @@ class ReceptionController extends AbstractController
                 $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
                 $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
                 if ($newRefAvailableQuantity < 0) {
-                    return new JsonResponse(false);
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'La suppression de la référence engendre des quantités négatives'
+                    ]);
                 }
                 $reference->setQuantiteStock($newRefQuantity);
             }
