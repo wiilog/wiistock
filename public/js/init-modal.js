@@ -125,13 +125,17 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
         $('.zone-entete').html(data.entete)
     }
 
+    if (data.nextModal) {
+        $modal.find('.modal-body').html(data.nextModal);
+    }
+
     if (tables) {
         tables.forEach((table) => {
             table.ajax.reload(null, false);
         });
     }
 
-    if (!keepModal) {
+    if (!data.nextModal && !keepModal) {
         $modal.modal('hide');
     }
 

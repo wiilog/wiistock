@@ -24,8 +24,6 @@ const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
 
-const COMMENT_MAX_LENGTH = 200;
-
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 

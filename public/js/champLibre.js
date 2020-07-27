@@ -29,7 +29,7 @@ let tableType = initDataTable('tableType_id', typeTableConfig);
 let dataModalTypeDelete = $("#modalDeleteType");
 let ButtonSubmitTypeDelete = $("#submitDeleteType");
 let urlTypeDelete = Routing.generate('type_delete', true);
-InitModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, {tables: [tableType], success: askForDeleteConfirmation});
+InitModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, {tables: [tableType]});
 
 let dataModalEditType = $("#modalEditType");
 let ButtonSubmitEditType = $("#submitEditType");
@@ -78,7 +78,6 @@ InitModal($modalEditChampLibre, $submitEditChampLibre, urlEditChampLibre, {table
 
 function askForDeleteConfirmation(data) {
     let modal = $('#modalDeleteType');
-
     if (data !== true) {
         modal.find('.modal-body').html(data);
         let submit = $('#submitDeleteType');
@@ -86,11 +85,6 @@ function askForDeleteConfirmation(data) {
         let typeId = submit.val();
         let params = JSON.stringify({force: true, type: typeId});
 
-        submit.on('click', function () {
-            $.post(Routing.generate('type_delete'), params, function () {
-                tableChampLibre.ajax.reload();
-            }, 'json');
-        });
     } else {
         modal.find('.close').click();
     }
@@ -147,4 +141,11 @@ function defaultValueForTypage($select) {
     }
 
     if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
+}
+
+function deleteType($button) {
+    let contentFirstDeleteTypeModal = $('#contentFirstDeleteTypeModal').html();
+    let $modalDeleteType = $('#modalDeleteType');
+    $modalDeleteType.find('.modal-body').html(contentFirstDeleteTypeModal);
+    deleteRow($button, $modalDeleteType, $('#submitDeleteType'));
 }

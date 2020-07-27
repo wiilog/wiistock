@@ -56,7 +56,8 @@ class TypeController extends AbstractController
                 $cl = $champLibreRepository->find(intval($value['value']));
                 $options = $cl->getElements();
                 $isType = false;
-            } else {
+            }
+            else {
                 $options = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             }
 
@@ -123,7 +124,8 @@ class TypeController extends AbstractController
             if (!$typeExist) {
                 if ($data['category'] === null) {
                     $category = $categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
-                } else {
+                }
+                else {
                     $category = $categoryTypeRepository->find($data['category']);
                 }
 
@@ -136,7 +138,8 @@ class TypeController extends AbstractController
                 return new JsonResponse([
                     'success' => true
                 ]);
-            } else {
+            }
+            else {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Ce nom de type existe déjà. Veuillez en choisir un autre.'
@@ -171,7 +174,8 @@ class TypeController extends AbstractController
                 }
                 $champLibreRepository->deleteByType($type);
                 $entityManager->flush();
-            } else {
+            }
+            else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
                 $articlesRefExist = $referenceArticleRepository->countByType($type);
                 $articlesExist = $articleRepository->countByType($type);
@@ -181,18 +185,21 @@ class TypeController extends AbstractController
                     $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
-                    $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
-                        'champLibreFilter' => $filters !== 0
+                    return new JsonResponse([
+                        'success' => true,
+                        'nextModal' => $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
+                            'champLibreFilter' => $filters !== 0
+                        ])
                     ]);
-                    return new JsonResponse($result);
                 }
             }
 
             if ($type !== null) $entityManager->remove($type);
             $entityManager->flush();
-            $result = true;
 
-            return new JsonResponse($result);
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
