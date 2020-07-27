@@ -1537,6 +1537,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER)
             ->getId();
 
+        $referenceActiveStatusId = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF)
+            ->getId();
+
         $resData = [];
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($request->query->get('apiKey'))) {
             $barCode = $request->query->get('barCode');
@@ -1544,24 +1548,38 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
             if (!empty($barCode) && !empty($location)) {
                 $statusCode = Response::HTTP_OK;
-                $resData['success'] = true;
 
                 $referenceArticleArray = $referenceArticleRepository->getOneReferenceByBarCodeAndLocation($barCode, $location);
                 if (!empty($referenceArticleArray)) {
                     $referenceArticle = $referenceArticleRepository->find($referenceArticleArray['id']);
-                    $orderCollecteInProgress = $referenceArticle
-                        ->getOrdreCollecteReferences()
-                        ->filter(function (OrdreCollecteReference $ordreCollecteReference) use ($orderCollecteStatusInProgressId) {
-                            $ordreCollecte = $ordreCollecteReference->getOrdreCollecte();
-                            $ordreCollecteStatus = $ordreCollecte ? $ordreCollecte->getStatut() : null;
-                            return !isset($ordreCollecteStatus) || ($ordreCollecteStatus->getId() === $orderCollecteStatusInProgressId);
-                        });
-                    $referenceArticleArray['ordre_collecte_in_progress'] = !$orderCollecteInProgress->isEmpty();
+                    $statusReferenceArticle = $referenceArticle->getStatut();
+                    $statusReferenceId = $statusReferenceArticle ? $statusReferenceArticle->getId() : null;
+                    $canTransfer = ($statusReferenceId === $referenceActiveStatusId);
+                    if ($canTransfer) {
+                        // wee can transfer if reference is not linked to an active collect order
+                        $canTransfer = $referenceArticle
+                            ->getOrdreCollecteReferences()
+                            ->filter(function (OrdreCollecteReference $ordreCollecteReference) use ($orderCollecteStatusInProgressId) {
+                                $ordreCollecte = $ordreCollecteReference->getOrdreCollecte();
+                                $ordreCollecteStatus = $ordreCollecte ? $ordreCollecte->getStatut() : null;
+                                return !isset($ordreCollecteStatus) || ($ordreCollecteStatus->getId() === $orderCollecteStatusInProgressId);
+                            })
+                            ->isEmpty();
+                    }
+                    $referenceArticleArray['can_transfer'] = $canTransfer;
                     $resData['article'] = $referenceArticleArray;
                 }
                 else {
-                    $resData['article'] = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+                    $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+                    $article['can_transfer'] = $article['reference_status'] === ReferenceArticle::STATUT_ACTIF;
+                    $resData['article'] = $article;
                 }
+
+                if (!empty($resData['article'])) {
+                    $resData['article']['is_ref'] = (int) $resData['article']['is_ref'];
+                }
+
+                $resData['success'] = !empty($resData['article']);
             } else {
                 $statusCode = Response::HTTP_BAD_REQUEST;
                 $resData['success'] = false;

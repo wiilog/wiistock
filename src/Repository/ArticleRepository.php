@@ -1005,7 +1005,11 @@ class ArticleRepository extends EntityRepository
             ->select('article.barCode as barCode')
             ->select('article.id as id')
             ->addSelect('article.quantite as quantity')
-            ->addSelect('0 as is_ref');
+            ->addSelect('referenceArticle_status.nom as reference_status')
+            ->addSelect('0 as is_ref')
+            ->join('article.articleFournisseur', 'article_articleFournisseur')
+            ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
+            ->join('articleFournisseur_reference.statut', 'referenceArticle_status');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
@@ -1013,7 +1017,7 @@ class ArticleRepository extends EntityRepository
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
-        return $queryBuilder
+        $queryBuilder
             ->join('article.emplacement', 'emplacement')
             ->join('article.statut', 'status')
             ->andWhere('emplacement.label = :location')
@@ -1022,6 +1026,8 @@ class ArticleRepository extends EntityRepository
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
             ->setParameter('statusNom', Article::STATUT_ACTIF);
+
+        return $queryBuilder;
     }
 
     public function findByIds(array $ids): array {
