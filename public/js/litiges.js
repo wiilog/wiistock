@@ -1,8 +1,5 @@
 $('.select2').select2();
 let tableLitiges;
-let modalNewLitiges = $('#modalNewLitiges');
-let submitNewLitiges = $('#submitNewLitiges');
-let urlNewLitiges = Routing.generate('litige_new', true);
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
@@ -34,9 +31,8 @@ $(function () {
 
     initDatatableLitiges();
 
-    // TODO InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
     InitModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
-    // TODO InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
+    InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableLitiges]});
     InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
