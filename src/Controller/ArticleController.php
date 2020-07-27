@@ -51,6 +51,8 @@ use App\Service\ValeurChampLibreService;
 class ArticleController extends AbstractController
 {
 
+    const MAX_CSV_FILE_LENGTH = 5000;
+
     private const ARTICLE_IS_USED_MESSAGES = [
         Article::USED_ASSOC_COLLECTE => "Cet article est lié à une ou plusieurs collectes.",
         Article::USED_ASSOC_LITIGE => "Cet article est lié à un ou plusieurs litiges.",
@@ -980,6 +982,94 @@ class ArticleController extends AbstractController
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     * @return Response
+     * @throws \Exception
+     */
+    public function exportAllArticles(EntityManagerInterface $entityManager,
+                                  CSVExportService $CSVExportService): Response
+    {
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $category = CategoryType::ARTICLE;
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
+        $freeFieldsIds = array_map(
+            function (array $cl) {
+                return $cl['id'];
+            },
+            $freeFields
+        );
+        $freeFieldsHeader = array_map(
+            function (array $cl) {
+                return $cl['label'];
+            },
+            $freeFields
+        );
+        $headers = array_merge(
+            [
+                'reference',
+                'libelle',
+                'quantité',
+                'type',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'code barre',
+                'date dernier inventaire'
+            ],
+            $freeFieldsHeader
+        );
+        $today = new \DateTime();
+        $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
+        $articlesExportFiles = [];
+        $allArticlesCount = intval($articleRepository->countAll());
+        $step = self::MAX_CSV_FILE_LENGTH;
+        $start = 0;
+        do {
+            $articles = $articleRepository->getAllWithLimits($start, $step);
+            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $articles, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $articles = null;
+            $start += $step;
+        } while ($start < $allArticlesCount);
+        $masterCSVFileName = $CSVExportService
+            ->mergeCSVFiles($articlesExportFiles);
+        return $CSVExportService
+            ->createBinaryResponseFromFile($masterCSVFileName, $globalTitle);
+    }
+
+
+    private function generateArtsCSVFile(CSVExportService $CSVExportService, array $articles, ?array $headers, array $freeFields): string {
+        return $CSVExportService->createCsvFile(
+            $articles,
+            $headers,
+            function ($article) use ($freeFields) {
+                $articleArray = [
+                    $article['reference'],
+                    $article['label'],
+                    $article['quantite'],
+                    $article['typeLabel'],
+                    $article['statutName'],
+                    $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+                    $article['empLabel'],
+                    $article['barCode'],
+                    $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                ];
+                foreach ($freeFields as $freeField) {
+                    $articleArray[] = $article['freeFields'][$freeField] ?? "";
+                }
+                return [
+                    $articleArray
+                ];
+            }
+        );
     }
 
     /**
