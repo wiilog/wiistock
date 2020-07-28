@@ -198,10 +198,10 @@ class LitigeController extends AbstractController
                 'Déclarant',
                 'Fournisseur',
                 'N° ligne',
+                'Acheteur(s)',
                 'Date commentaire',
             	'Utilisateur',
-            	'Commentaire',
-                'Acheteur(s)'
+            	'Commentaire'
             ];
 
 			$data = [$headers];
@@ -210,8 +210,18 @@ class LitigeController extends AbstractController
             foreach ($arrivalLitiges as $litige) {
                 $colis = $litige->getColis();
                 foreach ($colis as $coli) {
-                    $litigeData = [];
 
+                    $colis = $litige->getColis();
+                    /** @var Arrivage $arrivage */
+                    $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
+                        ? $colis->first()->getArrivage()
+                        : null;
+                    $acheteurs = $arrivage->getAcheteurs()->toArray();
+                    $buyersMailsStr = implode('/', array_map(function(Utilisateur $acheteur) {
+                        return $acheteur->getEmail();
+                    }, $acheteurs));
+
+                    $litigeData = [];
 
                     $litigeData[] = $litige->getNumeroLitige();
                     $litigeData[] = $CSVExportService->escapeCSV($litige->getType() ? $litige->getType()->getLabel() : '');
@@ -222,18 +232,6 @@ class LitigeController extends AbstractController
                     $litigeData[] = ' ';
                     $litigeData[] = '' ;
 
-                    $colis = $litige->getColis();
-                    /** @var Arrivage $arrivage */
-                    $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
-                        ? $colis->first()->getArrivage()
-                        : null;
-                    $acheteurs = $arrivage->getAcheteurs()->toArray();
-                    $acheteurEMail = [];
-                    /** @var Utilisateur $acheteur */
-                    foreach ($acheteurs as $acheteur) {
-                        $acheteurEMail = $acheteur->getEmail();
-                    }
-
                     $litigeData[] = $arrivage ? $arrivage->getNumeroArrivage() : '';
 
                     $numeroCommandeList = $arrivage ? $arrivage->getNumeroCommandeList() : [];
@@ -243,10 +241,9 @@ class LitigeController extends AbstractController
                     $fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
                     $litigeData[] = $CSVExportService->escapeCSV(isset($fournisseur) ? $fournisseur->getNom() : '');
                     $litigeData[] = ''; // N° de ligne
-
+                    $litigeData[] = $buyersMailsStr;
                     $litigeHistorics = $litige->getLitigeHistorics();
-                    if ($litigeHistorics->count() == 0) {
-                        $litigeData[] = '';
+                    if ($litigeHistorics->count() === 0) {
                         $litigeData[] = '';
                         $litigeData[] = '';
                         $litigeData[] = '';
@@ -259,8 +256,6 @@ class LitigeController extends AbstractController
                                 $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '',
                                 $CSVExportService->escapeCSV($historic->getUser() ? $historic->getUser()->getUsername() : ''),
                                 $CSVExportService->escapeCSV($historic->getComment()),
-                                $acheteurEMail,
-
                             ]
                         );
                     }
@@ -273,6 +268,12 @@ class LitigeController extends AbstractController
             foreach ($receptionLitiges as $litige) {
                 $articles = $litige->getArticles();
                 foreach ($articles as $article) {
+
+                    $buyers = $litige->getBuyers()->toArray();
+                    $buyersMailsStr = implode('/', array_map(function(Utilisateur $acheteur) {
+                        return $acheteur->getEmail();
+                    }, $buyers));
+
                     $litigeData = [];
 
                     $litigeData[] = $litige->getNumeroLitige();
@@ -304,16 +305,9 @@ class LitigeController extends AbstractController
                     $litigeData[] = implode(', ', $litigeRepository->getCommandesByLitigeId($litige->getId()));
 
                     $litigeHistorics = $litige->getLitigeHistorics();
-                    $buyers = $litige->getBuyers();
-                    $buyersEmails = [];
-                    /** @var Utilisateur $buyers */
-                    foreach ($buyers as $buyer) {
-                        $buyersEmails[] = $buyer->getEmail();
-                    }
-                    $mailsToStr = $buyersEmails;
 
-                    if ($litigeHistorics->count() == 0) {
-                        $litigeData[] = '';
+                    $litigeData[] = $buyersMailsStr;
+                    if ($litigeHistorics->count() === 0) {
                         $litigeData[] = '';
                         $litigeData[] = '';
                         $litigeData[] = '';
@@ -327,7 +321,6 @@ class LitigeController extends AbstractController
                                 ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : ''),
                                 $CSVExportService->escapeCSV($historic->getUser() ? $historic->getUser()->getUsername() : ''),
                                 $CSVExportService->escapeCSV($historic->getComment()),
-                                $mailsToStr,
                             ]
                         );
                     }
