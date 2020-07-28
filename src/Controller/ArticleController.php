@@ -559,7 +559,7 @@ class ArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $response = $this->articleDataService->newArticle($data);
+            $response = $this->articleDataService->newArticle($data, null, null, $this->getUser());
 
             return new JsonResponse(!empty($response));
         }

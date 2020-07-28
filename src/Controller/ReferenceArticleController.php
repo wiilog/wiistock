@@ -27,6 +27,7 @@ use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\ValeurChampLibreService;
 use App\Service\ArticleFournisseurService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -309,6 +310,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param ValeurChampLibreService $valeurChampLibreService
+     * @param MouvementStockService $mouvementStockService
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws DBALException
@@ -319,6 +321,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function new(Request $request,
                         ValeurChampLibreService $valeurChampLibreService,
+                        MouvementStockService $mouvementStockService,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -445,6 +448,21 @@ class ReferenceArticleController extends AbstractController
             }
 
             $entityManager->persist($refArticle);
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $mvtStock = $mouvementStockService->createMouvementStock(
+                    $this->getUser(),
+                    $emplacement,
+                    $refArticle->getQuantiteStock(),
+                    $refArticle,
+                    MouvementStock::TYPE_ENTREE
+                );
+                $mouvementStockService->finishMouvementStock(
+                    $mvtStock,
+                    new DateTime('now'),
+                    $emplacement
+                );
+                $entityManager->persist($mvtStock);
+            }
             $entityManager->flush();
 
             $champsLibresKey = array_keys($data);

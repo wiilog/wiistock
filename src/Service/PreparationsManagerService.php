@@ -418,7 +418,6 @@ class PreparationsManagerService
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-
         $articlesSplittedToKeep = [];
         // modification des articles de la demande
         $articles = $preparation->getArticles();

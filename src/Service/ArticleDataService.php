@@ -55,7 +55,8 @@ class ArticleDataService
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
 	private $typeCLOnLabel;
-	private $valeurChampLibreService;
+    private $valeurChampLibreService;
+    private $mouvementStockService;
 
     public function __construct(ValeurChampLibreService $valeurChampLibreService,
                                 MailerService $mailerService,
@@ -64,6 +65,7 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
+                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
@@ -73,6 +75,7 @@ class ArticleDataService
         $this->specificService = $specificService;
         $this->mailerService = $mailerService;
         $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -384,7 +387,7 @@ class ArticleDataService
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
-    public function newArticle($data, $demande = null, $reception = null)
+    public function newArticle($data, $demande = null, $reception = null, $user = null)
     {
         $entityManager = $this->entityManager;
 
@@ -445,7 +448,19 @@ class ArticleDataService
             ->setType($type)
             ->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
-
+        $mvtStock = $this->mouvementStockService->createMouvementStock(
+            $user,
+            $location,
+            max((int)$data['quantite'], 0),
+            $toInsert,
+            MouvementStock::TYPE_ENTREE
+        );
+        $this->mouvementStockService->finishMouvementStock(
+            $mvtStock,
+            new DateTime('now'),
+            $location
+        );
+        $entityManager->persist($mvtStock);
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
