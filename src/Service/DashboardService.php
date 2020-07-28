@@ -25,6 +25,7 @@ use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Throwable;
 
@@ -808,6 +809,15 @@ class DashboardService
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
+        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager);
+        $currentDate = new DateTime();
+        $dateDiff = $currentDate
+            ->diff($lastUpdateDate);
+        $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
+        if ($hoursBetweenNowAndLastUpdateDate > 2) {
+            $this->wiilockService->stopFeedingDashboard($entityManager);
+            $entityManager->flush();
+        }
         if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
             $this->wiilockService->startFeedingDashboard($entityManager);
 
