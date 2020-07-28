@@ -55,19 +55,19 @@
                 {% set isStatusEditable = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) %}
                 {% if isStatusEditable or actif == 'active' %}
                     <span class="btn {{ actif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
-                          {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
+                          {% if editable and isStatusEditable %}onclick="toggleRadioButton($(this))"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
                     </span>
                 {% endif %}
                 {% if isStatusEditable or inactif == 'active' %}
                     <span class="btn {{ inactif }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
-                          {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
+                          {% if editable and isStatusEditable %}onclick="toggleRadioButton($(this))"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
                     </span>
                 {% endif %}
                 {% if isStatusEditable or transit == 'active' %}
                     <span class="btn {{ transit }} {{ disabled }}" data-toggle="statut-edit" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
-                            {% if editable and isStatusEditable %}onclick="changeStatus(this)"{% endif %}>
+                            {% if editable and isStatusEditable %}onclick="toggleRadioButton($(this))"{% endif %}>
                         {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
                     </span>
                 {% endif %}

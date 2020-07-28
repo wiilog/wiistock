@@ -637,7 +637,12 @@ class ReceptionController extends AbstractController
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
 
-            if (!$ligneArticle) return new JsonResponse(false);
+            if (!$ligneArticle) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La référence est introuvable'
+                ]);
+            }
 
             $reception = $ligneArticle->getReception();
 
@@ -650,7 +655,10 @@ class ReceptionController extends AbstractController
                 $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
                 $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
                 if ($newRefAvailableQuantity < 0) {
-                    return new JsonResponse(false);
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'La suppression de la référence engendre des quantités négatives'
+                    ]);
                 }
                 $reference->setQuantiteStock($newRefQuantity);
             }
@@ -669,15 +677,15 @@ class ReceptionController extends AbstractController
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
 
-            $json = [
+            $entityManager->flush();
+            return new JsonResponse([
+                'success' => true,
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
-            ];
-            $entityManager->flush();
-            return new JsonResponse($json);
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -751,6 +759,7 @@ class ReceptionController extends AbstractController
 
                 $json = [
                     'success' => true,
+                    'msg' => 'La référence a été ajoutée à la réception',
 					'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,

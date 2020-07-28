@@ -60,7 +60,7 @@ function displayFirstModal(importId = null) {
         $modalNewImport,
         $submitNewImport,
         urlNewImportFirst,
-        {tables: tableImport, success: displaySecondModal, keepModal: true}
+        {tables: [tableImport], success: displaySecondModal, keepModal: true}
     );
 
     $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function (resp) {
