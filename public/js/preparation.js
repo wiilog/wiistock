@@ -3,12 +3,14 @@ $('.select2').select2();
 let prepaHasBegun = false;
 let tableArticleSplitting;
 let $modalSubmitPreparation = $('#modal-select-location');
-
 $(function () {
-    const $locationSelect = $modalSubmitPreparation.find('select[name="location"]')
-
+    const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
     initDateTimePicker();
     initSelect2($('#statut'), 'Statuts');
+
+    $(document).on('hidden.bs.modal','#modalSplitting', function () {
+        $('.action-on-click-single').data('clicked', false);
+    });
 
     ajaxAutoDemandesInit($('.ajax-autocomplete-demande'));
     ajaxAutoCompleteEmplacementInit($locationSelect);
@@ -30,15 +32,6 @@ $(function () {
             displayFiltersSup(data);
         }, 'json');
     }
-
-    $("#tableArticle_id").on('click', function () {
-        let $startPicking = $("#startPicking");
-        let onClickValue = $startPicking.attr('onclick');
-        $startPicking.removeAttr('onclick');
-        setTimeout(function () {
-            $startPicking.attr('onclick', onClickValue);
-        }, 500);
-    });
 });
 
 let path = Routing.generate('preparation_api');
@@ -104,23 +97,26 @@ let tableArticleConfig = {
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);
 
 function startPicking($button) {
-    let ligneArticleId = $button.attr('value');
+    if (!$button.data('clicked')) {
+        $('.action-on-click-single').data('clicked', true);
+        let ligneArticleId = $button.attr('value');
 
-    let path = Routing.generate('start_splitting', true);
-    $.post(path, JSON.stringify(ligneArticleId), function (html) {
-        $('#splittingContent').html(html);
-        let tableSplittingArticlesConfig = {
-            'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
-            'columnDefs': [
-                {'orderable': false, 'targets': [3]}
-            ],
-            domConfig: {
-                needsPaginationRemoval: true
-            }
-        };
-        tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
-        $('#modalSplitting').modal('show');
-    });
+        let path = Routing.generate('start_splitting', true);
+        $.post(path, JSON.stringify(ligneArticleId), function (html) {
+            $('#splittingContent').html(html);
+            let tableSplittingArticlesConfig = {
+                'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
+                'columnDefs': [
+                    {'orderable': false, 'targets': [3]}
+                ],
+                domConfig: {
+                    needsPaginationRemoval: true
+                }
+            };
+            tableArticleSplitting = initDataTable('tableSplittingArticles', tableSplittingArticlesConfig);
+            $('#modalSplitting').modal('show');
+        });
+    }
 }
 
 let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
