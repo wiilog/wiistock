@@ -149,7 +149,7 @@
 
         <label>Emplacement*</label>
         <select {{ disabled }} name="emplacement" id="emplacement"
-                               class="form-control ajax-autocompleteEmplacement-edit w-100 data {{ dnoneRef == 'd-none' ? '' : 'needed' }}">
+                               class="form-control w-100 data {{ dnoneRef == 'd-none' ? '' : 'needed' }}" disabled>
             <option value="{{ emplacementId }}">{{ emplacementLabel }}</option>
         </select>
     </div>
@@ -159,7 +159,7 @@
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         {% set disabledOnDemand = isADemand is defined and isADemand ? 'disabled' : disabled %}
         <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
-                                      name="quantite" id="quantite">
+                                      id="quantite" disabled>
     </div>
 
     <div class="form-group col-4 article {{ dnone }}">

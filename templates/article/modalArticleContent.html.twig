@@ -25,8 +25,8 @@
             {# si on est sur une demande, la quantité ne doit pas être modifiée #}
             {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
             {% set neededOnDemand = isADemand ? '' : needed %}
-        <input {{ disabledOnDemand }} class="form-control data {{ neededOnDemand }}" type="number" min="0" name="quantite" id="quantite"
-            value="{{article.quantite}}">
+        <input {{ disabledOnDemand }} class="form-control data {{ neededOnDemand }}" type="number" min="0" id="quantite"
+            value="{{article.quantite}}" disabled>
     </div>
     <div class="form-group col-3">
         <div class="reference">
@@ -36,7 +36,7 @@
     </div>
     <div class="form-group col-6 w-100">
         <label for="emplacement">Emplacement</label>
-        <select {{ disabled }} class="ajax-autocompleteEmplacement-edit data form-control needed" name="emplacement">
+        <select {{ disabled }} class="data form-control needed" name="emplacement" disabled>
             {% if article.emplacement != null %}
             <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>
             {% endif %}

@@ -29,12 +29,8 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -164,7 +160,6 @@ class ArticleDataService
      * @param Utilisateur $user
      * @return array
      *
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -297,8 +292,6 @@ class ArticleDataService
     /**
      * @param $data
      * @return bool|RedirectResponse
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
      */
     public function editArticle($data)
     {
@@ -329,23 +322,6 @@ class ArticleDataService
                     if ($statut) {
                         $article->setStatut($statut);
                     }
-                }
-
-                if (isset($data['quantite'])) {
-                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
-                    if ($article->getQuantite() !== $newQuantity) {
-                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
-                            throw new ArticleNotAvailableException();
-                        }
-                        else if ($article->isInRequestsInProgress()) {
-                            throw new RequestNeedToBeProcessedException();
-                        }
-                        $article->setQuantite($newQuantity); // protection contre quantités négatives
-                    }
-                }
-
-                if ($data['emplacement']) {
-                    $article->setEmplacement($emplacementRepository->find($data['emplacement']));
                 }
             }
 
@@ -379,7 +355,6 @@ class ArticleDataService
      * @param Demande $demande
      * @param Reception $reception
      * @return Article
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -536,7 +511,6 @@ class ArticleDataService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
@@ -676,7 +650,6 @@ class ArticleDataService
     /**
      * @param Article $article
      * @return array
-     * @throws NonUniqueResultException
      */
     public function getBarcodeConfig(Article $article): array {
         $articleRepository = $this->entityManager->getRepository(Article::class);
