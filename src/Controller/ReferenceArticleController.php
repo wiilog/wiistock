@@ -311,11 +311,7 @@ class ReferenceArticleController extends AbstractController
      * @param ValeurChampLibreService $valeurChampLibreService
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
-     * @throws DBALException
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @throws Exception
      */
     public function new(Request $request,
                         ValeurChampLibreService $valeurChampLibreService,
@@ -343,7 +339,7 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse([
                 	'success' => false,
 					'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
-					'codeError' => 'DOUBLON-REF'
+					'invalidFieldsSelector' => 'input[name="reference"]'
 				]);
             }
             $requiredCreate = true;
@@ -418,32 +414,28 @@ class ReferenceArticleController extends AbstractController
             }
             $refArticle->setQuantiteReservee(0);
 
-            foreach ($data['frl'] as $frl) {
-                $articleFournisseurData = explode(';', $frl);
-                $fournisseurArticleFournisseur = $articleFournisseurData[0];
-                $referenceArticleFournisseur = $articleFournisseurData[1];
-                $labelArticleFournisseur = $articleFournisseurData[2];
-
-                try {
-                    $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
-                        'fournisseur' => $fournisseurArticleFournisseur,
-                        'article-reference' => $refArticle,
-                        'label' => $labelArticleFournisseur,
-                        'reference' => $referenceArticleFournisseur
-                    ]);
-
-                    $entityManager->persist($articleFournisseur);
-                }
-                catch (Exception $exception) {
-                    if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                        return new JsonResponse([
-                            'success' => false,
-                            'msg' => "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur."
+            if (!empty($data['frl'])) {
+                foreach ($data['frl'] as $frl) {
+                    $referenceArticleFournisseur = $frl['referenceFournisseur'];
+                    try {
+                        $articleFournisseur = $articleFournisseurService->createArticleFournisseur([
+                            'fournisseur' => $frl['fournisseur'],
+                            'article-reference' => $refArticle,
+                            'label' => $frl['labelFournisseur'],
+                            'reference' => $referenceArticleFournisseur
                         ]);
+
+                        $entityManager->persist($articleFournisseur);
+                    } catch (Exception $exception) {
+                        if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur."
+                            ]);
+                        }
                     }
                 }
             }
-
             $entityManager->persist($refArticle);
             $entityManager->flush();
 
@@ -459,9 +451,7 @@ class ReferenceArticleController extends AbstractController
             }
             return new JsonResponse([
                 'success' => true,
-                'new' => $this->refArticleDataService->dataRowRefArticle($refArticle),
-                'id' => $refArticle->getId(),
-                'text' => $refArticle->getReference(),
+                'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée'
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -728,7 +718,7 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
-                    'codeError' => 'DOUBLON-REF'
+                    'invalidFieldsSelector' => 'input[name="reference"]'
                 ]);
             }
             if ($refArticle) {
@@ -770,25 +760,38 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            $rows = $refArticle->getId();
             $entityManager = $this->getDoctrine()->getManager();
             if (count($refArticle->getCollecteReferences()) > 0
                 || count($refArticle->getLigneArticles()) > 0
                 || count($refArticle->getReceptionReferenceArticles()) > 0
                 || count($refArticle->getArticlesFournisseur()) > 0) {
-                return new JsonResponse(false, 250);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => '
+                        Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
+                        Vous ne pouvez donc pas le supprimer.
+                    '
+                ]);
             }
             $entityManager->remove($refArticle);
             $entityManager->flush();
 
-            $response['delete'] = $rows;
-            return new JsonResponse($response);
+            return new JsonResponse(['success' => true]);
         }
         throw new NotFoundHttpException("404");
     }
 
     /**
-     * @Route("/addFournisseur", name="ajax_render_add_fournisseur", options={"expose"=true}, methods="GET|POST")
+     * @Route(
+     *     "/addFournisseur",
+     *     name="ajax_render_add_fournisseur",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     requirements={
+     *          "currentIndex": "\d+"
+     *     })
+     * @param Request $request
+     * @return Response
      */
     public function addFournisseur(Request $request): Response
     {
@@ -796,7 +799,12 @@ class ReferenceArticleController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $json = $this->renderView('reference_article/fournisseurArticle.html.twig');
+        $currentIndex = $request->query->get('currentIndex');
+        $currentIndexInt = $request->query->getInt('currentIndex');
+
+        $json = $this->renderView('reference_article/fournisseurArticle.html.twig', [
+            'multipleObjectIndex' => !empty($currentIndex) || $currentIndexInt === 0 ? ($currentIndexInt + 1) : 0
+        ]);
         return new JsonResponse($json);
     }
 

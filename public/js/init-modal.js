@@ -1,3 +1,6 @@
+const FORM_INVALID_CLASS = 'is-invalid';
+const FORM_ERROR_CONTAINER = 'error-msg';
+
 /**
  * Initialise une fenêtre modale
  *
@@ -10,28 +13,35 @@
  * @param {*} $modal jQuery element of the modal
  * @param {*} $submit jQuery element of the submit button
  * @param {string} path le chemin pris pour envoyer les données.
- * @param {document} table le DataTable gérant les données
- * @param {{getFiles: undefined|function, tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function}} options Object containing some option.
+ * @param {{getFiles: undefined|function, tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
  *   - getFiles return Array<File>
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
  *   - success success handler
+ *   - clearOnClose clear the modal on close action
  *
  */
 function InitModal($modal, $submit, path, options = {}) {
-    $submit.click(function () {
-        submitAction($modal, path, options)
-            .then((data) => {
-                if (data
-                    && data.success
-                    && options
-                    && options.success) {
-                    options.success(data);
-                }
-            })
-            .catch(() => {})
-    });
+    if(options.clearOnClose) {
+        $modal.on('hidden.bs.modal', function () {
+            clearModal($modal);
+        });
+    }
+
+    $submit
+        .click(function () {
+            submitAction($modal, path, options)
+                .then((data) => {
+                    if (data
+                        && data.success
+                        && options
+                        && options.success) {
+                        options.success(data);
+                    }
+                })
+                .catch(() => {})
+        });
 }
 
 /**
@@ -65,11 +75,10 @@ function submitAction($modal, path, {getFiles, tables, keepModal, keepForm} = {}
             })
             .then((data) => {
                 if (data.success === false) {
-                    if (data.msg) {
-                        $modal
-                            .find('.error-msg')
-                            .html(data.msg);
-                    }
+                    displayFormErrors($modal, {
+                        $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
+                        errorMessages: data.msg ? [data.msg] : undefined
+                    });
                 }
                 else {
                     const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm);
@@ -82,13 +91,10 @@ function submitAction($modal, path, {getFiles, tables, keepModal, keepForm} = {}
             })
     }
     else {
-        $isInvalidElements.forEach(($field) => {
-            $field.addClass('is-invalid');
+        displayFormErrors($modal, {
+            $isInvalidElements,
+            errorMessages
         });
-
-        $modal
-            .find('.error-msg')
-            .html(errorMessages.join('<br/>'));
 
         return new Promise((_, reject) => {
             reject(false);
@@ -102,15 +108,15 @@ function submitAction($modal, path, {getFiles, tables, keepModal, keepForm} = {}
  */
 function clearFormErrors($modal) {
     $modal
-        .find('.is-invalid')
-        .removeClass('is-invalid');
+        .find(`.${FORM_INVALID_CLASS}`)
+        .removeClass(FORM_INVALID_CLASS);
 
     $modal
         .find('.editor-container')
         .css('border-top', '0px');
 
     $modal
-        .find('.error-msg')
+        .find(`.${FORM_ERROR_CONTAINER}`)
         .empty();
 }
 
@@ -146,6 +152,7 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
     if (data.msg) {
         alertSuccessMsg(data.msg);
     }
+
     return true;
 }
 
@@ -515,4 +522,24 @@ function createFormData(object) {
 function isBarcodeValid($input) {
     const value = $input.val();
     return Boolean(!value || BARCODE_VALID_REGEX.test(value));
+}
+
+/**
+ * Display error message and error put field in error
+ * @param {*} $modal jQuery element of the modal
+ * @param {{$isInvalidElements: *|undefined, errorMessages: string[]|undefined}} options jQuery elements in error, errorMessages error messages
+ */
+function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
+    if ($isInvalidElements) {
+        $isInvalidElements.forEach(($field) => {
+            $field.addClass(FORM_INVALID_CLASS);
+        });
+    }
+
+    const filledErrorMessages = (errorMessages || []).filter(Boolean);
+    if (filledErrorMessages.length > 0) {
+        $modal
+            .find(`.${FORM_ERROR_CONTAINER}`)
+            .html(filledErrorMessages.join('<br/>'));
+    }
 }

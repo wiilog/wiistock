@@ -273,16 +273,13 @@ class RefArticleDataService
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['frl'])) {
                 foreach ($data['frl'] as $frl) {
-                    $articleFournisseurData = explode(';', $frl);
-                    $fournisseurArticleFournisseur = $articleFournisseurData[0];
-                    $referenceArticleFournisseur = $articleFournisseurData[1];
-                    $labelArticleFournisseur = $articleFournisseurData[2];
+                    $referenceArticleFournisseur = $frl['referenceFournisseur'];
 
                     try {
                         $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
-                            'fournisseur' => $fournisseurArticleFournisseur,
+                            'fournisseur' => $frl['fournisseur'],
                             'article-reference' => $refArticle,
-                            'label' => $labelArticleFournisseur,
+                            'label' => $frl['labelFournisseur'],
                             'reference' => $referenceArticleFournisseur
                         ]);
 

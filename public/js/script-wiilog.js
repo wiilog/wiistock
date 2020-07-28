@@ -563,6 +563,7 @@ function clearModal(modal) {
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
     $modal.find('.clear').html('');
+    $modal.find('.remove-on-clear').remove();
     $modal.find('.attachement').remove();
     $modal.find('.isRight').removeClass('isRight');
 }
