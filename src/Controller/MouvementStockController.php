@@ -127,6 +127,7 @@ class MouvementStockController extends AbstractController
      * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param UserService $userService
+     * @param MouvementStockService $mouvementStockService
      * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -134,6 +135,7 @@ class MouvementStockController extends AbstractController
      */
     public function new(Request $request,
                         UserService $userService,
+                        MouvementStockService $mouvementStockService,
                         MouvementTracaService $mouvementTracaService,
                         EntityManagerInterface $entityManager): Response
     {
@@ -154,11 +156,12 @@ class MouvementStockController extends AbstractController
             if (empty($chosenRefArticle) || $chosenRefArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
                 $response['msg'] = 'La référence choisie est incorrecte, elle doit être active.';
             } else {
-                $newMvtStock = new MouvementStock();
                 $now = new DateTime();
                 $emplacementTo = null;
                 $emplacementFrom = null;
                 $quantity = $chosenMvtQuantity;
+                $associatedPickTracaMvt = null;
+                $associatedDropTracaMvt = null;
 
                 if ($chosenMvtType === MouvementStock::TYPE_SORTIE) {
                     if (intval($quantity) > $chosenRefArticle->getQuantiteDisponible()) {
@@ -188,7 +191,7 @@ class MouvementStockController extends AbstractController
                         $emplacementFrom = $chosenRefArticle->getEmplacement();
                         $chosenRefArticle
                             ->setEmplacement($emplacementTo);
-                        $createdPickTracaMvt = $mouvementTracaService->createMouvementTraca(
+                        $associatedPickTracaMvt = $mouvementTracaService->createMouvementTraca(
                             $chosenRefArticle->getBarCode(),
                             $emplacementFrom,
                             $this->getUser(),
@@ -197,9 +200,8 @@ class MouvementStockController extends AbstractController
                             true,
                             MouvementTraca::TYPE_PRISE
                         );
-                        $mouvementTracaService->persistSubEntities($entityManager, $createdPickTracaMvt);
-                        $createdPickTracaMvt->setMouvementStock($newMvtStock);
-                        $createdDropTracaMvt = $mouvementTracaService->createMouvementTraca(
+                        $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
+                        $associatedDropTracaMvt = $mouvementTracaService->createMouvementTraca(
                             $chosenRefArticle->getBarCode(),
                             $emplacementTo,
                             $this->getUser(),
@@ -208,21 +210,16 @@ class MouvementStockController extends AbstractController
                             true,
                             MouvementTraca::TYPE_DEPOSE
                         );
-                        $mouvementTracaService->persistSubEntities($entityManager, $createdDropTracaMvt);
-                        $createdDropTracaMvt->setMouvementStock($newMvtStock);
-                        $entityManager->persist($createdPickTracaMvt);
-                        $entityManager->persist($createdDropTracaMvt);
+                        $mouvementTracaService->persistSubEntities($entityManager, $associatedDropTracaMvt);
+                        $entityManager->persist($associatedPickTracaMvt);
+                        $entityManager->persist($associatedDropTracaMvt);
                     }
                 }
                 if ($response['success']) {
-                    $newMvtStock
-                        ->setDate($now)
-                        ->setType($chosenMvtType)
-                        ->setEmplacementFrom($emplacementFrom)
-                        ->setEmplacementTo($emplacementTo)
-                        ->setRefArticle($chosenRefArticle)
-                        ->setQuantity($quantity)
-                        ->setUser($this->getUser());
+                    $newMvtStock = $mouvementStockService->createMouvementStock($this->getUser(), $emplacementFrom, $quantity, $chosenRefArticle, $chosenMvtType);
+                    $mouvementStockService->finishMouvementStock($newMvtStock, $now, $emplacementTo);
+                    $associatedPickTracaMvt->setMouvementStock($newMvtStock);
+                    $associatedDropTracaMvt->setMouvementStock($newMvtStock);
                     $entityManager->persist($newMvtStock);
                     $entityManager->flush();
                 }
