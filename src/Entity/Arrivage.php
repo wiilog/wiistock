@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArrivageRepository")
  */
-class Arrivage
+class Arrivage extends FreeFieldEntity
 {
     const STATUS_CONFORME = 'conforme';
     const STATUS_RESERVE = 'reserve';
@@ -103,11 +103,6 @@ class Arrivage
      */
     private $statut;
 
-	/**
-	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="arrivages")
-	 */
-	private $valeurChampLibre;
-
     /**
      * @var Collection
      * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="lastArrival")
@@ -133,7 +128,6 @@ class Arrivage
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
         $this->attachements = new ArrayCollection();
-        $this->valeurChampLibre = new ArrayCollection();
         $this->urgences = new ArrayCollection();
         $this->mouvementsTraca = new ArrayCollection();
         $this->numeroCommandeList = [];
@@ -508,32 +502,6 @@ class Arrivage
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampLibre(): Collection
-    {
-        return $this->valeurChampLibre;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre[] = $valeurChampLibre;
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre->removeElement($valeurChampLibre);
-        }
 
         return $this;
     }

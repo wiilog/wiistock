@@ -154,83 +154,18 @@
                             Champs libres
                         </h3>
                     </div>
-                    <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
-                        <div class="d-block">
-                            <div class="row mt-2">
-                                {% for typeChampLibre in typeChampLibres %}
-                                    {% for champLibre in typeChampLibre.champsLibres %}
-                                        <div class="form-group col-6">
-                                            <label>
-                                                {{ champLibre.label }}{{ champLibre.requiredCreate ? '*' : '' }}
-                                            </label>
-
-                                            {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                                                <input type="checkbox" class="data checkbox needs-default"
-                                                       data-init="{{ champLibre.defaultValue }}"
-                                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : " " }}"
-                                                       name="{{ champLibre.id }}" id="">
-
-
-                                            {% elseif  champLibre.typage == 'number' %}
-                                                <input type="number"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
-                                                       data-init="{{ champLibre.defaultValue }}"
-                                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}"
-                                                       name="{{ champLibre.id }}" id="">
-
-
-                                            {% elseif  champLibre.typage == 'list' %}
-                                                <select
-                                                    class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} "
-                                                    name="{{ champLibre.id }}" id="">
-                                                    <option value=""></option>
-                                                    {% for elem in  champLibre.elements %}
-                                                        <option value="{{ elem }}">{{ elem }}</option>
-                                                    {% endfor %}
-                                                </select>
-
-                                            {% elseif champLibre.typage == 'list multiple' %}
-                                                <select id="{{ champLibre.id ~ 'create' }}"
-                                                        class="w-100 form-control data list-multiple  {{ champLibre.requiredCreate ? 'needed' : '' }}"
-                                                        name="{{ champLibre.id }}" multiple="multiple">
-                                                    {% for elem in champLibre.elements %}
-                                                        <option value="{{ elem }}">{{ elem }}</option>
-                                                    {% endfor %}
-                                                </select>
-
-                                            {% elseif champLibre.typage == 'text' %}
-                                                <input type="text" id="{{ champLibre.label ~ 'edit' }}"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
-                                                       data-init="{{ champLibre.defaultValue }}"
-                                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}"
-                                                       name="{{ champLibre.id }}" id="input">
-
-                                            {% elseif champLibre.typage == 'date' %}
-                                                <input
-                                                    type="text"
-                                                    class="form-control data date-cl {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
-                                                    data-init="{{ champLibre.defaultValue }}"
-                                                    name="{{ champLibre.id }}"
-                                                    id="{{ champLibre.label ~ 'edit' }}"
-                                                    placeholder="jj/mm/aaaa"
-                                                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}">
-
-                                            {% elseif champLibre.typage == 'datetime' %}
-                                                <input type="datetime-local" name="{{ champLibre.id }}"
-                                                       id="{{ champLibre.id ~ 'edit' }}"
-                                                       class="form-control data {{ champLibre.requiredCreate ? 'needed' : '' }} needs-default"
-                                                       data-init="{{ champLibre.defaultValue }}"
-                                                       value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : champLibre.defaultValue }}">
-
-                                            {% else %}
-                                                <input disabled>
-
-                                            {% endif %}
-                                        </div>
-                                    {% endfor %}
-                                {% endfor %}
+                    <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+                        {% for type in typeChampLibres %}
+                            <div class="row">
+                                {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                                    freeFields: type.champsLibres,
+                                    freeFieldValues: [],
+                                    colType: 'col-4',
+                                    requiredType: 'requiredCreate',
+                                    actionType: 'new'
+                                } %}
                             </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 

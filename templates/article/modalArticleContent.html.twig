@@ -93,79 +93,14 @@
         </h3>
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeEdit'>
-        <div class='d-block' id="{{typeArticle}}-edit">
-            <div class="row mt-2">
-                {% for champLibre in typeChampsLibres.champsLibres %}
-                    {# cas général #}
-                    {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-                        {% set needed = 'needed' %}
-                        {% set star = '*' %}
-                    {% else %}
-                        {% set needed = '' %}
-                        {% set star = '' %}
-                    {% endif %}
-
-                    <div class="form-group col-6">
-
-                    {% if champLibre.label|lower == 'code projet' %}
-                    <label for="input">{{ champLibre.label }}*</label>
-                    {% else %}
-                    <label for="input">{{ champLibre.label }}{{ star }}</label>
-                    {% endif %}
-
-                    {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                    {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
-                    <label class="switch">
-                        <input {{ disabled }} type="checkbox" class="data checkbox" {{ checked }}
-                            name="{{ champLibre.id}}">
-                        <span class="slider round"></span>
-                    </label>
-
-                    {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
-                    <input {{ disabled }} type="number" id="{{ champLibre.id ~ 'edit'}}"
-                        class="form-control data {{ needed }}"
-                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
-                        name="{{ champLibre.id}}" id="input">
-
-                    {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
-                    <select {{ disabled }} class="form-control data {{ needed }}" id="{{ champLibre.id ~ 'edit'}}"
-                        name="{{ champLibre.id}}" id="input">
-                        <option value="">aucune sélection...</option>
-                        {% for elem in champLibre.elements %}
-                        {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
-                        <option value="{{elem}}" {{ selected }}>{{elem}}</option>
-                        {% endfor %}
-                    </select>
-                    {% elseif champLibre.typage == 'list multiple' %}
-                        <select {{ disabled }} id="{{ champLibre.id ~ 'edit' }}" class="list-multiple form-control data {{ needed }}"
-                                name="{{ champLibre.id }}" multiple="multiple">
-                            {% for elem in champLibre.elements %}
-                                {% set selected = (champLibre.valeurChampLibre and elem in (champLibre.valeurChampLibre.valeur | split(';'))) ? 'selected' : '' %}
-                                <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
-                            {% endfor %}
-                        </select>
-
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT')  %}
-                    <input {{ disabled }} type="text" id="{{ champLibre.id ~ 'edit'}}"
-                        class="form-control data {{ needed }}"
-                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
-                        name="{{  champLibre.id }}" id="input">
-
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
-                    <input type="date" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
-                        class="form-control data {{ needed }}"
-                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-                    {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
-                        <input type="datetime-local" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}"
-                               class="form-control data {{ needed }}"
-                               value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-                    {% else %}
-                    <input disabled>
-                    {% endif %}
-
-                </div>
-                {% endfor %}
-            </div>
+        <div class="row">
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: typeChampsLibres.champsLibres,
+                freeFieldValues: article.freeFields,
+                colType: 'col-4',
+                requiredType: 'requiredEdit',
+                actionType: 'edit'
+            } %}
         </div>
     </div>
     <div class="col-12 row mt-4">

@@ -400,7 +400,7 @@ class MouvementTracaController extends AbstractController
                 'urgence'
             ];
 
-            return $CSVExportService->createCsvResponse(
+            return $CSVExportService->createBinaryResponseFromData(
                 'export_mouvement_traca.csv',
                 $mouvements,
                 $csvHeader,

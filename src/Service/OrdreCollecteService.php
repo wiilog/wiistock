@@ -18,7 +18,6 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Repository\MailerServerRepository;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use DateTime;
 use Exception;
 use Symfony\Component\Routing\Router;

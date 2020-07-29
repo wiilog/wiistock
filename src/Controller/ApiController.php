@@ -45,6 +45,7 @@ use App\Service\MouvementTracaService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
+use App\Service\FreeFieldService;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
@@ -1044,6 +1045,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
@@ -1053,7 +1055,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      */
     public function checkAndValidateDL(Request $request,
                                        EntityManagerInterface $entityManager,
-                                       DemandeLivraisonService $demandeLivraisonService): Response
+                                       DemandeLivraisonService $demandeLivraisonService,
+                                       FreeFieldService $champLibreService): Response
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -1061,7 +1064,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser) {
             $demandeArray = json_decode($request->request->get('demande'), true);
             $demandeArray['demandeur'] = $nomadUser;
-            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $demandeArray, true);
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
+                $entityManager,
+                $demandeArray,
+                true,
+                $champLibreService
+            );
         } else {
             $responseAfterQuantitiesCheck = [
                 'success' => false,

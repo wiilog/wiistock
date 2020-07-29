@@ -25,7 +25,6 @@ use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Throwable;
 

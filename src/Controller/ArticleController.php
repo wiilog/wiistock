@@ -13,9 +13,7 @@ use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ParametrageGlobalRepository;
@@ -45,13 +43,15 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use App\Service\ValeurChampLibreService;
+use App\Service\FreeFieldService;
 
 /**
  * @Route("/article")
  */
 class ArticleController extends AbstractController
 {
+
+    const MAX_CSV_FILE_LENGTH = 5000;
 
     private const ARTICLE_IS_USED_MESSAGES = [
         Article::USED_ASSOC_COLLECTE => "Cet article est lié à une ou plusieurs collectes.",
@@ -94,9 +94,9 @@ class ArticleController extends AbstractController
 	private $paramGlobalRepository;
 
     /**
-     * @var ValeurChampLibreService
+     * @var FreeFieldService
      */
-    private $valeurChampLibreService;
+    private $champLibreService;
 
     public function __construct(Twig_Environment $templating,
                                 GlobalParamService $globalParamService,
@@ -105,7 +105,7 @@ class ArticleController extends AbstractController
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
                                 CSVExportService $CSVExportService,
-                                ValeurChampLibreService $ValeurChampLibreService )
+                                FreeFieldService $champLibreService )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
@@ -114,7 +114,7 @@ class ArticleController extends AbstractController
         $this->userService = $userService;
         $this->templating = $templating;
         $this->CSVExportService = $CSVExportService;
-        $this->valeurChampLibreService = $ValeurChampLibreService;
+        $this->champLibreService = $champLibreService;
     }
 
     /**
@@ -277,7 +277,6 @@ class ArticleController extends AbstractController
         $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, FiltreSup::PAGE_ARTICLE, $this->getUser());
 
         return $this->render('article/index.html.twig', [
-            'valeurChampLibre' => null,
             'champsSearch' => $champsSearch,
             'recherches' => $user->getRechercheForArticle(),
             'champs' => $champs,
@@ -464,9 +463,6 @@ class ArticleController extends AbstractController
      *
      * @return Response
      *
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function editApi(Request $request,
                             ArticleDataService $articleDataService,
@@ -859,7 +855,6 @@ class ArticleController extends AbstractController
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $articleFournisseurRepository->getByFournisseur($fournisseur),
-                    'valeurChampLibre' => null,
                     'champsLibres' => [],
                 ]);
             } else {
@@ -949,112 +944,92 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/exporter/{min}/{max}", name="article_export", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
+     * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param $max
-     * @param $min
+     * @param CSVExportService $CSVExportService
      * @return Response
+     * @throws \Exception
      */
-    public function exportAll(Request $request,
-                              EntityManagerInterface $entityManager,
-                              $max,
-                              $min): Response
+    public function exportAllArticles(EntityManagerInterface $entityManager,
+                                  CSVExportService $CSVExportService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
-
-            $data = [];
-            $data['values'] = [];
-            $headersCL = [];
-            foreach ($champLibreRepository->findAll() as $champLibre) {
-                $headersCL[] = $champLibre->getLabel();
-            }
-
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
-
-            $refs = $articleRepository->findAll();
-            if ($max > count($refs)) $max = count($refs);
-            for ($i = $min; $i < $max; $i++) {
-                array_push($data['values'], $this->buildInfos($entityManager, $refs[$i], $listTypes, $headersCL));
-            }
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/total", name="get_total_and_headers_art", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function total(Request $request,
-                          EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $data['total'] = $articleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement', 'code barre', 'date dernier inventaire'];
-            foreach ($champLibreRepository->findAll() as $champLibre) {
-                array_push($data['headers'], $champLibre->getLabel());
-            }
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Article $article
-     * @param array $listTypes
-     * @param $headers
-     * @return string
-     */
-    public function buildInfos(EntityManagerInterface $entityManager,
-                               Article $article,
-                               $listTypes,
-                               $headers )
-    {
-        $typeRepository = $entityManager->getRepository(Type::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $category = CategoryType::ARTICLE;
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-        $articleFournisseur = $article->getArticleFournisseur();
-        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-        $refReferenceArticle = $referenceArticle ? $referenceArticle->getReference() : '';
+        $freeFieldsIds = array_map(
+            function (array $cl) {
+                return $cl['id'];
+            },
+            $freeFields
+        );
+        $freeFieldsHeader = array_map(
+            function (array $cl) {
+                return $cl['label'];
+            },
+            $freeFields
+        );
+        $headers = array_merge(
+            [
+                'reference',
+                'libelle',
+                'quantité',
+                'type',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'code barre',
+                'date dernier inventaire'
+            ],
+            $freeFieldsHeader
+        );
+        $today = new \DateTime();
+        $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
+        $articlesExportFiles = [];
+        $allArticlesCount = intval($articleRepository->countAll());
+        $step = self::MAX_CSV_FILE_LENGTH;
+        $start = 0;
+        do {
+            $articles = $articleRepository->getAllWithLimits($start, $step);
+            $articlesExportFiles[] = $this->generateArtsCSVFile($CSVExportService, $articles, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $articles = null;
+            $start += $step;
+        } while ($start < $allArticlesCount);
 
-        $refData[] = $this->CSVExportService->escapeCSV($refReferenceArticle);
-        $refData[] = $this->CSVExportService->escapeCSV($article->getLabel());
-        $refData[] = $this->CSVExportService->escapeCSV($article->getQuantite());
-        $refData[] = $article->getType() ? $this->CSVExportService->escapeCSV($article->getType()->getLabel()) : '';
-        $refData[] = $article->getStatut() ? $this->CSVExportService->escapeCSV($article->getStatut()->getNom()) : '';
-        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($article->getCommentaire()));
-        $refData[] = $article->getEmplacement() ? $this->CSVExportService->escapeCSV($article->getEmplacement()->getLabel()) : '';
-        $refData[] = $this->CSVExportService->escapeCSV($article->getBarCode());
-        $refData[] = $this->CSVExportService->escapeCSV($article->getDateLastInventory() ? $article->getDateLastInventory()->format('d/m/Y') : '');
-        $champsLibres = [];
-        foreach ($listTypes as $type) {
-            $typeArticle = $typeRepository->find($type['id']);
-            $listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-            foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-                if ($valeurChampRefArticle) {
-                    $champsLibres[$champLibre->getLabel()] = $this->valeurChampLibreService->formatValeurChampLibreForExport($valeurChampRefArticle);
+        return $CSVExportService->createBinaryResponseFromFile(
+            $CSVExportService->mergeCSVFiles($articlesExportFiles),
+            $globalTitle
+        );
+    }
+
+
+    private function generateArtsCSVFile(CSVExportService $CSVExportService, array $articles, ?array $headers, array $freeFields): string {
+        return $CSVExportService->createCsvFile(
+            $articles,
+            $headers,
+            function ($article) use ($freeFields) {
+                $articleArray = [
+                    $article['reference'],
+                    $article['label'],
+                    $article['quantite'],
+                    $article['typeLabel'],
+                    $article['statutName'],
+                    $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+                    $article['empLabel'],
+                    $article['barCode'],
+                    $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                ];
+                foreach ($freeFields as $freeField) {
+                    $articleArray[] = $article['freeFields'][$freeField] ?? "";
                 }
+                return [
+                    $articleArray
+                ];
             }
-        }
-        foreach ($headers as $type) {
-            if (array_key_exists($type, $champsLibres)) {
-                $refData[] = $this->CSVExportService->escapeCSV($champsLibres[$type]);
-            } else {
-                $refData[] = '';
-            }
-        }
-        return implode(';', $refData);
+        );
     }
 
     /**

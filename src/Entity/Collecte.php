@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CollecteRepository")
  */
-class Collecte
+class Collecte extends FreeFieldEntity
 {
     const CATEGORIE = 'collecte';
 
@@ -92,11 +92,6 @@ class Collecte
 	private $mouvements;
 
 	/**
-	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="demandesCollecte")
-	 */
-	private $valeurChampLibre;
-
-	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="demandeCollecte")
 	 */
 	private $ordreCollecte;
@@ -106,7 +101,6 @@ class Collecte
         $this->articles = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->valeurChampLibre = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
     }
 
@@ -276,32 +270,6 @@ class Collecte
     public function setType(?Type $type): self
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampLibre(): Collection
-    {
-        return $this->valeurChampLibre;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre[] = $valeurChampLibre;
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre->removeElement($valeurChampLibre);
-        }
 
         return $this;
     }

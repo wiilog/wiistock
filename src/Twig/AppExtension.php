@@ -30,7 +30,7 @@ class AppExtension extends AbstractExtension
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
-			new TwigFunction('displayMenu', [$this, 'displayMenuFunction'])
+            new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
         ];
     }
 
@@ -38,8 +38,8 @@ class AppExtension extends AbstractExtension
 	{
 		return [
 			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
-            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction'])
-		];
+            new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
+        ];
 	}
 
 	public function hasRightFunction(string $menuCode, string $actionLabel)

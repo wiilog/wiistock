@@ -14,7 +14,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("reference")
  */
-class Article
+class Article extends FreeFieldEntity
 {
     const CATEGORIE = 'article';
 
@@ -94,11 +94,6 @@ class Article
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="article")
-     */
-    private $valeurChampsLibres;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
     private $emplacement;
@@ -169,7 +164,6 @@ class Article
     {
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->valeurChampsLibres = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
@@ -313,33 +307,6 @@ class Article
         return $this;
     }
 
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampsLibres(): Collection
-    {
-        return $this->valeurChampsLibres;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampLibre;
-            $valeurChampLibre->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampLibre);
-            $valeurChampLibre->removeArticle($this);
-        }
-
-        return $this;
-    }
     public function getEmplacement(): ?Emplacement
     {
         return $this->emplacement;
@@ -410,26 +377,6 @@ class Article
             if ($mouvement->getArticle() === $this) {
                 $mouvement->setArticle(null);
             }
-        }
-
-        return $this;
-    }
-
-    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticle($this);
         }
 
         return $this;
