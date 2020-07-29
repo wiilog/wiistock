@@ -27,6 +27,7 @@ final class Version20200729102001 extends AbstractMigration
         $this->addSql('ALTER TABLE demande_valeur_champ_libre DROP FOREIGN KEY FK_49FA810F52CB289C');
         $this->addSql('ALTER TABLE reception_valeur_champ_libre DROP FOREIGN KEY FK_3A892A1E52CB289C');
         $this->addSql('ALTER TABLE valeur_champ_libre_article DROP FOREIGN KEY FK_B03869C852CB289C');
+        $this->addSql('ALTER TABLE valeur_champ_libre DROP FOREIGN KEY FK_59F211AACC5E904E');
         $this->addSql('DROP TABLE alerte_expiry');
         $this->addSql('DROP TABLE arrivage_valeur_champ_libre');
         $this->addSql('DROP TABLE collecte_valeur_champ_libre');
