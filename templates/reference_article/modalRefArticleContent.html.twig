@@ -17,7 +17,7 @@
     <div class="form-group col-4">
         {% if isADemand is not defined or not isADemand %}
             <div class="input-group radio-btn">
-                <label for="statut" class="mtb-auto mr-2">Statut</label>
+                <label for="statut" class="my-auto mr-2">Statut</label>
                 <div>
                     {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
                     {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
@@ -107,7 +107,7 @@
     {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4 mt-3">
             <div class="radio-btn">
-                <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
+                <label for="statut" class="my-auto mr-2">Gestion quantité</label>
                 <div class="btn-group">
                     <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}} disabled cursor-default"
                           data-title="reference">Par référence</span>
@@ -155,7 +155,7 @@
     </div>
 
     <div class="form-group col-4 reference {{ dnoneRef }}">
-        <label class="mtb-auto mr-2" for="quantite">Quantité</label>
+        <label class="my-auto mr-2" for="quantite">Quantité</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         {% set disabledOnDemand = isADemand is defined and isADemand ? 'disabled' : disabled %}
         <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
@@ -163,7 +163,7 @@
     </div>
 
     <div class="form-group col-4 article {{ dnone }}">
-        <label class="mtb-auto mr-2">Quantité</label>
+        <label class="my-auto mr-2">Quantité</label>
         <input class="form-control rounded" disabled value="{{ totalQuantity }}">
     </div>
 

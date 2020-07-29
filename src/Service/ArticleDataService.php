@@ -32,6 +32,7 @@ use App\Entity\CategorieCL;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
@@ -51,7 +52,8 @@ class ArticleDataService
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
 	private $typeCLOnLabel;
-	private $valeurChampLibreService;
+    private $valeurChampLibreService;
+    private $mouvementStockService;
 
     public function __construct(ValeurChampLibreService $valeurChampLibreService,
                                 MailerService $mailerService,
@@ -60,6 +62,7 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
+                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
@@ -69,6 +72,7 @@ class ArticleDataService
         $this->specificService = $specificService;
         $this->mailerService = $mailerService;
         $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -270,20 +274,15 @@ class ArticleDataService
             ];
         }
 
-        $typeChampsLibres =
-            [
+        return $this->templating->render('article/modalArticleContent.html.twig', [
+            'typeChampsLibres' => [
                 'type' => $typeArticleLabel,
                 'champsLibres' => $champsLibres,
-            ];
-
-        $statut = $article->getStatut()->getNom();
-
-        return $this->templating->render('article/modalArticleContent.html.twig', [
-            'typeChampsLibres' => $typeChampsLibres,
+            ],
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
-            'statut' => $statut,
+            'statut' => $article->getStatut() ? $article->getStatut()->getNom() : '',
             'isADemand' => $isADemand,
             'invCategory' => $refArticle->getCategory()
         ]);
@@ -354,12 +353,15 @@ class ArticleDataService
      * @param array $data
      * @param Demande $demande
      * @param Reception $reception
+     *
      * @return Article
+     *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws Exception
      */
-    public function newArticle($data, $demande = null, $reception = null)
+    public function newArticle($data, Demande $demande = null, Reception $reception = null)
     {
         $entityManager = $this->entityManager;
 
@@ -407,6 +409,8 @@ class ArticleDataService
         	$entityManager->flush();
 		}
 
+        $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
+
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
             ->setConform(isset($data['conform']) ? !$data['conform'] : true)
@@ -414,7 +418,7 @@ class ArticleDataService
             ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
-            ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
+            ->setQuantite($quantity)
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)

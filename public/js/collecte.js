@@ -207,7 +207,7 @@ function validateCollecte(collecteId, $button) {
 }
 
 let ajaxEditArticle = function (select) {
-    let path = Routing.generate('article_api_edit', true);
+    let path = Routing.generate('article_show', true);
     let params = {id: select.val(), isADemand: 1};
 
     $.post(path, JSON.stringify(params), function(data) {
