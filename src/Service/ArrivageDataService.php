@@ -34,7 +34,7 @@ class ArrivageDataService
     private $specificService;
     private $stringService;
     private $translator;
-    private $champLibreService;
+    private $freeFieldService;
     private $fieldsParamService;
 
     public function __construct(UserService $userService,
@@ -42,7 +42,7 @@ class ArrivageDataService
                                 MailerService $mailerService,
                                 SpecificService $specificService,
                                 StringService $stringService,
-                                ChampLibreService $champLibreService,
+                                FreeFieldService $champLibreService,
                                 FieldsParamService $fieldsParamService,
                                 TranslatorInterface $translator,
                                 Twig_Environment $templating,
@@ -51,7 +51,7 @@ class ArrivageDataService
     {
 
         $this->templating = $templating;
-        $this->champLibreService = $champLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->fieldsParamService = $fieldsParamService;
         $this->translator = $translator;
         $this->stringService = $stringService;
@@ -330,12 +330,7 @@ class ArrivageDataService
 
     public function createHeaderDetailsConfig(Arrivage $arrivage): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $freeFields = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]), function(array $acc, ChampLibre $freeField) {
-            $acc[$freeField->getId()] = $freeField->getLabel();
-            return $acc;
-        }, []);
 
         $provider = $arrivage->getFournisseur();
         $carrier = $arrivage->getTransporteur();
@@ -347,15 +342,12 @@ class ArrivageDataService
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachements();
 
-        $detailsChampLibres = [];
-        foreach ($arrivage->getFreeFields() as $key => $freeField) {
-            if ($freeField) {
-                $detailsChampLibres[] = [
-                    'label' => $freeFields[$key],
-                    'value' => $freeField
-                ];
-            }
-        }
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $arrivage,
+            null,
+            CategoryType::ARRIVAGE
+        );
 
         $config = [
             [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
@@ -419,7 +411,7 @@ class ArrivageDataService
 
         return array_merge(
             $configFiltered,
-            $detailsChampLibres,
+            $freeFieldArray,
             $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
                 ? [[
                 'label' => 'Commentaire',

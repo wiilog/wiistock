@@ -17,7 +17,7 @@ final class Version20200722085149 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Migration for free field of reference article.';
     }
 
     public function up(Schema $schema): void
@@ -50,17 +50,18 @@ final class Version20200722085149 extends AbstractMigration
 
             $refsFreeFieldIdsString = implode(',', $refsFreeFieldIds);
 
-            $allRefs =
-                $this
-                    ->connection
-                    ->executeQuery('
+            $allRefs = $this->connection
+                ->executeQuery('
                     SELECT reference_article.id, t.id as typeId
                     FROM reference_article
                     INNER JOIN type t on reference_article.type_id = t.id
-                ')->fetchAll();
+                ')
+                ->fetchAll();
 
             foreach ($allRefs as $index => $ref) {
-                if ($index % 500 === 0) dump('500 de plus!');
+                if ($index % 500 === 0) {
+                    dump('500 de plus!');
+                }
                 $freeFieldsToBeInsertedInJSON = [];
                 $refId = intval($ref['id']);
                 $typeId = intval($ref['typeId']);

@@ -46,7 +46,7 @@ use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -154,14 +154,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
-                        ChampLibreService $champLibreService,
+                        FreeFieldService $champLibreService,
                         ReceptionService $receptionService,
                         Request $request): Response
     {
@@ -251,14 +251,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
-                         ChampLibreService $champLibreService,
+                         FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
                          Request $request): Response
     {
@@ -1842,7 +1842,7 @@ class ReceptionController extends AbstractController
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param MouvementTracaService $mouvementTracaService
      * @param MouvementStockService $mouvementStockService
      * @return Response
@@ -1856,7 +1856,7 @@ class ReceptionController extends AbstractController
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
                                    Reception $reception,
-                                   ChampLibreService $champLibreService,
+                                   FreeFieldService $champLibreService,
                                    MouvementTracaService $mouvementTracaService,
                                    MouvementStockService $mouvementStockService): Response
     {

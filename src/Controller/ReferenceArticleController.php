@@ -24,7 +24,7 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\DemandeRepository;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -126,7 +126,7 @@ class ReferenceArticleController extends AbstractController
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 CSVExportService $CSVExportService,
-                                ChampLibreService $champLibreService)
+                                FreeFieldService $champLibreService)
     {
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -311,7 +311,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
@@ -322,7 +322,7 @@ class ReferenceArticleController extends AbstractController
      * @throws SyntaxError
      */
     public function new(Request $request,
-                        ChampLibreService $champLibreService,
+                        FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
@@ -690,7 +690,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
@@ -698,7 +698,7 @@ class ReferenceArticleController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, ChampLibreService $champLibreService): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -898,7 +898,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
      * @throws ArticleNotAvailableException
@@ -911,7 +911,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
-                                ChampLibreService $champLibreService,
+                                FreeFieldService $champLibreService,
                                 DemandeCollecteService $demandeCollecteService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {

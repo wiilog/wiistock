@@ -5,7 +5,6 @@ namespace App\Service;
 
 
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
@@ -27,19 +26,19 @@ class ReceptionService
     private $fieldsParamService;
     private $stringService;
     private $translator;
-    private $champLibreService;
+    private $freeFieldService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FieldsParamService $fieldsParamService,
                                 StringService $stringService,
-                                ChampLibreService $champLibreService,
+                                FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->champLibreService = $champLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
         $this->fieldsParamService = $fieldsParamService;
@@ -101,12 +100,8 @@ class ReceptionService
 
     public function createHeaderDetailsConfig(Reception $reception): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
-        $freeFields = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::RECEPTION]), function(array $acc, ChampLibre $freeField) {
-            $acc[$freeField->getId()] = $freeField->getLabel();
-            return $acc;
-        }, []);
+
         $status = $reception->getStatut();
         $provider = $reception->getFournisseur();
         $carrier = $reception->getTransporteur();
@@ -118,16 +113,12 @@ class ReceptionService
         $reference = $reception->getReference();
         $comment = $reception->getCommentaire();
 
-        $detailsChampLibres = [];
-        foreach ($reception->getFreeFields() as $key => $freeField) {
-            if ($freeField) {
-                $detailsChampLibres[] = [
-                    'label' => $freeFields[$key],
-                    'value' => $freeField
-                ];
-            }
-        }
-
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $reception,
+            null,
+            CategoryType::RECEPTION
+        );
 
         $config = [
             [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
@@ -180,7 +171,7 @@ class ReceptionService
 
         return array_merge(
             $configFiltered,
-            $detailsChampLibres,
+            $freeFieldArray,
             $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
                 ? [[
                     'label' => 'Commentaire',

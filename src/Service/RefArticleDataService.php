@@ -81,7 +81,7 @@ class RefArticleDataService
 
     public function __construct(RouterInterface $router,
                                 UserService $userService,
-                                ChampLibreService $champLibreService,
+                                FreeFieldService $champLibreService,
                                 EntityManagerInterface $entityManager,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
@@ -146,12 +146,15 @@ class RefArticleDataService
         $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
-                function (array $carry, ArticleFournisseur $articleFournisseur) {
+                function (array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef) {
+                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                        ? $articleFournisseur->getArticles()->toArray()
+                        : [];
                     $carry[] = [
                         'reference' => $articleFournisseur->getReference(),
                         'label' => $articleFournisseur->getLabel(),
                         'fournisseurCode' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                        'quantity' => array_reduce($articleFournisseur->getArticles()->toArray(), function (int $carry, Article $article) {
+                        'quantity' => array_reduce($articles, function (int $carry, Article $article) {
                             return ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
                                 ? $carry + $article->getQuantite()
                                 : $carry;
@@ -224,7 +227,7 @@ class RefArticleDataService
      * @param ReferenceArticle $refArticle
      * @param string[] $data
      * @param Utilisateur $user
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return RedirectResponse
      * @throws ArticleNotAvailableException
      * @throws DBALException
@@ -237,7 +240,7 @@ class RefArticleDataService
     public function editRefArticle($refArticle,
                                    $data,
                                    Utilisateur $user,
-                                   ChampLibreService $champLibreService)
+                                   FreeFieldService $champLibreService)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -399,7 +402,7 @@ class RefArticleDataService
      * @param bool $fromNomade
      * @param EntityManagerInterface $entityManager
      * @param Demande $demande
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return bool
      * @throws ArticleNotAvailableException
      * @throws DBALException
@@ -415,7 +418,7 @@ class RefArticleDataService
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   ChampLibreService $champLibreService)
+                                   FreeFieldService $champLibreService)
     {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);

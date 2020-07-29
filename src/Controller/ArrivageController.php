@@ -37,7 +37,7 @@ use App\Service\SpecificService;
 use App\Service\StatutService;
 use App\Service\UserService;
 use App\Service\MailerService;
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -235,7 +235,7 @@ class ArrivageController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param UserService $userService
      * @param ArrivageDataService $arrivageDataService
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param ColisService $colisService
      * @return Response
      * @throws LoaderError
@@ -251,7 +251,7 @@ class ArrivageController extends AbstractController
                         AttachmentService $attachmentService,
                         UserService $userService,
                         ArrivageDataService $arrivageDataService,
-                        ChampLibreService $champLibreService,
+                        FreeFieldService $champLibreService,
                         ColisService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -499,7 +499,7 @@ class ArrivageController extends AbstractController
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      *
      * @return Response
@@ -512,7 +512,7 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request,
                          ArrivageDataService $arrivageDataService,
-                         ChampLibreService $champLibreService,
+                         FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {

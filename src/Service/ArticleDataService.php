@@ -57,7 +57,7 @@ class ArticleDataService
 	private $typeCLOnLabel;
 	private $champLibreService;
 
-    public function __construct(ChampLibreService $champLibreService,
+    public function __construct(FreeFieldService $champLibreService,
                                 MailerService $mailerService,
                                 SpecificService $specificService,
                                 RouterInterface $router,

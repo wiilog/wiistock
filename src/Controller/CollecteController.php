@@ -21,7 +21,7 @@ use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -232,13 +232,13 @@ class CollecteController extends AbstractController
     /**
      * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(Request $request,
-                        ChampLibreService $champLibreService,
+                        FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -271,7 +271,7 @@ class CollecteController extends AbstractController
                 ->setstockOrDestruct($destination);
             $entityManager->persist($collecte);
             $entityManager->flush();
-            $champLibreService->manageFreeFields($collecte, $data, $entityManager);
+            $freeFieldService->manageFreeFields($collecte, $data, $entityManager);
             $entityManager->flush();
             $data = [
                 'redirect' => $this->generateUrl('collecte_show', ['id' => $collecte->getId()]),
@@ -285,7 +285,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
@@ -298,7 +298,7 @@ class CollecteController extends AbstractController
      * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function addArticle(Request $request,
-                               ChampLibreService $champLibreService,
+                               FreeFieldService $champLibreService,
                                EntityManagerInterface $entityManager,
                                DemandeCollecteService $demandeCollecteService): Response
     {
@@ -490,14 +490,14 @@ class CollecteController extends AbstractController
      * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeCollecteService $collecteService
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws \Exception
      */
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,
-                         ChampLibreService $champLibreService,
+                         FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {

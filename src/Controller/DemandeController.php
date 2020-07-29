@@ -25,7 +25,7 @@ use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -97,7 +97,7 @@ class DemandeController extends AbstractController
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws DBALException
@@ -110,7 +110,7 @@ class DemandeController extends AbstractController
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
-                                 ChampLibreService $champLibreService,
+                                 FreeFieldService $champLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -186,14 +186,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
-                         ChampLibreService $champLibreService,
+                         FreeFieldService $champLibreService,
                          DemandeLivraisonService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
@@ -252,11 +252,11 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function new(Request $request, EntityManagerInterface $entityManager, ChampLibreService $champLibreService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
@@ -467,7 +467,7 @@ class DemandeController extends AbstractController
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
@@ -477,7 +477,7 @@ class DemandeController extends AbstractController
      * @throws \App\Exceptions\ArticleNotAvailableException
      * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
-    public function addArticle(Request $request, EntityManagerInterface $entityManager, ChampLibreService $champLibreService): Response
+    public function addArticle(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {

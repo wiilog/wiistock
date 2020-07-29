@@ -42,7 +42,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 
 /**
  * @Route("/article")
@@ -93,7 +93,7 @@ class ArticleController extends AbstractController
 	private $paramGlobalRepository;
 
     /**
-     * @var ChampLibreService
+     * @var FreeFieldService
      */
     private $champLibreService;
 
@@ -104,7 +104,7 @@ class ArticleController extends AbstractController
                                 UserService $userService,
                                 ParametrageGlobalRepository $parametrageGlobalRepository,
                                 CSVExportService $CSVExportService,
-                                ChampLibreService $champLibreService )
+                                FreeFieldService $champLibreService )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
         $this->globalParamService = $globalParamService;
@@ -1032,10 +1032,11 @@ class ArticleController extends AbstractController
             $articles = null;
             $start += $step;
         } while ($start < $allArticlesCount);
-        $masterCSVFileName = $CSVExportService
-            ->mergeCSVFiles($articlesExportFiles);
-        return $CSVExportService
-            ->createBinaryResponseFromFile($masterCSVFileName, $globalTitle);
+
+        return $CSVExportService->createBinaryResponseFromFile(
+            $CSVExportService->mergeCSVFiles($articlesExportFiles),
+            $globalTitle
+        );
     }
 
 

@@ -69,9 +69,11 @@ class DemandeLivraisonService
     private $mailerService;
     private $translator;
     private $preparationsManager;
+    private $freeFieldService;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
+                                FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
                                 PreparationsManagerService $preparationsManager,
@@ -93,6 +95,7 @@ class DemandeLivraisonService
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->refArticleDataService = $refArticleDataService;
+        $this->freeFieldService = $freeFieldService;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
@@ -151,11 +154,11 @@ class DemandeLivraisonService
      * @param $data
      * @param EntityManagerInterface $entityManager
      * @param bool $fromNomade
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return Demande|array|JsonResponse
      * @throws NonUniqueResultException
      */
-    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, ChampLibreService $champLibreService)
+    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, FreeFieldService $champLibreService)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -245,7 +248,7 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param array $demandeArray
      * @param bool $fromNomade
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return array
      * @throws DBALException
      * @throws LoaderError
@@ -258,7 +261,7 @@ class DemandeLivraisonService
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array $demandeArray,
                                             bool $fromNomade = false,
-                                            ChampLibreService $champLibreService): array
+                                            FreeFieldService $champLibreService): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -464,24 +467,14 @@ class DemandeLivraisonService
         $validationDate = $demande->getValidationDate();
         $type = $demande->getType();
         $comment = $demande->getCommentaire();
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $categorieCLRepository =  $this->entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
 
-        $category = CategoryType::DEMANDE_LIVRAISON;
-        $freeFields = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-            $acc[$freeField['id']] = $freeField['label'];
-            return $acc;
-        }, []);
-        $detailsChampLibres = [];
-        foreach ($demande->getFreeFields() as $key => $freeField) {
-            if ($freeField) {
-                $detailsChampLibres[] = [
-                    'label' => $freeFields[$key],
-                    'value' => $freeField
-                ];
-            }
-        }
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $demande,
+            CategorieCL::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_LIVRAISON
+        );
+
         return array_merge(
             [
                 ['label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''],
@@ -491,7 +484,7 @@ class DemandeLivraisonService
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : ''],
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : '']
             ],
-            $detailsChampLibres,
+            $freeFieldArray,
             [
                 [
                     'label' => 'Commentaire',

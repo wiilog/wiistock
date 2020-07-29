@@ -7,7 +7,6 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -44,14 +43,14 @@ class DemandeCollecteService
 
     private $entityManager;
     private $stringService;
-    private $champLibreService;
+    private $freeFieldService;
     private $articleFournisseurService;
     private $articleDataService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 StringService $stringService,
-                                ChampLibreService $champLibreService,
+                                FreeFieldService $champLibreService,
                                 ArticleFournisseurService $articleFournisseurService,
                                 ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager,
@@ -60,7 +59,7 @@ class DemandeCollecteService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
-        $this->champLibreService = $champLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->articleDataService = $articleDataService;
         $this->router = $router;
@@ -144,24 +143,14 @@ class DemandeCollecteService
         $object = $collecte->getObjet();
         $type = $collecte->getType();
         $comment = $collecte->getCommentaire();
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $categorieCLRepository =  $this->entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_COLLECTE);
 
-        $category = CategoryType::DEMANDE_COLLECTE;
-        $freeFields = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-            $acc[$freeField['id']] = $freeField['label'];
-            return $acc;
-        }, []);
-        $detailsChampLibres = [];
-        foreach ($collecte->getFreeFields() as $key => $freeField) {
-            if ($freeField) {
-                $detailsChampLibres[] = [
-                    'label' => $freeFields[$key],
-                    'value' => $freeField
-                ];
-            }
-        }
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $collecte,
+            CategorieCL::DEMANDE_COLLECTE,
+            CategoryType::DEMANDE_COLLECTE
+        );
+
         return array_merge(
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
@@ -173,7 +162,7 @@ class DemandeCollecteService
                 [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
                 [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
             ],
-            $detailsChampLibres,
+            $freeFieldArray,
             [
                 [
                     'label' => 'Commentaire',

@@ -43,7 +43,7 @@ use App\Service\MouvementTracaService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
-use App\Service\ChampLibreService;
+use App\Service\FreeFieldService;
 use DateTimeZone;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
@@ -1044,7 +1044,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService $demandeLivraisonService
-     * @param ChampLibreService $champLibreService
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws ArticleNotAvailableException
      * @throws DBALException
@@ -1057,7 +1057,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function checkAndValidateDL(Request $request,
                                        EntityManagerInterface $entityManager,
                                        DemandeLivraisonService $demandeLivraisonService,
-                                       ChampLibreService $champLibreService): Response
+                                       FreeFieldService $champLibreService): Response
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);

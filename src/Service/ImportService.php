@@ -1003,6 +1003,7 @@ class ImportService
         $freeFieldsToInsert = [];
 
         foreach ($colChampsLibres as $clId => $col) {
+            /** @var ChampLibre $champLibre */
             $champLibre = $champLibreRepository->find($clId);
 
             switch ($champLibre->getTypage()) {
@@ -1027,9 +1028,8 @@ class ImportService
             }
             $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
         }
-        // TODO
-            $refOrArt
-                ->setFreeFields($freeFieldsToInsert);
+
+        $refOrArt->setFreeFields($freeFieldsToInsert);
     }
 
     /**
