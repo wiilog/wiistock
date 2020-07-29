@@ -366,15 +366,7 @@ class DemandeLivraisonService
         $preparation
             ->setNumero($preparationNumber)
             ->setDate($date);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
 
-        $category = CategoryType::DEMANDE_LIVRAISON;
-        $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-            $acc[$freeField['id']] = $freeField['label'];
-            return $acc;
-        }, []);
         $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
         $preparation->setStatut($statutP);
         $entityManager->persist($preparation);
@@ -459,7 +451,7 @@ class DemandeLivraisonService
             $response['message'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                'showDetails' => $this->createHeaderDetailsConfig($demande, $champs)
+                'showDetails' => $this->createHeaderDetailsConfig($demande)
             ]);
             $response['demande'] = $demande;
         }
@@ -491,7 +483,7 @@ class DemandeLivraisonService
         $this->entityManager->flush();
     }
 
-    public function createHeaderDetailsConfig(Demande $demande, array $freeFields): array
+    public function createHeaderDetailsConfig(Demande $demande): array
     {
         $status = $demande->getStatut();
         $requester = $demande->getUtilisateur();
@@ -500,9 +492,16 @@ class DemandeLivraisonService
         $validationDate = $demande->getValidationDate();
         $type = $demande->getType();
         $comment = $demande->getCommentaire();
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository =  $this->entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
 
+        $category = CategoryType::DEMANDE_LIVRAISON;
+        $freeFields = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
+            $acc[$freeField['id']] = $freeField['label'];
+            return $acc;
+        }, []);
         $detailsChampLibres = [];
-
         foreach ($demande->getFreeFields() as $key => $freeField) {
             if ($freeField) {
                 $detailsChampLibres[] = [

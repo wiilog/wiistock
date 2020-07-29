@@ -133,20 +133,12 @@ class CollecteController extends AbstractController
         }
 
         $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_COLLECTE);
 
-        $category = CategoryType::DEMANDE_COLLECTE;
-        $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-            $acc[$freeField['id']] = $freeField['label'];
-            return $acc;
-        }, []);
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte, $champs)
+            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte)
 		]);
     }
 
@@ -550,20 +542,11 @@ class CollecteController extends AbstractController
                 $valeurChampLibreService->manageFreeFields($collecte, $data, $entityManager);
                 $entityManager->flush();
 
-                $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-                $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-                $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_COLLECTE);
-
-                $category = CategoryType::DEMANDE_COLLECTE;
-                $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-                    $acc[$freeField['id']] = $freeField['label'];
-                    return $acc;
-                }, []);
                 $response = [
 					'entete' => $this->renderView('collecte/collecte-show-header.html.twig', [
 						'collecte' => $collecte,
 						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-                        'showDetails' => $collecteService->createHeaderDetailsConfig($collecte, $champs)
+                        'showDetails' => $collecteService->createHeaderDetailsConfig($collecte)
 					]),
 				];
 			} else {

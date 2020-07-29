@@ -210,14 +210,6 @@ class DemandeController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
-
-            $category = CategoryType::DEMANDE_LIVRAISON;
-            $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-                $acc[$freeField['id']] = $freeField['label'];
-                return $acc;
-            }, []);
 
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
@@ -246,7 +238,7 @@ class DemandeController extends AbstractController
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande, $champs)
+                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
                     ]),
                 ];
 
@@ -400,14 +392,6 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
-        $category = CategoryType::DEMANDE_LIVRAISON;
-        $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
-            $acc[$freeField['id']] = $freeField['label'];
-            return $acc;
-        }, []);
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
@@ -415,7 +399,7 @@ class DemandeController extends AbstractController
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
-            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande, $champs)
+            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
         ]);
     }
 

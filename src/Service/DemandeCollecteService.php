@@ -5,6 +5,9 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -133,7 +136,7 @@ class DemandeCollecteService
     }
 
 
-    public function createHeaderDetailsConfig(Collecte $collecte, array $freeFields): array {
+    public function createHeaderDetailsConfig(Collecte $collecte): array {
         $requester = $collecte->getDemandeur();
         $status = $collecte->getStatut();
         $date = $collecte->getDate();
@@ -142,6 +145,15 @@ class DemandeCollecteService
         $object = $collecte->getObjet();
         $type = $collecte->getType();
         $comment = $collecte->getCommentaire();
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository =  $this->entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_COLLECTE);
+
+        $category = CategoryType::DEMANDE_COLLECTE;
+        $freeFields = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
+            $acc[$freeField['id']] = $freeField['label'];
+            return $acc;
+        }, []);
         $detailsChampLibres = [];
         foreach ($collecte->getFreeFields() as $key => $freeField) {
             if ($freeField) {

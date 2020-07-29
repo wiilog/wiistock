@@ -23,7 +23,7 @@
                            name="{{ freeField.id }}">
 
                 {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
-                    <select class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }}" id="{{ freeField.id ~ actionType }}"
+                    <select class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100" id="{{ freeField.id ~ actionType }}"
                             name="{{ freeField.id }}">
                         <option value="">aucune selection...</option>
                         {% for elem in freeField.elements  %}
@@ -35,7 +35,7 @@
 
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST_MULTIPLE') %}
                     <select id="{{ freeField.id ~ actionType }}"
-                            class="form-control data list-multiple  {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                            class="form-control data list-multiple  {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100"
                             name="{{ freeField.id }}" multiple="multiple">
                         {% for elem in freeField.elements %}
                             {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : [] %}

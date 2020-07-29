@@ -231,19 +231,10 @@ class ReceptionController extends AbstractController
                 ->setType($type)
                 ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($reception);
-            $em->flush();
+            $entityManager->persist($reception);
+            $entityManager->flush();
 
-            $champsLibresKey = array_keys($data);
-            foreach ($champsLibresKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-                    $valeurChampLibre->addReception($reception);
-                    $em->persist($valeurChampLibre);
-                    $em->flush();
-                }
-            }
+            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
 
             $entityManager->flush();
 
@@ -318,26 +309,10 @@ class ReceptionController extends AbstractController
 
             $entityManager->flush();
 
-            $champLibreKey = array_keys($data);
-            foreach ($champLibreKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $champLibre = $champLibreRepository->find($champ);
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-                    $value = $data[$champ];
-                    // si la valeur n'existe pas, on la crée
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
-                        $valeurChampLibre->addReception($reception);
-                        $entityManager->persist($valeurChampLibre);
-                    }
-                    else {
-                        $valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                    }
-                    $entityManager->flush();
-                }
-            }
-            $entityManager->flush();
 
+            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
+
+            $entityManager->flush();
             $json = [
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
@@ -377,6 +352,7 @@ class ReceptionController extends AbstractController
             $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
             $typeChampLibre = [];
+            $champsLibresEntity = [];
             foreach ($listType as $type) {
                 $champsLibresComplet = $champLibreRepository->findByType($type['id']);
                 $champsLibres = [];
@@ -392,6 +368,7 @@ class ReceptionController extends AbstractController
                         'valeurChampLibre' => $valeurChampReception,
                         'requiredEdit' => $champLibre->getRequiredEdit()
                     ];
+                    $champsLibresEntity[] = $champLibre;
                 }
 
                 $typeChampLibre[] = [
@@ -408,6 +385,7 @@ class ReceptionController extends AbstractController
                 'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre,
                 'fieldsParam' => $fieldsParam,
+                'freeFieldsGroupedByTypes' => $champsLibresEntity
             ]);
             return new JsonResponse($json);
         }
@@ -636,6 +614,7 @@ class ReceptionController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
@@ -672,7 +651,6 @@ class ReceptionController extends AbstractController
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
-
             $json = [
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,

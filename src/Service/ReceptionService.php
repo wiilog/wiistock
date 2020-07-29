@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
@@ -101,8 +102,12 @@ class ReceptionService
 
     public function createHeaderDetailsConfig(Reception $reception): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
-
+        $freeFields = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::RECEPTION]), function(array $acc, ChampLibre $freeField) {
+            $acc[$freeField->getId()] = $freeField->getLabel();
+            return $acc;
+        }, []);
         $status = $reception->getStatut();
         $provider = $reception->getFournisseur();
         $carrier = $reception->getTransporteur();
@@ -114,17 +119,15 @@ class ReceptionService
         $reference = $reception->getReference();
         $comment = $reception->getCommentaire();
 
-        $detailsChampLibres = $reception
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
+        $detailsChampLibres = [];
+        foreach ($reception->getFreeFields() as $key => $freeField) {
+            if ($freeField) {
+                $detailsChampLibres[] = [
+                    'label' => $freeFields[$key],
+                    'value' => $freeField
                 ];
-            })
-            ->toArray();
+            }
+        }
 
 
         $config = [

@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
@@ -327,9 +329,14 @@ class ArrivageDataService
         return $alertConfigs;
     }
 
-    public function createHeaderDetailsConfig(Arrivage $arrivage, array $freeFields): array {
+    public function createHeaderDetailsConfig(Arrivage $arrivage): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $freeFields = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]), function(array $acc, ChampLibre $freeField) {
+            $acc[$freeField->getId()] = $freeField->getLabel();
+            return $acc;
+        }, []);
 
         $provider = $arrivage->getFournisseur();
         $carrier = $arrivage->getTransporteur();
