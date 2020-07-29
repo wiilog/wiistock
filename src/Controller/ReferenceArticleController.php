@@ -30,6 +30,7 @@ use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Validator\Constraints\Date;
 use Twig\Environment as Twig_Environment;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
@@ -65,6 +66,8 @@ use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
  */
 class ReferenceArticleController extends AbstractController
 {
+
+    const MAX_CSV_FILE_LENGTH = 5000;
 
     /**
      * @var FiltreRefRepository
@@ -159,6 +162,7 @@ class ReferenceArticleController extends AbstractController
             $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
             $columnsVisible = $currentUser->getColumnVisible();
             $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+
             $category = CategoryType::ARTICLE;
             $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
@@ -309,6 +313,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param ValeurChampLibreService $valeurChampLibreService
+     * @param EntityManagerInterface $entityManager
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws DBALException
@@ -319,14 +324,13 @@ class ReferenceArticleController extends AbstractController
      */
     public function new(Request $request,
                         ValeurChampLibreService $valeurChampLibreService,
+                        EntityManagerInterface $entityManager,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $entityManager = $this->getDoctrine()->getManager();
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -346,7 +350,6 @@ class ReferenceArticleController extends AbstractController
 					'codeError' => 'DOUBLON-REF'
 				]);
             }
-            $requiredCreate = true;
 
             $type = $typeRepository->find($data['type']);
 
@@ -355,19 +358,6 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             };
-            $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
-            $msgMissingCL = '';
-            foreach ($CLRequired as $CL) {
-                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-                    $requiredCreate = false;
-                    if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
-                    $msgMissingCL .= $CL['label'];
-                }
-            }
-
-            if (!$requiredCreate) {
-                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
-            }
 
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
@@ -447,16 +437,9 @@ class ReferenceArticleController extends AbstractController
             $entityManager->persist($refArticle);
             $entityManager->flush();
 
-            $champsLibresKey = array_keys($data);
+            $valeurChampLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
-            foreach ($champsLibresKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-                    $valeurChampLibre->addArticleReference($refArticle);
-                    $entityManager->persist($valeurChampLibre);
-                    $entityManager->flush();
-                }
-            }
+            $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
                 'new' => $this->refArticleDataService->dataRowRefArticle($refArticle),
@@ -646,6 +629,7 @@ class ReferenceArticleController extends AbstractController
         $inventoryCategories = $inventoryCategoryRepository->findAll();
         $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];
+        $freeFieldsGroupedByTypes = [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
             $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -654,12 +638,14 @@ class ReferenceArticleController extends AbstractController
                 'typeId' => $type->getId(),
                 'champsLibres' => $champsLibres,
             ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
         $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsSearch' => $champsSearch,
+            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'recherches' => $search,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
@@ -705,13 +691,15 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -733,7 +721,7 @@ class ReferenceArticleController extends AbstractController
             }
             if ($refArticle) {
                 try {
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $valeurChampLibreService);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -911,17 +899,20 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param DemandeRepository $demandeRepository
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
+     * @throws ArticleNotAvailableException
      * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
+                                ValeurChampLibreService $valeurChampLibreService,
                                 DemandeCollecteService $demandeCollecteService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -936,7 +927,15 @@ class ReferenceArticleController extends AbstractController
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
 				    $demande = $demandeRepository->find($data['livraison']);
-                    $json = $this->refArticleDataService->addRefToDemand($data, $refArticle, $this->getUser(), false, $entityManager, $demande);
+                    $json = $this->refArticleDataService->addRefToDemand(
+                        $data,
+                        $refArticle,
+                        $this->getUser(),
+                        false,
+                        $entityManager,
+                        $demande,
+                        $valeurChampLibreService
+                    );
                     if ($json === 'article') {
                         try {
                             $this->articleDataService->editArticle($data);
@@ -1111,6 +1110,108 @@ class ReferenceArticleController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+
+    /**
+     * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
+     * @param EntityManagerInterface $entityManager
+     * @param CSVExportService $CSVExportService
+     * @return Response
+     * @throws Exception
+     */
+    public function exportAllRefs(EntityManagerInterface $entityManager,
+                              CSVExportService $CSVExportService): Response
+    {
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $category = CategoryType::ARTICLE;
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
+        $freeFieldsIds = array_map(
+            function (array $cl) {
+                return $cl['id'];
+            },
+            $freeFields
+        );
+        $freeFieldsHeader = array_map(
+            function (array $cl) {
+                return $cl['label'];
+            },
+            $freeFields
+        );
+        $headers = array_merge(
+            [
+                'reference',
+                'libellé',
+                'quantité',
+                'type',
+                'type quantité',
+                'statut',
+                'commentaire',
+                'emplacement',
+                'seuil sécurite',
+                'seuil alerte',
+                'prix unitaire',
+                'code barre',
+                'catégorie inventaire',
+                'date dernier inventaire',
+                'synchronisation nomade'
+            ],
+            $freeFieldsHeader
+        );
+        $today = new \DateTime();
+        $globalTitle = 'export-references-' . $today->format('d-m-Y H:i:s') . '.csv';
+        $referencesExportFiles = [];
+        $allReferencesCount = intval($referenceArticleRepository->countAll());
+        $step = self::MAX_CSV_FILE_LENGTH;
+        $start = 0;
+        do {
+            $references = $referenceArticleRepository->getAllWithLimits($start, $step);
+            $referencesExportFiles[] = $this->generateRefsCSVFile($CSVExportService, $references, ($start === 0 ? $headers : null), $freeFieldsIds);
+            $references = null;
+            $start += $step;
+        } while ($start < $allReferencesCount);
+        $masterCSVFileName = $CSVExportService
+            ->mergeCSVFiles($referencesExportFiles);
+        return $CSVExportService
+            ->createBinaryResponseFromFile($masterCSVFileName, $globalTitle);
+    }
+
+
+    private function generateRefsCSVFile(CSVExportService $CSVExportService, array $references, ?array $headers, array $freeFields): string {
+        return $CSVExportService->createCsvFile(
+            $references,
+            $headers,
+            function ($reference) use ($freeFields) {
+                $referenceArray = [
+                    $reference['reference'],
+                    $reference['libelle'],
+                    $reference['quantiteStock'],
+                    $reference['type'],
+                    $reference['typeQuantite'],
+                    $reference['statut'],
+                    $reference['commentaire'] ? strip_tags($reference['commentaire']) : '',
+                    $reference['emplacement'],
+                    $reference['limitSecurity'],
+                    $reference['limitWarning'],
+                    $reference['prixUnitaire'],
+                    $reference['barCode'],
+                    $reference['category'],
+                    $reference['dateLastInventory'] ? $reference['dateLastInventory']->format('d/m/Y H:i:s') : '',
+                    $reference['needsMobileSync'],
+                ];
+                foreach ($freeFields as $freeField) {
+                    $referenceArray[] = $reference['freeFields'][$freeField] ?? "";
+                }
+                return [
+                    $referenceArray
+                ];
+            }
+        );
+    }
+
 
     /**
      * @Route("/exporter/{min}/{max}", name="reference_article_export", options={"expose"=true}, methods="GET|POST")
@@ -1340,10 +1441,19 @@ class ReferenceArticleController extends AbstractController
                                 PDFGeneratorService $PDFGeneratorService): Response
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
+        $category = CategoryType::ARTICLE;
+        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
+            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+            return $accumulator;
+        }, []);
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->user, $champs);
         $refs = $queryResult['data'];
         $refs = array_map(function($refArticle) {
             return is_array($refArticle) ? $refArticle[0] : $refArticle;

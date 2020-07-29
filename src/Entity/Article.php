@@ -14,7 +14,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("reference")
  */
-class Article
+class Article extends FreeFieldEntity
 {
     const CATEGORIE = 'article';
 

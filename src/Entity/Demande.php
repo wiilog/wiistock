@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DemandeRepository")
  */
-class Demande
+class Demande extends FreeFieldEntity
 {
     const CATEGORIE = 'demande';
 

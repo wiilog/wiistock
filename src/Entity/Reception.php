@@ -161,7 +161,7 @@ class Reception
 
     public function __toString()
     {
-        return $this->commentaire;
+        return $this->commentaire ?? '';
     }
 
     public function getDate(): ?\DateTimeInterface

@@ -1001,6 +1001,8 @@ class ImportService
             $this->throwError($message);
         }
 
+        $freeFieldsToInsert = [];
+
         foreach ($colChampsLibres as $clId => $col) {
             $champLibre = $champLibreRepository->find($clId);
 
@@ -1024,22 +1026,28 @@ class ImportService
                     $value = $row[$col];
                     break;
             }
-            $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
-            $valeurCL = null;
-            if (!$isNewEntity) {
-                if ($refOrArt instanceof ReferenceArticle) {
-                    $valeurCL = $valeurCLRepository->findOneByRefArticleAndChampLibre($refOrArt->getId(), $champLibre);
-                } else if ($refOrArt instanceof Article) {
+            // TODO art import
+            if ($refOrArt instanceof ReferenceArticle) {
+                $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
+            } else if ($refOrArt instanceof Article) {
+                $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
+                $valeurCL = null;
+                if (!$isNewEntity) {
                     $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt->getId(), $champLibre);
                 }
+                if (!isset($valeurCL)) {
+                    $valeurCL = new ValeurChampLibre();
+                    $valeurCL->setChampLibre($champLibre);
+                    $this->em->persist($valeurCL);
+                }
+                $valeurCL->setValeur($value);
+                $refOrArt->addValeurChampLibre($valeurCL);
             }
-            if (!isset($valeurCL)) {
-                $valeurCL = new ValeurChampLibre();
-                $valeurCL->setChampLibre($champLibre);
-                $this->em->persist($valeurCL);
-            }
-            $valeurCL->setValeur($value);
-            $refOrArt->addValeurChampLibre($valeurCL);
+        }
+        // TODO
+        if ($refOrArt instanceof ReferenceArticle) {
+            $refOrArt
+                ->setFreeFields($freeFieldsToInsert);
         }
     }
 

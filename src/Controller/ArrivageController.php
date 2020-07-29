@@ -889,7 +889,7 @@ class ArrivageController extends AbstractController
             ];
             $csvHeader = array_merge($csvHeader, $natureLabels);
 
-            return $CSVExportService->createCsvResponse(
+            return $CSVExportService->createBinaryResponseFromData(
                 'export.csv',
                 $arrivals,
                 $csvHeader,

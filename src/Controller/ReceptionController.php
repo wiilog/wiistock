@@ -156,13 +156,14 @@ class ReceptionController extends AbstractController
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
                         ValeurChampLibreService $valeurChampLibreService,
+                        ReceptionService $receptionService,
                         Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
@@ -176,6 +177,7 @@ class ReceptionController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
@@ -243,6 +245,8 @@ class ReceptionController extends AbstractController
                 }
             }
 
+            $entityManager->flush();
+
             $data = [
                 "redirect" => $this->generateUrl('reception_show', [
                     'id' => $reception->getId(),
@@ -261,7 +265,7 @@ class ReceptionController extends AbstractController
      * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
                          ValeurChampLibreService $valeurChampLibreService,
@@ -312,8 +316,7 @@ class ReceptionController extends AbstractController
                 ->setNumeroReception(isset($data['numeroReception']) ? $data['numeroReception'] : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $entityManager->flush();
 
             $champLibreKey = array_keys($data);
             foreach ($champLibreKey as $champ) {
@@ -325,14 +328,15 @@ class ReceptionController extends AbstractController
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
                         $valeurChampLibre->addReception($reception);
-                        $em->persist($valeurChampLibre);
+                        $entityManager->persist($valeurChampLibre);
                     }
                     else {
                         $valeurChampLibreService->updateValue($valeurChampLibre, $value);
                     }
-                    $em->flush();
+                    $entityManager->flush();
                 }
             }
+            $entityManager->flush();
 
             $json = [
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
@@ -1606,7 +1610,6 @@ class ReceptionController extends AbstractController
                     ]);
                 }
             }
-
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
     }
@@ -1802,7 +1805,7 @@ class ReceptionController extends AbstractController
                 'code-barre article',
             ];
 
-            return $CSVExportService->createCsvResponse(
+            return $CSVExportService->createBinaryResponseFromData(
                 'export.csv',
                 $receptions,
                 $csvHeader,
@@ -1868,6 +1871,7 @@ class ReceptionController extends AbstractController
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
+     * @param ValeurChampLibreService $valeurChampLibreService
      * @param MouvementTracaService $mouvementTracaService
      * @param MouvementStockService $mouvementStockService
      * @return Response
@@ -1875,13 +1879,13 @@ class ReceptionController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
                                    Reception $reception,
+                                   ValeurChampLibreService $valeurChampLibreService,
                                    MouvementTracaService $mouvementTracaService,
                                    MouvementStockService $mouvementStockService): Response
     {
@@ -1925,7 +1929,7 @@ class ReceptionController extends AbstractController
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $valeurChampLibreService);
                 $entityManager->persist($demande);
                 $entityManager->flush();
             }

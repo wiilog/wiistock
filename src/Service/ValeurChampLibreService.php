@@ -2,26 +2,33 @@
 
 namespace App\Service;
 
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
+use App\Entity\FreeFieldEntity;
+use App\Entity\Reception;
+use App\Entity\Type;
 use App\Entity\ValeurChampLibre;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
-class ValeurChampLibreService {
+class ValeurChampLibreService
+{
 
     private $CSVExportService;
     private $entityManager;
 
     public function __construct(CSVExportService $CSVExportService,
-                                EntityManagerInterface $entityManager) {
+                                EntityManagerInterface $entityManager)
+    {
         $this->CSVExportService = $CSVExportService;
         $this->entityManager = $entityManager;
     }
 
 
-    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): ?string {
+    public function formatValeurChampLibreForDatatable(array $valeurChampLibre): ?string
+    {
         if (in_array($valeurChampLibre['typage'], [ChampLibre::TYPE_DATE, ChampLibre::TYPE_DATETIME])
             && !empty($valeurChampLibre['valeur'])) {
             try {
@@ -29,29 +36,26 @@ class ValeurChampLibreService {
                 $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
                 $hourFormat = ($valeurChampLibre['typage'] === ChampLibre::TYPE_DATETIME) ? ' H:i' : '';
                 $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
-            }
-            catch(Throwable $ignored) {
+            } catch (Throwable $ignored) {
                 $formattedValue = $valeurChampLibre['valeur'];
             }
-        }
-        else {
+        } else {
             $formattedValue = $valeurChampLibre['valeur'];
         }
         return $formattedValue;
     }
 
-    public function formatValeurChampLibreForShow(ValeurChampLibre $valeurChampLibre): ?string {
+    public function formatValeurChampLibreForShow(ValeurChampLibre $valeurChampLibre): ?string
+    {
         $typage = $valeurChampLibre->getChampLibre()->getTypage();
         $value = $valeurChampLibre->getValeur();
 
         if ($typage === ChampLibre::TYPE_BOOL) {
             $formattedValue = (($value == 1) ? 'oui' : 'non');
-        }
-        else if ($typage === ChampLibre::TYPE_LIST_MULTIPLE
+        } else if ($typage === ChampLibre::TYPE_LIST_MULTIPLE
             && !empty($value)) {
             $formattedValue = str_replace(';', ',', $value);
-        }
-        else {
+        } else {
             $formattedValue = $this->formatValeurChampLibreForDatatable([
                 'valeur' => $value,
                 'typage' => $typage
@@ -61,7 +65,8 @@ class ValeurChampLibreService {
         return $formattedValue;
     }
 
-    public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): ?string {
+    public function formatValeurChampLibreForExport(ValeurChampLibre $valeurChampLibre): ?string
+    {
         $typage = $valeurChampLibre->getChampLibre()->getTypage();
         $value = $valeurChampLibre->getValeur();
 
@@ -80,7 +85,8 @@ class ValeurChampLibreService {
      * @param $value
      * @return ValeurChampLibre
      */
-    public function createValeurChampLibre($champ, $value): ValeurChampLibre {
+    public function createValeurChampLibre($champ, $value): ValeurChampLibre
+    {
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
         /** @var ChampLibre $champLibre */
         $champLibre = ($champ instanceof ChampLibre)
@@ -95,7 +101,8 @@ class ValeurChampLibreService {
         return $valeurChampLibre;
     }
 
-    public function updateValue(ValeurChampLibre $valeurChampLibre, $value): void {
+    public function updateValue(ValeurChampLibre $valeurChampLibre, $value): void
+    {
         $converterValue = [
             'true' => 1,
             'false' => 0
@@ -107,4 +114,38 @@ class ValeurChampLibreService {
 
         $valeurChampLibre->setValeur($formattedValue);
     }
+
+
+    public function manageFreeFields(FreeFieldEntity $entity,
+                                     array $data,
+                                     EntityManagerInterface $entityManager)
+    {
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $freeFields = [];
+        $champsLibresKey = array_keys($data);
+        foreach ($champsLibresKey as $champs) {
+            if (gettype($champs) === 'integer') {
+                $champLibre = $champLibreRepository->find($champs);
+                if ($champLibre) {
+                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$champs]);
+                }
+            }
+        }
+        $entity
+            ->setFreeFields($freeFields);
+    }
+
+    public function manageJSONFreeField(ChampLibre $champLibre, $value): string
+    {
+        $value = $champLibre->getTypage() === ChampLibre::TYPE_BOOL
+            ? empty($value)
+                ? "0"
+                : "1"
+            : (is_array($value)
+                ? implode(';', $value)
+                : $value);
+
+        return strval($value);
+    }
+
 }

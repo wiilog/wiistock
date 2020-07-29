@@ -349,24 +349,7 @@ class ArticleDataService
                 }
             }
 
-            $champLibresKey = array_keys($data);
-            foreach ($champLibresKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $champLibre = $champLibreRepository->find($champ);
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
-                    $value = $data[$champ];
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champLibre, $value);
-                        $valeurChampLibre->addArticle($article);
-                        $this->entityManager->persist($valeurChampLibre);
-                    }
-                    else {
-                        $this->valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                    }
-
-                    $this->entityManager->flush();
-                }
-            }
+            $this->valeurChampLibreService->manageFreeFields($article, $data, $this->entityManager);
             $this->entityManager->flush();
             return true;
         } else {
@@ -445,17 +428,7 @@ class ArticleDataService
             ->setType($type)
             ->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
-
-        $champLibreKey = array_keys($data);
-        foreach ($champLibreKey as $champ) {
-            if (gettype($champ) === 'integer') {
-                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champ, $data[$champ]);
-                $valeurChampLibre->addArticle($toInsert);
-                $entityManager->persist($valeurChampLibre);
-                $entityManager->flush();
-            }
-        }
-
+        $this->valeurChampLibreService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
@@ -570,7 +543,17 @@ class ArticleDataService
                 'value' => $this->getActiveArticleFilterValue()
             ]];
         }
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
+        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+
+        $category = CategoryType::ARTICLE;
+        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
+            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+            return $accumulator;
+        }, []);
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $champs);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
@@ -596,6 +579,7 @@ class ArticleDataService
      * @param Article $article
      * @param bool $fromReception
      * @return array
+     * @throws DBALException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -603,11 +587,19 @@ class ArticleDataService
     public function dataRowArticle($article, bool $fromReception = false)
     {
         $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
-        $rows = $valeurChampLibreRepository->getLabelCLAndValueByArticle($article);
+        $category = CategoryType::ARTICLE;
+        $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
-        foreach ($rows as $row) {
-            $rowCL[$row['label']] = $row['valeur'];
+        /** @var ChampLibre $champ */
+        foreach ($champs as $champ) {
+            $rowCL[$champ['label']] = $this->valeurChampLibreService->formatValeurChampLibreForDatatable([
+                'valeur' => $article->getFreeFieldValue($champ['id']),
+                "typage" => $champ['typage'],
+            ]);
         }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
