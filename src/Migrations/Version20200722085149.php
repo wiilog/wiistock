@@ -42,30 +42,31 @@ final class Version20200722085149 extends AbstractMigration
                         INNER JOIN category_type ON category_type.id = type.category_id
                         WHERE category_type.label = '${refArticleCategoryTypeLabel}' AND cc.label = '${refArticleCategoryCLabel}'
                 ")->fetchAll();
+        if (!empty($refsFreeFields)) {
 
-        $refsFreeFieldIds = array_map(function(array $freeField) {
-            return intval($freeField['id']);
-        }, $refsFreeFields);
+            $refsFreeFieldIds = array_map(function (array $freeField) {
+                return intval($freeField['id']);
+            }, $refsFreeFields);
 
-        $refsFreeFieldIdsString = implode(',', $refsFreeFieldIds);
+            $refsFreeFieldIdsString = implode(',', $refsFreeFieldIds);
 
-        $allRefs =
-            $this
-                ->connection
-                ->executeQuery('
+            $allRefs =
+                $this
+                    ->connection
+                    ->executeQuery('
                     SELECT reference_article.id, t.id as typeId
                     FROM reference_article
                     INNER JOIN type t on reference_article.type_id = t.id
                 ')->fetchAll();
 
-        foreach ($allRefs as $index => $ref) {
-            if ($index % 500 === 0) dump('500 de plus!');
-            $freeFieldsToBeInsertedInJSON = [];
-            $refId = intval($ref['id']);
-            $typeId = intval($ref['typeId']);
-            $refsFreeFieldValuesInDB = $this
-                ->connection
-                ->executeQuery("
+            foreach ($allRefs as $index => $ref) {
+                if ($index % 500 === 0) dump('500 de plus!');
+                $freeFieldsToBeInsertedInJSON = [];
+                $refId = intval($ref['id']);
+                $typeId = intval($ref['typeId']);
+                $refsFreeFieldValuesInDB = $this
+                    ->connection
+                    ->executeQuery("
                         SELECT
                             reference_article.id,
                             valeur_champ_libre.valeur,
@@ -87,30 +88,31 @@ final class Version20200722085149 extends AbstractMigration
                         WHERE reference_article.id = '${refId}' AND champ_libre.id IN (${refsFreeFieldIdsString})
                     ")->fetchAll();
 
-            foreach ($refsFreeFieldValuesInDB as $freeFieldValue) {
-                $freeFieldId = intval($freeFieldValue['freeFieldId']);
-                $clTypeId = intval($freeFieldValue['typeId']);
+                foreach ($refsFreeFieldValuesInDB as $freeFieldValue) {
+                    $freeFieldId = intval($freeFieldValue['freeFieldId']);
+                    $clTypeId = intval($freeFieldValue['typeId']);
 
-                $value = !empty($freeFieldValue['valeur'])
-                    ? $freeFieldValue['valeur']
-                    : "";
-                $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
-                    ? (empty($value)
-                        ? "0"
-                        : "1")
-                    : $value;
-                if ($typeId === $clTypeId && ($value || $value === "0")) {
-                    if ($freeFieldValue['typage'] !== ChampLibre::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
-                        $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
+                    $value = !empty($freeFieldValue['valeur'])
+                        ? $freeFieldValue['valeur']
+                        : "";
+                    $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
+                        ? (empty($value)
+                            ? "0"
+                            : "1")
+                        : $value;
+                    if ($typeId === $clTypeId && ($value || $value === "0")) {
+                        if ($freeFieldValue['typage'] !== ChampLibre::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
+                            $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
+                        }
                     }
                 }
-            }
 
-            $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
-            $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
-            $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
-            $this
-                ->addSql("UPDATE reference_article SET free_fields = '${encodedFreeFields}' WHERE reference_article.id = ${refId}");
+                $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
+                $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
+                $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
+                $this
+                    ->addSql("UPDATE reference_article SET free_fields = '${encodedFreeFields}' WHERE reference_article.id = ${refId}");
+            }
         }
     }
 

@@ -40,28 +40,28 @@ final class Version20200729083440 extends AbstractMigration
                         INNER JOIN category_type ON category_type.id = type.category_id
                         WHERE category_type.label = '${entityCategoryTypeLabel}'
                 ")->fetchAll();
+        if (!empty($entityFreeFields)) {
+            $entityFreeFieldIds = array_map(function (array $freeField) {
+                return intval($freeField['id']);
+            }, $entityFreeFields);
 
-        $entityFreeFieldIds = array_map(function(array $freeField) {
-            return intval($freeField['id']);
-        }, $entityFreeFields);
+            $entityFreeFieldIdsString = implode(',', $entityFreeFieldIds);
 
-        $entityFreeFieldIdsString = implode(',', $entityFreeFieldIds);
-
-        $allEntities =
-            $this
-                ->connection
-                ->executeQuery('
+            $allEntities =
+                $this
+                    ->connection
+                    ->executeQuery('
                     SELECT arrivage.id
                     FROM arrivage
                 ')->fetchAll();
 
-        foreach ($allEntities as $index => $entity) {
-            if ($index % 500 === 0) dump('500 de plus!');
-            $freeFieldsToBeInsertedInJSON = [];
-            $entityID = intval($entity['id']);
-            $entityFreeFieldValuesInDB = $this
-                ->connection
-                ->executeQuery("
+            foreach ($allEntities as $index => $entity) {
+                if ($index % 500 === 0) dump('500 de plus!');
+                $freeFieldsToBeInsertedInJSON = [];
+                $entityID = intval($entity['id']);
+                $entityFreeFieldValuesInDB = $this
+                    ->connection
+                    ->executeQuery("
                         SELECT
                             arrivage.id,
                             valeur_champ_libre.valeur,
@@ -83,29 +83,30 @@ final class Version20200729083440 extends AbstractMigration
                         WHERE arrivage.id = '${entityID}' AND champ_libre.id IN (${entityFreeFieldIdsString})
                     ")->fetchAll();
 
-            foreach ($entityFreeFieldValuesInDB as $freeFieldValue) {
-                $freeFieldId = intval($freeFieldValue['freeFieldId']);
+                foreach ($entityFreeFieldValuesInDB as $freeFieldValue) {
+                    $freeFieldId = intval($freeFieldValue['freeFieldId']);
 
-                $value = !empty($freeFieldValue['valeur'])
-                    ? $freeFieldValue['valeur']
-                    : "";
-                $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
-                    ? (empty($value)
-                        ? "0"
-                        : "1")
-                    : $value;
-                if ($value || $value === "0") {
-                    if ($freeFieldValue['typage'] !== ChampLibre::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
-                        $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
+                    $value = !empty($freeFieldValue['valeur'])
+                        ? $freeFieldValue['valeur']
+                        : "";
+                    $value = $freeFieldValue['typage'] === ChampLibre::TYPE_BOOL
+                        ? (empty($value)
+                            ? "0"
+                            : "1")
+                        : $value;
+                    if ($value || $value === "0") {
+                        if ($freeFieldValue['typage'] !== ChampLibre::TYPE_LIST || in_array($value, json_decode($freeFieldValue['elements']))) {
+                            $freeFieldsToBeInsertedInJSON[$freeFieldId] = strval($value);
+                        }
                     }
                 }
-            }
 
-            $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
-            $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
-            $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
-            $this
-                ->addSql("UPDATE arrivage SET free_fields = '${encodedFreeFields}' WHERE arrivage.id = ${entityID}");
+                $encodedFreeFields = json_encode($freeFieldsToBeInsertedInJSON);
+                $encodedFreeFields = str_replace("\\", "\\\\", $encodedFreeFields);
+                $encodedFreeFields = str_replace("'", "''", $encodedFreeFields);
+                $this
+                    ->addSql("UPDATE arrivage SET free_fields = '${encodedFreeFields}' WHERE arrivage.id = ${entityID}");
+            }
         }
     }
 
