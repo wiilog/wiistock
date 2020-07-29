@@ -27,6 +27,7 @@ use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\ValeurChampLibreService;
 use App\Service\ArticleFournisseurService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -308,7 +309,9 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param ValeurChampLibreService $valeurChampLibreService
+     * @param MouvementStockService $mouvementStockService
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
      * @throws DBALException
@@ -316,9 +319,12 @@ class ReferenceArticleController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function new(Request $request,
+                        EntityManagerInterface $entityManager,
                         ValeurChampLibreService $valeurChampLibreService,
+                        MouvementStockService $mouvementStockService,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -326,7 +332,8 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -394,7 +401,7 @@ class ReferenceArticleController extends AbstractController
 
 
             if ($refArticle->getIsUrgent()) {
-                $refArticle->setUserThatTriggeredEmergency($this->getUser());
+                $refArticle->setUserThatTriggeredEmergency($loggedUser);
             }
 
             if ($data['limitSecurity']) {
@@ -442,6 +449,23 @@ class ReferenceArticleController extends AbstractController
                         ]);
                     }
                 }
+            }
+
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+                $refArticle->getQuantiteStock() > 0) {
+                $mvtStock = $mouvementStockService->createMouvementStock(
+                    $loggedUser,
+                    null,
+                    $refArticle->getQuantiteStock(),
+                    $refArticle,
+                    MouvementStock::TYPE_ENTREE
+                );
+                $mouvementStockService->finishMouvementStock(
+                    $mvtStock,
+                    new DateTime('now'),
+                    $emplacement
+                );
+                $entityManager->persist($mvtStock);
             }
 
             $entityManager->persist($refArticle);
@@ -775,8 +799,13 @@ class ReferenceArticleController extends AbstractController
             if (count($refArticle->getCollecteReferences()) > 0
                 || count($refArticle->getLigneArticles()) > 0
                 || count($refArticle->getReceptionReferenceArticles()) > 0
+                || count($refArticle->getMouvements()) > 0
+                || count($refArticle->getMouvementTracas()) > 0
                 || count($refArticle->getArticlesFournisseur()) > 0) {
-                return new JsonResponse(false, 250);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La référence est liée à d\'autres données, vous pouvez passer son statut en inactif pour ne plus l\'utiliser.'
+                ]);
             }
             $entityManager->remove($refArticle);
             $entityManager->flush();

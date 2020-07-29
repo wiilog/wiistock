@@ -191,15 +191,6 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     }
 };
 
-function changeStatus(button) {
-    let sel = $(button).data('title');
-    let tog = $(button).data('toggle');
-    $('#' + tog).prop('value', sel);
-
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-}
-
 function printArticlesBarCodes($button, event) {
     if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {
         let listArticles = $("#listArticleIdToPrint").val();

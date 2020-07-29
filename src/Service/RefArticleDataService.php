@@ -22,13 +22,10 @@ use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
@@ -103,7 +100,6 @@ class RefArticleDataService
     /**
      * @param null $params
      * @return array
-     * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -232,12 +228,9 @@ class RefArticleDataService
      * @param string[] $data
      * @param Utilisateur $user
      * @return RedirectResponse
-     * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
      */
     public function editRefArticle($refArticle,
                                    $data,
@@ -307,7 +300,6 @@ class RefArticleDataService
                 $refArticle->setIsUrgent($data['urgence']);
             }
             if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
-            if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
@@ -322,19 +314,7 @@ class RefArticleDataService
                     $refArticle->setStatut($statut);
                 }
             }
-            if (isset($data['quantite'])
-                && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $newQuantity = max(intval($data['quantite']), 0); // protection contre quantités négatives
-                if ($refArticle->getQuantiteStock() !== $newQuantity) {
-                    if ($refArticle->getStatut()->getNom() !== ReferenceArticle::STATUT_ACTIF) {
-                        throw new ArticleNotAvailableException();
-                    }
-                    else if ($refArticle->isInRequestsInProgress()) {
-                        throw new RequestNeedToBeProcessedException();
-                    }
-                    $refArticle->setQuantiteStock($newQuantity);
-                }
-            }
+
             if (isset($data['type'])) {
                 $type = $typeRepository->find(intval($data['type']));
                 if ($type) $refArticle->setType($type);
@@ -378,7 +358,6 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
      * @throws Exception
      */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
@@ -429,7 +408,6 @@ class RefArticleDataService
      * @param EntityManagerInterface $entityManager
      * @param Demande $demande
      * @return bool
-     * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError

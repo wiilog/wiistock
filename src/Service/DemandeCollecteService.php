@@ -8,6 +8,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -45,6 +46,7 @@ class DemandeCollecteService
     private $valeurChampLibreService;
     private $articleFournisseurService;
     private $articleDataService;
+    private $mouvementStockService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -53,6 +55,7 @@ class DemandeCollecteService
                                 ArticleFournisseurService $articleFournisseurService,
                                 ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager,
+                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
@@ -63,6 +66,7 @@ class DemandeCollecteService
         $this->articleDataService = $articleDataService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -185,7 +189,6 @@ class DemandeCollecteService
      * @param ReferenceArticle $referenceArticle
      * @param Collecte $collecte
      * @return Article
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function persistArticleInDemand(array $data,

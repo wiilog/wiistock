@@ -5,7 +5,7 @@
             {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="d-none">
                     <div class="btn btn-col-action action-on-click" data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
-                         onclick="editRow($(this), Routing.generate('article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
+                         onclick="editRow($(this), Routing.generate('article_show', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
                         <i class='fas fa-pencil-alt'></i>
                     </div>
                 </div>

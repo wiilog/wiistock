@@ -1887,6 +1887,7 @@ class ReceptionController extends AbstractController
     {
 
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -1940,7 +1941,6 @@ class ReceptionController extends AbstractController
                 $receptionLocation = $reception->getLocation();
 
                 $mouvementStock = $mouvementStockService->createMouvementStock(
-                    /** @var Utilisateur $currentUser */
                     $currentUser,
                     null,
                     $article->getQuantite(),
