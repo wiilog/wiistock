@@ -22,12 +22,13 @@
                     {% set action = ", editRow($(this), Routing.generate('prepa_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'))" %}
                     {% set attr = 'data-target=#modalEditLigneArticle data-toggle=modal' %}
                 {% endif %}
-                <div class="action-on-click d-none"
+                <div class="action-on-click d-none action-on-click-single"
                     {{ attr }}
                      data-barcode='{{ barcode }}'
                      data-id='{{ id }}'
                      data-ref='{{ isRef ? 1 : 0 }}'
-                     onclick="beginPrepa(){{ action }}">
+                     onclick="beginPrepa(){{ action }}"
+                     id="startPicking">
                     <i class='fas fa-check mr-2'></i>Selectionner
                 </div>
 

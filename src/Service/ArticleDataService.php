@@ -29,13 +29,10 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
@@ -55,7 +52,8 @@ class ArticleDataService
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
 	private $typeCLOnLabel;
-	private $valeurChampLibreService;
+    private $valeurChampLibreService;
+    private $mouvementStockService;
 
     public function __construct(ValeurChampLibreService $valeurChampLibreService,
                                 MailerService $mailerService,
@@ -64,6 +62,7 @@ class ArticleDataService
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
+                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
@@ -73,6 +72,7 @@ class ArticleDataService
         $this->specificService = $specificService;
         $this->mailerService = $mailerService;
         $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -164,7 +164,6 @@ class ArticleDataService
      * @param Utilisateur $user
      * @return array
      *
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -275,20 +274,15 @@ class ArticleDataService
             ];
         }
 
-        $typeChampsLibres =
-            [
+        return $this->templating->render('article/modalArticleContent.html.twig', [
+            'typeChampsLibres' => [
                 'type' => $typeArticleLabel,
                 'champsLibres' => $champsLibres,
-            ];
-
-        $statut = $article->getStatut()->getNom();
-
-        return $this->templating->render('article/modalArticleContent.html.twig', [
-            'typeChampsLibres' => $typeChampsLibres,
+            ],
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
-            'statut' => $statut,
+            'statut' => $article->getStatut() ? $article->getStatut()->getNom() : '',
             'isADemand' => $isADemand,
             'invCategory' => $refArticle->getCategory()
         ]);
@@ -297,8 +291,6 @@ class ArticleDataService
     /**
      * @param $data
      * @return bool|RedirectResponse
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
      */
     public function editArticle($data)
     {
@@ -329,23 +321,6 @@ class ArticleDataService
                     if ($statut) {
                         $article->setStatut($statut);
                     }
-                }
-
-                if (isset($data['quantite'])) {
-                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
-                    if ($article->getQuantite() !== $newQuantity) {
-                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
-                            throw new ArticleNotAvailableException();
-                        }
-                        else if ($article->isInRequestsInProgress()) {
-                            throw new RequestNeedToBeProcessedException();
-                        }
-                        $article->setQuantite($newQuantity); // protection contre quantités négatives
-                    }
-                }
-
-                if ($data['emplacement']) {
-                    $article->setEmplacement($emplacementRepository->find($data['emplacement']));
                 }
             }
 
@@ -378,13 +353,15 @@ class ArticleDataService
      * @param array $data
      * @param Demande $demande
      * @param Reception $reception
+     *
      * @return Article
-     * @throws NonUniqueResultException
+     *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws Exception
      */
-    public function newArticle($data, $demande = null, $reception = null)
+    public function newArticle($data, Demande $demande = null, Reception $reception = null)
     {
         $entityManager = $this->entityManager;
 
@@ -432,6 +409,8 @@ class ArticleDataService
         	$entityManager->flush();
 		}
 
+        $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
+
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
             ->setConform(isset($data['conform']) ? !$data['conform'] : true)
@@ -439,7 +418,7 @@ class ArticleDataService
             ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
-            ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
+            ->setQuantite($quantity)
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
@@ -536,7 +515,6 @@ class ArticleDataService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
@@ -676,7 +654,6 @@ class ArticleDataService
     /**
      * @param Article $article
      * @return array
-     * @throws NonUniqueResultException
      */
     public function getBarcodeConfig(Article $article): array {
         $articleRepository = $this->entityManager->getRepository(Article::class);

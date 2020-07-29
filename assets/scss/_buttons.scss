@@ -31,20 +31,25 @@
     background-color: $blueGT;
     border-color: $blueGT;
 
-    &:hover {
-        background-color: $white;
-        color: $blueGT !important;
-        border-color: $blueGT;
+    &:hover,
+    &:focus,
+    &:disabled {
+        &:hover,
+        &:focus {
+            background-color: $white !important;
+            color: $blueGT !important;
+            border-color: $blueGT !important;
+        }
+
+        &:disabled {
+            background-color: $blueButton !important;
+            color: $white !important;
+            border-color: $blueButton !important;
+        }
 
         .spinner-border {
             @include setColorLoader($white);
         }
-    }
-
-    &:focus {
-        background-color: $white;
-        color: $blueGT !important;
-        border-color: $blueGT;
     }
 }
 

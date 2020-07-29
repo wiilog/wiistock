@@ -27,11 +27,13 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
+use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
@@ -48,7 +50,6 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Exception;
@@ -266,19 +267,18 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $invalidLocationTo = '';
                 try {
                     $entityManager->transactional(function ()
-                    use (
-                        $mouvementStockService,
-                        &$numberOfRowsInserted,
-                        $mvt,
-                        $nomadUser,
-                        $request,
-                        $attachmentService,
-                        $index,
-                        &$invalidLocationTo,
-                        &$finishMouvementTraca,
-                        $entityManager,
-                        $mouvementTracaService
-                    ) {
+                                                  use (
+                                                      $mouvementStockService,
+                                                      &$numberOfRowsInserted,
+                                                      $mvt,
+                                                      $nomadUser,
+                                                      $request,
+                                                      $attachmentService,
+                                                      $index,
+                                                      &$invalidLocationTo,
+                                                      &$finishMouvementTraca,
+                                                      $entityManager,
+                                                      $mouvementTracaService) {
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
@@ -776,6 +776,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function validateManut(Request $request,
                                   EntityManagerInterface $entityManager,
@@ -784,8 +785,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
-
-            $em = $this->getDoctrine()->getManager();
 
             $id = $request->request->get('id');
             $manut = $this->manutentionRepository->find($id);
@@ -796,11 +795,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
-                $statutRepository = $em->getRepository(Statut::class);
-                $manut->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE));
-                $manut->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                $statutRepository = $entityManager->getRepository(Statut::class);
+                $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE);
+                $manut
+                    ->setStatut($statusTreated)
+                    ->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
-                $em->flush();
+                $entityManager->flush();
                 if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
                     $manutentionService->sendTreatedEmail($manut);
                 }
@@ -1044,14 +1045,15 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @param DemandeLivraisonService $demandeLivraisonService
      * @return Response
+     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
-     * @throws NoResultException
      */
-    public function checkAndValidateDL(Request $request, EntityManagerInterface $entityManager, DemandeLivraisonService $demandeLivraisonService): Response
+    public function checkAndValidateDL(Request $request,
+                                       EntityManagerInterface $entityManager,
+                                       DemandeLivraisonService $demandeLivraisonService): Response
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -1640,7 +1642,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array
     {
         $entityManager = $this->getDoctrine()->getManager();
+        /** @var ReferenceArticleRepository $referenceArticleRepository */
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        /** @var ArticleRepository $articleRepository */
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationsIds = !$isIdArray
@@ -1660,6 +1664,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private function getMenuRights($user, UserService $userService)
     {
         return [
+            'demoMode' => $userService->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
             'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUT, $user),
