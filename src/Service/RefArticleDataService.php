@@ -217,11 +217,7 @@ class RefArticleDataService
      * @param Utilisateur $user
      * @param FreeFieldService $champLibreService
      * @return RedirectResponse
-     * @throws ArticleNotAvailableException
-     * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -242,7 +238,6 @@ class RefArticleDataService
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
-        $emplacement = $emplacementRepository->find(intval($data['emplacement']));
         if (isset($data['reference'])) $refArticle->setReference($data['reference']);
         if (isset($data['frl'])) {
             foreach ($data['frl'] as $frl) {
@@ -379,11 +374,8 @@ class RefArticleDataService
      * @param Demande $demande
      * @param FreeFieldService $champLibreService
      * @return bool
-     * @throws ArticleNotAvailableException
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
-     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
