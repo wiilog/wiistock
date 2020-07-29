@@ -6,7 +6,7 @@
     </div>
 
     <div class="form-group col-6 w-100">
-        <label for="operator mtb-auto mr-2">Opérateur*</label>
+        <label for="operator my-auto mr-2">Opérateur*</label>
         <select name="operator" class="form-control ajax-autocomplete-user-edit data needed operator">
             {% if mvt.operateur %}
                 <option value="{{ mvt.operateur.id }}">{{ mvt.operateur.username }}</option>>
@@ -32,7 +32,7 @@
     </div>
 
     <div class="form-group col-12 w-100">
-        <label class="mtb-auto mr-2">Emplacement*</label>
+        <label class="my-auto mr-2">Emplacement*</label>
         <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data needed">
             <option value="{{ mvt.emplacement.id }}">{{ mvt.emplacement.label }}</option>
         </select>

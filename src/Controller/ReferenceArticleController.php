@@ -309,6 +309,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param ValeurChampLibreService $valeurChampLibreService
      * @param MouvementStockService $mouvementStockService
      * @param ArticleFournisseurService $articleFournisseurService
@@ -318,8 +319,10 @@ class ReferenceArticleController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function new(Request $request,
+                        EntityManagerInterface $entityManager,
                         ValeurChampLibreService $valeurChampLibreService,
                         MouvementStockService $mouvementStockService,
                         ArticleFournisseurService $articleFournisseurService): Response
@@ -329,7 +332,8 @@ class ReferenceArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -397,7 +401,7 @@ class ReferenceArticleController extends AbstractController
 
 
             if ($refArticle->getIsUrgent()) {
-                $refArticle->setUserThatTriggeredEmergency($this->getUser());
+                $refArticle->setUserThatTriggeredEmergency($loggedUser);
             }
 
             if ($data['limitSecurity']) {
@@ -447,11 +451,11 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            $entityManager->persist($refArticle);
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+                $refArticle->getQuantiteStock() > 0) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
-                    $this->getUser(),
-                    $emplacement,
+                    $loggedUser,
+                    null,
                     $refArticle->getQuantiteStock(),
                     $refArticle,
                     MouvementStock::TYPE_ENTREE
@@ -463,6 +467,8 @@ class ReferenceArticleController extends AbstractController
                 );
                 $entityManager->persist($mvtStock);
             }
+
+            $entityManager->persist($refArticle);
             $entityManager->flush();
 
             $champsLibresKey = array_keys($data);

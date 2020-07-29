@@ -9,6 +9,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -29,6 +30,7 @@ use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
+use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -455,81 +457,13 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function show(Request $request,
-                         EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_ARTI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
-
-            $article = $articleRepository->find($data);
-
-            $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-            $typeArticle = $refArticle->getType();
-            $typeArticleLabel = $typeArticle->getLabel();
-
-            $champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-            $champsLibres = [];
-            foreach ($champsLibresComplet as $champLibre) {
-                $valeurChampArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
-                $champsLibres[] = [
-                    'id' => $champLibre->getId(),
-                    'label' => $champLibre->getLabel(),
-                    'typage' => $champLibre->getTypage(),
-                    'requiredCreate' => $champLibre->getRequiredCreate(),
-                    'requiredEdit' => $champLibre->getRequiredEdit(),
-                    'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                    'defaultValue' => $champLibre->getDefaultValue(),
-                    'valeurChampLibre' => $valeurChampArticle
-                ];
-            }
-
-            $typeChampLibre =
-                [
-                    'type' => $typeArticleLabel,
-                    'champsLibres' => $champsLibres,
-                ];
-            if ($article) {
-                $view = $this->templating->render('article/modalArticleContent.html.twig', [
-                    'typeChampsLibres' => $typeChampLibre,
-                    'typeArticle' => $typeArticleLabel,
-					'typeArticleId' => $typeArticle->getId(),
-					'article' => $article,
-                    'statut' => $article->getStatut() ? $article->getStatut()->getNom() : '',
-					'isADemand' => false,
-					'invCategory' => $refArticle->getCategory(),
-                ]);
-                $json = $view;
-            } else {
-                return $json = false;
-            }
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-
-    /**
-     * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
-
+     *
      * @param Request $request
      * @param ArticleDataService $articleDataService
      * @param EntityManagerInterface $entityManager
-
+     *
      * @return Response
-
+     *
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -541,9 +475,11 @@ class ArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
-            $article = $articleRepository->find((int)$data['id']);
+            $id = is_array($data) ? $data['id'] : $data;
+            $isADemand = is_array($data) ? ($data['isADemand'] ?? false) : false;
+            $article = $articleRepository->find($id);
             if ($article) {
-                $json = $articleDataService->getViewEditArticle($article, $data['isADemand']);
+                $json = $articleDataService->getViewEditArticle($article, $isADemand);
             } else {
                 $json = false;
             }
@@ -555,13 +491,44 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/nouveau", name="article_new", options={"expose"=true},  methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param MouvementStockService $mouvementStockService
+     * @return Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function new(Request $request): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        MouvementStockService $mouvementStockService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $response = $this->articleDataService->newArticle($data, null, null, $this->getUser());
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+            $article = $this->articleDataService->newArticle($data);
 
-            return new JsonResponse(!empty($response));
+            $quantity = $article->getQuantite();
+            if ($quantity > 0) {
+                $stockMovement = $mouvementStockService->createMouvementStock(
+                    $loggedUser,
+                    null,
+                    $quantity,
+                    $article,
+                    MouvementStock::TYPE_ENTREE
+                );
+
+                $mouvementStockService->finishMouvementStock(
+                    $stockMovement,
+                    new DateTime('now'),
+                    $article->getEmplacement()
+                );
+
+                $entityManager->persist($stockMovement);
+                $entityManager->flush();
+            }
+
+            return new JsonResponse(!empty($article));
         }
         throw new NotFoundHttpException('404');
     }

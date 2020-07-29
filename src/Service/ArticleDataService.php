@@ -36,6 +36,7 @@ use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
@@ -278,20 +279,15 @@ class ArticleDataService
             ];
         }
 
-        $typeChampsLibres =
-            [
+        return $this->templating->render('article/modalArticleContent.html.twig', [
+            'typeChampsLibres' => [
                 'type' => $typeArticleLabel,
                 'champsLibres' => $champsLibres,
-            ];
-
-        $statut = $article->getStatut()->getNom();
-
-        return $this->templating->render('article/modalArticleContent.html.twig', [
-            'typeChampsLibres' => $typeChampsLibres,
+            ],
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
-            'statut' => $statut,
+            'statut' => $article->getStatut() ? $article->getStatut()->getNom() : '',
             'isADemand' => $isADemand,
             'invCategory' => $refArticle->getCategory()
         ]);
@@ -381,13 +377,15 @@ class ArticleDataService
      * @param array $data
      * @param Demande $demande
      * @param Reception $reception
+     *
      * @return Article
-     * @throws NonUniqueResultException
+     *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws Exception
      */
-    public function newArticle($data, $demande = null, $reception = null, $user = null)
+    public function newArticle($data, Demande $demande = null, Reception $reception = null)
     {
         $entityManager = $this->entityManager;
 
@@ -435,6 +433,8 @@ class ArticleDataService
         	$entityManager->flush();
 		}
 
+        $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
+
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
             ->setConform(isset($data['conform']) ? !$data['conform'] : true)
@@ -442,25 +442,13 @@ class ArticleDataService
             ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
-            ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
+            ->setQuantite($quantity)
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
             ->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
-        $mvtStock = $this->mouvementStockService->createMouvementStock(
-            $user,
-            $location,
-            max((int)$data['quantite'], 0),
-            $toInsert,
-            MouvementStock::TYPE_ENTREE
-        );
-        $this->mouvementStockService->finishMouvementStock(
-            $mvtStock,
-            new DateTime('now'),
-            $location
-        );
-        $entityManager->persist($mvtStock);
+
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {

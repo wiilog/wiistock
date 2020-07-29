@@ -189,7 +189,6 @@ class DemandeCollecteService
      * @param ReferenceArticle $referenceArticle
      * @param Collecte $collecte
      * @return Article
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function persistArticleInDemand(array $data,
@@ -237,19 +236,6 @@ class DemandeCollecteService
             ->setType($referenceArticle->getType())
             ->setBarCode($this->articleDataService->generateBarCode());
         $this->entityManager->persist($article);
-        $mvtStock = $this->mouvementStockService->createMouvementStock(
-            $this->user,
-            $collecte->getPointCollecte(),
-            max((int)$data['quantite'], 0),
-            $article,
-            MouvementStock::TYPE_ENTREE
-        );
-        $this->mouvementStockService->finishMouvementStock(
-            $mvtStock,
-            new DateTime('now'),
-            $collecte->getPointCollecte()
-        );
-        $this->entityManager->persist($mvtStock);
         $collecte->addArticle($article);
         return $article;
     }
