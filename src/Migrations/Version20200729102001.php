@@ -27,7 +27,6 @@ final class Version20200729102001 extends AbstractMigration
         $this->addSql('ALTER TABLE demande_valeur_champ_libre DROP FOREIGN KEY FK_49FA810F52CB289C');
         $this->addSql('ALTER TABLE reception_valeur_champ_libre DROP FOREIGN KEY FK_3A892A1E52CB289C');
         $this->addSql('ALTER TABLE valeur_champ_libre_article DROP FOREIGN KEY FK_B03869C852CB289C');
-        $this->addSql('ALTER TABLE valeur_champ_libre DROP FOREIGN KEY FK_59F211AACC5E904E');
         $this->addSql('DROP TABLE alerte_expiry');
         $this->addSql('DROP TABLE arrivage_valeur_champ_libre');
         $this->addSql('DROP TABLE collecte_valeur_champ_libre');
@@ -36,9 +35,9 @@ final class Version20200729102001 extends AbstractMigration
         $this->addSql('DROP TABLE param_client');
         $this->addSql('DROP TABLE preparation_article');
         $this->addSql('DROP TABLE reception_valeur_champ_libre');
-        $this->addSql('DROP TABLE valeur_champ_libre');
         $this->addSql('DROP TABLE valeur_champ_libre_article');
         $this->addSql('DROP TABLE valeur_champ_libre_reference_article');
+        $this->addSql('DROP TABLE valeur_champ_libre');
     }
 
     public function down(Schema $schema) : void
