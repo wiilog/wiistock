@@ -344,15 +344,9 @@ class ArrivageController extends AbstractController
             $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
 
 
-            $champsLibresKey = array_keys($data);
-            foreach ($champsLibresKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-                    $valeurChampLibre->addArrivage($arrivage);
-                    $entityManager->persist($valeurChampLibre);
-                    $arrivage->addValeurChampLibre($valeurChampLibre);
-                }
-            }
+
+            $valeurChampLibreService->manageFreeFields($arrivage, $data, $entityManager);
+            $entityManager->flush();
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
             $entityManager->flush();
@@ -416,6 +410,7 @@ class ArrivageController extends AbstractController
 
             $champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
             $champsLibresArray = [];
+
             foreach ($champsLibres as $champLibre) {
                 $valeurChampArr = $valeurChampLibreRepository->getValueByArrivageAndChampLibre($arrivage, $champLibre);
                 $champsLibresArray[] = [
@@ -425,7 +420,7 @@ class ArrivageController extends AbstractController
                     'elements' => $champLibre->getElements() ?? '',
                     'requiredEdit' => $champLibre->getRequiredEdit(),
                     'valeurChampLibre' => $valeurChampArr,
-                    'edit' => true
+                    'edit' => true,
                 ];
             }
 
@@ -448,7 +443,8 @@ class ArrivageController extends AbstractController
                     'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
-                    'champsLibres' => $champsLibresArray
+                    'champsLibres' => $champsLibresArray,
+                    'freeFieldsGroupedByTypes' => $champsLibres
                 ]);
             } else {
                 $html = '';
@@ -543,10 +539,8 @@ class ArrivageController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -608,29 +602,17 @@ class ArrivageController extends AbstractController
 
             $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
 
-            $champLibreKey = array_keys($post->all());
-            foreach ($champLibreKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $champLibre = $champLibreRepository->find($champ);
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByArrivageAndChampLibre($arrivage, $champLibre);
-                    $value = $post->get($champ);
-                    // si la valeur n'existe pas, on la crée
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, $value);
-                        $valeurChampLibre->addArrivage($arrivage);
-                        $entityManager->persist($valeurChampLibre);
-                    } else {
-                        $valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                    }
-                    $entityManager->flush();
-                }
-            }
-
+            $valeurChampLibreService->manageFreeFields($arrivage, $post->all(), $entityManager);
+            $entityManager->flush();
+            $champs = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]), function(array $acc, ChampLibre $freeField) {
+                $acc[$freeField->getId()] = $freeField->getLabel();
+                return $acc;
+            }, []);
             $response = [
                 'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                    'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
+                    'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage, $champs)
                 ]),
                 'alertConfigs' => [
                     $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient)
@@ -953,6 +935,7 @@ class ArrivageController extends AbstractController
         }
 
         $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -966,7 +949,10 @@ class ArrivageController extends AbstractController
         }
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
+        $champs = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]), function(array $acc, ChampLibre $freeField) {
+            $acc[$freeField->getId()] = $freeField->getLabel();
+            return $acc;
+        }, []);
         return $this->render("arrivage/show.html.twig",
             [
                 'arrivage' => $arrivage,
@@ -981,7 +967,7 @@ class ArrivageController extends AbstractController
                 'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
                 'fieldsParam' => $fieldsParam,
                 'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
-                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
+                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage, $champs)
             ]);
     }
 
@@ -1560,14 +1546,18 @@ class ArrivageController extends AbstractController
         $response = null;
         if (isset($reloadArrivageId)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $champs = array_reduce($champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]), function(array $acc, ChampLibre $freeField) {
+                $acc[$freeField->getId()] = $freeField->getLabel();
+                return $acc;
+            }, []);
             $arrivageToReload = $arrivageRepository->find($reloadArrivageId);
             if ($arrivageToReload) {
                 $response = [
                     'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                         'arrivage' => $arrivageToReload,
                         'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivageToReload) == 0,
-                        'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivageToReload)
+                        'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivageToReload, $champs)
                     ]),
                 ];
             }

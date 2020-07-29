@@ -327,7 +327,7 @@ class ArrivageDataService
         return $alertConfigs;
     }
 
-    public function createHeaderDetailsConfig(Arrivage $arrivage): array {
+    public function createHeaderDetailsConfig(Arrivage $arrivage, array $freeFields): array {
         $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
@@ -341,17 +341,15 @@ class ArrivageDataService
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachements();
 
-        $detailsChampLibres = $arrivage
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
+        $detailsChampLibres = [];
+        foreach ($arrivage->getFreeFields() as $key => $freeField) {
+            if ($freeField) {
+                $detailsChampLibres[] = [
+                    'label' => $freeFields[$key],
+                    'value' => $freeField
                 ];
-            })
-            ->toArray();
+            }
+        }
 
         $config = [
             [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],

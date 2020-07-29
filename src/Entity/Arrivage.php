@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArrivageRepository")
  */
-class Arrivage
+class Arrivage extends FreeFieldEntity
 {
     const STATUS_CONFORME = 'conforme';
     const STATUS_RESERVE = 'reserve';
