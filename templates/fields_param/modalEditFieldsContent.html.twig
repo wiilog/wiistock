@@ -1,23 +1,21 @@
 <form method="">
-    <div class="modal-body modal-input container-fluid row">
-        <div class="col-12 form-group required d-none">
-            <input type="text" class="form-control data needed" name="field" required="" value="{{ field.id }}">
+    <div class="col-12 form-group required d-none">
+        <input type="text"
+               class="form-control data needed" name="field" required="" value="{{ field.id }}">
+    </div>
+
+    <div class="row">
+        <div class="col-12 form-group required">
+            <label>Agit sur :</label>
+            <input type="text" class="form-control" name="entityCode" required="" value="{{ field.entityCode }}" disabled>
         </div>
 
-        <div class="row">
-            <div class="col-12 form-group required">
-                <label>Agit sur :</label>
-                <input type="text" class="form-control" name="entityCode" required="" value="{{ field.entityCode }}" disabled>
-            </div>
-
-            <div class="col-12 form-group required">
-                <label>Champ fixe :</label>
-                <input type="text" class="form-control" name="fieldCode" required="" value="{{ field.fieldCode }}" disabled>
-            </div>
+        <div class="col-12 form-group required">
+            <label>Champ fixe :</label>
+            <input type="text" class="form-control" name="fieldCode" required="" value="{{ field.fieldCode }}" disabled>
         </div>
 
-        <div class="row">
-            {% if not field.fieldRequiredHidden %}
+        {% if not field.fieldRequiredHidden %}
             {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
             <div class="form-group col-12">
                 <label>Obligatoire à la création ?</label>
@@ -35,18 +33,15 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-            {% endif %}
+        {% endif %}
 
-            {% set isCheckedModify = field.displayed ? 'checked' : '' %}
-            <div class="form-group col-12">
-                <label>Affiché ?</label>
-                <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="displayed" {{ isCheckedModify }} onchange="switchDisplay($(this))">
-                    <span class="slider round"></span>
-                </label>
-            </div>
+        {% set isCheckedModify = field.displayed ? 'checked' : '' %}
+        <div class="form-group col-12">
+            <label>Affiché ?</label>
+            <label class="switch">
+                <input class="checkbox data" type="checkbox" name="displayed" {{ isCheckedModify }} onchange="switchDisplay($(this))">
+                <span class="slider round"></span>
+            </label>
         </div>
-    </div>
-
     </div>
 </form>
