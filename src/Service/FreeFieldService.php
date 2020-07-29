@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FreeFieldEntity;
 use DateTime;
@@ -117,6 +118,20 @@ class FreeFieldService
         }
 
         return $detailsChampLibres;
+    }
+
+    public function getFreeFieldLabelToId(EntityManagerInterface $entityManager,
+                                          string $categoryCLLabel,
+                                          string $category) {
+        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
+
+        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        return array_reduce($champs, function (array $accumulator, array $freeField) {
+            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+            return $accumulator;
+        }, []);
     }
 
 }

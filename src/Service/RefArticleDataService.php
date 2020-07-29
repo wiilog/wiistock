@@ -21,13 +21,10 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\FiltreRefRepository;
 use App\Repository\InventoryFrequencyRepository;
 use DateTime;
 use DateTimeZone;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\NonUniqueResultException;
 use Twig\Environment as Twig_Environment;
 use Exception;
@@ -74,7 +71,7 @@ class RefArticleDataService
      * @var RouterInterface
      */
     private $router;
-    private $champLibreService;
+    private $freeFieldService;
     private $articleFournisseurService;
 
 
@@ -89,7 +86,7 @@ class RefArticleDataService
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->champLibreService = $champLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->entityManager = $entityManager;
@@ -102,7 +99,6 @@ class RefArticleDataService
     /**
      * @param null $params
      * @return array
-     * @throws DBALException
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
@@ -110,16 +106,9 @@ class RefArticleDataService
     public function getRefArticleDataByParams($params = null)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
 
-        $category = CategoryType::ARTICLE;
-        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
-            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-            return $accumulator;
-        }, []);
+        $champs = $this->freeFieldService->getFreeFieldLabelToId($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+
         $userId = $this->user->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user, $champs);
@@ -291,7 +280,6 @@ class RefArticleDataService
             $refArticle->setIsUrgent($data['urgence']);
         }
         if (isset($data['prix'])) $refArticle->setPrixUnitaire($price);
-        if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
         if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
         if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
         if (isset($data['limitWarning'])) $refArticle->setLimitWarning($data['limitWarning']);
@@ -306,18 +294,7 @@ class RefArticleDataService
                 $refArticle->setStatut($statut);
             }
         }
-        if (isset($data['quantite'])
-            && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $newQuantity = max(intval($data['quantite']), 0); // protection contre quantités négatives
-            if ($refArticle->getQuantiteStock() !== $newQuantity) {
-                if ($refArticle->getStatut()->getNom() !== ReferenceArticle::STATUT_ACTIF) {
-                    throw new ArticleNotAvailableException();
-                } else if ($refArticle->isInRequestsInProgress()) {
-                    throw new RequestNeedToBeProcessedException();
-                }
-                $refArticle->setQuantiteStock($newQuantity);
-            }
-        }
+
         if (isset($data['type'])) {
             $type = $typeRepository->find(intval($data['type']));
             if ($type) $refArticle->setType($type);
@@ -343,7 +320,6 @@ class RefArticleDataService
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
      * @throws Exception
      */
     public function dataRowRefArticle(ReferenceArticle $refArticle)
@@ -358,7 +334,7 @@ class RefArticleDataService
         $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->champLibreService->formatValeurChampLibreForDatatable([
+            $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
                 'valeur' => $refArticle->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);

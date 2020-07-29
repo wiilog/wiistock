@@ -28,12 +28,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -56,7 +52,7 @@ class ArticleDataService
 	private $clWantedOnLabel;
 	private $clIdWantedOnLabel;
 	private $typeCLOnLabel;
-	private $champLibreService;
+	private $freeFieldService;
     private $mouvementStockService;
 
     public function __construct(FreeFieldService $champLibreService,
@@ -75,7 +71,7 @@ class ArticleDataService
         $this->router = $router;
         $this->specificService = $specificService;
         $this->mailerService = $mailerService;
-        $this->champLibreService = $champLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->mouvementStockService = $mouvementStockService;
     }
 
@@ -168,7 +164,6 @@ class ArticleDataService
      * @param Utilisateur $user
      * @return array
      *
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -273,8 +268,6 @@ class ArticleDataService
     /**
      * @param $data
      * @return bool|RedirectResponse
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
      */
     public function editArticle($data)
     {
@@ -304,26 +297,9 @@ class ArticleDataService
                         $article->setStatut($statut);
                     }
                 }
-
-                if (isset($data['quantite'])) {
-                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
-                    if ($article->getQuantite() !== $newQuantity) {
-                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
-                            throw new ArticleNotAvailableException();
-                        }
-                        else if ($article->isInRequestsInProgress()) {
-                            throw new RequestNeedToBeProcessedException();
-                        }
-                        $article->setQuantite($newQuantity); // protection contre quantités négatives
-                    }
-                }
-
-                if ($data['emplacement']) {
-                    $article->setEmplacement($emplacementRepository->find($data['emplacement']));
-                }
             }
 
-            $this->champLibreService->manageFreeFields($article, $data, $this->entityManager);
+            $this->freeFieldService->manageFreeFields($article, $data, $this->entityManager);
             $this->entityManager->flush();
             return true;
         } else {
@@ -406,7 +382,7 @@ class ArticleDataService
             ->setType($type)
             ->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
-        $this->champLibreService->manageFreeFields($toInsert, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
@@ -487,7 +463,6 @@ class ArticleDataService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
@@ -521,16 +496,9 @@ class ArticleDataService
                 'value' => $this->getActiveArticleFilterValue()
             ]];
         }
-        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
-        $category = CategoryType::ARTICLE;
-        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champs = array_reduce($champs, function (array $accumulator, array $freeField) {
-            $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
-            return $accumulator;
-        }, []);
+        $champs = $this->freeFieldService->getFreeFieldLabelToId($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
+
         $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $champs);
 
         $articles = $queryResult['data'];
@@ -573,7 +541,7 @@ class ArticleDataService
         $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->champLibreService->formatValeurChampLibreForDatatable([
+            $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
                 'valeur' => $article->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);
@@ -645,7 +613,6 @@ class ArticleDataService
     /**
      * @param Article $article
      * @return array
-     * @throws NonUniqueResultException
      */
     public function getBarcodeConfig(Article $article): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
