@@ -63,11 +63,6 @@ class ReferenceArticle extends FreeFieldEntity
     private $ligneArticles;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="articleReference")
-     */
-    private $valeurChampsLibres;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="referenceArticles")
      */
     private $type;
@@ -200,7 +195,6 @@ class ReferenceArticle extends FreeFieldEntity
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
-        $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -245,7 +239,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->reference;
     }
@@ -312,34 +306,6 @@ class ReferenceArticle extends FreeFieldEntity
             if ($ligneArticle->getReference() === $this) {
                 $ligneArticle->setReference(null);
             }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampsLibres(): Collection
-    {
-        return $this->valeurChampsLibres;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampLibre;
-            $valeurChampLibre->addArticleReference($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampLibre);
-            $valeurChampLibre->removeArticleReference($this);
         }
 
         return $this;
@@ -545,26 +511,6 @@ class ReferenceArticle extends FreeFieldEntity
             if ($mouvement->getRefArticle() === $this) {
                 $mouvement->setRefArticle(null);
             }
-        }
-
-        return $this;
-    }
-
-    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticleReference($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticleReference($this);
         }
 
         return $this;

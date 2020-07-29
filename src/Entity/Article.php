@@ -94,11 +94,6 @@ class Article extends FreeFieldEntity
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="article")
-     */
-    private $valeurChampsLibres;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
     private $emplacement;
@@ -169,7 +164,6 @@ class Article extends FreeFieldEntity
     {
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->valeurChampsLibres = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
@@ -313,33 +307,6 @@ class Article extends FreeFieldEntity
         return $this;
     }
 
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampsLibres(): Collection
-    {
-        return $this->valeurChampsLibres;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampLibre;
-            $valeurChampLibre->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampLibre);
-            $valeurChampLibre->removeArticle($this);
-        }
-
-        return $this;
-    }
     public function getEmplacement(): ?Emplacement
     {
         return $this->emplacement;
@@ -410,26 +377,6 @@ class Article extends FreeFieldEntity
             if ($mouvement->getArticle() === $this) {
                 $mouvement->setArticle(null);
             }
-        }
-
-        return $this;
-    }
-
-    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticle($this);
         }
 
         return $this;

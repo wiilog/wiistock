@@ -21,7 +21,6 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
 use App\Entity\Menu;
@@ -47,7 +46,7 @@ use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
-use App\Service\ValeurChampLibreService;
+use App\Service\ChampLibreService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -155,14 +154,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
-                        ValeurChampLibreService $valeurChampLibreService,
+                        ChampLibreService $champLibreService,
                         ReceptionService $receptionService,
                         Request $request): Response
     {
@@ -234,7 +233,7 @@ class ReceptionController extends AbstractController
             $entityManager->persist($reception);
             $entityManager->flush();
 
-            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
+            $champLibreService->manageFreeFields($reception, $data, $entityManager);
 
             $entityManager->flush();
 
@@ -252,14 +251,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
-                         ValeurChampLibreService $valeurChampLibreService,
+                         ChampLibreService $champLibreService,
                          ReceptionService $receptionService,
                          Request $request): Response
     {
@@ -274,8 +273,6 @@ class ReceptionController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
             $reception = $receptionRepository->find($data['receptionId']);
 
@@ -310,7 +307,7 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
 
 
-            $valeurChampLibreService->manageFreeFields($reception, $data, $entityManager);
+            $champLibreService->manageFreeFields($reception, $data, $entityManager);
 
             $entityManager->flush();
             $json = [
@@ -343,7 +340,6 @@ class ReceptionController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
@@ -358,14 +354,12 @@ class ReceptionController extends AbstractController
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampReception = $valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
                         'typage' => $champLibre->getTypage(),
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampReception,
                         'requiredEdit' => $champLibre->getRequiredEdit()
                     ];
                     $champsLibresEntity[] = $champLibre;
@@ -382,7 +376,6 @@ class ReceptionController extends AbstractController
             $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-                'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre,
                 'fieldsParam' => $fieldsParam,
                 'freeFieldsGroupedByTypes' => $champsLibresEntity
@@ -1849,7 +1842,7 @@ class ReceptionController extends AbstractController
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @param Reception $reception
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param MouvementTracaService $mouvementTracaService
      * @param MouvementStockService $mouvementStockService
      * @return Response
@@ -1863,7 +1856,7 @@ class ReceptionController extends AbstractController
                                    TranslatorInterface $translator,
                                    EntityManagerInterface $entityManager,
                                    Reception $reception,
-                                   ValeurChampLibreService $valeurChampLibreService,
+                                   ChampLibreService $champLibreService,
                                    MouvementTracaService $mouvementTracaService,
                                    MouvementStockService $mouvementStockService): Response
     {
@@ -1907,7 +1900,7 @@ class ReceptionController extends AbstractController
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $valeurChampLibreService);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
                 $entityManager->persist($demande);
                 $entityManager->flush();
             }

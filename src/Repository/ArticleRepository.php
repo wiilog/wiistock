@@ -973,14 +973,10 @@ class ArticleRepository extends EntityRepository
             "SELECT ra.libelle as refLabel,
                     ra.reference as refRef,
                     a.label as artLabel,
-                    a.barCode as barcode,
-                    vcla.valeur as bl,
-                    cla.label as cl
+                    a.barCode as barcode
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra
-		LEFT JOIN a.valeurChampsLibres vcla
-		LEFT JOIN vcla.champLibre cla
 		WHERE a.id = :id
 		")
             ->setParameter('id', $id);

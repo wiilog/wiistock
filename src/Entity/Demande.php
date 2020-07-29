@@ -80,11 +80,6 @@ class Demande extends FreeFieldEntity
      */
     private $articles;
 
-	/**
-	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="demandesLivraison")
-	 */
-	private $valeurChampLibre;
-
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
      */
@@ -95,7 +90,6 @@ class Demande extends FreeFieldEntity
         $this->preparations = new ArrayCollection();
         $this->ligneArticle = new ArrayCollection();
         $this->articles = new ArrayCollection();
-        $this->valeurChampLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -285,32 +279,6 @@ class Demande extends FreeFieldEntity
     public function setType(?Type $type): self
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampLibre(): Collection
-    {
-        return $this->valeurChampLibre;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre[] = $valeurChampLibre;
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre->removeElement($valeurChampLibre);
-        }
 
         return $this;
     }

@@ -23,7 +23,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
@@ -38,7 +37,7 @@ use App\Service\SpecificService;
 use App\Service\StatutService;
 use App\Service\UserService;
 use App\Service\MailerService;
-use App\Service\ValeurChampLibreService;
+use App\Service\ChampLibreService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -236,7 +235,7 @@ class ArrivageController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param UserService $userService
      * @param ArrivageDataService $arrivageDataService
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param ColisService $colisService
      * @return Response
      * @throws LoaderError
@@ -252,7 +251,7 @@ class ArrivageController extends AbstractController
                         AttachmentService $attachmentService,
                         UserService $userService,
                         ArrivageDataService $arrivageDataService,
-                        ValeurChampLibreService $valeurChampLibreService,
+                        ChampLibreService $champLibreService,
                         ColisService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -345,7 +344,7 @@ class ArrivageController extends AbstractController
 
 
 
-            $valeurChampLibreService->manageFreeFields($arrivage, $data, $entityManager);
+            $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
             $entityManager->flush();
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
@@ -396,7 +395,6 @@ class ArrivageController extends AbstractController
 
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $arrivage = $arrivageRepository->find($data['id']);
@@ -409,20 +407,6 @@ class ArrivageController extends AbstractController
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
             $champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
-            $champsLibresArray = [];
-
-            foreach ($champsLibres as $champLibre) {
-                $valeurChampArr = $valeurChampLibreRepository->getValueByArrivageAndChampLibre($arrivage, $champLibre);
-                $champsLibresArray[] = [
-                    'id' => $champLibre->getId(),
-                    'label' => $champLibre->getLabel(),
-                    'typage' => $champLibre->getTypage(),
-                    'elements' => $champLibre->getElements() ?? '',
-                    'requiredEdit' => $champLibre->getRequiredEdit(),
-                    'valeurChampLibre' => $valeurChampArr,
-                    'edit' => true,
-                ];
-            }
 
             $status = $statutService->findAllStatusArrivage();
 
@@ -443,7 +427,6 @@ class ArrivageController extends AbstractController
                     'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
-                    'champsLibres' => $champsLibresArray,
                     'freeFieldsGroupedByTypes' => $champsLibres
                 ]);
             } else {
@@ -516,7 +499,7 @@ class ArrivageController extends AbstractController
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param ArrivageDataService $arrivageDataService
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param EntityManagerInterface $entityManager
      *
      * @return Response
@@ -529,7 +512,7 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request,
                          ArrivageDataService $arrivageDataService,
-                         ValeurChampLibreService $valeurChampLibreService,
+                         ChampLibreService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -602,7 +585,7 @@ class ArrivageController extends AbstractController
 
             $this->persistAttachmentsForEntity($arrivage, $this->attachmentService, $request, $entityManager);
 
-            $valeurChampLibreService->manageFreeFields($arrivage, $post->all(), $entityManager);
+            $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager);
             $entityManager->flush();
             $response = [
                 'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [

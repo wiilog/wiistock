@@ -15,7 +15,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
@@ -25,7 +24,7 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\DemandeRepository;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
-use App\Service\ValeurChampLibreService;
+use App\Service\ChampLibreService;
 use App\Service\ArticleFournisseurService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -115,7 +114,7 @@ class ReferenceArticleController extends AbstractController
     private $user;
 
     private $CSVExportService;
-    private $valeurChampLibreService;
+    private $champLibreService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 GlobalParamService $globalParamService,
@@ -127,7 +126,7 @@ class ReferenceArticleController extends AbstractController
                                 UserService $userService,
                                 InventoryFrequencyRepository $inventoryFrequencyRepository,
                                 CSVExportService $CSVExportService,
-                                ValeurChampLibreService $valeurChampLibreService)
+                                ChampLibreService $champLibreService)
     {
         $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
@@ -139,7 +138,7 @@ class ReferenceArticleController extends AbstractController
         $this->inventoryFrequencyRepository = $inventoryFrequencyRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->CSVExportService = $CSVExportService;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->champLibreService = $champLibreService;
     }
 
     /**
@@ -312,7 +311,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
@@ -323,7 +322,7 @@ class ReferenceArticleController extends AbstractController
      * @throws SyntaxError
      */
     public function new(Request $request,
-                        ValeurChampLibreService $valeurChampLibreService,
+                        ChampLibreService $champLibreService,
                         EntityManagerInterface $entityManager,
                         ArticleFournisseurService $articleFournisseurService): Response
     {
@@ -437,7 +436,7 @@ class ReferenceArticleController extends AbstractController
             $entityManager->persist($refArticle);
             $entityManager->flush();
 
-            $valeurChampLibreService->manageFreeFields($refArticle, $data, $entityManager);
+            $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
             $entityManager->flush();
             return new JsonResponse([
@@ -691,7 +690,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
@@ -699,7 +698,7 @@ class ReferenceArticleController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, ChampLibreService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -721,7 +720,7 @@ class ReferenceArticleController extends AbstractController
             }
             if ($refArticle) {
                 try {
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $valeurChampLibreService);
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -899,7 +898,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
      * @throws ArticleNotAvailableException
@@ -912,7 +911,7 @@ class ReferenceArticleController extends AbstractController
      */
     public function plusDemande(EntityManagerInterface $entityManager,
                                 Request $request,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                ChampLibreService $champLibreService,
                                 DemandeCollecteService $demandeCollecteService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -934,7 +933,7 @@ class ReferenceArticleController extends AbstractController
                         false,
                         $entityManager,
                         $demande,
-                        $valeurChampLibreService
+                        $champLibreService
                     );
                     if ($json === 'article') {
                         try {
@@ -1212,43 +1211,6 @@ class ReferenceArticleController extends AbstractController
         );
     }
 
-
-    /**
-     * @Route("/exporter/{min}/{max}", name="reference_article_export", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param $max
-     * @param $min
-     * @return Response
-     */
-    public function exportAll(EntityManagerInterface $entityManager,
-                              Request $request,
-                              $max,
-                              $min): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-
-            $data = [];
-            $data['values'] = [];
-            $headersCL = [];
-            foreach ($champLibreRepository->findAll() as $champLibre) {
-                $headersCL[] = $champLibre->getLabel();
-            }
-            $listTypes = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
-
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $references = $referenceArticleRepository->getBetweenLimits($min, $max-$min);
-            foreach ($references as $reference) {
-                $data['values'][] = $this->buildInfos($reference, $listTypes, $headersCL);
-            }
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-
     /**
      * @Route("/export-donnees", name="exports_params")
      * @param UserService $userService
@@ -1261,114 +1223,6 @@ class ReferenceArticleController extends AbstractController
         }
 
         return $this->render('exports/exportsMenu.html.twig');
-    }
-
-    /**
-     * @Route("/total", name="get_total_and_headers_ref", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function total(Request $request,
-                          EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $data['total'] = $referenceArticleRepository->countAll();
-            $data['headers'] = [
-                'reference',
-                'libellé',
-                'quantité',
-                'type',
-                'type quantité',
-                'statut',
-                'commentaire',
-                'emplacement',
-                'fournisseurs',
-                'articles fournisseurs',
-                'seuil sécurite',
-                'seuil alerte',
-                'prix unitaire',
-                'code barre',
-				'catégorie inventaire',
-				'date dernier inventaire',
-                'synchronisation nomade'
-            ];
-
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            foreach ($champLibreRepository->findAll() as $champLibre) {
-                $data['headers'][] = $champLibre->getLabel();
-            }
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @param ReferenceArticle $ref
-     * @param array $listTypes
-     * @param string[] $headersCL
-     * @return string
-     */
-    public function buildInfos(ReferenceArticle $ref,
-                               $listTypes,
-                               $headersCL) {
-        $entityManager = $this->getDoctrine()->getManager();
-        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
-
-        $listFournisseurAndAF = $fournisseurRepository->getNameAndRefArticleFournisseur($ref);
-
-    	$arrayAF = $arrayF = [];
-
-    	foreach ($listFournisseurAndAF as $fournisseurAndAF) {
-    		$arrayAF[] = $fournisseurAndAF['reference'];
-    		$arrayF[] = $fournisseurAndAF['nom'];
-		}
-
-    	$stringArticlesFournisseur = implode(' / ', $arrayAF);
-    	$stringFournisseurs = implode(' / ', $arrayF);
-
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getReference());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getLibelle());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getQuantiteStock());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getType() ? $ref->getType()->getLabel() : '');
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getTypeQuantite());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getStatut() ? $ref->getStatut()->getNom() : '');
-        $refData[] = $this->CSVExportService->escapeCSV(strip_tags($ref->getCommentaire()));
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '');
-        $refData[] = $this->CSVExportService->escapeCSV($stringFournisseurs);
-        $refData[] = $this->CSVExportService->escapeCSV($stringArticlesFournisseur);
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitSecurity());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getLimitWarning());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getPrixUnitaire());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getBarCode());
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getCategory() ? $ref->getCategory()->getLabel() : '');
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getDateLastInventory() ? $ref->getDateLastInventory()->format('d/m/Y') : '');
-        $refData[] = $this->CSVExportService->escapeCSV($ref->getNeedsMobileSync() ? 'Oui' : 'Non');
-
-        $champsLibres = [];
-        foreach ($listTypes as $typeArray) {
-        	$type = $typeRepository->find($typeArray['id']);
-            $listChampsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-            foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ref->getId(), $champLibre);
-                if ($valeurChampRefArticle) {
-                    $champsLibres[$champLibre->getLabel()] = $this->valeurChampLibreService->formatValeurChampLibreForExport($valeurChampRefArticle);
-                }
-            }
-        }
-        foreach ($headersCL as $type) {
-            if (array_key_exists($type, $champsLibres)) {
-                $refData[] = $champsLibres[$type];
-            } else {
-                $refData[] = '';
-            }
-        }
-        return implode(';', $refData);
     }
 
     /**

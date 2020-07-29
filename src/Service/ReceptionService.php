@@ -9,7 +9,6 @@ use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
-use App\Entity\ValeurChampLibre;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,19 +27,19 @@ class ReceptionService
     private $fieldsParamService;
     private $stringService;
     private $translator;
-    private $valeurChampLibreService;
+    private $champLibreService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FieldsParamService $fieldsParamService,
                                 StringService $stringService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                ChampLibreService $champLibreService,
                                 TranslatorInterface $translator,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->champLibreService = $champLibreService;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
         $this->fieldsParamService = $fieldsParamService;

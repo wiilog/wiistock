@@ -19,7 +19,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
@@ -69,7 +68,6 @@ class DemandeLivraisonService
     private $refArticleDataService;
     private $mailerService;
     private $translator;
-    private $valeurChampLibreService;
     private $preparationsManager;
 
     public function __construct(ReceptionRepository $receptionRepository,
@@ -77,7 +75,6 @@ class DemandeLivraisonService
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
                                 PreparationsManagerService $preparationsManager,
-                                ValeurChampLibreService $valeurChampLibreService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 TranslatorInterface $translator,
@@ -90,7 +87,6 @@ class DemandeLivraisonService
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
         $this->stringService = $stringService;
-        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -155,11 +151,11 @@ class DemandeLivraisonService
      * @param $data
      * @param EntityManagerInterface $entityManager
      * @param bool $fromNomade
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return Demande|array|JsonResponse
      * @throws NonUniqueResultException
      */
-    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, ValeurChampLibreService $valeurChampLibreService)
+    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, ChampLibreService $champLibreService)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -200,7 +196,7 @@ class DemandeLivraisonService
             ->setCommentaire($data['commentaire']);
         if (!$fromNomade) {
             // enregistrement des champs libres
-            $valeurChampLibreService->manageFreeFields($demande, $data, $entityManager);
+            $champLibreService->manageFreeFields($demande, $data, $entityManager);
         }
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
@@ -249,7 +245,7 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param array $demandeArray
      * @param bool $fromNomade
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return array
      * @throws DBALException
      * @throws LoaderError
@@ -262,7 +258,7 @@ class DemandeLivraisonService
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array $demandeArray,
                                             bool $fromNomade = false,
-                                            ValeurChampLibreService $valeurChampLibreService): array
+                                            ChampLibreService $champLibreService): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -270,7 +266,7 @@ class DemandeLivraisonService
             /**
              * @var Demande $demande
              */
-            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade, $valeurChampLibreService);
+            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade, $champLibreService);
             /**
              * Liste des références sous le format :
              * [
@@ -290,7 +286,7 @@ class DemandeLivraisonService
                     true,
                     $entityManager,
                     $demande,
-                    $valeurChampLibreService
+                    $champLibreService
                 );
             }
         } else {
@@ -457,30 +453,6 @@ class DemandeLivraisonService
         }
         $entityManager->flush();
         return $response;
-    }
-
-    /**
-     * @param Demande $demande
-     * @param array $data
-     */
-    public function checkAndPersistIfClIsOkay(Demande $demande, array $data)
-    {
-        $demande->getValeurChampLibre()->clear();
-        $keys = array_keys($data);
-        foreach ($keys as $champs) {
-            $champExploded = explode('-', $champs);
-            $champId = $champExploded[0] ?? -1;
-            $typeId = isset($champExploded[1]) ? intval($champExploded[1]) : -1;
-            $isChampLibre = (ctype_digit($champId) && $champId > 0);
-            if ($isChampLibre && $typeId === $demande->getType()->getId()) {
-                $value = $data[$champs];
-                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre(intval($champId), $value);
-                $this->entityManager->persist($demande);
-                $valeurChampLibre->addDemandesLivraison($demande);
-                $this->entityManager->persist($valeurChampLibre);
-            }
-        }
-        $this->entityManager->flush();
     }
 
     public function createHeaderDetailsConfig(Demande $demande): array

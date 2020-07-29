@@ -20,7 +20,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 use App\Exceptions\ArticleNotAvailableException;
@@ -76,13 +75,13 @@ class RefArticleDataService
      * @var RouterInterface
      */
     private $router;
-    private $valeurChampLibreService;
+    private $champLibreService;
     private $articleFournisseurService;
 
 
     public function __construct(RouterInterface $router,
                                 UserService $userService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                ChampLibreService $champLibreService,
                                 EntityManagerInterface $entityManager,
                                 FiltreRefRepository $filtreRefRepository,
                                 Twig_Environment $templating,
@@ -91,7 +90,7 @@ class RefArticleDataService
                                 InventoryFrequencyRepository $inventoryFrequencyRepository)
     {
         $this->filtreRefRepository = $filtreRefRepository;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->champLibreService = $champLibreService;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
         $this->entityManager = $entityManager;
@@ -144,15 +143,6 @@ class RefArticleDataService
      */
     public function getDataEditForRefArticle($articleRef)
     {
-        $type = $articleRef->getType();
-
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
-
-        if ($type) {
-            $valeurChampLibre = $valeurChampLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
-        } else {
-            $valeurChampLibre = [];
-        }
         $totalQuantity = $articleRef->getQuantiteDisponible();
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
@@ -170,7 +160,6 @@ class RefArticleDataService
                     return $carry;
                 }, []),
             'totalQuantity' => $totalQuantity,
-            'valeurChampLibre' => $valeurChampLibre
         ];
     }
 
@@ -235,7 +224,7 @@ class RefArticleDataService
      * @param ReferenceArticle $refArticle
      * @param string[] $data
      * @param Utilisateur $user
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return RedirectResponse
      * @throws ArticleNotAvailableException
      * @throws DBALException
@@ -248,7 +237,7 @@ class RefArticleDataService
     public function editRefArticle($refArticle,
                                    $data,
                                    Utilisateur $user,
-                                   ValeurChampLibreService $valeurChampLibreService)
+                                   ChampLibreService $champLibreService)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
@@ -335,7 +324,7 @@ class RefArticleDataService
         $entityManager->flush();
         //modification ou création des champsLibres
 
-        $valeurChampLibreService->manageFreeFields($refArticle, $data, $entityManager);
+        $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
         $entityManager->flush();
         //recup de la row pour insert datatable
         $rows = $this->dataRowRefArticle($refArticle);
@@ -367,7 +356,7 @@ class RefArticleDataService
         $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->valeurChampLibreService->formatValeurChampLibreForDatatable([
+            $rowCL[$champ['label']] = $this->champLibreService->formatValeurChampLibreForDatatable([
                 'valeur' => $refArticle->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);
@@ -410,7 +399,7 @@ class RefArticleDataService
      * @param bool $fromNomade
      * @param EntityManagerInterface $entityManager
      * @param Demande $demande
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return bool
      * @throws ArticleNotAvailableException
      * @throws DBALException
@@ -426,7 +415,7 @@ class RefArticleDataService
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   ValeurChampLibreService $valeurChampLibreService)
+                                   ChampLibreService $champLibreService)
     {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -447,7 +436,7 @@ class RefArticleDataService
             }
 
             if (!$fromNomade) {
-                $this->editRefArticle($referenceArticle, $data, $user, $valeurChampLibreService);
+                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
             }
         }
         else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {

@@ -10,7 +10,6 @@ use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -35,7 +34,7 @@ class ArrivageDataService
     private $specificService;
     private $stringService;
     private $translator;
-    private $valeurChampLibreService;
+    private $champLibreService;
     private $fieldsParamService;
 
     public function __construct(UserService $userService,
@@ -43,7 +42,7 @@ class ArrivageDataService
                                 MailerService $mailerService,
                                 SpecificService $specificService,
                                 StringService $stringService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                ChampLibreService $champLibreService,
                                 FieldsParamService $fieldsParamService,
                                 TranslatorInterface $translator,
                                 Twig_Environment $templating,
@@ -52,7 +51,7 @@ class ArrivageDataService
     {
 
         $this->templating = $templating;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->champLibreService = $champLibreService;
         $this->fieldsParamService = $fieldsParamService;
         $this->translator = $translator;
         $this->stringService = $stringService;

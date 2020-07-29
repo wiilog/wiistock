@@ -17,7 +17,6 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
@@ -26,7 +25,7 @@ use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
-use App\Service\ValeurChampLibreService;
+use App\Service\ChampLibreService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -98,7 +97,7 @@ class DemandeController extends AbstractController
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws DBALException
@@ -111,7 +110,7 @@ class DemandeController extends AbstractController
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
-                                 ValeurChampLibreService $valeurChampLibreService,
+                                 ChampLibreService $champLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -119,7 +118,7 @@ class DemandeController extends AbstractController
                 $entityManager,
                 $data,
                 false,
-                $valeurChampLibreService
+                $champLibreService
             );
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
@@ -143,7 +142,6 @@ class DemandeController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['id']);
@@ -157,14 +155,12 @@ class DemandeController extends AbstractController
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 $champsLibresArray = [];
                 foreach ($champsLibres as $champLibre) {
-                    $valeurChampDL = $valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
                     $champsLibresArray[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
                         'typage' => $champLibre->getTypage(),
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampDL,
                     ];
                 }
                 $typeChampLibre[] = [
@@ -190,14 +186,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
-                         ValeurChampLibreService $valeurChampLibreService,
+                         ChampLibreService $champLibreService,
                          DemandeLivraisonService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
@@ -232,7 +228,7 @@ class DemandeController extends AbstractController
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-                $valeurChampLibreService->manageFreeFields($demande, $data, $entityManager);
+                $champLibreService->manageFreeFields($demande, $data, $entityManager);
                 $em->flush();
                 $response = [
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
@@ -256,17 +252,17 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function new(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ChampLibreService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $valeurChampLibreService);
+            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
             $entityManager->persist($demande);
             $entityManager->flush();
             return new JsonResponse([
@@ -471,7 +467,7 @@ class DemandeController extends AbstractController
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param ChampLibreService $champLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
@@ -481,7 +477,7 @@ class DemandeController extends AbstractController
      * @throws \App\Exceptions\ArticleNotAvailableException
      * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
-    public function addArticle(Request $request, EntityManagerInterface $entityManager, ValeurChampLibreService $valeurChampLibreService): Response
+    public function addArticle(Request $request, EntityManagerInterface $entityManager, ChampLibreService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -499,7 +495,7 @@ class DemandeController extends AbstractController
                 false,
                 $entityManager,
                 $demande,
-                $valeurChampLibreService
+                $champLibreService
             );
             if ($resp === 'article') {
                 $this->articleDataService->editArticle($data);
@@ -650,7 +646,6 @@ class DemandeController extends AbstractController
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);

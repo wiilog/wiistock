@@ -20,7 +20,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Exceptions\ImportException;
 use DateTimeZone;
 use Doctrine\ORM\EntityManager;
@@ -1026,29 +1025,11 @@ class ImportService
                     $value = $row[$col];
                     break;
             }
-            // TODO art import
-            if ($refOrArt instanceof ReferenceArticle) {
-                $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
-            } else if ($refOrArt instanceof Article) {
-                $valeurCLRepository = $this->em->getRepository(ValeurChampLibre::class);
-                $valeurCL = null;
-                if (!$isNewEntity) {
-                    $valeurCL = $valeurCLRepository->findOneByArticleAndChampLibre($refOrArt->getId(), $champLibre);
-                }
-                if (!isset($valeurCL)) {
-                    $valeurCL = new ValeurChampLibre();
-                    $valeurCL->setChampLibre($champLibre);
-                    $this->em->persist($valeurCL);
-                }
-                $valeurCL->setValeur($value);
-                $refOrArt->addValeurChampLibre($valeurCL);
-            }
+            $freeFieldsToInsert[$champLibre->getId()] = strval(is_bool($value) ? intval($value) : $value);
         }
         // TODO
-        if ($refOrArt instanceof ReferenceArticle) {
             $refOrArt
                 ->setFreeFields($freeFieldsToInsert);
-        }
     }
 
     /**

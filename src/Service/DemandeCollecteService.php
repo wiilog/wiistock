@@ -14,7 +14,6 @@ use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -45,14 +44,14 @@ class DemandeCollecteService
 
     private $entityManager;
     private $stringService;
-    private $valeurChampLibreService;
+    private $champLibreService;
     private $articleFournisseurService;
     private $articleDataService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 StringService $stringService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                ChampLibreService $champLibreService,
                                 ArticleFournisseurService $articleFournisseurService,
                                 ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager,
@@ -61,7 +60,7 @@ class DemandeCollecteService
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->champLibreService = $champLibreService;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->articleDataService = $articleDataService;
         $this->router = $router;

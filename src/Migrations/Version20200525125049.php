@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Demande;
-use App\Entity\ValeurChampLibre;
 use App\Repository\DemandeRepository;
-use App\Repository\ValeurChampLibreRepository;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -34,17 +32,17 @@ final class Version20200525125049 extends AbstractMigration implements Container
 
     public function postUp(Schema $schema): void
     {
-        $em = $this->container->get('doctrine.orm.entity_manager');
-        /** @var DemandeRepository $demandeRepository */
-        $demandeRepository = $em->getRepository(Demande::class);
-        /** @var ValeurChampLibreRepository $valeurChampLibreRepository */
-        $valeurChampLibreRepository = $em->getRepository(ValeurChampLibre::class);
-        $demandes = $demandeRepository->findAll();
-        foreach ($demandes as $demande) {
-            $vclToDelete = $demandeRepository->findByDemandeWhereTypeIsDifferent($demande);
-            $valeurChampLibreRepository->deleteIn($vclToDelete);
-        }
-        $em->flush();
+//        $em = $this->container->get('doctrine.orm.entity_manager');
+//        /** @var DemandeRepository $demandeRepository */
+//        $demandeRepository = $em->getRepository(Demande::class);
+//        /** @var ValeurChampLibreRepository $valeurChampLibreRepository */
+//        $valeurChampLibreRepository = $em->getRepository(ValeurChampLibre::class);
+//        $demandes = $demandeRepository->findAll();
+//        foreach ($demandes as $demande) {
+//            $vclToDelete = $demandeRepository->findByDemandeWhereTypeIsDifferent($demande);
+//            $valeurChampLibreRepository->deleteIn($vclToDelete);
+//        }
+//        $em->flush();
     }
 
     public function down(Schema $schema): void
