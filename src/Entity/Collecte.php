@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CollecteRepository")
  */
-class Collecte
+class Collecte extends FreeFieldEntity
 {
     const CATEGORIE = 'collecte';
 

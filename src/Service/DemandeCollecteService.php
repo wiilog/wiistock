@@ -133,7 +133,7 @@ class DemandeCollecteService
     }
 
 
-    public function createHeaderDetailsConfig(Collecte $collecte): array {
+    public function createHeaderDetailsConfig(Collecte $collecte, array $freeFields): array {
         $requester = $collecte->getDemandeur();
         $status = $collecte->getStatut();
         $date = $collecte->getDate();
@@ -142,19 +142,15 @@ class DemandeCollecteService
         $object = $collecte->getObjet();
         $type = $collecte->getType();
         $comment = $collecte->getCommentaire();
-
-        $detailsChampLibres = $collecte
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
+        $detailsChampLibres = [];
+        foreach ($collecte->getFreeFields() as $key => $freeField) {
+            if ($freeField) {
+                $detailsChampLibres[] = [
+                    'label' => $freeFields[$key],
+                    'value' => $freeField
                 ];
-            })
-            ->toArray();
-
+            }
+        }
         return array_merge(
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],

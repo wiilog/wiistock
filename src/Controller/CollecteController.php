@@ -133,12 +133,20 @@ class CollecteController extends AbstractController
         }
 
         $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_COLLECTE);
 
+        $category = CategoryType::DEMANDE_COLLECTE;
+        $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
+            $acc[$freeField['id']] = $freeField['label'];
+            return $acc;
+        }, []);
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte)
+            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte, $champs)
 		]);
     }
 
@@ -272,19 +280,8 @@ class CollecteController extends AbstractController
                 ->setstockOrDestruct($destination);
             $entityManager->persist($collecte);
             $entityManager->flush();
-
-			// enregistrement des champs libres
-			$champsLibresKey = array_keys($data);
-
-			foreach ($champsLibresKey as $champs) {
-				if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-					$valeurChampLibre->addDemandesCollecte($collecte);
-                    $entityManager->persist($valeurChampLibre);
-                    $entityManager->flush();
-				}
-			}
-
+            $valeurChampLibreService->manageFreeFields($collecte, $data, $entityManager);
+            $entityManager->flush();
             $data = [
                 'redirect' => $this->generateUrl('collecte_show', ['id' => $collecte->getId()]),
             ];
@@ -346,20 +343,7 @@ class CollecteController extends AbstractController
                 $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $valeurChampLibreService);
             }
             elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                //TODO patch temporaire CEA
-                $article = $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
-
-				$champslibres = $champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
-                foreach($champslibres as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, null);
-                	$valeurChampLibre->addArticle($article);
-                    $entityManager->persist($valeurChampLibre);
-				}
-                //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
-            // $article = $this->articleRepository->find($data['article']);
-            // $collecte->addArticle($article);
-
-            // $this->articleDataService->editArticle($data);
+                $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
             }
             $entityManager->flush();
 
@@ -476,6 +460,7 @@ class CollecteController extends AbstractController
 			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
 
 			$typeChampLibre = [];
+            $freeFieldsGroupedByTypes = [];
 
 			foreach ($listTypes as $type) {
 				$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
@@ -496,13 +481,15 @@ class CollecteController extends AbstractController
 					'typeId' => $type->getId(),
 					'champsLibres' => $champsLibresArray,
 				];
+                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
 			}
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
                 'emplacements' => $emplacementRepository->findAll(),
                 'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
-				'typeChampsLibres' => $typeChampLibre
+				'typeChampsLibres' => $typeChampLibre,
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);
 
             return new JsonResponse($json);
@@ -518,7 +505,7 @@ class CollecteController extends AbstractController
      * @param ValeurChampLibreService $valeurChampLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,
@@ -560,31 +547,23 @@ class CollecteController extends AbstractController
 					->setstockOrDestruct($destination);
 				$entityManager->flush();
 
-				// modification ou création des champs libres
-				$champsLibresKey = array_keys($data);
+                $valeurChampLibreService->manageFreeFields($collecte, $data, $entityManager);
+                $entityManager->flush();
 
-				foreach ($champsLibresKey as $champ) {
-					if (gettype($champ) === 'integer') {
-						$valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeCollecteAndChampLibre($collecte, $champ);
-                        $value = $data[$champ];
-						// si la valeur n'existe pas, on la crée
-						if (!$valeurChampLibre) {
-                            $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
-							$valeurChampLibre->addDemandesCollecte($collecte);
-							$entityManager->persist($valeurChampLibre);
-						}
-						else {
-                            $valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                        }
-                        $entityManager->flush();
-					}
-				}
+                $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+                $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+                $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_COLLECTE);
 
-				$response = [
+                $category = CategoryType::DEMANDE_COLLECTE;
+                $champs = array_reduce($champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL), function(array $acc, array $freeField) {
+                    $acc[$freeField['id']] = $freeField['label'];
+                    return $acc;
+                }, []);
+                $response = [
 					'entete' => $this->renderView('collecte/collecte-show-header.html.twig', [
 						'collecte' => $collecte,
 						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-                        'showDetails' => $collecteService->createHeaderDetailsConfig($collecte)
+                        'showDetails' => $collecteService->createHeaderDetailsConfig($collecte, $champs)
 					]),
 				];
 			} else {
