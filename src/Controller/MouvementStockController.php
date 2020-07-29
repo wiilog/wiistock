@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 
@@ -13,7 +13,6 @@ use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
@@ -142,19 +141,26 @@ class MouvementStockController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
 
             $response = [
                 'success' => false,
-                'msg' => 'Mauvais type de mouvement choisi'
+                'msg' => 'Mauvais type de mouvement choisi.'
             ];
             $chosenMvtType = $data["chosen-type-mvt"];
             $chosenMvtQuantity = $data["chosen-mvt-quantity"];
-            $chosenMvtRefArticle = $data["refArticleNewMvt"];
             $chosenMvtLocation = $data["chosen-mvt-location"];
-
-            $chosenRefArticle = $referenceArticleRepository->find($chosenMvtRefArticle);
-            if (empty($chosenRefArticle) || $chosenRefArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
-                $response['msg'] = 'La référence choisie est incorrecte, elle doit être active.';
+            $movementBarcode = $data["movement-barcode"];
+            $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+            $chosenArticleToMove = $referenceArticleRepository->findOneBy(['barCode' => $movementBarcode]);
+            if (empty($chosenArticleToMove)) {
+                $chosenArticleToMove = $articleRepository->findOneBy(['barCode' => $movementBarcode]);
+            }
+            $chosenArticleStatus = $chosenArticleToMove->getStatut();
+            $chosenArticleStatusName = $chosenArticleStatus ? $chosenArticleStatus->getNom() : null;
+            if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF])) {
+                $response['msg'] = 'Le statut de la référence ou de l\'article choisi est incorrect, il doit être actif.';
             } else {
                 $now = new DateTime();
                 $emplacementTo = null;
@@ -162,37 +168,56 @@ class MouvementStockController extends AbstractController
                 $quantity = $chosenMvtQuantity;
                 $associatedPickTracaMvt = null;
                 $associatedDropTracaMvt = null;
+                $chosenArticleToMoveAvailableQuantity = $chosenArticleToMove instanceof ReferenceArticle
+                    ? $chosenArticleToMove->getQuantiteDisponible()
+                    : $chosenArticleToMove->getQuantite();
+
+                $chosenArticleToMoveStockQuantity = $chosenArticleToMove instanceof ReferenceArticle
+                    ? $chosenArticleToMove->getQuantiteStock()
+                    : $chosenArticleToMove->getQuantite();
 
                 if ($chosenMvtType === MouvementStock::TYPE_SORTIE) {
-                    if (intval($quantity) > $chosenRefArticle->getQuantiteDisponible()) {
+                    if (intval($quantity) > $chosenArticleToMoveAvailableQuantity) {
                         $response['msg'] = 'La quantité saisie est superieure à la quantité disponible de la référence.';
                     } else {
                         $response['success'] = true;
-                        $emplacementFrom = $chosenRefArticle->getEmplacement();
-                        $chosenRefArticle
-                            ->setQuantiteStock($chosenRefArticle->getQuantiteStock() - $quantity);
+                        $emplacementFrom = $chosenArticleToMove->getEmplacement();
+                        if ($chosenArticleToMove instanceof ReferenceArticle) {
+                            $chosenArticleToMove
+                                ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
+                        } else {
+                            $chosenArticleToMove->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
+                            if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
+                                $chosenArticleToMove->setStatut($unavailableArticleStatus);
+                            }
+                        }
                     }
                 } else if ($chosenMvtType === MouvementStock::TYPE_ENTREE) {
                     $response['success'] = true;
-                    $emplacementTo = $chosenRefArticle->getEmplacement();
-                    $chosenRefArticle
-                        ->setQuantiteStock($chosenRefArticle->getQuantiteStock() + $quantity);
+                    $emplacementTo = $chosenArticleToMove->getEmplacement();
+                    if ($chosenArticleToMove instanceof ReferenceArticle) {
+                        $chosenArticleToMove
+                            ->setQuantiteStock($chosenArticleToMoveStockQuantity + $quantity);
+                    } else {
+                        $chosenArticleToMove
+                            ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
+                    }
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFERT) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
-                    if ($chosenRefArticle->isUsedInQuantityChangingProcesses()) {
+                    if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
                         $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement,
                         impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
                     } else {
                         $response['success'] = true;
-                        $quantity = $chosenRefArticle->getQuantiteDisponible();
+                        $quantity = $chosenArticleToMoveAvailableQuantity;
                         $emplacementTo = $chosenLocation;
-                        $emplacementFrom = $chosenRefArticle->getEmplacement();
-                        $chosenRefArticle
+                        $emplacementFrom = $chosenArticleToMove->getEmplacement();
+                        $chosenArticleToMove
                             ->setEmplacement($emplacementTo);
                         $associatedPickTracaMvt = $mouvementTracaService->createMouvementTraca(
-                            $chosenRefArticle->getBarCode(),
+                            $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
                             $this->getUser(),
                             $now,
@@ -202,7 +227,7 @@ class MouvementStockController extends AbstractController
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $associatedDropTracaMvt = $mouvementTracaService->createMouvementTraca(
-                            $chosenRefArticle->getBarCode(),
+                            $chosenArticleToMove->getBarCode(),
                             $emplacementTo,
                             $this->getUser(),
                             $now,
@@ -216,7 +241,7 @@ class MouvementStockController extends AbstractController
                     }
                 }
                 if ($response['success']) {
-                    $newMvtStock = $mouvementStockService->createMouvementStock($this->getUser(), $emplacementFrom, $quantity, $chosenRefArticle, $chosenMvtType);
+                    $newMvtStock = $mouvementStockService->createMouvementStock($this->getUser(), $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
                     $mouvementStockService->finishMouvementStock($newMvtStock, $now, $emplacementTo);
                     if ($associatedDropTracaMvt && $associatedPickTracaMvt) {
                         $associatedPickTracaMvt->setMouvementStock($newMvtStock);

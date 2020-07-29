@@ -215,25 +215,35 @@ class ArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference')
+	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null)
 	{
-		$em = $this->getEntityManager();
-
-		$dql = "SELECT a.id,
-                       a.${field} as text
-                FROM App\Entity\Article a
-                LEFT JOIN a.statut s
-                WHERE a.${field} LIKE :search";
+        $queryBuilder = $this->createQueryBuilder('article')
+            ->select('article.id AS id')
+            ->addSelect("article.${field} AS text")
+            ->addSelect('location.label AS locationLabel')
+            ->addSelect('article.quantite AS quantity')
+            ->join('article.emplacement', 'location')
+            ->where("article.${field} LIKE :search")
+            ->setParameter('search', '%' . $search . '%');
 
         if ($activeOnly) {
-            $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
+            $queryBuilder
+                ->join('article.statut', 'status')
+                ->andWhere('status.nom = :activeStatusName')
+                ->setParameter('activeStatusName', Article::STATUT_ACTIF);
         }
 
-		$query = $em
-			->createQuery($dql)
-			->setParameter('search', '%' . $search . '%');
+        if ($referenceArticleReference) {
+            $queryBuilder
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->andWhere('referenceArticle.reference = :referenceArticleReference')
+                ->setParameter('referenceArticleReference', $referenceArticleReference);
+        }
 
-		return $query->execute();
+		return $queryBuilder
+            ->getQuery()
+            ->execute();
 	}
 
     public function getRefByRecep($id)

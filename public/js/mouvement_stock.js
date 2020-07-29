@@ -62,10 +62,74 @@ $(function() {
     ajaxAutoRefArticleInit(modalNewMvtStock.find('.select2-autocomplete-ref-articles'));
 });
 
+function newMvtStockArticleChosen($select) {
+    newMvtStockReferenceChosen($select);
+    const $artMvt = $('#chosen-art-barcode');
+    const $refMvt = $('#chosen-ref-barcode');
+    const $location = $('#chosen-ref-location');
+    const $quantity = $('#chosen-ref-quantity');
+    const $type = $('#type-new-mvt');
+    const $locationTo = $('#chosen-mvt-location');
+    const $quantityEntranceOut = $('#chosen-mvt-quantity');
+
+    const selectedArticles = $select.select2('data');
+
+    if (selectedArticles.length > 0) {
+        const selectedArticle = selectedArticles[0];
+        const typeQuantity = selectedArticle.typeQuantity;
+        const $fieldToHide = typeQuantity === 'article' ? $refMvt : $artMvt;
+        const $fieldToShow = typeQuantity === 'article' ? $artMvt : $refMvt;
+
+        $fieldToShow.addClass('needed').addClass('data');
+        $fieldToShow.parent().removeClass('d-none');
+
+        $fieldToHide.parent().addClass('d-none');
+
+        $location.parent().removeClass('needed').addClass('d-none');
+        $quantity.parent().removeClass('needed').addClass('d-none');
+        $type.parent().removeClass('needed').addClass('d-none');
+        $locationTo.parent().removeClass('needed').addClass('d-none');
+        $quantityEntranceOut.parent().removeClass('needed').addClass('d-none');
+
+        const $selectArticles = modalNewMvtStock.find('.select2-autocomplete-articles');
+        if ($selectArticles.hasClass('select2-hidden-accessible')) {
+            $selectArticles.select2('destroy');
+            $selectArticles.val(null);
+            $type.val(null);
+        }
+
+        if(typeQuantity === 'reference') {
+            $location.parent().addClass('needed').removeClass('d-none');
+            $quantity.parent().addClass('needed').removeClass('d-none');
+            $type.parent().addClass('needed').removeClass('d-none');
+            $artMvt.removeClass('needed');
+        }
+        ajaxAutoArticlesInit($selectArticles, selectedArticle.text, 0);
+    }
+}
+
+function showFieldsAndFillOnArticleChange($select) {
+    let currentArticle = $select.select2('data')[0];
+    const $location = $('#chosen-ref-location');
+    const $quantity = $('#chosen-ref-quantity');
+    const $type = $('#type-new-mvt');
+    const $barcodeInput = $('input[name="movement-barcode"]');
+    if (currentArticle) {
+
+        $location.parent().addClass('needed').removeClass('d-none');
+        $quantity.parent().addClass('needed').removeClass('d-none');
+        $type.parent().addClass('needed').removeClass('d-none');
+
+        const $articleLocation = modalNewMvtStock.find('#chosen-ref-location');
+        const $articleQuantity = modalNewMvtStock.find('#chosen-ref-quantity');
+        $barcodeInput.val(currentArticle.text);
+        $articleLocation.val(currentArticle.locationLabel);
+        $articleQuantity.val(currentArticle.quantity);
+    }
+}
 
 function newMvtStockReferenceChosen($select) {
     let referenceArticle = $select.select2('data')[0];
-    console.log($select.select2('data'));
     if (referenceArticle) {
         const $referenceLibelle = modalNewMvtStock.find('#chosen-ref-label');
         const $referenceBarCode = modalNewMvtStock.find('#chosen-ref-barcode');
@@ -87,8 +151,10 @@ function resetNewModal($modal) {
     const $typeMvt = $modal.find('#type-new-mvt');
     $modal.find('.is-hidden-by-ref').addClass('d-none');
     $modal.find('.is-hidden-by-type').addClass('d-none');
+    $('#chosen-art-barcode').parent().addClass('d-none');
     $typeMvt.removeClass('needed');
     $modal.find('.select2-autocomplete-ref-articles').empty();
+    $modal.find('.select2-autocomplete-articles').empty();
 }
 
 function newMvtStockTypeChanged($select) {
@@ -119,4 +185,3 @@ function newMvtStockTypeChanged($select) {
         $locationMvt.parents('.form-group').addClass('d-none');
     }
 }
-

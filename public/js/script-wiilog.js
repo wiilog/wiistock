@@ -729,8 +729,8 @@ function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference'
     });
 }
 
-function ajaxAutoArticlesInit(select) {
-    initSelect2(select, '', 1, {route: 'get_articles', param: {activeOnly: 1}});
+function ajaxAutoArticlesInit(select, referenceArticleReference = null, lengthMin = 1) {
+    initSelect2(select, '', lengthMin, {route: 'get_articles', param: {activeOnly: 1, referenceArticleReference}});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {

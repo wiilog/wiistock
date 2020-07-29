@@ -677,4 +677,19 @@ class Article
             || ($referenceArticle && $referenceArticle->isInRequestsInProgress())
         );
     }
+
+    public function isUsedInQuantityChangingProcesses(): bool {
+        $demande = $this->getDemande();
+        $collectes = $this->getCollectes();
+        $inProgress = $demande ? $demande->needsToBeProcessed() : false;
+        if (!$inProgress) {
+            foreach ($collectes as $collecte) {
+                if ($collecte->needsToBeProcessed()) {
+                    $inProgress = true;
+                    break;
+                }
+            }
+        }
+        return $inProgress;
+    }
 }

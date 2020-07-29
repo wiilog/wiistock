@@ -29,7 +29,6 @@ use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -783,9 +782,10 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
+            $referenceArticleReference = $request->query->get('referenceArticleReference');
 
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode');
+            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference);
 
             return new JsonResponse(['results' => $articles]);
         }
@@ -800,7 +800,6 @@ class ArticleController extends AbstractController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws DBALException
      */
     public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
