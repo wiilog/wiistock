@@ -15,7 +15,7 @@
 <div class="form-group">
     <label for="typeEdit">Type</label>
     <select class="form-control data" name="type" id="typeEdit"
-            disabled class="form-control data d-block">
+            disabled class="form-control data d-block" disabled>
         {% set selected = demande.type is null ? 'selected' : '' %}
         <option {{ selected }} value=''> </option>
 
