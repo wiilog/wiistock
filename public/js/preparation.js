@@ -273,10 +273,9 @@ function finishPrepa($button) {
 
     if (allRowsEmpty) {
         alertErrorMsg('Veuillez sélectionner au moins une ligne.', true);
-    } else {
+    } else if (!$button.hasClass('loading')) {
         clearValidatePreparationModal();
         $modalSubmitPreparation.modal('show');
-
         const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
         const $submitButtonPreparation = $modalSubmitPreparation.find('button[type="submit"]');
 
@@ -294,23 +293,23 @@ function finishPrepa($button) {
                                 emplacement: value
                             }
                         })
-                        .then(({success, redirect, message}) => {
-                            if (success) {
-                                window.location.href = redirect;
-                            }
-                            else {
-                                alertErrorMsg(message);
-                            }
+                            .then(({success, redirect, message}) => {
+                                if (success) {
+                                    window.location.href = redirect;
+                                } else {
+                                    alertErrorMsg(message);
+                                }
 
-                            return success;
-                        })
+                                return success;
+                            })
                     ),
                     false);
-            }
-            else {
+            } else {
                 alertErrorMsg('Veuillez sélectionner un emplacement.', true);
             }
         });
+    } else {
+        alertSuccessMsg('La préparation est en cours de traitement.');
     }
 }
 
