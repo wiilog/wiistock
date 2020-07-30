@@ -16,7 +16,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 
@@ -215,25 +214,60 @@ class ArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference')
-	{
-		$em = $this->getEntityManager();
+    public function getAllWithLimits(int $start, int $limit)
+    {
+        $queryBuilder = $this->createQueryBuilder('article');
+        return $queryBuilder
+            ->addSelect('referenceArticle.reference')
+            ->addSelect('article.label')
+            ->addSelect('article.quantite')
+            ->addSelect('type.label as typeLabel')
+            ->addSelect('statut.nom as statutName')
+            ->addSelect('article.commentaire')
+            ->addSelect('emplacement.label as empLabel')
+            ->addSelect('article.barCode')
+            ->addSelect('article.dateLastInventory')
+            ->addSelect('article.freeFields')
+            ->leftJoin('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('article.emplacement', 'emplacement')
+            ->leftJoin('article.type', 'type')
+            ->leftJoin('article.statut', 'statut')
+            ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->setFirstResult($start)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->execute();
+    }
 
-		$dql = "SELECT a.id,
-                       a.${field} as text
-                FROM App\Entity\Article a
-                LEFT JOIN a.statut s
-                WHERE a.${field} LIKE :search";
+	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null)
+	{
+        $queryBuilder = $this->createQueryBuilder('article')
+            ->select('article.id AS id')
+            ->addSelect("article.${field} AS text")
+            ->addSelect('location.label AS locationLabel')
+            ->addSelect('article.quantite AS quantity')
+            ->join('article.emplacement', 'location')
+            ->where("article.${field} LIKE :search")
+            ->setParameter('search', '%' . $search . '%');
 
         if ($activeOnly) {
-            $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
+            $queryBuilder
+                ->join('article.statut', 'status')
+                ->andWhere('status.nom = :activeStatusName')
+                ->setParameter('activeStatusName', Article::STATUT_ACTIF);
         }
 
-		$query = $em
-			->createQuery($dql)
-			->setParameter('search', '%' . $search . '%');
+        if ($referenceArticleReference) {
+            $queryBuilder
+                ->join('article.articleFournisseur', 'articleFournisseur')
+                ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+                ->andWhere('referenceArticle.reference = :referenceArticleReference')
+                ->setParameter('referenceArticleReference', $referenceArticleReference);
+        }
 
-		return $query->execute();
+		return $queryBuilder
+            ->getQuery()
+            ->execute();
 	}
 
     public function getRefByRecep($id)
@@ -345,15 +379,16 @@ class ArticleRepository extends EntityRepository
 
 	}
 
-	/**
-	 * @param array|null $params
-	 * @param array $filters
-	 * @param Utilisateur $user
-	 * @return array
-	 * @throws ORMException
-	 * @throws OptimisticLockException
-	 */
-    public function findByParamsAndFilters($params = null, $filters, $user)
+    /**
+     * @param array|null $params
+     * @param array $filters
+     * @param Utilisateur $user
+     * @param array $freeFields
+     * @return array
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function findByParamsAndFilters($params = null, $filters, $user, array $freeFields)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -462,22 +497,10 @@ class ArticleRepository extends EntityRepository
                                     $qb->setParameter('valueSearch', '%' . $searchValue . '%');
                                     // champs libres
                                 } else {
-                                    $subqb = $em->createQueryBuilder();
-                                    $subqb
-                                        ->select('a.id')
-                                        ->from('App\Entity\Article', 'a');
-                                    $subqb
-                                        ->leftJoin('a.valeurChampsLibres', 'vclra')
-                                        ->leftJoin('vclra.champLibre', 'clra')
-                                        ->andWhere('clra.label = :searchField')
-                                        ->andWhere('vclra.valeur LIKE :searchValue')
-                                        ->setParameters([
-                                            'searchValue' => '%' . $searchValue . '%',
-                                            'searchField' => $searchField
-                                        ]);
-
-                                    foreach ($subqb->getQuery()->execute() as $idArray) {
-                                        $ids[] = $idArray['id'];
+                                    $value = '%' . $searchValue . '%';
+                                    $clId = $freeFields[trim(mb_strtolower($searchField))] ?? null;
+                                    if ($clId) {
+                                        $query[] = "JSON_SEARCH(a.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"') IS NOT NULL";
                                     }
                                 }
                                 break;
@@ -492,7 +515,12 @@ class ArticleRepository extends EntityRepository
                     foreach ($ids as $id) {
                         $query[] = 'a.id  = ' . $id;
                     }
-                    $qb->andWhere(implode(' OR ', $query));
+                    if (!empty($query)) {
+                        $qb
+                            ->andWhere(
+                                implode(' OR ', $query)
+                            );
+                    }
                 }
 				$countQuery = count($qb->getQuery()->getResult());
 			}
@@ -544,14 +572,13 @@ class ArticleRepository extends EntityRepository
                                 $qb
                                     ->orderBy('a.' . $column, $order);
                             } else {
-                                $paramsQuery = $qb->getParameters();
-                                $paramsQuery[] = new Parameter('orderField', $column, 2);
-                                $qb
-                                    ->addSelect('(CASE WHEN cla.id IS NULL THEN 0 ELSE vcla.valeur END) as vsort')
-                                    ->leftJoin('a.valeurChampsLibres', 'vcla')
-                                    ->leftJoin('vcla.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
-                                    ->orderBy('vsort', $order)
-                                    ->setParameters($paramsQuery);
+                                $orderField = $column;
+                                $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
+                                if ($clId) {
+                                    $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
+                                    $qb
+                                        ->orderBy($jsonOrderQuery, $order);
+                                }
                             }
                             break;
                     }
@@ -955,14 +982,10 @@ class ArticleRepository extends EntityRepository
             "SELECT ra.libelle as refLabel,
                     ra.reference as refRef,
                     a.label as artLabel,
-                    a.barCode as barcode,
-                    vcla.valeur as bl,
-                    cla.label as cl
+                    a.barCode as barcode
 		FROM App\Entity\Article a
 		LEFT JOIN a.articleFournisseur af
 		LEFT JOIN af.referenceArticle ra
-		LEFT JOIN a.valeurChampsLibres vcla
-		LEFT JOIN vcla.champLibre cla
 		WHERE a.id = :id
 		")
             ->setParameter('id', $id);
@@ -1005,7 +1028,11 @@ class ArticleRepository extends EntityRepository
             ->select('article.barCode as barCode')
             ->select('article.id as id')
             ->addSelect('article.quantite as quantity')
-            ->addSelect('0 as is_ref');
+            ->addSelect('referenceArticle_status.nom as reference_status')
+            ->addSelect('0 as is_ref')
+            ->join('article.articleFournisseur', 'article_articleFournisseur')
+            ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
+            ->join('articleFournisseur_reference.statut', 'referenceArticle_status');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
@@ -1013,7 +1040,7 @@ class ArticleRepository extends EntityRepository
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
-        return $queryBuilder
+        $queryBuilder
             ->join('article.emplacement', 'emplacement')
             ->join('article.statut', 'status')
             ->andWhere('emplacement.label = :location')
@@ -1022,6 +1049,8 @@ class ArticleRepository extends EntityRepository
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
             ->setParameter('statusNom', Article::STATUT_ACTIF);
+
+        return $queryBuilder;
     }
 
     public function findByIds(array $ids): array {

@@ -808,6 +808,15 @@ class DashboardService
      */
     public function retrieveAndInsertGlobalDashboardData(EntityManagerInterface $entityManager): void
     {
+        $lastUpdateDate = $this->wiilockService->getLastDashboardFeedingTime($entityManager);
+        $currentDate = new DateTime();
+        $dateDiff = $currentDate
+            ->diff($lastUpdateDate);
+        $hoursBetweenNowAndLastUpdateDate = $dateDiff->h + ($dateDiff->days * 24);
+        if ($hoursBetweenNowAndLastUpdateDate > 2) {
+            $this->wiilockService->stopFeedingDashboard($entityManager);
+            $entityManager->flush();
+        }
         if (!$this->wiilockService->dashboardIsBeingFed($entityManager)) {
             $this->wiilockService->startFeedingDashboard($entityManager);
 

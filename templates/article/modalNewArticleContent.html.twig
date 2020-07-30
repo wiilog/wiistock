@@ -7,12 +7,12 @@
             <select class="form-control data needed select2" name="articleFournisseur">
                 {% if references is defined and references %}
                     {% if (defaultArticleFournisseurReference is not defined or defaultArticleFournisseurReference is empty)
-                          and references|length > 1 %}
+                        and references|length > 1 %}
                         <option value="" selected>&nbsp;</option>
                     {% endif %}
                     {% for ref in references %}
                         <option value="{{ ref.id }}"
-                                {{ defaultArticleFournisseurReference is defined and defaultArticleFournisseurReference == ref.reference ? 'selected' }}>
+                            {{ defaultArticleFournisseurReference is defined and defaultArticleFournisseurReference == ref.reference ? 'selected' }}>
                             {{ ref.reference }}
                         </option>
                     {% endfor %}
@@ -50,35 +50,29 @@
         </div>
     </div>
     <div class="row">
-        <div class="form-group col-4">
-            <div class="input-group radio-btn">
-                <label for="statut" class="mtb-auto mr-2">Statut</label>
-                <div>
-                    <span class="btn active" data-toggle="statut-new"
-                          data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
-                          onclick="toggleRadioButton($(this))">
-                        {{ constant('App\\Entity\\Article::STATUT_ACTIF') }}
-                    </span><span class="btn not-active" data-toggle="statut-new"
-                                 data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
-                                 onclick="toggleRadioButton($(this))">{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}
-                    </span>
-                </div>
-                <input type="hidden" name="statut" id="statut-new" class="data"
-                       value="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}">
+        <div class="form-group col-3">
+            <label for="statut" class="w-100">Statut</label>
+            <div class="w-100">
+                <button class="btn btn-primary" disabled>{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}</button>
             </div>
         </div>
-        <div class="form-group col-2">
-            <label>Anomalie</label>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" name="conform">
-                <span class="slider round"></span>
-            </label>
+        <div class="form-group col-3">
+            <label class="w-100">Anomalie</label>
+
+            <div class="w-100 mt-1">
+                <label class="switch">
+                    <input class="checkbox" type="checkbox" name="conform">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
     </div>
-    <div class="form-group col-12">
-        <label>Commentaire</label>
-        <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
-        <div class="editor-container-new"></div>
+    <div class="row">
+        <div class="form-group col-12">
+            <label>Commentaire</label>
+            <input id='commentaire' class="form-control data" name="commentaire" type="hidden">
+            <div class="editor-container-new"></div>
+        </div>
     </div>
 {% endif %}
 <div class="row mt-4">
@@ -90,79 +84,14 @@
         </h3>
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
-        <div class="d-block">
-            <div class="row mt-2">
-                {% for champLibre in champsLibres %}
-                    {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-                        {% set needed = 'needed' %}
-                        {% set star = '*' %}
-                    {% else %}
-                        {% set needed = '' %}
-                        {% set star = '' %}
-                    {% endif %}
-
-                    <div class="form-group col-6">
-
-                        {% if champLibre.label|lower == 'code projet' %}
-                            <label for="input">{{ champLibre.label }}*</label>
-                        {% else %}
-                            <label for="input">{{ champLibre.label }}{{ star }}</label>
-                        {% endif %}
-
-                        {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                            {% set checked = champLibre.defaultValue ? 'checked' : '' %}
-                            <label class="switch">
-                                <input {{ disabled }} type="checkbox" class="data checkbox" {{ checked }}
-                                                      name="{{ champLibre.id }}">
-                                <span class="slider round"></span>
-                            </label>
-
-                        {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
-                            {% set value = champLibre.defaultValue ? champLibre.defaultValue : '' %}
-                            <input {{ disabled }} type="number" id="{{ champLibre.id ~ 'edit' }}"
-                                                  class="form-control data {{ needed }}"
-                                                  value="{{ value }}"
-                                                  name="{{ champLibre.id }}" id="input">
-
-                        {% elseif  champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
-                            <select {{ disabled }} class="form-control data {{ needed }}" id="{{ champLibre.id ~ 'edit' }}"
-                                                   name="{{ champLibre.id }}" id="input">
-                                <option value="">aucune sélection...</option>
-                                {% for elem in champLibre.elements %}
-                                    <option value="{{ elem }}">{{ elem }}</option>
-                                {% endfor %}
-                            </select>
-                        {% elseif champLibre.typage == 'list multiple' %}
-                            <select {{ disabled }} id="{{ champLibre.id ~ 'edit' }}" class="list-multiple form-control data {{ needed }}"
-                                                   name="{{ champLibre.id }}" multiple="multiple">
-                                {% for elem in champLibre.elements %}
-                                    <option value="{{ elem }}">{{ elem }}</option>
-                                {% endfor %}
-                            </select>
-
-                        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
-                            {% set value = champLibre.defaultValue ? champLibre.defaultValue : '' %}
-                            <input {{ disabled }} type="text" id="{{ champLibre.id ~ 'edit' }}"
-                                                  class="form-control data {{ needed }}"
-                                                  value="{{ value }}"
-                                                  name="{{ champLibre.id }}" id="input">
-
-                        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
-                            {% set value = champLibre.defaultValue ? champLibre.defaultValue|date("Y-d-m") : '' %}
-                            <input type="date" name="{{ champLibre.id }}" id="{{ champLibre.id ~ 'edit' }}"
-                                   class="form-control data {{ needed }}"
-                                   value="{{ value }}">
-                        {% elseif champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
-                            {% set value = champLibre.defaultValue ? champLibre.defaultValue|date("Y-d-m\\TH:i") : '' %}
-                            <input type="datetime-local" name="{{ champLibre.id }}" id="{{ champLibre.id ~ 'edit' }}"
-                                   class="form-control data {{ needed }}"
-                                   value="{{ value }}">
-                        {% else %}
-                            <input disabled>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
+        <div class="row">
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: champsLibres,
+                freeFieldValues: [],
+                colType: 'col-4',
+                requiredType: 'requiredCreate',
+                actionType: 'new'
+            } %}
         </div>
     </div>
 </div>

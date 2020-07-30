@@ -28,7 +28,28 @@ class CSVExportService {
             : '';
     }
 
-    public function createCsvResponse(string $fileName, array $data, array $csvHeader = null, callable $flatMapper = null): Response {
+
+    public function mergeCSVFiles(array $csvFiles) {
+        $tmpCsvFileName = tempnam('', 'export_csv_');
+
+        $masterCSVFile = fopen($tmpCsvFileName, "w+");
+
+        foreach($csvFiles as $fileName) {
+            $fileBuffer = fopen($fileName, "r");
+            while (!feof($fileBuffer)) {
+                fwrite($masterCSVFile, fgets($fileBuffer));
+            }
+            fclose($fileBuffer);
+            unset($fileBuffer);
+            unlink($fileName);
+        }
+        fclose($masterCSVFile);
+        unset($masterCSVFile);
+        return $tmpCsvFileName;
+    }
+
+
+    public function createCsvFile(array $data, array $csvHeader = null, callable $flatMapper = null): string {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
 
@@ -54,7 +75,16 @@ class CSVExportService {
 
         fclose($tmpCsvFile);
 
-        $response = new BinaryFileResponse($tmpCsvFileName);
+        return $tmpCsvFileName;
+    }
+
+    public function createBinaryResponseFromData(string $fileName, array $data, array $csvHeader = null, callable $flatMapper = null): Response {
+        $tempFileName = $this->createCsvFile($data, $csvHeader, $flatMapper);
+        return $this->createBinaryResponseFromFile($tempFileName, $fileName);
+    }
+
+    public function createBinaryResponseFromFile(string $tempFileName, string $fileName): Response {
+        $response = new BinaryFileResponse($tempFileName);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
         $response->deleteFileAfterSend(true);
 

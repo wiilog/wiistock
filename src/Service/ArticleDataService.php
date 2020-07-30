@@ -27,15 +27,11 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
-use App\Exceptions\ArticleNotAvailableException;
-use App\Exceptions\RequestNeedToBeProcessedException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
@@ -54,16 +50,19 @@ class ArticleDataService
     private $entityManager;
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
+	private $clIdWantedOnLabel;
 	private $typeCLOnLabel;
-	private $valeurChampLibreService;
+	private $freeFieldService;
+    private $mouvementStockService;
 
-    public function __construct(ValeurChampLibreService $valeurChampLibreService,
+    public function __construct(FreeFieldService $champLibreService,
                                 MailerService $mailerService,
                                 SpecificService $specificService,
                                 RouterInterface $router,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
+                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
@@ -72,7 +71,8 @@ class ArticleDataService
         $this->router = $router;
         $this->specificService = $specificService;
         $this->mailerService = $mailerService;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->freeFieldService = $champLibreService;
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -164,7 +164,6 @@ class ArticleDataService
      * @param Utilisateur $user
      * @return array
      *
-     * @throws NonUniqueResultException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
@@ -220,26 +219,6 @@ class ArticleDataService
         return $data;
     }
 
-
-    /**
-     * @param Article $article
-     * @return array
-     */
-    public function getDataEditForArticle($article)
-    {
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
-
-        $type = $article->getType();
-        if ($type) {
-            $valeurChampLibre = $valeurChampLibreRepository->getByArticleAndType($article->getId(), $type->getId());
-        } else {
-            $valeurChampLibre = [];
-        }
-        return $data = [
-            'valeurChampLibre' => $valeurChampLibre
-        ];
-    }
-
     /**
      * @param Article $article
      * @param bool $isADemand
@@ -252,7 +231,6 @@ class ArticleDataService
                                        $isADemand = false)
     {
         $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
 
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType();
@@ -261,7 +239,6 @@ class ArticleDataService
 		$champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
-            $valeurChampArticle = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
 
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
@@ -270,25 +247,19 @@ class ArticleDataService
                 'requiredCreate' => $champLibre->getRequiredCreate(),
                 'requiredEdit' => $champLibre->getRequiredEdit(),
                 'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                'defaultValue' => $champLibre->getDefaultValue(),
-                'valeurChampLibre' => $valeurChampArticle
+                'defaultValue' => $champLibre->getDefaultValue()
             ];
         }
 
-        $typeChampsLibres =
-            [
+        return $this->templating->render('article/modalArticleContent.html.twig', [
+            'typeChampsLibres' => [
                 'type' => $typeArticleLabel,
                 'champsLibres' => $champsLibres,
-            ];
-
-        $statut = $article->getStatut()->getNom();
-
-        return $this->templating->render('article/modalArticleContent.html.twig', [
-            'typeChampsLibres' => $typeChampsLibres,
+            ],
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
-            'statut' => $statut,
+            'statut' => $article->getStatut() ? $article->getStatut()->getNom() : '',
             'isADemand' => $isADemand,
             'invCategory' => $refArticle->getCategory()
         ]);
@@ -297,8 +268,6 @@ class ArticleDataService
     /**
      * @param $data
      * @return bool|RedirectResponse
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
      */
     public function editArticle($data)
     {
@@ -308,8 +277,6 @@ class ArticleDataService
 
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
-        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $price = max(0, $data['prix']);
@@ -330,43 +297,9 @@ class ArticleDataService
                         $article->setStatut($statut);
                     }
                 }
-
-                if (isset($data['quantite'])) {
-                    $newQuantity = max((int) ($data['quantite'] ?? 0), 0);
-                    if ($article->getQuantite() !== $newQuantity) {
-                        if ($article->getStatut()->getNom() !== Article::STATUT_ACTIF) {
-                            throw new ArticleNotAvailableException();
-                        }
-                        else if ($article->isInRequestsInProgress()) {
-                            throw new RequestNeedToBeProcessedException();
-                        }
-                        $article->setQuantite($newQuantity); // protection contre quantités négatives
-                    }
-                }
-
-                if ($data['emplacement']) {
-                    $article->setEmplacement($emplacementRepository->find($data['emplacement']));
-                }
             }
 
-            $champLibresKey = array_keys($data);
-            foreach ($champLibresKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $champLibre = $champLibreRepository->find($champ);
-                    $valeurChampLibre = $valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
-                    $value = $data[$champ];
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champLibre, $value);
-                        $valeurChampLibre->addArticle($article);
-                        $this->entityManager->persist($valeurChampLibre);
-                    }
-                    else {
-                        $this->valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                    }
-
-                    $this->entityManager->flush();
-                }
-            }
+            $this->freeFieldService->manageFreeFields($article, $data, $this->entityManager);
             $this->entityManager->flush();
             return true;
         } else {
@@ -378,13 +311,15 @@ class ArticleDataService
      * @param array $data
      * @param Demande $demande
      * @param Reception $reception
+     *
      * @return Article
-     * @throws NonUniqueResultException
+     *
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
+     * @throws Exception
      */
-    public function newArticle($data, $demande = null, $reception = null)
+    public function newArticle($data, Demande $demande = null, Reception $reception = null)
     {
         $entityManager = $this->entityManager;
 
@@ -432,6 +367,8 @@ class ArticleDataService
         	$entityManager->flush();
 		}
 
+        $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
+
         $toInsert
             ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
             ->setConform(isset($data['conform']) ? !$data['conform'] : true)
@@ -439,23 +376,13 @@ class ArticleDataService
             ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
-            ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
+            ->setQuantite($quantity)
             ->setEmplacement($location)
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
             ->setBarCode($this->generateBarCode());
         $entityManager->persist($toInsert);
-
-        $champLibreKey = array_keys($data);
-        foreach ($champLibreKey as $champ) {
-            if (gettype($champ) === 'integer') {
-                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre($champ, $data[$champ]);
-                $valeurChampLibre->addArticle($toInsert);
-                $entityManager->persist($valeurChampLibre);
-                $entityManager->flush();
-            }
-        }
-
+        $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
         if ($demande) {
             $demande->addArticle($toInsert);
@@ -536,7 +463,6 @@ class ArticleDataService
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
-     * @throws DBALException
      */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
@@ -570,7 +496,10 @@ class ArticleDataService
                 'value' => $this->getActiveArticleFilterValue()
             ]];
         }
-        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user);
+
+        $champs = $this->freeFieldService->getFreeFieldLabelToId($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
+
+        $queryResult = $articleRepository->findByParamsAndFilters($params, $filters, $user, $champs);
 
         $articles = $queryResult['data'];
         $listId = $queryResult['allArticleDataTable'];
@@ -596,18 +525,26 @@ class ArticleDataService
      * @param Article $article
      * @param bool $fromReception
      * @return array
+     * @throws DBALException
      * @throws Twig_Error_Loader
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax
      */
     public function dataRowArticle($article, bool $fromReception = false)
     {
-        $valeurChampLibreRepository = $this->entityManager->getRepository(ValeurChampLibre::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
-        $rows = $valeurChampLibreRepository->getLabelCLAndValueByArticle($article);
+        $category = CategoryType::ARTICLE;
+        $champs = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
-        foreach ($rows as $row) {
-            $rowCL[$row['label']] = $row['valeur'];
+        /** @var ChampLibre $champ */
+        foreach ($champs as $champ) {
+            $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+                'valeur' => $article->getFreeFieldValue($champ['id']),
+                "typage" => $champ['typage'],
+            ]);
         }
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -676,13 +613,9 @@ class ArticleDataService
     /**
      * @param Article $article
      * @return array
-     * @throws NonUniqueResultException
      */
     public function getBarcodeConfig(Article $article): array {
-        $articleRepository = $this->entityManager->getRepository(Article::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-
-        $articles = $articleRepository->getRefAndLabelRefAndArtAndBarcodeAndBLById($article->getId());
 
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
@@ -697,31 +630,16 @@ class ArticleDataService
                     'label' => $this->clWantedOnLabel
                 ]);
                 $this->typeCLOnLabel = isset($champLibre) ? $champLibre->getTypage() : null;
+                $this->clIdWantedOnLabel = isset($champLibre) ? $champLibre->getId() : null;
             }
         }
-
-        $wantedIndex = 0;
-        foreach ($articles as $key => $articleWithCL) {
-            if ($articleWithCL['cl'] === $this->clWantedOnLabel) {
-                $wantedIndex = $key;
-                break;
-            }
-        }
-        $articleArray = $articles[$wantedIndex];
-
         $articleFournisseur = $article->getArticleFournisseur();
         $refArticle = isset($articleFournisseur) ? $articleFournisseur->getReferenceArticle() : null;
         $refRefArticle = isset($refArticle) ? $refArticle->getReference() : null;
         $labelRefArticle = isset($refArticle) ? $refArticle->getLibelle() : null;
         $quantityArticle = $article->getQuantite();
         $labelArticle = $article->getLabel();
-        $champLibre = (($this->wantCLOnLabel && ($articleArray['cl'] === $this->clWantedOnLabel))
-            ? $articleArray['bl']
-            : '');
-        $champLibreValue = (!empty($this->typeCLOnLabel))
-            ? $this->getCLValue($champLibre, $this->typeCLOnLabel)
-            : null;
-
+        $champLibreValue = $this->clIdWantedOnLabel ? $article->getFreeFieldValue($this->clIdWantedOnLabel) : '';
         $labels = [
             !empty($labelRefArticle) ? ('L/R : ' . $labelRefArticle) : '',
             !empty($refRefArticle) ? ('C/R : ' . $refRefArticle) : '',
@@ -739,30 +657,6 @@ class ArticleDataService
                 return !empty($label);
             })
         ];
-    }
-
-    private function getCLValue($cl, $typage) {
-        $res = null;
-        switch ($typage) {
-            case ChampLibre::TYPE_BOOL:
-                $res = !empty($cl) ? 'Oui' : 'Non';
-                break;
-            case ChampLibre::TYPE_DATE:
-                $cl = str_replace('/', '-', $cl);
-                $res = !empty($cl) ? (new DateTime($cl))->format('d/m/Y') : null;
-                break;
-            case ChampLibre::TYPE_DATETIME:
-                $cl = str_replace('/', '-', $cl);
-                $res = !empty($cl) ? (new DateTime($cl))->format('d/m/Y H:i') : null;
-                break;
-            case ChampLibre::TYPE_LIST_MULTIPLE:
-                $res = !empty($cl) ? implode(', ', explode(';', $cl)) : null;
-                break;
-            default:
-                $res = $cl;
-                break;
-        }
-        return $res;
     }
 
     public function getActiveArticleFilterValue(): string {

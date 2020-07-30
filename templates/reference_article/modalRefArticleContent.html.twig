@@ -17,7 +17,7 @@
     <div class="form-group col-4">
         {% if isADemand is not defined or not isADemand %}
             <div class="input-group radio-btn">
-                <label for="statut" class="mtb-auto mr-2">Statut</label>
+                <label for="statut" class="my-auto mr-2">Statut</label>
                 <div>
                     {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
                     {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
@@ -49,8 +49,7 @@
 <div class="row">
     <div class="form-group col-4">
         <label for="type">Type*</label>
-        <select {{ disabled }} name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-                               onchange="toggleRequiredChampsLibres($(this), 'edit')" class="form-control data needed d-block" id="typeEdit">
+        <select disabled name="type" class="form-control data needed d-block" id="typeEdit">
 
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''></option>
@@ -107,11 +106,11 @@
     {% if isADemand is not defined or not isADemand %}
         <div class="form-group col-4 mt-3">
             <div class="radio-btn">
-                <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
+                <label for="statut" class="my-auto mr-2">Gestion quantité</label>
                 <div class="btn-group">
-                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}} disabled cursor-default"
+                    <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active' }} disabled cursor-default"
                           data-title="reference">Par référence</span>
-                    <span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}} disabled cursor-default"
+                    <span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active' }} disabled cursor-default"
                           data-toggle="type_quantite" data-title="article">
                         Par article
                     </span>
@@ -149,21 +148,21 @@
 
         <label>Emplacement*</label>
         <select {{ disabled }} name="emplacement" id="emplacement"
-                               class="form-control ajax-autocompleteEmplacement-edit w-100 data {{ dnoneRef == 'd-none' ? '' : 'needed' }}">
+                               class="form-control w-100 data {{ dnoneRef == 'd-none' ? '' : 'needed' }}" disabled>
             <option value="{{ emplacementId }}">{{ emplacementLabel }}</option>
         </select>
     </div>
 
     <div class="form-group col-4 reference {{ dnoneRef }}">
-        <label class="mtb-auto mr-2" for="quantite">Quantité</label>
+        <label class="my-auto mr-2" for="quantite">Quantité</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         {% set disabledOnDemand = isADemand is defined and isADemand ? 'disabled' : disabled %}
         <input {{ disabledOnDemand }} class="form-control rounded data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
-                                      name="quantite" id="quantite">
+                                      id="quantite" disabled>
     </div>
 
     <div class="form-group col-4 article {{ dnone }}">
-        <label class="mtb-auto mr-2">Quantité</label>
+        <label class="my-auto mr-2">Quantité</label>
         <input class="form-control rounded" disabled value="{{ totalQuantity }}">
     </div>
 
@@ -229,72 +228,15 @@
         </h3>
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
-        {% for typeChampLibre in typeChampsLibres %}
-            <div {{ articleRef.type is not empty and typeChampLibre.typeId == articleRef.type.id ? "class='d-block'" : "class='d-none'" }}
-                id="{{ typeChampLibre.typeId }}-edit">
-                <div class="row mt-2">
-                    {% for champLibre in typeChampLibre.champsLibres %}
-                        <div class="form-group col-6">
-                            <label for="input">{{ champLibre.label | capitalize }}</label>
-
-                            {% if champLibre.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                                {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
-                                <label class="switch">
-                                    <input {{ disabled }} type="checkbox" class="data checkbox" {{ checked }}
-                                                          name="{{ champLibre.id }}">
-                                    <span class="slider round"></span>
-                                </label>
-
-                            {% elseif  champLibre.typage == 'number' %}
-                                <input {{ disabled }} type="number" id="{{ champLibre.id ~ 'edit' }}" class="form-control data"
-                                                      value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
-                                                      name="{{ champLibre.id }}" id="input">
-
-                            {% elseif  champLibre.typage == 'list' %}
-                                <select {{ disabled }} class="form-control data" id="{{ champLibre.id ~ 'edit' }}"
-                                                       name="{{ champLibre.id }}" id="input">
-                                    <option value="">aucune selection...</option>
-                                    {% for elem in  champLibre.elements %}
-                                        {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
-                                        <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
-                                    {% endfor %}
-                                </select>
-                            {% elseif champLibre.typage == 'list multiple' %}
-                                <select {{ disabled }} id="{{ champLibre.id ~ 'edit' }}" class="list-multiple form-control data"
-                                                       name="{{ champLibre.id }}" multiple="multiple">
-                                    {% for elem in champLibre.elements %}
-                                        {% set selected = (champLibre.valeurChampLibre and elem in (champLibre.valeurChampLibre.valeur | split(';'))) ? 'selected' : '' %}
-                                        <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
-                                    {% endfor %}
-                                </select>
-
-                            {% elseif champLibre.typage == 'text' %}
-                                <input {{ disabled }} type="text" id="{{ champLibre.id ~ 'edit' }}" class="form-control data"
-                                                      value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
-                                                      name="{{ champLibre.id }}" id="input">
-
-                            {% elseif champLibre.typage == 'date' %}
-                                <input {{ disabled }}
-                                    type="date"
-                                    name="{{ champLibre.id }}"
-                                    id="{{ champLibre.id ~ 'edit' }}"
-                                    class="form-control data"
-                                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"/>
-                            {% elseif champLibre.typage == 'datetime' %}
-                                <input {{ disabled }}
-                                    type="datetime-local"
-                                    name="{{ champLibre.id }}"
-                                    id="{{ champLibre.id ~ 'edit' }}"
-                                    class="form-control data"
-                                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"/>
-                            {% else %}
-                                <input disabled>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
+        <div class="row">
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: freeFieldsGroupedByTypes[articleRef.type.id] is defined ? freeFieldsGroupedByTypes[articleRef.type.id] : [],
+                freeFieldValues: articleRef.freeFields,
+                colType: 'col-4',
+                requiredType: 'requiredEdit',
+                actionType: 'edit'
+            } %}
+        </div>
     </div>
 </div>
 <!-- Reference Fournisseur -->

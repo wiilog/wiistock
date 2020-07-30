@@ -5,6 +5,8 @@ namespace App\Service;
 
 
 use App\Entity\Article;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
@@ -16,7 +18,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\ReceptionRepository;
 use DateTime;
@@ -66,15 +67,15 @@ class DemandeLivraisonService
     private $refArticleDataService;
     private $mailerService;
     private $translator;
-    private $valeurChampLibreService;
     private $preparationsManager;
+    private $freeFieldService;
 
     public function __construct(ReceptionRepository $receptionRepository,
                                 PrefixeNomDemandeRepository $prefixeNomDemandeRepository,
+                                FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
                                 PreparationsManagerService $preparationsManager,
-                                ValeurChampLibreService $valeurChampLibreService,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 TranslatorInterface $translator,
@@ -87,13 +88,13 @@ class DemandeLivraisonService
         $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
         $this->templating = $templating;
         $this->stringService = $stringService;
-        $this->valeurChampLibreService = $valeurChampLibreService;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->refArticleDataService = $refArticleDataService;
+        $this->freeFieldService = $freeFieldService;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
@@ -152,11 +153,11 @@ class DemandeLivraisonService
      * @param $data
      * @param EntityManagerInterface $entityManager
      * @param bool $fromNomade
+     * @param FreeFieldService $champLibreService
      * @return Demande|array|JsonResponse
      * @throws NonUniqueResultException
-     * @throws Exception
      */
-    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false)
+    public function newDemande($data, EntityManagerInterface $entityManager, bool $fromNomade = false, FreeFieldService $champLibreService)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -197,7 +198,7 @@ class DemandeLivraisonService
             ->setCommentaire($data['commentaire']);
         if (!$fromNomade) {
             // enregistrement des champs libres
-            $this->checkAndPersistIfClIsOkay($demande, $data);
+            $champLibreService->manageFreeFields($demande, $data, $entityManager);
         }
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
@@ -246,14 +247,20 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @param array $demandeArray
      * @param bool $fromNomade
+     * @param FreeFieldService $champLibreService
      * @return array
      * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
-    public function checkDLStockAndValidate(EntityManagerInterface $entityManager, array $demandeArray, bool $fromNomade = false): array
+    public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
+                                            array $demandeArray,
+                                            bool $fromNomade = false,
+                                            FreeFieldService $champLibreService): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -261,7 +268,7 @@ class DemandeLivraisonService
             /**
              * @var Demande $demande
              */
-            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade);
+            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade, $champLibreService);
             /**
              * Liste des références sous le format :
              * [
@@ -274,7 +281,15 @@ class DemandeLivraisonService
                 $referenceArticle = $referenceArticleRepository->findOneBy([
                     'barCode' => $reference['barCode']
                 ]);
-                $this->refArticleDataService->addRefToDemand($reference, $referenceArticle, $demandeArray['demandeur'], true, $entityManager, $demande);
+                $this->refArticleDataService->addRefToDemand(
+                    $reference,
+                    $referenceArticle,
+                    $demandeArray['demandeur'],
+                    true,
+                    $entityManager,
+                    $demande,
+                    $champLibreService
+                );
             }
         } else {
             $demande = $demandeRepository->find($demandeArray['demande']);
@@ -442,30 +457,6 @@ class DemandeLivraisonService
         return $response;
     }
 
-    /**
-     * @param Demande $demande
-     * @param array $data
-     */
-    public function checkAndPersistIfClIsOkay(Demande $demande, array $data)
-    {
-        $demande->getValeurChampLibre()->clear();
-        $keys = array_keys($data);
-        foreach ($keys as $champs) {
-            $champExploded = explode('-', $champs);
-            $champId = $champExploded[0] ?? -1;
-            $typeId = isset($champExploded[1]) ? intval($champExploded[1]) : -1;
-            $isChampLibre = (ctype_digit($champId) && $champId > 0);
-            if ($isChampLibre && $typeId === $demande->getType()->getId()) {
-                $value = $data[$champs];
-                $valeurChampLibre = $this->valeurChampLibreService->createValeurChampLibre(intval($champId), $value);
-                $this->entityManager->persist($demande);
-                $valeurChampLibre->addDemandesLivraison($demande);
-                $this->entityManager->persist($valeurChampLibre);
-            }
-        }
-        $this->entityManager->flush();
-    }
-
     public function createHeaderDetailsConfig(Demande $demande): array
     {
         $status = $demande->getStatut();
@@ -476,17 +467,12 @@ class DemandeLivraisonService
         $type = $demande->getType();
         $comment = $demande->getCommentaire();
 
-        $detailsChampLibres = $demande
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
-                ];
-            })
-            ->toArray();
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $demande,
+            CategorieCL::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_LIVRAISON
+        );
 
         return array_merge(
             [
@@ -497,7 +483,7 @@ class DemandeLivraisonService
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : ''],
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : '']
             ],
-            $detailsChampLibres,
+            $freeFieldArray,
             [
                 [
                     'label' => 'Commentaire',

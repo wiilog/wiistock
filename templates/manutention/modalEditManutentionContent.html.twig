@@ -31,7 +31,7 @@
 </div>
 <div class="form-group col-12 w-100">
     <div class="input-group radio-btn">
-        <label for="statut" class="mtb-auto mr-2">Statut*</label>
+        <label for="statut" class="my-auto mr-2">Statut*</label>
         <div>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT') ) %}
             <span class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"

@@ -3,13 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 
+use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Menu;
+use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Service\UserService;
+use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +30,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class ChampLibreController extends AbstractController
 {
+
+
+    const CATEGORY_CL_TO_CLASSNAMES = [
+        CategorieCL::RECEPTION => Reception::class,
+        CategorieCL::ARTICLE => Article::class,
+        CategorieCL::REFERENCE_ARTICLE => ReferenceArticle::class,
+        CategorieCL::ARRIVAGE => Arrivage::class,
+        CategorieCL::DEMANDE_COLLECTE => Collecte::class,
+        CategorieCL::DEMANDE_LIVRAISON => Demande::class,
+        CategorieCL::AUCUNE => null
+    ];
 
     /**
      * @Route("/", name="champ_libre_index", methods={"GET"})
@@ -120,10 +138,12 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
+                        FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -157,7 +177,7 @@ class ChampLibreController extends AbstractController
 			}
 			$em = $this->getDoctrine()->getManager();
 			$em->persist($champLibre);
-			$em->flush();
+            $em->flush();
 
 			return new JsonResponse([
 			    'success' => true
@@ -200,10 +220,12 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
+                         FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -231,17 +253,18 @@ class ChampLibreController extends AbstractController
 		}
 		$em = $this->getDoctrine()->getManager();
 		$em->flush();
-
-		return new JsonResponse();
+        return new JsonResponse();
     }
 
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
+                           FreeFieldService $champLibreService,
                            EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);

@@ -139,6 +139,7 @@ function finishCollecte($button, withoutLocation = false) {
                             .draw();
                     });
                     tableArticle.ajax.reload();
+                    $('#modalFinishCollecte').modal('hide');
                 }
                 else {
                     alertErrorMsg(data.msg);

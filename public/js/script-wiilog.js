@@ -66,12 +66,16 @@ function showRow(button, path, modal) {
  * @param {Document} modal la modalde modification
  * @param {Document} submit le bouton de validation du form pour le edit
  *
+ * @param editorToInit
+ * @param editor
+ * @param setMaxQuantity
+ * @param afterLoadingEditModal
+ * @param wantsFreeFieldsRequireCheck
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
-}) {
+}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
-
     let id = button.data('id');
     let ref = button.data('ref');
 
@@ -93,7 +97,9 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
         $('.list-multiple').select2();
-        toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+        if (wantsFreeFieldsRequireCheck) {
+            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+        }
         registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
         if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
@@ -232,11 +238,8 @@ function visibleBlockModal(bloc) {
 
 function typeChoice(bloc, text, content) {
     let cible = bloc.val();
-    content.children().removeClass('d-block');
     content.children().addClass('d-none');
-
     $('#' + cible + text).removeClass('d-none');
-    $('#' + cible + text).addClass('d-block');
 }
 
 function updateQuantityDisplay($elem) {
@@ -436,8 +439,8 @@ function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference'
     });
 }
 
-function ajaxAutoArticlesInit(select) {
-    initSelect2(select, '', 1, {route: 'get_articles', param: {activeOnly: 1}});
+function ajaxAutoArticlesInit(select, referenceArticleReference = null, lengthMin = 1) {
+    initSelect2(select, '', lengthMin, {route: 'get_articles', param: {activeOnly: 1, referenceArticleReference}});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
@@ -481,7 +484,7 @@ let toggleRequiredChampsLibres = function (select, require) {
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    const $formControl = bloc.find('#' + element + require);
+                    const $formControl = bloc.find('[name="' + element + '"]');
                     const $label = $formControl.siblings('label');
                     $label.append($('<span class="is-required-label">&nbsp;*</span>'));
                     $formControl.addClass('needed');
@@ -1177,30 +1180,27 @@ function openSelect2($select2) {
     $select2.select2('open');
 }
 
-function saveExportFile(routeName, params = null) {
+function saveExportFile(routeName, needsDateFilters = true) {
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
     const path = Routing.generate(routeName, true);
 
-    const filtersData = {};
+    const data = {};
     $('.filterService input').each(function () {
         const $input = $(this);
         const name = $input.attr('name');
         const val = $input.val();
         if (name && val) {
-            filtersData[name] = val;
+            data[name] = val;
         }
     });
 
-    const data = {
-        ...filtersData,
-        ...(params || {})
-    }
-
-    if (data.dateMin && data.dateMax) {
-        data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
-        data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+    if ((data.dateMin && data.dateMax) || !needsDateFilters) {
+        if (data.dateMin && data.dateMax) {
+            data.dateMin = moment(data.dateMin, 'DD/MM/YYYY').format('YYYY-MM-DD');
+            data.dateMax = moment(data.dateMax, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        }
 
         const dataKeys = Object.keys(data);
 

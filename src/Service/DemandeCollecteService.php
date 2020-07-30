@@ -5,16 +5,16 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -42,27 +42,30 @@ class DemandeCollecteService
 
     private $entityManager;
     private $stringService;
-    private $valeurChampLibreService;
+    private $freeFieldService;
     private $articleFournisseurService;
     private $articleDataService;
+    private $mouvementStockService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 StringService $stringService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                FreeFieldService $champLibreService,
                                 ArticleFournisseurService $articleFournisseurService,
                                 ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager,
+                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->articleFournisseurService = $articleFournisseurService;
         $this->articleDataService = $articleDataService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->mouvementStockService = $mouvementStockService;
     }
 
     /**
@@ -143,17 +146,12 @@ class DemandeCollecteService
         $type = $collecte->getType();
         $comment = $collecte->getCommentaire();
 
-        $detailsChampLibres = $collecte
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
-                ];
-            })
-            ->toArray();
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $collecte,
+            CategorieCL::DEMANDE_COLLECTE,
+            CategoryType::DEMANDE_COLLECTE
+        );
 
         return array_merge(
             [
@@ -166,7 +164,7 @@ class DemandeCollecteService
                 [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
                 [ 'label' => 'Type', 'value' => $type ? $type->getLabel() : '' ]
             ],
-            $detailsChampLibres,
+            $freeFieldArray,
             [
                 [
                     'label' => 'Commentaire',
@@ -185,7 +183,6 @@ class DemandeCollecteService
      * @param ReferenceArticle $referenceArticle
      * @param Collecte $collecte
      * @return Article
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function persistArticleInDemand(array $data,

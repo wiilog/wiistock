@@ -64,8 +64,8 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 }
 
 function afterLoadingEditModal($button) {
-    toggleRequiredChampsLibres($button, 'edit');
     initRequiredChampsFixes($button);
+    $('#typeContentEdit .list-multiple').select2();
 }
 
 function submitActionRefArticle(modal, path, callback = null, close = true) {
@@ -376,7 +376,7 @@ let ajaxEditArticle = function ($select) {
     const selectVal = $select.val();
     if (selectVal) {
         let modalFooter = $select.closest('.modal').find('.modal-footer');
-        let path = Routing.generate('article_api_edit', true);
+        let path = Routing.generate('article_show', true);
         let params = {id: $select.val(), isADemand: 1};
 
         $.post(path, JSON.stringify(params), function (data) {

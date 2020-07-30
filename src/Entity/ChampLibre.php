@@ -87,11 +87,6 @@ class ChampLibre
     private $defaultValue;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="champLibre")
-     */
-    private $valeurChampsLibres;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="champLibre")
      */
     private $filters;
@@ -119,7 +114,6 @@ class ChampLibre
 
     public function __construct()
     {
-        $this->valeurChampsLibres = new ArrayCollection();
         $this->filters = new ArrayCollection();
     }
 
@@ -177,37 +171,6 @@ class ChampLibre
     public function setDefaultValue(?string $defaultValue): self
     {
         $this->defaultValue = $defaultValue;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampsLibres(): Collection
-    {
-        return $this->valeurChampsLibres;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampLibre;
-            $valeurChampLibre->setChampLibre($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampLibre);
-            // set the owning side to null (unless already changed)
-            if ($valeurChampLibre->getChampLibre() === $this) {
-                $valeurChampLibre->setChampLibre(null);
-            }
-        }
 
         return $this;
     }
@@ -291,26 +254,4 @@ class ChampLibre
         return $this;
     }
 
-    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->setChampLibre($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            // set the owning side to null (unless already changed)
-            if ($valeurChampsLibre->getChampLibre() === $this) {
-                $valeurChampsLibre->setChampLibre(null);
-            }
-        }
-
-        return $this;
-    }
 }

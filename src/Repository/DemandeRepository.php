@@ -288,17 +288,4 @@ class DemandeRepository extends EntityRepository
             ->getQuery()
             ->execute();
     }
-
-    public function findByDemandeWhereTypeIsDifferent(Demande $demande) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT v.id
-            FROM App\Entity\Demande d
-            INNER JOIN d.valeurChampLibre v
-            INNER JOIN v.champLibre cl
-            WHERE d = :demande AND cl.type != d.type"
-        );
-        $query->setParameter('demande', $demande);
-        return $query->execute();
-    }
 }
