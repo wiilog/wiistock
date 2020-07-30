@@ -60,7 +60,7 @@
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
                     <input
                         type="date"
-                        class="form-control data date-cl {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                        class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
                         name="{{ freeField.id }}"
                         id="{{ freeField.label ~ actionType }}"
                         value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}">
