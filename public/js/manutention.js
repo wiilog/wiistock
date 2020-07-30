@@ -62,17 +62,17 @@ $(function() {
 let modalNewManutention = $("#modalNewManutention");
 let submitNewManutention = $("#submitNewManutention");
 let urlNewManutention = Routing.generate('manutention_new', true);
-InitialiserModal(modalNewManutention, submitNewManutention, urlNewManutention, tableManutention);
+InitModal(modalNewManutention, submitNewManutention, urlNewManutention, {tables: [tableManutention]});
 
 let modalModifyManutention = $('#modalEditManutention');
 let submitModifyManutention = $('#submitEditManutention');
 let urlModifyManutention = Routing.generate('manutention_edit', true);
-InitialiserModal(modalModifyManutention, submitModifyManutention, urlModifyManutention, tableManutention);
+InitModal(modalModifyManutention, submitModifyManutention, urlModifyManutention, {tables: [tableManutention]});
 
 let modalDeleteManutention = $('#modalDeleteManutention');
 let submitDeleteManutention = $('#submitDeleteManutention');
 let urlDeleteManutention = Routing.generate('manutention_delete', true);
-InitialiserModal(modalDeleteManutention, submitDeleteManutention, urlDeleteManutention, tableManutention);
+InitModal(modalDeleteManutention, submitDeleteManutention, urlDeleteManutention, {tables: [tableManutention]});
 
 let editorEditManutAlreadyDone = false;
 function initEditManutEditor(modal) {

@@ -26,19 +26,14 @@ let tableTransporteur = initDataTable('tableTransporteur_id', tableTransporteurC
 let modalNewTransporteur = $("#modalNewTransporteur");
 let submitNewTransporteur = $("#submitNewTransporteur");
 let urlNewTransporteur = Routing.generate('transporteur_new', true);
-InitialiserModal(modalNewTransporteur, submitNewTransporteur, urlNewTransporteur, tableTransporteur, displayErrorTransporteur, false);
+InitModal(modalNewTransporteur, submitNewTransporteur, urlNewTransporteur, {tables: [tableTransporteur]});
 
 let modalModifyTransporteur = $('#modalEditTransporteur');
 let submitModifyTransporteur = $('#submitEditTransporteur');
 let urlModifyTransporteur = Routing.generate('transporteur_edit', true);
-InitialiserModal(modalModifyTransporteur, submitModifyTransporteur, urlModifyTransporteur, tableTransporteur);
+InitModal(modalModifyTransporteur, submitModifyTransporteur, urlModifyTransporteur, {tables: [tableTransporteur]});
 
 let modalDeleteTransporteur = $('#modalDeleteTransporteur');
 let submitDeleteTransporteur = $('#submitDeleteTransporteur');
 let urlDeleteTransporteur = Routing.generate('transporteur_delete', true);
-InitialiserModal(modalDeleteTransporteur, submitDeleteTransporteur, urlDeleteTransporteur, tableTransporteur);
-
-function displayErrorTransporteur(data) {
-    let modal = $('#modalNewTransporteur');
-    displayError(modal, data.msg, data.success);
-}
+InitModal(modalDeleteTransporteur, submitDeleteTransporteur, urlDeleteTransporteur, {tables: [tableTransporteur]});

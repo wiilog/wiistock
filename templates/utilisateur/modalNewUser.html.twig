@@ -1,68 +1,129 @@
-<form method="" class="modal fade" id="modalNewUser" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<form method=""
+      class="modal fade"
+      id="modalNewUser"
+      role="dialog"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"
+         role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Nouvel utilisateur</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title">
+                    Nouvel utilisateur
+                </h5>
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid row">
-                <div class="col-12 form-group">
-                    <label for="username">Nom d'utilisateur*</label>
-                    <input type="text" class="form-control data needed" name="username" required="">
-                </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="mb-3 form-group col-12">
+                        <label for="username">
+                            Nom d'utilisateur*
+                        </label>
+                        <input type="text"
+                               class="form-control data needed"
+                               name="username"
+                               required="">
+                    </div>
 
-                <div class="col-12 form-group">
-                    <label for="email">Email*</label>
-                    <input type="email" class="form-control data needed" name="email">
-                </div>
-                <div class="col-12 form-group">
-                    <label for="email">Email 2</label>
-                    <input type="email" class="form-control data-array" name="secondaryEmails">
-                </div>
-                <div class="col-12 form-group">
-                    <label for="email">Email 3</label>
-                    <input type="email" class="form-control data-array" name="secondaryEmails">
-                </div>
-                <div class="col-12 form-group">
-                    <label for="password">Mot de passe*</label>
-                    <input type="password" class="form-control data needed" name="password">
-                    <div class="password-error-msg"></div>
-                </div>
+                    <div class="col-12 form-group">
+                        <label for="email">
+                            Email*
+                        </label>
+                        <input type="email"
+                               class="form-control data needed"
+                               name="email">
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="email">
+                            Email 2
+                        </label>
+                        <input type="email"
+                               class="form-control data-array"
+                               name="secondaryEmails">
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="email">
+                            Email 3
+                        </label>
+                        <input type="email"
+                               class="form-control data-array"
+                               name="secondaryEmails">
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="password">
+                            Mot de passe*
+                        </label>
+                        <input type="password"
+                               class="form-control data needed"
+                               name="password">
+                        <div class="password-error-msg"></div>
+                    </div>
 
-                <div class="col-12 form-group">
-                    <label for="password2">Confirmer mot de passe*</label>
-                    <input type="password" class="form-control data needed" name="password2">
-                </div>
-                <div class="form-group col-12 w-100">
-                    <label for="type">Type*</label>
-                    <select name="type" class="form-control select2 data" id="typeUtilisateur" multiple="multiple" style="width: 300px;">
-                        {% for type in types %}
-                            <option value="{{ type.id }}">{{ type.label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 form-group">
-                    <label for="role">Rôle*</label>
-                    <select name="role" class="form-control data needed" id="">
-                        <option disabled selected> </option>
-                    {% for role in roles %}
-                        <option value="{{ role.id }}">{{ role.label }}</option>
-                    {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 form-group">
-                    <label for="dropzone">Dropzone</label>
-                    <select name="dropzone" class="form-control data ajax-autocompleteEmplacement-edit w-100">
-                    </select>
+                    <div class="col-12 form-group">
+                        <label for="password2">
+                            Confirmer mot de passe*
+                        </label>
+                        <input type="password"
+                               class="form-control data needed"
+                               name="password2">
+                    </div>
+                    <div class="form-group col-12 w-100">
+                        <label for="type">
+                            Type*
+                        </label>
+                        <select name="type"
+                                class="form-control select2 data"
+                                id="typeUtilisateur"
+                                multiple="multiple"
+                                style="width: 300px;">
+                            {% for type in types %}
+                                <option value="{{ type.id }}">
+                                    {{ type.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="role">
+                            Rôle*
+                        </label>
+                        <select name="role"
+                                class="form-control data needed"
+                                id="">
+                            <option disabled
+                                    selected></option>
+                            {% for role in roles %}
+                                <option value="{{ role.id }}">
+                                    {{ role.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="dropzone">
+                            Dropzone
+                        </label>
+                        <select name="dropzone"
+                                class="form-control data ajax-autocompleteEmplacement-edit w-100">
+                        </select>
+                    </div>
                 </div>
             </div>
-
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
-                <div class="btn" data-dismiss="modal">Annuler</div>
-                <div id="submitNewUser" class="btn btn-primary btn-success data" name='id' value=''>Enregistrer</div>
+                <div class="btn" data-dismiss="modal">
+                    Annuler
+                </div>
+                <div id="submitNewUser"
+                     class="btn btn-success data"
+                     name='id'
+                     value=''>
+                    Enregistrer
+                </div>
             </div>
         </div>
     </div>

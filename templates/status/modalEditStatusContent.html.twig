@@ -1,36 +1,59 @@
 <form method="">
-    <div class="modal-body modal-input container-fluid row">
-        <div class="col-12 form-group required d-none">
-            <input type="text" class="form-control data needed" name="status" required="" value="{{ status.id }}">
-        </div>
+    <div class="col-12 form-group required d-none">
+        <input type="text"
+               class="form-control data needed"
+               name="status"
+               required=""
+               value="{{ status.id }}">
+    </div>
 
-        <div class="col-12 form-group">
+    <div class="row">
+        <div class="mb-3 form-group col-12">
             <label for="label">Catégorie*</label>
-            <select name="category" id="categories" class="data form-control needed">
-                <option value="{{ status.categorie.id }}">{{ status.categorie.nom }}</option>
+            <select name="category"
+                    id="categories"
+                    class="data form-control needed">
+                <option value="{{ status.categorie.id }}">
+                    {{ status.categorie.nom }}
+                </option>
                 {% for category in categories %}
                     {% if category.nom != status.categorie.nom %}
-                        <option value="{{ category.id }}">{{ category.nom }}</option>
+                        <option value="{{ category.id }}">
+                            {{ category.nom }}
+                        </option>
                     {% endif %}
                 {% endfor %}
             </select>
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">Label*</label>
-            <input type="text" class="form-control data needed" name="label" required="" value="{{ status.nom }}">
+            <label for="username">
+                Libellé*
+            </label>
+            <input type="text"
+                   class="form-control data needed"
+                   name="label"
+                   required=""
+                   value="{{ status.nom }}">
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">Commentaire</label>
-            <input type="text" class="form-control data" name="comment" value="{{ status.comment }}">
+            <label for="username">
+                Commentaire
+            </label>
+            <input type="text"
+                   class="form-control data"
+                   name="comment"
+                   value="{{ status.comment }}">
         </div>
 
         {% set checked = status.treated ? 'checked' : '' %}
         <div class="col-12 form-group">
             <label>Statut de type 'litige traité' ?</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="treated" {{ checked }}>
+                <input class="checkbox"
+                       type="checkbox"
+                       name="treated" {{ checked }}>
                 <span class="slider round"></span>
             </label>
         </div>
@@ -39,7 +62,9 @@
         <div class="col-12 form-group">
             <label>Envoi de mails aux acheteurs ?</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="sendMails" {{ checkedMails }}>
+                <input class="checkbox"
+                       type="checkbox"
+                       name="sendMails" {{ checkedMails }}>
                 <span class="slider round"></span>
             </label>
         </div>
@@ -47,14 +72,19 @@
         <div class="col-12 form-group">
             <label>Envoi de mails au déclarant ?</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="sendMailsDeclarant" {{ checkedMails }}>
+                <input class="checkbox"
+                       type="checkbox"
+                       name="sendMailsDeclarant" {{ checkedMails }}>
                 <span class="slider round"></span>
             </label>
         </div>
         <div class="form-group col-3">
             <label for="label">Ordre</label>
-            <input type="number" class="data form-control" name="displayOrder" value="{{ status.displayOrder }}" min="1">
+            <input type="number"
+                   class="data form-control"
+                   name="displayOrder"
+                   value="{{ status.displayOrder }}"
+                   min="1">
         </div>
-
     </div>
 </form>

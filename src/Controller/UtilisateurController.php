@@ -14,6 +14,8 @@ use App\Service\PasswordService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -144,11 +146,10 @@ class UtilisateurController extends AbstractController
             $utilisateur = new Utilisateur();
             $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
-
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
-                ->setSecondaryEmails($data['secondaryEmails'])
+                ->setSecondaryEmails(json_decode($data['secondaryEmails']))
                 ->setRole($role)
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
@@ -381,6 +382,8 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -425,8 +428,8 @@ class UtilisateurController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
@@ -476,6 +479,8 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse
      */
     public function updateSearches(Request $request)
     {
@@ -489,6 +494,8 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse
      */
     public function updateSearchesArticle(Request $request)
     {
@@ -506,6 +513,8 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return JsonResponse
      */
     public function updateUserPageLengthForArrivage(Request $request)
     {

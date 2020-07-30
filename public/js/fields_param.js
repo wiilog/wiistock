@@ -30,21 +30,7 @@ $(function () {
 let modalEditFields = $('#modalEditFields');
 let submitEditFields = $('#submitEditFields');
 let urlEditFields = Routing.generate('fields_edit', true);
-InitialiserModal(modalEditFields, submitEditFields, urlEditFields, null, displayErrorFields);
-
-function displayErrorFields(data) {
-    let modal = $("#modalEditFields");
-    if (data.success === false) {
-        displayError(modal, data.msg, data.success);
-    } else {
-        modal.find('.close').click();
-        $('.table').each(function () {
-            let table = $(this).DataTable();
-            table.ajax.reload();
-        });
-        alertSuccessMsg(data.msg);
-    }
-}
+InitModal(modalEditFields, submitEditFields, urlEditFields, {tables: [$('.table')]});
 
 function switchDisplay(checkbox) {
     if (!checkbox.is(':checked')) {
