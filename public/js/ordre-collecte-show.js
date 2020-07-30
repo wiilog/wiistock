@@ -23,18 +23,12 @@ let tableArticle = initDataTable('tableArticle', tableArticleConfig);
 let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
 let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
-InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+InitModal(modalEditArticle, submitEditArticle, urlEditArticle, {tables: [tableArticle]});
 
 let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
 let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
 let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
-InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, tableArticle, handleRemovalErrors);
-
-function handleRemovalErrors(data) {
-    if (!data.success) {
-        alertErrorMsg(data.msg, true)
-    }
-}
+InitModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, {tables: [tableArticle]});
 
 let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
 let modalFinishCollecte = $("#modalFinishCollecte");
@@ -89,7 +83,7 @@ function openLocationModal() {
         $tbody.append($newTr);
     });
     $('#modalFinishCollecte').modal('show');
-    ajaxAutoCompleteEmplacementInit($("#modalFinishCollecte div.modal-body table.table > tbody").find('.ajax-autocompleteEmplacement'));
+    ajaxAutoCompleteEmplacementInit($tbody.find('.ajax-autocompleteEmplacement'));
 }
 
 function finishCollecte($button, withoutLocation = false) {
@@ -139,6 +133,7 @@ function finishCollecte($button, withoutLocation = false) {
                             .draw();
                     });
                     tableArticle.ajax.reload();
+                    $('#modalFinishCollecte').modal('hide');
                 }
                 else {
                     alertErrorMsg(data.msg);
@@ -157,7 +152,7 @@ function printCollecteBarCodes() {
               window.location.href = Routing.generate(
                   'collecte_bar_codes_print',
                   {
-                      ordreCollecte: $('#collecte-id').val()
+                      ordreCollecte: id
                   },
                  true
              );
