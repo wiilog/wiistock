@@ -10,8 +10,10 @@
                         {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : "0" %}
                         {% set checked = (entityValue == "1" ? 'checked') %}
                         <label class="switch">
-                            <input type="checkbox" class="data checkbox {{ attribute(freeField, requiredType) ? 'needed' : '' }}" {{ checked }}
-                                id="{{ freeField.id ~ actionType }}"
+                            <input type="checkbox"
+                                   class="data checkbox {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                                   {{ checked }}
+                                   id="{{ freeField.id ~ actionType }}"
                                    name="{{ freeField.id }}">
                             <span class="slider round"></span>
                         </label>

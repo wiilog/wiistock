@@ -35,12 +35,6 @@
     &:focus,
     &:disabled {
         &:hover,
-        &:focus {
-            background-color: $white !important;
-            color: $blueGT !important;
-            border-color: $blueGT !important;
-        }
-
         &:disabled {
             background-color: $blueButton !important;
             color: $white !important;
