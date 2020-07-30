@@ -26,19 +26,23 @@
 }
 
 // boutons de type Ajouter, Modifier...
+// + boutons de type Valider, Enregistrer
 .btn-primary,
-.btn-primary.dropdown-toggle {
+.btn-primary.dropdown-toggle,
+.btn-success {
     background-color: $blueGT;
     border-color: $blueGT;
 
     &:hover,
     &:focus,
+    &:active,
     &:disabled {
-        &:hover,
-        &:disabled {
-            background-color: $blueButton !important;
-            color: $white !important;
-            border-color: $blueButton !important;
+        background-color: $blueButton !important;
+        color: $white !important;
+        border-color: $blueButton !important;
+
+        &:active:not(:disabled) {
+            box-shadow: 0 0 0 0.2rem rgba($blueButton, .3) !important;
         }
 
         .spinner-border {
@@ -49,22 +53,6 @@
 
 #btn-add-colis-acheminement {
     margin-top: 19px;
-}
-
-// boutons de type Valider, Enregistrer
-.btn-success {
-    background-color: $blueGT;
-    border-color: $blueGT;
-
-    &:hover {
-        background-color: $white;
-        color: $blueGT;
-        border-color: $blueGT;
-
-        .spinner-border {
-            @include setColorLoader($blueGT);
-        }
-    }
 }
 
 // boutons de type Supprimer
