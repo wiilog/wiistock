@@ -1,75 +1,80 @@
-<div class="form-group">
-    <label for="date-collecte">Date de la collecte</label>
-    <input type="date" class="form-control data" name="date-collecte" id="dateCollecte"
-           value="{{ collecte.date | date('Y-m-d') }}" required="true" min="{{ 'now' | date('Y-m-d') }}"
-           max="{{ '+25year' | date('Y-m-d') }}">
-</div>
-
-<div class="form-group">
-    <label for="objet">Objet de collecte</label>
-    <input type="text" class="form-control data needed" name="objet" id='objet' value="{{ collecte.objet }}"
-           placeholder="objet" maxlength="255">
-</div>
-
-<div class="form-group">
-    <label for="statut">Statut</label>
-    <select class="form-control select2 data" name="statut" disabled>
-        <option value="{{ collecte.statut.id }}">{{ collecte.statut.nom }}</option>
-    </select>
-</div>
-
-<div class="form-group">
-    <label for="utilisateur">Utilisateur</label>
-    <select class="form-control select2 data" name="demandeur" disabled>
-        <option value="{{ collecte.demandeur.id }}">{{ collecte.demandeur.username }}</option>
-    </select>
-</div>
-
-<div class="form-group">
-    <label for="Pcollecte">Point de collecte</label>
-    <select class="pointCollecte form-control ajax-autocompleteEmplacement-edit data" name="Pcollecte">
-        <option value="{{ collecte.pointCollecte.id }}">{{ collecte.pointCollecte.label }}</option>
-    </select>
-</div>
-<div class="form-group">
-    <div class="input-group radio-btn">
-        <label for="Destination">Destination</label>
-        <div class="ml-2">
-            {% if collecte.stockOrDestruct == 1 %}
-                <span class="btn not-active" data-toggle="destination" data-title="0"
-                      onclick="toggleRadioButton($(this))">Destruction</span><span class="btn active"
-                                                                                   data-toggle="destination"
-                                                                                   data-title="1"
-                                                                                   onclick="toggleRadioButton($(this))">Mise en stock</span>
-            {% endif %}
-            {% if collecte.stockOrDestruct == 0 %}
-                <span class="btn active" data-toggle="destination" data-title="0"
-                      onclick="toggleRadioButton($(this))">Destruction</span><span class="btn not-active"
-                                                                                   data-toggle="destination"
-                                                                                   data-title="1"
-                                                                                   onclick="toggleRadioButton($(this))">Mise en stock</span>
-            {% endif %}
-        </div>
+<div class="form-group row">
+    <label class="col-12" for="date-collecte">Date de la collecte</label>
+    <div class="col-12">
+        <input type="date" class="form-control data w-100" name="date-collecte" id="dateCollecte"
+               value="{{ collecte.date | date('Y-m-d') }}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+               max="{{ '+25year' | date('Y-m-d') }}">
     </div>
+</div>
+
+<div class="form-group row">
+    <label class="col-12" for="objet">Objet de collecte</label>
+    <div class="col-12">
+        <input type="text" class="form-control data needed w-100" name="objet" id='objet' value="{{ collecte.objet }}"
+               placeholder="objet" maxlength="255">
+    </div>
+</div>
+
+<div class="form-group row">
+    <label class="col-12" for="statut">Statut</label>
+    <div class="col-12">
+        <select class="form-control select2 data w-100" name="statut" disabled>
+            <option value="{{ collecte.statut.id }}">{{ collecte.statut.nom }}</option>
+        </select>
+    </div>
+</div>
+
+<div class="form-group row">
+    <label class="col-12" for="utilisateur">Utilisateur</label>
+    <div class="col-12">
+        <select class="form-control select2 data w-100" name="demandeur" disabled>
+            <option value="{{ collecte.demandeur.id }}">{{ collecte.demandeur.username }}</option>
+        </select>
+    </div>
+</div>
+
+<div class="form-group row">
+    <label class="col-12" for="Pcollecte">Point de collecte</label>
+    <div class="col-12">
+        <select class="pointCollecte form-control ajax-autocompleteEmplacement-edit data w-100" name="Pcollecte">
+            <option value="{{ collecte.pointCollecte.id }}">{{ collecte.pointCollecte.label }}</option>
+        </select>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-12" for="Destination">Destination</label>
+    <span class="input-group radio-btn col">
+        {% set classDestruction = collecte.stockOrDestruct == 1 ? 'not-active' : 'active' %}
+        {% set classStock = collecte.stockOrDestruct == 0 ? 'active' : 'not-active' %}
+
+        <span class="btn {{ classDestruction }}"
+              data-toggle="destination"
+              data-title="0"
+              onclick="toggleRadioButton($(this))">Destruction</span>
+        <span class="btn active"
+              data-toggle="destination"
+              data-title="1"
+              onclick="toggleRadioButton($(this))">Mise en stock</span>
+    </span>
 
     <input type="number" name="destination" class="d-none data" value="{{ collecte.stockOrDestruct }}"
            id="destination">
-
-
 </div>
 
-<div class="form-group">
-    <label for="type">Type*</label>
-    <select name="type" class="form-control data d-block type needed"
-            onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-            onchange="toggleRequiredChampsLibres($(this), 'edit')" disabled>
-        <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
-        {% for type in types %}
-            {% if collecte.type != type %}
-                <option value="{{ type.id }}">{{ type.label }}</option>
-            {% endif %}
-        {% endfor %}
-    </select>
+<div class="form-group row">
+    <label class="col-12" for="type">Type*</label>
+    <div class="col-12">
+        <select name="type" class="form-control data d-block type needed col-12"
+                onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
+                onchange="toggleRequiredChampsLibres($(this), 'edit')" disabled>
+            <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
+            {% for type in types %}
+                {% if collecte.type != type %}
+                    <option value="{{ type.id }}">{{ type.label }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
 </div>
 
 <!-- CHAMPS LIBRES -->
@@ -87,10 +92,13 @@
     </div>
 </div>
 
-<div class="form-group">
-    <label for="commentaire">Commentaire</label>
-    <input id="commentaire" class="form-control data" name="commentaire" type="hidden"
-           value="{{ collecte.commentaire }}">
-    <div class="editor-container-edit" value="{{ collecte.commentaire }}"> {{ collecte.commentaire|raw }}
+<div class="form-group row">
+    <label class="col-12" for="commentaire">Commentaire</label>
+    <div class="col-12">
+        <input id="commentaire" class="form-control data" name="commentaire" type="hidden"
+               value="{{ collecte.commentaire }}">
+        <div class="editor-container-edit w-100" value="{{ collecte.commentaire }}">
+            {{ collecte.commentaire|raw }}
+        </div>
     </div>
 </div>
