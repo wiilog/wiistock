@@ -93,7 +93,9 @@ class ArticleDataService
         }
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig');
+            $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig', [
+                'maximum' => $refArticle->getQuantiteDisponible()
+            ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
             if ($demande === 'collecte') {
@@ -173,7 +175,9 @@ class ArticleDataService
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
-                'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
+                'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig', [
+                    'maximum' => $refArticle->getQuantiteDisponible()
+                ]),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -198,6 +202,7 @@ class ArticleDataService
                 $this->entityManager->flush();
             }
             $availableQuantity = $refArticle->getQuantiteDisponible();
+            dump($availableQuantity);
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
                 $data = [

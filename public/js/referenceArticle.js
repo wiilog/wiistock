@@ -206,8 +206,7 @@ function showDemande(bloc) {
         $livraisonShow.addClass('d-block');
         $livraisonShow.find('div').find('select, .quantite').addClass('data');
         $livraisonShow.find('.data').addClass('needed');
-
-        setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
+        //setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
 
     } else if (bloc.data("title") == "collecte") {
         $collecteShow.removeClass('d-none');
@@ -378,6 +377,7 @@ let ajaxPlusDemandeContent = function (button, demande) {
             }
             showDemande(button);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            $('.list-multiple').select2();
         }
     }
     let json = {
@@ -478,11 +478,8 @@ function addFournisseurEdit(button) {
 
 function setMaxQuantityByArtRef(input) {
     let val = 0;
-    $('input[name="quantite"]').each(function () {
-        if ($(this).val() !== '' && $(this).val()) {
-            val = $(this).val();
-        }
-    });
+    val = $('#quantite').val();
+    console.log(input);
     input.attr('max', val);
 }
 
