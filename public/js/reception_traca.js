@@ -60,7 +60,7 @@ let tableRecep = initDataTable('tableRecepts', tableRecepConfig);
 let modalDeleteReception = $('#modalDeleteRecepTraca');
 let submitDeleteReception = $('#submitDeleteRecepTraca');
 let urlDeleteArrivage = Routing.generate('reception_traca_delete', true);
-InitialiserModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, tableRecep);
+InitModal(modalDeleteReception, submitDeleteReception, urlDeleteArrivage, {tables: [tableRecep]});
 
 let customExport = function () {
     tableRecep.button('.buttons-csv').trigger();
