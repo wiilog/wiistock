@@ -202,7 +202,6 @@ class ArticleDataService
                 $this->entityManager->flush();
             }
             $availableQuantity = $refArticle->getQuantiteDisponible();
-            dump($availableQuantity);
             $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
             if ($byRef) {
                 $data = [
