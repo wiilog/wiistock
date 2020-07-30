@@ -42,7 +42,9 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
             }
             if (typeof data === 'object') {
                 if (!data.success) {
-                    alertErrorMsg(data.msg);
+                    if (data.msg) {
+                        alertErrorMsg(data.msg);
+                    }
                 }
                 if (data.new) {
                     tableRefArticle.row.add(data.new).draw(false);

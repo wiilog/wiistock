@@ -228,8 +228,10 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
-                if (data.success === false && data.msg) {
-                    alertErrorMsg(data.msg, false);
+                if (data.success === false) {
+                    if (data.msg) {
+                        alertErrorMsg(data.msg, false);
+                    }
                 }
                 else {
                     if (data.redirect) {
