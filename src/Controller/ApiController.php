@@ -18,7 +18,6 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
-use App\Entity\OrdreCollecteReference;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -238,8 +237,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return Response
      * @throws NonUniqueResultException
      * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws Throwable
      */
     public function postMouvementsTraca(Request $request,
                                         MouvementStockService $mouvementStockService,
@@ -280,6 +277,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                       &$finishMouvementTraca,
                                                       $entityManager,
                                                       $mouvementTracaService) {
+
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
@@ -452,6 +450,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     });
                 } catch (Exception $e) {
                     if (!$entityManager->isOpen()) {
+                        /** @var EntityManagerInterface $entityManager */
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                         $entityManager->clear();
                         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -539,8 +538,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @return JsonResponse
      * @throws NonUniqueResultException
      * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws Throwable
      */
     public function finishPrepa(Request $request,
                                 LivraisonsManagerService $livraisonsManager,
@@ -651,6 +648,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     } catch (Exception $exception) {
                         // we create a new entity manager because transactional() can call close() on it if transaction failed
                         if (!$entityManager->isOpen()) {
+                            /** @var EntityManagerInterface $entityManager */
                             $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                             $preparationsManager->setEntityManager($entityManager);
                         }
@@ -1047,9 +1045,11 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param FreeFieldService $champLibreService
      * @return Response
+     * @throws ArticleNotAvailableException
      * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
+     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -1543,10 +1543,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $orderCollecteStatusInProgressId = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER)
-            ->getId();
-
         $referenceActiveStatusId = $statutRepository
             ->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF)
             ->getId();
@@ -1564,24 +1560,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $referenceArticle = $referenceArticleRepository->find($referenceArticleArray['id']);
                     $statusReferenceArticle = $referenceArticle->getStatut();
                     $statusReferenceId = $statusReferenceArticle ? $statusReferenceArticle->getId() : null;
-                    $canTransfer = ($statusReferenceId === $referenceActiveStatusId);
-                    if ($canTransfer) {
-                        // wee can transfer if reference is not linked to an active collect order
-                        $canTransfer = $referenceArticle
-                            ->getOrdreCollecteReferences()
-                            ->filter(function (OrdreCollecteReference $ordreCollecteReference) use ($orderCollecteStatusInProgressId) {
-                                $ordreCollecte = $ordreCollecteReference->getOrdreCollecte();
-                                $ordreCollecteStatus = $ordreCollecte ? $ordreCollecte->getStatut() : null;
-                                return !isset($ordreCollecteStatus) || ($ordreCollecteStatus->getId() === $orderCollecteStatusInProgressId);
-                            })
-                            ->isEmpty();
-                    }
-                    $referenceArticleArray['can_transfer'] = $canTransfer;
+                    // we can transfer if reference is active AND it is not linked to any active orders
+                    $referenceArticleArray['can_transfer'] = (
+                        ($statusReferenceId === $referenceActiveStatusId)
+                        && !$referenceArticle->isUsedInQuantityChangingProcesses()
+                    );
                     $resData['article'] = $referenceArticleArray;
                 }
                 else {
                     $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
-                    $article['can_transfer'] = $article['reference_status'] === ReferenceArticle::STATUT_ACTIF;
+                    $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
                     $resData['article'] = $article;
                 }
 

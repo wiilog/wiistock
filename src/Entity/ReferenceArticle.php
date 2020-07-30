@@ -856,21 +856,15 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     public function isUsedInQuantityChangingProcesses(): bool {
-        $ligneArticles = $this->getLigneArticles();
-        $ligneArticlesCollecte = $this->getCollecteReferences();
-        $inProgress = false;
-        foreach ($ligneArticles as $ligneArticle) {
-            $demande = $ligneArticle->getDemande();
-            if ($demande->needsToBeProcessed()) {
-                $inProgress = true;
-                break;
-            }
-        }
-        foreach ($ligneArticlesCollecte as $ligneArticle) {
-            $collecte = $ligneArticle->getCollecte();
-            if ($collecte->needsToBeProcessed()) {
-                $inProgress = true;
-                break;
+        $inProgress = $this->isInRequestsInProgress();
+        if (!$inProgress) {
+            $ligneArticlesCollecte = $this->getOrdreCollecteReferences();
+            foreach ($ligneArticlesCollecte as $ligneArticle) {
+                $collecte = $ligneArticle->getOrdreCollecte();
+                if ($collecte->needsToBeProcessed()) {
+                    $inProgress = true;
+                    break;
+                }
             }
         }
         return $inProgress;

@@ -359,10 +359,9 @@ class Collecte extends FreeFieldEntity
     public function needsToBeProcessed(): bool {
         $demandeStatus = $this->getStatut();
         return (
-            $demandeStatus
-            && (
-                $demandeStatus->getNom() === Collecte::STATUT_A_TRAITER
-            )
+            !$demandeStatus
+            || ($demandeStatus->getNom() === Collecte::STATUT_A_TRAITER)
+            || ($demandeStatus->getNom() === Collecte::STATUT_INCOMPLETE)
         );
     }
 }
