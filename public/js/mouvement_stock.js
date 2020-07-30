@@ -53,4 +53,4 @@ let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
 let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');
 let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
+InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, {tables: [tableMvt]});
