@@ -25,7 +25,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Zend\Code\Scanner\Util;
 
 /**
  * @Route("/champ-libre")
@@ -275,9 +274,12 @@ class ChampLibreController extends AbstractController
 		    $entityManager->remove($filter);
         }
 
-        $userFieldToRemove = $champLibre->getCategorieCL()->getLabel() === CategorieCL::ARTICLE
+		$categorieCL = $champLibre->getCategorieCL();
+		$categorieCLLabel = $categorieCL ? $categorieCL->getLabel() : null;
+
+        $userFieldToRemove = $categorieCLLabel === CategorieCL::ARTICLE
             ? 'rechercheForArticle'
-            : $champLibre->getCategorieCL()->getLabel() === CategorieCL::REFERENCE_ARTICLE
+            : $categorieCLLabel === CategorieCL::REFERENCE_ARTICLE
                 ? 'recherche'
                 : null;
 		if ($userFieldToRemove) {
