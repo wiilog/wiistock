@@ -2,7 +2,14 @@
     <div class="{{ colType }} my-2">
         <div class="row form-group">
             <div class="col-12">
-                <label for="input">{{ freeField.label }}{{ attribute(freeField, requiredType) ? '*' : '' }}</label>
+                <label for="input">
+                    {{ freeField.label }}
+                    {{
+                        attribute(freeField, requiredType)
+                            ? '*'
+                            : ''
+                    }}
+                </label>
             </div>
             <div class="col-12">
                 {% if freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
@@ -11,7 +18,7 @@
                         {% set checked = (entityValue == "1" ? 'checked') %}
                         <label class="switch">
                             <input type="checkbox"
-                                   class="data checkbox {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                                   class="data checkbox"
                                    {{ checked }}
                                    id="{{ freeField.id ~ actionType }}"
                                    name="{{ freeField.id }}">
@@ -60,7 +67,7 @@
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
                     <input
                         type="date"
-                        class="form-control data date-cl {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                        class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
                         name="{{ freeField.id }}"
                         id="{{ freeField.label ~ actionType }}"
                         value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}">
