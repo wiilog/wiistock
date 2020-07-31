@@ -279,9 +279,9 @@ class ChampLibreController extends AbstractController
 
         $userFieldToRemove = $categorieCLLabel === CategorieCL::ARTICLE
             ? 'rechercheForArticle'
-            : $categorieCLLabel === CategorieCL::REFERENCE_ARTICLE
+            : ($categorieCLLabel === CategorieCL::REFERENCE_ARTICLE
                 ? 'recherche'
-                : null;
+                : null);
 		if ($userFieldToRemove) {
 		    $utilisateurRepository->removeFromSearch($userFieldToRemove, ucfirst(strtolower($champLibre->getLabel())));
         }
