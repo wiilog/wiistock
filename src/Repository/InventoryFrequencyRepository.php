@@ -70,4 +70,14 @@ class InventoryFrequencyRepository extends ServiceEntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+	public function getLabelBySearch($search) {
+	    return $this->createQueryBuilder('inventoryFrequency')
+            ->select('inventoryFrequency.label AS text')
+            ->addSelect('inventoryFrequency.id AS id')
+            ->where('inventoryFrequency.label LIKE :label')
+            ->setParameter('label','%'.$search.'%')
+            ->getQuery()
+            ->getResult();
+    }
 }
