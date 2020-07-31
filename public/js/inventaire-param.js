@@ -1,72 +1,50 @@
-let pathCategories = Routing.generate('invParam_api', true);
-let tableCategoriesConfig = {
-    ajax: {
-        "url": pathCategories,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Label', 'title': 'Label'},
-        {"data": 'Frequence', 'title': 'Fréquence'},
-        {"data": 'Permanent', 'title': 'Permanent'},
-    ],
-    order: [],
-    rowConfig: {
-        needsRowClickAction: true,
-    },
-};
-let tableCategories = initDataTable('tableCategories', tableCategoriesConfig);
+$(function() {
+    ajaxAutoCompleteFrequencyInit($('.ajax-autocomplete-frequency'));
+    let pathCategories = Routing.generate('invParam_api', true);
+    let tableCategoriesConfig = {
+        ajax: {
+            "url": pathCategories,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
+            {"data": 'Label', 'title': 'Label'},
+            {"data": 'Frequence', 'title': 'Fréquence'},
+            {"data": 'Permanent', 'title': 'Permanent'},
+        ],
+        order: [],
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+    };
 
-let modalNewCategorie = $("#modalNewCategorie");
-let submitNewCategorie = $("#submitNewCategorie");
-let urlNewCategorie = Routing.generate('categorie_new', true);
-InitialiserModal(modalNewCategorie, submitNewCategorie, urlNewCategorie, tableCategories, displayErrorCategorie, false);
+    let tableCategories = initDataTable('tableCategories', tableCategoriesConfig);
 
-let modalEditCategory = $('#modalEditCategory');
-let submitEditCategory = $('#submitEditCategory');
-let urlEditCategory = Routing.generate('category_edit', true);
-InitialiserModal(modalEditCategory, submitEditCategory, urlEditCategory, tableCategories, displayErrorCategorieEdit, false, false);
+    let modalNewCategorie = $("#modalNewCategorie");
+    let submitNewCategorie = $("#submitNewCategorie");
+    let urlNewCategorie = Routing.generate('categorie_new', true);
+    InitModal(modalNewCategorie, submitNewCategorie, urlNewCategorie, {tables: [tableCategories]});
 
-let ModalDeleteCategory = $("#modalDeleteCategory");
-let SubmitDeleteCategory = $("#submitDeleteCategory");
-let urlDeleteCategory = Routing.generate('category_delete', true)
-InitialiserModal(ModalDeleteCategory, SubmitDeleteCategory, urlDeleteCategory, tableCategories);
+    let modalEditCategory = $('#modalEditCategory');
+    let submitEditCategory = $('#submitEditCategory');
+    let urlEditCategory = Routing.generate('category_edit', true);
+    InitModal(modalEditCategory, submitEditCategory, urlEditCategory, {tables: [tableCategories]});
 
-
-function displayErrorCategorie(data) {
-    let modal = $("#modalNewCategorie");
-    let msg = null;
-    if (data === false) {
-        msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
-        displayError(modal, msg, data);
-    } else {
-        modal.find('.close').click();
-        msg = 'La catégorie a bien été créée.'
-        alertSuccessMsg(msg);
-    }
-}
-
-function displayErrorCategorieEdit(data) {
-    let modal = $("#modalEditCategory");
-    let msg = null;
-    if (data === false) {
-        msg = 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.';
-        displayError(modal, msg, data);
-    } else {
-        modal.find('.close').click();
-        msg = 'La catégorie a bien été modifiée';
-        alertSuccessMsg(msg);
-    }
-}
+    let ModalDeleteCategory = $("#modalDeleteCategory");
+    let SubmitDeleteCategory = $("#submitDeleteCategory");
+    let urlDeleteCategory = Routing.generate('category_delete', true)
+    InitModal(ModalDeleteCategory, SubmitDeleteCategory, urlDeleteCategory, {tables: [tableCategories]});
+})
 
 function importFile() {
     let path = Routing.generate('update_category', true);
+    let importExcel = $('#importExcel')[0];
     let formData = new FormData();
-    let files = $('#importExcel')[0].files;
+    let files = importExcel.files;
     let fileToSend = files[0];
-    let fileName = $('#importExcel')[0].files[0]['name'];
+    let fileName = importExcel.files[0]['name'];
     let extension = fileName.split('.').pop();
-    if (extension == "csv") {
+    if (extension === "csv") {
         formData.append('file', fileToSend);
         $.ajax({
             url: path,
@@ -77,9 +55,9 @@ function importFile() {
             cache: false,
             dataType: "json",
             success: function (data) {
-                if (data.success == true) {
+                if (data.success === true) {
                     alertSuccessMsg("Les catégories ont bien été modifiées.");
-                } else if (data.success == false) {
+                } else if (data.success === false) {
                     let exportedFilenmae = 'log-error.txt';
                     let pathFile = '../uploads/log/';
                     let pathWithFileName = pathFile.concat(data.nameFile);
@@ -121,51 +99,18 @@ let tableFrequencies = initDataTable('tableFrequencies', tableFrequenciesConfig)
 let ModalNewFrequency = $("#modalNewFrequency");
 let SubmitNewFrequency = $("#submitNewFrequency");
 let urlNewFrequency = Routing.generate('frequency_new', true);
-InitialiserModal(ModalNewFrequency, SubmitNewFrequency, urlNewFrequency, tableFrequencies, displayErrorFrequencyAndUpdateList, false);
+InitModal(ModalNewFrequency, SubmitNewFrequency, urlNewFrequency, {tables: [tableFrequencies]});
 
 
 let modalEditFrequency = $('#modalEditFrequency');
 let submitEditFrequency = $('#submitEditFrequency');
 let urlEditFrequency = Routing.generate('frequency_edit', true);
-InitialiserModal(modalEditFrequency, submitEditFrequency, urlEditFrequency, tableFrequencies, displayErrorFrequencyEdit, false, false);
+InitModal(modalEditFrequency, submitEditFrequency, urlEditFrequency, {tables: [tableFrequencies]});
 
 let ModalDeleteFrequency = $("#modalDeleteFrequency");
 let SubmitDeleteFrequency = $("#submitDeleteFrequency");
 let urlDeleteFrequency = Routing.generate('frequency_delete', true)
-InitialiserModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, tableFrequencies, openModalShow);
-
-function displayErrorFrequencyAndUpdateList(data) {
-    let modal = $("#modalNewFrequency");
-    let msg = null;
-    if (data === false) {
-        msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
-        displayError(modal, msg, data);
-    } else {
-        modal.find('.close').click();
-        msg = 'La fréquence a bien été créée.'
-        alertSuccessMsg(msg);
-    }
-}
-
-function displayErrorFrequencyEdit(data) {
-    let modal = $("#modalEditFrequency");
-    let msg = null;
-    if (data === false) {
-        msg = 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.';
-        displayError(modal, msg, data);
-    } else {
-        modal.find('.close').click();
-        msg = 'La fréquence a bien été modifiée.';
-        alertSuccessMsg(msg);
-    }
-}
-
-function openModalShow(data) {
-    if (data) {
-        $('#showFrequencies').click();
-    }
-}
-
+InitModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, {tables: [tableFrequencies]});
 
 function downloadModele() {
     const pathFile = '../uploads/modele/';

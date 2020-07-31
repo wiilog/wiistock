@@ -1,51 +1,52 @@
-$('.select2').select2();
-
-let pathMvt = Routing.generate('mouvement_stock_api', true);
-let tableMvtStockConfig = {
-    responsive: true,
-    serverSide: true,
-    processing: true,
-    order: [[1, "desc"]],
-    ajax: {
-        "url": pathMvt,
-        "type": "POST"
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
-    columns: [
-        {"data": 'actions', 'name': 'Actions', 'title': ''},
-        {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis'},
-        {"data": "barCode", 'name': 'barCode', 'title': 'Code barre'},
-        {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
-        {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
-        {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
-        {"data": 'destination', 'name': 'destination', 'title': 'Destination'},
-        {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
-    ],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: [0, 2]
-        }
-    ]
-};
-
-let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
-
-let modalDeleteArrivage = $('#modalDeleteMvtStock');
-let submitDeleteArrivage = $('#submitDeleteMvtStock');
-let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
-
-let modalNewMvtStock = $('#modalNewMvtStock');
-let submitNewMvtStock = $('#submitNewMvtStock');
-let urlNewMvtStock = Routing.generate('mvt_stock_new', true);
-InitialiserModal(modalNewMvtStock, submitNewMvtStock, urlNewMvtStock, tableMvt);
+let $modalNewMvtStock = $('#modalNewMvtStock');
 
 $(function() {
+    $('.select2').select2();
+
+    let pathMvt = Routing.generate('mouvement_stock_api', true);
+    let tableMvtStockConfig = {
+        responsive: true,
+        serverSide: true,
+        processing: true,
+        order: [[1, "desc"]],
+        ajax: {
+            "url": pathMvt,
+            "type": "POST"
+        },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
+        columns: [
+            {"data": 'actions', 'name': 'Actions', 'title': ''},
+            {"data": 'date', 'name': 'date', 'title': 'Date'},
+            {"data": 'from', 'name': 'from', 'title': 'Issu de', className: 'noVis'},
+            {"data": "barCode", 'name': 'barCode', 'title': 'Code barre'},
+            {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
+            {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
+            {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
+            {"data": 'destination', 'name': 'destination', 'title': 'Destination'},
+            {"data": 'type', 'name': 'type', 'title': 'Type'},
+            {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
+        ],
+        columnDefs: [
+            {
+                orderable: false,
+                targets: [0, 2]
+            }
+        ]
+    };
+
+    let tableMvt = initDataTable('tableMvts', tableMvtStockConfig);
+
+    let modalDeleteArrivage = $('#modalDeleteMvtStock');
+    let submitDeleteArrivage = $('#submitDeleteMvtStock');
+    let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
+    InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, {tables: [tableMvt]});
+
+    let submitNewMvtStock = $('#submitNewMvtStock');
+    let urlNewMvtStock = Routing.generate('mvt_stock_new', true);
+    InitModal($modalNewMvtStock, submitNewMvtStock, urlNewMvtStock, {tables: [tableMvt]});
+
     initDateTimePicker();
     initSelect2($('#emplacement'), 'Emplacements');
     initSelect2($('#statut'), 'Types');
@@ -59,7 +60,7 @@ $(function() {
 
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
-    ajaxAutoRefArticleInit(modalNewMvtStock.find('.select2-autocomplete-ref-articles'));
+    ajaxAutoRefArticleInit($modalNewMvtStock.find('.select2-autocomplete-ref-articles'));
 });
 
 function newMvtStockArticleChosen($select) {
@@ -91,7 +92,7 @@ function newMvtStockArticleChosen($select) {
         $locationTo.parent().removeClass('needed').addClass('d-none');
         $quantityEntranceOut.parent().removeClass('needed').addClass('d-none');
 
-        const $selectArticles = modalNewMvtStock.find('.select2-autocomplete-articles');
+        const $selectArticles = $modalNewMvtStock.find('.select2-autocomplete-articles');
         if ($selectArticles.hasClass('select2-hidden-accessible')) {
             $selectArticles.select2('destroy');
             $selectArticles.val(null);
@@ -120,8 +121,8 @@ function showFieldsAndFillOnArticleChange($select) {
         $quantity.parent().addClass('needed').removeClass('d-none');
         $type.parent().addClass('needed').removeClass('d-none');
 
-        const $articleLocation = modalNewMvtStock.find('#chosen-ref-location');
-        const $articleQuantity = modalNewMvtStock.find('#chosen-ref-quantity');
+        const $articleLocation = $modalNewMvtStock.find('#chosen-ref-location');
+        const $articleQuantity = $modalNewMvtStock.find('#chosen-ref-quantity');
         $barcodeInput.val(currentArticle.text);
         $articleLocation.val(currentArticle.locationLabel);
         $articleQuantity.val(currentArticle.quantity);
@@ -131,18 +132,18 @@ function showFieldsAndFillOnArticleChange($select) {
 function newMvtStockReferenceChosen($select) {
     let referenceArticle = $select.select2('data')[0];
     if (referenceArticle) {
-        const $referenceLibelle = modalNewMvtStock.find('#chosen-ref-label');
-        const $referenceBarCode = modalNewMvtStock.find('#chosen-ref-barcode');
-        const $referenceLocation = modalNewMvtStock.find('#chosen-ref-location');
-        const $referenceQuantite = modalNewMvtStock.find('#chosen-ref-quantity');
-        const $typeMvt = modalNewMvtStock.find('#type-new-mvt');
+        const $referenceLibelle = $modalNewMvtStock.find('#chosen-ref-label');
+        const $referenceBarCode = $modalNewMvtStock.find('#chosen-ref-barcode');
+        const $referenceLocation = $modalNewMvtStock.find('#chosen-ref-location');
+        const $referenceQuantite = $modalNewMvtStock.find('#chosen-ref-quantity');
+        const $typeMvt = $modalNewMvtStock.find('#type-new-mvt');
 
         $referenceLibelle.val(referenceArticle.libelle);
         $referenceBarCode.val(referenceArticle.barCode);
         $referenceQuantite.val(referenceArticle.quantiteDisponible);
         $referenceLocation.val(referenceArticle.location);
 
-        modalNewMvtStock.find('.is-hidden-by-ref').removeClass('d-none');
+        $modalNewMvtStock.find('.is-hidden-by-ref').removeClass('d-none');
         $typeMvt.addClass('needed');
     }
 }

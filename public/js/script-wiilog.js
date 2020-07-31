@@ -30,6 +30,12 @@ const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
+$(function () {
+    $(document).on('hide.bs.modal', function () {
+        $('.select2-container.select2-container--open').remove();
+    });
+})
+
 //DELETE
 function deleteRow(button, modal, submit) {
     let id = button.data('id');
@@ -92,6 +98,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         $modalBody.html(resp);
         modal.find('.select2').select2();
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
+        ajaxAutoCompleteFrequencyInit(modal.find('.ajax-autocomplete-frequency'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
@@ -450,6 +457,10 @@ function ajaxAutoArticlesReceptionInit(select, receptionId = null) {
 
 function ajaxAutoFournisseurInit(select, placeholder = '', route = 'get_fournisseur') {
     initSelect2(select, placeholder, 1, { route });
+}
+
+function ajaxAutoCompleteFrequencyInit(select) {
+    initSelect2(select, '', 1, {route: 'get_frequencies'});
 }
 
 function ajaxAutoChauffeurInit(select) {

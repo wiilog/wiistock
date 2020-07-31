@@ -1,5 +1,5 @@
 <form method="">
-    <div class="modal-body modal-input container-fluid row">
+    <div class="row">
         <div class="col-12 form-group required d-none">
             <input type="text" class="form-control data needed" name="category" required="" value="{{ category.id }}">
         </div>
@@ -9,15 +9,10 @@
             <input type="text" class="form-control data needed" name="label" required="" value="{{ category.label }}">
         </div>
 
-        <div class="col-12 form-group">
-            <label for="label">Fréquence*</label>
-            <select name="frequency" id="frequencies" class="data form-control needed">
+        <div class="form-group col-12">
+            <label for="label">Fréquence</label>
+            <select name="frequency" class="form-control ajax-autocomplete-frequency data select2 w-100">
                 <option value="{{ category.frequency.id }}">{{ category.frequency.label }}</option>
-                {% for frequency in frequencies %}
-                    {% if frequency.label != category.frequency.label %}
-                        <option value="{{ frequency.id }}">{{ frequency.label }}</option>
-                    {% endif %}
-                {% endfor %}
             </select>
         </div>
 

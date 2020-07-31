@@ -8,6 +8,7 @@ use App\Entity\ReferenceArticle;
 use App\Repository\InventoryFrequencyRepository;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,6 +70,7 @@ class InventoryParamController extends AbstractController
             }
 
             $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+            /** @var $category InventoryCategory */
             $categories = $inventoryCategoryRepository->findAll();
             $rows = [];
             foreach ($categories as $category) {
@@ -94,6 +96,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/creer", name="categorie_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -120,9 +124,15 @@ class InventoryParamController extends AbstractController
                 $em->persist($category);
                 $em->flush();
 
-                return new JsonResponse();
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'La catégorie a bien été créée.'
+                ]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.'
+                ]);
             }
         }
         throw new NotFoundHttpException("404");
@@ -130,6 +140,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="category_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function apiEdit(Request $request): Response
     {
@@ -155,6 +167,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/modifier", name="category_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function edit(Request $request): Response
     {
@@ -182,9 +196,15 @@ class InventoryParamController extends AbstractController
                 $em->persist($category);
                 $em->flush();
 
-                return new JsonResponse(true);
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'La catégorie a bien été modifiée'
+                ]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce label de catégorie existe déjà. Veuillez en choisir un autre.'
+                ]);
             }
         }
         throw new NotFoundHttpException('404');
@@ -221,6 +241,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/supprimer", name="category_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function delete(Request $request): Response
     {
@@ -243,6 +265,9 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/creer-frequence", name="frequency_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function newFrequency(Request $request): Response
     {
@@ -265,9 +290,15 @@ class InventoryParamController extends AbstractController
 
                 $em->persist($frequency);
                 $em->flush();
-                return new JsonResponse(true);
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'La fréquence a bien été ajoutée.'
+                ]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.'
+                ]);
             }
         }
         throw new NotFoundHttpException('404');
@@ -275,6 +306,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function apiFrequencies(Request $request): Response
     {
@@ -307,6 +340,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/apiFrequence-modifier", name="frequency_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function apiEditFrequency(Request $request): Response
     {
@@ -328,6 +363,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/frequence-modifier", name="frequency_edit",  options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function editFrequency(Request $request): Response
     {
@@ -352,9 +389,15 @@ class InventoryParamController extends AbstractController
                 $em->persist($frequency);
                 $em->flush();
 
-                return new JsonResponse(true);
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'La fréquence a bien été modifiée.'
+                ]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce label de fréquence existe déjà. Veuillez en choisir un autre.'
+                ]);
             }
         }
         throw new NotFoundHttpException('404');
@@ -362,6 +405,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/frequence-verification", name="frequency_check_delete", options={"expose"=true})
+     * @param Request $request
+     * @return Response
      */
     public function checkFrequencyCanBeDeleted(Request $request): Response
     {
@@ -389,6 +434,8 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/frequence-supprimer", name="frequency_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function deleteFrequency(Request $request): Response
     {
@@ -494,4 +541,24 @@ class InventoryParamController extends AbstractController
 			return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
 		}
 	}
+
+    /**
+     * @Route("/autocomplete-frequencies", name="get_frequencies", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function getFrequencies(Request $request,
+                                   EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+            $results = $frequencyRepository->getLabelBySearch($search);
+
+            return new JsonResponse(['results' => $results]);
+        }
+        throw new NotFoundHttpException("404");
+    }
 }
