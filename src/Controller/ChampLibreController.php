@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -265,11 +266,24 @@ class ChampLibreController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
 		$champLibre = $champLibreRepository->find($data['champLibre']);
 		$filters = $champLibre->getFilters();
 		foreach ($filters as $filter) {
 		    $entityManager->remove($filter);
+        }
+
+		$categorieCL = $champLibre->getCategorieCL();
+		$categorieCLLabel = $categorieCL ? $categorieCL->getLabel() : null;
+
+        $userFieldToRemove = $categorieCLLabel === CategorieCL::ARTICLE
+            ? 'rechercheForArticle'
+            : $categorieCLLabel === CategorieCL::REFERENCE_ARTICLE
+                ? 'recherche'
+                : null;
+		if ($userFieldToRemove) {
+		    $utilisateurRepository->removeFromSearch($userFieldToRemove, ucfirst(strtolower($champLibre->getLabel())));
         }
 		$entityManager->remove($champLibre);
 		$entityManager->flush();
