@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Zend\Code\Scanner\Util;
 
 /**
  * @Route("/champ-libre")
@@ -265,11 +267,21 @@ class ChampLibreController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
 		$champLibre = $champLibreRepository->find($data['champLibre']);
 		$filters = $champLibre->getFilters();
 		foreach ($filters as $filter) {
 		    $entityManager->remove($filter);
+        }
+
+        $userFieldToRemove = $champLibre->getCategorieCL()->getLabel() === CategorieCL::ARTICLE
+            ? 'rechercheForArticle'
+            : $champLibre->getCategorieCL()->getLabel() === CategorieCL::REFERENCE_ARTICLE
+                ? 'recherche'
+                : null;
+		if ($userFieldToRemove) {
+		    $utilisateurRepository->removeFromSearch($userFieldToRemove, ucfirst(strtolower($champLibre->getLabel())));
         }
 		$entityManager->remove($champLibre);
 		$entityManager->flush();
