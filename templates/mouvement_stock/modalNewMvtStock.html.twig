@@ -1,0 +1,150 @@
+<form method=""
+      class="modal fade"
+      id="modalNewMvtStock"
+      role="dialog"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"
+         role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Nouveau mouvement
+                </h5>
+
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label for="demandeur">
+                            Opérateur
+                        </label>
+                        <select type="text"
+                                class="demandeur form-control data"
+                                name="demandeur"
+                                disabled>
+                            <option value="{{ app.user.id }}">{{ app.user.username }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="w-100">
+                            Référence*
+                            <select id="reference-new-mvt"
+                                    class="form-control select2-autocomplete-ref-articles w-100 select2 needed"
+                                    name="refArticleNewMvt"
+                                    onchange="/*newMvtStockReferenceChosen($(this)), */newMvtStockArticleChosen($(this))"></select>
+                        </label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-6 d-none is-hidden-by-ref">
+                        <label class="w-100">
+                            Libellé
+                            <input type="text"
+                                   disabled
+                                   id="chosen-ref-label"
+                                   class="form-control">
+                        </label>
+                    </div>
+                    <div class="form-group col-6 d-none is-hidden-by-ref">
+                        <label class="w-100">
+                            Code barre
+                        </label>
+                        <input type="text"
+                               disabled
+                               id="chosen-ref-barcode"
+                               class="form-control w-100 data"
+                               name="movement-barcode">
+                    </div>
+
+                    <div class="form-group col-6 d-none is-hidden-by-art">
+                        <label class="w-100">
+                            Code barre article*
+                        </label>
+                        <select
+                                id="chosen-art-barcode"
+                                class="form-control select2-autocomplete-articles select2-art w-100"
+                                onchange="showFieldsAndFillOnArticleChange($(this))"></select>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="form-group col-6 d-none is-hidden-by-ref">
+                        <label class="w-100">
+                            Emplacement
+                        </label>
+                        <input type="text"
+                               disabled
+                               id="chosen-ref-location"
+                               class="form-control w-100">
+                    </div>
+                    <div class="form-group col-6 d-none is-hidden-by-ref">
+                        <label>
+                            Type*
+                        </label>
+                        <select id="type-new-mvt"
+                                class="form-control data w-auto"
+                                name="chosen-type-mvt"
+                                onchange="newMvtStockTypeChanged($(this))">
+                            {% for typeMvt in typesMvt %}
+                                {% set needsLocationShow = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_TRANSFERT')) %}
+                                {% set needsQuantityShow = (typeMvt != constant('App\\Entity\\MouvementStock::TYPE_TRANSFERT')) %}
+                                {% set needsQuantityCap = (typeMvt == constant('App\\Entity\\MouvementStock::TYPE_SORTIE')) %}
+                                <option value="{{ typeMvt }}"
+                                        data-needs-location="{{ needsLocationShow }}"
+                                        data-needs-quantity-cap="{{ needsQuantityCap }}"
+                                        data-needs-quantity="{{ needsQuantityShow }}">{{ typeMvt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-6 d-none is-hidden-by-ref">
+                        <label class="w-100">
+                            Quantité disponible
+                        </label>
+                        <input type="number"
+                               disabled
+                               id="chosen-ref-quantity"
+                               class="form-control w-25">
+                    </div>
+                    <div class="form-group col-6 d-none is-hidden-by-type">
+                        <label class="w-100">
+                            Quantité entrée/sortie*
+                        </label>
+                        <input type="number"
+                               name="chosen-mvt-quantity"
+                               id="chosen-mvt-quantity"
+                               class="form-control data w-25"
+                               min="0">
+                    </div>
+                    <div class="form-group col-6 d-none is-hidden-by-type">
+                        <label class="w-100">
+                            Emplacement*
+                        </label>
+                        <select name="chosen-mvt-location"
+                                id="chosen-mvt-location"
+                                class="form-control select2-emplacement data w-100"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn"
+                        data-dismiss="modal">
+                    Annuler
+                </button>
+                <button id="submitNewMvtStock"
+                        type="button"
+                        class="btn btn-success">
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

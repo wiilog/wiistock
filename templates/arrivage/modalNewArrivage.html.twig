@@ -297,7 +297,13 @@
                 </div>
 
                 <div class="row champsLibresBlock">
-                    {% include 'arrivage/champsLibresArrivage.html.twig' %}
+                    {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                        freeFields: champsLibres,
+                        freeFieldValues: [],
+                        colType: 'col-4',
+                        requiredType: 'requiredCreate',
+                        actionType: 'new'
+                    } %}
                 </div>
 
                 <div class="row">

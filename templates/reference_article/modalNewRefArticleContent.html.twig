@@ -12,7 +12,7 @@
 <div class="row">
     <div class="form-group col-4">
         <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2">Statut</label>
+            <label for="statut" class="my-auto mr-2">Statut</label>
             <div>
                  <span class="btn active" data-toggle="statut-new"
                        data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
@@ -80,7 +80,7 @@
 <div class="row mt-10 mb-4">
     <div class="form-group col-4">
         <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
+            <label for="statut" class="my-auto mr-2">Gestion quantité</label>
             <div onclick="updateQuantityDisplay($(this))">
                                 <span class="btn active" data-toggle="type_quantite" data-title="reference"
                                       onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this)) ">Par
@@ -153,69 +153,14 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
         {% for type in typeChampsLibres %}
-            <div class="d-none" id="{{ type.typeId }}-new">
-                <div class="row mt-2">
-                    {% for champ in type.champsLibres %}
-                        <div class="form-group col-6">
-                            <label>{{ champ.label | capitalize }}</label>
-
-                            {% if champ.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
-                                {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
-                                <label class="switch">
-                                    <input type="checkbox" class="data checkbox" {{ checked }}
-                                           name="{{ champ.id }}">
-                                    <span class="slider round"></span>
-                                </label>
-
-                            {% elseif champ.typage == 'number' %}
-                                <input type="number" id="{{ champ.id ~ 'create' }}"
-                                       class="form-control data"
-                                       value="{{ champ.defaultValue }}" name="{{ champ.id }}">
-
-                            {% elseif champ.typage == 'list' %}
-                                <select id="{{ champ.id ~ 'create' }}" class="form-control data"
-                                        name="{{ champ.id }}"
-                                        id="input">
-                                    <option value="{{ champ.defaultValue }}">{{ champ.defaultValue }}
-                                    </option>
-                                    {% for elem in champ.elements %}
-                                        {% if champ.defaultValue != elem %}
-                                            <option value="{{ elem }}">{{ elem }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if champ.defaultValue != "" %}
-                                        <option value=""></option>
-                                    {% endif %}
-                                </select>
-                            {% elseif champ.typage == 'list multiple' %}
-                                <select id="{{ champ.id ~ 'create' }}"
-                                        class="list-multiple form-control data {{ champ.requiredCreate ? 'needed' : '' }}"
-                                        name="{{ champ.id }}" multiple="multiple">
-                                    {% for elem in champ.elements %}
-                                        <option value="{{ elem }}">{{ elem }}</option>
-                                    {% endfor %}
-                                </select>
-                            {% elseif champ.typage == 'text' %}
-                                <input id="{{ champ.id ~ 'create' }}" class="form-control data"
-                                       type="text"
-                                       value="{{ champ.defaultValue }}" name='{{ champ.id }}'>
-
-                            {% elseif champ.typage == 'date' %}
-                                <input type="date" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
-                                       class="form-control data" value="{{ champ.defaultValue }}">
-
-                            {% elseif champ.typage == 'datetime' %}
-                                <input type="datetime-local" name="{{ champ.id }}" id="{{ champ.id ~ 'create' }}"
-                                       class="form-control data" value="{{ champ.defaultValue }}">
-
-                            {% else %}
-                                <input disabled>
-
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-
+            <div class="d-none row" id="{{ type.typeId }}-new">
+                {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                    freeFields: type.champsLibres,
+                    freeFieldValues: [],
+                    colType: 'col-4',
+                    requiredType: 'requiredCreate',
+                    actionType: 'new'
+                } %}
             </div>
         {% endfor %}
     </div>

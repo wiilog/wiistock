@@ -228,4 +228,12 @@ class OrdreCollecte
         return $this;
     }
 
+    public function needsToBeProcessed(): bool {
+        $status = $this->getStatut();
+        return (
+            !$status
+            || ($status->getNom() === OrdreCollecte::STATUT_A_TRAITER)
+        );
+    }
+
 }

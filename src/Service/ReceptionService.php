@@ -4,10 +4,10 @@
 namespace App\Service;
 
 
+use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Reception;
-use App\Entity\ValeurChampLibre;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,19 +26,19 @@ class ReceptionService
     private $fieldsParamService;
     private $stringService;
     private $translator;
-    private $valeurChampLibreService;
+    private $freeFieldService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 FieldsParamService $fieldsParamService,
                                 StringService $stringService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->entityManager = $entityManager;
         $this->stringService = $stringService;
         $this->fieldsParamService = $fieldsParamService;
@@ -113,18 +113,12 @@ class ReceptionService
         $reference = $reception->getReference();
         $comment = $reception->getCommentaire();
 
-        $detailsChampLibres = $reception
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
-                ];
-            })
-            ->toArray();
-
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $reception,
+            null,
+            CategoryType::RECEPTION
+        );
 
         $config = [
             [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
@@ -177,7 +171,7 @@ class ReceptionService
 
         return array_merge(
             $configFiltered,
-            $detailsChampLibres,
+            $freeFieldArray,
             $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
                 ? [[
                     'label' => 'Commentaire',

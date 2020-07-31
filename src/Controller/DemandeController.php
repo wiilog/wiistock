@@ -17,7 +17,6 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Repository\ReceptionRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\ArticleDataService;
@@ -26,7 +25,7 @@ use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
-use App\Service\ValeurChampLibreService;
+use App\Service\FreeFieldService;
 use DateTime;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -97,6 +96,7 @@ class DemandeController extends AbstractController
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeLivraisonService $demandeLivraisonService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws DBALException
@@ -104,13 +104,21 @@ class DemandeController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
+                                 FreeFieldService $champLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
+                $entityManager,
+                $data,
+                false,
+                $champLibreService
+            );
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
         throw new NotFoundHttpException('404');
@@ -133,7 +141,6 @@ class DemandeController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['id']);
@@ -142,18 +149,17 @@ class DemandeController extends AbstractController
 
             $typeChampLibre = [];
 
+            $freeFieldsGroupedByTypes = [];
             foreach ($listTypes as $type) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 $champsLibresArray = [];
                 foreach ($champsLibres as $champLibre) {
-                    $valeurChampDL = $valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
                     $champsLibresArray[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
                         'typage' => $champLibre->getTypage(),
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
-                        'valeurChampLibre' => $valeurChampDL,
                     ];
                 }
                 $typeChampLibre[] = [
@@ -161,12 +167,14 @@ class DemandeController extends AbstractController
                     'typeId' => $type->getId(),
                     'champsLibres' => $champsLibresArray,
                 ];
+                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
             }
 
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
                 'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-                'typeChampsLibres' => $typeChampLibre
+                'typeChampsLibres' => $typeChampLibre,
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);
 
             return new JsonResponse($json);
@@ -177,14 +185,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param FreeFieldService $champLibreService
      * @param DemandeLivraisonService $demandeLivraisonService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function edit(Request $request,
-                         ValeurChampLibreService $valeurChampLibreService,
+                         FreeFieldService $champLibreService,
                          DemandeLivraisonService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
@@ -219,7 +227,8 @@ class DemandeController extends AbstractController
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-                $this->demandeLivraisonService->checkAndPersistIfClIsOkay($demande, $data);
+                $champLibreService->manageFreeFields($demande, $data, $entityManager);
+                $em->flush();
                 $response = [
                     'entete' => $this->renderView('demande/demande-show-header.html.twig', [
                         'demande' => $demande,
@@ -242,16 +251,17 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager);
+            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, false, $champLibreService);
             $entityManager->persist($demande);
             $entityManager->flush();
             return new JsonResponse([
@@ -377,7 +387,6 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
@@ -457,13 +466,17 @@ class DemandeController extends AbstractController
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $champLibreService
      * @return Response
      * @throws DBALException
      * @throws LoaderError
+     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
-    public function addArticle(Request $request, EntityManagerInterface $entityManager): Response
+    public function addArticle(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
@@ -474,7 +487,15 @@ class DemandeController extends AbstractController
             $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $demande = $demandeRepository->find($data['livraison']);
-            $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle, $this->getUser(), false, $entityManager, $demande);
+            $resp = $this->refArticleDataService->addRefToDemand(
+                $data,
+                $referenceArticle,
+                $this->getUser(),
+                false,
+                $entityManager,
+                $demande,
+                $champLibreService
+            );
             if ($resp === 'article') {
                 $this->articleDataService->editArticle($data);
                 $resp = true;
@@ -624,14 +645,17 @@ class DemandeController extends AbstractController
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
+            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
+            $category = CategoryType::DEMANDE_LIVRAISON;
+            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             // en-têtes champs fixes
             $headers = [
@@ -653,29 +677,18 @@ class DemandeController extends AbstractController
                 'quantité à prélever'
             ];
 
-            // en-têtes champs libres DL
-            $clDL = $champLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
-            foreach ($clDL as $champLibre) {
-                $headers[] = $champLibre->getLabel();
-            }
+            $freeFieldsIds = [];
 
-            // en-têtes champs libres articles
-            $clAR = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
-            foreach ($clAR as $champLibre) {
-                $headers[] = $champLibre->getLabel();
+            // en-têtes champs libres DL
+            foreach ($freeFields as $freeField) {
+                $headers[] = $freeField['label'];
+                $freeFieldsIds[] = $freeField['id'];
             }
 
             $data = [];
             $data[] = $headers;
 
-            $listTypesArt = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-            $listChampsLibresArticleAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::ARTICLE);
-            $listChampsLibresRefAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesArt, CategorieCL::REFERENCE_ARTICLE);
-            $listChampsLibresDemandeAll = $champLibreRepository->findByTypeAndCategorieCLLabel($listTypesDL, CategorieCL::DEMANDE_LIVRAISON);
-            $valeurCLRefAll = $valeurChampLibreRepository->getByDemandesAndChampLibres($dateTimeMin, $dateTimeMax, $listChampsLibresRefAll);
-            $valeurCLArticle = $valeurChampLibreRepository->getByDemandesAndChampLibresArticles($demandes, $listChampsLibresArticleAll);
-            $valeurCLDemande = $valeurChampLibreRepository->getByDemandeLivraisonAndChampLibre($demandes, $listChampsLibresDemandeAll);
             $firstDates = $preparationRepository->getFirstDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
@@ -688,23 +701,18 @@ class DemandeController extends AbstractController
                 $listChampsLibresDL = array_merge($listChampsLibresDL, $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
             }
             $nowStr = date("d-m-Y H:i");
-            return $CSVExportService->createCsvResponse(
+            return $CSVExportService->createBinaryResponseFromData(
                 "dem-livr $nowStr.csv",
                 $demandes,
                 $headers,
                 function (Demande $demande)
-                use ($valeurChampLibreRepository,
-                     $listChampsLibresDL,
-                     $clDL,
-                     $clAR,
-                     $valeurCLRefAll,
-                     $valeurCLArticle,
-                     $valeurCLDemande,
+                use ($listChampsLibresDL,
                      $firstDates,
                      $prepartionOrders,
                      $livraisonOrders,
                      $articles,
-                     $ligneArticles
+                     $ligneArticles,
+                     $freeFieldsIds
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -718,7 +726,6 @@ class DemandeController extends AbstractController
                         foreach ($ligneArticles[$demandeId] as $ligneArticle) {
                             $demandeData = [];
                             $articleRef = $ligneArticle->getReference();
-                            $referenceId = $articleRef->getId();
 
                             $availableQuantity = $articleRef->getQuantiteDisponible();
 
@@ -729,12 +736,10 @@ class DemandeController extends AbstractController
                             $demandeData[] = $articleRef ? $articleRef->getBarCode() : '';
                             $demandeData[] = $availableQuantity;
                             $demandeData[] = $ligneArticle->getQuantite();
-
-                            $rows[] = array_merge(
-                                $demandeData,
-                                $this->addChampsLibresCsvExport($valeurCLDemande, $demandeId, $clDL),
-                                $this->addChampsLibresCsvExport($valeurCLRefAll, $referenceId, $clAR)
-                            );
+                            foreach ($freeFieldsIds as $freeField) {
+                                $demandeData[] = $demande->getFreeFields()[$freeField] ?? "";
+                            }
+                            $rows[] = $demandeData;
                         }
                     }
 
@@ -742,7 +747,6 @@ class DemandeController extends AbstractController
                         /** @var Article $article */
                         foreach ($articles[$demandeId] as $article) {
                             $demandeData = [];
-                            $articleId = $article->getId();
 
                             array_push($demandeData, ...$infosDemand);
                             $demandeData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
@@ -751,12 +755,10 @@ class DemandeController extends AbstractController
                             $demandeData[] = '';
                             $demandeData[] = $article->getQuantite();
                             $demandeData[] = $article->getQuantiteAPrelever();
-
-                            $rows[] = array_merge(
-                                $demandeData,
-                                $this->addChampsLibresCsvExport($valeurCLDemande, $demandeId, $clDL),
-                                $this->addChampsLibresCsvExport($valeurCLArticle, $articleId, $clAR)
-                            );
+                            foreach ($freeFieldsIds as $freeField) {
+                                $demandeData[] = $demande->getFreeFields()[$freeField] ?? "";
+                            }
+                            $rows[] = $demandeData;
                         }
                     }
                     return $rows;
@@ -766,29 +768,6 @@ class DemandeController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
-
-    /**
-     * @param $valeurCLAll
-     * @param $id
-     * @param $champLibres
-     * @return array
-     */
-	private function addChampsLibresCsvExport($valeurCLAll, $id, $champLibres)
-	{
-        $data = [];
-	    $valeursChampLibre = [];
-        if (isset($valeurCLAll[$id])) {
-            $valeursChampLibre = $valeurCLAll[$id];
-        }
-        foreach ($champLibres as $type) {
-            if (array_key_exists($type->getLabel(), $valeursChampLibre)) {
-                $data[] = $valeursChampLibre[$type->getLabel()];
-            } else {
-                $data[] = '';
-            }
-        }
-        return $data;
-	}
 
     private function getCSVExportFromDemand(Demande $demande,
                                             $firstDatePrepaStr,
@@ -810,7 +789,7 @@ class DemandeController extends AbstractController
             $demande->getNumero(),
             $demande->getType() ? $demande->getType()->getLabel() : '',
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
-            !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND'
+            !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND',
         ];
     }
 

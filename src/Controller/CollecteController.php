@@ -14,7 +14,6 @@ use App\Entity\CollecteReference;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use App\Entity\Article;
 
 use App\Service\ArticleDataService;
@@ -22,7 +21,7 @@ use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
-use App\Service\ValeurChampLibreService;
+use App\Service\FreeFieldService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -233,13 +232,13 @@ class CollecteController extends AbstractController
     /**
      * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(Request $request,
-                        ValeurChampLibreService $valeurChampLibreService,
+                        FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -272,19 +271,8 @@ class CollecteController extends AbstractController
                 ->setstockOrDestruct($destination);
             $entityManager->persist($collecte);
             $entityManager->flush();
-
-			// enregistrement des champs libres
-			$champsLibresKey = array_keys($data);
-
-			foreach ($champsLibresKey as $champs) {
-				if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champs, $data[$champs]);
-					$valeurChampLibre->addDemandesCollecte($collecte);
-                    $entityManager->persist($valeurChampLibre);
-                    $entityManager->flush();
-				}
-			}
-
+            $freeFieldService->manageFreeFields($collecte, $data, $entityManager);
+            $entityManager->flush();
             $data = [
                 'redirect' => $this->generateUrl('collecte_show', ['id' => $collecte->getId()]),
             ];
@@ -297,7 +285,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
@@ -306,9 +294,11 @@ class CollecteController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws \App\Exceptions\ArticleNotAvailableException
+     * @throws \App\Exceptions\RequestNeedToBeProcessedException
      */
     public function addArticle(Request $request,
-                               ValeurChampLibreService $valeurChampLibreService,
+                               FreeFieldService $champLibreService,
                                EntityManagerInterface $entityManager,
                                DemandeCollecteService $demandeCollecteService): Response
     {
@@ -341,23 +331,10 @@ class CollecteController extends AbstractController
                 if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                     return $this->redirectToRoute('access_denied');
                 }
-                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser());
+                $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
             }
             elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                //TODO patch temporaire CEA
-                $article = $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
-
-				$champslibres = $champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
-                foreach($champslibres as $champLibre) {
-                    $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champLibre, null);
-                	$valeurChampLibre->addArticle($article);
-                    $entityManager->persist($valeurChampLibre);
-				}
-                //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
-            // $article = $this->articleRepository->find($data['article']);
-            // $collecte->addArticle($article);
-
-            // $this->articleDataService->editArticle($data);
+                $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
             }
             $entityManager->flush();
 
@@ -467,26 +444,24 @@ class CollecteController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $collecte = $collecteRepository->find($data['id']);
 			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
 
 			$typeChampLibre = [];
+            $freeFieldsGroupedByTypes = [];
 
 			foreach ($listTypes as $type) {
 				$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
 				$champsLibresArray = [];
 				foreach ($champsLibres as $champLibre) {
-					$valeurChampDC = $valeurChampLibreRepository->getValueByDemandeCollecteAndChampLibre($collecte, $champLibre);
 					$champsLibresArray[] = [
 						'id' => $champLibre->getId(),
 						'label' => $champLibre->getLabel(),
 						'typage' => $champLibre->getTypage(),
 						'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
 						'defaultValue' => $champLibre->getDefaultValue(),
-						'valeurChampLibre' => $valeurChampDC,
 					];
 				}
 				$typeChampLibre[] = [
@@ -494,13 +469,15 @@ class CollecteController extends AbstractController
 					'typeId' => $type->getId(),
 					'champsLibres' => $champsLibresArray,
 				];
+                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
 			}
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
                 'emplacements' => $emplacementRepository->findAll(),
                 'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
-				'typeChampsLibres' => $typeChampLibre
+				'typeChampsLibres' => $typeChampLibre,
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);
 
             return new JsonResponse($json);
@@ -513,14 +490,14 @@ class CollecteController extends AbstractController
      * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param DemandeCollecteService $collecteService
-     * @param ValeurChampLibreService $valeurChampLibreService
+     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,
-                         ValeurChampLibreService $valeurChampLibreService,
+                         FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -531,7 +508,6 @@ class CollecteController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $valeurChampLibreRepository = $entityManager->getRepository(ValeurChampLibre::class);
 
 			// vérification des champs Libres obligatoires
 			$requiredEdit = true;
@@ -558,27 +534,10 @@ class CollecteController extends AbstractController
 					->setstockOrDestruct($destination);
 				$entityManager->flush();
 
-				// modification ou création des champs libres
-				$champsLibresKey = array_keys($data);
+                $champLibreService->manageFreeFields($collecte, $data, $entityManager);
+                $entityManager->flush();
 
-				foreach ($champsLibresKey as $champ) {
-					if (gettype($champ) === 'integer') {
-						$valeurChampLibre = $valeurChampLibreRepository->findOneByDemandeCollecteAndChampLibre($collecte, $champ);
-                        $value = $data[$champ];
-						// si la valeur n'existe pas, on la crée
-						if (!$valeurChampLibre) {
-                            $valeurChampLibre = $valeurChampLibreService->createValeurChampLibre($champ, $value);
-							$valeurChampLibre->addDemandesCollecte($collecte);
-							$entityManager->persist($valeurChampLibre);
-						}
-						else {
-                            $valeurChampLibreService->updateValue($valeurChampLibre, $value);
-                        }
-                        $entityManager->flush();
-					}
-				}
-
-				$response = [
+                $response = [
 					'entete' => $this->renderView('collecte/collecte-show-header.html.twig', [
 						'collecte' => $collecte,
 						'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),

@@ -3,12 +3,12 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampLibre;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
@@ -33,7 +33,7 @@ class ArrivageDataService
     private $specificService;
     private $stringService;
     private $translator;
-    private $valeurChampLibreService;
+    private $freeFieldService;
     private $fieldsParamService;
 
     public function __construct(UserService $userService,
@@ -41,7 +41,7 @@ class ArrivageDataService
                                 MailerService $mailerService,
                                 SpecificService $specificService,
                                 StringService $stringService,
-                                ValeurChampLibreService $valeurChampLibreService,
+                                FreeFieldService $champLibreService,
                                 FieldsParamService $fieldsParamService,
                                 TranslatorInterface $translator,
                                 Twig_Environment $templating,
@@ -50,7 +50,7 @@ class ArrivageDataService
     {
 
         $this->templating = $templating;
-        $this->valeurChampLibreService = $valeurChampLibreService;
+        $this->freeFieldService = $champLibreService;
         $this->fieldsParamService = $fieldsParamService;
         $this->translator = $translator;
         $this->stringService = $stringService;
@@ -341,17 +341,12 @@ class ArrivageDataService
         $comment = $arrivage->getCommentaire();
         $attachments = $arrivage->getAttachements();
 
-        $detailsChampLibres = $arrivage
-            ->getValeurChampLibre()
-            ->map(function (ValeurChampLibre $valeurChampLibre) {
-                $champLibre = $valeurChampLibre->getChampLibre();
-                $value = $this->valeurChampLibreService->formatValeurChampLibreForShow($valeurChampLibre);
-                return [
-                    'label' => $this->stringService->mbUcfirst($champLibre->getLabel()),
-                    'value' => $value
-                ];
-            })
-            ->toArray();
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $arrivage,
+            null,
+            CategoryType::ARRIVAGE
+        );
 
         $config = [
             [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
@@ -415,7 +410,7 @@ class ArrivageDataService
 
         return array_merge(
             $configFiltered,
-            $detailsChampLibres,
+            $freeFieldArray,
             $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayed')
                 ? [[
                 'label' => 'Commentaire',

@@ -125,7 +125,13 @@
 </div>
 
 <div class="row">
-    {% include 'arrivage/champsLibresArrivage.html.twig' with {'edit': true} %}
+    {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+        freeFields: freeFieldsGroupedByTypes,
+        freeFieldValues: arrivage.freeFields,
+        colType: 'col-4',
+        requiredType: 'requiredEdit',
+        actionType: 'edit'
+    } %}
 </div>
 
 <div class="row">

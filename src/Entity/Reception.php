@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReceptionRepository")
  */
-class Reception
+class Reception extends FreeFieldEntity
 {
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
@@ -81,11 +81,6 @@ class Reception
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="receptions")
-     */
-    private $valeurChampLibre;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="reception")
      */
     private $transporteur;
@@ -123,7 +118,6 @@ class Reception
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
-        $this->valeurChampLibre = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->mouvementsTraca = new ArrayCollection();
@@ -161,7 +155,7 @@ class Reception
 
     public function __toString()
     {
-        return $this->commentaire;
+        return $this->commentaire ?? '';
     }
 
     public function getDate(): ?\DateTimeInterface
@@ -288,33 +282,6 @@ class Reception
     public function setType(?Type $type): self
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ValeurChampLibre[]
-     */
-    public function getValeurChampLibre(): Collection
-    {
-        return $this->valeurChampLibre;
-    }
-
-    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre[] = $valeurChampLibre;
-        }
-
-        return $this;
-    }
-
-
-    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
-    {
-        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
-            $this->valeurChampLibre->removeElement($valeurChampLibre);
-        }
 
         return $this;
     }

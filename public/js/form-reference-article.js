@@ -126,18 +126,23 @@ function addArticleFournisseurReferenceArticle($plusButton) {
         : [];
 
     if ($inputLastLine.length === 0 || $inputLastLine.every((formControl) => formControl.value)) {
-        const xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                dataReponse = JSON.parse(this.responseText);
-                $('#addFournisseur').closest('div').before(dataReponse);
-                ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-                ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
-            }
-        };
-        let path = Routing.generate('ajax_render_add_fournisseur', true);
-        xhttp.open("POST", path, true);
-        xhttp.send();
+        const lastArticleFournisseurForm = $plusButton
+            .parent()
+            .siblings('.ligneFournisseurArticle')
+            .last();
+
+        $.ajax({
+            url: Routing.generate('ajax_render_add_fournisseur', { currentIndex: lastArticleFournisseurForm.data('multiple-object-index') }, true),
+            type: "get",
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: "json"
+        }).then((response) => {
+            $(response).insertBefore($plusButton.parent());
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseurLabel'), '', 'demande_label_by_fournisseur');
+        });
     }
 }
 

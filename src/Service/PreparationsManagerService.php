@@ -418,7 +418,6 @@ class PreparationsManagerService
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-
         $articlesSplittedToKeep = [];
         // modification des articles de la demande
         $articles = $preparation->getArticles();
@@ -448,8 +447,8 @@ class PreparationsManagerService
                             'refArticle' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : ''
                         ];
 
-                        foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                        foreach ($article->getFreeFields() as $clId => $valeurChampLibre) {
+                            $newArticle[$clId] = $valeurChampLibre;
                         }
                         $insertedArticle = $this->articleDataService->newArticle($newArticle);
                         if ($selected) {

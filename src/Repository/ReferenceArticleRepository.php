@@ -13,7 +13,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -54,6 +53,39 @@ class ReferenceArticleRepository extends EntityRepository
             "
         );
         return $query->execute();
+    }
+
+
+    public function getAllWithLimits(int $start, int $limit)
+    {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+        return $queryBuilder
+            ->addSelect('referenceArticle.id')
+            ->addSelect('referenceArticle.reference')
+            ->addSelect('referenceArticle.libelle')
+            ->addSelect('referenceArticle.quantiteStock')
+            ->addSelect('typeRef.label as type')
+            ->addSelect('referenceArticle.typeQuantite')
+            ->addSelect('statutRef.nom as statut')
+            ->addSelect('referenceArticle.commentaire')
+            ->addSelect('emplacementRef.label as emplacement')
+            ->addSelect('referenceArticle.limitSecurity')
+            ->addSelect('referenceArticle.limitWarning')
+            ->addSelect('referenceArticle.prixUnitaire')
+            ->addSelect('referenceArticle.barCode')
+            ->addSelect('categoryRef.label as category')
+            ->addSelect('referenceArticle.dateLastInventory')
+            ->addSelect('referenceArticle.needsMobileSync')
+            ->addSelect('referenceArticle.freeFields')
+            ->leftJoin('referenceArticle.statut', 'statutRef')
+            ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
+            ->leftJoin('referenceArticle.type', 'typeRef')
+            ->leftJoin('referenceArticle.category', 'categoryRef')
+            ->orderBy('referenceArticle.id', 'ASC')
+            ->setFirstResult($start)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->execute();
     }
 
     public function getBetweenLimits($min, $step)
@@ -138,9 +170,14 @@ class ReferenceArticleRepository extends EntityRepository
                 r.${field} as text,
                 r.typeQuantite as typeQuantity,
                 r.isUrgent as urgent,
-                r.emergencyComment as emergencyComment
+                r.emergencyComment as emergencyComment,
+                r.libelle,
+                r.barCode,
+                e.label as location,
+                r.quantiteDisponible
           FROM App\Entity\ReferenceArticle r
           LEFT JOIN r.statut s
+          LEFT JOIN r.emplacement e
           WHERE r.${field} LIKE :search ";
 
         if ($activeOnly) {
@@ -162,13 +199,12 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, $user)
+    public function findByFiltersAndParams($filters, $params, $user, $freeFields)
     {
         $needCLOrder = null;
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
         $index = 0;
-        $subQueries = [];
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
@@ -187,7 +223,7 @@ class ReferenceArticleRepository extends EntityRepository
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
-            'Synchronisation nomade' =>['field' => 'needsMobileSync', 'typage' => 'sync'],
+            'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
         ];
 
         $qb
@@ -215,10 +251,10 @@ class ReferenceArticleRepository extends EntityRepository
 
                     switch ($typage) {
                         case 'sync':
-                            if ($filter['value'] == 0 ){
-                                 $qb
-                                     ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
-                                     ->setParameter("value$index", $filter['value']);
+                            if ($filter['value'] == 0) {
+                                $qb
+                                    ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
+                                    ->setParameter("value$index", $filter['value']);
                             } else {
                                 $qb
                                     ->andWhere("ra.needsMobileSync = :value$index")
@@ -259,70 +295,50 @@ class ReferenceArticleRepository extends EntityRepository
                     }
                 } // cas champ libre
                 else if ($filter['champLibre']) {
-                    $champLibreLabelAlias = "champLibreLabel_$index";
-                    $qbSub = $em->createQueryBuilder();
-                    $qbSub
-                        ->select('ra' . $index . '.id')
-                        ->from('App\Entity\ReferenceArticle', 'ra' . $index)
-                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index)
-                        ->where("vcl$index.champLibre = :$champLibreLabelAlias")
-                        ->setParameter($champLibreLabelAlias, $filter['champLibre']);
-                    switch ($filter['typage']) {
+                    $value = $filter['value'];
+                    $clId = $filter['champLibre'];
+                    $freeFieldType = $filter['typage'];
+                    switch ($freeFieldType) {
                         case ChampLibre::TYPE_BOOL:
-                            if ($filter['value'] === "1") {
-                                $qbSub
-                                    ->andWhere('vcl' . $index . '.valeur = 1');
-                            } else {
-                                $forbiddenIds = $this->array_values_recursive($qbSub->getQuery()->getResult());
-                                $qbSub = $em->createQueryBuilder()
-                                    ->select('raWithoutCL' . $index . '.id')
-                                    ->from('App\Entity\ReferenceArticle', 'raWithoutCL' . $index)
-                                    ->where('raWithoutCL' . $index . '.id NOT IN (:ids)')
-                                    ->setParameter('ids', $forbiddenIds, Connection::PARAM_STR_ARRAY);
-                            }
+                            $value = empty($value) ? "0" : $value;
                             break;
                         case ChampLibre::TYPE_TEXT:
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
-                                ->setParameter('value' . $index, '%' . $filter['value'] . '%');
-                            break;
-                        case ChampLibre::TYPE_NUMBER:
-                        case ChampLibre::TYPE_LIST:
-                            $qbSub
-                                ->andWhere('vcl' . $index . '.valeur = :value' . $index)
-                                ->setParameter('value' . $index, $filter['value']);
-                            break;
-                        case ChampLibre::TYPE_LIST_MULTIPLE:
-                            $conditions = [];
-                            foreach (explode(',', $filter['value']) as $listElement) {
-                                $conditions[] = 'vcl' . $index . ".valeur LIKE '%" . $listElement . "%'";
-                            }
-                            $qbSub
-                                ->andWhere(
-                                    $qbSub->expr()->andX()->addMultiple($conditions)
-                                );
+                            $value = '%' . $value . '%';
                             break;
                         case ChampLibre::TYPE_DATE:
                         case ChampLibre::TYPE_DATETIME:
-                            $date = explode('/', $filter['value']);
-                            $formattedDated = substr($date[2], 0, 4) . '-' . $date[1] . '-' . $date[0] . '%';
-                            $qbSub
-                                ->andWhere("vcl$index.valeur LIKE :value$index")
-                                ->setParameter("value$index", $formattedDated);
+                            $formattedDate = new \DateTime(str_replace('/', '-', $value));
+                            $value = '%' . $formattedDate->format('Y-m-d') . '%';
+                            break;
+                        case ChampLibre::TYPE_LIST:
+                        case ChampLibre::TYPE_LIST_MULTIPLE:
+                            $value = array_map(function (string $value) {
+                                return '%' . $value . '%';
+                            }, explode(',', $value));
+                            break;
+                        case ChampLibre::TYPE_NUMBER:
                             break;
                     }
-                    $subQueries[] = $qbSub->getQuery()->getResult();
+                    if (!is_array($value)) {
+                        $value = [$value];
+                    }
+
+                    $jsonSearchesQueryArray = array_map(function(string $item) use ($clId, $freeFieldType) {
+                        $conditionType = ' IS NOT NULL';
+                        if ($item === "0" && $freeFieldType === ChampLibre::TYPE_BOOL) {
+                            $item = "1";
+                            $conditionType = ' IS NULL';
+                        }
+                        return "JSON_SEARCH(ra.freeFields, 'one', '${item}', NULL, '$.\"${clId}\"')" . $conditionType;
+                    }, $value);
+
+                    $jsonSearchesQueryString = '(' . implode(' OR ', $jsonSearchesQueryArray) . ')';
+
+                    $qb
+                        ->andWhere($jsonSearchesQueryString);
+
                 }
             }
-        }
-
-        foreach ($subQueries as $subQuery) {
-            $ids = [];
-            foreach ($subQuery as $idArray) { //TODO optim php natif ?
-                $ids[] = $idArray['id'];
-            }
-            if (empty($ids)) $ids = 0;
-            $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
         // prise en compte des paramètres issus du datatable
@@ -368,45 +384,32 @@ class ReferenceArticleRepository extends EntityRepository
                             default:
                                 $metadatas = $em->getClassMetadata(ReferenceArticle::class);
                                 $field = !empty($linkChampLibreLabelToField[$searchField]) ? $linkChampLibreLabelToField[$searchField]['field'] : '';
-
                                 // champs fixes
                                 if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
                                     $query[] = 'ra.' . $field . ' LIKE :valueSearch';
                                     $qb->setParameter('valueSearch', '%' . $searchValue . '%');
-
                                     // champs libres
                                 } else {
-                                    $subqb = $em->createQueryBuilder();
-                                    $subqb
-                                        ->select('ra.id')
-                                        ->from('App\Entity\ReferenceArticle', 'ra');
-                                    $subqb
-                                        ->leftJoin('ra.valeurChampsLibres', 'vclra')
-                                        ->leftJoin('vclra.champLibre', 'clra')
-                                        ->andWhere('clra.label = :searchField')
-                                        ->andWhere('vclra.valeur LIKE :searchValue')
-                                        ->setParameters([
-                                            'searchValue' => '%' . $searchValue . '%',
-                                            'searchField' => $searchField
-                                        ]);
-
-                                    foreach ($subqb->getQuery()->execute() as $idArray) {
-                                        $ids[] = $idArray['id'];
+                                    $value = '%' . $searchValue . '%';
+                                    $clId = $freeFields[trim(mb_strtolower($searchField))] ?? null;
+                                    if ($clId) {
+                                        $query[] = "JSON_SEARCH(ra.freeFields, 'one', '${value}', NULL, '$.\"${clId}\"') IS NOT NULL";
                                     }
                                 }
                                 break;
                         }
                     }
 
-                    // si le résultat de la recherche est vide on renvoie []
-                    if (empty($ids)) {
-                        $ids = [0];
-                    }
-
                     foreach ($ids as $id) {
                         $query[] = 'ra.id  = ' . $id;
                     }
-                    $qb->andWhere(implode(' OR ', $query));
+
+                    if (!empty($query)) {
+                        $qb
+                            ->andWhere(
+                                implode(' OR ', $query)
+                            );
+                    }
                 }
             }
             if (!empty($params->get('order'))) {
@@ -469,15 +472,13 @@ class ReferenceArticleRepository extends EntityRepository
         $qb
             ->select('ra');
         if ($needCLOrder) {
-            $paramsQuery = $qb->getParameters();
-            $paramsQuery[] = new Parameter('orderField', $needCLOrder[1], 2);
-            $qb
-                ->addSelect('MAX((CASE WHEN cla.id IS NULL THEN 0 ELSE vclra.valeur END)) as vsort')
-                ->leftJoin('ra.valeurChampsLibres', 'vclra')
-                ->leftJoin('vclra.champLibre', 'cla', 'WITH', 'cla.label LIKE :orderField')
-                ->groupBy('ra')
-                ->orderBy('vsort', $needCLOrder[0])
-                ->setParameters($paramsQuery);
+            $orderField = $needCLOrder[1];
+            $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
+            if ($clId) {
+                $jsonOrderQuery = "CAST(JSON_EXTRACT(ra.freeFields, '$.\"${clId}\"') AS CHAR)";
+                $qb
+                    ->orderBy($jsonOrderQuery, $needCLOrder[0]);
+            }
         }
         return [
             'data' => $qb->getQuery()->getResult(),
@@ -1077,58 +1078,13 @@ class ReferenceArticleRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getStockMiniClByRef($ref)
-    {
-        $em = $this->getEntityManager();
 
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT v.valeur
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.champLibre c
-            JOIN v.articleReference a
-            WHERE c.label LIKE 'stock mini%' AND v.valeur is not null AND a =:ref"
-        )->setParameter('ref', $ref);
 
-        return $query->execute();
-    }
-
-    public function getStockAlerteClByRef($ref)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT v.valeur
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.champLibre c
-            JOIN v.articleReference a
-            WHERE c.label LIKE 'stock alerte%' AND v.valeur is not null AND a =:ref"
-        )->setParameter('ref', $ref);
-
-        return $query->execute();
-    }
-
-    public function getStockPriceClByRef($ref)
-    {
-        $em = $this->getEntityManager();
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT v.valeur
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.champLibre c
-            JOIN v.articleReference a
-            WHERE c.label LIKE 'prix unitaire%' AND v.valeur is not null AND a =:ref"
-        )->setParameter('ref', $ref);
-
-        return $query->execute();
-    }
 
     public function getOneReferenceByBarCodeAndLocation(string $barCode, string $location)
     {
         $queryBuilder = $this
-            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location, false)
             ->select('referenceArticle.reference as reference')
             ->addSelect('referenceArticle.id as id')
             ->addSelect('referenceArticle.barCode as barCode')
@@ -1148,20 +1104,26 @@ class ReferenceArticleRepository extends EntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location): QueryBuilder
+    private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location, bool $onlyActive = true): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
-        return $queryBuilder
+        $queryBuilder
             ->join('referenceArticle.emplacement', 'emplacement')
-            ->join('referenceArticle.statut', 'status')
             ->andWhere('emplacement.label = :location')
             ->andWhere('referenceArticle.barCode = :barCode')
-            ->andWhere('status.nom = :activeStatus')
             ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF)
             ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
+        if ($onlyActive) {
+            $queryBuilder
+                ->join('referenceArticle.statut', 'status')
+                ->andWhere('status.nom = :activeStatus')
+                ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
+        }
+
+        return $queryBuilder;
     }
 
     public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
@@ -1176,9 +1138,9 @@ class ReferenceArticleRepository extends EntityRepository
             ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
             ->andWhere('ra.typeQuantite = :typeQty')
             ->setParameters([
-            'id' => $id,
-            'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
-        ]);
+                'id' => $id,
+                'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+            ]);
 
         if (!empty($reference)) {
             $queryBuilder
