@@ -6,7 +6,6 @@
                     {{ freeField.label }}
                     {{
                         attribute(freeField, requiredType)
-                        and freeField.typage != constant('App\\Entity\\ChampLibre::TYPE_BOOL')
                             ? '*'
                             : ''
                     }}
