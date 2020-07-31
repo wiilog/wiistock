@@ -201,9 +201,10 @@ class ImportService
      * @param Import $import
      * @param int $mode IMPORT_MODE_RUN ou IMPORT_MODE_FORCE_PLAN ou IMPORT_MODE_PLAN
      * @return int Used mode
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
      * @throws Exception
      */
     public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
@@ -398,14 +399,25 @@ class ImportService
                 $trace = $throwable->getTraceAsString();
                 $importId = $this->currentImport->getId();
                 $this->logger->error("IMPORT ERROR : import n°$importId | $logMessage | File $file($line) | $trace");
+                throw $throwable;
             }
 
             $stats['errors']++;
         }
 
-        return !empty($message)
-            ? array_merge($row, [$message])
-            : $row;
+        if (!empty($message)) {
+            $headersLength = count($headers);
+            $rowLength = count($row);
+            $placeholdersColumns = ($rowLength < $headersLength)
+                ? array_fill (0, $headersLength - $rowLength, '')
+                : [];
+            $resRow = array_merge($row, $placeholdersColumns, [$message]);
+        }
+        else {
+            $resRow = $row;
+        }
+
+        return $resRow;
     }
 
     /**
@@ -757,10 +769,9 @@ class ImportService
         }
         if (isset($data['dateLastInventory'])) {
             try {
-                $refArt->setDateLastInventory(new DateTime($data['dateLastInventory']));
+                $refArt->setDateLastInventory(DateTime::createFromFormat('d/m/Y', $data['dateLastInventory']));
             } catch (Exception $e) {
-                $message = 'La date de dernier inventaire n\'est pas dans un format date.';
-                $this->throwError($message);
+                $this->throwError('La date de dernier inventaire doit être au format JJ/MM/AAAA.');
             }
         }
         if ($isNewEntity) {
