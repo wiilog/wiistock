@@ -34,7 +34,9 @@
     <div class="form-group col-12 w-100">
         <label class="my-auto mr-2">Emplacement*</label>
         <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data needed">
-            <option value="{{ mvt.emplacement.id }}">{{ mvt.emplacement.label }}</option>
+            {% if mvt.emplacement is not null %}
+                <option value="{{ mvt.emplacement.id }}">{{ mvt.emplacement.label }}</option>
+            {% endif %}
         </select>
     </div>
 </div>
