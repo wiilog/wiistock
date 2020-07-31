@@ -12,8 +12,9 @@
             {% for i in 0..(data.headers|length -  1) %}
                 <tr>
                     <td>{{ data.headers[i] }}</td>
-                    <td>{{ data.firstRow[i] }}</td>
-                    <td><select class="form-control data no-clear" name="{{ i }}" onchange="updateOptions($(this))">
+                    <td>{{ data.firstRow[i] is defined ? data.firstRow[i] }}</td>
+                    <td>
+                        <select class="form-control data no-clear" name="{{ i }}" onchange="updateOptions($(this))">
                             <option></option>
                             {% for fieldValue, fieldName in fields %}
                                 {% set needed = fieldValue in fieldsNeeded ? '*'%}

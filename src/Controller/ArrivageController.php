@@ -367,9 +367,6 @@ class ArrivageController extends AbstractController
                 'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
                 'arrivageId' => $arrivage->getId(),
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
-                'champsLibresBlock' => $this->renderView('arrivage/champsLibresArrivage.html.twig', [
-                    'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-                ]),
                 'statutConformeId' => $statutConformeId,
                 'alertConfigs' => $alertConfigs
             ]);

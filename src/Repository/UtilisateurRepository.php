@@ -119,6 +119,17 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $query->getOneOrNullResult();
     }
 
+    public function removeFromSearch(string $searchField, string $fieldToRemove) {
+        $queryBuilder = $this->createQueryBuilder('utilisateur');
+        return $queryBuilder
+            ->update(Utilisateur::class, 'utilisateur')
+            ->set("utilisateur.${searchField}", "JSON_REMOVE(utilisateur.${searchField}, REPLACE(JSON_SEARCH(utilisateur.${searchField}, 'one', '${fieldToRemove}'), '\"', ''))")
+            ->where("utilisateur.${searchField} LIKE :searchField")
+            ->setParameter('searchField', '%' . $fieldToRemove . '%')
+            ->getQuery()
+            ->execute();
+    }
+
     /**
      * @param $roleId
      * @return int

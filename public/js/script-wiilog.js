@@ -34,7 +34,7 @@ $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
     });
-})
+});
 
 //DELETE
 function deleteRow(button, modal, submit) {

@@ -1569,7 +1569,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 }
                 else {
                     $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
-                    $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
+                    if (!empty($article)) {
+                        $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
+                    }
                     $resData['article'] = $article;
                 }
 

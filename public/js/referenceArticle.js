@@ -80,7 +80,9 @@ function submitActionRefArticle(modal, path, callback = null, close = true) {
             }
             if (typeof data === 'object') {
                 if (!data.success) {
-                    alertErrorMsg(data.msg);
+                    if (data.msg) {
+                        alertErrorMsg(data.msg);
+                    }
                 }
             }
 
@@ -205,8 +207,7 @@ function showDemande(bloc) {
         $livraisonShow.addClass('d-block');
         $livraisonShow.find('div').find('select, .quantite').addClass('data');
         $livraisonShow.find('.data').addClass('needed');
-
-        setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
+        //setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
 
     } else if (bloc.data("title") == "collecte") {
         $collecteShow.removeClass('d-none');
@@ -360,6 +361,7 @@ let ajaxPlusDemandeContent = function (button, demande) {
             }
             showDemande(button);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            $('.list-multiple').select2();
         }
     }
     let json = {
@@ -443,11 +445,8 @@ function passArgsToModal(button) {
 
 function setMaxQuantityByArtRef(input) {
     let val = 0;
-    $('input[name="quantite"]').each(function () {
-        if ($(this).val() !== '' && $(this).val()) {
-            val = $(this).val();
-        }
-    });
+    val = $('#quantite').val();
+    console.log(input);
     input.attr('max', val);
 }
 

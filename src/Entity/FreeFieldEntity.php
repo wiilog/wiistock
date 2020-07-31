@@ -17,7 +17,7 @@ class FreeFieldEntity
 
     public function getFreeFields(): ?array
     {
-        return $this->freeFields;
+        return $this->freeFields ?? [];
     }
 
     public function setFreeFields(?array $freeFields): self
