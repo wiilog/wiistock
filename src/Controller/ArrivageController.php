@@ -522,7 +522,6 @@ class ArrivageController extends AbstractController
             }
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -919,7 +918,6 @@ class ArrivageController extends AbstractController
         }
 
         $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
