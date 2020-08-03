@@ -69,9 +69,9 @@
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
                     <input type="text" id="{{ freeField.id ~ actionType }}"
                            class="form-control needs-default data {{ (attribute(freeField, requiredType)) ? 'needed' : '' }}"
-                           value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}"
+                           value="{{ entityValue }}"
                            data-init="{{ entityValue }}"
-                           name="{{ entityValue }}">
+                           name="{{ freeField.id }}">
 
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
                     <input type="datetime-local" name="{{ freeField.id }}" id="{{ freeField.id ~ actionType }}"
