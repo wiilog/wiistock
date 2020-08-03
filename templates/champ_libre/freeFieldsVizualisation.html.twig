@@ -1,4 +1,10 @@
 {% for freeField in freeFields %}
+    {% set entityValue = freeFieldValues[freeField.id] is defined
+        ? freeFieldValues[freeField.id]
+        : ( freeField.defaultValue is defined
+        ? freeField.defaultValue
+        : '')
+    %}
     <div class="{{ colType }} my-2">
         <div class="row form-group">
             <div class="col-12">
@@ -14,12 +20,18 @@
             <div class="col-12">
                 {% if freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_BOOL') %}
                     <div class="mt-2">
-                        {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : "0" %}
+                        {% set entityValue = freeFieldValues[freeField.id] is defined
+                            ? freeFieldValues[freeField.id]
+                            : ( freeField.defaultValue is defined
+                            ? freeField.defaultValue
+                            : "0")
+                        %}
                         {% set checked = (entityValue == "1" ? 'checked') %}
                         <label class="switch">
                             <input type="checkbox"
-                                   class="data checkbox"
+                                   class="data checkbox needs-default"
                                    {{ checked }}
+                                   data-init="{{ entityValue }}"
                                    id="{{ freeField.id ~ actionType }}"
                                    name="{{ freeField.id }}">
                             <span class="slider round"></span>
@@ -27,8 +39,9 @@
                     </div>
                 {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_NUMBER') %}
                     <input type="number" id="{{ freeField.id ~ actionType }}"
-                           class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
-                           value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}"
+                           class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                           data-init="{{ entityValue }}"
+                           value="{{ entityValue }}"
                            name="{{ freeField.id }}">
 
                 {% elseif  freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_LIST') %}
@@ -55,22 +68,25 @@
 
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
                     <input type="text" id="{{ freeField.id ~ actionType }}"
-                           class="form-control data {{ (attribute(freeField, requiredType)) ? 'needed' : '' }}"
+                           class="form-control needs-default data {{ (attribute(freeField, requiredType)) ? 'needed' : '' }}"
                            value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}"
-                           name="{{ freeField.id }}">
+                           data-init="{{ entityValue }}"
+                           name="{{ entityValue }}">
 
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATETIME') %}
                     <input type="datetime-local" name="{{ freeField.id }}" id="{{ freeField.id ~ actionType }}"
-                           class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
-                           value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}">
+                           class="form-control needs-default data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                           data-init="{{ entityValue }}"
+                           value="{{ entityValue }}">
 
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
                     <input
                         type="date"
-                        class="form-control data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
+                        class="form-control data needs-default {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
                         name="{{ freeField.id }}"
                         id="{{ freeField.label ~ actionType }}"
-                        value="{{ freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : '' }}">
+                        data-init="{{ entityValue }}"
+                        value="{{ entityValue }}">
                 {% endif %}
             </div>
         </div>
