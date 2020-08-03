@@ -48,9 +48,15 @@ class Nature
 	 */
     private $color;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Emplacement", mappedBy="allowedNatures")
+     */
+    private $emplacements;
+
     public function __construct()
     {
         $this->colis = new ArrayCollection();
+        $this->emplacements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -167,6 +173,34 @@ class Nature
             if ($coli->getNature() === $this) {
                 $coli->setNature(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Emplacement[]
+     */
+    public function getEmplacements(): Collection
+    {
+        return $this->emplacements;
+    }
+
+    public function addEmplacement(Emplacement $emplacement): self
+    {
+        if (!$this->emplacements->contains($emplacement)) {
+            $this->emplacements[] = $emplacement;
+            $emplacement->addAllowedNature($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmplacement(Emplacement $emplacement): self
+    {
+        if ($this->emplacements->contains($emplacement)) {
+            $this->emplacements->removeElement($emplacement);
+            $emplacement->removeAllowedNature($this);
         }
 
         return $this;

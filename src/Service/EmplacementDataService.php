@@ -11,6 +11,7 @@ namespace App\Service;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
+use App\Entity\Nature;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -115,19 +116,22 @@ class EmplacementDataService
     public function dataRowEmplacement($emplacement)
     {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
-
+        $allowedNatures = implode(';', array_map(function(Nature $nature) {
+            return $nature->getLabel();
+        }, $emplacement->getAllowedNatures()->toArray()));
         $row = [
-                    'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
-                    'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
-                    'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
-					'Point de livraison' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
-                    'Délai maximum' => $emplacement->getDateMaxTime() ?? '',
-					'Actif / Inactif' => $emplacement->getIsActive() ? 'actif' : 'inactif',
-                    'Actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
-                        'url' => $url,
-                        'emplacementId' => $emplacement->getId(),
-                    ]),
-                    ];
+            'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
+            'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
+            'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
+            'Point de livraison' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
+            'Délai maximum' => $emplacement->getDateMaxTime() ?? '',
+            'Actif / Inactif' => $emplacement->getIsActive() ? 'actif' : 'inactif',
+            'Actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
+                'url' => $url,
+                'emplacementId' => $emplacement->getId(),
+            ]),
+            'allowed-natures' => $allowedNatures
+        ];
         return $row;
     }
 }

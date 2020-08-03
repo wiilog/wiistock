@@ -76,6 +76,11 @@ class Emplacement
      */
     private $utilisateurs;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Nature", inversedBy="emplacements")
+     */
+    private $allowedNatures;
+
 
     public function __construct()
     {
@@ -86,6 +91,7 @@ class Emplacement
         $this->referenceArticles = new ArrayCollection();
         $this->isActive = true;
         $this->utilisateurs = new ArrayCollection();
+        $this->allowedNatures = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -338,6 +344,32 @@ class Emplacement
             if ($utilisateur->getDropzone() === $this) {
                 $utilisateur->setDropzone(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Nature[]
+     */
+    public function getAllowedNatures(): Collection
+    {
+        return $this->allowedNatures;
+    }
+
+    public function addAllowedNature(Nature $allowedNature): self
+    {
+        if (!$this->allowedNatures->contains($allowedNature)) {
+            $this->allowedNatures[] = $allowedNature;
+        }
+
+        return $this;
+    }
+
+    public function removeAllowedNature(Nature $allowedNature): self
+    {
+        if ($this->allowedNatures->contains($allowedNature)) {
+            $this->allowedNatures->removeElement($allowedNature);
         }
 
         return $this;
