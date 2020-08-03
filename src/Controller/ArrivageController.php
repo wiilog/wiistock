@@ -381,7 +381,6 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param StatutService $statutService
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager,
@@ -520,7 +519,6 @@ class ArrivageController extends AbstractController
             }
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
@@ -1408,30 +1406,37 @@ class ArrivageController extends AbstractController
      *
      * @param Arrivage $arrivage
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param Pack|null $colis
      *
      * @return Response
      *
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
+                                               EntityManagerInterface $entityManager,
                                                PDFGeneratorService $PDFGeneratorService,
                                                Pack $colis = null): Response
     {
         $barcodeConfigs = [];
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $usernameParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
+        $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
 
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
             $printArrivage = $request->query->getBoolean('printArrivage');
 
             if ($printColis) {
-                $barcodeConfigs = $this->getBarcodeConfigPrintAllColis($arrivage);
+                $barcodeConfigs = $this->getBarcodeConfigPrintAllColis(
+                    $arrivage,
+                    $usernameParamIsDefined,
+                    $dropzoneParamIsDefined);
             }
 
             if ($printArrivage) {
@@ -1444,7 +1449,11 @@ class ArrivageController extends AbstractController
                 throw new NotFoundHttpException("404");
             }
 
-            $barcodeConfigs[] = $this->getBarcodeColisConfig($colis, $arrivage->getDestinataire());
+            $barcodeConfigs[] = $this->getBarcodeColisConfig(
+                $colis,
+                $arrivage->getDestinataire(),
+                $usernameParamIsDefined,
+                $dropzoneParamIsDefined);
         }
 
         if (empty($barcodeConfigs)) {
@@ -1468,41 +1477,58 @@ class ArrivageController extends AbstractController
      * )
      * @param Arrivage $arrivage
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
     public function printArrivageAlias(Arrivage $arrivage,
                                        Request $request,
+                                       EntityManagerInterface $entityManager,
                                        PDFGeneratorService $PDFGeneratorService)
     {
-        return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
+        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
     }
 
-    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage)
+    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, bool $usernameParamIsDefined, bool $dropzoneParamIsDefined)
     {
         return array_map(
-            function (Pack $colisInArrivage) use ($arrivage) {
-                return $this->getBarcodeColisConfig($colisInArrivage, $arrivage->getDestinataire());
+            function (Pack $colisInArrivage) use ($arrivage, $dropzoneParamIsDefined, $usernameParamIsDefined) {
+                return $this->getBarcodeColisConfig(
+                    $colisInArrivage,
+                    $arrivage->getDestinataire(),
+                    $dropzoneParamIsDefined,
+                    $usernameParamIsDefined
+                );
             },
             $arrivage->getPacks()->toArray()
         );
     }
 
-    private function getBarcodeColisConfig(Pack $colis, ?Utilisateur $destinataire)
+    private function getBarcodeColisConfig(Pack $colis,
+                                           ?Utilisateur $destinataire,
+                                           bool $usernameParamIsDefined,
+                                           bool $dropzoneParamIsDefined)
     {
+
+        $recipientUsername = ($usernameParamIsDefined && $destinataire)
+            ? $destinataire->getUsername()
+            : '';
+
+        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
+            ? ($destinataire->getDropzone()
+                ? $destinataire->getDropzone()->getLabel()
+                : '')
+            : '';
+
+        $usernameIsDefined = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
         return [
             'code' => $colis->getCode(),
             'labels' => [
-                $destinataire
-                    ? $destinataire->getDropzone()
-                    ? $destinataire->getDropzone()->getLabel()
-                    : ''
-                    : ''
+                $recipientUsername . $usernameIsDefined . $dropZoneLabel
             ]
         ];
     }
