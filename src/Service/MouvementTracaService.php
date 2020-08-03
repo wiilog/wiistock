@@ -199,9 +199,6 @@ class MouvementTracaService
             $pack
         );
 
-        dump('-------------');
-        dump($mouvementTraca->getPack());
-
         $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $codePack])
             ?: $articleRepository->findOneBy(['barCode' => $codePack]);
         if ($refOrArticle instanceof ReferenceArticle) {
@@ -281,7 +278,6 @@ class MouvementTracaService
             ? [$pack]
             : $packRepository->findBy(['code' => $pack]);
 
-        dump($packs);
         if (empty($packs)) {
             $newPack = new Pack();
             $newPack->setCode($pack);
@@ -292,7 +288,6 @@ class MouvementTracaService
                 $entityManager->persist($newPack);
             }
         }
-        dump($packs);
 
         $tracking->setPack($packs[0]);
 
