@@ -18,6 +18,7 @@ class CategorieCL
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';
     const ARRIVAGE = 'arrivage';
+    const MVT_TRACA = 'mouvement traca';
     const AUCUNE = 'aucune';
 
     /**

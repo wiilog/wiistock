@@ -39,6 +39,17 @@
             {% endif %}
         </select>
     </div>
+
+</div>
+
+<div class="row champsLibresBlock">
+    {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+        freeFields: champsLibres,
+        freeFieldValues: mvt.freeFields,
+        colType: 'col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'new'
+    } %}
 </div>
 
 <div class="row">

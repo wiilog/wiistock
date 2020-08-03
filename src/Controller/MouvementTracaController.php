@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -17,6 +19,7 @@ use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
+use App\Service\FreeFieldService;
 use App\Service\MouvementTracaService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -88,6 +91,7 @@ class MouvementTracaController extends AbstractController
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $packFilter = $request->query->get('colis');
         if (!empty($packFilter)) {
@@ -104,7 +108,8 @@ class MouvementTracaController extends AbstractController
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
+            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
+            'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
         ]);
     }
 
@@ -112,12 +117,14 @@ class MouvementTracaController extends AbstractController
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param MouvementTracaService $mouvementTracaService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
     public function new(Request $request,
                         MouvementTracaService $mouvementTracaService,
+                        FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -201,7 +208,9 @@ class MouvementTracaController extends AbstractController
                     $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
                 }
             }
-
+            foreach ($createdMouvements as $mouvement) {
+                $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
+            }
             $entityManager->flush();
 
             $countCreatedMouvements = count($createdMouvements);
@@ -247,13 +256,15 @@ class MouvementTracaController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $mvt = $mouvementTracaRepository->find($data['id']);
 
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
                 'mvt' => $mvt,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachements' => $mvt->getAttachements()
+                'attachements' => $mvt->getAttachements(),
+                'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             ]);
 
             return new JsonResponse($json);

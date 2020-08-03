@@ -33,6 +33,8 @@ class Type
     const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
 	// types de la catégorie demande de livraison
 	const LABEL_STANDARD = 'standard';
+	// types de la catégorie mouvement traça
+    const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
 
 	/**
      * @ORM\Id()

@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MouvementTracaRepository")
  */
-class MouvementTraca
+class MouvementTraca extends FreeFieldEntity
 {
 
     const TYPE_PRISE = 'prise';

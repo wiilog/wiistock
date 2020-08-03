@@ -58,6 +58,17 @@
                                 {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="row champsLibresBlock">
+                                {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                                    freeFields: champsLibres,
+                                    freeFieldValues: [],
+                                    colType: 'col-12',
+                                    requiredType: 'requiredCreate',
+                                    actionType: 'new'
+                                } %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
