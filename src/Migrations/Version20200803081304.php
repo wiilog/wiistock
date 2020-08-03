@@ -37,7 +37,7 @@ final class Version20200803081304 extends AbstractMigration
                 LIMIT 1
             )
         ';
-
+        dump('Finished setting existing packs');
         $this->addSql($updateTrackingWithoutPackQuery);
         $this->addSql("
             INSERT INTO pack(code)
@@ -45,7 +45,9 @@ final class Version20200803081304 extends AbstractMigration
             FROM mouvement_traca
             WHERE mouvement_traca.pack_id IS NULL
         ");
+        dump('Finished inserting non existing packs');
         $this->addSql($updateTrackingWithoutPackQuery);
+        dump('Finished all packs operations');
     }
 
     public function down(Schema $schema) : void
