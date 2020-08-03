@@ -157,7 +157,10 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+        /** @var Utilisateur $user */
         $user = $this->getUser();
+
         $champs = [
             ["key" => 'date', 'label' => 'Date'],
             ["key" => 'numeroArrivage', 'label' => $translator->trans('arrivage.n° d\'arrivage')],
@@ -193,11 +196,11 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
+            'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
+            'columnsVisibles' => $user->getColumnsVisibleForArrivage()
         ]);
     }
 
@@ -890,6 +893,7 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
      * @param Arrivage $arrivage
+     * @param TranslatorInterface $translator
      * @param bool $printColis
      * @param bool $printArrivage
      *
@@ -901,6 +905,7 @@ class ArrivageController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          ArrivageDataService $arrivageDataService,
                          Arrivage $arrivage,
+                         TranslatorInterface $translator,
                          bool $printColis = false,
                          bool $printArrivage = false): Response
     {
@@ -910,7 +915,6 @@ class ArrivageController extends AbstractController
         }
 
         $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -926,6 +930,7 @@ class ArrivageController extends AbstractController
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         return $this->render("arrivage/show.html.twig",
             [
+                'natureTranslation' => $translator->trans('natures.nature'),
                 'arrivage' => $arrivage,
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,

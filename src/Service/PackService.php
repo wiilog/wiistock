@@ -55,7 +55,7 @@ Class PackService
                 $newCounter = "0" . $newCounter;
             }
 
-            $code = ($nature->getPrefix(). $arrivalNum . $newCounter ?? '');
+            $code = (($nature->getPrefix() ?? '') . $arrivalNum . $newCounter ?? '');
             $pack = $this
                 ->createPackWithCode($code)
                 ->setNature($nature);
