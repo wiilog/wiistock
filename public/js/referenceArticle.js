@@ -53,7 +53,11 @@ function initPageModals() {
     let modalNewFilter = $('#modalNewFilter');
     let submitNewFilter = $('#submitNewFilter');
     let urlNewFilter = Routing.generate('filter_ref_new', true);
-// TODO InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
+    InitModal(modalNewFilter, submitNewFilter, urlNewFilter, {
+        tables: pageTables,
+        clearOnClose: true,
+        success: displayNewFilter
+    });
 }
 
 
@@ -237,37 +241,46 @@ function displayNewFilter(data) {
     $('#noFilters').addClass('d-none');
     $printTag.removeClass('has-tooltip');
     $printTag.tooltip('dispose');
-    pageTables[0].clear();
-    pageTables[0].ajax.reload();
     initTooltips($('.has-tooltip'));
 }
 
-function removeFilter() {
-    let params = JSON.stringify({'filterId': $(this).parents('.filter').find('.filter-id').val()});
-    $(this).parents('.filter').tooltip('dispose');
-    $(this).parents('.filter').parent().remove();
-    $.post(Routing.generate('filter_ref_delete', true), params, function () {
-        pageTables[0].clear();
-        pageTables[0].ajax.reload();
-    });
-    if ($('#filters').find('.filter').length <= 0) {
-        $('#noFilters').removeClass('d-none');
-        if ($('#tableRefArticle_id_filter input').val() === '') {
-            if ($printTag.is('button')) {
-                $printTag
-                    .addClass('btn-disabled')
-                    .removeClass('btn-primary');
-                managePrintButtonTooltip(true, $printTag.parent());
-            } else {
-                $printTag
-                    .removeClass('pointer')
-                    .addClass('disabled')
-                    .addClass('has-tooltip');
-                managePrintButtonTooltip(true, $printTag);
+function removeFilter($button, filterId) {
+    $.ajax({
+        url: Routing.generate('filter_ref_delete', true),
+        type: 'DELETE',
+        data: {filterId},
+        success: function(data) {
+            if (data && data.success) {
+                pageTables[0].clear();
+                pageTables[0].ajax.reload();
+
+                const $filter = $button.closest('.filter');
+                $filter.tooltip('dispose');
+                $filter.parent().remove();
+                if ($('#filters').find('.filter').length <= 0) {
+                    $('#noFilters').removeClass('d-none');
+                    if ($('#tableRefArticle_id_filter input').val() === '') {
+                        if ($printTag.is('button')) {
+                            $printTag
+                                .addClass('btn-disabled')
+                                .removeClass('btn-primary');
+                            managePrintButtonTooltip(true, $printTag.parent());
+                        } else {
+                            $printTag
+                                .removeClass('pointer')
+                                .addClass('disabled')
+                                .addClass('has-tooltip');
+                            managePrintButtonTooltip(true, $printTag);
+                        }
+                        $printTag.removeClass('d-none');
+                    }
+                }
+            } else if (data.msg) {
+                alertErrorMsg(data.msg);
             }
-            $printTag.removeClass('d-none');
+
         }
-    }
+    });
 }
 
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
