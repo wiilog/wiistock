@@ -110,10 +110,6 @@ class ArrivageController extends AbstractController
      * @var DashboardService
      */
     private $dashboardService;
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
 
     public function __construct(ArrivageDataService $arrivageDataService,
                                 DashboardService $dashboardService,
@@ -123,8 +119,7 @@ class ArrivageController extends AbstractController
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
                                 TransporteurRepository $transporteurRepository,
-                                UserService $userService,
-                                EntityManagerInterface $entityManager)
+                                UserService $userService)
     {
         $this->dashboardService = $dashboardService;
         $this->specificService = $specificService;
@@ -135,7 +130,6 @@ class ArrivageController extends AbstractController
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
         $this->arrivageDataService = $arrivageDataService;
-        $this->entityManager = $entityManager;
     }
 
     /**
@@ -1409,6 +1403,7 @@ class ArrivageController extends AbstractController
      *
      * @param Arrivage $arrivage
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @param Colis|null $colis
      *
@@ -1421,11 +1416,12 @@ class ArrivageController extends AbstractController
      */
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
+                                               EntityManagerInterface $entityManager,
                                                PDFGeneratorService $PDFGeneratorService,
                                                Colis $colis = null): Response
     {
         $barcodeConfigs = [];
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $usernameParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
         $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
 
@@ -1478,6 +1474,7 @@ class ArrivageController extends AbstractController
      * )
      * @param Arrivage $arrivage
      * @param Request $request
+     * @param EntityManagerInterface $entityManager
      * @param PDFGeneratorService $PDFGeneratorService
      * @return Response
      * @throws LoaderError
@@ -1487,9 +1484,10 @@ class ArrivageController extends AbstractController
      */
     public function printArrivageAlias(Arrivage $arrivage,
                                        Request $request,
+                                       EntityManagerInterface $entityManager,
                                        PDFGeneratorService $PDFGeneratorService)
     {
-        return $this->printArrivageColisBarCodes($arrivage, $request, $PDFGeneratorService);
+        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
     }
 
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, bool $usernameParamIsDefined, bool $dropzoneParamIsDefined)
