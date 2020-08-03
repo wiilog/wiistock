@@ -275,10 +275,13 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param FreeFieldService $freeFieldService
+     * @param MouvementTracaService $mouvementTracaService
      * @param Request $request
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
+                         FreeFieldService $freeFieldService,
                          MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
@@ -330,6 +333,7 @@ class MouvementTracaController extends AbstractController
             }
 
             $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
+            $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
 
             $entityManager->flush();
 
