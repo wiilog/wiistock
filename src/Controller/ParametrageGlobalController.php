@@ -140,6 +140,8 @@ class ParametrageGlobalController extends AbstractController
                     'locations' => $globalParamService->getDashboardLocations(),
                     'valueCarriers' => $globalParamService->getDashboardCarrierDock(),
                 ],
+                'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
+                'wantsDZLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL)
             ]);
     }
 
@@ -183,6 +185,28 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobalQtt
             ->setValue((int) ($data['param-qtt-etiquette'] === 'true'));
+
+        $parametrageGlobalRecipient = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
+
+        if (empty($parametrageGlobalRecipient)) {
+            $parametrageGlobalRecipient = new ParametrageGlobal();
+            $parametrageGlobalRecipient->setLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
+            $entityManager->persist($parametrageGlobalRecipient);
+        }
+
+        $parametrageGlobalRecipient
+            ->setValue((int) ($data['param-recipient-etiquette'] === 'true'));
+
+        $parametrageGlobalDZLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
+
+        if (empty($parametrageGlobalDZLocation)) {
+            $parametrageGlobalDZLocation = new ParametrageGlobal();
+            $parametrageGlobalDZLocation->setLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
+            $entityManager->persist($parametrageGlobalDZLocation);
+        }
+
+        $parametrageGlobalDZLocation
+            ->setValue((int) ($data['param-dz-location-etiquette'] === 'true'));
 
         $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
 
