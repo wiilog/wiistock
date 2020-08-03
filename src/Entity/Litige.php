@@ -34,9 +34,9 @@ class Litige
 	private $updateDate;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Colis", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Pack", inversedBy="litiges")
      */
-    private $colis;
+    private $packs;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="litiges")
@@ -87,7 +87,7 @@ class Litige
     {
         $this->attachements = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
-        $this->colis = new ArrayCollection();
+        $this->packs = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->buyers = new ArrayCollection();
     }
@@ -254,24 +254,24 @@ class Litige
         return $this;
     }
 
-    public function getColis()
+    public function getPacks()
     {
-        return $this->colis;
+        return $this->packs;
     }
 
-    public function addColis(Colis $coli): self
+    public function addPack(Pack $pack): self
     {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
+        if (!$this->packs->contains($pack)) {
+            $this->packs[] = $pack;
         }
 
         return $this;
     }
 
-    public function removeColis(Colis $coli): self
+    public function removePack(Pack $pack): self
     {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
+        if ($this->packs->contains($pack)) {
+            $this->packs->removeElement($pack);
         }
 
         return $this;
@@ -346,24 +346,6 @@ class Litige
     public function setEmergencyTriggered(?bool $emergencyTriggered): self
     {
         $this->emergencyTriggered = $emergencyTriggered;
-
-        return $this;
-    }
-
-    public function addColi(Colis $coli): self
-    {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-        }
-
-        return $this;
-    }
-
-    public function removeColi(Colis $coli): self
-    {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
-        }
 
         return $this;
     }

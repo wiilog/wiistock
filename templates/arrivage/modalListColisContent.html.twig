@@ -9,9 +9,9 @@
     <tr>
         <th>N° colis</th>
         {% set listCodeColis = '' %}
-        {% for colis in arrivage.colis %}
+        {% for pack in arrivage.packs %}
             {% set comma = loop.first ? '' : ',' %}
-            {% set listCodeColis = listCodeColis~comma~colis.code %}
+            {% set listCodeColis = listCodeColis~comma~pack.code %}
         {% endfor %}
         <th class="text-center">
             Impression
@@ -20,11 +20,11 @@
             </a>
         </th>
     </tr>
-    {% for colis in arrivage.colis %}
+    {% for pack in arrivage.packs %}
         <tr>
-            <td>{{ colis.code }}</td>
+            <td>{{ pack.code }}</td>
             <td class="text-center">
-                <a href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivage.id, colis: colis.id}) }}">
+                <a href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivage.id, colis: pack.id}) }}">
                     <i class='fas fa-print'></i>
                 </a>
             </td>

@@ -34,17 +34,17 @@
         {% for litige in litiges %}
             <tr>
                 <td class="td"
-                    rowspan="{{ litige.colis|length }}"
+                    rowspan="{{ litige.packs|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ litige.type.label }}
                 </td>
                 <td class="td"
-                    rowspan="{{ litige.colis|length }}"
+                    rowspan="{{ litige.packs|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ litige.status.nom }}
                 </td>
 
-                {% set firstColis = litige.colis|first %}
+                {% set firstColis = litige.packs|first %}
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {% for numeroBL in firstColis.arrivage.numeroCommandeList %}
@@ -57,19 +57,19 @@
                     {{ firstColis.code }}
                 </td>
             </tr>
-            {% for colis in litige.colis %}
+            {% for pack in litige.packs %}
                 {% if not loop.first %}
                     <tr>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {% for numeroBL in colis.arrivage.numeroCommandeList %}
+                            {% for numeroBL in pack.arrivage.numeroCommandeList %}
                                 {{ numeroBL }}
                                 {% if loop.last %}<br/>{% endif %}
                             {% endfor %}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ colis.code }}
+                            {{ pack.code }}
                         </td>
                     </tr>
                 {% endif %}

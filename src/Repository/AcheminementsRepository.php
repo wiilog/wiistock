@@ -63,7 +63,7 @@ class AcheminementsRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.colis LIKE :value OR a.date LIKE :value')
+                        ->andWhere('a.packs LIKE :value OR a.date LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

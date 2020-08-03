@@ -28,7 +28,7 @@ class Acheminements
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private $colis = [];
+    private $packs = [];
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsReceive")
@@ -75,15 +75,14 @@ class Acheminements
         return $this;
     }
 
-    public function getColis(): ?array
+    public function getPacks(): ?array
     {
-        return $this->colis;
+        return $this->packs;
     }
 
-    public function setColis(?array $colis): self
+    public function setPacks(?array $packs): self
     {
-        $this->colis = $colis;
-
+        $this->packs = $packs;
         return $this;
     }
 

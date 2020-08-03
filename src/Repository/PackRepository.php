@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use DateTime;
@@ -15,12 +15,12 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 
 /**
- * @method Colis|null find($id, $lockMode = null, $lockVersion = null)
- * @method Colis|null findOneBy(array $criteria, array $orderBy = null)
- * @method Colis[]    findAll()
- * @method Colis[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Pack|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Pack|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Pack[]    findAll()
+ * @method Pack[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ColisRepository extends EntityRepository
+class PackRepository extends EntityRepository
 {
 
     /**
@@ -66,7 +66,7 @@ class ColisRepository extends EntityRepository
         $code = $mvt['colis'];
         $id = $mvt['id'];
         $sqlQuery = "
-            INSERT INTO colis (code, last_drop_id) VALUES ('${code}', '${id}')
+            INSERT INTO pack (code, last_drop_id) VALUES ('${code}', '${id}')
         ";
         $connection = $this->getEntityManager()->getConnection();
         $connection->executeQuery($sqlQuery, []);
@@ -78,7 +78,7 @@ class ColisRepository extends EntityRepository
             return $idsSub['id'];
         }, $ids));
         $sqlQuery = "
-            UPDATE colis SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
+            UPDATE pack SET last_drop_id = ${mvtId} WHERE id IN (${arrayColisId})
         ";
         $connection = $this->getEntityManager()->getConnection();
         $connection->executeQuery($sqlQuery, []);

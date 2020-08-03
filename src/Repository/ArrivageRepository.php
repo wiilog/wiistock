@@ -165,7 +165,7 @@ class ArrivageRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(c)
-			FROM App\Entity\Colis c
+			FROM App\Entity\Pack c
 			WHERE c.arrivage = :arrivage"
         )->setParameter('arrivage', $arrivage->getId());
 
@@ -178,7 +178,7 @@ class ArrivageRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT c.code
-			FROM App\Entity\Colis c
+			FROM App\Entity\Pack c
 			WHERE c.arrivage = :arrivage"
         )->setParameter('arrivage', $arrivage);
 
@@ -198,7 +198,7 @@ class ArrivageRepository extends EntityRepository
         /** @lang DQL */
             "SELECT COUNT(l)
 			FROM App\Entity\Litige l
-			JOIN l.colis c
+			JOIN l.packs c
 			JOIN l.status s
 			WHERE s.treated = 0
 			AND c.arrivage = :arrivage"
@@ -392,7 +392,7 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'nbUM') {
                         $qb
                             ->addSelect('count(col2.id) as hidden nbum')
-                            ->leftJoin('a.colis', 'col2')
+                            ->leftJoin('a.packs', 'col2')
                             ->orderBy('nbum', $order)
                             ->groupBy('col2.arrivage, a');
                     } else if ($column === 'statut') {
