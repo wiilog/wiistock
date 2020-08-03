@@ -39,31 +39,13 @@ final class Version20200803081304 extends AbstractMigration
         ';
 
         $this->addSql($updateTrackingWithoutPackQuery);
-
-        $existingTrackingMovementWithoutPack = $this
-            ->connection
-            ->executeQuery("
-                SELECT DISTINCT mouvement_traca.colis AS pack
-                FROM mouvement_traca
-                WHERE mouvement_traca.colis IS NULL
-            ")
-            ->fetchAll();
-
-        $values = implode(
-            ',',
-            array_reduce($existingTrackingMovementWithoutPack, function (array $acc, $tracking) {
-                if (!empty($tracking['pack'])) {
-                    $pack = $tracking['pack'];
-                    $acc[] = "('${pack}')";
-                }
-                return $acc;
-            }, [])
-        );
-
-        if (!empty($values)) {
-            $this->addSql("INSERT INTO pack(code) VALUES ${values}");
-            $this->addSql($updateTrackingWithoutPackQuery);
-        }
+        $this->addSql("
+            INSERT INTO pack(code)
+            SELECT DISTINCT mouvement_traca.colis AS pack
+            FROM mouvement_traca
+            WHERE mouvement_traca.pack_id IS NULL
+        ");
+        $this->addSql($updateTrackingWithoutPackQuery);
     }
 
     public function down(Schema $schema) : void
