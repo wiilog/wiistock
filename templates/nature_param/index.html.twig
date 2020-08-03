@@ -1,13 +1,13 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Paramétrage | Natures des colis{% endblock %}
+{% block title %}Paramétrage | {{ 'natures.Natures des colis'|trans }} {% endblock %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <button data-toggle="modal" data-target="#modalNewNature" class="btn btn-primary btn-ripple">
-                    <span class="fa fa-plus mr-2"></span>Ajouter nature colis
+                    <span class="fa fa-plus mr-2"></span>Ajouter <span title="nature colis">{{ 'natures.nature colis' | trans }}</span>
                 </button>
             </div>
         </div>

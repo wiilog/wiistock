@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\MouvementTraca;
@@ -131,8 +131,8 @@ class MouvementTracaService
     }
 
     /**
-     * @param string|Colis $pack
-     * @param Emplacement $location
+     * @param string|Pack $pack
+     * @param Emplacement|null $location
      * @param Utilisateur $user
      * @param DateTime $date
      * @param bool $fromNomade
@@ -146,21 +146,21 @@ class MouvementTracaService
      * @return MouvementTraca
      * @throws Exception
      */
-    public function createMouvementTraca($pack,
-                                         ?Emplacement $location,
-                                         Utilisateur $user,
-                                         DateTime $date,
-                                         bool $fromNomade,
-                                         ?bool $finished,
-                                         $typeMouvementTraca,
-                                         array $options = []): MouvementTraca
+    public function createTrackingMovement($pack,
+                                           ?Emplacement $location,
+                                           Utilisateur $user,
+                                           DateTime $date,
+                                           bool $fromNomade,
+                                           ?bool $finished,
+                                           $typeMouvementTraca,
+                                           array $options = []): MouvementTraca
     {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
-        $codePack = $pack instanceof Colis ? $pack->getCode() : $pack;
+        $codePack = $pack instanceof Pack ? $pack->getCode() : $pack;
 
         $type = ($typeMouvementTraca instanceof Statut)
             ? $typeMouvementTraca
@@ -248,6 +248,10 @@ class MouvementTracaService
 
     public function persistSubEntities(EntityManagerInterface $entityManager,
                                        MouvementTraca $mouvementTraca) {
+        $pack = $mouvementTraca->getPack();
+        if (!empty($pack)) {
+            $entityManager->persist($pack);
+        }
         foreach ($mouvementTraca->getLinkedPackLastDrops() as $colisMvt) {
             $entityManager->persist($colisMvt);
         }
@@ -260,38 +264,41 @@ class MouvementTracaService
      * @param MouvementTraca $tracking
      * @param EntityManagerInterface $entityManager
      * @param Statut $type
-     * @param string|Colis $colis
+     * @param string|Pack $pack
      * @param bool $persist
      */
     public function managePackLinksWithTracking(MouvementTraca $tracking,
                                                 EntityManagerInterface $entityManager,
                                                 Statut $type,
-                                                $colis,
+                                                $pack,
                                                 bool $persist = false): void {
-        $colisRepository = $entityManager->getRepository(Colis::class);
-        $packs = $tracking->getLinkedPackLastDrops();
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $packs = ($pack instanceof Pack)
+            ? [$pack]
+            : $packRepository->findBy(['code' => $pack]);
+
+        if (empty($packs)) {
+            $newPack = new Pack();
+            $newPack->setCode($pack);
+
+            $packs[] = $newPack;
+
+            if ($persist) {
+                $entityManager->persist($newPack);
+            }
+        }
+
+        $tracking->setPack($packs[0]);
+
+        $packsAlreadyExisting = $tracking->getLinkedPackLastDrops();
         // si c'est une prise ou une dépose on vide ses colis liés
-        foreach ($packs as $pack) {
-            $tracking->removeLinkedPacksLastDrop($pack);
+        foreach ($packsAlreadyExisting as $packLastDrop) {
+            $tracking->removeLinkedPacksLastDrop($packLastDrop);
         }
 
         if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
-            $existingPacks = ($colis instanceof Colis)
-                ? [$colis]
-                : $colisRepository->findBy(['code' => $colis]);
-
-            if (empty($existingPacks)) {
-                $newColis = new Colis();
-                $newColis
-                    ->setCode($colis);
-                $existingPacks[] = $newColis;
-
-                if ($persist) {
-                    $entityManager->persist($newColis);
-                }
-            }
-
-            foreach ($existingPacks as $existingPack) {
+            foreach ($packs as $existingPack) {
                 $tracking->addLinkedPackLastDrop($existingPack);
             }
         }

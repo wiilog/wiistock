@@ -121,7 +121,7 @@ Class AcheminementsController extends AbstractController
                 ->setReceiver($utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
                 ->setLocationTake($data['prise'])
-                ->setColis($data['colis']);
+                ->setPacks($data['colis']);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($acheminements);
@@ -148,7 +148,7 @@ Class AcheminementsController extends AbstractController
     public function printAcheminementStateSheet(Acheminements $acheminement,
                                                 PDFGeneratorService $PDFGenerator): PdfResponse
     {
-        $colis = $acheminement->getColis();
+        $packs = $acheminement->getPacks();
         $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
         $fileName = 'Etat_acheminement_' . $acheminement->getId() . '.pdf';
@@ -156,10 +156,10 @@ Class AcheminementsController extends AbstractController
             $PDFGenerator->generatePDFStateSheet(
                 $fileName,
                 array_map(
-                    function (string $colis) use ($acheminement, $now) {
+                    function (string $pack) use ($acheminement, $now) {
                         return [
                             'title' => 'Acheminement n°' . $acheminement->getId(),
-                            'code' => $colis,
+                            'code' => $pack,
                             'content' => [
                                 'Date d\'acheminement' => $now->format('d/m/Y H:i'),
                                 'Demandeur' => $acheminement->getRequester()->getUsername(),
@@ -169,7 +169,7 @@ Class AcheminementsController extends AbstractController
                             ]
                         ];
                     },
-                    $colis
+                    $packs
                 )
             ),
             $fileName
@@ -219,7 +219,7 @@ Class AcheminementsController extends AbstractController
                 ->setReceiver($utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
                 ->setLocationTake($data['prise'])
-                ->setColis($data['colis']);
+                ->setPacks($data['colis']);
 
             $entityManager->flush();
 

@@ -2,7 +2,7 @@
 <div class="form-group">
     <label for="reference">Référence</label>
     <input type="text" id="reference" class="form-control data" name="reference" value="{{ articleFournisseur.reference }}" disabled>
-</div>a
+</div>
 
 <div class="form-group w-100">
     <label for="article-fournisseur-label">Libellé</label>
@@ -19,6 +19,6 @@
 <div class="form-group w-100">
     <label for="article-reference">Article de référence*</label>
     <select class="form-control ajax-autocomplete-edit data needed" name="article-reference" id="article-reference">
-        <option value="{{ articleFournisseur.referenceArticle.id }}">{{ articleFournisseur.referenceArticle.libelle }}</option>
+        <option value="{{ articleFournisseur.referenceArticle.id }}">{{ articleFournisseur.referenceArticle.reference }}</option>
     </select>
 </div>

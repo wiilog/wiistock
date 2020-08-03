@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ColisRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\PackRepository")
  */
-class Colis
+class Pack
 {
 
     /**
@@ -25,28 +25,36 @@ class Colis
     private $code;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="colis")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="packs")
      */
     private $arrivage;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="colis")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="packs")
      */
     private $litiges;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Nature", inversedBy="colis")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Nature", inversedBy="packs")
      */
     private $nature;
 
     /**
+     * @var MouvementTraca
      * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrops")
+     * @ORM\JoinColumn(name="last_drop_id")
      */
     private $lastDrop;
 
-    public function __construct()
-    {
+    /**
+     * @var Collection
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack")
+     */
+    private $trackingMovements;
+
+    public function __construct() {
         $this->litiges = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -87,7 +95,7 @@ class Colis
     {
         if (!$this->litiges->contains($litige)) {
             $this->litiges[] = $litige;
-            $litige->addColis($this);
+            $litige->addPack($this);
         }
 
         return $this;
@@ -97,7 +105,7 @@ class Colis
     {
         if ($this->litiges->contains($litige)) {
             $this->litiges->removeElement($litige);
-            $litige->removeColis($this);
+            $litige->removePack($this);
         }
 
         return $this;
@@ -123,6 +131,36 @@ class Colis
     public function setLastDrop(?MouvementTraca $lastDrop): self
     {
         $this->lastDrop = $lastDrop;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(MouvementTraca $trackingMovement): self
+    {
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(MouvementTraca $trackingMovement): self
+    {
+        if ($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if ($trackingMovement->getPack() === $this) {
+                $trackingMovement->setPack(null);
+            }
+        }
 
         return $this;
     }

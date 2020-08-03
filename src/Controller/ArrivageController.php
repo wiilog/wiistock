@@ -8,7 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Chauffeur;
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\Litige;
@@ -27,7 +27,7 @@ use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
-use App\Service\ColisService;
+use App\Service\PackService;
 use App\Service\CSVExportService;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
@@ -45,6 +45,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\ORMException;
+use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -156,7 +157,10 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+        /** @var Utilisateur $user */
         $user = $this->getUser();
+
         $champs = [
             ["key" => 'date', 'label' => 'Date'],
             ["key" => 'numeroArrivage', 'label' => $translator->trans('arrivage.n° d\'arrivage')],
@@ -192,11 +196,11 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
-            'pageLengthForArrivage' => $this->getUser()->getPageLengthForArrivage() ?: 10,
+            'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
+            'columnsVisibles' => $user->getColumnsVisibleForArrivage()
         ]);
     }
 
@@ -236,7 +240,7 @@ class ArrivageController extends AbstractController
      * @param UserService $userService
      * @param ArrivageDataService $arrivageDataService
      * @param FreeFieldService $champLibreService
-     * @param ColisService $colisService
+     * @param PackService $colisService
      * @return Response
      * @throws LoaderError
      * @throws NoResultException
@@ -244,7 +248,7 @@ class ArrivageController extends AbstractController
      * @throws RuntimeError
      * @throws SyntaxError
      * @throws ORMException
-     * @throws \Exception
+     * @throws Exception
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
@@ -252,7 +256,7 @@ class ArrivageController extends AbstractController
                         UserService $userService,
                         ArrivageDataService $arrivageDataService,
                         FreeFieldService $champLibreService,
-                        ColisService $colisService): Response
+                        PackService $colisService): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -267,7 +271,6 @@ class ArrivageController extends AbstractController
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -340,11 +343,10 @@ class ArrivageController extends AbstractController
                     'msg' => "Veuillez renseigner au moins un colis.<br>"
                 ]);
             }
-            $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
-
-
+            $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
 
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
+
             $entityManager->flush();
 
             $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
@@ -622,15 +624,15 @@ class ArrivageController extends AbstractController
             $canBeDeleted = ($arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0);
 
             if ($canBeDeleted) {
-                foreach ($arrivage->getColis() as $colis) {
-                    $litiges = $colis->getLitiges();
-                    foreach ($mouvementTracaRepository->getByColisAndPriorToDate($colis->getCode(), $arrivage->getDate()) as $mvtToDelete) {
+                foreach ($arrivage->getPacks() as $pack) {
+                    $litiges = $pack->getLitiges();
+                    foreach ($mouvementTracaRepository->getByColisAndPriorToDate($pack->getCode(), $arrivage->getDate()) as $mvtToDelete) {
                         foreach ($mvtToDelete->getLinkedPackLastDrops() as $pack) {
                             $pack->setLastDrop(null);
                         }
                         $entityManager->remove($mvtToDelete);
                     }
-                    $entityManager->remove($colis);
+                    $entityManager->remove($pack);
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
                     }
@@ -817,9 +819,9 @@ class ArrivageController extends AbstractController
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
-            $colisRepository = $entityManager->getRepository(Colis::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
 
-            $colisData = $colisRepository->countColisByArrivageAndNature(
+            $colisData = $packRepository->countColisByArrivageAndNature(
                 [
                     $dateTimeMin->format('Y-m-d H:i:s'),
                     $dateTimeMax->format('Y-m-d H:i:s')
@@ -891,6 +893,7 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
      * @param Arrivage $arrivage
+     * @param TranslatorInterface $translator
      * @param bool $printColis
      * @param bool $printArrivage
      *
@@ -902,6 +905,7 @@ class ArrivageController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          ArrivageDataService $arrivageDataService,
                          Arrivage $arrivage,
+                         TranslatorInterface $translator,
                          bool $printColis = false,
                          bool $printArrivage = false): Response
     {
@@ -911,7 +915,6 @@ class ArrivageController extends AbstractController
         }
 
         $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -927,11 +930,12 @@ class ArrivageController extends AbstractController
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         return $this->render("arrivage/show.html.twig",
             [
+                'natureTranslation' => $translator->trans('natures.nature'),
                 'arrivage' => $arrivage,
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'allColis' => $arrivage->getColis(),
+                'allColis' => $arrivage->getPacks(),
                 'natures' => $natureRepository->findAll(),
                 'printColis' => $printColis,
                 'printArrivage' => $printArrivage,
@@ -952,7 +956,7 @@ class ArrivageController extends AbstractController
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
-     * @throws \Exception
+     * @throws Exception
      */
     public function newLitige(Request $request,
                               ArrivageDataService $arrivageDataService,
@@ -968,7 +972,7 @@ class ArrivageController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $colisRepository = $entityManager->getRepository(Colis::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -986,8 +990,8 @@ class ArrivageController extends AbstractController
             if (!empty($colis = $post->get('colisLitige'))) {
                 $listColisId = explode(',', $colis);
                 foreach ($listColisId as $colisId) {
-                    $colis = $colisRepository->find($colisId);
-                    $litige->addColis($colis);
+                    $colis = $packRepository->find($colisId);
+                    $litige->addPack($colis);
                     $arrivage = $colis->getArrivage();
                 }
             }
@@ -1056,13 +1060,13 @@ class ArrivageController extends AbstractController
      * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ColisService $colisService
+     * @param PackService $colisService
      * @return JsonResponse|RedirectResponse
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function addColis(Request $request,
                              EntityManagerInterface $entityManager,
-                             ColisService $colisService)
+                             PackService $colisService)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
@@ -1085,11 +1089,11 @@ class ArrivageController extends AbstractController
                 []
             );
 
-            $persistedColis = $colisService->persistMultiColis($arrivage, $natures, $this->getUser());
+            $persistedColis = $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
             $entityManager->flush();
 
             return new JsonResponse([
-                'colisIds' => array_map(function (Colis $colis) {
+                'colisIds' => array_map(function (Pack $colis) {
                     return $colis->getId();
                 }, $persistedColis),
                 'arrivageId' => $arrivage->getId(),
@@ -1161,8 +1165,8 @@ class ArrivageController extends AbstractController
             $litige = $litigeRepository->find($data['litigeId']);
 
             $colisCode = [];
-            foreach ($litige->getColis() as $colis) {
-                $colisCode[] = $colis->getId();
+            foreach ($litige->getPacks() as $pack) {
+                $colisCode[] = $pack->getId();
             }
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
@@ -1176,7 +1180,7 @@ class ArrivageController extends AbstractController
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
-                'colis' => $arrivage->getColis(),
+                'colis' => $arrivage->getPacks(),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
@@ -1209,7 +1213,7 @@ class ArrivageController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $colisRepository = $entityManager->getRepository(Colis::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -1236,14 +1240,14 @@ class ArrivageController extends AbstractController
 
             if (!empty($newColis = $post->get('colis'))) {
                 // on détache les colis existants...
-                $existingColis = $litige->getColis();
-                foreach ($existingColis as $existingColi) {
-                    $litige->removeColis($existingColi);
+                $existingPacks = $litige->getPacks();
+                foreach ($existingPacks as $existingPack) {
+                    $litige->removePack($existingPack);
                 }
                 // ... et on ajoute ceux sélectionnés
                 $listColis = explode(',', $newColis);
                 foreach ($listColis as $colisId) {
-                    $litige->addColis($colisRepository->find($colisId));
+                    $litige->addPack($packRepository->find($colisId));
                 }
             }
 
@@ -1369,21 +1373,21 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
-            $listColis = $arrivage->getColis()->toArray();
+            $packs = $arrivage->getPacks()->toArray();
 
             $rows = [];
-            foreach ($listColis as $colis) {
-                /** @var $colis Colis */
-                $mouvement = $mouvementTracaRepository->getLastByColis($colis->getCode());
+            /** @var Pack $pack */
+            foreach ($packs as $pack) {
+                $mouvement = $mouvementTracaRepository->getLastByColis($pack->getCode());
                 $rows[] = [
-                    'nature' => $colis->getNature() ? $colis->getNature()->getLabel() : '',
-                    'code' => $colis->getCode(),
+                    'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
+                    'code' => $pack->getCode(),
                     'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format('d/m/Y H:i') : '') : '',
                     'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                     'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
                     'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [
                         'arrivageId' => $arrivage->getId(),
-                        'colisId' => $colis->getId()
+                        'colisId' => $pack->getId()
                     ])
                 ];
             }
@@ -1405,7 +1409,7 @@ class ArrivageController extends AbstractController
      * @param Arrivage $arrivage
      * @param Request $request
      * @param PDFGeneratorService $PDFGeneratorService
-     * @param Colis|null $colis
+     * @param Pack|null $colis
      *
      * @return Response
      *
@@ -1418,7 +1422,7 @@ class ArrivageController extends AbstractController
     public function printArrivageColisBarCodes(Arrivage $arrivage,
                                                Request $request,
                                                PDFGeneratorService $PDFGeneratorService,
-                                               Colis $colis = null): Response
+                                               Pack $colis = null): Response
     {
         $barcodeConfigs = [];
 
@@ -1482,14 +1486,14 @@ class ArrivageController extends AbstractController
     private function getBarcodeConfigPrintAllColis(Arrivage $arrivage)
     {
         return array_map(
-            function (Colis $colisInArrivage) use ($arrivage) {
+            function (Pack $colisInArrivage) use ($arrivage) {
                 return $this->getBarcodeColisConfig($colisInArrivage, $arrivage->getDestinataire());
             },
-            $arrivage->getColis()->toArray()
+            $arrivage->getPacks()->toArray()
         );
     }
 
-    private function getBarcodeColisConfig(Colis $colis, ?Utilisateur $destinataire)
+    private function getBarcodeColisConfig(Pack $colis, ?Utilisateur $destinataire)
     {
         return [
             'code' => $colis->getCode(),

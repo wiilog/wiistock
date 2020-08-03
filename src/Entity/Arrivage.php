@@ -79,9 +79,9 @@ class Arrivage extends FreeFieldEntity
     private $utilisateur;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="arrivage")
+     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="arrivage")
      */
-    private $colis;
+    private $packs;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -126,7 +126,7 @@ class Arrivage extends FreeFieldEntity
 
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
-        $this->colis = new ArrayCollection();
+        $this->packs = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgences = new ArrayCollection();
         $this->mouvementsTraca = new ArrayCollection();
@@ -139,8 +139,8 @@ class Arrivage extends FreeFieldEntity
     }
 
     public function getStatus(): string {
-        /** @var Colis[] $colisCollection */
-        $colisCollection = $this->colis->toArray();
+        /** @var Pack[] $colisCollection */
+        $colisCollection = $this->packs->toArray();
         $isLitige = false;
         foreach($colisCollection as $colis) {
             /** @var Litige[] $litiges */
@@ -366,30 +366,29 @@ class Arrivage extends FreeFieldEntity
         return $this;
     }
     /**
-     * @return Collection|Colis[]
+     * @return Collection
      */
-    public function getColis(): Collection
-    {
-        return $this->colis;
+    public function getPacks(): Collection {
+        return $this->packs;
     }
 
-    public function addColi(Colis $colis): self
+    public function addPack(Pack $pack): self
     {
-        if (!$this->colis->contains($colis)) {
-            $this->colis[] = $colis;
-            $colis->setArrivage($this);
+        if (!$this->packs->contains($pack)) {
+            $this->packs[] = $pack;
+            $pack->setArrivage($this);
         }
 
         return $this;
     }
 
-    public function removeColi(Colis $colis): self
+    public function removePack(Pack $pack): self
     {
-        if ($this->colis->contains($colis)) {
-            $this->colis->removeElement($colis);
+        if ($this->packs->contains($pack)) {
+            $this->packs->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($colis->getArrivage() === $this) {
-                $colis->setArrivage(null);
+            if ($pack->getArrivage() === $this) {
+                $pack->setArrivage(null);
             }
         }
 
