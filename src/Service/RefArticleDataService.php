@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
-use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
@@ -232,8 +231,8 @@ class RefArticleDataService
 
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+
         //modification champsFixes
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);

@@ -17,7 +17,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\UserService;
-use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -139,12 +138,10 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
-                        FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -221,12 +218,10 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
-                         FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -260,12 +255,10 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
-                           FreeFieldService $champLibreService,
                            EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);

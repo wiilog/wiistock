@@ -7,6 +7,7 @@ use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Repository\FiltreRefRepository;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,8 +59,11 @@ class FiltreRefController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
+
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
-            $userId = $this->getUser()->getId();
+            $userId = $user->getId();
             $existingFilter = $this->filtreRefRepository->countByChampAndUser($data['field'], $userId);
 
             if($existingFilter == 0) {
@@ -88,7 +92,6 @@ class FiltreRefController extends AbstractController
                 }
 
                 // champ Utilisateur
-                $user = $this->getUser();
                 $filter->setUtilisateur($user);
 
                 $entityManager->persist($filter);
@@ -117,25 +120,28 @@ class FiltreRefController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true})
+     * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @return Response
      */
     public function delete(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $filterId = $data['filterId'];
+        $filterId = $request->request->get('filterId');
+        $success = false;
+        $message = "Le filtre n'a pas pu être supprimé";
+        if ($filterId) {
+            $filter = $this->filtreRefRepository->find($filterId);
 
-            if ($filterId) {
-                $filter = $this->filtreRefRepository->find($filterId);
-
-                if ($filter) {
-                    $em = $this->getDoctrine()->getManager();
-                    $em->remove($filter);
-                    $em->flush();
-                }
+            if ($filter) {
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($filter);
+                $em->flush();
+                $success = true;
+                $message = null;
             }
-            return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+
+        return new JsonResponse(['success' => $success, 'msg' => $message]);
     }
 
     /**

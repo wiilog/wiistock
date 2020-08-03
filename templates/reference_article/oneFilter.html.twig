@@ -1,6 +1,5 @@
 <div class="col-auto pb-2">
     <div class="btn filter has-tooltip" title="{{ (filter.champFixe ? filter.champFixe : filter.champLibre.label) | capitalize }} : {{ filter.value }}">
-        <input hidden value="{{ filter.id }}" class="filter-id">
         <div class="row align-items-center">
             {% set fieldLabel = filter.champFixe is not null ? filter.champFixe : filter.champLibre.label %}
             {% if (filter.value == 'on' or filter.value == '1') %}
@@ -15,7 +14,7 @@
             </div>
             <div class="col-auto">
                 <i class="fas fa-times pointer"
-                   onclick="removeFilter()"></i>
+                   onclick="removeFilter($(this), {{ filter.id }})"></i>
             </div>
         </div>
     </div>

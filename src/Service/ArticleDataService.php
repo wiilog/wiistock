@@ -280,7 +280,6 @@ class ArticleDataService
         }
 
         $articleRepository = $this->entityManager->getRepository(Article::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
 
         $price = max(0, $data['prix']);
@@ -313,8 +312,8 @@ class ArticleDataService
 
     /**
      * @param array $data
-     * @param Demande $demande
-     * @param Reception $reception
+     * @param Demande|null $demande
+     * @param Reception|null $reception
      *
      * @return Article
      *
