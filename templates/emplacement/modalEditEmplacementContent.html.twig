@@ -26,7 +26,7 @@
 </div>
 
 <div class="form-group col-12">
-    <label for="Description">Natures de colis autorisées</label>
+    <label for="Description">{{ 'natures.Natures de colis autorisées'|trans }}</label>
     <select name="allowed-natures" class="form-control data select2 w-100" multiple>
         {% for nature in natures %}
             {% set selected = (nature in emplacement.allowedNatures ? 'selected') %}

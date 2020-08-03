@@ -19,7 +19,6 @@ use App\Service\MouvementTracaService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

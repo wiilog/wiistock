@@ -23,7 +23,7 @@ class EmplacementRepository extends EntityRepository
         'Point de livraison' => 'isDeliveryPoint',
         'Délai maximum' => 'dateMaxTime',
         'Actif / Inactif' => 'isActive',
-        'Natures de colis autorisées' => 'allowed-natures',
+        'allowed-natures' => 'allowed-natures',
     ];
 
     public function getIdAndNom()
@@ -111,6 +111,13 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param null $params
+     * @param false $excludeInactive
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
     {
         $countTotal = $this->countAll();
@@ -139,13 +146,7 @@ class EmplacementRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 $field =  self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']];
                 if (!empty($order) && $field) {
-                    if ($field === 'allowed-natures') {
-                        $qb
-                            ->leftJoin('e.allowedNatures', 'allowedNatures')
-                            ->orderBy('allowedNatures.label', $order);
-                    } else {
-                        $qb->orderBy("e.${field}", $order);
-                    }
+                    $qb->orderBy("e.${field}", $order);
                 }
             }
             $qb->select('count(e)');

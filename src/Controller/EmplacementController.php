@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -74,7 +75,7 @@ class EmplacementController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->emplacementDataService->getDataForDatatable($request->request);
+            $data = $this->emplacementDataService->getEmplacementDataByParams($request->request);
 
             return new JsonResponse($data);
         }
@@ -87,7 +88,8 @@ class EmplacementController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager,
+                          TranslatorInterface $translator): Response
     {
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
             return $this->redirectToRoute('access_denied');
@@ -102,6 +104,7 @@ class EmplacementController extends AbstractController
         $active = $filterStatus ? $filterStatus->getValue() : false;
 
 		return $this->render('emplacement/index.html.twig', [
+            'allowedNaturePackTranslation' => $translator->trans('natures.Natures de colis autorisées'),
 			'active' => $active,
             'natures' => $allNatures
 		]);

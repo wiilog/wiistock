@@ -12,7 +12,6 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
 use App\Entity\Nature;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Security\Core\Security;
@@ -59,18 +58,11 @@ class EmplacementDataService
         $this->security = $security;
     }
 
-    public function getDataForDatatable($params = null)
-    {
-        $data = $this->getEmplacementDataByParams($params);
-        return $data;
-    }
-
 	/**
 	 * @param null $params
 	 * @return array
 	 * @throws LoaderError
-	 * @throws NonUniqueResultException
-	 * @throws RuntimeError
+     * @throws RuntimeError
 	 * @throws SyntaxError
 	 */
     public function getEmplacementDataByParams($params = null)
@@ -116,10 +108,14 @@ class EmplacementDataService
     public function dataRowEmplacement($emplacement)
     {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
-        $allowedNatures = implode(';', array_map(function(Nature $nature) {
-            return $nature->getLabel();
-        }, $emplacement->getAllowedNatures()->toArray()));
-        $row = [
+        $allowedNatures = implode(
+            ';',
+            array_map(
+                function(Nature $nature) { return $nature->getLabel(); },
+                $emplacement->getAllowedNatures()->toArray()
+            )
+        );
+        return [
             'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
             'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
             'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
@@ -132,6 +128,5 @@ class EmplacementDataService
             ]),
             'allowed-natures' => $allowedNatures
         ];
-        return $row;
     }
 }
