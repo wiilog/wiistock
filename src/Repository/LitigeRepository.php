@@ -51,8 +51,8 @@ class LitigeRepository extends EntityRepository
 
         $sql = "SELECT DISTINCT acheteur.$field
 			FROM App\Entity\Litige litige
-			JOIN litige.colis colis
-			JOIN colis.arrivage arrivage
+			JOIN litige.packs pack
+			JOIN pack.arrivage arrivage
             JOIN arrivage.acheteurs acheteur
             WHERE litige.id = :litigeId";
 
@@ -96,7 +96,7 @@ class LitigeRepository extends EntityRepository
                          a.id as arrivageId,
                          s.nom status
 			FROM App\Entity\Litige l
-			LEFT JOIN l.colis c
+			LEFT JOIN l.packs c
 			JOIN l.type t
 			LEFT JOIN c.arrivage a
 			LEFT JOIN a.fournisseur f
@@ -138,8 +138,8 @@ class LitigeRepository extends EntityRepository
 	{
 		$query = $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
-            ->join('litige.colis', 'colis')
-            ->join('colis.arrivage', 'arrivage')
+            ->join('litige.packs', 'pack')
+            ->join('pack.arrivage', 'arrivage')
             ->getQuery();
 		return $query->execute();
 	}
@@ -185,8 +185,8 @@ class LitigeRepository extends EntityRepository
         /** @lang DQL */
             'SELECT DISTINCT l
             FROM App\Entity\Litige l
-            INNER JOIN l.colis c
-            INNER JOIN c.arrivage a
+            INNER JOIN l.packs pack
+            INNER JOIN pack.arrivage a
             WHERE a.id = :arrivage'
         )->setParameter('arrivage', $arrivage);
 
@@ -237,7 +237,7 @@ class LitigeRepository extends EntityRepository
             ->addSelect('ach.username as achUsername')
             ->addSelect('a.numeroArrivage')
             ->addSelect('a.id as arrivageId')
-            ->leftJoin('l.colis', 'c')
+            ->leftJoin('l.packs', 'c')
             ->leftJoin('c.arrivage', 'a')
 			->leftJoin('a.chauffeur', 'ch')
             ->leftJoin('a.acheteurs', 'ach')

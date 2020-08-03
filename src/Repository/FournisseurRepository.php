@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\Fournisseur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -165,7 +165,7 @@ class FournisseurRepository extends EntityRepository
     }
 
 	/**
-	 * @param Colis $colis
+	 * @param Pack $colis
 	 * @return Fournisseur
 	 * @throws NonUniqueResultException
 	 */
@@ -176,7 +176,7 @@ class FournisseurRepository extends EntityRepository
             "SELECT f
             FROM App\Entity\Fournisseur f
             JOIN f.arrivages a
-            JOIN a.colis c
+            JOIN a.packs c
             WHERE c = :colis"
         )->setParameter('colis', $colis);
 

@@ -208,10 +208,10 @@ class LitigeController extends AbstractController
 
             /** @var Litige $litige */
             foreach ($arrivalLitiges as $litige) {
-                $colis = $litige->getColis();
+                $colis = $litige->getPacks();
                 foreach ($colis as $coli) {
 
-                    $colis = $litige->getColis();
+                    $colis = $litige->getPacks();
                     /** @var Arrivage $arrivage */
                     $arrivage = ($colis->count() > 0 && $colis->first()->getArrivage())
                         ? $colis->first()->getArrivage()

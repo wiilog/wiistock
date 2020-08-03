@@ -29,9 +29,9 @@ class Nature
     private $code;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="nature")
+     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="nature")
      */
-    private $colis;
+    private $packs;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -50,7 +50,7 @@ class Nature
 
     public function __construct()
     {
-        $this->colis = new ArrayCollection();
+        $this->packs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -83,30 +83,30 @@ class Nature
     }
 
     /**
-     * @return Collection|Colis[]
+     * @return Collection|Pack[]
      */
-    public function getColis(): Collection
+    public function getPacks(): Collection
     {
-        return $this->colis;
+        return $this->packs;
     }
 
-    public function addColis(Colis $coli): self
+    public function addPack(Pack $pack): self
     {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-            $coli->setNature($this);
+        if (!$this->packs->contains($pack)) {
+            $this->packs[] = $pack;
+            $pack->setNature($this);
         }
 
         return $this;
     }
 
-    public function removeColis(Colis $coli): self
+    public function removePack(Pack $pack): self
     {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
+        if ($this->packs->contains($pack)) {
+            $this->packs->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($coli->getNature() === $this) {
-                $coli->setNature(null);
+            if ($pack->getNature() === $this) {
+                $pack->setNature(null);
             }
         }
 
@@ -145,29 +145,6 @@ class Nature
     public function setColor(?string $color): self
     {
         $this->color = $color;
-
-        return $this;
-    }
-
-    public function addColi(Colis $coli): self
-    {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-            $coli->setNature($this);
-        }
-
-        return $this;
-    }
-
-    public function removeColi(Colis $coli): self
-    {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
-            // set the owning side to null (unless already changed)
-            if ($coli->getNature() === $this) {
-                $coli->setNature(null);
-            }
-        }
 
         return $this;
     }

@@ -4,7 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\MouvementTraca;
 use App\Entity\Nature;
@@ -13,10 +13,10 @@ use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 
 
-Class ColisService
+Class PackService
 {
 
     private $entityManager;
@@ -31,32 +31,53 @@ Class ColisService
         $this->mouvementTracaService = $mouvementTracaService;
     }
 
-    public function persistColis(Arrivage $arrivage, Nature $nature): Colis {
-
-        $arrivageNum = $arrivage->getNumeroArrivage();
-        $newCounter = $arrivage->getColis()->count() + 1;
-
-        if ($newCounter < 10) {
-            $newCounter = "00" . $newCounter;
-        } elseif ($newCounter < 100) {
-            $newCounter = "0" . $newCounter;
+    /**
+     * @param array $options Either ['arrival' => Arrivage, 'nature' => Nature] or ['code' => string]
+     * @return Pack
+     */
+    public function createPack(array $options = []): Pack {
+        if (!empty($options['code'])) {
+            $pack = $this->createPackWithCode($options['code']);
         }
+        else {
+            /** @var Arrivage $arrival */
+            $arrival = $options['arrival'];
 
-        $colis = new Colis();
-        $code = ($nature->getPrefix(). $arrivageNum . $newCounter ?? '');
-        $colis
-            ->setCode($code)
-            ->setNature($nature);
+            /** @var Nature $nature */
+            $nature = $options['nature'];
 
-        $arrivage->addColi($colis);
+            $arrivalNum = $arrival->getNumeroArrivage();
+            $newCounter = $arrival->getPacks()->count() + 1;
 
-        $this->entityManager->persist($colis);
-        return $colis;
+            if ($newCounter < 10) {
+                $newCounter = "00" . $newCounter;
+            } elseif ($newCounter < 100) {
+                $newCounter = "0" . $newCounter;
+            }
+
+            $code = ($nature->getPrefix(). $arrivalNum . $newCounter ?? '');
+            $pack = $this
+                ->createPackWithCode($code)
+                ->setNature($nature);
+
+            $arrival->addPack($pack);
+        }
+        return $pack;
+    }
+
+    /**
+     * @param string code
+     * @return Pack
+     */
+    public function createPackWithCode(string $code): Pack {
+        $pack = new Pack();
+        $pack->setCode($code);
+        return $pack;
     }
 
     public function getHighestCodeByPrefix(Arrivage $arrivage): int {
-        /** @var Colis $lastColis */
-        $lastColis = $arrivage->getColis()->last();
+        /** @var Pack $lastColis */
+        $lastColis = $arrivage->getPacks()->last();
         $lastCode = $lastColis ? $lastColis->getCode() : null;
         $lastCodeSplitted = isset($lastCode) ? explode('-', $lastCode) : null;
         return (int) ((isset($lastCodeSplitted) && count($lastCodeSplitted) > 1)
@@ -68,13 +89,14 @@ Class ColisService
      * @param Arrivage $arrivage
      * @param array $colisByNatures
      * @param Utilisateur $user
-     * @return Colis[]
-     * @throws NonUniqueResultException
-     * @throws \Exception
+     * @param EntityManagerInterface $entityManager
+     * @return Pack[]
+     * @throws Exception
      */
-    public function persistMultiColis(Arrivage $arrivage,
+    public function persistMultiPacks(Arrivage $arrivage,
                                       array $colisByNatures,
-                                      $user): array {
+                                      $user,
+                                      EntityManagerInterface $entityManager): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $natureRepository = $this->entityManager->getRepository(Nature::class);
@@ -88,14 +110,14 @@ Class ColisService
                 : null;
         }
         $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-        $colisList = [];
+        $createdPacks = [];
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $colis = $this->persistColis($arrivage, $nature);
+                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
                 if ($defaultEmpForMvt) {
-                    $mouvementDepose = $this->mouvementTracaService->createMouvementTraca(
-                        $colis,
+                    $mouvementDepose = $this->mouvementTracaService->createTrackingMovement(
+                        $pack,
                         $defaultEmpForMvt,
                         $user,
                         $now,
@@ -107,9 +129,10 @@ Class ColisService
                     $this->mouvementTracaService->persistSubEntities($this->entityManager, $mouvementDepose);
                     $this->entityManager->persist($mouvementDepose);
                 }
-                $colisList[] = $colis;
+                $entityManager->persist($pack);
+                $createdPacks[] = $pack;
             }
         }
-        return $colisList;
+        return $createdPacks;
     }
 }

@@ -1,8 +1,8 @@
 <div class="row">
     <div class="form-group col-10 clear-clone">
         <label for="colis">Colis*</label>
-    {% for coli in acheminement.colis %}
-        <input type="text" id="colis" class="form-control data-array inputColisClone" name="colis" maxlength="64" value="{{ coli }}">
+    {% for pack in acheminement.packs %}
+        <input type="text" id="colis" class="form-control data-array inputColisClone" name="colis" maxlength="64" value="{{ pack }}">
     {% endfor %}
     </div>
     <div class="form-group col-2">

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\MouvementTraca;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -40,7 +40,7 @@ final class Version20200623132732 extends AbstractMigration implements Container
         $em = $this->container->get('doctrine.orm.entity_manager');
 
         $mouvementTracaRepository = $em->getRepository(MouvementTraca::class);
-        $colisRepository = $em->getRepository(Colis::class);
+        $packRepository = $em->getRepository(Pack::class);
 
         $lastDropsGroupedByColis = $mouvementTracaRepository->getLastDropsGroupedByColis();
 
@@ -50,11 +50,11 @@ final class Version20200623132732 extends AbstractMigration implements Container
         foreach ($lastDropsGroupedByColis as $drop) {
             if ($drop['colis'] && !in_array($drop['colis'], $alreadyTreated)) {
                 $alreadyTreated[] = $drop['colis'];
-                $colisIdsByCode = $colisRepository->getIdsByCode($drop['colis']);
+                $colisIdsByCode = $packRepository->getIdsByCode($drop['colis']);
                 if (!empty($colisIdsByCode)) {
-                    $colisRepository->updateByIds($colisIdsByCode, $drop['id']);
+                    $packRepository->updateByIds($colisIdsByCode, $drop['id']);
                 } else {
-                    $colisRepository->createFromMvt($drop);
+                    $packRepository->createFromMvt($drop);
                 }
                 $cpt++;
                 if ($cpt === 500) {
