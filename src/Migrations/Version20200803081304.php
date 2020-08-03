@@ -29,25 +29,17 @@ final class Version20200803081304 extends AbstractMigration
 
         $this->addSql('ALTER TABLE mouvement_traca ADD pack_id INT');
 
-        $updateTrackingWithoutPackQuery = '
-            UPDATE mouvement_traca SET pack_id = (
-                SELECT pack.id
-                FROM pack
-                WHERE pack.code = mouvement_traca.colis
-                LIMIT 1
-            )
-        ';
-        dump('Finished setting existing packs');
-        $this->addSql($updateTrackingWithoutPackQuery);
-        $this->addSql("
-            INSERT INTO pack(code)
-            SELECT DISTINCT mouvement_traca.colis AS pack
-            FROM mouvement_traca
-            WHERE mouvement_traca.pack_id IS NULL
-        ");
-        dump('Finished inserting non existing packs');
-        $this->addSql($updateTrackingWithoutPackQuery);
-        dump('Finished all packs operations');
+        $allPacks = 'SELECT pack.id, pack.code FROM pack';
+
+        foreach ($allPacks as $index => $pack) {
+            if ($index % 500 === 0) {
+                dump('500 de plus!');
+            }
+            $packId = $pack['id'];
+            $packCode = $pack['code'];
+            $this
+                ->addSql("UPDATE mouvement_traca SET pack_id = ${packId} WHERE mouvement_traca.colis = '${packCode}'");
+        }
     }
 
     public function down(Schema $schema) : void
