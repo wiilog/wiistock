@@ -29,7 +29,9 @@ final class Version20200803081304 extends AbstractMigration
 
         $this->addSql('ALTER TABLE mouvement_traca ADD pack_id INT');
 
-        $allPacks = 'SELECT pack.id, pack.code FROM pack';
+        $allPacks = $this->connection->executeQuery(
+            'SELECT pack.id, pack.code FROM pack'
+        )->fetchAll();
 
         foreach ($allPacks as $index => $pack) {
             if ($index % 500 === 0) {
