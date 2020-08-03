@@ -66,7 +66,7 @@ class FreeFieldService
     public function manageJSONFreeField(ChampLibre $champLibre, $value): string
     {
         $value = $champLibre->getTypage() === ChampLibre::TYPE_BOOL
-            ? empty($value)
+            ? empty($value) || $value === "false"
                 ? "0"
                 : "1"
             : (is_array($value)
