@@ -48,6 +48,16 @@ class Nature
 	 */
     private $color;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $needsMobileSync;
+
     public function __construct()
     {
         $this->colis = new ArrayCollection();
@@ -168,6 +178,30 @@ class Nature
                 $coli->setNature(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getNeedsMobileSync(): ?bool
+    {
+        return $this->needsMobileSync;
+    }
+
+    public function setNeedsMobileSync(?bool $needsMobileSync): self
+    {
+        $this->needsMobileSync = $needsMobileSync;
 
         return $this;
     }

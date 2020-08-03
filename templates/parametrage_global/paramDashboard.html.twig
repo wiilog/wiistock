@@ -86,7 +86,7 @@
 
         <div class="col-5 offset-1">
             <div class="form-group w-fit-content">
-                <label for="natureColis">Nature de colis 1er graphe</label>
+                <label for="natureColis"><span title="Nature de colis">{{ 'natures.Nature de colis' | trans }}</span> 1er graphe</label>
                 <select id="natureColis" class="form-control data">
                     {% for nature in natures %}
                         {% set selected = nature.id == existingNatureId ? 'selected' : '' %}
@@ -96,7 +96,7 @@
             </div>
             <div class="form-group w-211px">
                 <div>
-                    <label for="listNaturesColis" class="d-block">Natures de colis 2è graphe</label>
+                    <label for="listNaturesColis" class="d-block"><span title="Natures de colis">{{ 'natures.Natures de colis' | trans }}</span> 2è graphe</label>
                     <select id="listNaturesColis" class="form-control d-block select2 data" multiple>
                         {% for nature in natures %}
                             {% set selected = nature.id in existingListNaturesId ? 'selected' : '' %}

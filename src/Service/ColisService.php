@@ -43,7 +43,7 @@ Class ColisService
         }
 
         $colis = new Colis();
-        $code = ($nature->getPrefix(). $arrivageNum . $newCounter ?? '');
+        $code = (($nature->getPrefix() ?? '') . $arrivageNum . $newCounter ?? '');
         $colis
             ->setCode($code)
             ->setNature($nature);
