@@ -30,7 +30,7 @@ final class Version20200803081304 extends AbstractMigration
         $this->addSql('ALTER TABLE mouvement_traca ADD pack_id INT');
 
         $allPacks = $this->connection->executeQuery(
-            'SELECT pack.id, pack.code FROM pack'
+            'SELECT colis.id, colis.code FROM colis'
         )->fetchAll();
 
         foreach ($allPacks as $index => $pack) {
@@ -42,6 +42,25 @@ final class Version20200803081304 extends AbstractMigration
             $this
                 ->addSql("UPDATE mouvement_traca SET pack_id = ${packId} WHERE mouvement_traca.colis = '${packCode}'");
         }
+
+        $this->addSql("
+            INSERT INTO pack(code)
+            SELECT DISTINCT mouvement_traca.colis AS pack
+            FROM mouvement_traca
+            WHERE mouvement_traca.pack_id IS NULL
+        ");
+
+        $updateTrackingWithoutPackQuery = '
+            UPDATE mouvement_traca SET pack_id = (
+                SELECT pack.id
+                FROM pack
+                WHERE pack.code = mouvement_traca.colis
+                LIMIT 1
+            )
+            WHERE mouvement_traca.pack_id IS NULL
+        ';
+        $this
+            ->addSql($updateTrackingWithoutPackQuery);
     }
 
     public function down(Schema $schema) : void
