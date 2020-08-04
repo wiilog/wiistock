@@ -39,7 +39,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'nature' => 'nature',
                 'nature colis' => 'nature colis',
                 "une nature" => "une nature",
-                "cette nature" => "cette nature"
+                "cette nature" => "cette nature",
+                "natures requises" => "natures requises"
             ],
             'arrivage' => [
                 'flux - arrivages' => 'flux - arrivages',
