@@ -1360,7 +1360,6 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @param Arrivage $arrivage
      * @return Response
      */

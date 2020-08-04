@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Exception;
 
 /**
  * @method Pack|null find($id, $lockMode = null, $lockVersion = null)
@@ -56,8 +57,6 @@ class PackRepository extends EntityRepository
      * @param DateTime $dateMin
      * @param DateTime $dateMax
      * @return Arrivage[]|null
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function getByDates(DateTime $dateMin, DateTime $dateMax)
     {
@@ -72,7 +71,7 @@ class PackRepository extends EntityRepository
                 'dateMax' => $dateMax
             ])
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
     }
 
     /**
@@ -141,7 +140,6 @@ class PackRepository extends EntityRepository
                     break;
                 case 'natures':
                     $natures = explode(',', $filter['value']);
-                    dump($natures);
                     $qb
                         ->join('pack.nature', 'natureFilter')
                         ->andWhere('natureFilter.id IN (:naturesFilter)')
@@ -301,9 +299,8 @@ class PackRepository extends EntityRepository
      * @param array $locations
      * @param array $onDateBracket
      * @return int
-     * @throws DBALException
      * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @throws NonUniqueResultException|DBALException
      */
     public function countPacksOnLocations(array $locations, array $onDateBracket = []): int
     {
@@ -397,9 +394,6 @@ class PackRepository extends EntityRepository
     /**
      * @param array $onDateBracket
      * @return int|mixed|string
-     * @throws DBALException
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
     public function countColisByArrivageAndNature(array $onDateBracket = [])
     {
@@ -443,6 +437,7 @@ class PackRepository extends EntityRepository
      * @param array $naturesFilter
      * @param array $onDateBracket ['minDate' => DateTime, 'maxDate' => DateTime]|[]
      * @return mixed
+     * @throws DBALException
      */
     private function createPacksOnLocationsQueryBuilder(array $locations, array $naturesFilter = [], array $onDateBracket = []): QueryBuilder
     {

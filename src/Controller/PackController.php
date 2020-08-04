@@ -3,35 +3,17 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
-use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\MouvementTraca;
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
 
-use App\Entity\Statut;
-use App\Entity\Utilisateur;
-
-use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\FilterSupService;
-use App\Service\FreeFieldService;
-use App\Service\MouvementTracaService;
 use App\Service\PackService;
-use App\Service\SpecificService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -101,16 +83,14 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
+     * @Route("/csv", name="pack_export_csv", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
      */
-    public function getMouvementTracaCsv(Request $request,
+    public function getPackCsv(Request $request,
                                          CSVExportService $CSVExportService,
                                          TranslatorInterface $translator,
                                          EntityManagerInterface $entityManager): Response
