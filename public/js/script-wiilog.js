@@ -10,6 +10,7 @@ const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
+const PAGE_PACK = 'pack';
 const PAGE_LITIGE_ARR = 'litige';
 const PAGE_ENCOURS = 'encours';
 const PAGE_INV_ENTRIES = 'inv_entries';

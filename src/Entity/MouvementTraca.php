@@ -110,6 +110,11 @@ class MouvementTraca extends FreeFieldEntity
     private $linkedPackLastDrops;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="lastTracking")
+     */
+    private $linkedPackLastTrackings;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="mouvementsTraca")
      */
     private $receptionReferenceArticle;
@@ -119,6 +124,7 @@ class MouvementTraca extends FreeFieldEntity
         $this->attachements = new ArrayCollection();
         $this->emplacement = new ArrayCollection();
         $this->linkedPackLastDrops = new ArrayCollection();
+        $this->linkedPackLastTrackings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -315,6 +321,14 @@ class MouvementTraca extends FreeFieldEntity
     /**
      * @return Collection|Pack[]
      */
+    public function getLinkedPackLastTracking(): Collection
+    {
+        return $this->linkedPackLastTrackings;
+    }
+
+    /**
+     * @return Collection|Pack[]
+     */
     public function getLinkedPackLastDrops(): Collection
     {
         return $this->linkedPackLastDrops;
@@ -357,6 +371,7 @@ class MouvementTraca extends FreeFieldEntity
 
     public function setPack(Pack $pack): self {
         $this->pack = $pack;
+        $this->pack->setLastTracking($this);
         return $this;
     }
 
