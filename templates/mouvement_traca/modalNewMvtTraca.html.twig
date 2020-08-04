@@ -58,16 +58,25 @@
                                 {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
                             </div>
                         </div>
-                        <div class="col-12">
-                            <div class="row champsLibresBlock">
-                                {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
-                                    freeFields: champsLibres,
-                                    freeFieldValues: [],
-                                    colType: 'col-12',
-                                    requiredType: 'requiredCreate',
-                                    actionType: 'new'
-                                } %}
-                            </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+                        <h3 class='d-flex pointer'>
+                            <i class="fas fa-sort-up d-block mr-2"></i>
+                            <i class="fas fa-sort-down d-none  mr-2"></i>
+                            Champs libres
+                        </h3>
+                    </div>
+                    <div class="col-12 blocVisible">
+                        <div class="row champsLibresBlock">
+                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                                freeFields: champsLibres,
+                                freeFieldValues: [],
+                                colType: 'col-6',
+                                requiredType: 'requiredCreate',
+                                actionType: 'new'
+                            } %}
                         </div>
                     </div>
                 </div>
