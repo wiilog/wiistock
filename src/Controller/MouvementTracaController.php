@@ -36,6 +36,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/mouvement-traca")
@@ -113,19 +114,26 @@ class MouvementTracaController extends AbstractController
         ]);
     }
 
+    private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
+        $bold = '<span class="font-weight-bold"> ';
+        return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' requises pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
+    }
+
     /**
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param MouvementTracaService $mouvementTracaService
      * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws Exception
      */
     public function new(Request $request,
                         MouvementTracaService $mouvementTracaService,
                         FreeFieldService $freeFieldService,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -137,12 +145,16 @@ class MouvementTracaController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
+            $packTranslation = $translator->trans('arrivage.colis');
+            $natureTranslation = $translator->trans('natures.nature');
+
             $operator = $utilisateurRepository->find($post->get('operator'));
             $colisStr = $post->get('colis');
             $commentaire = $post->get('commentaire');
             $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
             $fromNomade = false;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
+            $type = $post->getInt('type');
 
             $codeToPack = [];
             $createdMouvements = [];
@@ -156,17 +168,30 @@ class MouvementTracaController extends AbstractController
                     $date,
                     $fromNomade,
                     null,
-                    $post->getInt('type'),
+                    $type,
                     ['commentaire' => $commentaire]
                 );
+
+                $movementType = $createdMvt->getType();
+                $movementTypeName = $movementType ? $movementType->getNom() : null;
+
+                // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                if ($movementTypeName === MouvementTraca::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
+                    ]);
+                }
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
-            } else {
+
+            }
+            else {
                 $colisArray = explode(',', $colisStr);
+                $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
+                $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
                 foreach ($colisArray as $colis) {
-                    $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
-                    $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
                     $createdMvt = $this->mouvementTracaService->createTrackingMovement(
                         isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
                         $emplacementPrise,
@@ -177,10 +202,20 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
-                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
-                    $createdMouvements[] = $createdMvt;
-                    $createdPack = $createdMvt->getPack();
+
+                    // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                    if ($emplacementPrise->ableToBeDropOff($createdMvt->getPack())) {
+                        $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                        $entityManager->persist($createdMvt);
+                        $createdMouvements[] = $createdMvt;
+                        $createdPack = $createdMvt->getPack();
+                    }
+                    else {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => $this->errorWithDropOff($createdMvt->getPack()->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                        ]);
+                    }
 
                     $createdMvt = $this->mouvementTracaService->createTrackingMovement(
                         $createdPack,
@@ -192,10 +227,20 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
-                    $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
-                    $entityManager->persist($createdMvt);
-                    $createdMouvements[] = $createdMvt;
-                    $codeToPack[$colis] = $createdPack;
+
+                    // Dans le cas d'une prise, on poursuit le traitement
+                    if ($emplacementDepose->ableToBeDropOff($createdPack)) {
+                        $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
+                        $entityManager->persist($createdMvt);
+                        $createdMouvements[] = $createdMvt;
+                        $codeToPack[$colis] = $createdPack;
+                    }
+                    else {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                        ]);
+                    }
                 }
             }
 
@@ -228,6 +273,9 @@ class MouvementTracaController extends AbstractController
 
     /**
      * @Route("/api", name="mvt_traca_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws Exception
      */
     public function api(Request $request): Response
     {

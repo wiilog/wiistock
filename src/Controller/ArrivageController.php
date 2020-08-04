@@ -1493,7 +1493,7 @@ class ArrivageController extends AbstractController
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
     }
 
-    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, bool $usernameParamIsDefined, bool $dropzoneParamIsDefined)
+    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, ?bool $usernameParamIsDefined, ?bool $dropzoneParamIsDefined)
     {
         return array_map(
             function (Pack $colisInArrivage) use ($arrivage, $dropzoneParamIsDefined, $usernameParamIsDefined) {
@@ -1510,8 +1510,8 @@ class ArrivageController extends AbstractController
 
     private function getBarcodeColisConfig(Pack $colis,
                                            ?Utilisateur $destinataire,
-                                           bool $usernameParamIsDefined,
-                                           bool $dropzoneParamIsDefined)
+                                           ?bool $usernameParamIsDefined,
+                                           ?bool $dropzoneParamIsDefined)
     {
 
         $recipientUsername = ($usernameParamIsDefined && $destinataire)
