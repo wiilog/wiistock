@@ -6,7 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
@@ -50,7 +50,6 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Exception;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -283,7 +282,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                         $articleRepository = $entityManager->getRepository(Article::class);
                         $statutRepository = $entityManager->getRepository(Statut::class);
                         $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-                        $colisRepository = $entityManager->getRepository(Colis::class);
+                        $packRepository = $entityManager->getRepository(Pack::class);
 
                         $mouvementTraca1 = $mouvementTracaRepository->findOneByUniqueIdForMobile($mvt['date']);
                         if (!isset($mouvementTraca1)) {
@@ -393,7 +392,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $options['fileBag'] = [$signatureFile];
                             }
 
-                            $createdMvt = $mouvementTracaService->createMouvementTraca(
+                            $createdMvt = $mouvementTracaService->createTrackingMovement(
                                 $mvt['ref_article'],
                                 $location,
                                 $nomadUser,
@@ -410,7 +409,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                             if ($location) {
                                 $isDepose = ($mvt['type'] === MouvementTraca::TYPE_DEPOSE);
-                                $colis = $colisRepository->findOneBy(['code' => $mvt['ref_article']]);
+                                $colis = $packRepository->findOneBy(['code' => $mvt['ref_article']]);
 
                                 if ($isDepose
                                     && $colis

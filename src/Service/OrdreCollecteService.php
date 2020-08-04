@@ -358,7 +358,7 @@ class OrdreCollecteService
         $this->entityManager->persist($mouvementStock);
 
         // Mouvement traca prise
-        $createdMvt = $this->mouvementTracaService->createMouvementTraca(
+        $createdMvt = $this->mouvementTracaService->createTrackingMovement(
             $article->getBarCode(),
             $locationFrom,
             $user,
@@ -373,11 +373,13 @@ class OrdreCollecteService
 
         // si on est sur la supervision
         if (!$fromNomade) {
+            $createdPack = $createdMvt->getPack();
+
             $deposeDate = clone $date;
             $deposeDate->modify('+1 second');
             // mouvement de traca de dépose
-            $createdMvt = $this->mouvementTracaService->createMouvementTraca(
-                $article->getBarCode(),
+            $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                $createdPack,
                 $locationTo,
                 $user,
                 $deposeDate,
@@ -390,7 +392,6 @@ class OrdreCollecteService
             $this->entityManager->persist($createdMvt);
 
             // On fini le mouvement de stock
-
             $this->mouvementStockService->finishMouvementStock($mouvementStock, $deposeDate, $locationTo);
         }
     }

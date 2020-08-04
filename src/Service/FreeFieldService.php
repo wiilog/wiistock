@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\FreeFieldEntity;
 use DateTime;

@@ -13,6 +13,7 @@ use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
+use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 
 use App\Service\GlobalParamService;
@@ -29,6 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -73,7 +75,7 @@ class EmplacementController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->emplacementDataService->getDataForDatatable($request->request);
+            $data = $this->emplacementDataService->getEmplacementDataByParams($request->request);
 
             return new JsonResponse($data);
         }
@@ -86,28 +88,40 @@ class EmplacementController extends AbstractController
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager,
+                          TranslatorInterface $translator): Response
     {
         if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_EMPL)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
+        $allNatures = $natureRepository->findAll();
 
         $filterStatus = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, EmplacementDataService::PAGE_EMPLACEMENT, $this->getUser());
         $active = $filterStatus ? $filterStatus->getValue() : false;
 
 		return $this->render('emplacement/index.html.twig', [
-			'active' => $active
+            'allowedNaturePackTranslation' => $translator->trans('natures.Natures de colis autorisées'),
+			'active' => $active,
+            'natures' => $allNatures
 		]);
     }
 
     /**
      * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $naturesRepository = $entityManager->getRepository(Nature::class);
+
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -124,7 +138,7 @@ class EmplacementController extends AbstractController
                 return $errorResponse;
             }
 
-            $em = $this->getDoctrine()->getManager();
+
             $emplacement = new Emplacement();
             $emplacement
 				->setLabel($data["Label"])
@@ -133,8 +147,15 @@ class EmplacementController extends AbstractController
                 ->setDateMaxTime($dateMaxTime)
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
 
-            $em->persist($emplacement);
-            $em->flush();
+            if (!empty($data['allowed-natures'])) {
+                foreach ($data['allowed-natures'] as $allowedNatureId) {
+                    $emplacement
+                        ->addAllowedNature($naturesRepository->find($allowedNatureId));
+                }
+            }
+
+            $entityManager->persist($emplacement);
+            $entityManager->flush();
             return new JsonResponse(true);
         }
 
@@ -156,10 +177,13 @@ class EmplacementController extends AbstractController
             }
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
 
+            $allNatures = $natureRepository->findAll();
             $emplacement = $emplacementRepository->find($data['id']);
             $json = $this->renderView('emplacement/modalEditEmplacementContent.html.twig', [
                 'emplacement' => $emplacement,
+                'natures' => $allNatures
             ]);
 
             return new JsonResponse($json);
@@ -169,15 +193,19 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/edit", name="emplacement_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $emplacementRepository = $this->getDoctrine()->getRepository(Emplacement::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $naturesRepository = $entityManager->getRepository(Nature::class);
 
             $errorResponse = $this->checkLocationLabel($data["Label"] ?? null, $data['id']);
             if ($errorResponse) {
@@ -198,8 +226,18 @@ class EmplacementController extends AbstractController
                 ->setDateMaxTime($dateMaxTime)
 				->setIsActive($data['isActive']);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
+            $emplacement
+                ->getAllowedNatures()->clear();
+
+
+            if (!empty($data['allowed-natures'])) {
+                foreach ($data['allowed-natures'] as $allowedNatureId) {
+                    $emplacement
+                        ->addAllowedNature($naturesRepository->find($allowedNatureId));
+                }
+            }
+
+            $entityManager->flush();
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");

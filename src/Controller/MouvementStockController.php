@@ -19,7 +19,6 @@ use App\Service\MouvementTracaService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use DoctrineExtensions\Query\Mysql\Date;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -214,9 +213,8 @@ class MouvementStockController extends AbstractController
                         $quantity = $chosenArticleToMoveAvailableQuantity;
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
-                        $chosenArticleToMove
-                            ->setEmplacement($emplacementTo);
-                        $associatedPickTracaMvt = $mouvementTracaService->createMouvementTraca(
+                        $chosenArticleToMove->setEmplacement($emplacementTo);
+                        $associatedPickTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
                             $this->getUser(),
@@ -226,8 +224,11 @@ class MouvementStockController extends AbstractController
                             MouvementTraca::TYPE_PRISE
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
-                        $associatedDropTracaMvt = $mouvementTracaService->createMouvementTraca(
-                            $chosenArticleToMove->getBarCode(),
+                        $createdPack = $associatedPickTracaMvt->getPack();
+
+
+                        $associatedDropTracaMvt = $mouvementTracaService->createTrackingMovement(
+                            $createdPack,
                             $emplacementTo,
                             $this->getUser(),
                             $now,

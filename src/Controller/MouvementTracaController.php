@@ -144,11 +144,12 @@ class MouvementTracaController extends AbstractController
             $fromNomade = false;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
 
+            $codeToPack = [];
             $createdMouvements = [];
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMvt = $mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createTrackingMovement(
                     $colisStr,
                     $emplacement,
                     $operator,
@@ -166,8 +167,8 @@ class MouvementTracaController extends AbstractController
                 foreach ($colisArray as $colis) {
                     $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
                     $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
-                        $colis,
+                    $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                        isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
                         $emplacementPrise,
                         $operator,
                         $date,
@@ -179,9 +180,10 @@ class MouvementTracaController extends AbstractController
                     $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
+                    $createdPack = $createdMvt->getPack();
 
-                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
-                        $colis,
+                    $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                        $createdPack,
                         $emplacementDepose,
                         $operator,
                         $date,
@@ -193,6 +195,7 @@ class MouvementTracaController extends AbstractController
                     $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
+                    $codeToPack[$colis] = $createdPack;
                 }
             }
 
@@ -275,8 +278,8 @@ class MouvementTracaController extends AbstractController
     /**
      * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
      * @param MouvementTracaService $mouvementTracaService
+     * @param FreeFieldService $freeFieldService
      * @param Request $request
      * @return Response
      */

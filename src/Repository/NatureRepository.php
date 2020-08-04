@@ -21,8 +21,8 @@ class NatureRepository extends EntityRepository
         /** @lang DQL */
             "SELECT COUNT(n)
             FROM App\Entity\Nature n
-            LEFT JOIN n.colis c
-            WHERE c.nature = :id
+            LEFT JOIN n.packs pack
+            WHERE pack.nature = :id
            "
         )->setParameter('id', $id);
 

@@ -31,6 +31,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
     {
         $isCurrentClientCEA = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
         $translations = [
+            'natures' => [
+                'Natures de colis autorisées' => 'Natures de colis autorisées',
+                'Natures des colis' => 'Natures des colis',
+                'Nature de colis' => 'Nature de colis',
+                'Natures de colis' => 'Natures de colis',
+                'nature' => 'nature',
+                'nature colis' => 'nature colis',
+                "une nature" => "une nature",
+                "cette nature" => "cette nature"
+            ],
             'arrivage' => [
                 'flux - arrivages' => 'flux - arrivages',
                 'arrivage' => 'arrivage',

@@ -4,10 +4,9 @@
 namespace App\Service;
 
 
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\DaysWorked;
 use App\Entity\WorkFreeDay;
-use App\Repository\ColisRepository;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -154,14 +153,13 @@ class EnCoursService
      * @param $locations
      * @param array $natures
      * @param bool $onlyLate
-     * @param int $limitOnlyLate
+     * @param int|null $limitOnlyLate
      * @return array
      * @throws Exception
      */
     public function getEnCours($locations, array $natures = [], bool $onlyLate = false, ?int $limitOnlyLate = 100): array
     {
-        /** @var ColisRepository $colisRepository */
-        $colisRepository = $this->entityManager->getRepository(Colis::class);
+        $packRepository = $this->entityManager->getRepository(Pack::class);
         $dropsCounter = 0;
         $workedDaysRepository = $this->entityManager->getRepository(DaysWorked::class);
         $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
@@ -173,7 +171,7 @@ class EnCoursService
             $maxQueryResultLength = 200;
             while (count($emplacementInfo) < $limitOnlyLate) {
                 $oldestDrops = [];
-                $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
+                $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                     $locations,
                     $natures,
                     [],
@@ -211,7 +209,7 @@ class EnCoursService
                 $dropsCounter += $maxQueryResultLength;
             }
         } else {
-            $oldestDrops[] = $colisRepository->getCurrentPackOnLocations(
+            $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 $natures,
                 [],

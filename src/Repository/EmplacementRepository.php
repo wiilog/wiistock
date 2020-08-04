@@ -23,6 +23,7 @@ class EmplacementRepository extends EntityRepository
         'Point de livraison' => 'isDeliveryPoint',
         'Délai maximum' => 'dateMaxTime',
         'Actif / Inactif' => 'isActive',
+        'allowed-natures' => 'allowed-natures',
     ];
 
     public function getIdAndNom()
@@ -110,6 +111,13 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
+    /**
+     * @param null $params
+     * @param false $excludeInactive
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
     {
         $countTotal = $this->countAll();
@@ -136,8 +144,9 @@ class EmplacementRepository extends EntityRepository
             }
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
-                    $qb->orderBy('e.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']], $order);
+                $field =  self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']];
+                if (!empty($order) && $field) {
+                    $qb->orderBy("e.${field}", $order);
                 }
             }
             $qb->select('count(e)');

@@ -92,6 +92,12 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true
             ],
+            ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL => [
+                'default' => true,
+            ],
+            ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL => [
+                'default' => false,
+            ],
             ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE => [
                 'default' => null,
                 SpecificService::CLIENT_SAFRAN_ED => $statutConformeArrivalId

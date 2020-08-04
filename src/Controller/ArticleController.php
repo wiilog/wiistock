@@ -29,7 +29,6 @@ use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use DateTime;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;

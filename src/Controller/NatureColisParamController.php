@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/nature-colis")
@@ -72,7 +73,9 @@ class NatureColisParamController extends AbstractController
                         'Code' => $nature->getCode(),
                         'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
                         'Préfixe' => $nature->getPrefix() ?? 'Non défini',
+                        'mobileSync' => $nature->getNeedsMobileSync() ? 'Oui' : 'Non',
                         'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
+                        'description' => $nature->getDescription() ?? 'Non définie',
                         'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
                             'url' => $url,
                             'natureId' => $nature->getId(),
@@ -88,9 +91,10 @@ class NatureColisParamController extends AbstractController
     /**
      * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param TranslatorInterface $translator
      * @return Response
      */
-    public function new(Request $request): Response
+    public function new(Request $request, TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
@@ -102,9 +106,11 @@ class NatureColisParamController extends AbstractController
             $nature = new Nature();
             $nature
                 ->setLabel($data['label'])
-                ->setPrefix($data['prefix'])
+                ->setPrefix($data['prefix'] ?? null)
                 ->setColor($data['color'])
+                ->setNeedsMobileSync($data['mobileSync'] ?? false)
                 ->setDefaultQuantity($data['quantity'])
+                ->setDescription($data['description'] ?? null)
                 ->setCode($data['code']);
 
             $em->persist($nature);
@@ -112,7 +118,7 @@ class NatureColisParamController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La nature de colis "' . $data['label'] . '" a bien été créée.'
+                'msg' =>  $translator->trans('natures.une nature') . ' "' . $data['label'] . '" a bien été créée.'
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -164,8 +170,10 @@ class NatureColisParamController extends AbstractController
 
             $nature
                 ->setLabel($data['label'])
-                ->setPrefix($data['prefix'])
+                ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
+                ->setNeedsMobileSync($data['mobileSync'] ?? false)
+                ->setDescription($data['description'] ?? null)
                 ->setColor($data['color'])
                 ->setCode($data['code']);
 

@@ -6,7 +6,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\ArrivalHistory;
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\DashboardChartMeter;
 use App\Entity\DashboardMeter;
 use App\Entity\DaysWorked;
@@ -283,7 +283,7 @@ class DashboardService
     private function parseDailyArrivalData(EntityManagerInterface $entityManager)
     {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $colisRepository = $entityManager->getRepository(Colis::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
 
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -291,8 +291,8 @@ class DashboardService
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         }, $workFreeDays);
 
-        $colisCountByDay = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
-            return $colisRepository->countByDates($dateMin, $dateMax);
+        $colisCountByDay = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($packRepository) {
+            return $packRepository->countByDates($dateMin, $dateMax);
         }, $workFreeDays);
         $colisCountByDaySaved = $this->saveArrayForEncoding($colisCountByDay);
         $arrivalCountByDaySaved = $this->saveArrayForEncoding($arrivalCountByDays);
@@ -328,14 +328,14 @@ class DashboardService
     private function parseWeeklyArrivalData(EntityManagerInterface $entityManager)
     {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $colisRepository = $entityManager->getRepository(Colis::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
         $arrivalsCountByWeek = $this->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($arrivageRepository) {
             return $arrivageRepository->countByDates($dateMin, $dateMax);
         });
 
-        $colisCountByWeek = $this->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($colisRepository) {
-            return $colisRepository->countByDates($dateMin, $dateMax);
+        $colisCountByWeek = $this->getWeeklyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($packRepository) {
+            return $packRepository->countByDates($dateMin, $dateMax);
         });
         $dashboardDataForColis = [
             'data' => $this->saveArrayForEncoding($colisCountByWeek),
@@ -363,7 +363,7 @@ class DashboardService
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $packsCountByDays = $this->getDailyObjectsStatistics(function (DateTime $dateMin, DateTime $dateMax) use ($entityManager) {
-            $colisRepository = $entityManager->getRepository(Colis::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
             $locations = $this->findEmplacementsParam(ParametrageGlobal::DASHBOARD_LOCATION_TO_DROP_ZONES);
             if (!empty($locations)) {
                 $response = [];
@@ -376,7 +376,7 @@ class DashboardService
                     },
                     ''
                 );
-                $response['count'] = $colisRepository->countPacksOnLocations($locations, [
+                $response['count'] = $packRepository->countPacksOnLocations($locations, [
                     'minDate' => $dateMin,
                     'maxDate' => $dateMax
                 ]);
@@ -430,7 +430,7 @@ class DashboardService
         $natureRepository = $entityManager->getRepository(Nature::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $colisRepository = $entityManager->getRepository(Colis::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
         $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
@@ -463,7 +463,7 @@ class DashboardService
         ];
 
         if (!empty($naturesForGraph) && !empty($emplacementsWanted)) {
-            $packsOnCluster = $colisRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
+            $packsOnCluster = $packRepository->getPackIntelOnLocations($emplacementsWanted, $naturesForGraph);
 
             $countByNatureBase = [];
             foreach ($naturesForGraph as $wantedNature) {
@@ -625,7 +625,7 @@ class DashboardService
                                         array $daysWorked = [],
                                         ?string $delay = null): ?array
     {
-        $colisRepository = $this->entityManager->getRepository(Colis::class);
+        $packRepository = $this->entityManager->getRepository(Pack::class);
         $workFreeDaysRepository = $this->entityManager->getRepository(WorkFreeDay::class);
         $locations = $this->findEmplacementsParam($paramName);
         $locationsId = array_map(function (Emplacement $emplacement) {
@@ -635,7 +635,7 @@ class DashboardService
             $response = [];
             $response['delay'] = null;
             if ($delay) {
-                $lastEnCours = $colisRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
+                $lastEnCours = $packRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket, false, 'lastDrop.datetime', 1);
                 if (!empty($lastEnCours[0])) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
@@ -652,7 +652,7 @@ class DashboardService
                 },
                 ''
             );
-            $response['count'] = $colisRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket);
+            $response['count'] = $packRepository->getCurrentPackOnLocations($locationsId, [], $onDateBracket);
         } else {
             $response = null;
         }
