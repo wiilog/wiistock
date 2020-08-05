@@ -290,7 +290,6 @@ class DemandeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -309,7 +308,6 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'filterStatus' => $filter,
@@ -320,6 +318,10 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function delete(Request $request,
                            DemandeLivraisonService $demandeLivraisonService,

@@ -6,6 +6,8 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -41,6 +43,7 @@ use App\Service\MailerService;
 use App\Service\ManutentionService;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
+use App\Service\NatureService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
@@ -1248,13 +1251,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @param $user
      * @param UserService $userService
+     * @param NatureService $natureService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return array
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     private function getDataArray($user,
                                   UserService $userService,
+                                  NatureService $natureService,
+                                  FreeFieldService $freeFieldService,
                                   EntityManagerInterface $entityManager)
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1266,6 +1272,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $preparationRepository = $entityManager->getRepository(Preparation::class);
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1365,12 +1373,34 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['tracking']) {
             $trackingTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
+            $natures = array_map(
+                function (Nature $nature) use ($natureService) {
+                    return $natureService->serializeNature($nature);
+                },
+                $natureRepository->findAll()
+            );
+            $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
+            $trackingFreeFields = array_map(
+                function (ChampLibre $freeField) use ($freeFieldService) {
+                    $serializedFreeField = $freeFieldService->serializeFreeField($freeField);
+                    return array_merge(
+                        $serializedFreeField,
+                        ['type' => CategoryType::MOUVEMENT_TRACA]
+                    );
+                },
+                $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
+            );
         } else {
             $trackingTaking = [];
+            $natures = [];
+            $allowedNatureInLocations = [];
+            $trackingFreeFields = [];
         }
 
         return [
-            'emplacements' => $emplacementRepository->getIdAndNom(),
+            'locations' => $emplacementRepository->getLocationsArray(),
+            'allowedNatureInLocations' => $allowedNatureInLocations,
+            'trackingFreeFields' => $trackingFreeFields,
             'preparations' => $preparations,
             'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
@@ -1385,6 +1415,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'stockTaking' => $stockTaking,
             'demandeLivraisonTypes' => $demandeLivraisonTypes,
             'demandeLivraisonArticles' => $demandeLivraisonArticles,
+            'natures' => $natures,
             'rights' => $rights
         ];
     }
@@ -1393,12 +1424,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/getData", name="api-get-data")
      * @param Request $request
      * @param UserService $userService
+     * @param NatureService $natureService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
     public function getData(Request $request,
                             UserService $userService,
+                            NatureService $natureService,
+                            FreeFieldService $freeFieldService,
                             EntityManagerInterface $entityManager)
     {
         $apiKey = $request->request->get('apiKey');
@@ -1407,7 +1442,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $entityManager);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $entityManager);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;

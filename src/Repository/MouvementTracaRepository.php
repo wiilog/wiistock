@@ -42,18 +42,6 @@ class MouvementTracaRepository extends EntityRepository
         'operateur' => 'user',
     ];
 
-    private static function AddMobileTrackingMovementSelect(QueryBuilder $queryBuilder, bool $preferDate = false): QueryBuilder
-    {
-        return $queryBuilder
-            ->select('mouvementTraca.colis AS ref_article')
-            ->addSelect('mouvementTracaType.nom AS type')
-            ->addSelect('operator.username AS operateur')
-            ->addSelect('location.label AS ref_emplacement')
-            ->addSelect($preferDate ? 'mouvementTraca.datetime AS date' : 'mouvementTraca.uniqueIdForMobile AS date')
-            ->addSelect('(CASE WHEN mouvementTraca.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
-    }
-
     public function getLastDropsGroupedByColis() {
         $queryBuilder = $this->createQueryBuilder('mouvement');
         $queryBuilderExpr = $queryBuilder->expr();
@@ -255,37 +243,6 @@ class MouvementTracaRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * Retourne les mouvementTraca qui correspondent aux colis encours sur les emplacement donnés
-     * @param Emplacement[]|int[] $locations
-     * @return array[]
-     * @throws DBALException
-     */
-    public function getLastTrackingMovementsOnLocations(array $locations): array
-    {
-        $trackingIdsToGet = $this->getForPacksOnLocations($locations);
-
-        $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'), true)
-            ->join('mouvementTraca.emplacement', 'location')
-            ->join('mouvementTraca.operateur', 'operator')
-            ->join('mouvementTraca.type', 'mouvementTracaType')
-            ->where('mouvementTraca.id IN (:trackingIds)')
-            ->andWhere('mouvementTraca.mouvementStock IS NULL')
-            ->setParameter('trackingIds', $trackingIdsToGet, Connection::PARAM_STR_ARRAY);
-
-        return array_map(
-            function ($movement) {
-                $movement['date'] = $movement['date']
-                    ? $movement['date']->format(DateTime::ATOM)
-                    : null;
-                return $movement;
-            },
-            $queryBuilder
-                ->getQuery()
-                ->getResult()
-        );
     }
 
     /**
@@ -565,10 +522,16 @@ class MouvementTracaRepository extends EntityRepository
      */
     public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
                                                      string $type,
-                                                     array $filterDemandeCollecteIds = [])
-    {
-
-        $queryBuilder = self::AddMobileTrackingMovementSelect($this->createQueryBuilder('mouvementTraca'));
+                                                     array $filterDemandeCollecteIds = []) {
+        $queryBuilder = $this->createQueryBuilder('mouvementTraca')
+            ->select('mouvementTraca.colis AS ref_article')
+            ->addSelect('mouvementTracaType.nom AS type')
+            ->addSelect('operator.username AS operateur')
+            ->addSelect('location.label AS ref_emplacement')
+            ->addSelect('mouvementTraca.uniqueIdForMobile AS date')
+            ->addSelect('nature.id AS nature_id')
+            ->addSelect('(CASE WHEN mouvementTraca.finished = 1 THEN 1 ELSE 0 END) AS finished')
+            ->addSelect('(CASE WHEN mouvementTraca.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
 
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
             ? 'mouvementStock.id IS NOT NULL'
@@ -581,6 +544,8 @@ class MouvementTracaRepository extends EntityRepository
             ->join('mouvementTraca.type', 'mouvementTracaType')
             ->join('mouvementTraca.operateur', 'operator')
             ->join('mouvementTraca.emplacement', 'location')
+            ->leftJoin('mouvementTraca.pack', 'pack')
+            ->leftJoin('pack.nature', 'nature')
             ->leftJoin('mouvementTraca.mouvementStock', 'mouvementStock')
             ->where('operator = :operator')
             ->andWhere('mouvementTracaType.nom LIKE :priseType')
