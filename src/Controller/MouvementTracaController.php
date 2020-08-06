@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -17,6 +19,7 @@ use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
+use App\Service\FreeFieldService;
 use App\Service\MouvementTracaService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -33,6 +36,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/mouvement-traca")
@@ -88,6 +92,7 @@ class MouvementTracaController extends AbstractController
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $packFilter = $request->query->get('colis');
         if (!empty($packFilter)) {
@@ -104,21 +109,31 @@ class MouvementTracaController extends AbstractController
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true)
+            'redirectAfterTrackingMovementCreation' => (int)($redirectAfterTrackingMovementCreation ? !$redirectAfterTrackingMovementCreation->getValue() : true),
+            'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
         ]);
+    }
+
+    private function errorWithDropOff($pack, $location, $packTranslation, $natureTranslation) {
+        $bold = '<span class="font-weight-bold"> ';
+        return 'Le ' . $packTranslation . $bold . $pack . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.';
     }
 
     /**
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param MouvementTracaService $mouvementTracaService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws Exception
      */
     public function new(Request $request,
                         MouvementTracaService $mouvementTracaService,
-                        EntityManagerInterface $entityManager): Response
+                        FreeFieldService $freeFieldService,
+                        EntityManagerInterface $entityManager,
+                        TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
@@ -130,37 +145,55 @@ class MouvementTracaController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
+            $packTranslation = $translator->trans('arrivage.colis');
+            $natureTranslation = $translator->trans('natures.natures requises');
+
             $operator = $utilisateurRepository->find($post->get('operator'));
             $colisStr = $post->get('colis');
             $commentaire = $post->get('commentaire');
             $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
             $fromNomade = false;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
+            $type = $post->getInt('type');
 
+            $codeToPack = [];
             $createdMouvements = [];
 
             if (empty($post->get('is-mass'))) {
                 $emplacement = $emplacementRepository->find($post->get('emplacement'));
-                $createdMvt = $mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createTrackingMovement(
                     $colisStr,
                     $emplacement,
                     $operator,
                     $date,
                     $fromNomade,
                     null,
-                    $post->getInt('type'),
+                    $type,
                     ['commentaire' => $commentaire]
                 );
+
+                $movementType = $createdMvt->getType();
+                $movementTypeName = $movementType ? $movementType->getNom() : null;
+
+                // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                if ($movementTypeName === MouvementTraca::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
+                    ]);
+                }
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
-            } else {
+
+            }
+            else {
                 $colisArray = explode(',', $colisStr);
+                $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
+                $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
                 foreach ($colisArray as $colis) {
-                    $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
-                    $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
-                        $colis,
+                    $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                        isset($codeToPack[$colis]) ? $codeToPack[$colis] : $colis,
                         $emplacementPrise,
                         $operator,
                         $date,
@@ -169,12 +202,15 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_PRISE,
                         ['commentaire' => $commentaire]
                     );
+
                     $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
+                    $createdPack = $createdMvt->getPack();
 
-                    $createdMvt = $this->mouvementTracaService->createMouvementTraca(
-                        $colis,
+
+                    $createdMvt = $this->mouvementTracaService->createTrackingMovement(
+                        $createdPack,
                         $emplacementDepose,
                         $operator,
                         $date,
@@ -183,9 +219,21 @@ class MouvementTracaController extends AbstractController
                         MouvementTraca::TYPE_DEPOSE,
                         ['commentaire' => $commentaire]
                     );
+
+                    // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                    if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                        ]);
+                    }
+
                     $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
+                    $codeToPack[$colis] = $createdPack;
+
+
                 }
             }
 
@@ -201,7 +249,9 @@ class MouvementTracaController extends AbstractController
                     $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
                 }
             }
-
+            foreach ($createdMouvements as $mouvement) {
+                $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
+            }
             $entityManager->flush();
 
             $countCreatedMouvements = count($createdMouvements);
@@ -216,6 +266,9 @@ class MouvementTracaController extends AbstractController
 
     /**
      * @Route("/api", name="mvt_traca_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
+     * @throws Exception
      */
     public function api(Request $request): Response
     {
@@ -247,13 +300,15 @@ class MouvementTracaController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $mvt = $mouvementTracaRepository->find($data['id']);
 
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
                 'mvt' => $mvt,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachements' => $mvt->getAttachements()
+                'attachements' => $mvt->getAttachements(),
+                'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             ]);
 
             return new JsonResponse($json);
@@ -265,10 +320,12 @@ class MouvementTracaController extends AbstractController
      * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param MouvementTracaService $mouvementTracaService
+     * @param FreeFieldService $freeFieldService
      * @param Request $request
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
+                         FreeFieldService $freeFieldService,
                          MouvementTracaService $mouvementTracaService,
                          Request $request): Response
     {
@@ -320,6 +377,7 @@ class MouvementTracaController extends AbstractController
             }
 
             $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
+            $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
 
             $entityManager->flush();
 

@@ -28,7 +28,8 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             CategorieCL::RECEPTION,
 			CategorieCL::DEMANDE_LIVRAISON,
 			CategorieCL::DEMANDE_COLLECTE,
-			CategorieCL::ARRIVAGE
+            CategorieCL::ARRIVAGE,
+			CategorieCL::MVT_TRACA
         ];
         foreach ($categoriesNames as $categorieName) {
             $categorie = $categorieCLRepository->findOneByLabel($categorieName);

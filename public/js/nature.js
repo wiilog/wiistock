@@ -18,6 +18,8 @@ let tableNatureConfig = {
         {"data": 'Quantité par défaut', 'title': 'Quantité par défaut'},
         {"data": 'Préfixe', 'title': 'Préfixe'},
         {"data": 'Couleur', 'title': 'Couleur'},
+        {"data": 'description', 'title': 'Description'},
+        {"data": 'mobileSync', 'title': 'Synchronisation nomade'},
     ],
     rowConfig: {
         needsRowClickAction: true

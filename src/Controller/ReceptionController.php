@@ -869,7 +869,7 @@ class ReceptionController extends AbstractController
                             $receptionLocation
                         );
                         $entityManager->persist($mouvementStock);
-                        $createdMvt = $mouvementTracaService->createMouvementTraca(
+                        $createdMvt = $mouvementTracaService->createTrackingMovement(
                             $referenceArticle->getBarCode(),
                             $receptionLocation,
                             $currentUser,
@@ -1857,6 +1857,7 @@ class ReceptionController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function newWithPacking(Request $request,
                                    DemandeLivraisonService $demandeLivraisonService,
@@ -1939,7 +1940,7 @@ class ReceptionController extends AbstractController
 
                 $entityManager->persist($mouvementStock);
 
-                $createdMvt = $mouvementTracaService->createMouvementTraca(
+                $createdMvt = $mouvementTracaService->createTrackingMovement(
                     $article->getBarCode(),
                     $receptionLocation,
                     $currentUser,
@@ -1955,6 +1956,7 @@ class ReceptionController extends AbstractController
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
             }
+
             if (isset($demande) && $demande->getType()->getSendMail()) {
                 $nowDate = new DateTime('now');
                 $this->mailerService->sendMail(

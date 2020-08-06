@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MouvementTracaRepository")
  */
-class MouvementTraca
+class MouvementTraca extends FreeFieldEntity
 {
 
     const TYPE_PRISE = 'prise';
@@ -24,9 +24,17 @@ class MouvementTraca
     private $id;
 
     /**
+     * TODO REMOVE
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $colis;
+
+    /**
+     * @var Pack
+     * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
+     * @ORM\JoinColumn(nullable=false, name="pack_id")
+     */
+    private $pack;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -97,7 +105,7 @@ class MouvementTraca
     private $article;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="lastDrop")
+     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="lastDrop")
      */
     private $linkedPackLastDrops;
 
@@ -305,14 +313,14 @@ class MouvementTraca
     }
 
     /**
-     * @return Collection|Colis[]
+     * @return Collection|Pack[]
      */
     public function getLinkedPackLastDrops(): Collection
     {
         return $this->linkedPackLastDrops;
     }
 
-    public function addLinkedPackLastDrop(Colis $linkedPackLastDrop): self
+    public function addLinkedPackLastDrop(Pack $linkedPackLastDrop): self
     {
         if (!$this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
             $this->linkedPackLastDrops[] = $linkedPackLastDrop;
@@ -322,7 +330,7 @@ class MouvementTraca
         return $this;
     }
 
-    public function removeLinkedPacksLastDrop(Colis $linkedPackLastDrop): self
+    public function removeLinkedPacksLastDrop(Pack $linkedPackLastDrop): self
     {
         if ($this->linkedPackLastDrops->contains($linkedPackLastDrop)) {
             $this->linkedPackLastDrops->removeElement($linkedPackLastDrop);
@@ -347,4 +355,12 @@ class MouvementTraca
         return $this;
     }
 
+    public function setPack(Pack $pack): self {
+        $this->pack = $pack;
+        return $this;
+    }
+
+    public function getPack(): Pack {
+        return $this->pack;
+    }
 }

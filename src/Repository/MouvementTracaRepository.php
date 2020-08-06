@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Colis;
+use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -144,7 +144,7 @@ class MouvementTracaRepository extends EntityRepository
             ->leftJoin('mouvementTraca.operateur', 'operator')
             ->leftJoin('mouvementTraca.arrivage', 'arrivage')
             ->leftJoin('mouvementTraca.reception', 'reception')
-            ->leftJoin(Colis::class, 'colis', Join::WITH, 'colis.code = mouvementTraca.colis')
+            ->leftJoin(Pack::class, 'colis', Join::WITH, 'colis.code = mouvementTraca.colis')
             ->leftJoin('colis.arrivage', 'arrivage2')
 
             ->setParameters([
@@ -169,7 +169,7 @@ class MouvementTracaRepository extends EntityRepository
             "SELECT mt
 			FROM App\Entity\MouvementTraca mt
 			WHERE mt.colis = :colis
-			ORDER BY mt.datetime DESC"
+			ORDER BY mt.datetime DESC, mt.id DESC"
         )->setParameter('colis', $colis);
 
         $result = $query->execute();

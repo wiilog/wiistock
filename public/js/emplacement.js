@@ -20,18 +20,13 @@ let tableEmplacementConfig = {
         needsRowClickAction: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Nom', 'name': 'Nom', 'title': 'Nom'},
         {"data": 'Description', 'name': 'Description', 'title': 'Description'},
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
         {"data": 'Délai maximum', 'name': 'Délai maximum', 'title': 'Délai maximum'},
         {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
-    ],
-    buttons: [
-        'copy', 'excel', 'pdf'
-    ],
-    columnDefs: [
-        { "orderable": false, "targets": 0 }
+        {"data": 'allowed-natures', 'name': 'allowed-natures', 'title': $('#allowedNaturePackTranslation').val(), orderable: false},
     ]
 };
 let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);

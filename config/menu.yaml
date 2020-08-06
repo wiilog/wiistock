@@ -200,8 +200,9 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_STATU_LITI
-                -   label: 'Natures de colis'
+                -   label: 'natures.Natures de colis'
                     path: 'nature_param_index'
+                    isTranslation: true
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_NATU_COLI

@@ -25,6 +25,15 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="Description">{{ 'natures.Natures de colis autorisées'|trans }}</label>
+                    <select name="allowed-natures" class="form-control data select2 w-100" multiple>
+                        {% for nature in natures %}
+                            <option value="{{ nature.id }}">{{ nature.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="Description">Point de livraison ? </label>
                     <label class="switch">
                         <input class="checkbox form-control data" type="checkbox" name="isDeliveryPoint">

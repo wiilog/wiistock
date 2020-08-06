@@ -34,9 +34,22 @@
     <div class="form-group col-12 w-100">
         <label class="my-auto mr-2">Emplacement*</label>
         <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data needed">
-            <option value="{{ mvt.emplacement.id }}">{{ mvt.emplacement.label }}</option>
+            {% if mvt.emplacement is not null %}
+                <option value="{{ mvt.emplacement.id }}">{{ mvt.emplacement.label }}</option>
+            {% endif %}
         </select>
     </div>
+
+</div>
+
+<div class="row champsLibresBlock">
+    {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+        freeFields: champsLibres,
+        freeFieldValues: mvt.freeFields,
+        colType: 'col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'new'
+    } %}
 </div>
 
 <div class="row">

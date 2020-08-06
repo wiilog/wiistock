@@ -29,9 +29,9 @@ class Nature
     private $code;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="nature")
+     * @ORM\OneToMany(targetEntity="App\Entity\Pack", mappedBy="nature")
      */
-    private $colis;
+    private $packs;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -48,9 +48,25 @@ class Nature
 	 */
     private $color;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $needsMobileSync;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Emplacement", mappedBy="allowedNatures")
+     */
+    private $emplacements;
+
     public function __construct()
     {
-        $this->colis = new ArrayCollection();
+        $this->packs = new ArrayCollection();
+        $this->emplacements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -83,30 +99,30 @@ class Nature
     }
 
     /**
-     * @return Collection|Colis[]
+     * @return Collection|Pack[]
      */
-    public function getColis(): Collection
+    public function getPacks(): Collection
     {
-        return $this->colis;
+        return $this->packs;
     }
 
-    public function addColis(Colis $coli): self
+    public function addPack(Pack $pack): self
     {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-            $coli->setNature($this);
+        if (!$this->packs->contains($pack)) {
+            $this->packs[] = $pack;
+            $pack->setNature($this);
         }
 
         return $this;
     }
 
-    public function removeColis(Colis $coli): self
+    public function removePack(Pack $pack): self
     {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
+        if ($this->packs->contains($pack)) {
+            $this->packs->removeElement($pack);
             // set the owning side to null (unless already changed)
-            if ($coli->getNature() === $this) {
-                $coli->setNature(null);
+            if ($pack->getNature() === $this) {
+                $pack->setNature(null);
             }
         }
 
@@ -149,24 +165,53 @@ class Nature
         return $this;
     }
 
-    public function addColi(Colis $coli): self
+    public function getDescription(): ?string
     {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-            $coli->setNature($this);
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getNeedsMobileSync(): ?bool
+    {
+        return $this->needsMobileSync;
+    }
+
+    public function setNeedsMobileSync(?bool $needsMobileSync): self
+    {
+        $this->needsMobileSync = $needsMobileSync;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Emplacement[]
+     */
+    public function getEmplacements(): Collection
+    {
+        return $this->emplacements;
+    }
+
+    public function addEmplacement(Emplacement $emplacement): self
+    {
+        if (!$this->emplacements->contains($emplacement)) {
+            $this->emplacements[] = $emplacement;
+            $emplacement->addAllowedNature($this);
         }
 
         return $this;
     }
 
-    public function removeColi(Colis $coli): self
+    public function removeEmplacement(Emplacement $emplacement): self
     {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
-            // set the owning side to null (unless already changed)
-            if ($coli->getNature() === $this) {
-                $coli->setNature(null);
-            }
+        if ($this->emplacements->contains($emplacement)) {
+            $this->emplacements->removeElement($emplacement);
+            $emplacement->removeAllowedNature($this);
         }
 
         return $this;

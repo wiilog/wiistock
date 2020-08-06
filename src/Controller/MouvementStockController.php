@@ -216,9 +216,8 @@ class MouvementStockController extends AbstractController
                         $quantity = $chosenArticleToMoveAvailableQuantity;
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
-                        $chosenArticleToMove
-                            ->setEmplacement($emplacementTo);
-                        $associatedPickTracaMvt = $mouvementTracaService->createMouvementTraca(
+                        $chosenArticleToMove->setEmplacement($emplacementTo);
+                        $associatedPickTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
                             $loggedUser,
@@ -228,8 +227,11 @@ class MouvementStockController extends AbstractController
                             MouvementTraca::TYPE_PRISE
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
-                        $associatedDropTracaMvt = $mouvementTracaService->createMouvementTraca(
-                            $chosenArticleToMove->getBarCode(),
+                        $createdPack = $associatedPickTracaMvt->getPack();
+
+
+                        $associatedDropTracaMvt = $mouvementTracaService->createTrackingMovement(
+                            $createdPack,
                             $emplacementTo,
                             $loggedUser,
                             $now,

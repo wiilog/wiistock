@@ -81,7 +81,7 @@ class AcheminementsService
 	 */
     public function dataRowAcheminement($acheminement)
     {
-        $nbColis = count($acheminement->getColis());
+        $nbColis = count($acheminement->getPacks());
         return [
             'id' => $acheminement->getId() ?? 'Non défini',
             'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
