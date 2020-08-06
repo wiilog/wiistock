@@ -734,21 +734,23 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-art/{activeOnly}", name="get_articles", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete-art", name="get_articles", options={"expose"=true}, methods="GET|POST")
      *
      * @param EntityManagerInterface $entityManager
      * @param Request $request
-     * @param bool $activeOnly
      * @return JsonResponse
      */
-    public function getArticles(EntityManagerInterface $entityManager, Request $request, $activeOnly = false)
+    public function getArticles(EntityManagerInterface $entityManager, Request $request)
     {
         if ($request->isXmlHttpRequest()) {
+
             $search = $request->query->get('term');
             $referenceArticleReference = $request->query->get('referenceArticleReference');
+            $activeOnly = $request->query->getBoolean('activeOnly');
+            $activeReferenceOnly = $request->query->getBoolean('activeReferenceOnly');
 
             $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference);
+            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference, $activeReferenceOnly);
 
             return new JsonResponse(['results' => $articles]);
         }

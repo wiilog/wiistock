@@ -239,7 +239,7 @@ class ArticleRepository extends EntityRepository
             ->execute();
     }
 
-	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null)
+	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null, $activeReferenceOnly = false)
 	{
         $queryBuilder = $this->createQueryBuilder('article')
             ->select('article.id AS id')
@@ -265,6 +265,15 @@ class ArticleRepository extends EntityRepository
                 ->setParameter('referenceArticleReference', $referenceArticleReference);
         }
 
+        if ($activeReferenceOnly) {
+            $queryBuilder
+                ->join('article.articleFournisseur', 'activeReference_articleFournisseur')
+                ->join('activeReference_articleFournisseur.referenceArticle', 'activeReference_referenceArticle')
+                ->join('activeReference_referenceArticle.statut', 'activeReference_status')
+                ->andWhere('activeReference_status.nom = :activeReference_statusName')
+                ->setParameter('activeReference_statusName', ReferenceArticle::STATUT_ACTIF);
+        }
+
 		return $queryBuilder
             ->getQuery()
             ->execute();
@@ -283,27 +292,42 @@ class ArticleRepository extends EntityRepository
         return $query->getResult();
     }
 
-	/**
-	 * @param ReferenceArticle $refArticle
-	 * @param Statut $statut
-	 * @return Article[]
-	 */
-	public function findByRefArticleAndStatut($refArticle, $statut)
+    /**
+     * @param ReferenceArticle $refArticle
+     * @param array $statusNames
+     * @param string|null $refArticleStatusName
+     * @return Article[]
+     */
+	public function findByRefArticleAndStatut($refArticle, array $statusNames, string $refArticleStatusName = null)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT a
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle
-			'
-		)->setParameters([
-			'refArticle' => $refArticle,
-			'statut' => $statut
-		]);
 
-		return $query->execute();
+		$queryBuilder = $this->createQueryBuilder('article')
+            ->select('article')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->where('referenceArticle = :refArticle')
+            ->setParameter('refArticle', $refArticle);
+
+		if(!empty($statusNames)) {
+            $queryBuilder->join('article.statut', 'article_status');
+            $exprBuilder = $queryBuilder->expr();
+            $OROperands = [];
+
+            foreach ($statusNames as $index => $statusName) {
+                $OROperands[] = "article_status.nom = :articleStatusName$index";
+                $queryBuilder->setParameter("articleStatusName$index", $statusName);
+            }
+            $queryBuilder->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
+        }
+
+		if ($refArticleStatusName) {
+            $queryBuilder
+                ->join('referenceArticle.statut', 'referenceArticle_status')
+                ->andWhere('referenceArticle_status.nom = :referenceArticle_statusName')
+                ->setParameter('referenceArticle_statusName', $refArticleStatusName);
+        }
+
+		return $queryBuilder->getQuery()->execute();
 	}
 
     public function getTotalQuantiteFromRefNotInDemand($refArticle, $statut)
@@ -926,37 +950,45 @@ class ArticleRepository extends EntityRepository
      */
     public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a
-            FROM App\Entity\Article a
-            JOIN a.articleFournisseur af
-            JOIN af.referenceArticle ra
-            JOIN ra.category c
-            LEFT JOIN a.statut sa
-            LEFT JOIN a.emplacement ae
-            WHERE c.frequency = :frequency
-            AND ra.typeQuantite = :typeQuantity
-            AND a.dateLastInventory is null
-            AND sa.nom = :status
-            ORDER BY ae.label"
-        )->setParameters([
-            'frequency' => $frequency,
-            'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
-            'status' => Article::STATUT_ACTIF,
-        ]);
 
-        if ($limit) $query->setMaxResults($limit);
 
-        return $query->execute();
+        $queryBuilder = $this->createQueryBuilder('article');
+        $exprBuilder = $queryBuilder->expr();
+        $queryBuilder
+            ->select('article')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->join('referenceArticle.category', 'category')
+            ->join('referenceArticle.statut', 'referenceArticle_status')
+            ->leftJoin('article.statut', 'article_status')
+            ->leftJoin('article.emplacement', 'article_location')
+            ->where('category.frequency = :frequency')
+            ->andWhere('referenceArticle.typeQuantite = :typeQuantity')
+            ->andWhere('article.dateLastInventory IS NULL')
+            ->andWhere('(' . $exprBuilder->orX('article_status.nom = :activeStatus', 'article_status.nom = :disputeStatus') . ')')
+            ->andWhere('referenceArticle_status.nom = :referenceActiveStatus')
+            ->orderBy('article_location.label')
+            ->setParameters([
+                'frequency' => $frequency,
+                'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                'activeStatus' => Article::STATUT_ACTIF,
+                'disputeStatus' => Article::STATUT_EN_LITIGE,
+                'referenceActiveStatus' => ReferenceArticle::STATUT_ACTIF
+            ]);
+
+        if ($limit) {
+            $queryBuilder->setMaxResults($limit);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
 	/**
 	 * @param string $dateCode
 	 * @return mixed
-	 * @throws NonUniqueResultException
-	 */
+     */
 	public function getHighestBarCodeByDateCode($dateCode)
 	{
 		$em = $this->getEntityManager();

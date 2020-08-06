@@ -61,7 +61,6 @@ class MissionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
 
@@ -103,10 +102,12 @@ class MissionCommand extends Command
 						}
 					}
 				} else {
-            		$statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-
             		/** @var Article[] $articles */
-            		$articles = $articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+            		$articles = $articleRepository->findByRefArticleAndStatut(
+            		    $refArticle,
+                        [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE],
+                        ReferenceArticle::STATUT_ACTIF
+                    );
 
             		foreach ($articles as $article) {
    						$artDate = $article->getDateLastInventory();
@@ -120,7 +121,8 @@ class MissionCommand extends Command
 				}
             }
 
-            foreach ($refsAndArtToInv as $refOrArt) { /** @var ReferenceArticle|Article $refOrArt */
+            foreach ($refsAndArtToInv as $refOrArt) {
+                /** @var ReferenceArticle|Article $refOrArt */
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, $refOrArt instanceof ReferenceArticle);
 
 				if (!$alreadyInMission) {
@@ -138,13 +140,15 @@ class MissionCommand extends Command
 			$listRefNextMission = $referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
 			$listArtNextMission = $articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit/2);
 
-			foreach ($listRefNextMission as $ref) {
+			/** @var ReferenceArticle $ref */
+            foreach ($listRefNextMission as $ref) {
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($ref, $mission, true);
 				if (!$alreadyInMission) {
 					$ref->addInventoryMission($mission);
 				}
 			}
-			foreach ($listArtNextMission as $art) {
+            /** @var Article $art */
+            foreach ($listArtNextMission as $art) {
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($art, $mission, false);
 				if (!$alreadyInMission) {
 					$art->addInventoryMission($mission);

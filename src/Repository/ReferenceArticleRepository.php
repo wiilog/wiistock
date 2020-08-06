@@ -769,18 +769,22 @@ class ReferenceArticleRepository extends EntityRepository
      */
     public function findByFrequencyOrderedByLocation($frequency)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT ra
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.category c
-            LEFT JOIN ra.emplacement e
-            WHERE c.frequency = :frequency ORDER BY e.label"
-        )
-            ->setParameter('frequency', $frequency);
+        $queryBuilder = $this->createQueryBuilder('referenceArticle')
+            ->select('referenceArticle')
+            ->join('referenceArticle.category', 'category')
+            ->join('referenceArticle.statut', 'status')
+            ->leftJoin('referenceArticle.emplacement', 'location')
+            ->where('category.frequency = :frequency')
+            ->orderBy('location.label')
+            ->andWhere('status.nom = :status')
+            ->setParameters([
+                'frequency' => $frequency,
+                'status' => ReferenceArticle::STATUT_ACTIF
+            ]);
 
-        return $query->execute();
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
     }
 
     /**
@@ -804,12 +808,13 @@ class ReferenceArticleRepository extends EntityRepository
             AND (
             (ra.typeQuantite = 'reference' AND ra.dateLastInventory is null AND sra.nom = :refActive)
             OR
-            (ra.typeQuantite = 'article' AND a.dateLastInventory is null AND sa.nom = :artActive)
+            (ra.typeQuantite = 'article' AND a.dateLastInventory is null AND (sa.nom = :artActive OR sa.nom = :artDispute))
             )"
         )->setParameters([
             'frequency' => $frequency,
             'refActive' => ReferenceArticle::STATUT_ACTIF,
-            'artActive' => Article::STATUT_ACTIF
+            'artActive' => Article::STATUT_ACTIF,
+            'artDispute' => Article::STATUT_EN_LITIGE
         ]);
 
         return $query->getOneOrNullResult();
