@@ -340,7 +340,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                         $article->setStatut($status);
                                     }
-                                } else { // MouvementTraca::TYPE_DEPOSE
+                                }
+                                else { // MouvementTraca::TYPE_DEPOSE
                                     $mouvementTracaPrises = $mouvementTracaRepository->findBy(
                                         [
                                             'colis' => $mvt['ref_article'],
@@ -384,6 +385,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         }
                                     }
                                 }
+                            }
+                            else {
+                                $options['natureId'] = $mvt['nature_id'] ?? null;
                             }
 
                             if (!empty($mvt['comment'])) {
@@ -1669,6 +1673,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
         return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Get("/api/packs/{code}/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @param NatureService $natureService
+     * @param string $code
+     * @return JsonResponse
+     */
+    public function getPackNature(EntityManagerInterface $entityManager,
+                                  NatureService $natureService,
+                                  string $code): JsonResponse {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $packs = $packRepository->findBy(['code' => $code]);
+
+        if (!empty($packs)) {
+            $pack = $packs[0];
+            $nature = $pack->getNature();
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'nature' => !empty($nature)
+                ? $natureService->serializeNature($nature)
+                : null
+        ]);
     }
 
     private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array
