@@ -538,8 +538,13 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
 
     const filledErrorMessages = (errorMessages || []).filter(Boolean);
     if (filledErrorMessages.length > 0) {
-        $modal
-            .find(`.${FORM_ERROR_CONTAINER}`)
-            .html(filledErrorMessages.join('<br/>'));
+        const $message = filledErrorMessages.join('<br/>');
+        const $innerModalMessageError = $modal.find(`.${FORM_ERROR_CONTAINER}`);
+        if ($innerModalMessageError.length > 0) {
+            $innerModalMessageError.html($message);
+        }
+        else {
+            alertErrorMsg($message, true)
+        }
     }
 }
