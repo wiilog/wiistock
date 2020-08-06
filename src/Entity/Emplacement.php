@@ -372,4 +372,9 @@ class Emplacement
         return $this;
     }
 
+    public function ableToBeDropOff(Pack $pack): bool
+    {
+        return $this->getAllowedNatures()->isEmpty()
+            || ($pack->getNature() && $this->getAllowedNatures()->contains($pack->getNature()));
+    }
 }

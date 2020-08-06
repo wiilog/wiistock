@@ -217,7 +217,6 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
         },
         undefined);
     if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid && !firstNameNeededPositiveArray) {
-        if (close) modal.find('.close').click();
         clearInvalidInputs(modal);
         clearErrorMsg(modal.find(':first-child'));
         $.ajax({
@@ -251,6 +250,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
                     }
                     droppedFiles = [];
                     if (callback !== null) callback(data);
+                    if (close) modal.find('.close').click();
                 }
             }
         });
@@ -260,7 +260,7 @@ function submitActionWithAttachments(modal, path, table, callback, close, clear)
 
         // cas où il manque des champs obligatoires
         if (missingInputs.length > 0) {
-            if (missingInputs.length == 1) {
+            if (missingInputs.length === 1) {
                 msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
             } else {
                 msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
