@@ -736,7 +736,7 @@ function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference'
 }
 
 function ajaxAutoArticlesInit(select, referenceArticleReference = null, lengthMin = 1) {
-    initSelect2(select, '', lengthMin, {route: 'get_articles', param: {activeOnly: 1, referenceArticleReference}});
+    initSelect2(select, '', lengthMin, {route: 'get_articles', param: {activeOnly: 1, referenceArticleReference, activeReferenceOnly: 1}});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {

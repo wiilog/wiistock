@@ -266,8 +266,17 @@ class InventoryMissionController extends AbstractController
             foreach ($data['articles'] as $articleId) {
                 $article = $articleRepository->find($articleId);
 
+				if ($article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() != ReferenceArticle::STATUT_ACTIF
+                    && ($article->getStatut()->getNom() != Article::STATUT_EN_LITIGE || $article->getStatut()->getNom() != Article::STATUT_ACTIF)) {
+				    return new JsonResponse([
+				       'success' => false,
+                        'msg' => 'La référence liée à cet article est inactive, vous ne pouvez pas l\'ajouter.'
+                    ]);
+                }
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($article, $mission, false);
-				if ($alreadyInMission) return new JsonResponse(false);
+				if ($alreadyInMission) {
+				    return new JsonResponse(false);
+                }
 
                 $article->addInventoryMission($mission);
                 $entityManager->persist($mission);
@@ -276,7 +285,12 @@ class InventoryMissionController extends AbstractController
 
             foreach ($data['refArticles'] as $refArticleId) {
                 $refArticle = $referenceArticleRepository->find($refArticleId);
-
+                if ($refArticle->getStatut()->getNom() != ReferenceArticle::STATUT_ACTIF) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'La référence est inactive, vous ne pouvez pas l\'ajouter.'
+                    ]);
+                }
 				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refArticle, $mission, true);
 				if ($alreadyInMission) return new JsonResponse(false);
 
