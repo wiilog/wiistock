@@ -241,6 +241,11 @@ class ArticleRepository extends EntityRepository
 
 	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null, $activeReferenceOnly = false)
 	{
+        $statusNames = [
+            Article::STATUT_ACTIF,
+            Article::STATUT_EN_LITIGE
+        ];
+
         $queryBuilder = $this->createQueryBuilder('article')
             ->select('article.id AS id')
             ->addSelect("article.${field} AS text")
@@ -252,9 +257,15 @@ class ArticleRepository extends EntityRepository
 
         if ($activeOnly) {
             $queryBuilder
-                ->join('article.statut', 'status')
-                ->andWhere('status.nom = :activeStatusName')
-                ->setParameter('activeStatusName', Article::STATUT_ACTIF);
+                ->join('article.statut', 'status');
+
+            $exprBuilder = $queryBuilder->expr();
+            $OROperands = [];
+            foreach ($statusNames as $index => $statusName) {
+                $OROperands[] = "status.nom = :articleStatusName$index";
+                $queryBuilder->setParameter("articleStatusName$index", $statusName);
+            }
+            $queryBuilder->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
         }
 
         if ($referenceArticleReference) {
@@ -1078,9 +1089,11 @@ class ArticleRepository extends EntityRepository
             ->andWhere('emplacement.label = :location')
             ->andWhere('article.barCode = :barCode')
             ->andWhere('status.nom = :statusNom')
+            ->orWhere('status.nom = :statusDisputeName')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('statusNom', Article::STATUT_ACTIF);
+            ->setParameter('statusNom', Article::STATUT_ACTIF)
+            ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
 
         return $queryBuilder;
     }

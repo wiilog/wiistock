@@ -132,6 +132,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
                             )
                         )
                         AND sub_articleStatus.nom = :articleStatusAvailable
+                        OR sub_articleStatus.nom = :articleStatusDispute
                     )
                     THEN 1 ELSE 0 END) AS sub_isTreatable
             ')
@@ -166,6 +167,7 @@ class InventoryEntryRepository extends ServiceEntityRepository
             ->leftJoin('article.emplacement', 'articleLocation')
             ->andWhere('entry.anomaly = 1')
             ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
+            ->setParameter('articleStatusDispute', Article::STATUT_EN_LITIGE)
             ->setParameter('draftRequestStatus', Demande::STATUT_BROUILLON)
             ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
             ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION);
