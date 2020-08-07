@@ -395,8 +395,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
 
                             $signatureFile = $request->files->get("signature_$index");
-                            if (!empty($signatureFile)) {
-                                $options['fileBag'] = [$signatureFile];
+                            $photoFile = $request->files->get("photo_$index");
+                            if (!empty($signatureFile) || !empty($photoFile)) {
+                                $options['fileBag'] = [];
+                                if (!empty($signatureFile)) {
+                                    $options['fileBag'][] = $signatureFile;
+                                }
+
+                                if (!empty($photoFile)) {
+                                    $options['fileBag'][] = $photoFile;
+                                }
                             }
 
                             $createdMvt = $mouvementTracaService->createTrackingMovement(
@@ -454,7 +462,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
                     });
-                } catch (Exception $e) {
+                }
+                catch (Exception $e) {
                     if (!$entityManager->isOpen()) {
                         /** @var EntityManagerInterface $entityManager */
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
