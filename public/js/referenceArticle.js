@@ -24,7 +24,6 @@ $(function () {
 });
 
 function initPageModals() {
-
     let modalRefArticleNew = $("#modalNewRefArticle");
     let submitNewRefArticle = $("#submitNewRefArticle");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
@@ -42,8 +41,10 @@ function initPageModals() {
 
     let $modalPlusDemande = $('#modalPlusDemande');
     let $submitPlusDemande = $('#submitPlusDemande');
+    let $submitPlusDemandeAndRedirect = $('#submitPlusDemandeAndRedirect');
     let urlPlusDemande = Routing.generate('plus_demande', true);
-// TODO InitialiserModalRefArticle($modalPlusDemande, $submitPlusDemande, urlPlusDemande);
+    InitModal($modalPlusDemande, $submitPlusDemande, urlPlusDemande, {tables: pageTables, clearOnClose: true});
+    InitModal($modalPlusDemande, $submitPlusDemandeAndRedirect, urlPlusDemande, {keepForm: true, success: redirectToDemande($modalPlusDemande)});
 
     let modalColumnVisible = $('#modalColumnVisible');
     let submitColumnVisible = $('#submitColumnVisible');
@@ -57,13 +58,6 @@ function initPageModals() {
         tables: pageTables,
         clearOnClose: true,
         success: displayNewFilter
-    });
-}
-
-
-function InitialiserModalRefArticle(modal, submit, path, callback = function () {}, close = true) {
-    submit.click(function () {
-        submitActionRefArticle(modal, path, callback, close);
     });
 }
 
@@ -347,7 +341,7 @@ let recupIdRefArticle = function (div) {
 };
 
 let ajaxPlusDemandeContent = function (button, demande) {
-    let plusDemandeContent = $('.plusDemandeContent');
+    let plusDemandeContent = $(`.plusDemandeContent`);
     let editChampLibre = $('.editChampLibre');
     let modalFooter = button.closest('.modal').find('.modal-footer');
     plusDemandeContent.html('');
@@ -396,11 +390,13 @@ let ajaxEditArticle = function ($select) {
 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
-                $('.editChampLibre').html(data);
+                const $editChampLibre = $('.editChampLibre');
+                $editChampLibre.html(data);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
                 modalFooter.removeClass('d-none');
+                $editChampLibre.find('#quantite').attr('name', 'quantite');
                 setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
             }
         }, 'json');
@@ -479,28 +475,26 @@ function toggleRequiredChampsFixes(button) {
     displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
 }
 
-function submitPlusAndGoToDemande(button) {
-    let modal = button.closest('.modal');
-    let path = Routing.generate('plus_demande');
+function redirectToDemande($modal) {
+    return () => {
+        let livraisonId = $modal.find('.data[name="livraison"]').val();
+        let collecteId = $modal.find('.data[name="collecte"]').val();
 
-    submitActionRefArticle(modal, path, redirectToDemande);
-}
+        let demandeId = null;
+        let demandeType = null;
+        if (collecteId) {
+            demandeId = collecteId;
+            demandeType = 'collecte';
+        } else if (livraisonId) {
+            demandeId = livraisonId;
+            demandeType = 'demande';
+        }
 
-function redirectToDemande() {
-    let livraisonId = $('.data[name="livraison"]').val();
-    let collecteId = $('.data[name="collecte"]').val();
-
-    let demandeId = null;
-    let demandeType = null;
-    if (typeof (collecteId) !== 'undefined') {
-        demandeId = collecteId;
-        demandeType = 'collecte';
-    } else if (typeof (livraisonId) !== 'undefined') {
-        demandeId = livraisonId;
-        demandeType = 'demande';
+        clearModal($modal);
+        if (demandeId && demandeType) {
+            window.location.href = Routing.generate(demandeType + '_show', {'id': demandeId});
+        }
     }
-
-    window.location.href = Routing.generate(demandeType + '_show', {'id': demandeId});
 }
 
 function saveRapidSearch() {

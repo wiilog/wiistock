@@ -12,7 +12,7 @@
                     <label class='col'>Type de demande</label>
                     <div class="col input-group radio-btn">
                         <div>
-                            <span class="btn not-active checkbox" data-toggle="demande" data-title="livraison" id="demande"}
+                            <span class="btn not-active checkbox" data-toggle="demande" data-title="livraison" id="demande"
                             onclick="clearModal('#modalPlusDemande'), toggleLivraisonCollecte($(this))">Livraison</span><span class="btn not-active checkbox" data-toggle="demande" data-title="collecte" id="collecte"
                             onclick="clearModal('#modalPlusDemande'), toggleLivraisonCollecte($(this))">Collecte</span>
                         </div>
@@ -31,9 +31,8 @@
             <div class="error-msg p-4"></div>
             <div class="modal-footer d-none">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button type="button" id="submitPlusDemande" name='refArticle' value=''
-                    class="btn btn-primary data">Ajouter</button>
-                <button type="button" onclick="submitPlusAndGoToDemande($(this))" class="btn btn-primary">Ajouter et aller vers demande</button>
+                <button type="button" id="submitPlusDemande" name='refArticle' value='' class="btn btn-primary data">Ajouter</button>
+                <button type="button" id="submitPlusDemandeAndRedirect" class="btn btn-primary">Ajouter et aller vers demande</button>
             </div>
         </div>
     </div>

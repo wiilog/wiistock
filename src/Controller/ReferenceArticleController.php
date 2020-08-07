@@ -931,11 +931,8 @@ class ReferenceArticleController extends AbstractController
      * @param FreeFieldService $champLibreService
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
-     * @throws ArticleNotAvailableException
-     * @throws DBALException
      * @throws LoaderError
      * @throws NonUniqueResultException
-     * @throws RequestNeedToBeProcessedException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -948,7 +945,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
-            $json = true;
+            $success = true;
 
             $refArticle = (isset($data['refArticle']) ? $referenceArticleRepository->find($data['refArticle']) : '');
             $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -956,7 +953,7 @@ class ReferenceArticleController extends AbstractController
             if ($statusName == ReferenceArticle::STATUT_ACTIF) {
 				if (array_key_exists('livraison', $data) && $data['livraison']) {
 				    $demande = $demandeRepository->find($data['livraison']);
-                    $json = $this->refArticleDataService->addRefToDemand(
+                    $success = $this->refArticleDataService->addRefToDemand(
                         $data,
                         $refArticle,
                         $this->getUser(),
@@ -965,19 +962,19 @@ class ReferenceArticleController extends AbstractController
                         $demande,
                         $champLibreService
                     );
-                    if ($json === 'article') {
+                    if ($success === 'article') {
                         try {
                             $this->articleDataService->editArticle($data);
-                            $json = true;
+                            $success = true;
                         }
                         catch(ArticleNotAvailableException $exception) {
-                            $json = [
+                            $success = [
                                 'success' => false,
                                 'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
                             ];
                         }
                         catch(RequestNeedToBeProcessedException $exception) {
-                            $json = [
+                            $success = [
                                 'success' => false,
                                 'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
                             ];
@@ -1002,17 +999,19 @@ class ReferenceArticleController extends AbstractController
 							->setQuantite(max((int)$data['quantity-to-pick'], 0)); // protection contre quantités négatives
                         $entityManager->persist($collecteReference);
 					} else {
-						$json = false; //TOOD gérer message erreur
+						$success = false; //TOOD gérer message erreur
 					}
 				} else {
-					$json = false; //TOOD gérer message erreur
+					$success = false; //TOOD gérer message erreur
 				}
                 $entityManager->flush();
 			} else {
-            	$json = false;
+            	$success = false;
 			}
 
-            return new JsonResponse($json);
+            return new JsonResponse([
+                'success' => $success
+            ]);
 
         }
         throw new NotFoundHttpException("404");
@@ -1070,17 +1069,16 @@ class ReferenceArticleController extends AbstractController
                 $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], $byRef);
 
                 $json = [
-                    'plusContent' => $this->renderView(
-                        'reference_article/modalPlusDemandeContent.html.twig',
-                        [
-                            'articleOrNo' => $articleOrNo,
-                            'collectes' => $collectes,
-                            'demandes' => $demandes
-                        ]
-                    ),
+                    'plusContent' => $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
+                        'articleOrNo' => $articleOrNo,
+                        'collectes' => $collectes,
+                        'demandes' => $demandes,
+                        'demandeType' => $data['demande']
+                    ]),
                     'editChampLibre' => $editChampLibre,
-					'byRef' => $byRef && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+					'byRef' => $byRef && ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
 				];
+                dump($json);
             } else {
                 $json = false;
             }

@@ -320,6 +320,10 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param DemandeLivraisonService $demandeLivraisonService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function delete(Request $request,
                            DemandeLivraisonService $demandeLivraisonService,
@@ -340,6 +344,14 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
                 $data = [
                     'redirect' => $this->generateUrl('demande_index'),
+                    'success' => true
+                ];
+            }
+            else {
+
+                $data = [
+                    'message' => 'Vous ne pouvez pas supprimer cette demande, vous devez d\'abord supprimer ses ordres.',
+                    'success' => false
                 ];
             }
             return new JsonResponse($data);
