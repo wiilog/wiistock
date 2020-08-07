@@ -84,8 +84,8 @@ class InventoryService
 		$diff = $newQuantity - $quantity;
 
 		if ($diff != 0) {
-		    $statusRequired = $isRef ? ReferenceArticle::STATUT_ACTIF : Article::STATUT_ACTIF;
-            if ($refOrArt->getStatut()->getNom() !== $statusRequired) {
+		    $statusRequired = $isRef ? [ReferenceArticle::STATUT_ACTIF] : [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE];
+            if (!in_array($refOrArt->getStatut()->getNom(), $statusRequired)) {
                 throw new ArticleNotAvailableException();
             }
 
