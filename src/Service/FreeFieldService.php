@@ -138,7 +138,7 @@ class FreeFieldService
             'id' => $freeField->getId(),
             'label' => $freeField->getLabel(),
             'elements' => $freeField->getElements(),
-            'typage' => $freeField->getTypage(),
+            'typing' => $freeField->getTypage(),
             'defaultValue' => $freeField->getDefaultValue(),
             'required' => $freeField->getRequiredCreate()
         ];

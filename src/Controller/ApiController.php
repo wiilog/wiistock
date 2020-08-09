@@ -234,6 +234,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
      * @param MouvementTracaService $mouvementTracaService
+     * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -243,6 +244,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function postMouvementsTraca(Request $request,
                                         MouvementStockService $mouvementStockService,
                                         MouvementTracaService $mouvementTracaService,
+                                        FreeFieldService $freeFieldService,
                                         AttachmentService $attachmentService,
                                         EntityManagerInterface $entityManager)
     {
@@ -268,6 +270,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 try {
                     $entityManager->transactional(function ()
                                                   use (
+                                                      $freeFieldService,
                                                       $mouvementStockService,
                                                       &$numberOfRowsInserted,
                                                       $mvt,
@@ -279,8 +282,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                       &$finishMouvementTraca,
                                                       $entityManager,
                                                       $mouvementTracaService) {
-
-
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
                         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -420,6 +421,23 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                             $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
+                            if ((!isset($mvt['fromStock']) || !$mvt['fromStock'])
+                                && $mvt['freeFields']) {
+                                $givenFreeFields = json_decode($mvt['freeFields'], true);
+                                $smartFreeFields = array_reduce(
+                                    array_keys($givenFreeFields),
+                                    function (array $acc, $id) use ($givenFreeFields) {
+                                        if (ctype_digit($id)) {
+                                            $acc[(int)$id] = $givenFreeFields[$id];
+                                        }
+                                        return $acc;
+                                    },
+                                    []
+                                );
+                                if (!empty($smartFreeFields)) {
+                                    $freeFieldService->manageFreeFields($createdMvt, $smartFreeFields, $entityManager);
+                                }
+                            }
 
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                             if ($location) {
@@ -1413,7 +1431,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations,
-            'trackingFreeFields' => $trackingFreeFields,
+            'freeFields' => $trackingFreeFields,
             'preparations' => $preparations,
             'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,

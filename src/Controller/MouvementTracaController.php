@@ -185,7 +185,6 @@ class MouvementTracaController extends AbstractController
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
-
             }
             else {
                 $colisArray = explode(',', $colisStr);
@@ -207,7 +206,6 @@ class MouvementTracaController extends AbstractController
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $createdPack = $createdMvt->getPack();
-
 
                     $createdMvt = $this->mouvementTracaService->createTrackingMovement(
                         $createdPack,
@@ -232,8 +230,6 @@ class MouvementTracaController extends AbstractController
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $codeToPack[$colis] = $createdPack;
-
-
                 }
             }
 
