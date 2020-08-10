@@ -128,7 +128,7 @@ class RoleController extends AbstractController
                 $role
                     ->setActive(true)
                     ->setLabel($data['label'])
-                    ->setIsMailSendAccountCreation($data['isMailSendAccountCreation']);
+                    ->setIsMailSendAccountCreation($data['role/isMailSendAccountCreation']);
                 $entityManager->persist($role);
 
                 unset($data['label']);

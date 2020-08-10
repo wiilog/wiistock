@@ -124,6 +124,7 @@ class MouvementTracaRepository extends EntityRepository
             ->addSelect('arrivage2.isUrgent')
             ->addSelect('reception.numeroReception')
             ->addSelect('reception.reference AS referenceReception')
+            ->addSelect('mouvementTraca.freeFields')
 
             ->andWhere('mouvementTraca.datetime BETWEEN :dateMin AND :dateMax')
 

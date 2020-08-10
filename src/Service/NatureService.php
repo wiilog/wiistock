@@ -12,7 +12,7 @@ class NatureService
             'id' => $nature->getId(),
             'label' => $nature->getLabel(),
             'color' => $nature->getColor(),
-            'hide' => (bool) $nature->getNeedsMobileSync()
+            'hide' => (bool) !$nature->getNeedsMobileSync()
         ];
     }
 }
