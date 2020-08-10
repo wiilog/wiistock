@@ -47,8 +47,16 @@ class Pack
     private $lastDrop;
 
     /**
+     * @var MouvementTraca
+     * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTrackings")
+     * @ORM\JoinColumn(name="last_tracking_id")
+     */
+    private $lastTracking;
+
+    /**
      * @var Collection
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack")
+     * @ORM\OrderBy({"datetime" = "DESC"})
      */
     private $trackingMovements;
 
@@ -131,6 +139,18 @@ class Pack
     public function setLastDrop(?MouvementTraca $lastDrop): self
     {
         $this->lastDrop = $lastDrop;
+
+        return $this;
+    }
+
+    public function getLastTracking(): ?MouvementTraca
+    {
+        return $this->lastTracking;
+    }
+
+    public function setLastTracking(?MouvementTraca $lastDrop): self
+    {
+        $this->lastTracking = $lastDrop;
 
         return $this;
     }

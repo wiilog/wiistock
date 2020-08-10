@@ -99,8 +99,7 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
             if ($demande === 'collecte') {
-                $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
-                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_INACTIF]);
             } else if ($demande === 'demande') {
                 $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
             } else {
