@@ -10,6 +10,7 @@ const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
+const PAGE_PACK = 'pack';
 const PAGE_LITIGE_ARR = 'litige';
 const PAGE_ENCOURS = 'encours';
 const PAGE_INV_ENTRIES = 'inv_entries';
@@ -736,7 +737,7 @@ function ajaxAutoRefArticleInit(select, typeQuantity = null, field = 'reference'
 }
 
 function ajaxAutoArticlesInit(select, referenceArticleReference = null, lengthMin = 1) {
-    initSelect2(select, '', lengthMin, {route: 'get_articles', param: {activeOnly: 1, referenceArticleReference}});
+    initSelect2(select, '', lengthMin, {route: 'get_articles', param: {activeOnly: 1, referenceArticleReference, activeReferenceOnly: 1}});
 }
 
 function ajaxAutoArticlesReceptionInit(select, receptionId = null) {

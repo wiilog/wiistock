@@ -1,0 +1,43 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Traçabilité | Colis{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersPack.html.twig' with {
+        'page' : 'PAGE_PACK',
+        'tableSelector' : '#packTable'
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+    <div class="m-4 wii-page-card">
+        {% if hasRightExport %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn-group">
+                        <button type="button"
+                                class="btn btn-primary btn-ripple"
+                                onclick="saveExportFile('pack_export_csv')">
+                            <i class="fa fa-file-csv mr-2"></i>
+                            Exporter au format CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <table id="packTable" class="table w-100"></table>
+            </div>
+
+        </div>
+    </div>
+    <input type="text" hidden id="packNature"
+           value="{{ 'natures.Nature de colis' | trans }}">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pack.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

@@ -1360,23 +1360,20 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @param Arrivage $arrivage
      * @return Response
      */
     public function apiColis(Request $request,
-                             EntityManagerInterface $entityManager,
                              Arrivage $arrivage): Response
     {
         if ($request->isXmlHttpRequest()) {
-            $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
             $packs = $arrivage->getPacks()->toArray();
 
             $rows = [];
             /** @var Pack $pack */
             foreach ($packs as $pack) {
-                $mouvement = $mouvementTracaRepository->getLastByColis($pack->getCode());
+                $mouvement = $pack->getLastTracking();
                 $rows[] = [
                     'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
                     'code' => $pack->getCode(),
