@@ -57,7 +57,9 @@ final class Version20200805120431 extends AbstractMigration
         )->fetchAll();
 
         foreach ($allReference as $reference) {
-           $this->addSql("DELETE FROM inventory_mission_reference_article WHERE inventory_mission_reference_article.reference_article_id = ${$reference['id']}");
+            $referenceId = $reference['id'];
+           $this->addSql("DELETE FROM inventory_mission_reference_article
+                            WHERE inventory_mission_reference_article.reference_article_id = ${referenceId}");
         }
     }
 

@@ -95,7 +95,7 @@
         {% set checked = role.isMailSendAccountCreation ? 'checked' : '' %}
         <span class="mr-2 my-auto" onclick="$(this).closest('div').find('.checkbox').click();">Réception mail création nouveau compte</span>
         <label class="switch">
-            <input type="checkbox" class="data checkbox col-3" {{ checked }} name="isMailSendAccountCreation">
+            <input type="checkbox" class="data checkbox col-3" {{ checked }} name="role/isMailSendAccountCreation">
             <span class="slider round"></span>
         </label>
     </div>

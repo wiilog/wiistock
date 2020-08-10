@@ -105,7 +105,7 @@ class FreeFieldService
 
         $detailsChampLibres = [];
         foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            if ($freeFieldValue) {
+            if ($freeFieldValue && isset($freeFields[$freeFieldId])) {
                 $detailsChampLibres[] = [
                     'label' => $freeFields[$freeFieldId]['label'],
                     'value' => $this->formatValeurChampLibreForDatatable([

@@ -112,9 +112,9 @@ class Role
         return $this;
     }
 
-    public function removeAction(Action $action): self
+    public function removeAction(?Action $action): self
     {
-        if ($this->actions->contains($action)) {
+        if ($action && $this->actions->contains($action)) {
             $this->actions->removeElement($action);
             $action->removeRole($this);
         }
