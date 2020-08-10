@@ -77,7 +77,7 @@
                     <input type="datetime-local" name="{{ freeField.id }}" id="{{ freeField.id ~ actionType }}"
                            class="form-control needs-default data {{ attribute(freeField, requiredType) ? 'needed' : '' }}"
                            data-init="{{ entityValue }}"
-                           value="{{ entityValue | date('Y-m-d\\TH:i') }}">
+                           value="{{ entityValue ? entityValue | date('Y-m-d\\TH:i') : '' }}">
 
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_DATE') %}
                     <input
