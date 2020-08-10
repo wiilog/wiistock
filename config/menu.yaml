@@ -20,6 +20,8 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_MOUV
+                -   label: 'Colis'
+                    path: 'pack_index'
                 -   label: 'Acheminements'
                     path: 'acheminements_index'
                     rights:
