@@ -121,7 +121,7 @@ Class AcheminementsController extends AbstractController
                 ->setReceiver($utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
                 ->setLocationTake($data['prise'])
-                ->setColis($data['colis']);
+                ->setColis(is_array($data['colis']) ? $data['colis'] : [$data['colis']]);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($acheminements);
@@ -219,7 +219,7 @@ Class AcheminementsController extends AbstractController
                 ->setReceiver($utilisateurRepository->find($data['destinataire']))
                 ->setLocationDrop($data['depose'])
                 ->setLocationTake($data['prise'])
-                ->setColis($data['colis']);
+                ->setColis(is_array($data['colis']) ? $data['colis'] : [$data['colis']]);
 
             $entityManager->flush();
 

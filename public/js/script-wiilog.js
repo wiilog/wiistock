@@ -76,9 +76,19 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
     let commentErrors = [];
 
     inputsArray.each(function () {
-        name = $(this).attr("name");
-        vals.push($(this).val());
-        Data[name] = vals;
+        let $input = $(this);
+        let name = $(this).attr("name");
+        let val = $input.val();
+        if ($input.hasClass('needed')
+            && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
+            && $input.is(':disabled') === false) {
+            missingInputs.push(name);
+            $input.addClass('is-invalid');
+        } else {
+            vals.push($(this).val());
+            Data[name] = vals;
+        }
+
     });
 
     inputs.each(function () {
