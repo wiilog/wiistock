@@ -352,13 +352,11 @@ class Emplacement
     /**
      * @return Collection|Nature[]
      */
-    public function getAllowedNatures(): Collection
-    {
+    public function getAllowedNatures(): Collection {
         return $this->allowedNatures;
     }
 
-    public function addAllowedNature(Nature $allowedNature): self
-    {
+    public function addAllowedNature(Nature $allowedNature): self {
         if (!$this->allowedNatures->contains($allowedNature)) {
             $this->allowedNatures[] = $allowedNature;
         }
@@ -366,8 +364,7 @@ class Emplacement
         return $this;
     }
 
-    public function removeAllowedNature(Nature $allowedNature): self
-    {
+    public function removeAllowedNature(Nature $allowedNature): self {
         if ($this->allowedNatures->contains($allowedNature)) {
             $this->allowedNatures->removeElement($allowedNature);
         }

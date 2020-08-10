@@ -133,4 +133,15 @@ class FreeFieldService
         }, []);
     }
 
+    public function serializeFreeField(ChampLibre $freeField): array {
+        return [
+            'id' => $freeField->getId(),
+            'label' => $freeField->getLabel(),
+            'elements' => $freeField->getElements(),
+            'typing' => $freeField->getTypage(),
+            'defaultValue' => $freeField->getDefaultValue(),
+            'required' => $freeField->getRequiredCreate()
+        ];
+    }
+
 }

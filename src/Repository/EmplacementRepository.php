@@ -26,15 +26,13 @@ class EmplacementRepository extends EntityRepository
         'allowed-natures' => 'allowed-natures',
     ];
 
-    public function getIdAndNom()
+    public function getLocationsArray()
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT e.id, e.label
-            FROM App\Entity\Emplacement e
-            "
-        );;
-        return $query->execute();
+        return $this->createQueryBuilder('location')
+            ->select('location.id')
+            ->addSelect('location.label')
+            ->getQuery()
+            ->getResult();
     }
 
     public function countAll()

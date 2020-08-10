@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
@@ -185,7 +186,6 @@ class MouvementTracaController extends AbstractController
                 $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $createdMouvements[] = $createdMvt;
-
             }
             else {
                 $colisArray = explode(',', $colisStr);
@@ -207,7 +207,6 @@ class MouvementTracaController extends AbstractController
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $createdPack = $createdMvt->getPack();
-
 
                     $createdMvt = $this->mouvementTracaService->createTrackingMovement(
                         $createdPack,
@@ -232,8 +231,6 @@ class MouvementTracaController extends AbstractController
                     $entityManager->persist($createdMvt);
                     $createdMouvements[] = $createdMvt;
                     $codeToPack[$colis] = $createdPack;
-
-
                 }
             }
 
@@ -440,13 +437,28 @@ class MouvementTracaController extends AbstractController
         }
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+            $freeFields = $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
+
+            $freeFieldsIds = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getId();
+                },
+                $freeFields
+            );
+            $freeFieldsHeader = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getLabel();
+                },
+                $freeFields
+            );
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
             $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
             $mouvements = $mouvementTracaRepository->getByDates($dateTimeMin, $dateTimeMax);
             $attachmentsNameByMouvementTraca = $pieceJointeRepository->getNameGroupByMouvements();
 
-            $csvHeader = [
+            $csvHeader = array_merge([
                 'date',
                 'colis',
                 'emplacement',
@@ -457,13 +469,13 @@ class MouvementTracaController extends AbstractController
                 'origine',
                 'numéro de commande',
                 'urgence'
-            ];
+            ], $freeFieldsHeader);
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export_mouvement_traca.csv',
                 $mouvements,
                 $csvHeader,
-                function ($mouvement) use ($attachmentsNameByMouvementTraca) {
+                function ($mouvement) use ($attachmentsNameByMouvementTraca, $freeFieldsIds) {
                     $row = [];
                     $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
                     $row[] = $mouvement['colis'];
@@ -477,6 +489,9 @@ class MouvementTracaController extends AbstractController
                         ? implode(', ', $mouvement['numeroCommandeListArrivage'])
                         : ($mouvement['referenceReception'] ?: '');
                     $row[] = !empty($mouvement['isUrgent']) ? 'oui' : 'non';
+                    foreach ($freeFieldsIds as $freeField) {
+                        $row[] = $mouvement['freeFields'][$freeField] ?? "";
+                    }
                     return [$row];
                 }
             );

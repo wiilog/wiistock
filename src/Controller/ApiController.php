@@ -6,6 +6,8 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -41,6 +43,7 @@ use App\Service\MailerService;
 use App\Service\ManutentionService;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
+use App\Service\NatureService;
 use App\Service\PreparationsManagerService;
 use App\Service\OrdreCollecteService;
 use App\Service\UserService;
@@ -231,6 +234,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param Request $request
      * @param MouvementStockService $mouvementStockService
      * @param MouvementTracaService $mouvementTracaService
+     * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -240,6 +244,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     public function postMouvementsTraca(Request $request,
                                         MouvementStockService $mouvementStockService,
                                         MouvementTracaService $mouvementTracaService,
+                                        FreeFieldService $freeFieldService,
                                         AttachmentService $attachmentService,
                                         EntityManagerInterface $entityManager)
     {
@@ -265,6 +270,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 try {
                     $entityManager->transactional(function ()
                                                   use (
+                                                      $freeFieldService,
                                                       $mouvementStockService,
                                                       &$numberOfRowsInserted,
                                                       $mvt,
@@ -276,8 +282,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                       &$finishMouvementTraca,
                                                       $entityManager,
                                                       $mouvementTracaService) {
-
-
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
                         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -337,7 +341,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                         $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
                                         $article->setStatut($status);
                                     }
-                                } else { // MouvementTraca::TYPE_DEPOSE
+                                }
+                                else { // MouvementTraca::TYPE_DEPOSE
                                     $mouvementTracaPrises = $mouvementTracaRepository->findBy(
                                         [
                                             'colis' => $mvt['ref_article'],
@@ -382,14 +387,25 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                     }
                                 }
                             }
+                            else {
+                                $options['natureId'] = $mvt['nature_id'] ?? null;
+                            }
 
                             if (!empty($mvt['comment'])) {
                                 $options['commentaire'] = $mvt['comment'];
                             }
 
                             $signatureFile = $request->files->get("signature_$index");
-                            if (!empty($signatureFile)) {
-                                $options['fileBag'] = [$signatureFile];
+                            $photoFile = $request->files->get("photo_$index");
+                            if (!empty($signatureFile) || !empty($photoFile)) {
+                                $options['fileBag'] = [];
+                                if (!empty($signatureFile)) {
+                                    $options['fileBag'][] = $signatureFile;
+                                }
+
+                                if (!empty($photoFile)) {
+                                    $options['fileBag'][] = $photoFile;
+                                }
                             }
 
                             $createdMvt = $mouvementTracaService->createTrackingMovement(
@@ -405,6 +421,23 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
                             $entityManager->persist($createdMvt);
                             $numberOfRowsInserted++;
+                            if ((!isset($mvt['fromStock']) || !$mvt['fromStock'])
+                                && $mvt['freeFields']) {
+                                $givenFreeFields = json_decode($mvt['freeFields'], true);
+                                $smartFreeFields = array_reduce(
+                                    array_keys($givenFreeFields),
+                                    function (array $acc, $id) use ($givenFreeFields) {
+                                        if (ctype_digit($id)) {
+                                            $acc[(int)$id] = $givenFreeFields[$id];
+                                        }
+                                        return $acc;
+                                    },
+                                    []
+                                );
+                                if (!empty($smartFreeFields)) {
+                                    $freeFieldService->manageFreeFields($createdMvt, $smartFreeFields, $entityManager);
+                                }
+                            }
 
                             // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
                             if ($location) {
@@ -447,7 +480,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                         }
                     });
-                } catch (Exception $e) {
+                }
+                catch (Exception $e) {
                     if (!$entityManager->isOpen()) {
                         /** @var EntityManagerInterface $entityManager */
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
@@ -1248,13 +1282,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @param $user
      * @param UserService $userService
+     * @param NatureService $natureService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return array
      * @throws NonUniqueResultException
-     * @throws Exception
      */
     private function getDataArray($user,
                                   UserService $userService,
+                                  NatureService $natureService,
+                                  FreeFieldService $freeFieldService,
                                   EntityManagerInterface $entityManager)
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1266,6 +1303,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $preparationRepository = $entityManager->getRepository(Preparation::class);
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1365,12 +1404,34 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['tracking']) {
             $trackingTaking = $mouvementTracaRepository->getTakingByOperatorAndNotDeposed($user, MouvementTracaRepository::MOUVEMENT_TRACA_DEFAULT);
+            $natures = array_map(
+                function (Nature $nature) use ($natureService) {
+                    return $natureService->serializeNature($nature);
+                },
+                $natureRepository->findAll()
+            );
+            $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
+            $trackingFreeFields = array_map(
+                function (ChampLibre $freeField) use ($freeFieldService) {
+                    $serializedFreeField = $freeFieldService->serializeFreeField($freeField);
+                    return array_merge(
+                        $serializedFreeField,
+                        ['type' => CategoryType::MOUVEMENT_TRACA]
+                    );
+                },
+                $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
+            );
         } else {
             $trackingTaking = [];
+            $natures = [];
+            $allowedNatureInLocations = [];
+            $trackingFreeFields = [];
         }
 
         return [
-            'emplacements' => $emplacementRepository->getIdAndNom(),
+            'locations' => $emplacementRepository->getLocationsArray(),
+            'allowedNatureInLocations' => $allowedNatureInLocations,
+            'freeFields' => $trackingFreeFields,
             'preparations' => $preparations,
             'articlesPrepa' => $this->getArticlesPrepaArrays($preparations),
             'articlesPrepaByRefArticle' => $articlesPrepaByRefArticle,
@@ -1385,6 +1446,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'stockTaking' => $stockTaking,
             'demandeLivraisonTypes' => $demandeLivraisonTypes,
             'demandeLivraisonArticles' => $demandeLivraisonArticles,
+            'natures' => $natures,
             'rights' => $rights
         ];
     }
@@ -1393,12 +1455,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/getData", name="api-get-data")
      * @param Request $request
      * @param UserService $userService
+     * @param NatureService $natureService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
     public function getData(Request $request,
                             UserService $userService,
+                            NatureService $natureService,
+                            FreeFieldService $freeFieldService,
                             EntityManagerInterface $entityManager)
     {
         $apiKey = $request->request->get('apiKey');
@@ -1407,7 +1473,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $entityManager);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $entityManager);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
@@ -1634,6 +1700,32 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
         return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Get("/api/packs/{code}/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @param NatureService $natureService
+     * @param string $code
+     * @return JsonResponse
+     */
+    public function getPackNature(EntityManagerInterface $entityManager,
+                                  NatureService $natureService,
+                                  string $code): JsonResponse {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $packs = $packRepository->findBy(['code' => $code]);
+
+        if (!empty($packs)) {
+            $pack = $packs[0];
+            $nature = $pack->getNature();
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'nature' => !empty($nature)
+                ? $natureService->serializeNature($nature)
+                : null
+        ]);
     }
 
     private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array

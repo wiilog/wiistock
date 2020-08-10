@@ -14,6 +14,15 @@ use Doctrine\ORM\EntityRepository;
 class NatureRepository extends EntityRepository
 {
 
+    public function getAllowedNaturesIdByLocation() {
+        return $this->createQueryBuilder('nature')
+            ->select('nature.id AS nature_id')
+            ->addSelect('location.id AS location_id')
+            ->join('nature.emplacements', 'location')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countUsedById($id)
     {
         $entityManager = $this->getEntityManager();
