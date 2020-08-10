@@ -98,6 +98,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
         modal.find('.select2').select2();
+        initFreeSelect2($('.select2-free'));
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoCompleteFrequencyInit(modal.find('.ajax-autocomplete-frequency'));
         ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
@@ -122,6 +123,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 function newModal(path, modal) {
     $.post(path, function (resp) {
         modal.find('.modal-body').html(resp);
+        initFreeSelect2(modal.find($('.select2-free')));
     }, 'json');
 }
 

@@ -17,6 +17,7 @@ use App\Service\AcheminementsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -102,6 +103,7 @@ Class AcheminementsController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response
@@ -129,6 +131,8 @@ Class AcheminementsController extends AbstractController
             $em->flush();
 
             $response['acheminement'] = $acheminements->getId();
+            $response['success'] = true;
+
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404 not found');
@@ -144,6 +148,7 @@ Class AcheminementsController extends AbstractController
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws Exception
      */
     public function printAcheminementStateSheet(Acheminements $acheminement,
                                                 PDFGeneratorService $PDFGenerator): PdfResponse
@@ -197,6 +202,7 @@ Class AcheminementsController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response {
@@ -224,6 +230,7 @@ Class AcheminementsController extends AbstractController
             $entityManager->flush();
 
             $response['acheminement'] = $acheminement->getId();
+            $response['success'] = true;
 
             return new JsonResponse($response);
         }

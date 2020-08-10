@@ -35,17 +35,27 @@ let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsCo
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");
 let urlNewAcheminements = Routing.generate('acheminements_new', true);
-InitialiserModal(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
+InitModal(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, {
+    tables: [tableAcheminements],
+    success: (data) => {
+        printAcheminementFromId(data);
+    }
+});
 
 let modalModifyAcheminements = $('#modalEditAcheminements');
 let submitModifyAcheminements = $('#submitEditAcheminements');
 let urlModifyAcheminements = Routing.generate('acheminement_edit', true);
-InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements, tableAcheminements, printAcheminementFromId);
+InitModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements, {
+    tables: [tableAcheminements],
+    success: (data) => {
+        printAcheminementFromId(data);
+    }
+});
 
 let modalDeleteAcheminements = $('#modalDeleteAcheminements');
 let submitDeleteAcheminements = $('#submitDeleteAcheminements');
 let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
-InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, tableAcheminements);
+InitModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, {tables: [tableAcheminements]});
 
 $(function() {
     initSelect2($('#statut'), 'Statuts');
@@ -59,24 +69,15 @@ $(function() {
     }, 'json');
 });
 
-
-function addInputColisClone(button)
-{
-    let $modal = button.closest('.modal-body');
-    let $toClone = $modal.find('.inputColisClone').first();
-    let $parent = $toClone.parent();
-    $toClone.clone().appendTo($parent);
-    $parent.children().last().find('.data-array').val('');
-}
-
 function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
+    let s = $("#s");
     if ($(button).hasClass('not-active')) {
-        if ($("#s").val() == "0") {
-            $("#s").val("1");
+        if (s.val() === "0") {
+            s.val("1");
         } else {
-            $("#s").val("0");
+            s.val("0");
         }
     }
 
