@@ -266,8 +266,7 @@ class InventoryMissionController extends AbstractController
             foreach ($data['articles'] as $articleId) {
                 $article = $articleRepository->find($articleId);
 
-				if ($article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() != ReferenceArticle::STATUT_ACTIF
-                    && ($article->getStatut()->getNom() != Article::STATUT_EN_LITIGE || $article->getStatut()->getNom() != Article::STATUT_ACTIF)) {
+				if ($article->getArticleFournisseur()->getReferenceArticle()->getStatut()->getNom() != ReferenceArticle::STATUT_ACTIF) {
 				    return new JsonResponse([
 				       'success' => false,
                         'msg' => 'La référence liée à cet article est inactive, vous ne pouvez pas l\'ajouter.'
