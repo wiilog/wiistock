@@ -30,7 +30,8 @@
             <input class="form-control data needed"
                    type="number"
                    name="quantite"
-                   value="{{ reception.quantity }}" />
+                   value="{{ reception.quantity }}"
+                   min="0"/>
         </div>
         <div class="col-1 text-right">
             <i class='fas fa-trash pointer m-3' onclick="removePackingItem($(this))"></i>

@@ -1886,7 +1886,7 @@ class ReceptionController extends AbstractController
                 $rra = $receptionReferenceArticleRepository->find($rraId);
 
                 // protection quantité reçue <= quantité à recevoir
-                if ($totalQuantity > $rra->getQuantiteAR()) {
+                if ($totalQuantity > $rra->getQuantiteAR() || $totalQuantity < 0) {
                     return new JsonResponse(false);
                 }
                 $rra->setQuantite($totalQuantity);
