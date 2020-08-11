@@ -68,6 +68,7 @@ class ChampLibreController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param $id
      * @return Response
+     * @throws \Exception
      */
     public function api(Request $request,
                         EntityManagerInterface $entityManager,
@@ -97,6 +98,15 @@ class ChampLibreController extends AbstractController
                     $typageCLFr = '';
                 }
 
+                $defaultValue = $champLibre->getDefaultValue();
+                if ($champLibre->getTypage() == ChampLibre::TYPE_BOOL) {
+                    $defaultValue = $champLibre->getDefaultValue() ? 'oui' : 'non';
+                } else if ($champLibre->getTypage() === ChampLibre::TYPE_DATETIME
+                    || $champLibre->getTypage() === ChampLibre::TYPE_DATE) {
+                    $defaultValueDate = new \DateTime(str_replace('/', '-', $defaultValue));
+                    $defaultValue = $defaultValueDate->format('d/m/Y H:i');
+                }
+
                 $rows[] =
                     [
                         'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
@@ -105,9 +115,7 @@ class ChampLibreController extends AbstractController
                         'Typage' => $typageCLFr,
                         'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
-                        'Valeur par défaut' => ($champLibre->getTypage() == ChampLibre::TYPE_BOOL
-                            ? ($champLibre->getDefaultValue() ? 'oui' : 'non')
-                            : ($champLibre->getDefaultValue() ?? 'Non défini')),
+                        'Valeur par défaut' => $defaultValue,
                         'Elements' => $champLibre->getTypage() == ChampLibre::TYPE_LIST || $champLibre->getTypage() == ChampLibre::TYPE_LIST_MULTIPLE ? $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
                         'Actions' => $this->renderView('champ_libre/datatableChampLibreRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
                     ];
