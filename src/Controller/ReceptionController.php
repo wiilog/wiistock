@@ -1906,6 +1906,7 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
             }
 
+            $receptionLocation = $reception->getLocation();
             // crée les articles et les ajoute à la demande, à la réception, crée les urgences
             $receptionLocationId = isset($receptionLocation) ? $receptionLocation->getId() : null;
             foreach ($articles as $article) {
@@ -1913,7 +1914,6 @@ class ReceptionController extends AbstractController
                     $article['emplacement'] = $receptionLocationId;
                 }
                 $article = $this->articleDataService->newArticle($article, $demande ?? null, $reception);
-                $receptionLocation = $reception->getLocation();
 
                 $mouvementStock = $mouvementStockService->createMouvementStock(
                     $currentUser,
