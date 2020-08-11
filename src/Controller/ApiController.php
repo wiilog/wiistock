@@ -23,6 +23,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
@@ -1305,6 +1306,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $translationsRepository = $entityManager->getRepository(Translation::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1447,7 +1449,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'demandeLivraisonTypes' => $demandeLivraisonTypes,
             'demandeLivraisonArticles' => $demandeLivraisonArticles,
             'natures' => $natures,
-            'rights' => $rights
+            'rights' => $rights,
+            'translations' => $translationsRepository->findAllObjects()
         ];
     }
 
