@@ -428,7 +428,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 $smartFreeFields = array_reduce(
                                     array_keys($givenFreeFields),
                                     function (array $acc, $id) use ($givenFreeFields) {
-                                        if (ctype_digit($id)) {
+                                        if (gettype($id) === 'integer' || ctype_digit($id)) {
                                             $acc[(int)$id] = $givenFreeFields[$id];
                                         }
                                         return $acc;
