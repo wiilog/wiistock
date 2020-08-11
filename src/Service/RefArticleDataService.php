@@ -329,7 +329,7 @@ class RefArticleDataService
         $rowCL = [];
         /** @var ChampLibre $champ */
         foreach ($champs as $champ) {
-            $rowCL[$champ['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+            $rowCL[strval($champ['label'])] = $this->freeFieldService->formatValeurChampLibreForDatatable([
                 'valeur' => $refArticle->getFreeFieldValue($champ['id']),
                 "typage" => $champ['typage'],
             ]);
@@ -361,7 +361,6 @@ class RefArticleDataService
                 'isActive' => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
         ];
-
         return array_merge($rowCL, $rowCF);
     }
 

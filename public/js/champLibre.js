@@ -123,17 +123,21 @@ function defaultValueForTypage($select) {
                 <span class="slider round"></span>
             </label>`;
     } else {
-        if (typage === 'date' || typage === 'datetime') {
-            typeInput = 'text';
-        } else if (typage === 'list' || typage === 'list multiple') {
+        if (typage === 'list' || typage === 'list multiple') {
             label = "Éléments (séparés par ';')";
             name = 'elem';
             existingValue = existingElem ? existingElem : '';
+        } else if (typage === 'datetime') {
+            typeInput = 'datetime-local';
+        } else if (typage === 'date') {
+            typeInput = 'date';
         }
 
         inputDefaultBlock =
             `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
     }
+
+
 
     let defaultBlock =
         `<div class="form-group">
@@ -142,7 +146,6 @@ function defaultValueForTypage($select) {
         `</div>`;
 
     valueDefault.html(defaultBlock);
-    if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
 }
 
 function displayErrorCL(data) {
