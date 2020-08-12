@@ -31,6 +31,7 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
                 $role = new Role();
                 $role
                     ->setLabel($roleLabel)
+                    ->setIsMailSendAccountCreation(false)
                     ->setActive(true);
 
                 $manager->persist($role);
