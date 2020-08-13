@@ -116,6 +116,8 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -125,7 +127,10 @@ class InventoryMissionController extends AbstractController
             }
 
             if ($data['startDate'] > $data['endDate'])
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "La date de début doit être antérieure à celle de fin."
+                ]);
 
             $em = $this->getDoctrine()->getManager();
 
@@ -137,7 +142,10 @@ class InventoryMissionController extends AbstractController
             $em->persist($mission);
             $em->flush();
 
-            return new JsonResponse(true);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La mission d\'inventaire a bien été créée.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -307,6 +315,8 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/mission-infos", name="get_mission_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @return Response
      */
     public function getMouvementIntels(Request $request): Response
     {
