@@ -228,9 +228,6 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
         && wrongNumberInputs.length == 0
         && passwordIsValid
         && datesAreValid) {
-        if (close === true) {
-            modal.find('.close').click();
-        }
 
         return $
             .post({
@@ -245,6 +242,9 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                     }
                 }
                 else {
+                    if (close === true) {
+                        modal.find('.close').click();
+                    }
                     if (data.redirect) {
                         window.location.href = data.redirect;
                         return;
