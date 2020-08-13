@@ -18,6 +18,7 @@ let tableConfig = {
     ],
 };
 let table = initDataTable('tableAnomalies', tableConfig);
+let $modal = $('#modalTreatAnomaly');
 
 function showModalAnomaly($button) {
     let ref = $button.data('ref');
@@ -27,7 +28,6 @@ function showModalAnomaly($button) {
     let location = $button.data('location');
     let idEntry = $button.data('id-entry');
 
-    let $modal = $('#modalTreatAnomaly');
     $modal.find('.ref-title').text(isRef ? 'Référence' : 'Article');
     $modal.find('.reference').text(ref);
     $modal.find('.barCode').val(barCode);
@@ -37,21 +37,6 @@ function showModalAnomaly($button) {
     $modal.find('.idEntry').val(idEntry);
 }
 
-let modalTreatAnomaly = $('#modalTreatAnomaly');
 let submitTreatAnomaly = $('#submitTreatAnomaly');
 let urlTreatAnomaly = Routing.generate('anomaly_treat', true);
-InitialiserModal(modalTreatAnomaly, submitTreatAnomaly, urlTreatAnomaly, table, alertSuccessMsgAnomaly);
-
-
-function alertSuccessMsgAnomaly({success, message, quantitiesAreEqual}) {
-    if (success) {
-        if (quantitiesAreEqual) {
-            alertSuccessMsg("L'anomalie a bien été traitée.");
-        } else {
-            alertSuccessMsg("Un mouvement de stock correctif vient d'être créé.");
-        }
-    }
-    else {
-        alertErrorMsg(message);
-    }
-}
+InitModal($modal, submitTreatAnomaly, urlTreatAnomaly, {tables : [table]});
