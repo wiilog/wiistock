@@ -238,7 +238,7 @@ function processInputsForm($modal) {
         && (
             !firstDate ||
             !lastDate ||
-            moment(firstDate, 'D/M/YYYY h:mm').isSameOrBefore(moment(lastDate, 'D/M/YYYY h:mm'))
+            moment(lastDate, 'D/M/YYYY h:mm').isSameOrBefore(moment(firstDate, 'D/M/YYYY h:mm'))
         )) {
         errorMessages.push('La date de début doit être antérieure à la date de fin.');
         $isInvalidElements.push($firstDate, $lastDate);

@@ -64,17 +64,23 @@ function initPage() {
     let modalNewUrgence = $('#modalNewUrgence');
     let submitNewUrgence = $('#submitNewUrgence');
     let urlNewUrgence = Routing.generate('urgence_new');
-    InitialiserModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalNewUrgence, true), false, false);
+    InitModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, {
+        tables: [tableUrgence],
+        success : (data) => callbackUrgenceAction(data, modalNewUrgence, true)
+    });
 
     let modalDeleteUrgence = $('#modalDeleteUrgence');
     let submitDeleteUrgence = $('#submitDeleteUrgence');
     let urlDeleteUrgence = Routing.generate('urgence_delete', true);
-    InitialiserModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, tableUrgence);
+    InitModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, {tables: [tableUrgence]});
 
     let modalModifyUrgence = $('#modalEditUrgence');
     let submitModifyUrgence = $('#submitEditUrgence');
     let urlModifyUrgence = Routing.generate('urgence_edit', true);
-    InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalModifyUrgence), false, false);
+    InitModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, {
+        tables: [tableUrgence],
+        success : (data) => callbackUrgenceAction(data, modalModifyUrgence, true)
+    });
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
