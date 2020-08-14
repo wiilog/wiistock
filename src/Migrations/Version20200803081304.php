@@ -61,6 +61,8 @@ final class Version20200803081304 extends AbstractMigration
         ';
         $this
             ->addSql($updateTrackingWithoutPackQuery);
+        $this
+            ->addSql('DELETE FROM mouvement_traca WHERE mouvement_traca.colis IS NULL');
     }
 
     public function down(Schema $schema) : void

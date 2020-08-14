@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -140,6 +141,7 @@ class MouvementTracaService
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
      * @param array $options = [
      *      'commentaire' => string|null,
+     *      'natureId' => int|null,
      *      'mouvementStock' => MouvementStock|null,
      *      'fileBag' => FileBag|null, from => Arrivage|Reception|null],
      *      'entityManager' => EntityManagerInterface|null
@@ -196,7 +198,9 @@ class MouvementTracaService
             $mouvementTraca,
             $entityManager,
             $type,
-            $pack
+            $pack,
+            false,
+            $options['natureId'] ?? null
         );
 
         $refOrArticle = $referenceArticleRepository->findOneBy(['barCode' => $codePack])
@@ -266,13 +270,20 @@ class MouvementTracaService
      * @param Statut $type
      * @param string|Pack $pack
      * @param bool $persist
+     * @param int|null $natureId
      */
     public function managePackLinksWithTracking(MouvementTraca $tracking,
                                                 EntityManagerInterface $entityManager,
                                                 Statut $type,
                                                 $pack,
-                                                bool $persist = false): void {
+                                                bool $persist,
+                                                int $natureId = null): void {
         $packRepository = $entityManager->getRepository(Pack::class);
+
+        if (!empty($natureId)) {
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $nature = $natureRepository->find($natureId);
+        }
 
         $packs = ($pack instanceof Pack)
             ? [$pack]
@@ -297,9 +308,13 @@ class MouvementTracaService
             $tracking->removeLinkedPacksLastDrop($packLastDrop);
         }
 
-        if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
-            foreach ($packs as $existingPack) {
+        foreach ($packs as $existingPack) {
+            if ($type->getNom() === MouvementTraca::TYPE_DEPOSE) {
                 $tracking->addLinkedPackLastDrop($existingPack);
+            }
+
+            if (!empty($nature)) {
+                $existingPack->setNature($nature);
             }
         }
     }

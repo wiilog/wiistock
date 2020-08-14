@@ -105,7 +105,7 @@ class FreeFieldService
 
         $detailsChampLibres = [];
         foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
-            if ($freeFieldValue) {
+            if ($freeFieldValue && isset($freeFields[$freeFieldId])) {
                 $detailsChampLibres[] = [
                     'label' => $freeFields[$freeFieldId]['label'],
                     'value' => $this->formatValeurChampLibreForDatatable([
@@ -131,6 +131,17 @@ class FreeFieldService
             $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
             return $accumulator;
         }, []);
+    }
+
+    public function serializeFreeField(ChampLibre $freeField): array {
+        return [
+            'id' => $freeField->getId(),
+            'label' => $freeField->getLabel(),
+            'elements' => $freeField->getElements(),
+            'typing' => $freeField->getTypage(),
+            'defaultValue' => $freeField->getDefaultValue(),
+            'required' => $freeField->getRequiredCreate()
+        ];
     }
 
 }

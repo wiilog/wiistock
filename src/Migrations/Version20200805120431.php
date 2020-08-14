@@ -14,12 +14,12 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20200805120431 extends AbstractMigration
 {
-    public function getDescription() : string
+    public function getDescription(): string
     {
         return 'Remove all inactive articles & references in inventory mission.';
     }
 
-    public function up(Schema $schema) : void
+    public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
@@ -43,7 +43,7 @@ final class Version20200805120431 extends AbstractMigration
         )->fetchAll();
 
         foreach ($allArticle as $article) {
-           $this->addSql("DELETE FROM article_inventory_mission WHERE article_inventory_mission.article_id = ${article['id']}");
+            $this->addSql("DELETE FROM article_inventory_mission WHERE article_inventory_mission.article_id = ${article['id']}");
         }
 
         $allReference = $this->connection->executeQuery(
@@ -57,11 +57,13 @@ final class Version20200805120431 extends AbstractMigration
         )->fetchAll();
 
         foreach ($allReference as $reference) {
-           $this->addSql("DELETE FROM inventory_mission_reference_article WHERE inventory_mission_reference_article.reference_article_id = ${$reference['id']}");
+            $referenceId = $reference['id'];
+            $this->addSql("DELETE FROM inventory_mission_reference_article
+                            WHERE inventory_mission_reference_article.reference_article_id = ${referenceId}");
         }
     }
 
-    public function down(Schema $schema) : void
+    public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
     }

@@ -112,35 +112,29 @@ function defaultValueForTypage($select) {
                 <span class="slider round"></span>
             </label>`;
     } else {
-        if (typage === 'date' || typage === 'datetime') {
-            typeInput = 'text';
-        } else if (typage === 'list' || typage === 'list multiple') {
+        if (typage === 'list' || typage === 'list multiple') {
             label = "Éléments (séparés par ';')";
             name = 'elem';
             existingValue = existingElem ? existingElem : '';
+        } else if (typage === 'datetime') {
+            typeInput = 'datetime-local';
+        } else if (typage === 'date') {
+            typeInput = 'date';
         }
 
         inputDefaultBlock =
             `<input type="` + typeInput + `" class="form-control cursor-default data ` + typeInput + `" name="` + name + `" value="` + (existingValue ? existingValue : '') + `">`
     }
 
-    if (typage === 'booleen') {
-        let defaultBlock =
-            `<div class="form-group">`
-            + inputDefaultBlock + `
-                <label>` + label + `</label><br/>
-            </div>`;
-        valueDefault.html(defaultBlock);
-    } else {
-        let defaultBlock =
-            `<div class="form-group">
-                <label>` + label + `</label><br/>
-            ` + inputDefaultBlock +
-            `</div>`;
-        valueDefault.html(defaultBlock);
-    }
 
-    if (typage === 'datetime' || typage === 'date') initDateTimePicker($modal.find('.text'));
+
+    let defaultBlock =
+        `<div class="form-group">
+            <label>` + label + `</label><br/>
+            ` + inputDefaultBlock +
+        `</div>`;
+
+    valueDefault.html(defaultBlock);
 }
 
 function deleteType($button) {

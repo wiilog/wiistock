@@ -37,6 +37,16 @@ class TranslationRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
+	public function findAllObjects() {
+        $queryBuilder = $this->createQueryBuilder('translation');
+        return $queryBuilder
+            ->select('translation.menu')
+            ->addSelect('translation.label')
+            ->addSelect('translation.translation')
+            ->getQuery()
+            ->execute();
+    }
+
 	public function clearUpdate()
 	{
 		$em = $this->getEntityManager();

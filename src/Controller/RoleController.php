@@ -128,7 +128,7 @@ class RoleController extends AbstractController
                 $role
                     ->setActive(true)
                     ->setLabel($data['label'])
-                    ->setIsMailSendAccountCreation($data['isMailSendAccountCreation']);
+                    ->setIsMailSendAccountCreation($data['role/isMailSendAccountCreation']);
                 $entityManager->persist($role);
 
                 unset($data['label']);
@@ -227,7 +227,7 @@ class RoleController extends AbstractController
             unset($data['elem']);
             unset($data['id']);
 
-            $role->setIsMailSendAccountCreation($data['isMailSendAccountCreation']);
+            $role->setIsMailSendAccountCreation($data['role/isMailSendAccountCreation']);
 
             // on traite les paramètres
             foreach (array_keys($data) as $id) {
