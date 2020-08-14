@@ -76,20 +76,6 @@ let $submitEditChampLibre = $("#submitEditChampLibre");
 let urlEditChampLibre = Routing.generate('champ_libre_edit', true);
 InitModal($modalEditChampLibre, $submitEditChampLibre, urlEditChampLibre, {tables: [tableChampLibre]});
 
-function askForDeleteConfirmation(data) {
-    let modal = $('#modalDeleteType');
-    if (data !== true) {
-        modal.find('.modal-body').html(data);
-        let submit = $('#submitDeleteType');
-
-        let typeId = submit.val();
-        let params = JSON.stringify({force: true, type: typeId});
-
-    } else {
-        modal.find('.close').click();
-    }
-}
-
 function defaultValueForTypage($select) {
     const $modal = $select.closest('.modal');
     let valueDefault = $modal.find('.valueDefault');
