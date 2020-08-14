@@ -185,9 +185,10 @@ class MouvementStockController extends AbstractController
                             $chosenArticleToMove
                                 ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
                         } else {
-                            $chosenArticleToMove->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
                             if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
                                 $chosenArticleToMove->setStatut($unavailableArticleStatus);
+                            } else {
+                                $chosenArticleToMove->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
                             }
                         }
                     }
