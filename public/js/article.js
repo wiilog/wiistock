@@ -124,11 +124,11 @@ function loadAndDisplayInfos(select) {
 }
 
 let getArticleFournisseur = function () {
-    xhttp = new XMLHttpRequest();
+    let xhttp = new XMLHttpRequest();
     let $articleFourn = $('#newContent');
     let modalfooter = $('#modalNewArticle').find('.modal-footer');
     xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
+        if (this.readyState === 4 && this.status === 200) {
             data = JSON.parse(this.responseText);
 
             if (data.content) {
@@ -144,9 +144,9 @@ let getArticleFournisseur = function () {
             }
         }
     }
-    path = Routing.generate('ajax_article_new_content', true)
+    let path = Routing.generate('ajax_article_new_content', true)
     let data = {};
-    $('#newContent').html('');
+    $articleFourn.html('');
     data['referenceArticle'] = $('#referenceCEA').val();
     data['fournisseur'] = $('#fournisseurID').val();
     $articleFourn.html('')
@@ -172,10 +172,10 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     if (select.val()) {
         let fournisseur = $('#fournisseur');
         let modalfooter = $('#modalNewArticle').find('.modal-footer');
-        xhttp = new XMLHttpRequest();
+        let xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                data = JSON.parse(this.responseText);
+            if (this.readyState === 4 && this.status === 200) {
+                let data = JSON.parse(this.responseText);
                 if (data === false) {
                     $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
                 } else {
@@ -185,14 +185,14 @@ let ajaxGetFournisseurByRefArticle = function (select) {
                 }
             }
         };
-        path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        let path = Routing.generate('ajax_fournisseur_by_refarticle', true)
         $('#newContent').html('');
         fournisseur.addClass('d-none');
         modalfooter.addClass('d-none')
         let refArticleId = select.val();
         let json = {};
         json['refArticle'] = refArticleId;
-        Json = JSON.stringify(json);
+        let Json = JSON.stringify(json);
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     }
@@ -231,7 +231,7 @@ function saveRapidSearch() {
         recherches: searchesWanted
     };
     let json = JSON.stringify(params);
-    $.post(Routing.generate('update_user_searches_for_article', true), json, function (data) {
+    $.post(Routing.generate('update_user_searches_for_article', true), json, function () {
         $("#modalRapidSearch").find('.close').click();
         tableArticle.search(tableArticle.search()).draw();
     });
