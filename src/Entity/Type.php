@@ -36,6 +36,7 @@ class Type
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
 
+
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -104,6 +105,11 @@ class Type
      */
     private $sendMail;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="type")
+     */
+    private $acheminements;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -114,6 +120,7 @@ class Type
         $this->demandesLivraison = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->utilisateurs = new ArrayCollection();
+        $this->acheminements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -455,6 +462,37 @@ class Type
     public function setSendMail(?bool $sendMail): self
     {
         $this->sendMail = $sendMail;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminements(): Collection
+    {
+        return $this->acheminements;
+    }
+
+    public function addAcheminement(Acheminements $acheminement): self
+    {
+        if (!$this->acheminements->contains($acheminement)) {
+            $this->acheminements[] = $acheminement;
+            $acheminement->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminement(Acheminements $acheminement): self
+    {
+        if ($this->acheminements->contains($acheminement)) {
+            $this->acheminements->removeElement($acheminement);
+            // set the owning side to null (unless already changed)
+            if ($acheminement->getType() === $this) {
+                $acheminement->setType(null);
+            }
+        }
 
         return $this;
     }

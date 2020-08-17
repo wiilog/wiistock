@@ -81,6 +81,16 @@ class Emplacement
      */
     private $allowedNatures;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="locationFrom")
+     */
+    private $acheminementsFrom;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="locationTo")
+     */
+    private $acheminementsTo;
+
 
     public function __construct()
     {
@@ -92,6 +102,8 @@ class Emplacement
         $this->isActive = true;
         $this->utilisateurs = new ArrayCollection();
         $this->allowedNatures = new ArrayCollection();
+        $this->acheminementsFrom = new ArrayCollection();
+        $this->acheminementsTo = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -376,5 +388,67 @@ class Emplacement
     {
         return $this->getAllowedNatures()->isEmpty()
             || ($pack->getNature() && $this->getAllowedNatures()->contains($pack->getNature()));
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminementsFrom(): Collection
+    {
+        return $this->acheminementsFrom;
+    }
+
+    public function addAcheminementsFrom(Acheminements $acheminementsFrom): self
+    {
+        if (!$this->acheminementsFrom->contains($acheminementsFrom)) {
+            $this->acheminementsFrom[] = $acheminementsFrom;
+            $acheminementsFrom->setLocationFrom($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminementsFrom(Acheminements $acheminementsFrom): self
+    {
+        if ($this->acheminementsFrom->contains($acheminementsFrom)) {
+            $this->acheminementsFrom->removeElement($acheminementsFrom);
+            // set the owning side to null (unless already changed)
+            if ($acheminementsFrom->getLocationFrom() === $this) {
+                $acheminementsFrom->setLocationFrom(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Acheminements[]
+     */
+    public function getAcheminementsTo(): Collection
+    {
+        return $this->acheminementsTo;
+    }
+
+    public function addAcheminementsTo(Acheminements $acheminementsTo): self
+    {
+        if (!$this->acheminementsTo->contains($acheminementsTo)) {
+            $this->acheminementsTo[] = $acheminementsTo;
+            $acheminementsTo->setLocationTo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAcheminementsTo(Acheminements $acheminementsTo): self
+    {
+        if ($this->acheminementsTo->contains($acheminementsTo)) {
+            $this->acheminementsTo->removeElement($acheminementsTo);
+            // set the owning side to null (unless already changed)
+            if ($acheminementsTo->getLocationTo() === $this) {
+                $acheminementsTo->setLocationTo(null);
+            }
+        }
+
+        return $this;
     }
 }
