@@ -197,7 +197,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_TYPE
-                -   label: 'Statuts litiges'
+                -   label: 'Statuts'
                     path: 'status_param_index'
                     rights:
                         menu: App\Entity\Menu::PARAM

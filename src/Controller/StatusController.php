@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/statuts")
@@ -31,9 +32,11 @@ class StatusController extends AbstractController
      * @var UserService
      */
     private $userService;
+    private $translator;
 
-    public function __construct(UserService $userService) {
+    public function __construct(UserService $userService, TranslatorInterface $translator) {
         $this->userService = $userService;
+        $this->translator = $translator;
     }
 
     /**
@@ -48,10 +51,22 @@ class StatusController extends AbstractController
         }
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
-		$categoriesStatusLitigeArr = $categoryStatusRepository->findByLabelLike('litige');
+		$categoriesStatus = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
+
+        $transCategories = array_map(
+            function (array $category) {
+                return [
+                    'id' => $category['id'],
+                    'nom' => $category['nom'] === 'acheminement'
+                        ? $this->translator->trans('acheminement.acheminements')
+                        : $category['nom']
+                ];
+            },
+            $categoriesStatus
+        );
 
         return $this->render('status/index.html.twig', [
-            'categories' => $categoriesStatusLitigeArr,
+            'categories' => $transCategories,
         ]);
     }
 
@@ -73,15 +88,21 @@ class StatusController extends AbstractController
 
             $listStatusLitigeArr = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
             $listStatusLitigeRecep = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
+            $listStatusAcheminement = $statusRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT);
 
             $rows = [];
-            foreach (array_merge($listStatusLitigeArr, $listStatusLitigeRecep) as $status) {
+            /** @var Statut $status */
+            foreach (array_merge($listStatusLitigeArr, $listStatusLitigeRecep, $listStatusAcheminement) as $status) {
                 $url['edit'] = $this->generateUrl('status_api_edit', ['id' => $status->getId()]);
 
                 $rows[] =
                     [
                         'Label' => $status->getNom(),
-                        'Categorie' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
+                        'Categorie' => ($status->getCategorie()->getNom() === 'acheminement'
+                            ? $this->translator->trans('acheminement.acheminements')
+                            : ($status->getCategorie()
+                                ? $status->getCategorie()->getNom()
+                                : '')),
                         'Comment' => $status->getComment(),
                         'Treated' => $status->isTreated() ? 'oui' : 'non',
                         'NotifToBuyer' => $status->getSendNotifToBuyer() ? 'oui' : 'non',
@@ -152,6 +173,9 @@ class StatusController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -165,11 +189,23 @@ class StatusController extends AbstractController
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
 
             $status = $statutRepository->find($data['id']);
-            $categories = $categoryStatusRepository->findByLabelLike('litige');
+            $categories = $categoryStatusRepository->findByLabelLike('litige', 'acheminement');
+
+            $transCategories = array_map(
+                function (array $category) {
+                    return [
+                        'id' => $category['id'],
+                        'nom' => $category['nom'] === 'acheminement'
+                            ? $this->translator->trans('acheminement.acheminements')
+                            : $category['nom']
+                    ];
+                },
+                $categories
+            );
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
                 'status' => $status,
-                'categories' => $categories,
+                'categories' => $transCategories
             ]);
 
             return new JsonResponse($json);

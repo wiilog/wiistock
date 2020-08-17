@@ -10,7 +10,7 @@ $(function () {
             {"data": 'Categorie', 'title': 'Catégorie'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
-            {"data": 'Treated', 'title': 'Statut litige traité'},
+            {"data": 'Treated', 'title': 'Statut traité'},
             {"data": 'NotifToBuyer', 'title': 'Envoi de mails aux acheteurs'},
             {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'Order', 'title': 'Ordre'},
@@ -57,5 +57,18 @@ function displayErrorStatusEdit(data) {
     } else {
         modal.find('.close').click();
         alertSuccessMsg(data.msg);
+    }
+}
+
+function hideOptionOnChange($select) {
+    const $category = $select.find('option:selected').text();
+    const $sendMailBuyer = $('.send-mail-user');
+    const $acheminementTrans = $('#acheminementTranslation').val();
+
+    if ($category === $acheminementTrans) {
+        $sendMailBuyer.addClass('d-none');
+    }
+    else {
+        $sendMailBuyer.removeClass('d-none');
     }
 }
