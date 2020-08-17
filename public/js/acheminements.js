@@ -35,7 +35,7 @@ let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsCo
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");
 let urlNewAcheminements = Routing.generate('acheminements_new', true);
-InitialiserModal(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
+initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
 
 let modalModifyAcheminements = $('#modalEditAcheminements');
 let submitModifyAcheminements = $('#submitEditAcheminements');
@@ -58,6 +58,27 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 });
+
+
+let editorNewAcheminementAlreadyDone = false;
+
+function initNewAcheminementEditor(modal) {
+    if (!editorNewAcheminementAlreadyDone) {
+        initEditorInModal(modal);
+        editorNewAcheminementAlreadyDone = true;
+    }
+    clearModal(modal);
+    ajaxAutoUserInit($('.ajax-autocomplete-user'));
+    const $operatorSelect = $(modal).find('.ajax-autocomplete-user').first();
+    const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
+    let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+    $operatorSelect
+        .val(null)
+        .trigger('change')
+        .append(option)
+        .trigger('change');
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+}
 
 
 function addInputColisClone(button)

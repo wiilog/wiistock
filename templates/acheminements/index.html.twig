@@ -18,7 +18,7 @@
                             data-toggle="modal"
                             data-target="#modalNewAcheminements"
                             class="btn btn-primary btn-ripple"
-                            onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
+                            onclick='initNewAcheminementEditor("#modalNewAcheminements")'>
                         <span class="fa fa-plus mr-2"></span>Nouvel acheminement
                     </button>
                 {% endif %}
@@ -38,5 +38,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/acheminements.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

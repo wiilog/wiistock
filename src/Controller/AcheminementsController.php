@@ -4,12 +4,19 @@ namespace App\Controller;
 
 use App\Entity\Acheminements;
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\AttachmentService;
+use App\Service\FreeFieldService;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\AcheminementsService;
@@ -66,10 +73,29 @@ Class AcheminementsController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
+        $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+
+        $typeChampLibre = [];
+
+        $freeFieldsGroupedByTypes = [];
+        foreach ($listTypes as $type) {
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_ACHEMINEMENT);
+            $typeChampLibre[] = [
+                'typeLabel' => $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
 
         return $this->render('acheminements/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
+            'typeChampsLibres' => $typeChampLibre,
+            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
         ]);
     }
 
@@ -99,34 +125,58 @@ Class AcheminementsController extends AbstractController
     /**
      * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
+     * @param FreeFieldService $freeFieldService
+     * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
+     * @throws \Exception
      */
     public function new(Request $request,
+                        FreeFieldService $freeFieldService,
+                        AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
+            $post = $request->request;
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ACHEMINEMENT, Acheminements::STATUT_A_TRAITER);
             $acheminements = new Acheminements();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $fileBag = $request->files->count() > 0 ? $request->files : null;
 
             $acheminements
                 ->setDate($date)
                 ->setDate($date)
-                ->setStatut($status)
-                ->setRequester($utilisateurRepository->find($data['demandeur']))
-                ->setReceiver($utilisateurRepository->find($data['destinataire']))
-                ->setLocationDrop($data['depose'])
-                ->setLocationTake($data['prise'])
-                ->setPacks(is_array($data['colis']) ? $data['colis'] : [$data['colis']]);
+                ->setStatut($statutRepository->find($post->get('statut')))
+                ->setType($typeRepository->find($post->get('type')))
+                ->setRequester($utilisateurRepository->find($post->get('demandeur')))
+                ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
+                ->setLocationFrom($emplacementRepository->find($post->get('prise')))
+                ->setLocationTo($emplacementRepository->find($post->get('depose')))
+                ->setCommentaire($post->get('commentaire') ?? null);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($acheminements);
+            $freeFieldService->manageFreeFields($acheminements, $post->all(), $entityManager);
 
-            $em->flush();
+            if (isset($fileBag)) {
+                $fileNames = [];
+                foreach ($fileBag->all() as $file) {
+                    $fileNames = array_merge(
+                        $fileNames,
+                        $attachmentService->saveFile($file)
+                    );
+                }
+                $attachments = $attachmentService->createAttachements($fileNames);
+                foreach ($attachments as $attachment) {
+                    $entityManager->persist($attachment);
+                    $acheminements->addAttachement($attachment);
+                }
+            }
+
+            $entityManager->persist($acheminements);
+
+            $entityManager->flush();
 
             $response['acheminement'] = $acheminements->getId();
             return new JsonResponse($response);
@@ -174,21 +224,6 @@ Class AcheminementsController extends AbstractController
             ),
             $fileName
         );
-    }
-
-    /**
-     * @Route("/api-new", name="acheminements_new_api", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function newApi(EntityManagerInterface $entityManager): Response
-    {
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $json = $this->renderView('acheminements/modalNewContentAcheminements.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
-        ]);
-
-        return new JsonResponse($json);
     }
 
     /**
