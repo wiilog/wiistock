@@ -130,10 +130,11 @@ Class AcheminementsController extends AbstractController
 
             $em->flush();
 
-            $response['acheminement'] = $acheminements->getId();
-            $response['success'] = true;
-
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'success' => true,
+                'acheminement' => $acheminements->getId(),
+                'msg' => 'L\'acheminement a bien été créé.'
+            ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
@@ -229,10 +230,11 @@ Class AcheminementsController extends AbstractController
 
             $entityManager->flush();
 
-            $response['acheminement'] = $acheminement->getId();
-            $response['success'] = true;
-
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'success' => true,
+                'acheminement' => $acheminement->getId(),
+                'msg' => 'L\'acheminement a bien été modifié.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -279,7 +281,10 @@ Class AcheminementsController extends AbstractController
             $entityManager->remove($acheminements);
             $entityManager->flush();
 
-            return new JsonResponse(true);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'L\'acheminement a bien été supprimé.'
+            ]);
         }
 
         throw new NotFoundHttpException("404");

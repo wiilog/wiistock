@@ -22,9 +22,9 @@ use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use App\Service\FreeFieldService;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -289,13 +289,10 @@ class CollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \App\Exceptions\ArticleNotAvailableException
-     * @throws \App\Exceptions\RequestNeedToBeProcessedException
+     * @throws Exception
      */
     public function addArticle(Request $request,
                                FreeFieldService $champLibreService,
@@ -337,7 +334,10 @@ class CollecteController extends AbstractController
             }
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La référence <strong>' . $refArticle->getLibelle() . '</strong> a bien été ajoutée à la collecte.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -420,7 +420,10 @@ class CollecteController extends AbstractController
             }
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La référence a bien été supprimée de la collecte.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -431,7 +434,6 @@ class CollecteController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -492,7 +494,7 @@ class CollecteController extends AbstractController
      * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,
