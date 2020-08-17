@@ -49,6 +49,8 @@ InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteA
 
 $(function() {
     initSelect2($('#statut'), 'Statuts');
+    initSelect2($('#utilisateur'), 'Demandeur');
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur

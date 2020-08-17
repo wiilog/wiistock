@@ -56,6 +56,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'douane' => 'douane',
                 'congelé' => 'congelé',
             ],
+            'acheminement' => [
+                'nouvelle demande' => 'nouvelle demande',
+                'acheminements' => 'acheminements'
+            ],
             'réception' => [
                 'réceptions' => 'réceptions',
                 'réception' => 'réception',

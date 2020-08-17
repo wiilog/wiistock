@@ -48,6 +48,13 @@ class AcheminementsRepository extends EntityRepository
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
+                case 'utilisateurs':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('a.requester', 'r')
+                        ->andWhere('r.id in (:requester)')
+                        ->setParameter('requester', $value);
+                    break;
                 case 'dateMin':
                     $qb->andWhere('a.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00.00.00');

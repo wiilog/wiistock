@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | Acheminements{% endblock %}
+{% block title %}Traçabilité | {{ 'acheminement.acheminements'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -19,7 +19,7 @@
                             data-target="#modalNewAcheminements"
                             class="btn btn-primary btn-ripple"
                             onclick="newModal(Routing.generate('acheminements_new_api', true), $('#modalNewAcheminements'))">
-                        <span class="fa fa-plus mr-2"></span>Nouvel acheminement
+                        <span class="fa fa-plus mr-2"></span>{{ 'acheminement.nouvelle demande'|trans }}
                     </button>
                 {% endif %}
             </div>
