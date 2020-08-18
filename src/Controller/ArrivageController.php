@@ -626,14 +626,13 @@ class ArrivageController extends AbstractController
 
             if ($canBeDeleted) {
                 foreach ($arrivage->getPacks() as $pack) {
+                    $entityManager->remove($pack);
                     foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
-                        $pack->setLastTracking(null);
                         $mouvementTracaService->manageMouvementTracaPreRemove($arrivageMvtTraca);
                         $entityManager->flush();
                         $entityManager->remove($arrivageMvtTraca);
                     }
                     $litiges = $pack->getLitiges();
-                    $entityManager->remove($pack);
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
                     }
@@ -643,6 +642,12 @@ class ArrivageController extends AbstractController
                 }
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
+                }
+
+                foreach ($arrivage->getMouvementsTraca() as $mouvementTraca) {
+                    $mouvementTracaService->manageMouvementTracaPreRemove($mouvementTraca);
+                    $entityManager->flush();
+                    $entityManager->remove($mouvementTraca);
                 }
 
                 $entityManager->remove($arrivage);
