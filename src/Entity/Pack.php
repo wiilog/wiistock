@@ -60,9 +60,20 @@ class Pack
      */
     private $trackingMovements;
 
+    /**
+     * @ORM\Column(type="boolean", options={ "default" : true })
+     */
+    private $treated;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="pack", orphanRemoval=true)
+     */
+    private $packAcheminements;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
+        $this->packAcheminements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -179,6 +190,49 @@ class Pack
             // set the owning side to null (unless already changed)
             if ($trackingMovement->getPack() === $this) {
                 $trackingMovement->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function isTreated(): ?bool
+    {
+        return $this->treated;
+    }
+
+    public function setTreated(bool $treated): self
+    {
+        $this->treated = $treated;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PackAcheminement[]
+     */
+    public function getPackAcheminements(): Collection
+    {
+        return $this->packAcheminements;
+    }
+
+    public function addPackAcheminement(PackAcheminement $packAcheminement): self
+    {
+        if (!$this->packAcheminements->contains($packAcheminement)) {
+            $this->packAcheminements[] = $packAcheminement;
+            $packAcheminement->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removePackAcheminement(PackAcheminement $packAcheminement): self
+    {
+        if ($this->packAcheminements->contains($packAcheminement)) {
+            $this->packAcheminements->removeElement($packAcheminement);
+            // set the owning side to null (unless already changed)
+            if ($packAcheminement->getPack() === $this) {
+                $packAcheminement->setPack(null);
             }
         }
 
