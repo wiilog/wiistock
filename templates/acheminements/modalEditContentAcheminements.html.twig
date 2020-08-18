@@ -28,11 +28,11 @@
     </select>
 </div>
 <div class="form-group needed">
-    <label for="prise">Emplacement prise*</label>
+    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
     <input class="form-control data needed" name="prise" id="prise" value="{{ acheminement.locationFrom ? acheminement.locationFrom.label }}">
 </div>
 <div class="form-group needed">
-    <label for="depose">Emplacement de dépose*</label>
+    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
     <input class="form-control data needed" name="depose" id="depose" value="{{ acheminement.locationTo ? acheminement.locationTo.label }}">
 </div>
 <div class="form-group col-12 w-100">

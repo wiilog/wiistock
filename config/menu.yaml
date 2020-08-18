@@ -22,7 +22,8 @@ parameters:
                         action: App\Entity\Action::DISPLAY_MOUV
                 -   label: 'Colis'
                     path: 'pack_index'
-                -   label: 'Acheminements'
+                -   label: 'acheminement.acheminements'
+                    isTranslation: true
                     path: 'acheminements_index'
                     rights:
                         menu: App\Entity\Menu::TRACA

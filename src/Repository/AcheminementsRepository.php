@@ -19,6 +19,7 @@ class AcheminementsRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Date' => 'date',
+        'Type' => 'type',
         'Demandeur' => 'requester',
         'Destinataire' => 'receiver',
         'Emplacement prise' => 'locationTake',
@@ -48,6 +49,13 @@ class AcheminementsRepository extends EntityRepository
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
+
+                case 'type':
+                    $qb
+                        ->join('a.type', 't')
+                        ->andWhere('t.label in (:type)')
+                        ->setParameter('type', $filter['value']);
+                    break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -92,7 +100,11 @@ class AcheminementsRepository extends EntityRepository
                         $qb
                             ->leftJoin('a.receiver', 'u2')
                             ->orderBy('u2.username', $order);
-                    } else {
+                    } else if ($column === 'type') {
+                        $qb
+                            ->leftJoin('a.type', 't2')
+                            ->orderBy('t2.label', $order);
+                    }else {
                         $qb
                             ->orderBy('a.' . $column, $order);
                     }

@@ -31,6 +31,9 @@
         </div>
     </div>
 
+    <input type="hidden" id="dropOffLocationAcheminement" value="{{ 'acheminement.emplacement dépose'|trans }}">
+    <input type="hidden" id="takenLocationAcheminement" value="{{ 'acheminement.emplacement prise'|trans }}">
+
     {% include "acheminements/modalNewAcheminements.html.twig" %}
     {% include "acheminements/modalEditAcheminements.html.twig" %}
     {% include "acheminements/modalDeleteAcheminements.html.twig" %}

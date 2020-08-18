@@ -5,9 +5,11 @@ namespace App\Controller;
 use App\Entity\Acheminements;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\PDFGeneratorService;
@@ -65,11 +67,13 @@ Class AcheminementsController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $type = $entityManager->getRepository(Type::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         return $this->render('acheminements/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
+            'types' => $type->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
         ]);
     }
 

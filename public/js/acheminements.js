@@ -22,10 +22,11 @@ let tableAcheminementsConfig = {
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
+        { "data": 'Type', 'name': 'Type', 'title': 'Type' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
-        { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': 'Emplacement prise' },
-        { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': 'Emplacement de dépose' },
+        { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': $('#takenLocationAcheminement').val() },
+        { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': $('#dropOffLocationAcheminement').val() },
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
