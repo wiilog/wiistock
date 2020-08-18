@@ -97,7 +97,7 @@ Class AcheminementsController extends AbstractController
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
             'typeChampsLibres' => $typeChampLibre,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'types' => $type->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
+            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
         ]);
     }
 
