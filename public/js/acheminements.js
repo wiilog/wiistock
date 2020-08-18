@@ -64,18 +64,29 @@ $(function() {
 
 function toggleNewLocation($checkox) {
     const $needsNewLocation = $checkox.is(':checked');
-    const $locationSelect = $('.location-' + $checkox.data('type')).next('span.select2');
+    const $locationSelect = $('.location-' + $checkox.data('type'));
+    const $locationSelect2 = $('.location-' + $checkox.data('type')).next('span.select2');
     const $locationText = $('.new-location-' + $checkox.data('type'));
     if ($needsNewLocation) {
         $locationText.removeClass('d-none');
         $locationText.addClass('needed');
-        $locationSelect.addClass('d-none');
+        $locationText.attr('name', $checkox.data('type'));
+        $locationText.addClass('data');
+
+        $locationSelect2.addClass('d-none');
         $locationSelect.removeClass('needed');
+        $locationSelect.attr('name', '');
+        $locationSelect.removeClass('data');
     } else {
         $locationText.addClass('d-none');
         $locationText.removeClass('needed');
-        $locationSelect.removeClass('d-none');
+        $locationText.attr('name', '');
+        $locationText.removeClass('data');
+
+        $locationSelect2.removeClass('d-none');
         $locationSelect.addClass('needed');
+        $locationSelect.attr('name', $checkox.data('type'));
+        $locationSelect.addClass('data');
     }
 }
 
@@ -96,7 +107,7 @@ function initNewAcheminementEditor(modal) {
         .trigger('change')
         .append(option)
         .trigger('change');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement[name!=""]'));
 }
 
 
