@@ -22,7 +22,8 @@ final class Version20200817075450 extends AbstractMigration
     {
 
         $this->connection->executeQuery("
-                ALTER TABLE acheminements ADD type_id INT DEFAULT NULL
+                ALTER TABLE pack ADD treated TINYINT(1) DEFAULT '1' NOT NULL;
+                ALTER TABLE acheminements ADD type_id INT DEFAULT NULL;
         ");
         $this->connection->executeQuery("INSERT INTO category_type (label)  VALUES ('acheminements')");
         $categoryID = $this->connection->lastInsertId();
