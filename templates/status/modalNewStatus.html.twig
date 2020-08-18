@@ -26,6 +26,18 @@
                         <input type="text" class="data form-control needed" name="label">
                     </div>
 
+                    <div class="mb-3 form-group col-12 d-none types-label">
+                        <label for="type">Type*</label>
+                        <select name="type" class="data form-control needed">
+                            {% if types|length > 1 %}
+                                <option disabled value="" selected></option>
+                            {% endif %}
+                            {% for type in types %}
+                                <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="form-group col-12">
                         <label for="label">Commentaire</label>
                         <input type="text" class="data form-control" name="description">

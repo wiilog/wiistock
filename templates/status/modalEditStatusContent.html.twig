@@ -6,7 +6,7 @@
 
         <div class="col-12 form-group">
             <label for="category">Catégorie*</label>
-            <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this))">
+            <select name="category" class="data form-control needed" onchange="hideOptionOnChange($(this))">
                 {% for category in categories %}
                     <option selected="{{ category.id == status.categorie.id ? 'selected' }}" value="{{ category.id }}">{{ category.nom }}</option>
                 {% endfor %}
@@ -16,6 +16,15 @@
         <div class="col-12 form-group">
             <label for="username">Label*</label>
             <input type="text" class="form-control data needed" name="label" required="" value="{{ status.nom }}">
+        </div>
+
+        <div class="col-12 form-group types-label">
+            <label for="type">Type*</label>
+            <select name="type" class="data form-control needed">
+                {% for type in types %}
+                    <option {{ type.category.id == status.categorie.id ? 'selected' }} value="{{ type.id }}">{{ type.label }}</option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="col-12 form-group">

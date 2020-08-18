@@ -63,12 +63,15 @@ function displayErrorStatusEdit(data) {
 function hideOptionOnChange($select) {
     const $category = $select.find('option:selected').text();
     const $sendMailBuyer = $('.send-mail-user');
+    const $typesLabel = $('.types-label');
     const $acheminementTrans = $('#acheminementTranslation').val();
 
     if ($category === $acheminementTrans) {
         $sendMailBuyer.addClass('d-none');
+        $typesLabel.removeClass('d-none');
     }
     else {
         $sendMailBuyer.removeClass('d-none');
+        $typesLabel.addClass('d-none');
     }
 }

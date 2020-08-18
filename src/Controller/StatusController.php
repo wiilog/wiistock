@@ -5,9 +5,11 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Statut;
 
+use App\Entity\Type;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -51,7 +53,9 @@ class StatusController extends AbstractController
         }
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 		$categoriesStatus = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
+		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
 
         $transCategories = array_map(
             function (array $category) {
@@ -67,6 +71,7 @@ class StatusController extends AbstractController
 
         return $this->render('status/index.html.twig', [
             'categories' => $transCategories,
+            'types' => $types
         ]);
     }
 
@@ -189,7 +194,9 @@ class StatusController extends AbstractController
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
 
             $status = $statutRepository->find($data['id']);
+            $typeRepository = $entityManager->getRepository(Type::class);
             $categories = $categoryStatusRepository->findByLabelLike('litige', 'acheminement');
+            $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
 
             $transCategories = array_map(
                 function (array $category) {
@@ -205,7 +212,8 @@ class StatusController extends AbstractController
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
                 'status' => $status,
-                'categories' => $transCategories
+                'categories' => $transCategories,
+                'types' => $types
             ]);
 
             return new JsonResponse($json);
