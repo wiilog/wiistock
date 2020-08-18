@@ -22,10 +22,11 @@ let tableAcheminementsConfig = {
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
+        { "data": 'Type', 'name': 'Type', 'title': 'Type' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
-        { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': 'Emplacement prise' },
-        { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': 'Emplacement de dépose' },
+        { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': $('#takenLocationAcheminement').val() },
+        { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': $('#dropOffLocationAcheminement').val() },
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
@@ -35,7 +36,7 @@ let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsCo
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");
 let urlNewAcheminements = Routing.generate('acheminements_new', true);
-InitialiserModal(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
+initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
 
 let modalModifyAcheminements = $('#modalEditAcheminements');
 let submitModifyAcheminements = $('#submitEditAcheminements');
@@ -49,6 +50,8 @@ InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteA
 
 $(function() {
     initSelect2($('#statut'), 'Statuts');
+    initSelect2($('#utilisateur'), 'Demandeur');
+    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -58,6 +61,43 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 });
+
+function toggleNewLocation($checkox) {
+    const $needsNewLocation = $checkox.is(':checked');
+    const $locationSelect = $('.location-' + $checkox.data('type')).next('span.select2');
+    const $locationText = $('.new-location-' + $checkox.data('type'));
+    if ($needsNewLocation) {
+        $locationText.removeClass('d-none');
+        $locationText.addClass('needed');
+        $locationSelect.addClass('d-none');
+        $locationSelect.removeClass('needed');
+    } else {
+        $locationText.addClass('d-none');
+        $locationText.removeClass('needed');
+        $locationSelect.removeClass('d-none');
+        $locationSelect.addClass('needed');
+    }
+}
+
+let editorNewAcheminementAlreadyDone = false;
+
+function initNewAcheminementEditor(modal) {
+    if (!editorNewAcheminementAlreadyDone) {
+        initEditorInModal(modal);
+        editorNewAcheminementAlreadyDone = true;
+    }
+    clearModal(modal);
+    ajaxAutoUserInit($('.ajax-autocomplete-user'));
+    const $operatorSelect = $(modal).find('.ajax-autocomplete-user').first();
+    const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
+    let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+    $operatorSelect
+        .val(null)
+        .trigger('change')
+        .append(option)
+        .trigger('change');
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+}
 
 
 function addInputColisClone(button)

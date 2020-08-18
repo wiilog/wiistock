@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\AcheminementsRepository")
  */
-class Acheminements
+class Acheminements extends FreeFieldEntity
 {
     const CATEGORIE = 'acheminements';
     const STATUT_A_TRAITER = 'à traiter';
@@ -83,6 +83,7 @@ class Acheminements
     public function __construct()
     {
         $this->packAcheminements = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -173,7 +174,7 @@ class Acheminements
     {
         if (!$this->attachements->contains($attachement)) {
             $this->attachements[] = $attachement;
-            $attachement->setArrivage($this);
+            $attachement->setAcheminement($this);
         }
 
         return $this;
@@ -184,8 +185,8 @@ class Acheminements
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getArrivage() === $this) {
-                $attachement->setArrivage(null);
+            if ($attachement->getAcheminement() === $this) {
+                $attachement->setAcheminement(null);
             }
         }
 

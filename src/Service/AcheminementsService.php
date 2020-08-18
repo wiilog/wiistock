@@ -90,6 +90,7 @@ class AcheminementsService
             'Emplacement prise' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : '',
             'Emplacement de dépose' => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
             'Nb Colis' => $nbColis ?? 0,
+            'Type' => $acheminement->getType() ? $acheminement->getType()->getLabel() : '',
             'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
             'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
                 'acheminement' => $acheminement

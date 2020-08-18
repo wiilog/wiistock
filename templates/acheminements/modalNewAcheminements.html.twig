@@ -4,17 +4,117 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">Nouvelle demande d'acheminement</h5>
+                <h5 class="modal-title">{{ 'acheminement.nouvelle demande'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid"></div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="type">Statut*</label>
+                    <select name="statut" class="form-control data d-block type needed">
+                        <option value="">Statut à choisir...</option>
+                        {% for statut in statuts %}
+                            <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="demandeur">Demandeur*</label>
+                    <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="demandeur">
+                        {% for utilisateur in utilisateurs %}
+                                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                        {% endfor %}
+                    </select>
+                    <input hidden
+                           name="logged-user"
+                           data-username="{{ app.user.username }}"
+                           data-id="{{ app.user.id }}"/>
+                </div>
+                <div class="form-group">
+                    <label for="destinataire">Destinataire*</label>
+                    <select class="destinataire form-control data needed ajax-autocomplete-user w-100" name="destinataire">
+                        <option value="" selected></option>
+                        {% for utilisateur in utilisateurs %}
+                            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group w-100">
+                    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+                    <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
+                    </select>
+                    <input type="text" class="form-control data new-location-prise d-none" name="prise">
+                    <label class="switch mt-2">
+                        <input class="checkbox data"
+                               name="location-on-fly"
+                               onclick="toggleNewLocation($(this))"
+                               data-type="prise"
+                               type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                    <label>{{ 'acheminement.emplacement prise'|trans }} non présent ? </label>
+                </div>
+                <div class="form-group w-100">
+                    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+                    <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
+                    </select>
+                    <input type="text" class="form-control data new-location-depose d-none" name="depose">
+                    <label class="switch mt-2">
+                        <input class="checkbox data"
+                               name="location-on-fly"
+                               onclick="toggleNewLocation($(this))"
+                               data-type="depose"
+                               type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
+                    <label>{{ 'acheminement.emplacement dépose'|trans }} non présent ? </label>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type*</label>
+                    <select name="type" class="form-control data d-block type needed"
+                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                            onchange="toggleRequiredChampsLibres($(this),'create')">
+                        <option value="">Type à choisir...</option>
+                        {% for type in typeChampsLibres %}
+                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- CHAMPS LIBRES -->
+                <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+                    {% for type in typeChampsLibres %}
+                        <div class="d-none row" id="{{ type.typeId }}-new">
+                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                                freeFields: type.champsLibres,
+                                freeFieldValues: [],
+                                colType: 'col-12',
+                                requiredType: 'requiredCreate',
+                                actionType: 'new'
+                            } %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label for="commentaire">Commentaire</label>
+                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
+                    <div class="editor-container" id="editor-container-new">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                    </div>
+                </div>
+            </div>
+
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewAcheminements" type="button" class="btn btn-success">Enregistrer</button>
+                <button id="submitNewAcheminements" type="button" class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
             </div>
         </div>
     </div>

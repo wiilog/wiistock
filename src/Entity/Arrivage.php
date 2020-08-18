@@ -366,7 +366,7 @@ class Arrivage extends FreeFieldEntity
         return $this;
     }
     /**
-     * @return Collection
+     * @return Collection|Pack[]
      */
     public function getPacks(): Collection {
         return $this->packs;
