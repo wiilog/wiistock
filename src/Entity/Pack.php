@@ -55,7 +55,7 @@ class Pack
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack")
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack", cascade={"remove"})
      * @ORM\OrderBy({"datetime" = "DESC"})
      */
     private $trackingMovements;
@@ -156,7 +156,7 @@ class Pack
     }
 
     /**
-     * @return Collection
+     * @return Collection|MouvementTraca[]
      */
     public function getTrackingMovements(): Collection {
         return $this->trackingMovements;
