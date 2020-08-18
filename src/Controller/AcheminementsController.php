@@ -164,8 +164,8 @@ Class AcheminementsController extends AbstractController
                                 'Date d\'acheminement' => $now->format('d/m/Y H:i'),
                                 'Demandeur' => $acheminement->getRequester()->getUsername(),
                                 'Destinataire' => $acheminement->getReceiver()->getUsername(),
-                                'Emplacement de dépose' => $acheminement->getLocationDrop(),
-                                'Emplacement de prise' => $acheminement->getLocationTake()
+                                'Emplacement de dépose' => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
+                                'Emplacement de prise' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : ''
                             ]
                         ];
                     },

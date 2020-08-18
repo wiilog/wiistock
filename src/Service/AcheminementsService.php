@@ -87,8 +87,8 @@ class AcheminementsService
             'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
             'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
             'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
-            'Emplacement prise' => $acheminement->getLocationTake() ?? '',
-            'Emplacement de dépose' => $acheminement->getLocationDrop() ?? '',
+            'Emplacement prise' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : '',
+            'Emplacement de dépose' => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
             'Nb Colis' => $nbColis ?? 0,
             'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
             'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
