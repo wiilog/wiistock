@@ -327,7 +327,7 @@ class MouvementTracaService
             $pack->setLastDrop(null);
         }
         foreach ($mouvementTraca->getLinkedPackLastTracking() as $pack) {
-            $pack->setLastTracking($pack->getTrackingMovements()->isEmpty() ? null : $pack->getTrackingMovements()->first());
+            $pack->setLastTracking($pack->getTrackingMovements()->count() <= 1 ? null : $pack->getTrackingMovements()->toArray()[1]);
         }
     }
 }
