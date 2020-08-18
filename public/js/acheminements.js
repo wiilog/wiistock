@@ -62,6 +62,22 @@ $(function() {
     }, 'json');
 });
 
+function toggleNewLocation($checkox) {
+    const $needsNewLocation = $checkox.is(':checked');
+    const $locationSelect = $('.location-' + $checkox.data('type')).next('span.select2');
+    const $locationText = $('.new-location-' + $checkox.data('type'));
+    if ($needsNewLocation) {
+        $locationText.removeClass('d-none');
+        $locationText.addClass('needed');
+        $locationSelect.addClass('d-none');
+        $locationSelect.removeClass('needed');
+    } else {
+        $locationText.addClass('d-none');
+        $locationText.removeClass('needed');
+        $locationSelect.removeClass('d-none');
+        $locationSelect.addClass('needed');
+    }
+}
 
 let editorNewAcheminementAlreadyDone = false;
 
