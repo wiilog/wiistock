@@ -27,6 +27,7 @@ use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
+use App\Service\MouvementTracaService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
 use App\Service\DashboardService;
@@ -603,12 +604,14 @@ class ArrivageController extends AbstractController
      * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param MouvementTracaService $mouvementTracaService
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
+                           EntityManagerInterface $entityManager,
+                           MouvementTracaService $mouvementTracaService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -623,13 +626,13 @@ class ArrivageController extends AbstractController
 
             if ($canBeDeleted) {
                 foreach ($arrivage->getPacks() as $pack) {
-                    $litiges = $pack->getLitiges();
-                    foreach ($mouvementTracaRepository->getByColisAndPriorToDate($pack->getCode(), $arrivage->getDate()) as $mvtToDelete) {
-                        foreach ($mvtToDelete->getLinkedPackLastDrops() as $pack) {
-                            $pack->setLastDrop(null);
-                        }
-                        $entityManager->remove($mvtToDelete);
+                    foreach ($pack->getTrackingMovements() as $arrivageMvtTraca) {
+                        $pack->setLastTracking(null);
+                        $mouvementTracaService->manageMouvementTracaPreRemove($arrivageMvtTraca);
+                        $entityManager->flush();
+                        $entityManager->remove($arrivageMvtTraca);
                     }
+                    $litiges = $pack->getLitiges();
                     $entityManager->remove($pack);
                     foreach ($litiges as $litige) {
                         $entityManager->remove($litige);
@@ -641,6 +644,7 @@ class ArrivageController extends AbstractController
                 foreach ($arrivage->getUrgences() as $urgence) {
                     $urgence->setLastArrival(null);
                 }
+
                 $entityManager->remove($arrivage);
                 $entityManager->flush();
                 $data = [
@@ -1497,8 +1501,8 @@ class ArrivageController extends AbstractController
                 return $this->getBarcodeColisConfig(
                     $colisInArrivage,
                     $arrivage->getDestinataire(),
-                    $dropzoneParamIsDefined,
-                    $usernameParamIsDefined
+                    $usernameParamIsDefined,
+                    $dropzoneParamIsDefined
                 );
             },
             $arrivage->getPacks()->toArray()
