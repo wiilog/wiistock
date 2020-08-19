@@ -147,6 +147,30 @@ Class AcheminementsController extends AbstractController
             $acheminements = new Acheminements();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $fileBag = $request->files->count() > 0 ? $request->files : null;
+            dump($post->all());
+            $locationTake = $emplacementRepository->find($post->get('prise'));
+            $locationDrop = $emplacementRepository->find($post->get('depose'));
+            if (empty($locationTake)) {
+                $locationTake = $emplacementRepository->findOneBy([
+                    'label' => $post->get('prise')
+                ]);
+                if (empty($locationTake)) {
+                    $locationTake = new Emplacement();
+                    $locationTake->setLabel($post->get('prise'));
+                    $locationTake->setLabel($post->get('prise'));
+                    $entityManager->persist($locationTake);
+                }
+            } if (empty($locationDrop)) {
+                $locationDrop = $emplacementRepository->findOneBy([
+                    'label' => $post->get('depose')
+                ]);
+                if (empty($locationDrop)) {
+                    $locationDrop = new Emplacement();
+                    $locationDrop->setLabel($post->get('depose'));
+                    $locationDrop->setLabel($post->get('depose'));
+                    $entityManager->persist($locationDrop);
+                }
+            }
 
             $acheminements
                 ->setDate($date)
@@ -155,8 +179,8 @@ Class AcheminementsController extends AbstractController
                 ->setType($typeRepository->find($post->get('type')))
                 ->setRequester($utilisateurRepository->find($post->get('demandeur')))
                 ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
-                ->setLocationFrom($emplacementRepository->find($post->get('prise')))
-                ->setLocationTo($emplacementRepository->find($post->get('depose')))
+                ->setLocationFrom($locationTake)
+                ->setLocationTo($locationDrop)
                 ->setCommentaire($post->get('commentaire') ?? null);
 
             $freeFieldService->manageFreeFields($acheminements, $post->all(), $entityManager);

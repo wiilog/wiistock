@@ -45,9 +45,9 @@
                     <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
                     </select>
-                    <input type="text" class="form-control data new-location-prise d-none" name="prise">
+                    <input type="text" class="form-control data new-location-prise d-none">
                     <label class="switch mt-2">
-                        <input class="checkbox data"
+                        <input class="checkbox no-clear"
                                name="location-on-fly"
                                onclick="toggleNewLocation($(this))"
                                data-type="prise"
@@ -60,9 +60,9 @@
                     <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
                     <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
                     </select>
-                    <input type="text" class="form-control data new-location-depose d-none" name="depose">
+                    <input type="text" class="form-control data new-location-depose d-none">
                     <label class="switch mt-2">
-                        <input class="checkbox data"
+                        <input class="checkbox no-clear"
                                name="location-on-fly"
                                onclick="toggleNewLocation($(this))"
                                data-type="depose"
