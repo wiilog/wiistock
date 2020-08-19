@@ -1,68 +1,68 @@
+<div class="row">
 <form method="">
-    <div class="modal-body modal-input container-fluid row">
-        <div class="col-12 form-group required d-none">
-            <input type="text" class="form-control data needed" name="status" required="" value="{{ status.id }}">
-        </div>
+    <div class="col-12 form-group required d-none">
+        <input type="text" class="form-control data needed" name="status" required="" value="{{ status.id }}">
+    </div>
 
-        <div class="col-12 form-group">
-            <label for="category">Catégorie*</label>
-            <select name="category" class="data form-control needed" onchange="hideOptionOnChange($(this))">
-                {% for category in categories %}
-                    <option selected="{{ category.id == status.categorie.id ? 'selected' }}" value="{{ category.id }}">{{ category.nom }}</option>
+    <div class="col-12 form-group">
+        <label for="category">Catégorie*</label>
+        <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this), $('#modalEditStatus'))">
+            {% for category in categories %}
+                <option {{ category.id == status.categorie.id ? 'selected' }} value="{{ category.id }}">{{ category.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-12 form-group">
+        <label for="username">Label*</label>
+        <input type="text" class="form-control data needed" name="label" required="" value="{{ status.nom }}">
+    </div>
+
+    <div class="col-12 form-group types-label {{ status.categorie.nom != 'acheminement' ? 'd-none'}}">
+        <label for="type">Type*</label>
+        <select name="type" class="data form-control  {{ status.categorie.nom != 'acheminement' ? 'needed'}}">
+            <option value="">Type à choisir...</option>
+            {% for type in types %}
+                    <option {{ status.type is not null and type.id == status.type.id ? 'selected' }} value="{{ type.id }}">{{ type.label }}</option>
                 {% endfor %}
-            </select>
-        </div>
+        </select>
+    </div>
 
-        <div class="col-12 form-group">
-            <label for="username">Label*</label>
-            <input type="text" class="form-control data needed" name="label" required="" value="{{ status.nom }}">
-        </div>
+    <div class="col-12 form-group">
+        <label for="username">Commentaire</label>
+        <input type="text" class="form-control data" name="comment" value="{{ status.comment }}">
+    </div>
 
-        <div class="col-12 form-group types-label">
-            <label for="type">Type*</label>
-            <select name="type" class="data form-control needed">
-                {% for type in types %}
-                    <option {{ type.category.id == status.categorie.id ? 'selected' }} value="{{ type.id }}">{{ type.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    {% set checked = status.treated ? 'checked' : '' %}
+    <div class="col-12 form-group">
+        <label>Statut de type 'traité' ?</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="treated" {{ checked }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
 
-        <div class="col-12 form-group">
-            <label for="username">Commentaire</label>
-            <input type="text" class="form-control data" name="comment" value="{{ status.comment }}">
-        </div>
+    {% set checkedMails = status.sendNotifToBuyer ? 'checked' : '' %}
+    <div class="col-12 form-group send-mail-user {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+        <label>Envoi de mails aux acheteurs ?</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="sendMails" {{ checkedMails }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    {% set checkedMails = status.sendNotifToDeclarant ? 'checked' : '' %}
+    <div class="col-12 form-group">
+        <label>Envoi de mails au déclarant ?</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="sendMailsDeclarant" {{ checkedMails }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="form-group col-3">
+        <label for="label">Ordre</label>
+        <input type="number" class="data form-control" name="displayOrder" value="{{ status.displayOrder }}" min="1">
 
-        {% set checked = status.treated ? 'checked' : '' %}
-        <div class="col-12 form-group">
-            <label>Statut de type 'traité' ?</label>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" name="treated" {{ checked }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        {% set checkedMails = status.sendNotifToBuyer ? 'checked' : '' %}
-        <div class="col-12 form-group send-mail-user {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
-            <label>Envoi de mails aux acheteurs ?</label>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" name="sendMails" {{ checkedMails }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        {% set checkedMails = status.sendNotifToDeclarant ? 'checked' : '' %}
-        <div class="col-12 form-group">
-            <label>Envoi de mails au déclarant ?</label>
-            <label class="switch">
-                <input class="checkbox" type="checkbox" name="sendMailsDeclarant" {{ checkedMails }}>
-                <span class="slider round"></span>
-            </label>
-        </div>
-        <div class="form-group col-3">
-            <label for="label">Ordre</label>
-            <input type="number" class="data form-control" name="displayOrder" value="{{ status.displayOrder }}" min="1">
-
-            <input hidden id="acheminementTranslation" value="{{ 'acheminement.acheminements'|trans }}">
-        </div>
-
+        <input hidden id="acheminementTranslation" value="{{ 'acheminement.acheminements'|trans }}">
     </div>
 </form>
+</div>

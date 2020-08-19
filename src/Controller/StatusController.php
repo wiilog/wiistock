@@ -143,12 +143,14 @@ class StatusController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $statutRepository->countByLabelAndCategory($data['label'], $data['category']);
 
             if (!$labelExist) {
                 $category = $categoryStatusRepository->find($data['category']);
+                $type = $typeRepository->find($data['type']);
                 $status = new Statut();
 				$status
                     ->setNom($data['label'])
@@ -157,7 +159,8 @@ class StatusController extends AbstractController
                     ->setSendNotifToBuyer($data['sendMails'])
                     ->setSendNotifToDeclarant($data['sendMailsDeclarant'])
 					->setDisplayOrder((int)$data['displayOrder'])
-                    ->setCategorie($category);
+                    ->setCategorie($category)
+                    ->setType($type ?? null);
 
                 $entityManager->persist($status);
                 $entityManager->flush();
@@ -237,6 +240,7 @@ class StatusController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
 
 			$status = $statutRepository->find($data['status']);
             $statusLabel = $status->getNom();
@@ -246,6 +250,7 @@ class StatusController extends AbstractController
 
             if (!$labelExist) {
                 $category = $categoryStatusRepository->find($data['category']);
+                $type = $typeRepository->find($data['type']);
                 $status
                     ->setNom($data['label'])
                     ->setCategorie($category)
@@ -253,7 +258,8 @@ class StatusController extends AbstractController
                     ->setSendNotifToBuyer($data['sendMails'])
                     ->setSendNotifToDeclarant($data['sendMailsDeclarant'])
 					->setDisplayOrder((int)$data['displayOrder'])
-                    ->setComment($data['comment']);
+                    ->setComment($data['comment'])
+                    ->setType($type ?? null);
 
                 $entityManager->persist($status);
                 $entityManager->flush();

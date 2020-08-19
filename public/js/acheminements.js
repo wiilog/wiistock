@@ -110,7 +110,6 @@ function initNewAcheminementEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement[name!=""]'));
 }
 
-
 function addInputColisClone(button)
 {
     let $modal = button.closest('.modal-body');
@@ -120,21 +119,6 @@ function addInputColisClone(button)
     $parent.children().last().find('.data-array').val('');
 }
 
-function changeStatus(button) {
-    let sel = $(button).data('title');
-    let tog = $(button).data('toggle');
-    if ($(button).hasClass('not-active')) {
-        if ($("#s").val() == "0") {
-            $("#s").val("1");
-        } else {
-            $("#s").val("0");
-        }
-    }
-
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-}
-
 function printAcheminementFromId(data) {
     const $printButton = $(`#print-btn-acheminement-${data.acheminement}`);
     if ($printButton.length > 0) {
@@ -142,3 +126,9 @@ function printAcheminementFromId(data) {
     }
 }
 
+function availableStatusOnChange($select) {
+    const type = parseInt($select.val());
+    $('select[name="statut"] option[data-type-id="' + type + '"]').removeClass('d-none');
+    $('select[name="statut"] option[data-type-id!="' + type + '"]').addClass('d-none');
+    $('select[name="statut"] option:selected').prop("selected", false);
+}

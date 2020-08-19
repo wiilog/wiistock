@@ -83,7 +83,7 @@ class Statut
      */
     private $referenceArticles;
 
-    /** 
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="statut")
      */
     private $manutentions;
@@ -112,6 +112,11 @@ class Statut
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $sendNotifToDeclarant;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="statuts")
+     */
+    private $type;
 
     public function __construct()
     {
@@ -573,6 +578,18 @@ class Statut
     public function setSendNotifToDeclarant(?bool $sendNotifToDeclarant): self
     {
         $this->sendNotifToDeclarant = $sendNotifToDeclarant;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

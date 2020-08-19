@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Acheminements;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Collecte;
@@ -245,6 +246,8 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function checkEmplacementCanBeDeleted(Request $request): Response
     {
@@ -284,11 +287,15 @@ class EmplacementController extends AbstractController
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
+        $acheminementRepository = $entityManager->getRepository(Acheminements::class);
 
         $usedBy = [];
 
         $demandes = $demandeRepository->countByEmplacement($emplacementId);
         if ($demandes > 0) $usedBy[] = 'demandes';
+
+        $demandes = $acheminementRepository->countByEmplacement($emplacementId);
+        if ($demandes > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
         if ($livraisons > 0) $usedBy[] = 'livraisons';

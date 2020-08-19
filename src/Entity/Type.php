@@ -110,6 +110,11 @@ class Type
      */
     private $acheminements;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type")
+     */
+    private $statuts;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -121,6 +126,7 @@ class Type
         $this->collectes = new ArrayCollection();
         $this->utilisateurs = new ArrayCollection();
         $this->acheminements = new ArrayCollection();
+        $this->statuts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -491,6 +497,37 @@ class Type
             // set the owning side to null (unless already changed)
             if ($acheminement->getType() === $this) {
                 $acheminement->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Statut[]
+     */
+    public function getStatuts(): Collection
+    {
+        return $this->statuts;
+    }
+
+    public function addStatut(Statut $statut): self
+    {
+        if (!$this->statuts->contains($statut)) {
+            $this->statuts[] = $statut;
+            $statut->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatut(Statut $statut): self
+    {
+        if ($this->statuts->contains($statut)) {
+            $this->statuts->removeElement($statut);
+            // set the owning side to null (unless already changed)
+            if ($statut->getType() === $this) {
+                $statut->setType(null);
             }
         }
 

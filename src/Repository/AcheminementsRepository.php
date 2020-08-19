@@ -147,4 +147,18 @@ class AcheminementsRepository extends EntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function countByEmplacement($emplacementId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Acheminements a
+            WHERE a.locationFrom = :emplacementId
+            OR a.locationTo = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
 }

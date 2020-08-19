@@ -72,7 +72,6 @@ Class AcheminementsController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $type = $entityManager->getRepository(Type::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -147,7 +146,6 @@ Class AcheminementsController extends AbstractController
             $acheminements = new Acheminements();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            dump($post->all());
             $locationTake = $emplacementRepository->find($post->get('prise'));
             $locationDrop = $emplacementRepository->find($post->get('depose'));
             if (empty($locationTake)) {

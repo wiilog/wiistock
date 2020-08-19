@@ -60,18 +60,22 @@ function displayErrorStatusEdit(data) {
     }
 }
 
-function hideOptionOnChange($select) {
+function hideOptionOnChange($select, $modal) {
     const $category = $select.find('option:selected').text();
-    const $sendMailBuyer = $('.send-mail-user');
-    const $typesLabel = $('.types-label');
-    const $acheminementTrans = $('#acheminementTranslation').val();
+    const $sendMailBuyer =  $modal.find('.send-mail-user');
+    const $typesLabel = $modal.find('.types-label');
+    const $acheminementTrans =  $modal.find('#acheminementTranslation').val();
 
     if ($category === $acheminementTrans) {
         $sendMailBuyer.addClass('d-none');
         $typesLabel.removeClass('d-none');
+        $typesLabel.find('select').addClass('needed');
     }
     else {
         $sendMailBuyer.removeClass('d-none');
         $typesLabel.addClass('d-none');
+        $typesLabel.find('select').removeClass('needed');
+        $typesLabel.find('select').find('option:selected').prop("selected", false);
+        $typesLabel.find('select').val('');
     }
 }

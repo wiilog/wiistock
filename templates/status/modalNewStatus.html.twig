@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="mb-3 form-group col-12">
                         <label for="category">Catégorie*</label>
-                        <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this))">
+                        <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this), $('#modalNewStatus'))">
                             {% if categories|length > 1 %}
                                 <option disabled value="" selected></option>
                             {% endif %}
@@ -28,10 +28,8 @@
 
                     <div class="mb-3 form-group col-12 d-none types-label">
                         <label for="type">Type*</label>
-                        <select name="type" class="data form-control needed">
-                            {% if types|length > 1 %}
-                                <option disabled value="" selected></option>
-                            {% endif %}
+                        <select name="type" class="data form-control">
+                            <option value="">Type à choisir...</option>
                             {% for type in types %}
                                 <option value="{{ type.id }}">{{ type.label }}</option>
                             {% endfor %}
