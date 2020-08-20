@@ -28,7 +28,7 @@ let tableAcheminementsConfig = {
         { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': $('#takenLocationAcheminement').val() },
         { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': $('#dropOffLocationAcheminement').val() },
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' }
     ],
 };
 let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);

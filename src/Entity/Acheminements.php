@@ -80,6 +80,11 @@ class Acheminements extends FreeFieldEntity
      */
     private $type;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $numeroAcheminement;
+
     public function __construct()
     {
         $this->packAcheminements = new ArrayCollection();
@@ -256,6 +261,18 @@ class Acheminements extends FreeFieldEntity
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getNumeroAcheminement(): ?string
+    {
+        return $this->numeroAcheminement;
+    }
+
+    public function setNumeroAcheminement(string $numeroAcheminement): self
+    {
+        $this->numeroAcheminement = $numeroAcheminement;
 
         return $this;
     }

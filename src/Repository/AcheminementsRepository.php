@@ -147,4 +147,19 @@ class AcheminementsRepository extends EntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function getLastNumeroAcheminementByDate($date)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            'SELECT a.numeroAcheminement as numeroAcheminement
+			FROM App\Entity\Acheminements a
+			WHERE a.numeroLitige LIKE :value
+			ORDER BY a.date DESC'
+        )->setParameter('value', $date . '%');
+
+        $result = $query->execute();
+        return $result ? $result[0]['numeroAcheminement'] : null;
+    }
 }
