@@ -107,7 +107,7 @@ class InventoryEntryController extends AbstractController
             $entries = $this->inventoryEntryRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
-            $headers = array_merge($headers, ['Référence ou article', 'Opérateur', 'Emplacement', 'Date de saisie', 'Quantité']);
+            $headers = array_merge($headers, ['Libellé', 'Référence', 'Code barre', 'Opérateur', 'Emplacement', 'Date de saisie', 'Quantité']);
 
             $data = [];
             $data[] = $headers;
@@ -120,7 +120,13 @@ class InventoryEntryController extends AbstractController
                 else
                     $article = $article->getLabel();
 
+                $reference = $entry->getArticle()
+                    ? $entry->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : $entry->getRefArticle()->getReference();
+
                 $entryData[] = $article;
+                $entryData[] = $reference;
+                $entryData[] = $entry->getArticle() ? $entry->getArticle()->getBarCode() : $entry->getRefArticle()->getBarCode();
                 $entryData[] = $entry->getOperator()->getUsername();
                 $entryData[] = $entry->getLocation()->getLabel();
                 $entryData[] = $entry->getDate()->format('d/m/Y');
