@@ -14,6 +14,7 @@ class Acheminements extends FreeFieldEntity
     const CATEGORIE = 'acheminements';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
+    const STATUT_BROUILLON = 'brouillon';
 
     /**
      * @ORM\Id()

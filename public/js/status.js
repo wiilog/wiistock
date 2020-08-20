@@ -1,4 +1,11 @@
 $(function () {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_STATUS);
+    $.post(path, params, function(data) {
+        displayFiltersSup(data);
+    }, 'json');
+
     let pathStatus = Routing.generate('status_param_api', true);
     let tableStatusConfig = {
         ajax: {
@@ -7,10 +14,10 @@ $(function () {
         },
         columns: [
             {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Categorie', 'title': 'Catégorie'},
+            {"data": 'Categorie', 'title': 'Entité'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
-            {"data": 'Treated', 'title': 'Statut litige traité'},
+            {"data": 'Treated', 'title': 'Statut traité'},
             {"data": 'NotifToBuyer', 'title': 'Envoi de mails aux acheteurs'},
             {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'Order', 'title': 'Ordre'},
@@ -57,5 +64,28 @@ function displayErrorStatusEdit(data) {
     } else {
         modal.find('.close').click();
         alertSuccessMsg(data.msg);
+    }
+}
+
+function hideOptionOnChange($select, $modal) {
+    const $category = $select.find('option:selected').text();
+    const $sendMailBuyer =  $modal.find('.send-mail-user');
+    const $disputeComment = $modal.find('.dispute-comment');
+    const $typesLabel = $modal.find('.types-label');
+    const $acheminementTrans =  $modal.find('#acheminementTranslation').val();
+
+    if ($category === $acheminementTrans) {
+        $sendMailBuyer.addClass('d-none');
+        $disputeComment.addClass('d-none');
+        $typesLabel.removeClass('d-none');
+        $typesLabel.find('select').addClass('needed');
+    }
+    else {
+        $sendMailBuyer.removeClass('d-none');
+        $disputeComment.removeClass('d-none');
+        $typesLabel.addClass('d-none');
+        $typesLabel.find('select').removeClass('needed');
+        $typesLabel.find('select').find('option:selected').prop("selected", false);
+        $typesLabel.find('select').val('');
     }
 }

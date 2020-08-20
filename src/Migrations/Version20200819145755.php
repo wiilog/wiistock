@@ -37,23 +37,26 @@ final class Version20200819145755 extends AbstractMigration
         foreach ($acheminements as $acheminement) {
             $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $acheminement['date']);
             $dateStr = $creationDate->format('Ymd');
+            $prefix = 'A';
 
-            $dayCounterKey = 'A' . '-' . $dateStr;
+            $dayCounterKey = $prefix . '-' . $dateStr;
 
             if (!isset($daysCounter[$dayCounterKey])) {
                 $daysCounter[$dayCounterKey] = 0;
             }
 
-            $suffix = '';
             $daysCounter[$dayCounterKey]++;
+            $suffix = '';
             if ($daysCounter[$dayCounterKey] < 10) {
-                $suffix = '0';
+                $suffix = '000';
             } else if ($daysCounter[$dayCounterKey] < 100) {
-                $suffix = '';
+                $suffix = '00';
+            } else if ($daysCounter[$dayCounterKey] < 1000) {
+                $suffix = '0';
             }
 
             $id = $acheminement['id'];
-            $numeroAcheminement = 'A-'. $dateStr . $suffix . $daysCounter[$dayCounterKey];
+            $numeroAcheminement = $prefix .'-'. $dateStr . $suffix . $daysCounter[$dayCounterKey];
             $sqlNumeroAcheminement = ("UPDATE acheminements SET numero_acheminement = '$numeroAcheminement' WHERE acheminements.id = '$id'");
             $this->addSql($sqlNumeroAcheminement);
         }

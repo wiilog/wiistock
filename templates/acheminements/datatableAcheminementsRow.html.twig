@@ -1,18 +1,4 @@
 <div class="d-flex">
-    <div class="dropdown dropright">
-        {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            <a class="dropdown-item"
-               id="print-btn-acheminement-{{ acheminement.id }}"
-               href="{{ path('print_acheminement_state_sheet', {acheminement: acheminement.id}) }}">
-                <i class='fas fa-print mr-2'></i>Imprimer
-            </a>
-            <div class="dropdown-item" data-id='{{ acheminement.id }}' data-target='#modalDeleteAcheminements' data-toggle='modal'
-                 onclick="deleteRow($(this), $('#modalDeleteAcheminements'), $('#submitDeleteAcheminements'))">
-                <i class='fas fa-trash mr-2'></i>Supprimer
-            </div>
-        </div>
-    </div>
     <div class="d-none">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DISPLAY_ACHE')) %}
             <a href="{{ url }}"

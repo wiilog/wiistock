@@ -10,10 +10,10 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="mb-3 form-group col-12">
-                        <label for="category">Catégorie*</label>
-                        <select name="category" id="frequencies" class="data form-control needed">
+                        <label for="category">Entité*</label>
+                        <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this), $('#modalNewStatus'))">
                             {% if categories|length > 1 %}
-                                <option placeholder="" disabled value="" selected></option>
+                                <option disabled value="" selected></option>
                             {% endif %}
                             {% for category in categories %}
                                 <option value="{{ category.id }}">{{ category.nom }}</option>
@@ -26,20 +26,30 @@
                         <input type="text" class="data form-control needed" name="label">
                     </div>
 
-                    <div class="form-group col-12">
-                        <label for="label">Commentaire</label>
+                    <div class="mb-3 form-group col-12 d-none types-label">
+                        <label for="type">Type*</label>
+                        <select name="type" class="data form-control">
+                            <option value="">Type à choisir...</option>
+                            {% for type in types %}
+                                <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group col-12 dispute-comment">
+                        <label for="label">Commentaire litige</label>
                         <input type="text" class="data form-control" name="description">
                     </div>
 
                     <div class="col-12 form-group">
-                        <label>Statut de type 'litige traité' ?</label>
+                        <label>Statut de type 'traité' ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="treated">
                             <span class="slider round"></span>
                         </label>
                     </div>
 
-                    <div class="col-12 form-group">
+                    <div class="col-12 form-group send-mail-user">
                         <label>Envoi de mails aux acheteurs ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="sendMails">
@@ -63,6 +73,8 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewStatus" type="button" class="btn btn-success">Enregistrer</button>
+
+                <input hidden id="acheminementTranslation" value="{{ 'acheminement.acheminements'|trans }}">
             </div>
         </div>
     </div>

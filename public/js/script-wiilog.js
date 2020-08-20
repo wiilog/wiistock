@@ -18,6 +18,7 @@ const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
+const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_URGENCES = 'urgences';
 
@@ -1364,7 +1365,11 @@ function displayFiltersSup(data) {
                 break;
 
             default:
-                $('#' + element.field).val(element.value);
+                const $fieldWithId = $('#' + element.field);
+                const $field = $fieldWithId.length > 0
+                    ? $fieldWithId
+                    : $('.filters-container').find(`[name="${element.field}"]`);
+                $field.val(element.value);
         }
     });
 }

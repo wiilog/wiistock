@@ -12,11 +12,22 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
+                    <label for="type">Type*</label>
+                    <select name="type" class="form-control data d-block type needed"
+                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                            onchange="toggleRequiredChampsLibres($(this), 'create', availableStatusOnChange($(this)))">
+                        <option value="">Type à choisir...</option>
+                        {% for type in typeChampsLibres %}
+                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="type">Statut*</label>
-                    <select name="statut" class="form-control data d-block type needed">
-                        <option value="">Statut à choisir...</option>
+                    <select name="statut" class="form-control data d-block status-acheminement needed">
+                        <option value="">Choisir un statut...</option>
                         {% for statut in statuts %}
-                            <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                            <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -33,8 +44,8 @@
                            data-id="{{ app.user.id }}"/>
                 </div>
                 <div class="form-group">
-                    <label for="destinataire">Destinataire*</label>
-                    <select class="destinataire form-control data needed ajax-autocomplete-user w-100" name="destinataire">
+                    <label for="destinataire">Destinataire</label>
+                    <select class="destinataire form-control data ajax-autocomplete-user w-100" name="destinataire">
                         <option value="" selected></option>
                         {% for utilisateur in utilisateurs %}
                             <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
@@ -43,23 +54,12 @@
                 </div>
                 <div class="form-group w-100">
                     <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
-                    <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed" id="prise">
+                    <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
                     </select>
                 </div>
                 <div class="form-group w-100">
                     <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
-                    <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed" id="depose">
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed"
-                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                            onchange="toggleRequiredChampsLibres($(this),'create')">
-                        <option value="">Type à choisir...</option>
-                        {% for type in typeChampsLibres %}
-                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
-                        {% endfor %}
+                    <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
                     </select>
                 </div>
 

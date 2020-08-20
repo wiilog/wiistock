@@ -21,6 +21,7 @@ let tableAcheminementsConfig = {
     },
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
+        { "data": 'Numero', 'name': 'Numero', 'title': 'Numéro demande' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
         { "data": 'Type', 'name': 'Type', 'title': 'Type' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
@@ -52,6 +53,7 @@ $(function() {
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#utilisateur'), 'Demandeur');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    initSelect2($('.filter-select2[name="multipleTypes"]'), 'Types');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -61,7 +63,6 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 });
-
 
 let editorNewAcheminementAlreadyDone = false;
 
@@ -80,9 +81,8 @@ function initNewAcheminementEditor(modal) {
         .trigger('change')
         .append(option)
         .trigger('change');
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement[name!=""]'));
 }
-
 
 function addInputColisClone(button)
 {
@@ -93,21 +93,6 @@ function addInputColisClone(button)
     $parent.children().last().find('.data-array').val('');
 }
 
-function changeStatus(button) {
-    let sel = $(button).data('title');
-    let tog = $(button).data('toggle');
-    if ($(button).hasClass('not-active')) {
-        if ($("#s").val() == "0") {
-            $("#s").val("1");
-        } else {
-            $("#s").val("0");
-        }
-    }
-
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-}
-
 function printAcheminementFromId(data) {
     const $printButton = $(`#print-btn-acheminement-${data.acheminement}`);
     if ($printButton.length > 0) {
@@ -115,3 +100,9 @@ function printAcheminementFromId(data) {
     }
 }
 
+function availableStatusOnChange($select) {
+    const type = parseInt($select.val());
+    $('select[name="statut"] option[data-type-id="' + type + '"]').removeClass('d-none');
+    $('select[name="statut"] option[data-type-id!="' + type + '"]').addClass('d-none');
+    $('select[name="statut"] option:selected').prop("selected", false);
+}

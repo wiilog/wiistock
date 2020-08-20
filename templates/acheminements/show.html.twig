@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Tracabilité | {{ 'acheminement.acheminements'|trans }} | Détails{% endblock %}
+{% block title %}Demande | {{ 'acheminement.acheminements'|trans }} | Détails{% endblock %}
 {% block titleLink path('acheminements_index') %}
 
 {% block page_content %}
@@ -26,10 +26,16 @@
             </div>
         </div>
     </div>
+    <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+
+    {% include "acheminements/modalDeleteAcheminements.html.twig" %}
+    {% include "acheminements/modalEditAcheminements.html.twig" %}
+    {% include "acheminements/modalCannotValidate.html.twig" %}
 
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/acheminements-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

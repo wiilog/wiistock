@@ -92,6 +92,7 @@ class AcheminementsService
 
         return [
             'id' => $acheminement->getId() ?? 'Non défini',
+            'Numero' => $acheminement->getNumeroAcheminement() ?? '',
             'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
             'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
             'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
@@ -132,9 +133,18 @@ class AcheminementsService
                 ['label' => 'Emplacement de prise', 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
                 ['label' => 'Emplacement de dépose', 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
-                ['label' => 'Commentaire', 'value' => $comment ? $comment : '']
             ],
-            $freeFieldArray
+            $freeFieldArray,
+            [
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true,
+                    'isNeededNotEmpty' => true
+                ]
+            ]
         );
     }
 
@@ -147,7 +157,7 @@ class AcheminementsService
 
         $lastNumeroAcheminement = $acheminementRepository->getLastNumeroAcheminementByDate($dateStr);
         if ($lastNumeroAcheminement) {
-            $lastCounter = (int) substr($lastNumeroAcheminement, -1, 1);
+            $lastCounter = (int) substr($lastNumeroAcheminement, -4, 4);
             $currentCounter = ($lastCounter + 1);
         }
         else {
@@ -155,9 +165,10 @@ class AcheminementsService
         }
 
         $currentCounterStr = (
-        $currentCounter < 10 ? ('0' . $currentCounter) :
-                ($currentCounter < 100 ? ('' . $currentCounter) :
-                    $currentCounter)
+        $currentCounter < 10 ? ('000' . $currentCounter) :
+            ($currentCounter < 100 ? ('00' . $currentCounter) :
+                ($currentCounter < 1000 ? ('0' . $currentCounter) :
+                    $currentCounter))
         );
 
         return ('A-' . $dateStr . $currentCounterStr);

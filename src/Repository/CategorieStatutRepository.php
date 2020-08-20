@@ -14,22 +14,29 @@ use Doctrine\ORM\EntityRepository;
 class CategorieStatutRepository extends EntityRepository
 {
 
-	/**
-	 * @param string $label
-	 * @return CategorieStatut[]
-	 */
-    public function findByLabelLike($label)
-	{
-		$em = $this->getEntityManager();
+    /**
+     * @param string|null $disputeStatusLabel
+     * @param string|null $acheminementStatusLabel
+     * @return CategorieStatut[]
+     */
+    public function findByLabelLike(?string $disputeStatusLabel, ?string $acheminementStatusLabel)
+    {
+            $queryBuilder = $this->createQueryBuilder('categorie_statut')
+                ->select('categorie_statut.id')
+                ->addSelect('categorie_statut.nom')
+                ->where('categorie_statut.nom LIKE :disputeStatusLabel')
+                ->orWhere('categorie_statut.nom LIKE :acheminementStatusLabel');
 
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT cs
-			FROM App\Entity\CategorieStatut cs
-			WHERE cs.nom LIKE :label
-			")
-		->setParameter('label', '%' . $label . '%');
+            if ($disputeStatusLabel) {
+                $queryBuilder->setParameter('disputeStatusLabel', '%' . $disputeStatusLabel . '%');
+            }
 
-		return $query->execute();
-	}
+            if ($acheminementStatusLabel) {
+                $queryBuilder->setParameter('acheminementStatusLabel', '%' . $acheminementStatusLabel . '%');
+            }
+
+            return $queryBuilder
+                ->getQuery()
+                ->getResult();
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Acheminements;
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -18,6 +19,7 @@ use Doctrine\ORM\NoResultException;
 class AcheminementsRepository extends EntityRepository
 {
     private const DtToDbLabels = [
+        'Numero' => 'numeroAcheminement',
         'Date' => 'date',
         'Type' => 'type',
         'Demandeur' => 'requester',
@@ -30,31 +32,30 @@ class AcheminementsRepository extends EntityRepository
 
     public function findByParamAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder('a');
 
-        $qb
-            ->select('a')
-            ->from('App\Entity\Acheminements', 'a');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = $qb
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
 
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
-					$value = explode(',', $filter['value']);
+                    $value = explode(',', $filter['value']);
+                    dump($filter);
 					$qb
 						->join('a.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-
-                case 'type':
+                case FiltreSup::FIELD_MULTIPLE_TYPES:
+                    $value = explode(',', $filter['value']);
                     $qb
                         ->join('a.type', 't')
-                        ->andWhere('t.label in (:type)')
-                        ->setParameter('type', $filter['value']);
+                        ->andWhere('t.id in (:type)')
+                        ->setParameter('type', $value);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
@@ -113,7 +114,12 @@ class AcheminementsRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+        $countFiltered = $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $qb
+            ->select('a');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -148,6 +154,20 @@ class AcheminementsRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function countByEmplacement($emplacementId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(a)
+            FROM App\Entity\Acheminements a
+            WHERE a.locationFrom = :emplacementId
+            OR a.locationTo = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
+
     public function getLastNumeroAcheminementByDate($date)
     {
         $entityManager = $this->getEntityManager();
@@ -155,7 +175,7 @@ class AcheminementsRepository extends EntityRepository
         /** @lang DQL */
             'SELECT a.numeroAcheminement as numeroAcheminement
 			FROM App\Entity\Acheminements a
-			WHERE a.numeroLitige LIKE :value
+			WHERE a.numeroAcheminement LIKE :value
 			ORDER BY a.date DESC'
         )->setParameter('value', $date . '%');
 
