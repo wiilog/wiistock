@@ -29,7 +29,7 @@ class PackAcheminement
     private $acheminement;
 
     /**
-     * @ORM\Column(type="boolean", options={default: false})
+     * @ORM\Column(type="boolean", options={"default": false})
      */
     private $treated;
 

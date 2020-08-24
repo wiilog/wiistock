@@ -6,6 +6,8 @@ namespace App\Service;
 use App\Entity\Acheminements;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -96,5 +98,15 @@ class AcheminementsService
                 'acheminement' => $acheminement
             ]),
         ];
+    }
+
+    public function createDateFromStr(?string $dateStr): ?DateTime {
+        $date = null;
+        foreach (['Y-m-d', 'd/m/Y'] as $format) {
+            $date = (!empty($dateStr) && empty($date))
+                ? DateTime::createFromFormat($format, $dateStr, new DateTimeZone("Europe/Paris"))
+                : $date;
+        }
+        return $date ?: null;
     }
 }
