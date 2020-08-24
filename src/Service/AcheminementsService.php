@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -101,6 +102,7 @@ class AcheminementsService
             'Nb Colis' => $nbColis ?? 0,
             'Type' => $acheminement->getType() ? $acheminement->getType()->getLabel() : '',
             'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
+            'Urgence' => $acheminement->isUrgent() ? 'oui' : 'non',
             'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
                 'acheminement' => $acheminement,
                 'url' => $url,
@@ -172,5 +174,15 @@ class AcheminementsService
         );
 
         return ('A-' . $dateStr . $currentCounterStr);
+    }
+
+    public function createDateFromStr(?string $dateStr): ?DateTime {
+        $date = null;
+        foreach (['Y-m-d', 'd/m/Y'] as $format) {
+            $date = (!empty($dateStr) && empty($date))
+                ? DateTime::createFromFormat($format, $dateStr, new DateTimeZone("Europe/Paris"))
+                : $date;
+        }
+        return $date ?: null;
     }
 }

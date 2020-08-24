@@ -67,6 +67,40 @@
         </div>
     {% endfor %}
 </div>
+<div class="form-group">
+    <label>Echéance</label>
+    <div class="input-group w-100">
+        <div class="input-group-prepend">
+            <span class="input-group-text w-50px">Du</span>
+        </div>
+        <input type="date"
+               class="form-control data"
+               name="startDate"
+               value="{{ acheminement.startDate ? acheminement.startDate|date('Y-m-d') }}"
+               title="Date d'échéance min"
+               placeholder="jj/mm/aaaa"/>
+        <div class="input-group-prepend">
+            <span class="input-group-text w-50px">Au</span>
+        </div>
+        <input type="date"
+               class="form-control data"
+               name="endDate"
+               value="{{ acheminement.endDate ? acheminement.endDate|date('Y-m-d') }}"
+               title="Date d'échéance max"
+               placeholder="jj/mm/aaaa"/>
+    </div>
+</div>
+<div class="form-group">
+    <label>Urgence</label>
+    <div class="w-100">
+        <label class="switch mt-2">
+            <input class="checkbox"
+                   name="urgent"
+                   {{ acheminement.urgent ? 'checked' }}
+                   type="checkbox"/>
+            <span class="slider round"></span>
+        </label>
+    </div>
 
 <div class="form-group">
     <label for="commentaire">Commentaire</label>

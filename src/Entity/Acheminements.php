@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -51,6 +52,24 @@ class Acheminements extends FreeFieldEntity
     private $commentaire;
 
     /**
+     * @var bool
+     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     */
+    private $urgent;
+
+    /**
+     * @var DateTime|null
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $startDate;
+
+    /**
+     * @var DateTime|null
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $endDate;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="acheminements")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -90,6 +109,7 @@ class Acheminements extends FreeFieldEntity
     {
         $this->packAcheminements = new ArrayCollection();
         $this->attachements = new ArrayCollection();
+        $this->urgent = false;
     }
 
     public function getId(): ?int
@@ -277,4 +297,46 @@ class Acheminements extends FreeFieldEntity
 
         return $this;
     }
+
+    public function isUrgent(): bool {
+        return $this->urgent;
+    }
+
+    public function setUrgent(bool $urgent): self {
+        $this->urgent = $urgent;
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStartDate(): ?DateTime {
+        return $this->startDate;
+    }
+
+    /**
+     * @param DateTime|null $startDate
+     * @return self
+     */
+    public function setStartDate(?DateTime $startDate): self {
+        $this->startDate = $startDate;
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getEndDate(): ?DateTime {
+        return $this->endDate;
+    }
+
+    /**
+     * @param DateTime|null $endDate
+     * @return self
+     */
+    public function setEndDate(?DateTime $endDate): self {
+        $this->endDate = $endDate;
+        return $this;
+    }
+
 }

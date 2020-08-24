@@ -25,6 +25,8 @@ use App\Service\PDFGeneratorService;
 use App\Service\UserService;
 use App\Service\AcheminementsService;
 
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -145,6 +147,7 @@ Class AcheminementsController extends AbstractController
      * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param FreeFieldService $freeFieldService
+     * @param AcheminementsService $acheminementsService
      * @param AttachmentService $attachmentService
      * @param AcheminementsService $acheminementsService
      * @param EntityManagerInterface $entityManager
@@ -153,6 +156,7 @@ Class AcheminementsController extends AbstractController
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
+                        AcheminementsService $acheminementsService,
                         AttachmentService $attachmentService,
                         AcheminementsService $acheminementsService,
                         EntityManagerInterface $entityManager): Response
@@ -164,16 +168,20 @@ Class AcheminementsController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $acheminements = new Acheminements();
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $locationTake = $emplacementRepository->find($post->get('prise'));
             $locationDrop = $emplacementRepository->find($post->get('depose'));
 
+            $startDate = $acheminementsService->createDateFromStr($post->get('startDate'));
+            $endDate = $acheminementsService->createDateFromStr($post->get('endDate'));
             $acheminementNumber = $acheminementsService->createAcheminementNumber($entityManager, $date);
 
             $acheminements
                 ->setDate($date)
-                ->setDate($date)
+                ->setStartDate($startDate ?: null)
+                ->setEndDate($endDate ?: null)
+                ->setUrgent($post->getBoolean('urgent'))
                 ->setStatut($statutRepository->find($post->get('statut')))
                 ->setType($typeRepository->find($post->get('type')))
                 ->setRequester($utilisateurRepository->find($post->get('demandeur')))
@@ -245,7 +253,7 @@ Class AcheminementsController extends AbstractController
                                                 PDFGeneratorService $PDFGenerator): PdfResponse
     {
         $packs = $acheminement->getPacks();
-        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
         $fileName = 'Etat_acheminement_' . $acheminement->getId() . '.pdf';
         return new PdfResponse(
@@ -282,7 +290,7 @@ Class AcheminementsController extends AbstractController
      * @throws Exception
      */
     public function edit(Request $request,
-                         AcheminementsService  $acheminementsService,
+                         AcheminementsService $acheminementsService,
                          EntityManagerInterface $entityManager): Response {
 
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -292,6 +300,7 @@ Class AcheminementsController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
+            /** @var Acheminements $acheminement */
             $post = $request->request;
             $acheminement = $acheminementsRepository->find($data['id']);
 
@@ -299,14 +308,21 @@ Class AcheminementsController extends AbstractController
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ACHEMINEMENT, $statutLabel);
 
             $acheminement->setStatut($statut);
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+            $startDate = $acheminementsService->createDateFromStr($data['startDate']);
+            $endDate = $acheminementsService->createDateFromStr($data['endDate']);
+
+            $locationTake = $emplacementRepository->find($data['prise']);
+            $locationDrop = $emplacementRepository->find($data['depose']);
 
             $acheminement
-                ->setDate($date)
+                ->setStartDate($startDate)
+                ->setEndDate($endDate)
                 ->setRequester($utilisateurRepository->find($data['demandeur']))
                 ->setReceiver($utilisateurRepository->find($data['destinataire']))
-                ->setLocationTo($emplacementRepository->find($data['depose']))
-                ->setLocationFrom($emplacementRepository->find($data['prise']))
+                ->setUrgent((bool) $data['urgent'])
+                ->setLocationFrom($locationTake)
+                ->setLocationTo($locationDrop)
                 ->setType($typeRepository->find($data['type']))
                 ->setStatut($statutRepository->find($data['statut']))
                 ->setCommentaire($data['commentaire'] ?? '');
