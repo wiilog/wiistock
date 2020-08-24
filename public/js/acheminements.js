@@ -14,7 +14,10 @@ let tableAcheminementsConfig = {
         "type": "POST",
     },
     rowConfig: {
-        needsRowClickAction: true
+        needsRowClickAction: true,
+        needsColor: true,
+        color: 'danger',
+        dataToCheck: 'Urgence'
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -29,6 +32,7 @@ let tableAcheminementsConfig = {
         { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': $('#dropOffLocationAcheminement').val() },
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Urgence', 'name': 'Urgence', 'title': 'Urgence' },
     ],
 };
 let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);

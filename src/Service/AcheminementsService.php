@@ -94,6 +94,7 @@ class AcheminementsService
             'Nb Colis' => $nbColis ?? 0,
             'Type' => $acheminement->getType() ? $acheminement->getType()->getLabel() : '',
             'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
+            'Urgence' => $acheminement->isUrgent() ? 'oui' : 'non',
             'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
                 'acheminement' => $acheminement
             ]),
