@@ -40,10 +40,23 @@
             <input type="text" class="form-control data needed is-barcode" name="mobileLoginKey" id="mobileLoginKey" value="{{ user.mobileLoginKey }}"/>
         </div>
         <div class="form-group col-12 w-100">
-            <label for="inputEditType">Type</label>
-            <select type="text" name="type" class="form-control data select2 " multiple="multiple"
-                    id="inputEditType">
-                {% for type in types %}
+            <label>Types de livraison</label>
+            <select name="deliveryTypes"
+                    class="form-control data select2"
+                    multiple="multiple"
+                    title="Types de livraison">
+                {% for type in deliveryTypes %}
+                    <option value="{{ type.id }}">{{ type.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-12 w-100">
+            <label>Types d'{{ 'acheminement.acheminement'|trans }}</label>
+            <select name="dispatchTypes"
+                    class="form-control data select2"
+                    multiple="multiple"
+                    title="Types d'{{ 'acheminement.acheminement'|trans }}">
+                {% for type in dispatchTypes %}
                     <option value="{{ type.id }}">{{ type.label }}</option>
                 {% endfor %}
             </select>
