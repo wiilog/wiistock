@@ -2,6 +2,13 @@
 
 {% block title %}Paramétrage | Statuts{% endblock %}
 
+{% block page_filter %}
+    {% include 'filters/filtersStatuts.html.twig' with {
+        'page': 'PAGE_STATUS',
+        'tableSelector': '#tableStatus'
+    } %}
+{% endblock %}
+
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">

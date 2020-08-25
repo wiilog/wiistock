@@ -4,13 +4,17 @@
 namespace App\Service;
 
 use App\Entity\Acheminements;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -34,15 +38,24 @@ class AcheminementsService
     private $user;
 
     private $entityManager;
+    private $freeFieldService;
+    private $translator;
+    private $mailerService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating) {
+                                Twig_Environment $templating,
+                                FreeFieldService $champLibreService,
+                                TranslatorInterface $translator,
+                                MailerService $mailerService) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->freeFieldService = $champLibreService;
+        $this->translator = $translator;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -84,8 +97,11 @@ class AcheminementsService
     public function dataRowAcheminement($acheminement)
     {
         $nbColis = count($acheminement->getPacks());
+        $url = $this->router->generate('acheminement-show', ['id' => $acheminement->getId()]);
+
         return [
             'id' => $acheminement->getId() ?? 'Non défini',
+            'Numero' => $acheminement->getNumeroAcheminement() ?? '',
             'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
             'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
             'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
@@ -96,9 +112,76 @@ class AcheminementsService
             'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
             'Urgence' => $acheminement->isUrgent() ? 'oui' : 'non',
             'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
-                'acheminement' => $acheminement
+                'acheminement' => $acheminement,
+                'url' => $url,
             ]),
         ];
+    }
+
+    public function createHeaderDetailsConfig(Acheminements $acheminement): array
+    {
+        $status = $acheminement->getStatut();
+        $type = $acheminement->getType();
+        $requester = $acheminement->getRequester();
+        $locationFrom = $acheminement->getLocationFrom();
+        $locationTo = $acheminement->getLocationTo();
+        $creationDate = $acheminement->getDate();
+        $comment = $acheminement->getCommentaire();
+
+        $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
+            $this->entityManager,
+            $acheminement,
+            CategorieCL::DEMANDE_ACHEMINEMENT,
+            CategoryType::DEMANDE_ACHEMINEMENT
+        );
+
+        return array_merge(
+            [
+                ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
+                ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
+                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Emplacement de prise', 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
+                ['label' => 'Emplacement de dépose', 'value' => $locationTo ? $locationTo->getLabel() : ''],
+                ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
+            ],
+            $freeFieldArray,
+            [
+                [
+                    'label' => 'Commentaire',
+                    'value' => $comment ?: '',
+                    'isRaw' => true,
+                    'colClass' => 'col-sm-6 col-12',
+                    'isScrollable' => true,
+                    'isNeededNotEmpty' => true
+                ]
+            ]
+        );
+    }
+
+    public function createAcheminementNumber(EntityManagerInterface $entityManager,
+                                        DateTime $date): string {
+
+        $acheminementRepository = $entityManager->getRepository(Acheminements::class);
+
+        $dateStr = $date->format('Ymd');
+
+        $lastNumeroAcheminement = $acheminementRepository->getLastNumeroAcheminementByDate($dateStr);
+        if ($lastNumeroAcheminement) {
+            $lastCounter = (int) substr($lastNumeroAcheminement, -4, 4);
+            $currentCounter = ($lastCounter + 1);
+        }
+        else {
+            $currentCounter = 1;
+        }
+
+        $currentCounterStr = (
+        $currentCounter < 10 ? ('000' . $currentCounter) :
+            ($currentCounter < 100 ? ('00' . $currentCounter) :
+                ($currentCounter < 1000 ? ('0' . $currentCounter) :
+                    $currentCounter))
+        );
+
+        return ('A-' . $dateStr . $currentCounterStr);
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -109,5 +192,40 @@ class AcheminementsService
                 : $date;
         }
         return $date ?: null;
+    }
+
+    public function sendMailToRecipient(Acheminements $acheminement, $isUpdate = false)
+    {
+        $recipientAbleToReceivedMail = $acheminement->getStatut()->getSendNotifToRecipient();
+
+        if ($recipientAbleToReceivedMail && $acheminement->getReceiver()) {
+            $mainAndSecondaryEmails = $acheminement->getReceiver()->getMainAndSecondaryEmails();
+            if (!empty($mainAndSecondaryEmails)) {
+                array_push($recipients, ...$mainAndSecondaryEmails);
+            }
+        }
+
+        $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
+        $title = !$isUpdate
+            ? ('Une' . $translatedCategory .' de type ' . $acheminement->getType()->getLabel() . ' vous concerne :')
+            : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $acheminement->getType()->getLabel() . ' vous concernant :');
+        $subject = !$isUpdate
+            ? ('FOLLOW GT // ' . $acheminement->getType()->getLabel() . ' sur ' . $translatedCategory)
+            : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.';
+
+        if (!empty($recipients)) {
+            $this->mailerService->sendMail(
+                $subject,
+                $this->templating->render('mails/contents/mailAcheminement.html.twig', [
+                    'litiges' => [$acheminement],
+                    'title' => $title,
+                    'urlSuffix' => $translatedCategory
+                ]),
+                [
+                    $acheminement->getReceiver()->getEmail(),
+                    $acheminement->getReceiver()->getSecondaryEmails()
+                ]
+            );
+        }
     }
 }

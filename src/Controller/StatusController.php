@@ -112,6 +112,7 @@ class StatusController extends AbstractController
                         'Treated' => $status->isTreated() ? 'oui' : 'non',
                         'NotifToBuyer' => $status->getSendNotifToBuyer() ? 'oui' : 'non',
                         'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
+                        'NotifToRecipient' => $status->getSendNotifToRecipient() ? 'oui' : 'non',
                         'Order' => $status->getDisplayOrder() ?? '',
                         'Actions' => $this->renderView('status/datatableStatusRow.html.twig', [
                             'url' => $url,
@@ -158,6 +159,7 @@ class StatusController extends AbstractController
 					->setTreated($data['treated'])
                     ->setSendNotifToBuyer($data['sendMails'])
                     ->setSendNotifToDeclarant($data['sendMailsDeclarant'])
+                    ->setSendNotifToRecipient($data['sendMailsRecipient'])
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setCategorie($category)
                     ->setType($type ?? null);
@@ -257,6 +259,7 @@ class StatusController extends AbstractController
 					->setTreated($data['treated'])
                     ->setSendNotifToBuyer($data['sendMails'])
                     ->setSendNotifToDeclarant($data['sendMailsDeclarant'])
+                    ->setSendNotifToRecipient($data['sendMailsRecipient'])
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setComment($data['comment'])
                     ->setType($type ?? null);

@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | {{ 'acheminement.acheminements'|trans }}{% endblock %}
+{% block title %}Demande | {{ 'acheminement.acheminements'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -35,8 +35,6 @@
     <input type="hidden" id="takenLocationAcheminement" value="{{ 'acheminement.emplacement prise'|trans }}">
 
     {% include "acheminements/modalNewAcheminements.html.twig" %}
-    {% include "acheminements/modalEditAcheminements.html.twig" %}
-    {% include "acheminements/modalDeleteAcheminements.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

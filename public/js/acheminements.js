@@ -24,6 +24,7 @@ let tableAcheminementsConfig = {
     },
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
+        { "data": 'Numero', 'name': 'Numero', 'title': 'Numéro demande' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
         { "data": 'Type', 'name': 'Type', 'title': 'Type' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
@@ -33,6 +34,7 @@ let tableAcheminementsConfig = {
         { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Urgence', 'name': 'Urgence', 'title': 'Urgence' },
+        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' }
     ],
 };
 let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);
@@ -56,6 +58,7 @@ $(function() {
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#utilisateur'), 'Demandeur');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    initSelect2($('.filter-select2[name="multipleTypes"]'), 'Types');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -65,34 +68,6 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 });
-
-function toggleNewLocation($checkox) {
-    const $needsNewLocation = $checkox.is(':checked');
-    const $locationSelect = $('.location-' + $checkox.data('type'));
-    const $locationSelect2 = $('.location-' + $checkox.data('type')).next('span.select2');
-    const $locationText = $('.new-location-' + $checkox.data('type'));
-    if ($needsNewLocation) {
-        $locationText.removeClass('d-none');
-        $locationText.addClass('needed');
-        $locationText.attr('name', $checkox.data('type'));
-        $locationText.addClass('data');
-
-        $locationSelect2.addClass('d-none');
-        $locationSelect.removeClass('needed');
-        $locationSelect.attr('name', '');
-        $locationSelect.removeClass('data');
-    } else {
-        $locationText.addClass('d-none');
-        $locationText.removeClass('needed');
-        $locationText.attr('name', '');
-        $locationText.removeClass('data');
-
-        $locationSelect2.removeClass('d-none');
-        $locationSelect.addClass('needed');
-        $locationSelect.attr('name', $checkox.data('type'));
-        $locationSelect.addClass('data');
-    }
-}
 
 let editorNewAcheminementAlreadyDone = false;
 

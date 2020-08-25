@@ -15,6 +15,7 @@ class Acheminements extends FreeFieldEntity
     const CATEGORIE = 'acheminements';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
+    const STATUT_BROUILLON = 'brouillon';
 
     /**
      * @ORM\Id()
@@ -98,6 +99,11 @@ class Acheminements extends FreeFieldEntity
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="acheminements")
      */
     private $type;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $numeroAcheminement;
 
     public function __construct()
     {
@@ -276,6 +282,18 @@ class Acheminements extends FreeFieldEntity
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getNumeroAcheminement(): ?string
+    {
+        return $this->numeroAcheminement;
+    }
+
+    public function setNumeroAcheminement(string $numeroAcheminement): self
+    {
+        $this->numeroAcheminement = $numeroAcheminement;
 
         return $this;
     }

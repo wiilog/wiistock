@@ -5,7 +5,7 @@
     </div>
 
     <div class="col-12 form-group">
-        <label for="category">Catégorie*</label>
+        <label for="category">Entité*</label>
         <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this), $('#modalEditStatus'))">
             {% for category in categories %}
                 <option {{ category.id == status.categorie.id ? 'selected' }} value="{{ category.id }}">{{ category.nom }}</option>
@@ -28,8 +28,8 @@
         </select>
     </div>
 
-    <div class="col-12 form-group">
-        <label for="username">Commentaire</label>
+    <div class="col-12 form-group dispute-comment {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+        <label for="username">Commentaire litige</label>
         <input type="text" class="form-control data" name="comment" value="{{ status.comment }}">
     </div>
 
@@ -55,6 +55,13 @@
         <label>Envoi de mails au déclarant ?</label>
         <label class="switch">
             <input class="checkbox" type="checkbox" name="sendMailsDeclarant" {{ checkedMails }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="col-12 form-group send-mail-recipient">
+        <label>Envoi de mails au destinataire ?</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="sendMailsRecipient">
             <span class="slider round"></span>
         </label>
     </div>

@@ -16,6 +16,11 @@ use Doctrine\ORM\NoResultException;
  */
 class StatutRepository extends EntityRepository
 {
+    private const DtToDbLabels = [
+        'statusEntity' => 'statusEntity'
+    ];
+
+
     /**
      * @param string $categorieName
      * @param bool $ordered
@@ -224,4 +229,31 @@ class StatutRepository extends EntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    /**
+     * @param array|null $params
+     * @param array|null $filters
+     * @param int|null $userId
+     * @return void
+     */
+    public function findByParamsAndFilters($params, $filters, $userId)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('cs')
+            ->from('App\Entity\CategorieStatut', 'cs');
+
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'statusEntity':
+                    $qb
+                        ->join('cs.statuts', 'css')
+                        ->where('css.id in (:category)')
+                        ->setParameter('category', $filter['field']);
+                    break;
+            }
+        }
+    }
 }

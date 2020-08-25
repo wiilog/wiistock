@@ -10,7 +10,7 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="mb-3 form-group col-12">
-                        <label for="category">Catégorie*</label>
+                        <label for="category">Entité*</label>
                         <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this), $('#modalNewStatus'))">
                             {% if categories|length > 1 %}
                                 <option disabled value="" selected></option>
@@ -36,8 +36,8 @@
                         </select>
                     </div>
 
-                    <div class="form-group col-12">
-                        <label for="label">Commentaire</label>
+                    <div class="form-group col-12 dispute-comment">
+                        <label for="label">Commentaire litige</label>
                         <input type="text" class="data form-control" name="description">
                     </div>
 
@@ -60,6 +60,13 @@
                         <label>Envoi de mails au déclarant ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="sendMailsDeclarant">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="col-12 form-group send-mail-recipient">
+                        <label>Envoi de mails au destinataire ?</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="sendMailsRecipient">
                             <span class="slider round"></span>
                         </label>
                     </div>
