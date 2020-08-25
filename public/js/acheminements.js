@@ -42,17 +42,7 @@ let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsCo
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");
 let urlNewAcheminements = Routing.generate('acheminements_new', true);
-initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
-
-let modalModifyAcheminements = $('#modalEditAcheminements');
-let submitModifyAcheminements = $('#submitEditAcheminements');
-let urlModifyAcheminements = Routing.generate('acheminement_edit', true);
-InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements, tableAcheminements, printAcheminementFromId);
-
-let modalDeleteAcheminements = $('#modalDeleteAcheminements');
-let submitDeleteAcheminements = $('#submitDeleteAcheminements');
-let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
-InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, tableAcheminements);
+initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements);
 
 $(function() {
     initSelect2($('#statut'), 'Statuts');
@@ -96,13 +86,6 @@ function addInputColisClone(button)
     let $parent = $toClone.parent();
     $toClone.clone().appendTo($parent);
     $parent.children().last().find('.data-array').val('');
-}
-
-function printAcheminementFromId(data) {
-    const $printButton = $(`#print-btn-acheminement-${data.acheminement}`);
-    if ($printButton.length > 0) {
-        window.location.href = $printButton.attr('href');
-    }
 }
 
 function availableStatusOnChange($select) {
