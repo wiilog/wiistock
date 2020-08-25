@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Acheminements;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -1307,6 +1308,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $natureRepository = $entityManager->getRepository(Nature::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
+        $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1333,7 +1335,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $preparations = $preparationRepository->getMobilePreparations($user);
 
             /// collecte
-            $collectes = $ordreCollecteRepository->getByStatutLabelAndUser($user);
+            $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
             /// On tronque le commentaire à 200 caractères (sans les tags)
             $collectes = array_map(function ($collecteArray) {
@@ -1424,7 +1426,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
             );
 
-            $dispatches = [];
+            $dispatches = $acheminementsRepository->getMobileDispatches($user);
         } else {
             $trackingTaking = [];
             $natures = [];
