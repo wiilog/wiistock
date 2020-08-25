@@ -18,12 +18,11 @@ $(function () {
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut traité'},
-            {"data": 'NotifToBuyer', 'title': 'Envoi de mails aux acheteurs'},
             {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'Order', 'title': 'Ordre'},
         ],
         order: [
-            [7, 'asc']
+            [5, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,
@@ -70,6 +69,7 @@ function displayErrorStatusEdit(data) {
 function hideOptionOnChange($select, $modal) {
     const $category = $select.find('option:selected').text();
     const $sendMailBuyer =  $modal.find('.send-mail-user');
+    const $sendMailRecipient = $modal.find('.send-mail-recipient');
     const $disputeComment = $modal.find('.dispute-comment');
     const $typesLabel = $modal.find('.types-label');
     const $acheminementTrans =  $modal.find('#acheminementTranslation').val();
@@ -77,6 +77,7 @@ function hideOptionOnChange($select, $modal) {
     if ($category === $acheminementTrans) {
         $sendMailBuyer.addClass('d-none');
         $disputeComment.addClass('d-none');
+        $sendMailRecipient.removeClass('d-none');
         $typesLabel.removeClass('d-none');
         $typesLabel.find('select').addClass('needed');
     }
@@ -84,6 +85,7 @@ function hideOptionOnChange($select, $modal) {
         $sendMailBuyer.removeClass('d-none');
         $disputeComment.removeClass('d-none');
         $typesLabel.addClass('d-none');
+        $sendMailRecipient.addClass('d-none');
         $typesLabel.find('select').removeClass('needed');
         $typesLabel.find('select').find('option:selected').prop("selected", false);
         $typesLabel.find('select').val('');

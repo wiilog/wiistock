@@ -5,7 +5,7 @@
         <option selected value={{ acheminement.type.id }}>{{ acheminement.type.label }}</option>
         {% for type in typeChampsLibres %}
             {% if type.typeId != acheminement.type.id %}
-            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
             {% endif %}
         {% endfor %}
     </select>
@@ -40,33 +40,6 @@
         <option value="{{ acheminement.receiver.id }}">{{ acheminement.receiver.username }}</option>
     </select>
 </div>
-<div class="form-group w-100">
-    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}</label>
-    <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
-        <option value="{{ acheminement.locationFrom.id }}">{{ acheminement.locationFrom.label }}</option>
-    </select>
-</div>
-<div class="form-group w-100">
-    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}</label>
-    <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
-        <option value="{{ acheminement.locationTo.id }}">{{ acheminement.locationTo.label }}</option>
-    </select>
-</div>
-
-<!-- CHAMPS LIBRES -->
-<div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-    {% for type in typeChampsLibres %}
-        <div class="d-none row" id="{{ type.typeId }}-new">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
-                freeFields: type.champsLibres,
-                freeFieldValues: [],
-                colType: 'col-12',
-                requiredType: 'requiredCreate',
-                actionType: 'new'
-            } %}
-        </div>
-    {% endfor %}
-</div>
 <div class="form-group">
     <label>Echéance</label>
     <div class="input-group w-100">
@@ -96,15 +69,42 @@
         <label class="switch mt-2">
             <input class="checkbox"
                    name="urgent"
-                   {{ acheminement.urgent ? 'checked' }}
+                {{ acheminement.urgent ? 'checked' }}
                    type="checkbox"/>
             <span class="slider round"></span>
         </label>
     </div>
+</div>
+<div class="form-group w-100">
+    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}</label>
+    <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
+        <option value="{{ acheminement.locationFrom.id }}">{{ acheminement.locationFrom.label }}</option>
+    </select>
+</div>
+<div class="form-group w-100">
+    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}</label>
+    <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
+        <option value="{{ acheminement.locationTo.id }}">{{ acheminement.locationTo.label }}</option>
+    </select>
+</div>
 
+<!-- CHAMPS LIBRES -->
+<div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+    {% for type in typeChampsLibres %}
+        <div class="d-none row" id="{{ type.typeId }}-new">
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: type.champsLibres,
+                freeFieldValues: [],
+                colType: 'col-12',
+                requiredType: 'requiredCreate',
+                actionType: 'new'
+            } %}
+        </div>
+    {% endfor %}
+</div>
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
-    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" value="{{acheminement.commentaire}}">
+    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" value="{{ acheminement.commentaire }}">
     <div class="editor-container-edit" id="editor-container-edit" value="{{ acheminement.commentaire }}">{{ acheminement.commentaire|raw }}
     </div>
 </div>

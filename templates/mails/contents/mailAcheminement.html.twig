@@ -1,0 +1,76 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
+    {% set s = acheminements|length > 1 ? 's' : '' %}
+    {% set nt = acheminements|length > 1 ? 'nt' : '' %}
+    <h3 class="margin-bottom:30px;">
+        {{ litiges|length }} {{ 'acheminement.acheminement'|trans }}{{ s }} vous concerne{{ nt }} :
+    </h3>
+
+    <table class="table"
+           style="border: 1px solid black;border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Numéro de demande
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Date demande
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Libellé
+            </th>
+            {#<th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Date de réalisation
+            </th>#}
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Type
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Statut
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Commentaire
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.numeroAcheminement }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.date }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.requester }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.type.nom }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.statut.label }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.comment }}
+            </td>
+        </tbody>
+    </table>
+    <br>
+    <br>
+
+{% endblock %}

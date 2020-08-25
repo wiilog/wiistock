@@ -7,12 +7,14 @@ use App\Entity\Acheminements;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError as Twig_Error_Loader;
 use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
@@ -37,17 +39,23 @@ class AcheminementsService
 
     private $entityManager;
     private $freeFieldService;
+    private $translator;
+    private $mailerService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FreeFieldService $champLibreService) {
+                                FreeFieldService $champLibreService,
+                                TranslatorInterface $translator,
+                                MailerService $mailerService) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->freeFieldService = $champLibreService;
+        $this->translator = $translator;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -184,5 +192,40 @@ class AcheminementsService
                 : $date;
         }
         return $date ?: null;
+    }
+
+    public function sendMailToRecipient(Acheminements $acheminement, $isUpdate = false)
+    {
+        $recipientAbleToReceivedMail = $acheminement->getStatut()->getSendNotifToRecipient();
+
+        if ($recipientAbleToReceivedMail && $acheminement->getReceiver()) {
+            $mainAndSecondaryEmails = $acheminement->getReceiver()->getMainAndSecondaryEmails();
+            if (!empty($mainAndSecondaryEmails)) {
+                array_push($recipients, ...$mainAndSecondaryEmails);
+            }
+        }
+
+        $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
+        $title = !$isUpdate
+            ? ('Une' . $translatedCategory .' de type ' . $acheminement->getType()->getLabel() . ' vous concerne :')
+            : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $acheminement->getType()->getLabel() . ' vous concernant :');
+        $subject = !$isUpdate
+            ? ('FOLLOW GT // ' . $acheminement->getType()->getLabel() . ' sur ' . $translatedCategory)
+            : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.';
+
+        if (!empty($recipients)) {
+            $this->mailerService->sendMail(
+                $subject,
+                $this->templating->render('mails/contents/mailAcheminement.html.twig', [
+                    'litiges' => [$acheminement],
+                    'title' => $title,
+                    'urlSuffix' => $translatedCategory
+                ]),
+                [
+                    $acheminement->getReceiver()->getEmail(),
+                    $acheminement->getReceiver()->getSecondaryEmails()
+                ]
+            );
+        }
     }
 }

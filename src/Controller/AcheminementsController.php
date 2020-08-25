@@ -149,7 +149,6 @@ Class AcheminementsController extends AbstractController
      * @param FreeFieldService $freeFieldService
      * @param AcheminementsService $acheminementsService
      * @param AttachmentService $attachmentService
-     * @param AcheminementsService $acheminementsService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
@@ -158,7 +157,6 @@ Class AcheminementsController extends AbstractController
                         FreeFieldService $freeFieldService,
                         AcheminementsService $acheminementsService,
                         AttachmentService $attachmentService,
-                        AcheminementsService $acheminementsService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -189,7 +187,7 @@ Class AcheminementsController extends AbstractController
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setCommentaire($post->get('commentaire') ?? null)
-                ->setNumeroAcheminement($acheminementNumber);;
+                ->setNumeroAcheminement($acheminementNumber);
 
             $freeFieldService->manageFreeFields($acheminements, $post->all(), $entityManager);
 
@@ -210,6 +208,8 @@ Class AcheminementsController extends AbstractController
 
             $entityManager->persist($acheminements);
             $entityManager->flush();
+
+            $acheminementsService->sendMailToRecipient($acheminements, false);
 
             $response['acheminement'] = $acheminements->getId();
             $response['redirect'] = $this->generateUrl('acheminement-show', ['id' => $acheminements->getId()]);
