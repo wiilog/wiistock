@@ -167,8 +167,8 @@ class UtilisateurController extends AbstractController
 				$utilisateur->setPassword($password);
 			}
 
-            if (isset($data['deliveryType'])) {
-                foreach ($data['deliveryType'] as $type) {
+            if (isset($data['deliveryTypes'])) {
+                foreach ($data['deliveryTypes'] as $type) {
                     $utilisateur->addDeliveryType($typeRepository->find($type));
                 }
             }

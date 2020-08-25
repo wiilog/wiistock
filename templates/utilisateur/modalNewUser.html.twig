@@ -38,10 +38,9 @@
                 <div class="form-group col-12">
                     <label>Types de livraison</label>
                     <select name="deliveryTypes"
-                            class="form-control select2 data"
+                            class="form-control select2 data w-100"
                             multiple="multiple"
-                            title="Types de livraison"
-                            style="width: 300px;">
+                            title="Types de livraison">
                         {% for type in deliveryTypes %}
                             <option value="{{ type.id }}">{{ type.label }}</option>
                         {% endfor %}
@@ -50,10 +49,9 @@
                 <div class="form-group col-12">
                     <label>Types d'{{ 'acheminement.acheminement'|trans }}</label>
                     <select name="dispatchTypes"
-                            class="form-control select2 data"
+                            class="form-control select2 data w-100"
                             multiple="multiple"
-                            title="Types d'{{ 'acheminement.acheminement'|trans }}"
-                            style="width: 300px;">
+                            title="Types d'{{ 'acheminement.acheminement'|trans }}">
                         {% for type in dispatchTypes %}
                             <option value="{{ type.id }}">{{ type.label }}</option>
                         {% endfor %}
