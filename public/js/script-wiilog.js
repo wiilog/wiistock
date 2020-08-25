@@ -382,8 +382,7 @@ function showRow(button, path, modal) {
  * @param wantsFreeFieldsRequireCheck
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
-}, wantsFreeFieldsRequireCheck = true) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     let id = button.data('id');
     let ref = button.data('ref');
 

@@ -101,7 +101,7 @@ class AcheminementsService
 
         return [
             'id' => $acheminement->getId() ?? 'Non défini',
-            'Numero' => $acheminement->getNumeroAcheminement() ?? '',
+            'Numero' => $acheminement->getNumber() ?? '',
             'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
             'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
             'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
@@ -158,16 +158,16 @@ class AcheminementsService
         );
     }
 
-    public function createAcheminementNumber(EntityManagerInterface $entityManager,
-                                        DateTime $date): string {
+    public function createDispatchNumber(EntityManagerInterface $entityManager,
+                                         DateTime $date): string {
 
         $acheminementRepository = $entityManager->getRepository(Acheminements::class);
 
         $dateStr = $date->format('Ymd');
 
-        $lastNumeroAcheminement = $acheminementRepository->getLastNumeroAcheminementByDate($dateStr);
-        if ($lastNumeroAcheminement) {
-            $lastCounter = (int) substr($lastNumeroAcheminement, -4, 4);
+        $lastDispatchNumber = $acheminementRepository->getLastDispatchNumberByDate($dateStr);
+        if ($lastDispatchNumber) {
+            $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
             $currentCounter = ($lastCounter + 1);
         }
         else {

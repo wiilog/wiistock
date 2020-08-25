@@ -173,7 +173,7 @@ Class AcheminementsController extends AbstractController
 
             $startDate = $acheminementsService->createDateFromStr($post->get('startDate'));
             $endDate = $acheminementsService->createDateFromStr($post->get('endDate'));
-            $acheminementNumber = $acheminementsService->createAcheminementNumber($entityManager, $date);
+            $number = $acheminementsService->createDispatchNumber($entityManager, $date);
 
             $acheminements
                 ->setDate($date)
@@ -187,7 +187,7 @@ Class AcheminementsController extends AbstractController
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setCommentaire($post->get('commentaire') ?? null)
-                ->setNumeroAcheminement($acheminementNumber);
+                ->setNumber($number);
 
             $freeFieldService->manageFreeFields($acheminements, $post->all(), $entityManager);
 

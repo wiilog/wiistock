@@ -23,6 +23,7 @@ final class Version20200825091643 extends AbstractMigration
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
         $this->addSql('ALTER TABLE utilisateur_type RENAME user_delivery_type');
+        $this->addSql('ALTER TABLE acheminements CHANGE numero_acheminement number VARCHAR(255) NOT NULL');
 
     }
 
