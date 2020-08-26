@@ -29,6 +29,7 @@ final class Version20200826224141 extends AbstractMigration
         $sqlCategoryTypeAcheminement = "SELECT id FROM category_type WHERE category_type.label = '${categoryTypeAcheminement}' LIMIT 1";
         $sqlTypeAcheminement = "SELECT id FROM type WHERE category_id = (${sqlCategoryTypeAcheminement}) and label = '$typeLabelStandard' LIMIT 1";
 
+        $this->addSql('ALTER TABLE statut ADD type_id INTEGER');
         $this->addSql("
             UPDATE statut
             INNER JOIN categorie_statut ON statut.categorie_id = categorie_statut.id
