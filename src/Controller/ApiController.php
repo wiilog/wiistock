@@ -21,6 +21,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\PackAcheminement;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -1309,6 +1310,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
         $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
+        $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1427,12 +1429,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             );
 
             $dispatches = $acheminementsRepository->getMobileDispatches($user);
+            $dispatchPacks = $packDispatchRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
+                return $dispatch['id'];
+            }, $dispatches));
         } else {
             $trackingTaking = [];
             $natures = [];
             $allowedNatureInLocations = [];
             $trackingFreeFields = [];
             $dispatches = [];
+            $dispatchPacks = [];
         }
 
         return [
@@ -1456,7 +1462,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'natures' => $natures,
             'rights' => $rights,
             'translations' => $translationsRepository->findAllObjects(),
-            'dispatches' => $dispatches
+            'dispatches' => $dispatches,
+            'dispatchPacks' => $dispatchPacks
         ];
     }
 

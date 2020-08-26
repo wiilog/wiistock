@@ -61,7 +61,7 @@ class Pack
     private $trackingMovements;
 
     /**
-     * @ORM\Column(type="integer", options={"default": 0})
+     * @ORM\Column(type="integer", options={"default": 1})
      */
     private $quantity;
 
@@ -74,7 +74,7 @@ class Pack
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->packAcheminements = new ArrayCollection();
-        $this->quantity = 0;
+        $this->quantity = 1;
     }
 
     public function getId(): ?int
