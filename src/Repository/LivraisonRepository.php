@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;

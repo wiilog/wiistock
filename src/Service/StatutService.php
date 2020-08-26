@@ -8,15 +8,11 @@ use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
 
 class StatutService
 {

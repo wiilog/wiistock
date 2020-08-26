@@ -4,14 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Acheminements;
 use App\Entity\Action;
-use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
-use App\Entity\Demande;
 use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
 use App\Entity\Menu;
 
 use App\Entity\Nature;
@@ -31,7 +28,6 @@ use App\Service\UserService;
 use App\Service\AcheminementsService;
 
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -45,7 +41,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\Json;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
