@@ -7,6 +7,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
+use App\Entity\PackAcheminement;
 use App\Service\CSVExportService;
 use App\Service\PackService;
 use App\Service\UserService;

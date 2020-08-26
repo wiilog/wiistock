@@ -473,7 +473,7 @@ Class AcheminementsController extends AbstractController
                     return [
                         'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
                         'code' => $pack->getCode(),
-                        'quantity' => $pack->getQuantity(),
+                        'quantity' => $packAcheminement->getQuantity(),
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
@@ -507,7 +507,6 @@ Class AcheminementsController extends AbstractController
         $packCode = $data['pack'];
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
-        $treated = (bool) $data['treated'];
 
         $alreadyCreated = !$dispatch
             ->getPackAcheminements()
@@ -542,9 +541,9 @@ Class AcheminementsController extends AbstractController
 
             $nature = $natureRepository->find($natureId);
             $pack
-                ->setNature($nature)
+                ->setNature($nature);
+            $packDispatch
                 ->setQuantity($quantity);
-            $packDispatch->setTreated($treated);
 
             $entityManager->flush();
 
@@ -574,6 +573,7 @@ Class AcheminementsController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $packDispatchId = $data['packDispatchId'];
+        /** @var PackAcheminement $packDispatch */
         $packDispatch = $packDispatchRepository->find($packDispatchId);
         if (empty($packDispatch)) {
             $success = false;
@@ -587,7 +587,9 @@ Class AcheminementsController extends AbstractController
 
             $nature = $natureRepository->find($natureId);
             $pack
-                ->setNature($nature)
+                ->setNature($nature);
+
+            $packDispatch
                 ->setQuantity($quantity);
 
             $entityManager->flush();
@@ -629,6 +631,7 @@ Class AcheminementsController extends AbstractController
         else if (!$packDispatch->isTreated()) {
             $treated = (bool)$data['treated'];
             $packDispatch->setTreated($treated);
+            $packDispatch->getPack()->setQuantity($packDispatch->getQuantity());
             $entityManager->flush();
 
             $success = true;
