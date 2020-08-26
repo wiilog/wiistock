@@ -68,28 +68,28 @@ function displayErrorStatusEdit(data) {
     }
 }
 
-function hideOptionOnChange($select, $modal) {
-    const $category = $select.find('option:selected').text();
-    const $sendMailBuyer =  $modal.find('.send-mail-user');
-    const $sendMailRecipient = $modal.find('.send-mail-recipient');
-    const $disputeComment = $modal.find('.dispute-comment');
-    const $typesLabel = $modal.find('.types-label');
-    const $acheminementTrans =  $modal.find('#acheminementTranslation').val();
+function hideOptionOnChange($modal, forceClear = true) {
+    const $select = $modal.find('[name="category"]');
+    const $dispatchFields = $modal.find('.dispatch-fields');
+    const $disputeFields = $modal.find('.dispute-fields');
 
-    if ($category === $acheminementTrans) {
-        $sendMailBuyer.addClass('d-none');
-        $disputeComment.addClass('d-none');
-        $sendMailRecipient.removeClass('d-none');
-        $typesLabel.removeClass('d-none');
-        $typesLabel.find('select').addClass('needed');
+    $dispatchFields.addClass('d-none');
+    $disputeFields.addClass('d-none');
+    $modal.find('.field-needed').removeClass('needed');
+
+    if (forceClear) {
+        $dispatchFields.find('select').find('option:selected').prop("selected", false);
+        $dispatchFields.find('select').val('');
+
+        $disputeFields.find('select').find('option:selected').prop("selected", false);
+        $disputeFields.find('select').val('');
     }
-    else {
-        $sendMailBuyer.removeClass('d-none');
-        $disputeComment.removeClass('d-none');
-        $typesLabel.addClass('d-none');
-        $sendMailRecipient.addClass('d-none');
-        $typesLabel.find('select').removeClass('needed');
-        $typesLabel.find('select').find('option:selected').prop("selected", false);
-        $typesLabel.find('select').val('');
+
+    const category = $select.find('option:selected').text();
+    if (category) {
+        const acheminementTrans =  $modal.find('#acheminementTranslation').val();
+        const $fields = (category === acheminementTrans) ? $dispatchFields : $disputeFields;
+        $fields.removeClass('d-none');
+        $fields.find('.field-needed').addClass('needed');
     }
 }

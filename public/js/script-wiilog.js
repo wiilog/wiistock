@@ -49,19 +49,25 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
  * @param {document} table le DataTable gérant les données
  *
  */
-function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true) {
+function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true, disableButtonOnClick = false) {
     submit.click(function () {
-        submitAction(modal, path, table, close, clear)
-            .then((data) => {
-                if (callback) {
-                    callback(data);
-                }
-            })
-            .catch(() => {})
+        if (submit.find('.spinner-border').length > 0) {
+            alertSuccessMsg('L\'opération est en cours de traitement');
+        }
+        else {
+            submitAction(modal, path, table, close, clear, disableButtonOnClick, submit)
+                .then((data) => {
+                    if (callback) {
+                        callback(data);
+                    }
+                })
+                .catch(() => {
+                })
+        }
     });
 }
 
-function submitAction(modal, path, table = null, close = true, clear = true) {
+function submitAction(modal, path, table = null, close = true, clear = true, disableButtonOnClick = false, $submit = null) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -229,6 +235,17 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
         && wrongNumberInputs.length == 0
         && passwordIsValid
         && datesAreValid) {
+        if (disableButtonOnClick && $submit) {
+            const $spinner = $('<div/>', {
+                class: 'spinner-border spinner-border-sm mr-2',
+                role: 'status',
+                html: $('<span/>', {
+                    class: 'sr-only',
+                    text: 'Chargement...'
+                })
+            });
+            $submit.prepend($spinner);
+        }
 
         return $
             .post({
@@ -237,6 +254,10 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
+                if (disableButtonOnClick && $submit) {
+                    $submit.find('.spinner-border').remove();
+                }
+
                 if (data.success === false) {
                     if (data.msg) {
                         alertErrorMsg(data.msg, false);
@@ -382,8 +403,7 @@ function showRow(button, path, modal) {
  * @param wantsFreeFieldsRequireCheck
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
-}, wantsFreeFieldsRequireCheck = true) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     let id = button.data('id');
     let ref = button.data('ref');
 

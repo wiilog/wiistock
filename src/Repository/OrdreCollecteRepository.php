@@ -46,17 +46,16 @@ class OrdreCollecteRepository extends EntityRepository
 	}
 
 	/**
-	 * @param string $statutLabel
 	 * @param Utilisateur $user
 	 * @return mixed
 	 */
-	public function getByStatutLabelAndUser($statutLabel, $user)
+	public function getMobileCollecte(Utilisateur $user)
 	{
         $queryBuilder = $this->createOrdreCollecteQueryBuilder()
             ->andWhere('s.nom = :statutLabel')
             ->andWhere('oc.utilisateur IS NULL OR oc.utilisateur = :user')
             ->setParameters([
-                'statutLabel' => $statutLabel,
+                'statutLabel' => OrdreCollecte::STATUT_A_TRAITER,
                 'user' => $user,
             ]);
 		return $queryBuilder->getQuery()->execute();

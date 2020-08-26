@@ -19,7 +19,7 @@ use Doctrine\ORM\NoResultException;
 class AcheminementsRepository extends EntityRepository
 {
     private const DtToDbLabels = [
-        'Numero' => 'numeroAcheminement',
+        'Numero' => 'number',
         'Date' => 'date',
         'Type' => 'type',
         'Demandeur' => 'requester',
@@ -168,18 +168,46 @@ class AcheminementsRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getLastNumeroAcheminementByDate($date)
+    public function getLastDispatchNumberByDate($date)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT a.numeroAcheminement as numeroAcheminement
-			FROM App\Entity\Acheminements a
-			WHERE a.numeroAcheminement LIKE :value
-			ORDER BY a.date DESC'
-        )->setParameter('value', $date . '%');
+        $queryBuilder = $this->createQueryBuilder('dispatch');
+        $queryBuilder
+            ->select('dispatch.number as number')
+            ->where('dispatch.number LIKE :value')
+            ->orderBy('dispatch.date', 'DESC')
+            ->setParameter('value', $date . '%');
 
-        $result = $query->execute();
-        return $result ? $result[0]['numeroAcheminement'] : null;
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+
+    public function getMobileDispatches(Utilisateur $user)
+    {
+        $queryBuilder = $this->createQueryBuilder('dispatch');
+        $queryBuilder
+            ->select('dispatch_requester.username AS requester')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.startDate AS startDate')
+            ->addSelect('dispatch.endDate AS endDate')
+            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('locationFrom.label AS locationFromLabel')
+            ->addSelect('locationTo.label AS locationToLabel')
+            ->addSelect('type.label AS typeLabel')
+            ->addSelect('status.nom AS statusLabel')
+            ->join('dispatch.requester', 'dispatch_requester')
+            ->leftJoin('dispatch.locationFrom', 'locationFrom')
+            ->leftJoin('dispatch.locationTo', 'locationTo')
+            ->join('dispatch.type', 'type')
+            ->join('dispatch.statut', 'status')
+            ->where('status.needsMobileSync = 1')
+            ->andWhere('status.treated = 0')
+            ->andWhere('type.id IN (:dispatchTypeIds)')
+            ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 }

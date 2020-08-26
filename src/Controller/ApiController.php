@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Acheminements;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -702,7 +703,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             if (!empty($insertedPrepasIds)) {
-                $resData['data']['preparations'] = $preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
+                $resData['data']['preparations'] = $preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds);
                 $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
                 $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
             }
@@ -1307,6 +1308,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $natureRepository = $entityManager->getRepository(Nature::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
+        $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1320,7 +1322,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['stock']) {
             // livraisons
-            $livraisons = $livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+            $livraisons = $livraisonRepository->getMobileDelivery($user);
 
             $livraisonsIds = array_map(function ($livraisonArray) {
                 return $livraisonArray['id'];
@@ -1330,10 +1332,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
             /// preparations
-            $preparations = $preparationRepository->getAvailablePreparations($user);
+            $preparations = $preparationRepository->getMobilePreparations($user);
 
             /// collecte
-            $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+            $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
             /// On tronque le commentaire à 200 caractères (sans les tags)
             $collectes = array_map(function ($collecteArray) {
@@ -1423,11 +1425,14 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 },
                 $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
             );
+
+            $dispatches = $acheminementsRepository->getMobileDispatches($user);
         } else {
             $trackingTaking = [];
             $natures = [];
             $allowedNatureInLocations = [];
             $trackingFreeFields = [];
+            $dispatches = [];
         }
 
         return [
@@ -1450,7 +1455,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'demandeLivraisonArticles' => $demandeLivraisonArticles,
             'natures' => $natures,
             'rights' => $rights,
-            'translations' => $translationsRepository->findAllObjects()
+            'translations' => $translationsRepository->findAllObjects(),
+            'dispatches' => $dispatches
         ];
     }
 

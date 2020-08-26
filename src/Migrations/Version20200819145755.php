@@ -56,9 +56,9 @@ final class Version20200819145755 extends AbstractMigration
             }
 
             $id = $acheminement['id'];
-            $numeroAcheminement = $prefix .'-'. $dateStr . $suffix . $daysCounter[$dayCounterKey];
-            $sqlNumeroAcheminement = ("UPDATE acheminements SET numero_acheminement = '$numeroAcheminement' WHERE acheminements.id = '$id'");
-            $this->addSql($sqlNumeroAcheminement);
+            $dispatchNumber = $prefix .'-'. $dateStr . $suffix . $daysCounter[$dayCounterKey];
+            $sqlDispatchNumber = ("UPDATE acheminements SET numero_acheminement = '$dispatchNumber' WHERE acheminements.id = '$id'");
+            $this->addSql($sqlDispatchNumber);
         }
     }
 

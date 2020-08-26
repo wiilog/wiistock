@@ -171,9 +171,16 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $recherche;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="utilisateurs")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="deliveryUsers")
+     * @ORM\JoinTable(name="user_delivery_type")
      */
-    private $types;
+    private $deliveryTypes;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="dispatchUsers")
+     * @ORM\JoinTable(name="user_dispatch_type")
+     */
+    private $dispatchTypes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
@@ -261,7 +268,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
-        $this->types = new ArrayCollection();
+        $this->deliveryTypes = new ArrayCollection();
+        $this->dispatchTypes = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
         $this->acheminementsReceive = new ArrayCollection();
@@ -844,9 +852,71 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return ArrayCollection|Type[]
      */
-    public function getTypes()
+    public function getDeliveryTypes()
     {
-        return $this->types;
+        return $this->deliveryTypes;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getDeliveryTypeIds(): array {
+        return $this->deliveryTypes
+            ->map(function (Type $type) {return $type->getId();})
+            ->toArray();
+    }
+
+    public function addDeliveryType(Type $type): self
+    {
+        if (!$this->deliveryTypes->contains($type)) {
+            $this->deliveryTypes[] = $type;
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryType(Type $type): self
+    {
+        if ($this->deliveryTypes->contains($type)) {
+            $this->deliveryTypes->removeElement($type);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getDispatchTypes(): Collection
+    {
+        return $this->dispatchTypes;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getDispatchTypeIds(): array {
+        return $this->dispatchTypes
+            ->map(function (Type $type) {return $type->getId();})
+            ->toArray();
+    }
+
+    public function addDispatchType(Type $type): self
+    {
+        if (!$this->dispatchTypes->contains($type)) {
+            $this->dispatchTypes[] = $type;
+        }
+
+        return $this;
+    }
+
+    public function removeDispatchType(Type $type): self
+    {
+        if ($this->dispatchTypes->contains($type)) {
+            $this->dispatchTypes->removeElement($type);
+        }
+
+        return $this;
     }
 
 
@@ -889,24 +959,6 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setInventoryCategoryHistory(?InventoryCategoryHistory $inventoryCategoryHistory): self
     {
         $this->inventoryCategoryHistory = $inventoryCategoryHistory;
-
-        return $this;
-    }
-
-    public function addType(Type $type): self
-    {
-        if (!$this->types->contains($type)) {
-            $this->types[] = $type;
-        }
-
-        return $this;
-    }
-
-    public function removeType(Type $type): self
-    {
-        if ($this->types->contains($type)) {
-            $this->types->removeElement($type);
-        }
 
         return $this;
     }

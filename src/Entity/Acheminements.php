@@ -103,7 +103,7 @@ class Acheminements extends FreeFieldEntity
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $numeroAcheminement;
+    private $number;
 
     public function __construct()
     {
@@ -286,14 +286,14 @@ class Acheminements extends FreeFieldEntity
         return $this;
     }
 
-    public function getNumeroAcheminement(): ?string
+    public function getNumber(): ?string
     {
-        return $this->numeroAcheminement;
+        return $this->number;
     }
 
-    public function setNumeroAcheminement(string $numeroAcheminement): self
+    public function setNumber(string $number): self
     {
-        $this->numeroAcheminement = $numeroAcheminement;
+        $this->number = $number;
 
         return $this;
     }

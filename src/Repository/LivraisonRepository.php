@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -41,18 +42,11 @@ class LivraisonRepository extends EntityRepository
     }
 
     /**
-     * @param $statusLabel
      * @param Utilisateur $user
-     * @return mixed
+     * @return array[]
      */
-	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
+	public function getMobileDelivery(Utilisateur $user)
 	{
-        $typeUser = [];
-        if ($user->getTypes()) {
-            foreach ($user->getTypes() as $type) {
-                $typeUser[] = $type->getId();
-            }
-        }
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
@@ -68,11 +62,11 @@ class LivraisonRepository extends EntityRepository
 			JOIN demande.destination dest
 			JOIN demande.type t
 			JOIN demande.utilisateur user
-			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.id IN (:type)"
+			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.id IN (:typeIds)"
 		)->setParameters([
-			'statusLabel' => $statusLabel,
+			'statusLabel' => Livraison::STATUT_A_TRAITER,
 			'user' => $user,
-            'type' => $typeUser,
+            'typeIds' => $user->getDeliveryTypeIds()
 		]);
 
 		return $query->execute();

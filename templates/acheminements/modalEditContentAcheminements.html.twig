@@ -1,5 +1,5 @@
 <div class="form-group">
-    <label for="type">Type</label>
+    <label for="type">Type*</label>
     <select name="type" class="form-control data d-block type needed"
             onclick="typeChoice($(this), '-new', $('#typeContentNew'))" disabled>
         <option selected value={{ acheminement.type.id }}>{{ acheminement.type.label }}</option>
@@ -11,18 +11,25 @@
     </select>
 </div>
 <div class="form-group">
-    <label for="type">Statut</label>
+    <label for="type">Statut*</label>
     <select name="statut" class="form-control data d-block status-acheminement needed">
-        <option selected value="{{ acheminement.statut.id }}">{{ acheminement.statut.nom }}</option>
+        <option selected
+                value="{{ acheminement.statut.id }}"
+                data-type-id="{{ acheminement.statut.type.id }}">
+            {{ acheminement.statut.nom }}
+        </option>
         {% for statut in statuts %}
             {% if statut.id != acheminement.statut.id and statut.type.id == acheminement.type.id %}
-                <option data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
+                <option data-type-id="{{ statut.type.id }}"
+                        value="{{ statut.id }}">
+                    {{ statut.nom }}
+                </option>
             {% endif %}
         {% endfor %}
     </select>
 </div>
 <div class="form-group">
-    <label for="demandeur">Demandeur</label>
+    <label for="demandeur">Demandeur*</label>
     <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="demandeur">
         <option selected value="{{ acheminement.requester.id }}">{{ acheminement.requester.username }}</option>
         {% for utilisateur in utilisateurs %}
@@ -76,15 +83,19 @@
     </div>
 </div>
 <div class="form-group w-100">
-    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}</label>
+    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
     <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
-        <option value="{{ acheminement.locationFrom.id }}">{{ acheminement.locationFrom.label }}</option>
+        {% if acheminement.locationFrom %}
+            <option value="{{ acheminement.locationFrom.id }}">{{ acheminement.locationFrom.label }}</option>
+        {% endif %}
     </select>
 </div>
 <div class="form-group w-100">
-    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}</label>
+    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
     <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
-        <option value="{{ acheminement.locationTo.id }}">{{ acheminement.locationTo.label }}</option>
+        {% if acheminement.locationTo %}
+            <option value="{{ acheminement.locationTo.id }}">{{ acheminement.locationTo.label }}</option>
+        {% endif %}
     </select>
 </div>
 

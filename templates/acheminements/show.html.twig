@@ -4,13 +4,16 @@
 {% block titleLink path('acheminements_index') %}
 
 {% block page_content %}
+    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
+    <input type="hidden" id="dispatchId" value="{{ acheminement.id }}">
+
     <div class="m-4">
         <div class="row">
             <div class="col-12">
                 <div class="zone-entete">
                     {% include "acheminements/acheminement-show-header.html.twig" with {
-                        acheminement : acheminement,
-                        showDetails : detailsConfig,
+                        acheminement: acheminement,
+                        showDetails: detailsConfig,
                         modifiable: modifiable
                     } %}
                 </div>
@@ -22,16 +25,29 @@
                     <div class="row mb-2">
                         <h5 class="col-auto h5">Liste des colis</h5>
                     </div>
+                    <div class="row wii-page-card-header">
+                        <div class="col-auto ml-auto">
+                            <button onclick="openNewPackModal()"
+                                    class="btn btn-primary">
+                                <i class="fa fa-plus"></i>
+                                {{ 'mouvement de traçabilité.Ajouter un colis'|trans }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="packTable" class="table w-100"></table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
 
     {% include "acheminements/modalDeleteAcheminements.html.twig" %}
     {% include "acheminements/modalEditAcheminements.html.twig" %}
-    {% include "acheminements/modalCannotValidate.html.twig" %}
-
+    {% include "acheminements/modalPack.html.twig" with newPackConfig %}
+    {% include "acheminements/modalValidatePack.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

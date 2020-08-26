@@ -96,9 +96,14 @@ class Type
     private $collectes;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="types")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="deliveryTypes")
      */
-    private $utilisateurs;
+    private $deliveryUsers;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dispatchTypes")
+     */
+    private $dispatchUsers;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -124,7 +129,8 @@ class Type
         $this->litiges = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
         $this->collectes = new ArrayCollection();
-        $this->utilisateurs = new ArrayCollection();
+        $this->deliveryUsers = new ArrayCollection();
+        $this->dispatchUsers = new ArrayCollection();
         $this->acheminements = new ArrayCollection();
         $this->statuts = new ArrayCollection();
     }
@@ -435,26 +441,54 @@ class Type
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getUtilisateurs(): Collection
+    public function getDeliveryUsers(): Collection
     {
-        return $this->utilisateurs;
+        return $this->deliveryUsers;
     }
 
-    public function addUtilisateur(Utilisateur $utilisateur): self
+    public function addDeliveryUser(Utilisateur $user): self
     {
-        if (!$this->utilisateurs->contains($utilisateur)) {
-            $this->utilisateurs[] = $utilisateur;
-            $utilisateur->addType($this);
+        if (!$this->deliveryUsers->contains($user)) {
+            $this->deliveryUsers[] = $user;
+            $user->addDeliveryType($this);
         }
 
         return $this;
     }
 
-    public function removeUtilisateur(Utilisateur $utilisateur): self
+    public function removeDeliveryUser(Utilisateur $user): self
     {
-        if ($this->utilisateurs->contains($utilisateur)) {
-            $this->utilisateurs->removeElement($utilisateur);
-            $utilisateur->removeType($this);
+        if ($this->deliveryUsers->contains($user)) {
+            $this->deliveryUsers->removeElement($user);
+            $user->removeDeliveryType($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getDispatchUsers(): Collection
+    {
+        return $this->dispatchUsers;
+    }
+
+    public function addDispatchUser(Utilisateur $user): self
+    {
+        if (!$this->dispatchUsers->contains($user)) {
+            $this->dispatchUsers[] = $user;
+            $user->addDispatchType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatchUser(Utilisateur $user): self
+    {
+        if ($this->dispatchUsers->contains($user)) {
+            $this->dispatchUsers->removeElement($user);
+            $user->removeDispatchType($this);
         }
 
         return $this;

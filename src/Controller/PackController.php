@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use Symfony\Component\Validator\Constraints\Json;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -143,5 +144,32 @@ class PackController extends AbstractController
         } else {
             throw new NotFoundHttpException('404');
         }
+    }
+
+    /**
+     * @Route("/{packCode}", name="get_pack_intel", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @param EntityManagerInterface $entityManager
+     * @param string $packCode
+     * @return JsonResponse
+     */
+    public function getPackIntel(EntityManagerInterface $entityManager,
+                                 string $packCode): JsonResponse {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $pack = $packRepository->findOneBy(['code' => $packCode]);
+        return new JsonResponse([
+            'success' => !empty($pack),
+            'pack' => !empty($pack)
+                ? [
+                    'code' => $packCode,
+                    'quantity' => $pack->getQuantity(),
+                    'nature' => $pack->getNature()
+                        ? [
+                            'id' => $pack->getNature()->getId(),
+                            'label' => $pack->getNature()->getLabel()
+                        ]
+                        : null
+                ]
+                : null
+        ]);
     }
 }

@@ -5,8 +5,8 @@
     </div>
 
     <div class="col-12 form-group">
-        <label for="category">Entité*</label>
-        <select name="category" id="category" class="data form-control needed" onchange="hideOptionOnChange($(this), $('#modalEditStatus'))">
+        <label>Entité*</label>
+        <select name="category" title="Entité" class="data form-control needed" onchange="hideOptionOnChange($('#modalEditStatus'))">
             {% for category in categories %}
                 <option {{ category.id == status.categorie.id ? 'selected' }} value="{{ category.id }}">{{ category.nom }}</option>
             {% endfor %}
@@ -18,17 +18,23 @@
         <input type="text" class="form-control data needed" name="label" required="" value="{{ status.nom }}">
     </div>
 
-    <div class="col-12 form-group types-label {{ status.categorie.nom != 'acheminement' ? 'd-none'}}">
+    <div class="col-12 form-group dispatch-fields {{ status.categorie.nom != 'acheminement' ? 'd-none'}}">
         <label for="type">Type*</label>
-        <select name="type" class="data form-control  {{ status.categorie.nom != 'acheminement' ? 'needed'}}">
-            <option value="">Type à choisir...</option>
+        <select name="type" class="data form-control  {{ status.categorie.nom != 'acheminement' ? 'needed'}} field-needed">
+            {% if status.type is not null %}
+                <option selected value="{{ status.type.id }}">{{ status.type.label }}</option>
+            {% else %}
+                <option selected value="">Type à choisir...</option>
+            {% endif %}
             {% for type in types %}
-                    <option {{ status.type is not null and type.id == status.type.id ? 'selected' }} value="{{ type.id }}">{{ type.label }}</option>
-                {% endfor %}
+                {% if status.type is null or status.type.id != type.id  %}
+                    <option value="{{ type.id }}">{{ type.label }}</option>
+                {% endif %}
+            {% endfor %}
         </select>
     </div>
 
-    <div class="col-12 form-group dispute-comment {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+    <div class="col-12 form-group dispute-fields {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
         <label for="username">Commentaire litige</label>
         <input type="text" class="form-control data" name="comment" value="{{ status.comment }}">
     </div>
@@ -43,7 +49,7 @@
     </div>
 
     {% set checkedMails = status.sendNotifToBuyer ? 'checked' : '' %}
-    <div class="col-12 form-group send-mail-user {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+    <div class="col-12 form-group dispute-fields {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
         <label>Envoi de mails aux acheteurs ?</label>
         <label class="switch">
             <input class="checkbox" type="checkbox" name="sendMails" {{ checkedMails }}>
@@ -58,10 +64,19 @@
             <span class="slider round"></span>
         </label>
     </div>
-    <div class="col-12 form-group send-mail-recipient">
+    {% set checkedMails = status.sendNotifToRecipient ? 'checked' : '' %}
+    <div class="col-12 form-group dispatch-fields">
         <label>Envoi de mails au destinataire ?</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="sendMailsRecipient">
+            <input class="checkbox" type="checkbox" name="sendMailsRecipient" {{ checkedMails }}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    {% set checkedMails = status.needsMobileSync ? 'checked' : '' %}
+    <div class="col-12 form-group dispatch-fields">
+        <label>Synchronisation nomade ?</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="needsMobileSync" {{ checkedMails }}>
             <span class="slider round"></span>
         </label>
     </div>
