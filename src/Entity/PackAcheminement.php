@@ -63,19 +63,7 @@ class PackAcheminement
         return $this;
     }
 
-    public function getQuantity(): ?int
-    {
-        return $this->quantity;
-    }
-
-    public function setQuantity(int $quantity): self
-    {
-        $this->quantity = $quantity;
-
-        return $this;
-    }
-
-    public function getTreated(): ?bool
+    public function isTreated(): ?bool
     {
         return $this->treated;
     }

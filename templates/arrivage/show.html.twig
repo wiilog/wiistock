@@ -4,7 +4,7 @@
 {% block titleLink path('arrivage_index') %}
 
 {% block page_content %}
-    <input type="hidden" id="natureTranslation" value="{{ natureTranslation }}"/>
+    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
 
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
     <div class="m-4">

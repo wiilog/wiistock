@@ -1,0 +1,25 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <a class="dropdown-item pointer"
+               onclick="openEditPackModal({
+                   packDispatchId: {{ packDispatch.id }},
+                   code: '{{ pack.code }}',
+                   quantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
+                   natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
+                   treated: {{ packDispatch.treated ? 1 : 0 }}
+               })">
+                <i class='fas fa-pen mr-2'></i>Modifier
+            </a>
+        </div>
+    </div>
+</div>
+{% if not packDispatch.treated %}
+    <div class="d-none">
+        <div class="action-on-click"
+             onclick="openValidatePackModal({ packDispatchId: {{ packDispatch.id }}, code: '{{ pack.code }}' })">
+            Traiter
+        </div>
+    </div>
+{% endif %}
