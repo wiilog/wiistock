@@ -266,30 +266,27 @@ Class AcheminementsController extends AbstractController
     public function printAcheminementStateSheet(Acheminements $acheminement,
                                                 PDFGeneratorService $PDFGenerator): PdfResponse
     {
-        $packs = $acheminement->getPacks();
         $now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+        $packsConfig = $acheminement->getPackAcheminements()
+            ->map(function(PackAcheminement $packAcheminement) use ($acheminement, $now){
+                return [
+                    'title' => 'Acheminement n°' . $acheminement->getId(),
+                    'code' => $packAcheminement->getPack()->getCode(),
+                    'content' => [
+                        'Date d\'acheminement' => $now->format('d/m/Y H:i'),
+                        'Demandeur' => $acheminement->getRequester()->getUsername(),
+                        'Destinataire' => $acheminement->getReceiver()->getUsername(),
+                        $this->translator->trans('acheminement.emplacement dépose') => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
+                        $this->translator->trans('acheminement.emplacement prise') => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : ''
+                    ]
+                ];
+            })
+        ->toArray();
 
         $fileName = 'Etat_acheminement_' . $acheminement->getId() . '.pdf';
         return new PdfResponse(
-            $PDFGenerator->generatePDFStateSheet(
-                $fileName,
-                array_map(
-                    function (string $pack) use ($acheminement, $now) {
-                        return [
-                            'title' => 'Acheminement n°' . $acheminement->getId(),
-                            'code' => $pack,
-                            'content' => [
-                                'Date d\'acheminement' => $now->format('d/m/Y H:i'),
-                                'Demandeur' => $acheminement->getRequester()->getUsername(),
-                                'Destinataire' => $acheminement->getReceiver()->getUsername(),
-                                $this->translator->trans('acheminement.emplacement dépose') => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
-                                $this->translator->trans('acheminement.emplacement prise') => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : ''
-                            ]
-                        ];
-                    },
-                    $packs
-                )
-            ),
+            $PDFGenerator->generatePDFStateSheet($fileName, $packsConfig),
             $fileName
         );
     }
@@ -507,7 +504,6 @@ Class AcheminementsController extends AbstractController
         $packCode = $data['pack'];
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
-        $treated = (bool) $data['treated'];
 
         $alreadyCreated = !$dispatch
             ->getPackAcheminements()
@@ -544,7 +540,6 @@ Class AcheminementsController extends AbstractController
             $pack
                 ->setNature($nature)
                 ->setQuantity($quantity);
-            $packDispatch->setTreated($treated);
 
             $entityManager->flush();
 

@@ -33,6 +33,9 @@ class PackAcheminement
      */
     private $treated;
 
+    public function __construct() {
+        $this->treated = false;
+    }
 
     public function getId(): ?int
     {
