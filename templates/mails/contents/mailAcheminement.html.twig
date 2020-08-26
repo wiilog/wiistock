@@ -1,13 +1,6 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-
-    {% set s = acheminements|length > 1 ? 's' : '' %}
-    {% set nt = acheminements|length > 1 ? 'nt' : '' %}
-    <h3 class="margin-bottom:30px;">
-        {{ litiges|length }} {{ 'acheminement.acheminement'|trans }}{{ s }} vous concerne{{ nt }} :
-    </h3>
-
     <table class="table"
            style="border: 1px solid black;border-collapse: collapse;">
         <thead>
@@ -50,7 +43,7 @@
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.date }}
+                {{ acheminement.date|date('d/m/Y H:i:s') }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -58,15 +51,15 @@
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.type.nom }}
+                {{ acheminement.type.label }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.statut.label }}
+                {{ acheminement.statut.nom }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.comment }}
+                {{ acheminement.commentaire|raw }}
             </td>
         </tbody>
     </table>

@@ -8,13 +8,15 @@ $(function () {
 
     let pathStatus = Routing.generate('status_param_api', true);
     let tableStatusConfig = {
+        processing: true,
+        serverSide: true,
         ajax: {
             "url": pathStatus,
             "type": "POST"
         },
         columns: [
             {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Categorie', 'title': 'Entité'},
+            {"data": 'Category', 'title': 'Entité'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut traité'},

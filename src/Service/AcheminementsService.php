@@ -197,34 +197,29 @@ class AcheminementsService
     public function sendMailToRecipient(Acheminements $acheminement, $isUpdate = false)
     {
         $recipientAbleToReceivedMail = $acheminement->getStatut()->getSendNotifToRecipient();
-
-        if ($recipientAbleToReceivedMail && $acheminement->getReceiver()) {
-            $mainAndSecondaryEmails = $acheminement->getReceiver()->getMainAndSecondaryEmails();
-            if (!empty($mainAndSecondaryEmails)) {
-                array_push($recipients, ...$mainAndSecondaryEmails);
-            }
-        }
+        $requesterAbleToReceivedMail = $acheminement->getStatut()->getSendNotifToDeclarant();
 
         $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
+        $type = $acheminement->getType()->getLabel();
+        $receiver = $acheminement->getReceiver()->getMainAndSecondaryEmails();
+        $requester = $acheminement->getRequester()->getMainAndSecondaryEmails();
+
         $title = !$isUpdate
-            ? ('Une' . $translatedCategory .' de type ' . $acheminement->getType()->getLabel() . ' vous concerne :')
-            : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $acheminement->getType()->getLabel() . ' vous concernant :');
+            ? ('Une' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
+            : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :');
         $subject = !$isUpdate
-            ? ('FOLLOW GT // ' . $acheminement->getType()->getLabel() . ' sur ' . $translatedCategory)
+            ? ('FOLLOW GT // ' . $type . ' sur ' . $translatedCategory)
             : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.';
 
-        if (!empty($recipients)) {
+        if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
             $this->mailerService->sendMail(
                 $subject,
                 $this->templating->render('mails/contents/mailAcheminement.html.twig', [
-                    'litiges' => [$acheminement],
+                    'acheminement' => $acheminement,
                     'title' => $title,
                     'urlSuffix' => $translatedCategory
                 ]),
-                [
-                    $acheminement->getReceiver()->getEmail(),
-                    $acheminement->getReceiver()->getSecondaryEmails()
-                ]
+                array_merge($receiver, $requester)
             );
         }
     }

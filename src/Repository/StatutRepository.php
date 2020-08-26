@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieStatut;
 use App\Entity\Statut;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -16,11 +17,6 @@ use Doctrine\ORM\NoResultException;
  */
 class StatutRepository extends EntityRepository
 {
-    private const DtToDbLabels = [
-        'statusEntity' => 'statusEntity'
-    ];
-
-
     /**
      * @param string $categorieName
      * @param bool $ordered
@@ -231,29 +227,61 @@ class StatutRepository extends EntityRepository
 	}
 
     /**
-     * @param array|null $params
+     * @param $params
      * @param array|null $filters
-     * @param int|null $userId
-     * @return void
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
-    public function findByParamsAndFilters($params, $filters, $userId)
+    public function findByParamsAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder('status');
+        $exprBuilder = $qb->expr();
 
         $qb
-            ->select('cs')
-            ->from('App\Entity\CategorieStatut', 'cs');
+            ->join('status.categorie', 'category')
+            ->where('(' . $exprBuilder
+                    ->orX('category.nom = :litigeAr', 'category.nom = :litigeRe', 'category.nom = :ach') . ')')
+            ->setParameters([
+                'litigeAr' => CategorieStatut::LITIGE_ARR,
+                'litigeRe' => CategorieStatut::LITIGE_RECEPT,
+                'ach' => CategorieStatut::ACHEMINEMENT
+            ]);
+
+        $qb
+            ->select('count(status)');
+        // compte le nombre total d'éléments
+        $countTotal = $qb->getQuery()->getSingleScalarResult();
 
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statusEntity':
                     $qb
-                        ->join('cs.statuts', 'css')
-                        ->where('css.id in (:category)')
-                        ->setParameter('category', $filter['field']);
+                        ->andWhere('category.id in (:category)')
+                        ->setParameter('category', $filter['value']);
                     break;
             }
         }
+
+        if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+
+        $qb
+            ->select('count(status)');
+        // compte éléments filtrés
+        $countFiltered = $qb->getQuery()->getSingleScalarResult();
+
+        $qb
+            ->select('status');
+
+        $query = $qb->getQuery();
+
+        return [
+            'data' => $query ? $query->getResult() : null,
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
     }
 }

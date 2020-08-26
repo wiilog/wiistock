@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Statut;
 
 use App\Entity\Type;
+use App\Service\StatutService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,11 +35,13 @@ class StatusController extends AbstractController
      * @var UserService
      */
     private $userService;
+    private $statusService;
     private $translator;
 
-    public function __construct(UserService $userService, TranslatorInterface $translator) {
+    public function __construct(UserService $userService, TranslatorInterface $translator, StatutService $statusService) {
         $this->userService = $userService;
         $this->translator = $translator;
+        $this->statusService = $statusService;
     }
 
     /**
@@ -61,9 +64,7 @@ class StatusController extends AbstractController
             function (array $category) {
                 return [
                     'id' => $category['id'],
-                    'nom' => $category['nom'] === 'acheminement'
-                        ? $this->translator->trans('acheminement.acheminements')
-                        : $category['nom']
+                    'nom' => $category['nom']
                 ];
             },
             $categoriesStatus
@@ -78,49 +79,16 @@ class StatusController extends AbstractController
     /**
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function api(Request $request,
-                        EntityManagerInterface $entityManager): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statusRepository = $entityManager->getRepository(Statut::class);
-
-            $listStatusLitigeArr = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
-            $listStatusLitigeRecep = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
-            $listStatusAcheminement = $statusRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT);
-
-            $rows = [];
-            /** @var Statut $status */
-            foreach (array_merge($listStatusLitigeArr, $listStatusLitigeRecep, $listStatusAcheminement) as $status) {
-                $url['edit'] = $this->generateUrl('status_api_edit', ['id' => $status->getId()]);
-
-                $rows[] =
-                    [
-                        'Label' => $status->getNom(),
-                        'Categorie' => ($status->getCategorie()->getNom() === 'acheminement'
-                            ? $this->translator->trans('acheminement.acheminements')
-                            : ($status->getCategorie()
-                                ? $status->getCategorie()->getNom()
-                                : '')),
-                        'Comment' => $status->getComment(),
-                        'Treated' => $status->isTreated() ? 'oui' : 'non',
-                        'NotifToBuyer' => $status->getSendNotifToBuyer() ? 'oui' : 'non',
-                        'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
-                        'NotifToRecipient' => $status->getSendNotifToRecipient() ? 'oui' : 'non',
-                        'Order' => $status->getDisplayOrder() ?? '',
-                        'Actions' => $this->renderView('status/datatableStatusRow.html.twig', [
-                            'url' => $url,
-                            'statusId' => $status->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->statusService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
