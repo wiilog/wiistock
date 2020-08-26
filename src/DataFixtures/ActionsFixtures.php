@@ -35,7 +35,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			Menu::TRACA => [
 				Action::DISPLAY_ARRI,
 				Action::DISPLAY_MOUV,
-				Action::DISPLAY_ACHE,
 				Action::DISPLAY_ASSO,
 				Action::DISPLAY_ENCO,
 				Action::DISPLAY_URGE,
@@ -56,6 +55,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_DEM_COLL,
 				Action::DISPLAY_DEM_LIVR,
 				Action::DISPLAY_MANU,
+                Action::DISPLAY_ACHE,
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
