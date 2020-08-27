@@ -25,14 +25,18 @@ $(function () {
         order: [[2, 'asc']]
     });
 
-    let modalModifyAcheminements = $('#modalEditAcheminements');
-    let submitModifyAcheminements = $('#submitEditAcheminements');
-    let urlModifyAcheminements = Routing.generate('acheminement_edit', true);
+    const $modalValidateDispatch = $('#modalValidateDispatch');
+    const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-treated-dispatch');
+    const modalModifyAcheminements = $('#modalEditAcheminements');
+    const submitModifyAcheminements = $('#submitEditAcheminements');
+    const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
+    const urlModifyAcheminements = Routing.generate('acheminement_edit', true);
+    InitialiserModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, packTable, null, true, true, true);
     InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements);
 
-    let modalDeleteAcheminements = $('#modalDeleteAcheminements');
-    let submitDeleteAcheminements = $('#submitDeleteAcheminements');
-    let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
+    const modalDeleteAcheminements = $('#modalDeleteAcheminements');
+    const submitDeleteAcheminements = $('#submitDeleteAcheminements');
+    const urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
     InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements);
 
     const $modalPack = $('#modalPack');
@@ -49,25 +53,6 @@ $(function () {
     InitialiserModal($modalValidatePack, $submitValidatePack, urlValidatePack, packTable, null, true, true, true);
 
 });
-
-function validateAcheminement(acheminementId, $button) {
-    let params = JSON.stringify({id: acheminementId});
-
-    wrapLoadingOnActionButton($button, () => (
-        $.post({
-            url: Routing.generate('demande_acheminement_has_packs'),
-            data: params
-        })
-            .then(function (resp) {
-                if (resp === true) {
-                    return getCompareStock($button);
-                } else {
-                    $('#cannotValidate').click();
-                    return false;
-                }
-            })
-    ));
-}
 
 function togglePackDetails(emptyDetails = false) {
     const $modal = $('#modalPack');
@@ -187,6 +172,15 @@ function openValidatePackModal({packDispatchId, code}) {
 
     const $packField = $modal.find('[name="pack"]');
     $packField.val(code);
+
+    $modal.modal('show');
+}
+
+function openValidateDispatchModal() {
+    const modalSelector = '#modalValidateDispatch'
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
 
     $modal.modal('show');
 }

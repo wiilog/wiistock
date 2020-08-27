@@ -27,7 +27,7 @@ final class Version20200819145755 extends AbstractMigration
 
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE acheminements ADD number VARCHAR(64) DEFAULT NULL');
+        $this->addSql('ALTER TABLE acheminements ADD numero_acheminement VARCHAR(64) DEFAULT NULL');
 
         $acheminements = $this->connection
             ->executeQuery('SELECT id, date FROM acheminements')
@@ -57,7 +57,7 @@ final class Version20200819145755 extends AbstractMigration
 
             $id = $acheminement['id'];
             $dispatchNumber = Acheminements::PREFIX_NUMBER . $dateStr . $suffix . $daysCounter[$dayCounterKey];
-            $sqlDispatchNumber = ("UPDATE acheminements SET number = '$dispatchNumber' WHERE acheminements.id = '$id'");
+            $sqlDispatchNumber = ("UPDATE acheminements SET numero_acheminement = '$dispatchNumber' WHERE acheminements.id = '$id'");
             $this->addSql($sqlDispatchNumber);
         }
     }
@@ -67,7 +67,7 @@ final class Version20200819145755 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE acheminements DROP number');
+        $this->addSql('ALTER TABLE acheminements DROP numero_acheminement');
     }
 }
 

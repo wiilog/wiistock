@@ -114,7 +114,7 @@ Class AcheminementsController extends AbstractController
 
         return $this->render('acheminements/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
-			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
+			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT, true, true),
             'typeChampsLibres' => $typeChampLibre,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
@@ -183,8 +183,8 @@ Class AcheminementsController extends AbstractController
                 ->setUrgent($post->getBoolean('urgent'))
                 ->setStatut($statutRepository->find($post->get('statut')))
                 ->setType($typeRepository->find($post->get('type')))
-                ->setRequester($utilisateurRepository->find($post->get('demandeur')))
-                ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
+                ->setRequester($utilisateurRepository->find($post->get('demandeur')) ?? null)
+                ->setReceiver($utilisateurRepository->find($post->get('destinataire')) ?? null)
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setCommentaire($post->get('commentaire') ?? null)
@@ -235,6 +235,7 @@ Class AcheminementsController extends AbstractController
         }
 
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
         return $this->render('acheminements/show.html.twig', [
             'acheminement' => $acheminement,
@@ -242,6 +243,9 @@ Class AcheminementsController extends AbstractController
             'modifiable' => !$acheminement->getStatut()->getTreated(),
             'newPackConfig' => [
                 'natures' => $natureRepository->findAll()
+            ],
+            'dispatchValidate' => [
+                'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($acheminement->getType())
             ]
         ]);
     }
@@ -396,7 +400,7 @@ Class AcheminementsController extends AbstractController
             $json = $this->renderView('acheminements/modalEditContentAcheminements.html.twig', [
                 'acheminement' => $acheminement,
                 'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
-                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
+                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT, true, true),
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'typeChampsLibres' => $typeChampLibre,
                 'attachements' => $this->pieceJointeRepository->findBy(['acheminement' => $acheminement]),
@@ -637,6 +641,39 @@ Class AcheminementsController extends AbstractController
         return new JsonResponse([
             'success' => $success,
             'msg' => $message
+        ]);
+    }
+
+    /**
+     * @Route("/validate/{id}", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
+     * @param Acheminements $acheminement
+     * @return Response
+     */
+    public function validateDispatchRequest(Request $request,
+                                            EntityManagerInterface $entityManager,
+                                            TranslatorInterface $translator,
+                                            Acheminements $acheminement): Response
+    {
+        $status = $acheminement->getStatut();
+
+        if(!$status || !$status->getTreated()) {
+            $data = json_decode($request->getContent(), true);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+
+            $statusId = $data['status'];
+            $treatedStatus = $statusRepository->find($statusId);
+
+            $acheminement->setStatut($treatedStatus);
+            $entityManager->flush();
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'La ' . $translator->trans('acheminement.acheminement') . 'a bien été traité(e).',
+            'redirect' => $this->generateUrl('acheminement-show', ['id' => $acheminement->getId()])
         ]);
     }
 }

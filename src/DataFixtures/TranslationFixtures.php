@@ -70,7 +70,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Sélectionner une nature' => 'Sélectionner une nature',
                 'Ajouter un colis' => 'Ajouter un colis',
                 'Modifier un colis' => 'Modifier un colis',
-                'Traiter un colis' => 'Traiter un colis'
+                'Traiter un colis' => 'Traiter un colis',
+                'Traiter un acheminement' => 'Traiter un acheminement',
+                'type d\'acheminement' => 'type d\'acheminement'
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

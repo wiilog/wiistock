@@ -10,7 +10,7 @@
             {% if hasRightEdit %}
                 <button type="button"
                         data-id='{{ acheminement.id }}'
-                        onclick="validateAcheminement({{ acheminement.id }}, $(this))"
+                        onclick="openValidateDispatchModal()"
                         class="btn btn-primary btn-ripple split-button">
                     <i class="fa fa-check mr-2 button-icon"></i>
                     Valider la demande

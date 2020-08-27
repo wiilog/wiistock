@@ -201,8 +201,8 @@ class AcheminementsService
 
         $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
         $type = $acheminement->getType() ? $acheminement->getType()->getLabel() : '';
-        $receiver = $acheminement->getReceiver() ? $acheminement->getReceiver()->getMainAndSecondaryEmails() : '';
-        $requester = $acheminement->getRequester() ? $acheminement->getRequester()->getMainAndSecondaryEmails() : '';
+        $receiver = $acheminement->getReceiver() ? $acheminement->getReceiver()->getMainAndSecondaryEmails() : [];
+        $requester = $acheminement->getRequester() ? $acheminement->getRequester()->getMainAndSecondaryEmails() : [];
 
         $title = !$isUpdate
             ? ('Une' . $translatedCategory . ' de type ' . $type . ' vous concerne :')

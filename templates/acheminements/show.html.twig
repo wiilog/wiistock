@@ -25,6 +25,7 @@
                     <div class="row mb-2">
                         <h5 class="col-auto h5">Liste des colis</h5>
                     </div>
+                    {% if modifiable %}
                     <div class="row wii-page-card-header">
                         <div class="col-auto ml-auto">
                             <button onclick="openNewPackModal()"
@@ -34,6 +35,7 @@
                             </button>
                         </div>
                     </div>
+                    {% endif %}
                     <div class="row">
                         <div class="col-12">
                             <table id="packTable" class="table w-100"></table>
@@ -48,6 +50,7 @@
     {% include "acheminements/modalEditAcheminements.html.twig" %}
     {% include "acheminements/modalPack.html.twig" with newPackConfig %}
     {% include "acheminements/modalValidatePack.html.twig" %}
+    {% include "acheminements/modalValidateDispatch.html.twig" with dispatchValidate %}
 {% endblock %}
 
 {% block javascripts %}
