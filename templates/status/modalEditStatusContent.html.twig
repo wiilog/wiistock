@@ -6,7 +6,7 @@
 
     <div class="col-12 form-group">
         <label>Entité*</label>
-        <select name="category" title="Entité" class="data form-control needed" onchange="hideOptionOnChange($('#modalEditStatus'))">
+        <select name="category" title="Entité" class="form-control needed" disabled>
             {% for category in categories %}
                 <option {{ category.id == status.categorie.id ? 'selected' }} value="{{ category.id }}">{{ category.nom }}</option>
             {% endfor %}
