@@ -439,9 +439,10 @@ Class AcheminementsController extends AbstractController
             $entityManager->remove($acheminements);
             $entityManager->flush();
 
-            $response['redirect'] = $this->generateUrl('acheminement-show', ['id' => $acheminements->getId()]);
-
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'success' => true,
+                'redirect' => $this->generateUrl('acheminements_index')
+            ]);
         }
 
         throw new NotFoundHttpException("404");

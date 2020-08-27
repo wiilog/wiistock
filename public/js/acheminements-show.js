@@ -109,7 +109,7 @@ function openNewPackModal() {
     $modal.modal('show');
 }
 
-function openEditPackModal({packDispatchId, code, quantity, natureId, treated}) {
+function openEditPackModal({packDispatchId, code, quantity, natureId}) {
     const modalSelector = '#modalPack'
     const $modal = $(modalSelector);
 
@@ -131,15 +131,13 @@ function openEditPackModal({packDispatchId, code, quantity, natureId, treated}) 
 
     // new create button
     $modal.find('button.submit-new-pack').addClass('d-none');
+    $modal.find('[name="pack"]').prop('disabled', true);
+    $modal.find('button.submit-edit-pack').removeClass('d-none');
 
-    if (!treated) {
-        $modal.find('[name="pack"]').prop('disabled', true);
-        $modal.find('button.submit-edit-pack').removeClass('d-none');
-    }
-    else {
+    /**TODO disble all for a treated dispatch
         $modal.find('.data').prop('disabled', true);
         $modal.find('button.submit-edit-pack').addClass('d-none');
-    }
+    */
 
     const $natureField = $modal.find('[name="nature"]');
     const $quantityField = $modal.find('[name="quantity"]');
