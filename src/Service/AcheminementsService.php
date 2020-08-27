@@ -165,7 +165,8 @@ class AcheminementsService
 
         $dateStr = $date->format('Ymd');
 
-        $lastDispatchNumber = $acheminementRepository->getLastDispatchNumberByDate($dateStr);
+        $lastDispatchNumber = $acheminementRepository->getLastDispatchNumberByPrefix(Acheminements::PREFIX_NUMBER . $dateStr);
+
         if ($lastDispatchNumber) {
             $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
             $currentCounter = ($lastCounter + 1);
@@ -181,7 +182,7 @@ class AcheminementsService
                     $currentCounter))
         );
 
-        return ('A-' . $dateStr . $currentCounterStr);
+        return (Acheminements::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -196,13 +197,13 @@ class AcheminementsService
 
     public function sendMailToRecipient(Acheminements $acheminement, $isUpdate = false)
     {
-        $recipientAbleToReceivedMail = $acheminement->getStatut()->getSendNotifToRecipient();
-        $requesterAbleToReceivedMail = $acheminement->getStatut()->getSendNotifToDeclarant();
+        $recipientAbleToReceivedMail = $acheminement->getStatut() ? $acheminement->getStatut()->getSendNotifToRecipient() : '';
+        $requesterAbleToReceivedMail = $acheminement->getStatut() ? $acheminement->getStatut()->getSendNotifToRecipient() : '';
 
         $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
-        $type = $acheminement->getType()->getLabel();
-        $receiver = $acheminement->getReceiver()->getMainAndSecondaryEmails();
-        $requester = $acheminement->getRequester()->getMainAndSecondaryEmails();
+        $type = $acheminement->getType() ? $acheminement->getType()->getLabel() : '';
+        $receiver = $acheminement->getReceiver() ? $acheminement->getReceiver()->getMainAndSecondaryEmails() : '';
+        $requester = $acheminement->getRequester() ? $acheminement->getRequester()->getMainAndSecondaryEmails() : '';
 
         $title = !$isUpdate
             ? ('Une' . $translatedCategory . ' de type ' . $type . ' vous concerne :')

@@ -168,14 +168,14 @@ class AcheminementsRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getLastDispatchNumberByDate($date)
+    public function getLastDispatchNumberByPrefix($prefix)
     {
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
-            ->select('dispatch.number as number')
+            ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
             ->orderBy('dispatch.date', 'DESC')
-            ->setParameter('value', $date . '%');
+            ->setParameter('value', $prefix . '%');
 
         $result = $queryBuilder
             ->getQuery()

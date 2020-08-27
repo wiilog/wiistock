@@ -17,6 +17,8 @@ class Acheminements extends FreeFieldEntity
     const STATUT_TRAITE = 'traité';
     const STATUT_BROUILLON = 'brouillon';
 
+    const PREFIX_NUMBER = 'A-';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

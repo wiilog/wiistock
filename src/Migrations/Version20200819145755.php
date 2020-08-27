@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Entity\Acheminements;
 use DateTime;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -26,7 +27,7 @@ final class Version20200819145755 extends AbstractMigration
 
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE acheminements ADD numero_acheminement VARCHAR(64) DEFAULT NULL');
+        $this->addSql('ALTER TABLE acheminements ADD number VARCHAR(64) DEFAULT NULL');
 
         $acheminements = $this->connection
             ->executeQuery('SELECT id, date FROM acheminements')
@@ -37,9 +38,8 @@ final class Version20200819145755 extends AbstractMigration
         foreach ($acheminements as $acheminement) {
             $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $acheminement['date']);
             $dateStr = $creationDate->format('Ymd');
-            $prefix = 'A';
 
-            $dayCounterKey = $prefix . '-' . $dateStr;
+            $dayCounterKey =Acheminements::PREFIX_NUMBER . $dateStr;
 
             if (!isset($daysCounter[$dayCounterKey])) {
                 $daysCounter[$dayCounterKey] = 0;
@@ -56,8 +56,8 @@ final class Version20200819145755 extends AbstractMigration
             }
 
             $id = $acheminement['id'];
-            $dispatchNumber = $prefix .'-'. $dateStr . $suffix . $daysCounter[$dayCounterKey];
-            $sqlDispatchNumber = ("UPDATE acheminements SET numero_acheminement = '$dispatchNumber' WHERE acheminements.id = '$id'");
+            $dispatchNumber = Acheminements::PREFIX_NUMBER . $dateStr . $suffix . $daysCounter[$dayCounterKey];
+            $sqlDispatchNumber = ("UPDATE acheminements SET number = '$dispatchNumber' WHERE acheminements.id = '$id'");
             $this->addSql($sqlDispatchNumber);
         }
     }
@@ -67,7 +67,7 @@ final class Version20200819145755 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->abortIf($this->connection->getDatabasePlatform()->getName() !== 'mysql', 'Migration can only be executed safely on \'mysql\'.');
 
-        $this->addSql('ALTER TABLE acheminements DROP numero_acheminement');
+        $this->addSql('ALTER TABLE acheminements DROP number');
     }
 }
 
