@@ -25,14 +25,15 @@ $(function () {
         order: [[2, 'asc']]
     });
 
-    const $modalValidateDispatch = $('#modalValidateDispatch');
-    const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-treated-dispatch');
     const modalModifyAcheminements = $('#modalEditAcheminements');
     const submitModifyAcheminements = $('#submitEditAcheminements');
-    const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
     const urlModifyAcheminements = Routing.generate('acheminement_edit', true);
-    InitialiserModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, packTable, null, true, true, true);
     InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements);
+
+    const $modalValidateDispatch = $('#modalValidateDispatch');
+    const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
+    const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
+    InitialiserModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, packTable, null, true, true, true);
 
     const modalDeleteAcheminements = $('#modalDeleteAcheminements');
     const submitDeleteAcheminements = $('#submitDeleteAcheminements');

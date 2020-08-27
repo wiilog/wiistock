@@ -316,10 +316,9 @@ class StatutRepository extends EntityRepository
         $qb
             ->select('status')
             ->join('status.categorie', 'category')
-            ->join('status.type', 'type')
             ->where('category.nom = :ach')
             ->andWhere('status.treated = true')
-            ->andWhere('type = :type')
+            ->andWhere('status.type = :type')
             ->setParameters([
                 'ach' => CategorieStatut::ACHEMINEMENT,
                 'type' => $type

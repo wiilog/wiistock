@@ -7,10 +7,14 @@ use App\Entity\Acheminements;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
+use App\Entity\MouvementTraca;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -40,6 +44,7 @@ class AcheminementsService
     private $freeFieldService;
     private $translator;
     private $mailerService;
+    private $mouvementTracaService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -47,8 +52,10 @@ class AcheminementsService
                                 Twig_Environment $templating,
                                 FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
+                                MouvementTracaService $mouvementTracaService,
                                 MailerService $mailerService) {
         $this->templating = $templating;
+        $this->mouvementTracaService = $mouvementTracaService;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -194,33 +201,95 @@ class AcheminementsService
         return $date ?: null;
     }
 
-    public function sendMailToRecipient(Acheminements $acheminement, $isUpdate = false)
-    {
-        $recipientAbleToReceivedMail = $acheminement->getStatut() ? $acheminement->getStatut()->getSendNotifToRecipient() : '';
-        $requesterAbleToReceivedMail = $acheminement->getStatut() ? $acheminement->getStatut()->getSendNotifToRecipient() : '';
-
-        $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
-        $type = $acheminement->getType() ? $acheminement->getType()->getLabel() : '';
-        $receiver = $acheminement->getReceiver() ? $acheminement->getReceiver()->getMainAndSecondaryEmails() : [];
-        $requester = $acheminement->getRequester() ? $acheminement->getRequester()->getMainAndSecondaryEmails() : [];
-
-        $title = !$isUpdate
-            ? ('Une' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
-            : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :');
-        $subject = !$isUpdate
-            ? ('FOLLOW GT // ' . $type . ' sur ' . $translatedCategory)
-            : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.';
+    public function sendMailsAccordingToStatus(Acheminements $acheminement, bool $isUpdate) {
+        $status = $acheminement->getStatut();
+        $recipientAbleToReceivedMail = $status ? $status->getSendNotifToRecipient() : false;
+        $requesterAbleToReceivedMail = $status ? $status->getSendNotifToDeclarant() : false;
 
         if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
-            $this->mailerService->sendMail(
-                $subject,
-                $this->templating->render('mails/contents/mailAcheminement.html.twig', [
-                    'acheminement' => $acheminement,
-                    'title' => $title,
-                    'urlSuffix' => $translatedCategory
-                ]),
-                array_merge($receiver, $requester)
-            );
+            $type = $acheminement->getType() ? $acheminement->getType()->getLabel() : '';
+            $receiverEmails = $acheminement->getReceiver() ? $acheminement->getReceiver()->getMainAndSecondaryEmails() : [];
+            $requesterEmails = $acheminement->getRequester() ? $acheminement->getRequester()->getMainAndSecondaryEmails() : [];
+
+            $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
+            $title = !$isUpdate
+                ? ('Une' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
+                : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :');
+            $subject = !$isUpdate
+                ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
+                : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.';
+
+            $emails = [];
+
+            if ($recipientAbleToReceivedMail && !empty($receiverEmails)) {
+                array_push($emails, ...$receiverEmails);
+            }
+
+            if ($requesterAbleToReceivedMail && !empty($requesterEmails)) {
+                array_push($emails, ...$requesterEmails);
+            }
+
+            if (!empty($emails)) {
+                $this->mailerService->sendMail(
+                    $subject,
+                    $this->templating->render('mails/contents/mailAcheminement.html.twig', [
+                        'acheminement' => $acheminement,
+                        'title' => $title,
+                        'urlSuffix' => $translatedCategory
+                    ]),
+                    $emails
+                );
+            }
         }
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Acheminements $acheminement
+     * @param Statut $treatedStatus
+     * @param Utilisateur $loggedUser
+     * @param bool $fromNomade
+     * @throws Exception
+     */
+    public function validateDispatchRequest(EntityManagerInterface $entityManager,
+                                            Acheminements $acheminement,
+                                            Statut $treatedStatus,
+                                            Utilisateur $loggedUser,
+                                            bool $fromNomade = false): void {
+        $acheminement->setStatut($treatedStatus);
+        $packsDispatch = $acheminement->getPackAcheminements();
+        $takingLocation = $acheminement->getLocationFrom();
+        $dropLocation = $acheminement->getLocationTo();
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+        foreach ($packsDispatch as $packDispatch) {
+            $pack = $packDispatch->getPack();
+
+            $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
+                $pack,
+                $takingLocation,
+                $loggedUser,
+                $date,
+                $fromNomade,
+                true,
+                MouvementTraca::TYPE_PRISE
+            );
+
+            $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
+                $pack,
+                $dropLocation,
+                $loggedUser,
+                $date,
+                $fromNomade,
+                true,
+                MouvementTraca::TYPE_DEPOSE
+            );
+
+            $entityManager->persist($trackingTaking);
+            $entityManager->persist($trackingDrop);
+        }
+        $entityManager->flush();
+
+        $this->sendMailsAccordingToStatus($acheminement, true);
     }
 }

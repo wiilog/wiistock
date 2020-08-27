@@ -210,7 +210,7 @@ Class AcheminementsController extends AbstractController
             $entityManager->persist($acheminements);
             $entityManager->flush();
 
-            $acheminementsService->sendMailToRecipient($acheminements, false);
+            $acheminementsService->sendMailsAccordingToStatus($acheminements, false);
 
             $response['acheminement'] = $acheminements->getId();
             $response['redirect'] = $this->generateUrl('acheminement-show', ['id' => $acheminements->getId()]);
@@ -325,6 +325,9 @@ Class AcheminementsController extends AbstractController
             $locationTake = $emplacementRepository->find($data['prise']);
             $locationDrop = $emplacementRepository->find($data['depose']);
 
+            $oldStatus = $acheminement->getStatut();
+            $newStatus = $statutRepository->find($data['statut']);
+
             $acheminement
                 ->setStartDate($startDate)
                 ->setEndDate($endDate)
@@ -350,6 +353,15 @@ Class AcheminementsController extends AbstractController
             $this->persistAttachments($acheminement, $this->attachmentService, $request, $entityManager);
 
             $entityManager->flush();
+
+            if ((!$oldStatus && $newStatus)
+                || (
+                    $oldStatus
+                    && $newStatus
+                    && ($oldStatus->getId() !== $newStatus->getId())
+                )) {
+                $acheminementsService->sendMailsAccordingToStatus($acheminement, true);
+            }
 
             $response = [
                 'entete' => $this->renderView('acheminements/acheminement-show-header.html.twig', [
@@ -645,15 +657,18 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
-     * @Route("/validate/{id}", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/{id}/validate", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param AcheminementsService $acheminementsService
      * @param TranslatorInterface $translator
      * @param Acheminements $acheminement
      * @return Response
+     * @throws Exception
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
+                                            AcheminementsService $acheminementsService,
                                             TranslatorInterface $translator,
                                             Acheminements $acheminement): Response
     {
@@ -666,8 +681,21 @@ Class AcheminementsController extends AbstractController
             $statusId = $data['status'];
             $treatedStatus = $statusRepository->find($statusId);
 
-            $acheminement->setStatut($treatedStatus);
-            $entityManager->flush();
+            if ($treatedStatus
+                && $treatedStatus->getTreated()
+                && $treatedStatus->getType() === $acheminement->getType()) {
+
+                /** @var Utilisateur $loggedUser */
+                $loggedUser = $this->getUser();
+
+                $acheminementsService->validateDispatchRequest($entityManager, $acheminement, $treatedStatus, $loggedUser);
+            }
+            else {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "Le statut sélectionné doit être de type traité et correspondre au type de la demande."
+                ]);
+            }
         }
 
         return new JsonResponse([
