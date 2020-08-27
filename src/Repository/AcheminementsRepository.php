@@ -196,6 +196,7 @@ class AcheminementsRepository extends EntityRepository
             ->addSelect('locationFrom.label AS locationFromLabel')
             ->addSelect('locationTo.label AS locationToLabel')
             ->addSelect('type.label AS typeLabel')
+            ->addSelect('type.id AS typeId')
             ->addSelect('status.nom AS statusLabel')
             ->join('dispatch.requester', 'dispatch_requester')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')

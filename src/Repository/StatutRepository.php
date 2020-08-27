@@ -287,4 +287,20 @@ class StatutRepository extends EntityRepository
             'total' => $countTotal
         ];
     }
+
+    public function getMobileStatus(): array {
+        $queryBuilder = $this->createQueryBuilder('status')
+            ->select('status.id AS id')
+            ->addSelect('status.nom AS label')
+            ->addSelect('status_category.nom AS category')
+            ->addSelect('type.id AS typeId')
+            ->addSelect('status.treated AS treated')
+            ->join('status.categorie', 'status_category')
+            ->leftJoin('status.type', 'type')
+            ->where('status_category.nom = :dispatchCategory')
+            ->setParameter('dispatchCategory', CategorieStatut::ACHEMINEMENT);
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
 }

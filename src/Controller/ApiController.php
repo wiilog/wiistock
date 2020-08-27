@@ -1311,6 +1311,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $translationsRepository = $entityManager->getRepository(Translation::class);
         $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
         $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1432,6 +1433,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $dispatchPacks = $packDispatchRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
                 return $dispatch['id'];
             }, $dispatches));
+
+            $status = $statutRepository->getMobileStatus();
         } else {
             $trackingTaking = [];
             $natures = [];
@@ -1439,6 +1442,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $trackingFreeFields = [];
             $dispatches = [];
             $dispatchPacks = [];
+            $status = [];
         }
 
         return [
@@ -1463,7 +1467,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'rights' => $rights,
             'translations' => $translationsRepository->findAllObjects(),
             'dispatches' => $dispatches,
-            'dispatchPacks' => $dispatchPacks
+            'dispatchPacks' => $dispatchPacks,
+            'status' => $status
         ];
     }
 
