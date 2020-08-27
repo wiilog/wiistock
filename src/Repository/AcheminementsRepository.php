@@ -188,6 +188,7 @@ class AcheminementsRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
+            ->addSelect('dispatch.id AS id')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.startDate AS startDate')
             ->addSelect('dispatch.endDate AS endDate')

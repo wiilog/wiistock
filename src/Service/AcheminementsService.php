@@ -7,7 +7,6 @@ use App\Entity\Acheminements;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
-use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeZone;

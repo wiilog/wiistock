@@ -24,7 +24,8 @@ $(function () {
             {"data": 'Order', 'title': 'Ordre'},
         ],
         order: [
-            [5, 'asc']
+            [1, 'asc'],
+            [6, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,

@@ -240,8 +240,11 @@ class StatutRepository extends EntityRepository
 
         $qb
             ->join('status.categorie', 'category')
-            ->where('(' . $exprBuilder
-                    ->orX('category.nom = :litigeAr', 'category.nom = :litigeRe', 'category.nom = :ach') . ')')
+            ->where('(' . $exprBuilder->orX(
+                'category.nom = :litigeAr',
+                'category.nom = :litigeRe',
+                'category.nom = :ach'
+            ) . ')')
             ->setParameters([
                 'litigeAr' => CategorieStatut::LITIGE_ARR,
                 'litigeRe' => CategorieStatut::LITIGE_RECEPT,
@@ -257,8 +260,8 @@ class StatutRepository extends EntityRepository
             switch ($filter['field']) {
                 case 'statusEntity':
                     $qb
-                        ->andWhere('category.id in (:category)')
-                        ->setParameter('category', $filter['value']);
+                        ->andWhere('category.id in (:categoryFilter)')
+                        ->setParameter('categoryFilter', $filter['value']);
                     break;
             }
         }

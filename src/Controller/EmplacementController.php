@@ -294,8 +294,8 @@ class EmplacementController extends AbstractController
         $demandes = $demandeRepository->countByEmplacement($emplacementId);
         if ($demandes > 0) $usedBy[] = 'demandes';
 
-        $demandes = $acheminementRepository->countByEmplacement($emplacementId);
-        if ($demandes > 0) $usedBy[] = 'acheminements';
+        $acheminements = $acheminementRepository->countByEmplacement($emplacementId);
+        if ($acheminements > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
         if ($livraisons > 0) $usedBy[] = 'livraisons';
@@ -306,14 +306,14 @@ class EmplacementController extends AbstractController
         $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
 
-        $mouvementsStock = $mouvementTracaRepository->countByEmplacement($emplacementId);
-        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de traçabilité';
+        $mouvementsTraca = $mouvementTracaRepository->countByEmplacement($emplacementId);
+        if ($mouvementsTraca > 0) $usedBy[] = 'mouvements de traçabilité';
 
         $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
         if ($refArticle > 0)$usedBy[] = 'références article';
 
         $articles = $articleRepository->countByEmplacement($emplacementId);
-        if ($articles > 0) $usedBy[] ='articles';
+        if ($articles > 0) $usedBy[] = 'articles';
 
         return $usedBy;
     }
