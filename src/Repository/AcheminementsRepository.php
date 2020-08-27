@@ -18,21 +18,10 @@ use Doctrine\ORM\NoResultException;
  */
 class AcheminementsRepository extends EntityRepository
 {
-    private const DtToDbLabels = [
-        'Numero' => 'number',
-        'Date' => 'date',
-        'Type' => 'type',
-        'Demandeur' => 'requester',
-        'Destinataire' => 'receiver',
-        'Emplacement prise' => 'locationTake',
-        'Emplacement de dépose' => 'locationDrop',
-        'Nb Colis' => 'colis',
-        'Statut' => 'statut',
-    ];
-
     public function findByParamAndFilters($params, $filters)
     {
         $qb = $this->createQueryBuilder('a');
+        $exprBuilder = $qb->expr();
 
         $countTotal = $qb
             ->select('COUNT(a.id)')
@@ -79,7 +68,18 @@ class AcheminementsRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.packs LIKE :value OR a.date LIKE :value')
+                        ->andWhere('(' . $exprBuilder->orX(
+                            'a.date LIKE :value',
+                            'a.number LIKE :value',
+                            'search_locationFrom.label LIKE :value',
+                            'search_locationTo.label LIKE :value',
+                            'search_statut.nom LIKE :value',
+                            'a.date LIKE :value'
+                        ) . ')')
+                        ->leftJoin('a.locationFrom', 'search_locationFrom')
+                        ->leftJoin('a.locationTo', 'search_locationTo')
+                        ->leftJoin('a.statut', 'search_statut')
+                        ->leftJoin('a.type', 'search_type')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -88,24 +88,33 @@ class AcheminementsRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'statut') {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    if ($column === 'status') {
                         $qb
-                            ->leftJoin('a.statut', 's2')
-                            ->orderBy('s2.nom', $order);
+                            ->leftJoin('a.statut', 'sort_status')
+                            ->orderBy('sort_status.nom', $order);
                     } else if ($column === 'requester') {
                         $qb
-                            ->leftJoin('a.requester', 'u2')
-                            ->orderBy('u2.username', $order);
+                            ->leftJoin('a.requester', 'sort_requester')
+                            ->orderBy('sort_requester.username', $order);
                     } else if ($column === 'receiver') {
                         $qb
-                            ->leftJoin('a.receiver', 'u2')
-                            ->orderBy('u2.username', $order);
+                            ->leftJoin('a.receiver', 'sort_receiver')
+                            ->orderBy('sort_receiver.username', $order);
                     } else if ($column === 'type') {
                         $qb
-                            ->leftJoin('a.type', 't2')
-                            ->orderBy('t2.label', $order);
-                    }else {
+                            ->leftJoin('a.type', 'sort_type')
+                            ->orderBy('sort_type.label', $order);
+                    } else if ($column === 'locationFrom') {
+                        $qb
+                            ->leftJoin('a.locationFrom', 'sort_locationFrom')
+                            ->orderBy('sort_locationFrom.label', $order);
+                    } else if ($column === 'locationTo') {
+                        $qb
+                            ->leftJoin('a.locationTo', 'sort_locationTo')
+                            ->orderBy('sort_locationTo.label', $order);
+                    }
+                    else {
                         $qb
                             ->orderBy('a.' . $column, $order);
                     }

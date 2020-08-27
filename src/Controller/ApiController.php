@@ -38,6 +38,7 @@ use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\AcheminementsService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
@@ -1742,6 +1743,49 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 ? $natureService->serializeNature($nature)
                 : null
         ]);
+    }
+
+    /**
+     * @Rest\Patch("/api/dispatches", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param AcheminementsService $acheminementsService
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function patchDispatches(Request $request,
+                                    AcheminementsService $acheminementsService,
+                                    EntityManagerInterface $entityManager): JsonResponse {
+
+        $resData = [];
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $nomadUser = $utilisateurRepository->findOneByApiKey($request->request->get('apiKey'));
+        if ($nomadUser) {
+            $dispatches = json_decode($request->request->get('dispatches'), true);
+
+            $acheminementRepository = $entityManager->getRepository(Acheminements::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+
+            foreach ($dispatches as $dispatchArray) {
+                /** @var Acheminements $dispatch */
+                $dispatch = $acheminementRepository->find($dispatchArray['id']);
+                $dispatchStatut = $dispatch->getStatut();
+                if (!$dispatchStatut || !$dispatchStatut->getTreated()) {
+                    $treatedDispatch = $statusRepository->find($dispatchArray['treatedStatusId']);
+                    if ($treatedDispatch && $treatedDispatch->getTreated()) {
+                        $acheminementsService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
+                    }
+                }
+            }
+            $statusCode = Response::HTTP_OK;
+            $resData['success'] = true;
+        }
+        else {
+            $statusCode = Response::HTTP_UNAUTHORIZED;
+            $resData['success'] = false;
+            $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+        return new JsonResponse($resData, $statusCode);
     }
 
     private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array

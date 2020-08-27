@@ -114,7 +114,8 @@ Class AcheminementsController extends AbstractController
 
         return $this->render('acheminements/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
-			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT, true, true),
+			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
+			'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT, true, true),
             'typeChampsLibres' => $typeChampLibre,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)

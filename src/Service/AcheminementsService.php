@@ -102,22 +102,21 @@ class AcheminementsService
 	 */
     public function dataRowAcheminement($acheminement)
     {
-        $nbColis = count($acheminement->getPacks());
         $url = $this->router->generate('acheminement-show', ['id' => $acheminement->getId()]);
 
         return [
             'id' => $acheminement->getId() ?? 'Non défini',
-            'Numero' => $acheminement->getNumber() ?? '',
-            'Date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
-            'Demandeur' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
-            'Destinataire' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
-            'Emplacement prise' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : '',
-            'Emplacement de dépose' => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
-            'Nb Colis' => $nbColis ?? 0,
-            'Type' => $acheminement->getType() ? $acheminement->getType()->getLabel() : '',
-            'Statut' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
-            'Urgence' => $acheminement->isUrgent() ? 'oui' : 'non',
-            'Actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
+            'number' => $acheminement->getNumber() ?? '',
+            'date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
+            'requester' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
+            'receiver' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
+            'locationFrom' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : '',
+            'locationTo' => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
+            'nbPacks' => $acheminement->getPackAcheminements()->count(),
+            'type' => $acheminement->getType() ? $acheminement->getType()->getLabel() : '',
+            'status' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
+            'urgent' => $acheminement->isUrgent() ? 'oui' : 'non',
+            'actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
                 'acheminement' => $acheminement,
                 'url' => $url,
             ]),

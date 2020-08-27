@@ -18,7 +18,7 @@
                 data-type-id="{{ acheminement.statut.type.id }}">
             {{ acheminement.statut.nom }}
         </option>
-        {% for statut in statuts %}
+        {% for statut in notTreatedStatus %}
             {% if statut.id != acheminement.statut.id and statut.type.id == acheminement.type.id %}
                 <option data-type-id="{{ statut.type.id }}"
                         value="{{ statut.id }}">

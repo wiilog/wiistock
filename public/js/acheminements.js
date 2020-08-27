@@ -3,12 +3,6 @@ let tableAcheminementsConfig = {
     serverSide: true,
     processing: true,
     order: [[1, "desc"]],
-    columnDefs: [
-        {
-            "orderable" : false,
-            "targets" : [0]
-        }
-    ],
     ajax: {
         "url": pathacheminements,
         "type": "POST",
@@ -17,24 +11,23 @@ let tableAcheminementsConfig = {
         needsRowClickAction: true,
         needsColor: true,
         color: 'danger',
-        dataToCheck: 'Urgence'
+        dataToCheck: 'urgent'
     },
     drawConfig: {
         needsSearchOverride: true,
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
-        { "data": 'Numero', 'name': 'Numero', 'title': 'Numéro demande' },
-        { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
-        { "data": 'Type', 'name': 'Type', 'title': 'Type' },
-        { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
-        { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
-        { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': $('#takenLocationAcheminement').val() },
-        { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': $('#dropOffLocationAcheminement').val() },
-        { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Urgence', 'name': 'Urgence', 'title': 'Urgence' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' }
+        { "data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false },
+        { "data": 'number', 'name': 'number', 'title': 'Numéro demande' },
+        { "data": 'date', 'name': 'date', 'title': 'Date demande' },
+        { "data": 'type', 'name': 'type', 'title': 'Type' },
+        { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
+        { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },
+        { "data": 'locationFrom', 'name': 'locationFrom', 'title': $('#takenLocationAcheminement').val() },
+        { "data": 'locationTo', 'name': 'locationTo', 'title': $('#dropOffLocationAcheminement').val() },
+        { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'Nb Colis', orderable: false },
+        { "data": 'status', 'name': 'status', 'title': 'Statut' },
+        { "data": 'urgent', 'name': 'urgent', 'title': 'Urgence' }
     ],
 };
 let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);
