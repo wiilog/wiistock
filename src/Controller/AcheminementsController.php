@@ -439,11 +439,9 @@ Class AcheminementsController extends AbstractController
             $entityManager->remove($acheminements);
             $entityManager->flush();
 
-            $data = [
-                'redirect' => $this->generateUrl('acheminements_index'),
-            ];
+            $response['redirect'] = $this->generateUrl('acheminement-show', ['id' => $acheminements->getId()]);
 
-            return new JsonResponse($data);
+            return new JsonResponse($response);
         }
 
         throw new NotFoundHttpException("404");
@@ -485,7 +483,6 @@ Class AcheminementsController extends AbstractController
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
-                        'status' => $packAcheminement->isTreated() ? 'Traité' : 'Non traité',
                         'actions' => $this->renderView('acheminements/datatablePackRow.html.twig', [
                             'pack' => $pack,
                             'packDispatch' => $packAcheminement
@@ -586,8 +583,7 @@ Class AcheminementsController extends AbstractController
         if (empty($packDispatch)) {
             $success = false;
             $message = $translator->trans("acheminement.Le colis n''existe pas");
-        }
-        else if (!$packDispatch->isTreated()) {
+        } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
 
@@ -605,11 +601,6 @@ Class AcheminementsController extends AbstractController
             $success = true;
             $message = $translator->trans('acheminement.Le colis a bien été sauvegardé');
         }
-        else {
-            $success = false;
-            $message = $translator->trans("acheminement.Le colis a déjà été traité");
-        }
-
         return new JsonResponse([
             'success' => $success,
             'msg' => $message
@@ -617,43 +608,29 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
-     * @Route("/packs/validate", name="dispatch_validate_pack", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function validatePack(Request $request,
-                                 TranslatorInterface $translator,
-                                 EntityManagerInterface $entityManager): Response {
-        $data = json_decode($request->getContent(), true);
+    public function deletePack(Request $request,
+                           EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
 
-        $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
-
-        $packDispatchId = $data['packDispatchId'];
-        $packDispatch = $packDispatchRepository->find($packDispatchId);
-        if (empty($packDispatch)) {
-            $success = false;
-            $message = $translator->trans("acheminement.Le colis n''existe pas");
-        }
-        else if (!$packDispatch->isTreated()) {
-            $treated = (bool)$data['treated'];
-            $packDispatch->setTreated($treated);
-            $packDispatch->getPack()->setQuantity($packDispatch->getQuantity());
+            $pack = $packDispatchRepository->find($data['pack']);
+            $entityManager->remove($pack);
             $entityManager->flush();
 
-            $success = true;
-            $message = $translator->trans('acheminement.Le colis a bien été sauvegardé');
-        }
-        else {
-            $success = false;
-            $message = $translator->trans("acheminement.Le colis a déjà été traité");
+            $data = [
+                'redirect' => $this->generateUrl('acheminements_index'),
+            ];
+
+            return new JsonResponse($data);
         }
 
-        return new JsonResponse([
-            'success' => $success,
-            'msg' => $message
-        ]);
+        throw new NotFoundHttpException("404");
     }
 
     /**

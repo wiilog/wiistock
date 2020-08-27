@@ -20,7 +20,6 @@ $(function () {
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
-            {"data": 'status', 'name': 'status', 'title': 'Statut'},
         ],
         order: [[2, 'asc']]
     });
@@ -47,11 +46,6 @@ $(function () {
     const urlEditPack = Routing.generate('dispatch_edit_pack', true);
     InitialiserModal($modalPack, $submitNewPack, urlNewPack, packTable, null, true, true, true);
     InitialiserModal($modalPack, $submitEditPack, urlEditPack, packTable, null, true, true, true);
-
-    const $modalValidatePack = $('#modalValidatePack');
-    const $submitValidatePack = $modalValidatePack.find('button.submit-button');
-    const urlValidatePack = Routing.generate('dispatch_validate_pack', true);
-    InitialiserModal($modalValidatePack, $submitValidatePack, urlValidatePack, packTable, null, true, true, true);
 
 });
 
@@ -154,25 +148,6 @@ function openEditPackModal({packDispatchId, code, quantity, natureId, treated}) 
     $packField.val(code);
     $natureField.val(natureId);
     $quantityField.val(quantity);
-
-    $modal.modal('show');
-}
-
-function openValidatePackModal({packDispatchId, code}) {
-    const modalSelector = '#modalValidatePack'
-    const $modal = $(modalSelector);
-
-    clearModal(modalSelector);
-
-    $modal.find('.modal-body').append($('<input/>', {
-        class: 'data',
-        name: 'packDispatchId',
-        value: packDispatchId,
-        type: 'hidden'
-    }));
-
-    const $packField = $modal.find('[name="pack"]');
-    $packField.val(code);
 
     $modal.modal('show');
 }

@@ -72,7 +72,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Modifier un colis' => 'Modifier un colis',
                 'Traiter un colis' => 'Traiter un colis',
                 'Traiter un acheminement' => 'Traiter un acheminement',
-                'type d\'acheminement' => 'type d\'acheminement'
+                'type d\'acheminement' => 'type d\'acheminement',
+                "Voulez-vous réellement supprimer ce colis" => " Voulez-vous réellement supprimer ce colis"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
