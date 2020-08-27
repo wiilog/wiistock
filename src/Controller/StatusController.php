@@ -57,21 +57,16 @@ class StatusController extends AbstractController
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-		$categoriesStatus = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
+        $categories = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
 		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
 
-        $transCategories = array_map(
-            function (array $category) {
-                return [
-                    'id' => $category['id'],
-                    'nom' => $category['nom']
-                ];
-            },
-            $categoriesStatus
-        );
+        $categoryStatusDispatchIds = array_filter($categories, function ($category) {
+            return $category['nom'] === CategorieStatut::ACHEMINEMENT;
+        });
 
         return $this->render('status/index.html.twig', [
-            'categories' => $transCategories,
+            'categories' => $categories,
+            'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'types' => $types
         ]);
     }
@@ -210,7 +205,6 @@ class StatusController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
 			$status = $statutRepository->find($data['status']);
@@ -220,11 +214,9 @@ class StatusController extends AbstractController
             $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $data['category']);
 
             if (!$labelExist) {
-                $category = $categoryStatusRepository->find($data['category']);
                 $type = $typeRepository->find($data['type']);
                 $status
                     ->setNom($data['label'])
-                    ->setCategorie($category)
 					->setTreated($data['treated'])
                     ->setSendNotifToBuyer((bool) $data['sendMails'])
                     ->setSendNotifToDeclarant((bool) $data['sendMailsDeclarant'])

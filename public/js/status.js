@@ -86,10 +86,10 @@ function hideOptionOnChange($modal, forceClear = true) {
         $disputeFields.find('select').val('');
     }
 
-    const category = $select.find('option:selected').text();
+    const category = Number($select.val());
     if (category) {
-        const acheminementTrans =  $modal.find('#acheminementTranslation').val();
-        const $fields = (category === acheminementTrans) ? $dispatchFields : $disputeFields;
+        const categoryStatusDispatchId = Number($('#categoryStatusDispatchId').val());
+        const $fields = (category === categoryStatusDispatchId) ? $dispatchFields : $disputeFields;
         $fields.removeClass('d-none');
         $fields.find('.field-needed').addClass('needed');
     }
