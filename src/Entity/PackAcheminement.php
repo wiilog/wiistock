@@ -17,11 +17,6 @@ class PackAcheminement
     private $id;
 
     /**
-     * @ORM\Column(type="boolean", options={"default": false})
-     */
-    private $treated;
-
-    /**
      * @ORM\Column(type="integer", options={"default": 1})
      */
     private $quantity;
@@ -40,7 +35,6 @@ class PackAcheminement
 
     public function __construct() {
         $this->quantity = 1;
-        $this->treated = false;
     }
 
     public function getId(): ?int
@@ -68,18 +62,6 @@ class PackAcheminement
     public function setAcheminement(?Acheminements $acheminement): self
     {
         $this->acheminement = $acheminement;
-
-        return $this;
-    }
-
-    public function isTreated(): ?bool
-    {
-        return $this->treated;
-    }
-
-    public function setTreated(bool $treated): self
-    {
-        $this->treated = $treated;
 
         return $this;
     }
