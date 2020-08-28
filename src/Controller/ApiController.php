@@ -1757,6 +1757,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function patchDispatches(Request $request,
                                     AcheminementsService $acheminementsService,
@@ -1767,18 +1768,57 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $nomadUser = $utilisateurRepository->findOneByApiKey($request->request->get('apiKey'));
         if ($nomadUser) {
             $dispatches = json_decode($request->request->get('dispatches'), true);
+            $dispatchPacksParam = json_decode($request->request->get('dispatchPacks'), true);
 
             $acheminementRepository = $entityManager->getRepository(Acheminements::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
+            $packAcheminementRepository = $entityManager->getRepository(PackAcheminement::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+
+            $dispatchPacksByDispatch = is_array($dispatchPacksParam)
+                ? array_reduce($dispatchPacksParam, function (array $acc, array $current) {
+                    $id = (int) $current['id'];
+                    $natureId = $current['natureId'];
+                    $quantity = $current['quantity'];
+                    $dispatchId = (int) $current['dispatchId'];
+                    if (!isset($acc[$dispatchId])) {
+                        $acc[$dispatchId] = [];
+                    }
+                    $acc[$dispatchId][] = [
+                        'id' => $id,
+                        'natureId' => $natureId,
+                        'quantity' => $quantity
+                    ];
+                    return $acc;
+                }, [])
+                : [];
 
             foreach ($dispatches as $dispatchArray) {
                 /** @var Acheminements $dispatch */
                 $dispatch = $acheminementRepository->find($dispatchArray['id']);
-                $dispatchStatut = $dispatch->getStatut();
-                if (!$dispatchStatut || !$dispatchStatut->getTreated()) {
-                    $treatedDispatch = $statusRepository->find($dispatchArray['treatedStatusId']);
-                    if ($treatedDispatch && $treatedDispatch->getTreated()) {
-                        $acheminementsService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
+                $dispatchStatus = $dispatch->getStatut();
+                if (!$dispatchStatus || !$dispatchStatus->getTreated()) {
+                    $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
+                    if ($treatedStatus && $treatedStatus->getTreated()) {
+                        // we treat pack edits
+                        if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
+                            foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
+                                $packDispatch = $packAcheminementRepository->find($packArray['id']);
+                                if (!empty($packDispatch)) {
+                                    $nature = $natureRepository->find($packArray['natureId']);
+                                    if ($nature) {
+                                        $pack = $packDispatch->getPack();
+                                        $pack->setNature($nature);
+                                    }
+
+                                    $quantity = (int) $packArray['quantity'];
+                                    if ($quantity > 0) {
+                                        $packDispatch->setQuantity($quantity);
+                                    }
+                                }
+                            }
+                        }
+                        $acheminementsService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
                     }
                 }
             }
