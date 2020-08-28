@@ -19,7 +19,8 @@ let tableAcheminementsConfig = {
     columns: [
         { "data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false },
         { "data": 'number', 'name': 'number', 'title': 'Numéro demande' },
-        { "data": 'date', 'name': 'date', 'title': 'Date demande' },
+        { "data": 'creationDate', 'name': 'date', 'title': 'Date de création' },
+        { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de validation' },
         { "data": 'type', 'name': 'type', 'title': 'Type' },
         { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
         { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },

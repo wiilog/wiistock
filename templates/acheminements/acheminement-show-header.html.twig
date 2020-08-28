@@ -16,14 +16,16 @@
                     Valider la demande
                 </button>
             {% endif %}
-            <button type="button"
-                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+        {% endif %}
+        <button type="button"
+                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if modifiable %}
                 {% if hasRightEdit %}
                     <a href="#"
                        data-id='{{ acheminement.id }}'
@@ -39,12 +41,11 @@
                        class="dropdown-item">
                         <i class="fa fa-trash mr-2"></i>Supprimer</a>
                 {% endif %}
-                <a class="dropdown-item"
-                   id="print-btn-acheminement-{{ acheminement.id }}"
-                   href="{{ path('print_acheminement_state_sheet', {acheminement: acheminement.id}) }}">
-                    <i class='fas fa-print mr-2'></i>Imprimer
-                </a>
-            </div>
-        {% endif %}
+            {% endif %}
+            <a class="dropdown-item"
+               onclick="runDispatchPrint()">
+                <i class='fas fa-print mr-2'></i>Imprimer
+            </a>
+        </div>
     </div>
 {% endblock %}

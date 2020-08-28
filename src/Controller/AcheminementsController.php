@@ -178,7 +178,7 @@ Class AcheminementsController extends AbstractController
             $number = $acheminementsService->createDispatchNumber($entityManager, $date);
 
             $acheminements
-                ->setDate($date)
+                ->setCreationDate($date)
                 ->setStartDate($startDate ?: null)
                 ->setEndDate($endDate ?: null)
                 ->setUrgent($post->getBoolean('urgent'))
@@ -247,13 +247,18 @@ Class AcheminementsController extends AbstractController
             ],
             'dispatchValidate' => [
                 'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($acheminement->getType())
-            ]
+            ],
+            'packDispatch' => $acheminement->getPackAcheminements()->map(function (PackAcheminement $packAcheminement) {
+                return [
+                    'id' => $packAcheminement
+                ];
+            })
         ]);
     }
 
     /**
-     * @Route("/{acheminement}/etat", name="print_acheminement_state_sheet", options={"expose"=true}, methods="GET")
-     * @param Acheminements $acheminement
+     * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
+     * @param Acheminements $dispatch
      * @param PDFGeneratorService $PDFGenerator
      * @return PdfResponse
      * @throws LoaderError
@@ -263,28 +268,33 @@ Class AcheminementsController extends AbstractController
      * @throws SyntaxError
      * @throws Exception
      */
-    public function printAcheminementStateSheet(Acheminements $acheminement,
-                                                PDFGeneratorService $PDFGenerator): PdfResponse
+    public function printDispatchStateSheet(Acheminements $dispatch,
+                                            PDFGeneratorService $PDFGenerator): ?Response
     {
+        if ($dispatch->getPackAcheminements()->isEmpty()) {
+            throw new NotFoundHttpException('La fiche d\'état n\'existe pas pour cet acheminement.');
+        }
+
         $now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-        $packsConfig = $acheminement->getPackAcheminements()
-            ->map(function(PackAcheminement $packAcheminement) use ($acheminement, $now){
+        $packsConfig = $dispatch->getPackAcheminements()
+            ->map(function(PackAcheminement $packAcheminement) use ($dispatch, $now){
                 return [
-                    'title' => 'Acheminement n°' . $acheminement->getId(),
+                    'title' => 'Acheminement n°' . $dispatch->getId(),
                     'code' => $packAcheminement->getPack()->getCode(),
                     'content' => [
-                        'Date d\'acheminement' => $now->format('d/m/Y H:i'),
-                        'Demandeur' => $acheminement->getRequester()->getUsername(),
-                        'Destinataire' => $acheminement->getReceiver()->getUsername(),
-                        $this->translator->trans('acheminement.emplacement dépose') => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
-                        $this->translator->trans('acheminement.emplacement prise') => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : ''
+                        'Date de création' => $now->format('d/m/Y H:i'),
+                        'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
+                        'Demandeur' => $dispatch->getRequester()->getUsername(),
+                        'Destinataire' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUsername() : '',
+                        $this->translator->trans('acheminement.emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
+                        $this->translator->trans('acheminement.emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
                     ]
                 ];
             })
         ->toArray();
 
-        $fileName = 'Etat_acheminement_' . $acheminement->getId() . '.pdf';
+        $fileName = 'Etat_acheminement_' . $dispatch->getId() . '.pdf';
         return new PdfResponse(
             $PDFGenerator->generatePDFStateSheet($fileName, $packsConfig),
             $fileName
@@ -487,7 +497,8 @@ Class AcheminementsController extends AbstractController
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
                         'actions' => $this->renderView('acheminements/datatablePackRow.html.twig', [
                             'pack' => $pack,
-                            'packDispatch' => $packAcheminement
+                            'packDispatch' => $packAcheminement,
+                            'modifiable' => !$packAcheminement->getAcheminement()->getStatut()->getTreated()
                         ])
                     ];
                 })
@@ -626,7 +637,8 @@ Class AcheminementsController extends AbstractController
             $entityManager->flush();
 
             $data = [
-                'redirect' => $this->generateUrl('acheminements_index'),
+                'success' => true,
+                'msg' => 'Le colis a bien été supprimé.'
             ];
 
             return new JsonResponse($data);
@@ -657,6 +669,7 @@ Class AcheminementsController extends AbstractController
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
+            $now = new DateTime('now');
             $statusId = $data['status'];
             $treatedStatus = $statusRepository->find($statusId);
 
@@ -668,6 +681,9 @@ Class AcheminementsController extends AbstractController
                 $loggedUser = $this->getUser();
 
                 $acheminementsService->validateDispatchRequest($entityManager, $acheminement, $treatedStatus, $loggedUser);
+                $acheminement->setValidationDate($now);
+
+                $entityManager->flush();
             }
             else {
                 return new JsonResponse([
@@ -681,6 +697,18 @@ Class AcheminementsController extends AbstractController
             'success' => true,
             'msg' => 'La ' . $translator->trans('acheminement.acheminement') . 'a bien été traité(e).',
             'redirect' => $this->generateUrl('acheminement-show', ['id' => $acheminement->getId()])
+        ]);
+    }
+
+    /**
+     * @Route("/{dispatch}/packs-counter", name="get_dispatch_packs_counter", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @param Acheminements $dispatch
+     * @return JsonResponse
+     */
+    public function getDispatchPackCounter(Acheminements $dispatch) {
+        return new JsonResponse([
+            'success' => true,
+            'packsCounter' => $dispatch->getPackAcheminements()->count()
         ]);
     }
 }
