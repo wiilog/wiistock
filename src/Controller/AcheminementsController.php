@@ -247,12 +247,7 @@ Class AcheminementsController extends AbstractController
             ],
             'dispatchValidate' => [
                 'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($acheminement->getType())
-            ],
-            'packDispatch' => $acheminement->getPackAcheminements()->map(function (PackAcheminement $packAcheminement) {
-                return [
-                    'id' => $packAcheminement
-                ];
-            })
+            ]
         ]);
     }
 

@@ -26,8 +26,9 @@ final class Version20200828115127 extends AbstractMigration
                         FROM acheminements
                             INNER JOIN statut s
                                 ON acheminements.statut_id = s.id
-                        WHERE validation_date IS NULL
-                            AND s.treated = 1";
+                        WHERE s.treated = 1";
+
+        $this->addSql('ALTER TABLE acheminements ADD validation_date DATETIME DEFAULT NULL');
 
         $dispatchesWithoutValidationDateAndTreatedStatus = $this->connection->executeQuery($sqlDispatch)->fetchAll();
         foreach ($dispatchesWithoutValidationDateAndTreatedStatus as $dispatch) {
@@ -35,7 +36,7 @@ final class Version20200828115127 extends AbstractMigration
             $this->addSql("UPDATE acheminements SET validation_date = date WHERE id = $dispatchId");
         }
 
-        $this->addSql('ALTER TABLE acheminements CHANGE date creation_date datetime');
+        $this->addSql('ALTER TABLE acheminements CHANGE date creation_date DATETIME');
     }
 
     public function down(Schema $schema) : void
