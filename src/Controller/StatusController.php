@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Statut;
 
 use App\Entity\Type;
+use App\Service\StatutService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,11 +35,13 @@ class StatusController extends AbstractController
      * @var UserService
      */
     private $userService;
+    private $statusService;
     private $translator;
 
-    public function __construct(UserService $userService, TranslatorInterface $translator) {
+    public function __construct(UserService $userService, TranslatorInterface $translator, StatutService $statusService) {
         $this->userService = $userService;
         $this->translator = $translator;
+        $this->statusService = $statusService;
     }
 
     /**
@@ -54,23 +57,16 @@ class StatusController extends AbstractController
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-		$categoriesStatus = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
+        $categories = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
 		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
 
-        $transCategories = array_map(
-            function (array $category) {
-                return [
-                    'id' => $category['id'],
-                    'nom' => $category['nom'] === 'acheminement'
-                        ? $this->translator->trans('acheminement.acheminements')
-                        : $category['nom']
-                ];
-            },
-            $categoriesStatus
-        );
+        $categoryStatusDispatchIds = array_filter($categories, function ($category) {
+            return $category['nom'] === CategorieStatut::ACHEMINEMENT;
+        });
 
         return $this->render('status/index.html.twig', [
-            'categories' => $transCategories,
+            'categories' => $categories,
+            'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'types' => $types
         ]);
     }
@@ -78,48 +74,16 @@ class StatusController extends AbstractController
     /**
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function api(Request $request,
-                        EntityManagerInterface $entityManager): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $statusRepository = $entityManager->getRepository(Statut::class);
-
-            $listStatusLitigeArr = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR);
-            $listStatusLitigeRecep = $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
-            $listStatusAcheminement = $statusRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT);
-
-            $rows = [];
-            /** @var Statut $status */
-            foreach (array_merge($listStatusLitigeArr, $listStatusLitigeRecep, $listStatusAcheminement) as $status) {
-                $url['edit'] = $this->generateUrl('status_api_edit', ['id' => $status->getId()]);
-
-                $rows[] =
-                    [
-                        'Label' => $status->getNom(),
-                        'Categorie' => ($status->getCategorie()->getNom() === 'acheminement'
-                            ? $this->translator->trans('acheminement.acheminements')
-                            : ($status->getCategorie()
-                                ? $status->getCategorie()->getNom()
-                                : '')),
-                        'Comment' => $status->getComment(),
-                        'Treated' => $status->isTreated() ? 'oui' : 'non',
-                        'NotifToBuyer' => $status->getSendNotifToBuyer() ? 'oui' : 'non',
-                        'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
-                        'Order' => $status->getDisplayOrder() ?? '',
-                        'Actions' => $this->renderView('status/datatableStatusRow.html.twig', [
-                            'url' => $url,
-                            'statusId' => $status->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->statusService->getDataForDatatable($request->request);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -156,8 +120,10 @@ class StatusController extends AbstractController
                     ->setNom($data['label'])
                     ->setComment($data['description'])
 					->setTreated($data['treated'])
-                    ->setSendNotifToBuyer($data['sendMails'])
-                    ->setSendNotifToDeclarant($data['sendMailsDeclarant'])
+                    ->setSendNotifToBuyer((bool) $data['sendMails'])
+                    ->setSendNotifToDeclarant((bool) $data['sendMailsDeclarant'])
+                    ->setSendNotifToRecipient((bool) $data['sendMailsRecipient'])
+                    ->setNeedsMobileSync((bool) $data['needsMobileSync'])
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setCategorie($category)
                     ->setType($type ?? null);
@@ -239,7 +205,6 @@ class StatusController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
 			$status = $statutRepository->find($data['status']);
@@ -249,14 +214,14 @@ class StatusController extends AbstractController
             $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $data['category']);
 
             if (!$labelExist) {
-                $category = $categoryStatusRepository->find($data['category']);
                 $type = $typeRepository->find($data['type']);
                 $status
                     ->setNom($data['label'])
-                    ->setCategorie($category)
 					->setTreated($data['treated'])
-                    ->setSendNotifToBuyer($data['sendMails'])
-                    ->setSendNotifToDeclarant($data['sendMailsDeclarant'])
+                    ->setSendNotifToBuyer((bool) $data['sendMails'])
+                    ->setSendNotifToDeclarant((bool) $data['sendMailsDeclarant'])
+                    ->setSendNotifToRecipient((bool) $data['sendMailsRecipient'])
+                    ->setNeedsMobileSync((bool) $data['needsMobileSync'])
 					->setDisplayOrder((int)$data['displayOrder'])
                     ->setComment($data['comment'])
                     ->setType($type ?? null);

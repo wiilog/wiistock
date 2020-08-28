@@ -6,6 +6,7 @@ use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
 use App\Service\LitigeService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +28,7 @@ class FiltreSupController extends AbstractController
      * @param FilterSupService $filterSupService
      * @param Request $request
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
                         FilterSupService $filterSupService,
@@ -51,6 +53,7 @@ class FiltreSupController extends AbstractController
                 'anomaly' => FiltreSup::FIELD_ANOMALY,
                 'duty' => FiltreSup::FIELD_DUTY,
                 'frozen' => FiltreSup::FIELD_FROZEN,
+                'statusEntity' => FiltreSup::FIELD_STATUS_ENTITY
             ];
 
             foreach ($filterLabels as $filterLabel => $filterName) {
@@ -79,6 +82,7 @@ class FiltreSupController extends AbstractController
 
             $filterLabelsSelect2 = [
                 'utilisateurs' => FiltreSup::FIELD_USERS,
+                'multipleTypes' => FiltreSup::FIELD_MULTIPLE_TYPES,
                 'declarants' => FiltreSup::FIELD_DECLARANTS,
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
                 'reference' => FiltreSup::FIELD_REFERENCE,

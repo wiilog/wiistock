@@ -18,6 +18,7 @@ const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
 const PAGE_ACHEMINEMENTS = 'acheminement';
+const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_URGENCES = 'urgences';
 
@@ -48,19 +49,25 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
  * @param {document} table le DataTable gérant les données
  *
  */
-function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true) {
+function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true, disableButtonOnClick = false) {
     submit.click(function () {
-        submitAction(modal, path, table, close, clear)
-            .then((data) => {
-                if (callback) {
-                    callback(data);
-                }
-            })
-            .catch(() => {})
+        if (submit.find('.spinner-border').length > 0) {
+            alertSuccessMsg('L\'opération est en cours de traitement');
+        }
+        else {
+            submitAction(modal, path, table, close, clear, disableButtonOnClick, submit)
+                .then((data) => {
+                    if (callback) {
+                        callback(data);
+                    }
+                })
+                .catch(() => {
+                })
+        }
     });
 }
 
-function submitAction(modal, path, table = null, close = true, clear = true) {
+function submitAction(modal, path, table = null, close = true, clear = true, disableButtonOnClick = false, $submit = null) {
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -228,6 +235,17 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
         && wrongNumberInputs.length == 0
         && passwordIsValid
         && datesAreValid) {
+        if (disableButtonOnClick && $submit) {
+            const $spinner = $('<div/>', {
+                class: 'spinner-border spinner-border-sm mr-2',
+                role: 'status',
+                html: $('<span/>', {
+                    class: 'sr-only',
+                    text: 'Chargement...'
+                })
+            });
+            $submit.prepend($spinner);
+        }
 
         return $
             .post({
@@ -236,6 +254,10 @@ function submitAction(modal, path, table = null, close = true, clear = true) {
                 data: JSON.stringify(Data)
             })
             .then((data) => {
+                if (disableButtonOnClick && $submit) {
+                    $submit.find('.spinner-border').remove();
+                }
+
                 if (data.success === false) {
                     if (data.msg) {
                         alertErrorMsg(data.msg, false);
@@ -381,8 +403,7 @@ function showRow(button, path, modal) {
  * @param wantsFreeFieldsRequireCheck
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
-}, wantsFreeFieldsRequireCheck = true) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     let id = button.data('id');
     let ref = button.data('ref');
 
@@ -1299,6 +1320,7 @@ function displayFiltersSup(data) {
             case 'demCollecte':
             case 'disputeNumber':
             case 'demande':
+            case 'multipleTypes':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
                 $select.find('option').prop('selected', false);
@@ -1364,7 +1386,11 @@ function displayFiltersSup(data) {
                 break;
 
             default:
-                $('#' + element.field).val(element.value);
+                const $fieldWithId = $('#' + element.field);
+                const $field = $fieldWithId.length > 0
+                    ? $fieldWithId
+                    : $('.filters-container').find(`[name="${element.field}"]`);
+                $field.val(element.value);
         }
     });
 }

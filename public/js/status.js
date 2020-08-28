@@ -1,22 +1,31 @@
 $(function () {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_STATUS);
+    $.post(path, params, function(data) {
+        displayFiltersSup(data);
+    }, 'json');
+
     let pathStatus = Routing.generate('status_param_api', true);
     let tableStatusConfig = {
+        processing: true,
+        serverSide: true,
         ajax: {
             "url": pathStatus,
             "type": "POST"
         },
         columns: [
             {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Categorie', 'title': 'Catégorie'},
+            {"data": 'Category', 'title': 'Entité'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
             {"data": 'Treated', 'title': 'Statut traité'},
-            {"data": 'NotifToBuyer', 'title': 'Envoi de mails aux acheteurs'},
             {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'Order', 'title': 'Ordre'},
         ],
         order: [
-            [7, 'asc']
+            [1, 'asc'],
+            [6, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,
@@ -60,22 +69,28 @@ function displayErrorStatusEdit(data) {
     }
 }
 
-function hideOptionOnChange($select, $modal) {
-    const $category = $select.find('option:selected').text();
-    const $sendMailBuyer =  $modal.find('.send-mail-user');
-    const $typesLabel = $modal.find('.types-label');
-    const $acheminementTrans =  $modal.find('#acheminementTranslation').val();
+function hideOptionOnChange($modal, forceClear = true) {
+    const $select = $modal.find('[name="category"]');
+    const $dispatchFields = $modal.find('.dispatch-fields');
+    const $disputeFields = $modal.find('.dispute-fields');
 
-    if ($category === $acheminementTrans) {
-        $sendMailBuyer.addClass('d-none');
-        $typesLabel.removeClass('d-none');
-        $typesLabel.find('select').addClass('needed');
+    $dispatchFields.addClass('d-none');
+    $disputeFields.addClass('d-none');
+    $modal.find('.field-needed').removeClass('needed');
+
+    if (forceClear) {
+        $dispatchFields.find('select').find('option:selected').prop("selected", false);
+        $dispatchFields.find('select').val('');
+
+        $disputeFields.find('select').find('option:selected').prop("selected", false);
+        $disputeFields.find('select').val('');
     }
-    else {
-        $sendMailBuyer.removeClass('d-none');
-        $typesLabel.addClass('d-none');
-        $typesLabel.find('select').removeClass('needed');
-        $typesLabel.find('select').find('option:selected').prop("selected", false);
-        $typesLabel.find('select').val('');
+
+    const category = Number($select.val());
+    if (category) {
+        const categoryStatusDispatchId = Number($('#categoryStatusDispatchId').val());
+        const $fields = (category === categoryStatusDispatchId) ? $dispatchFields : $disputeFields;
+        $fields.removeClass('d-none');
+        $fields.find('.field-needed').addClass('needed');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Acheminements;
 use App\Entity\Arrivage;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
@@ -60,7 +61,7 @@ class AttachmentService
 
     /**
      * @param UploadedFile $file
-     * @param string $wantedName
+     * @param string|null $wantedName
      * @return array [originalName (string) => filename (string)]
      */
 	public function saveFile(UploadedFile $file, string $wantedName = null): array {
@@ -76,10 +77,11 @@ class AttachmentService
 	/**
 	 * @param PieceJointe $attachment
 	 * @param Arrivage $arrivage
-	 * @param Litige $litige
-	 * @param MouvementTraca $mvtTraca
+	 * @param Litige|null $litige
+     * @param Acheminements|null $acheminement
+	 * @param MouvementTraca|null $mvtTraca
 	 */
-	public function removeAndDeleteAttachment($attachment, $arrivage, $litige = null, $mvtTraca = null)
+	public function removeAndDeleteAttachment($attachment, $arrivage, $litige = null, $mvtTraca = null, $acheminement = null)
 	{
 		if ($arrivage) {
 			$arrivage->removeAttachement($attachment);
@@ -87,7 +89,9 @@ class AttachmentService
 			$litige->removeAttachement($attachment);
 		} elseif ($mvtTraca) {
 			$mvtTraca->removeAttachement($attachment);
-		}
+		} elseif ($acheminement) {
+		    $acheminement->removeAttachement($attachment);
+        }
 
         $pieceJointeRepository = $this->em->getRepository(PieceJointe::class);
         $pieceJointeAlreadyInDB = $pieceJointeRepository->findOneByFileName($attachment->getFileName());

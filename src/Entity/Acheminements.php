@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,6 +15,9 @@ class Acheminements extends FreeFieldEntity
     const CATEGORIE = 'acheminements';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
+    const STATUT_BROUILLON = 'brouillon';
+
+    const PREFIX_NUMBER = 'A-';
 
     /**
      * @ORM\Id()
@@ -25,7 +29,7 @@ class Acheminements extends FreeFieldEntity
     /**
      * @ORM\Column(type="datetime")
      */
-    private $date;
+    private $creationDate;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -34,7 +38,7 @@ class Acheminements extends FreeFieldEntity
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsReceive")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $receiver;
 
@@ -48,6 +52,24 @@ class Acheminements extends FreeFieldEntity
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
+
+    /**
+     * @var bool
+     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     */
+    private $urgent;
+
+    /**
+     * @var DateTime|null
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $startDate;
+
+    /**
+     * @var DateTime|null
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $endDate;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="acheminements")
@@ -80,10 +102,21 @@ class Acheminements extends FreeFieldEntity
      */
     private $type;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $number;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $validationDate;
+
     public function __construct()
     {
         $this->packAcheminements = new ArrayCollection();
         $this->attachements = new ArrayCollection();
+        $this->urgent = false;
     }
 
     public function getId(): ?int
@@ -91,14 +124,14 @@ class Acheminements extends FreeFieldEntity
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getCreationDate(): ?\DateTimeInterface
     {
-        return $this->date;
+        return $this->creationDate;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setCreationDate(\DateTimeInterface $date): self
     {
-        $this->date = $date;
+        $this->creationDate = $date;
 
         return $this;
     }
@@ -259,4 +292,70 @@ class Acheminements extends FreeFieldEntity
 
         return $this;
     }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    public function setNumber(string $number): self
+    {
+        $this->number = $number;
+
+        return $this;
+    }
+
+    public function isUrgent(): bool {
+        return $this->urgent;
+    }
+
+    public function setUrgent(bool $urgent): self {
+        $this->urgent = $urgent;
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getStartDate(): ?DateTime {
+        return $this->startDate;
+    }
+
+    /**
+     * @param DateTime|null $startDate
+     * @return self
+     */
+    public function setStartDate(?DateTime $startDate): self {
+        $this->startDate = $startDate;
+        return $this;
+    }
+
+    /**
+     * @return DateTime|null
+     */
+    public function getEndDate(): ?DateTime {
+        return $this->endDate;
+    }
+
+    /**
+     * @param DateTime|null $endDate
+     * @return self
+     */
+    public function setEndDate(?DateTime $endDate): self {
+        $this->endDate = $endDate;
+        return $this;
+    }
+
+    public function getValidationDate(): ?\DateTimeInterface
+    {
+        return $this->validationDate;
+    }
+
+    public function setValidationDate(?\DateTimeInterface $validationDate): self
+    {
+        $this->validationDate = $validationDate;
+
+        return $this;
+    }
+
 }

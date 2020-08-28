@@ -1,0 +1,69 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <table class="table"
+           style="border: 1px solid black;border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Numéro de demande
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Date demande
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Libellé
+            </th>
+            {#<th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Date de réalisation
+            </th>#}
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Type
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Statut
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Commentaire
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.number }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.date|date('d/m/Y H:i:s') }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.requester }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.type.label }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.statut.nom }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ acheminement.commentaire|raw }}
+            </td>
+        </tbody>
+    </table>
+    <br>
+    <br>
+
+{% endblock %}

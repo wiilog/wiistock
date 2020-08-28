@@ -61,9 +61,9 @@ class Pack
     private $trackingMovements;
 
     /**
-     * @ORM\Column(type="boolean", options={ "default" : true })
+     * @ORM\Column(type="integer", options={"default": 1})
      */
-    private $treated;
+    private $quantity;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="pack", orphanRemoval=true)
@@ -74,6 +74,7 @@ class Pack
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->packAcheminements = new ArrayCollection();
+        $this->quantity = 1;
     }
 
     public function getId(): ?int
@@ -196,18 +197,6 @@ class Pack
         return $this;
     }
 
-    public function isTreated(): ?bool
-    {
-        return $this->treated;
-    }
-
-    public function setTreated(bool $treated): self
-    {
-        $this->treated = $treated;
-
-        return $this;
-    }
-
     /**
      * @return Collection|PackAcheminement[]
      */
@@ -237,5 +226,14 @@ class Pack
         }
 
         return $this;
+    }
+
+    public function setQuantity(int $quantity): self {
+        $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function getQuantity(): int {
+        return $this->quantity;
     }
 }

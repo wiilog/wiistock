@@ -118,6 +118,16 @@ class Statut
      */
     private $type;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendNotifToRecipient;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $needsMobileSync;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -590,6 +600,30 @@ class Statut
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getSendNotifToRecipient(): ?bool
+    {
+        return $this->sendNotifToRecipient;
+    }
+
+    public function setSendNotifToRecipient(?bool $sendNotifToRecipient): self
+    {
+        $this->sendNotifToRecipient = $sendNotifToRecipient;
+
+        return $this;
+    }
+
+    public function getNeedsMobileSync(): ?bool
+    {
+        return $this->needsMobileSync;
+    }
+
+    public function setNeedsMobileSync(?bool $needsMobileSync): self
+    {
+        $this->needsMobileSync = $needsMobileSync;
 
         return $this;
     }

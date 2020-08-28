@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Traçabilité | {{ 'acheminement.acheminements'|trans }}{% endblock %}
+{% block title %}Demande | {{ 'acheminement.acheminements'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -13,7 +13,7 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                     <button type="button"
                             data-toggle="modal"
                             data-target="#modalNewAcheminements"
@@ -35,8 +35,6 @@
     <input type="hidden" id="takenLocationAcheminement" value="{{ 'acheminement.emplacement prise'|trans }}">
 
     {% include "acheminements/modalNewAcheminements.html.twig" %}
-    {% include "acheminements/modalEditAcheminements.html.twig" %}
-    {% include "acheminements/modalDeleteAcheminements.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

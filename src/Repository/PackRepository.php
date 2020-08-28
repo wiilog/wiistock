@@ -102,8 +102,7 @@ class PackRepository extends EntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->from('App\Entity\Pack', 'pack')
-            ->andWhere("pack.treated = '1'");
+            ->from('App\Entity\Pack', 'pack');
         $countTotal = $this->countAll();
         // filtres sup
         foreach ($filters as $filter) {
@@ -205,6 +204,7 @@ class PackRepository extends EntityRepository
             ->select('count(pack)');
         // compte éléments filtrés
         $countFiltered = $qb->getQuery()->getSingleScalarResult();
+
         $qb
             ->select('pack');
 

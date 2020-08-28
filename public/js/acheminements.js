@@ -3,32 +3,32 @@ let tableAcheminementsConfig = {
     serverSide: true,
     processing: true,
     order: [[1, "desc"]],
-    columnDefs: [
-        {
-            "orderable" : false,
-            "targets" : [0]
-        }
-    ],
     ajax: {
         "url": pathacheminements,
         "type": "POST",
     },
     rowConfig: {
-        needsRowClickAction: true
+        needsRowClickAction: true,
+        needsColor: true,
+        color: 'danger',
+        dataToCheck: 'urgent'
     },
     drawConfig: {
         needsSearchOverride: true,
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
-        { "data": 'Date', 'name': 'Date', 'title': 'Date demande' },
-        { "data": 'Type', 'name': 'Type', 'title': 'Type' },
-        { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
-        { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
-        { "data": 'Emplacement prise', 'name': 'Emplacement prise', 'title': $('#takenLocationAcheminement').val() },
-        { "data": 'Emplacement de dépose', 'name': 'Emplacement de dépose', 'title': $('#dropOffLocationAcheminement').val() },
-        { "data": 'Nb Colis', 'name': 'Nb Colis', 'title': 'Nb Colis' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false },
+        { "data": 'number', 'name': 'number', 'title': 'Numéro demande' },
+        { "data": 'creationDate', 'name': 'date', 'title': 'Date de création' },
+        { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de validation' },
+        { "data": 'type', 'name': 'type', 'title': 'Type' },
+        { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
+        { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },
+        { "data": 'locationFrom', 'name': 'locationFrom', 'title': $('#takenLocationAcheminement').val() },
+        { "data": 'locationTo', 'name': 'locationTo', 'title': $('#dropOffLocationAcheminement').val() },
+        { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'Nb Colis', orderable: false },
+        { "data": 'status', 'name': 'status', 'title': 'Statut' },
+        { "data": 'urgent', 'name': 'urgent', 'title': 'Urgence' }
     ],
 };
 let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);
@@ -36,22 +36,13 @@ let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsCo
 let modalNewAcheminements = $("#modalNewAcheminements");
 let submitNewAcheminements = $("#submitNewAcheminements");
 let urlNewAcheminements = Routing.generate('acheminements_new', true);
-initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements, printAcheminementFromId);
-
-let modalModifyAcheminements = $('#modalEditAcheminements');
-let submitModifyAcheminements = $('#submitEditAcheminements');
-let urlModifyAcheminements = Routing.generate('acheminement_edit', true);
-InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements, tableAcheminements, printAcheminementFromId);
-
-let modalDeleteAcheminements = $('#modalDeleteAcheminements');
-let submitDeleteAcheminements = $('#submitDeleteAcheminements');
-let urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
-InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements, tableAcheminements);
+initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements);
 
 $(function() {
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#utilisateur'), 'Demandeur');
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    initSelect2($('.filter-select2[name="multipleTypes"]'), 'Types');
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -61,34 +52,6 @@ $(function() {
         displayFiltersSup(data);
     }, 'json');
 });
-
-function toggleNewLocation($checkox) {
-    const $needsNewLocation = $checkox.is(':checked');
-    const $locationSelect = $('.location-' + $checkox.data('type'));
-    const $locationSelect2 = $('.location-' + $checkox.data('type')).next('span.select2');
-    const $locationText = $('.new-location-' + $checkox.data('type'));
-    if ($needsNewLocation) {
-        $locationText.removeClass('d-none');
-        $locationText.addClass('needed');
-        $locationText.attr('name', $checkox.data('type'));
-        $locationText.addClass('data');
-
-        $locationSelect2.addClass('d-none');
-        $locationSelect.removeClass('needed');
-        $locationSelect.attr('name', '');
-        $locationSelect.removeClass('data');
-    } else {
-        $locationText.addClass('d-none');
-        $locationText.removeClass('needed');
-        $locationText.attr('name', '');
-        $locationText.removeClass('data');
-
-        $locationSelect2.removeClass('d-none');
-        $locationSelect.addClass('needed');
-        $locationSelect.attr('name', $checkox.data('type'));
-        $locationSelect.addClass('data');
-    }
-}
 
 let editorNewAcheminementAlreadyDone = false;
 
@@ -117,13 +80,6 @@ function addInputColisClone(button)
     let $parent = $toClone.parent();
     $toClone.clone().appendTo($parent);
     $parent.children().last().find('.data-array').val('');
-}
-
-function printAcheminementFromId(data) {
-    const $printButton = $(`#print-btn-acheminement-${data.acheminement}`);
-    if ($printButton.length > 0) {
-        window.location.href = $printButton.attr('href');
-    }
 }
 
 function availableStatusOnChange($select) {

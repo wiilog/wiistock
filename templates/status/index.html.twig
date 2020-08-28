@@ -2,11 +2,22 @@
 
 {% block title %}Paramétrage | Statuts{% endblock %}
 
+{% block page_filter %}
+    {% include 'filters/filtersStatuts.html.twig' with {
+        'page': 'PAGE_STATUS',
+        'tableSelector': '#tableStatus'
+    } %}
+{% endblock %}
+
 {% block page_content %}
+    <input type="hidden" id="categoryStatusDispatchId" value="{{ categoryStatusDispatchId }}"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <button data-toggle="modal" data-target="#modalNewStatus" class="btn btn-primary btn-ripple">
+                <button data-toggle="modal"
+                        data-target="#modalNewStatus"
+                        class="btn btn-primary btn-ripple"
+                        onclick="hideOptionOnChange($('#modalNewStatus'))">
                     <span class="fa fa-plus mr-2"></span>Nouveau statut
                 </button>
             </div>

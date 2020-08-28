@@ -82,11 +82,11 @@ class UtilisateurController extends AbstractController
             }
         }
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         return $this->render('utilisateur/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
             'roles' => $roleRepository->findAll(),
-            'types' => $types
+            'deliveryTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+            'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
         ]);
     }
 
@@ -105,6 +105,7 @@ class UtilisateurController extends AbstractController
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
             $password = $data['password'];
@@ -166,10 +167,15 @@ class UtilisateurController extends AbstractController
 				$utilisateur->setPassword($password);
 			}
 
-            if (isset($data['type'])) {
-                foreach ($data['type'] as $type)
-                {
-                    $utilisateur->addType($entityManager->find(Type::class, $type));
+            if (isset($data['deliveryTypes'])) {
+                foreach ($data['deliveryTypes'] as $type) {
+                    $utilisateur->addDeliveryType($typeRepository->find($type));
+                }
+            }
+
+            if (isset($data['dispatchTypes'])) {
+                foreach ($data['dispatchTypes'] as $type) {
+                    $utilisateur->addDispatchType($typeRepository->find($type));
                 }
             }
 
@@ -199,23 +205,17 @@ class UtilisateurController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->find($data['id']);
-            $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-
-            $typeUser = [];
-            foreach ($user->getTypes() as $type)
-            {
-                $typeUser[] = $type->getId();
-            }
-
-
-            $json = $this->renderView('utilisateur/modalEditUserContent.html.twig', [
-                'user' => $user,
-                'types' => $types
-            ]);
+            $deliveryTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $dispatchTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
 
             return new JsonResponse([
-            	'userTypes' => $typeUser,
-				'html' => $json,
+            	'userDeliveryTypes' => $user->getDeliveryTypeIds(),
+            	'userDispatchTypes' => $user->getDispatchTypeIds(),
+				'html' => $this->renderView('utilisateur/modalEditUserContent.html.twig', [
+                    'user' => $user,
+                    'deliveryTypes' => $deliveryTypes,
+                    'dispatchTypes' => $dispatchTypes
+                ]),
 				'dropzone' => $user->getDropzone() ? [
 					'id' => $user->getDropzone()->getId(),
 					'text' => $user->getDropzone()->getLabel()
@@ -294,14 +294,20 @@ class UtilisateurController extends AbstractController
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }
-            foreach ($utilisateur->getTypes() as $typeToRemove)
-            {
-                $utilisateur->removeType($typeToRemove);
+            foreach ($utilisateur->getDeliveryTypes() as $typeToRemove) {
+                $utilisateur->removeDeliveryType($typeToRemove);
             }
-            if (isset($data['type'])) {
-                foreach ($data['type'] as $type)
-                {
-                    $utilisateur->addType($typeRepository->find($type));
+            if (isset($data['deliveryTypes'])) {
+                foreach ($data['deliveryTypes'] as $type) {
+                    $utilisateur->addDeliveryType($typeRepository->find($type));
+                }
+            }
+            foreach ($utilisateur->getDispatchTypes() as $typeToRemove) {
+                $utilisateur->removeDispatchType($typeToRemove);
+            }
+            if (isset($data['dispatchTypes'])) {
+                foreach ($data['dispatchTypes'] as $type) {
+                    $utilisateur->addDispatchType($typeRepository->find($type));
                 }
             }
 

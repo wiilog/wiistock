@@ -1,0 +1,60 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | {{ 'acheminement.acheminements'|trans }} | Détails{% endblock %}
+{% block titleLink path('acheminements_index') %}
+
+{% block page_content %}
+    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
+    <input type="hidden" id="dispatchId" value="{{ acheminement.id }}">
+
+    <div class="m-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="zone-entete">
+                    {% include "acheminements/acheminement-show-header.html.twig" with {
+                        acheminement: acheminement,
+                        showDetails: detailsConfig,
+                        modifiable: modifiable
+                    } %}
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="wii-page-card">
+                    <div class="row mb-2">
+                        <h5 class="col-auto h5">Liste des colis</h5>
+                    </div>
+                    {% if modifiable %}
+                        <div class="row wii-page-card-header">
+                            <div class="col-auto ml-auto">
+                                <button onclick="openNewPackModal()"
+                                        class="btn btn-primary">
+                                    <i class="fa fa-plus"></i>
+                                    {{ 'acheminement.Ajouter un colis'|trans }}
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-12">
+                            <table id="packTable" class="table w-100"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "acheminements/modalDeleteAcheminements.html.twig" %}
+    {% include "acheminements/modalEditAcheminements.html.twig" %}
+    {% include "acheminements/modalPack.html.twig" with newPackConfig %}
+    {% include "acheminements/modalValidateDispatch.html.twig" with dispatchValidate %}
+    {% include "acheminements/modalDeletePack.html.twig" %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/acheminements-show.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

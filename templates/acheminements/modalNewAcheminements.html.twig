@@ -26,7 +26,7 @@
                     <label for="type">Statut*</label>
                     <select name="statut" class="form-control data d-block status-acheminement needed">
                         <option value="">Choisir un statut...</option>
-                        {% for statut in statuts %}
+                        {% for statut in notTreatedStatus %}
                             <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
                         {% endfor %}
                     </select>
@@ -44,43 +44,55 @@
                            data-id="{{ app.user.id }}"/>
                 </div>
                 <div class="form-group">
-                    <label for="destinataire">Destinataire*</label>
-                    <select class="destinataire form-control data needed ajax-autocomplete-user w-100" name="destinataire">
+                    <label for="destinataire">Destinataire</label>
+                    <select class="destinataire form-control data ajax-autocomplete-user w-100" name="destinataire">
                         <option value="" selected></option>
                         {% for utilisateur in utilisateurs %}
                             <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Echéance</label>
+                    <div class="input-group w-100">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text w-50px">Du</span>
+                        </div>
+                        <input type="date"
+                               class="form-control data"
+                               name="startDate"
+                               title="Date d'échéance min"
+                               placeholder="jj/mm/aaaa"/>
+                        <div class="input-group-prepend">
+                            <span class="input-group-text w-50px">Au</span>
+                        </div>
+                        <input type="date"
+                               class="form-control data"
+                               name="endDate"
+                               title="Date d'échéance max"
+                               placeholder="jj/mm/aaaa"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Urgence</label>
+                    <div class="w-100">
+                        <label class="switch mt-2">
+                            <input class="checkbox"
+                                   name="urgent"
+                                   type="checkbox"/>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
                 <div class="form-group w-100">
                     <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
                     </select>
-                    <input type="text" class="form-control data new-location-prise d-none">
-                    <label class="switch mt-2">
-                        <input class="checkbox no-clear"
-                               name="location-on-fly"
-                               onclick="toggleNewLocation($(this))"
-                               data-type="prise"
-                               type="checkbox"/>
-                        <span class="slider round"></span>
-                    </label>
-                    <label>{{ 'acheminement.emplacement prise'|trans }} non présent ? </label>
                 </div>
                 <div class="form-group w-100">
                     <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
                     <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
                     </select>
-                    <input type="text" class="form-control data new-location-depose d-none">
-                    <label class="switch mt-2">
-                        <input class="checkbox no-clear"
-                               name="location-on-fly"
-                               onclick="toggleNewLocation($(this))"
-                               data-type="depose"
-                               type="checkbox"/>
-                        <span class="slider round"></span>
-                    </label>
-                    <label>{{ 'acheminement.emplacement dépose'|trans }} non présent ? </label>
                 </div>
 
                 <!-- CHAMPS LIBRES -->

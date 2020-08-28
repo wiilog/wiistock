@@ -17,6 +17,11 @@ class PackAcheminement
     private $id;
 
     /**
+     * @ORM\Column(type="integer", options={"default": 1})
+     */
+    private $quantity;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="packAcheminements")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -28,16 +33,9 @@ class PackAcheminement
      */
     private $acheminement;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
-    private $quantity;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $treated;
-
+    public function __construct() {
+        $this->quantity = 1;
+    }
 
     public function getId(): ?int
     {
@@ -68,27 +66,12 @@ class PackAcheminement
         return $this;
     }
 
-    public function getQuantity(): ?int
-    {
-        return $this->quantity;
-    }
-
-    public function setQuantity(int $quantity): self
-    {
+    public function setQuantity(int $quantity): self {
         $this->quantity = $quantity;
-
         return $this;
     }
 
-    public function getTreated(): ?bool
-    {
-        return $this->treated;
-    }
-
-    public function setTreated(bool $treated): self
-    {
-        $this->treated = $treated;
-
-        return $this;
+    public function getQuantity(): int {
+        return $this->quantity;
     }
 }

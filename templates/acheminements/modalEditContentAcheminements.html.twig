@@ -1,49 +1,127 @@
-<div class="row">
-    <div class="form-group col-10 clear-clone">
-        <label for="colis">Colis*</label>
-    {% for pack in acheminement.packs %}
-        <input type="text" id="colis" class="form-control data-array inputColisClone needed" name="colis" maxlength="64" value="{{ pack }}">
-    {% endfor %}
-    </div>
-    <div class="form-group col-2">
-        <span class="btn btn-primary" onclick="addInputColisClone($(this))"><i class="fa fa-plus"></i></span>
-    </div>
+<div class="form-group">
+    <label for="type">Type*</label>
+    <select name="type" class="form-control data d-block type needed"
+            onclick="typeChoice($(this), '-new', $('#typeContentNew'))" disabled>
+        <option selected value={{ acheminement.type.id }}>{{ acheminement.type.label }}</option>
+        {% for type in typeChampsLibres %}
+            {% if type.typeId != acheminement.type.id %}
+                <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group">
+    <label for="type">Statut*</label>
+    <select name="statut" class="form-control data d-block status-acheminement needed">
+        <option selected
+                value="{{ acheminement.statut.id }}"
+                data-type-id="{{ acheminement.statut.type.id }}">
+            {{ acheminement.statut.nom }}
+        </option>
+        {% for statut in notTreatedStatus %}
+            {% if statut.id != acheminement.statut.id and statut.type.id == acheminement.type.id %}
+                <option data-type-id="{{ statut.type.id }}"
+                        value="{{ statut.id }}">
+                    {{ statut.nom }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
 </div>
 <div class="form-group">
     <label for="demandeur">Demandeur*</label>
-    <select type="text" class="demandeur form-control data needed" name="demandeur">
-        <option value="{{ acheminement.requester.id }}" selected>{{ acheminement.requester.username }}</option>
+    <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="demandeur">
+        <option selected value="{{ acheminement.requester.id }}">{{ acheminement.requester.username }}</option>
         {% for utilisateur in utilisateurs %}
             <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
         {% endfor %}
+    </select>
+    <input hidden
+           name="logged-user"
+           data-username="{{ app.user.username }}"
+           data-id="{{ app.user.id }}"/>
+</div>
+<div class="form-group">
+    <label for="destinataire">Destinataire</label>
+    <select class="destinataire form-control data ajax-autocomplete-user-edit w-100" name="destinataire">
+        <option value="{{ acheminement.receiver.id }}">{{ acheminement.receiver.username }}</option>
     </select>
 </div>
 <div class="form-group">
-    <label for="destinataire">Destinataire*</label>
-    <select type="text" class="destinataire form-control data needed" name="destinataire">
-        <option value="{{ acheminement.receiver.id }}" selected>{{ acheminement.receiver.username }}</option>
-        {% for utilisateur in utilisateurs %}
-            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-        {% endfor %}
-    </select>
-</div>
-<div class="form-group needed">
-    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
-    <input class="form-control data needed" name="prise" id="prise" value="{{ acheminement.locationFrom ? acheminement.locationFrom.label }}">
-</div>
-<div class="form-group needed">
-    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
-    <input class="form-control data needed" name="depose" id="depose" value="{{ acheminement.locationTo ? acheminement.locationTo.label }}">
-</div>
-<div class="form-group col-12 w-100">
-    <div class="input-group radio-btn">
-        <label for="statut" class="my-auto mr-2">Statut*</label>
-        <div>
-                <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                      onclick="changeStatus(this)" data-value="1">A Traiter</span><span
-                    class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                    onclick="changeStatus(this)" data-value="0">Traité</span>
+    <label>Echéance</label>
+    <div class="input-group w-100">
+        <div class="input-group-prepend">
+            <span class="input-group-text w-50px">Du</span>
         </div>
-        <input id="s" type="hidden" value="{{statut}}" name="statut" class="data">
+        <input type="date"
+               class="form-control data"
+               name="startDate"
+               value="{{ acheminement.startDate ? acheminement.startDate|date('Y-m-d') }}"
+               title="Date d'échéance min"
+               placeholder="jj/mm/aaaa"/>
+        <div class="input-group-prepend">
+            <span class="input-group-text w-50px">Au</span>
+        </div>
+        <input type="date"
+               class="form-control data"
+               name="endDate"
+               value="{{ acheminement.endDate ? acheminement.endDate|date('Y-m-d') }}"
+               title="Date d'échéance max"
+               placeholder="jj/mm/aaaa"/>
     </div>
 </div>
+<div class="form-group">
+    <label>Urgence</label>
+    <div class="w-100">
+        <label class="switch mt-2">
+            <input class="checkbox"
+                   name="urgent"
+                {{ acheminement.urgent ? 'checked' }}
+                   type="checkbox"/>
+            <span class="slider round"></span>
+        </label>
+    </div>
+</div>
+<div class="form-group w-100">
+    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+    <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
+        {% if acheminement.locationFrom %}
+            <option value="{{ acheminement.locationFrom.id }}">{{ acheminement.locationFrom.label }}</option>
+        {% endif %}
+    </select>
+</div>
+<div class="form-group w-100">
+    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+    <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
+        {% if acheminement.locationTo %}
+            <option value="{{ acheminement.locationTo.id }}">{{ acheminement.locationTo.label }}</option>
+        {% endif %}
+    </select>
+</div>
+
+<!-- CHAMPS LIBRES -->
+<div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+    {% for type in typeChampsLibres %}
+        <div class="d-none row" id="{{ type.typeId }}-new">
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: type.champsLibres,
+                freeFieldValues: [],
+                colType: 'col-12',
+                requiredType: 'requiredCreate',
+                actionType: 'new'
+            } %}
+        </div>
+    {% endfor %}
+</div>
+<div class="form-group">
+    <label for="commentaire">Commentaire</label>
+    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" value="{{ acheminement.commentaire }}">
+    <div class="editor-container-edit" id="editor-container-edit" value="{{ acheminement.commentaire }}">{{ acheminement.commentaire|raw }}
+    </div>
+</div>
+<div class="form-group">
+    <div>
+        {% include 'attachment/attachment.html.twig' with {'isNew' : false} %}
+    </div>
+</div>
+

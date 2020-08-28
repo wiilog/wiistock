@@ -33,6 +33,8 @@ class FiltreSup
 	const FIELD_NATURES = 'natures';
 	const FIELD_DUTY = 'duty';
 	const FIELD_FROZEN = 'frozen';
+	const FIELD_STATUS_ENTITY = 'statusEntity';
+	const FIELD_MULTIPLE_TYPES = 'multipleTypes';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -46,6 +48,7 @@ class FiltreSup
 	const PAGE_MVT_STOCK = 'mvt_stock';
 	const PAGE_MVT_TRACA = 'mvt_traca';
 	const PAGE_ACHEMINEMENTS = 'acheminement';
+    const PAGE_STATUS = 'status';
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_INV_MISSIONS = 'inv_missions';
 	const PAGE_INV_SHOW_MISSION = 'inv_mission_show';

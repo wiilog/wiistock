@@ -1,0 +1,66 @@
+<form method="" class="modal fade" id="modalPack" role="dialog" aria-labelledby="dataModalCenterTitle"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span class="title-new-pack">{{ 'acheminement.Ajouter un colis'|trans }}</span>
+                    <span class="title-edit-pack">{{ 'acheminement.Modifier un colis'|trans }}</span>
+                </h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="type">{{ 'mouvement de traçabilité.Colis'|trans }}*</label>
+                    <input type="text"
+                           class="form-control data needed"
+                           name="pack"
+                           title="{{ 'mouvement de traçabilité.Colis'|trans }}"
+                           onchange="togglePackDetails()"/>
+                </div>
+
+                <div class="w-100 text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Chargement...</span>
+                    </div>
+                </div>
+
+                <div class="form-group pack-details">
+                    <label>{{ 'natures.Nature de colis'|trans }}*</label>
+                    <select class="form-control data needed"
+                            name="nature"
+                            title="{{ 'natures.Nature de colis'|trans }}">
+                        <option>{{ 'acheminement.Sélectionner une nature'|trans }}</option>
+                        {% for nature in natures %}
+                            <option value="{{ nature.id }}">{{ nature.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group pack-details">
+                    <label>Quantité*</label>
+                    <input type="number"
+                           class="form-control data needed"
+                           name="quantity"
+                           min="1"
+                           title="Quantité"/>
+                </div>
+            </div>
+
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button type="button"
+                        class="btn btn-success submit-new-pack">
+                    Enregistrer
+                </button>
+                <button type="button"
+                        class="btn btn-success submit-edit-pack">
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

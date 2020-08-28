@@ -62,7 +62,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
-                'demande d\'acheminement' => 'demande d\'acheminement'
+                'demande d\'acheminement' => 'demande d\'acheminement',
+                'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
+                'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
+                'Le colis n\'existe pas' => 'Le colis n\'existe pas',
+                'Le colis a déjà été traité' => 'Le colis a déjà été traité',
+                'Sélectionner une nature' => 'Sélectionner une nature',
+                'Ajouter un colis' => 'Ajouter un colis',
+                'Modifier un colis' => 'Modifier un colis',
+                'Traiter un colis' => 'Traiter un colis',
+                'Traiter un acheminement' => 'Traiter un acheminement',
+                'type d\'acheminement' => 'type d\'acheminement',
+                "Voulez-vous réellement supprimer ce colis" => " Voulez-vous réellement supprimer ce colis"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

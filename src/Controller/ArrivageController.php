@@ -912,7 +912,6 @@ class ArrivageController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          ArrivageDataService $arrivageDataService,
                          Arrivage $arrivage,
-                         TranslatorInterface $translator,
                          bool $printColis = false,
                          bool $printArrivage = false): Response
     {
@@ -937,7 +936,6 @@ class ArrivageController extends AbstractController
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         return $this->render("arrivage/show.html.twig",
             [
-                'natureTranslation' => $translator->trans('natures.nature'),
                 'arrivage' => $arrivage,
                 'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                 'acheteurs' => $acheteursNames,

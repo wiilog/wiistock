@@ -1,0 +1,11 @@
+<div class="col-auto mb-2 select-filter pr-0">
+    <div class="select2-overflow">
+        <div class="input-group w-100 cursor-default">
+            <select class="form-control data select2 filter-select2" name="multipleTypes" multiple="multiple" {{ disabled }}>
+                {% for type in types %}
+                    <option class="d-none" value="{{ type.id }}">{{ type.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>

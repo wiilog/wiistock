@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Acheminements;
+use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -17,44 +18,33 @@ use Doctrine\ORM\NoResultException;
  */
 class AcheminementsRepository extends EntityRepository
 {
-    private const DtToDbLabels = [
-        'Date' => 'date',
-        'Type' => 'type',
-        'Demandeur' => 'requester',
-        'Destinataire' => 'receiver',
-        'Emplacement prise' => 'locationTake',
-        'Emplacement de dépose' => 'locationDrop',
-        'Nb Colis' => 'colis',
-        'Statut' => 'statut',
-    ];
-
     public function findByParamAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder('a');
+        $exprBuilder = $qb->expr();
 
-        $qb
-            ->select('a')
-            ->from('App\Entity\Acheminements', 'a');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = $qb
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
 
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statut':
-					$value = explode(',', $filter['value']);
+                    $value = explode(',', $filter['value']);
+                    dump($filter);
 					$qb
 						->join('a.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-
-                case 'type':
+                case FiltreSup::FIELD_MULTIPLE_TYPES:
+                    $value = explode(',', $filter['value']);
                     $qb
                         ->join('a.type', 't')
-                        ->andWhere('t.label in (:type)')
-                        ->setParameter('type', $filter['value']);
+                        ->andWhere('t.id in (:type)')
+                        ->setParameter('type', $value);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
@@ -64,11 +54,11 @@ class AcheminementsRepository extends EntityRepository
                         ->setParameter('requester', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('a.date >= :dateMin')
+                    $qb->andWhere('a.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00.00.00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('a.date <= :dateMax')
+                    $qb->andWhere('a.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
             }
@@ -78,7 +68,18 @@ class AcheminementsRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.packs LIKE :value OR a.date LIKE :value')
+                        ->andWhere('(' . $exprBuilder->orX(
+                            'a.creationDate LIKE :value',
+                            'a.number LIKE :value',
+                            'search_locationFrom.label LIKE :value',
+                            'search_locationTo.label LIKE :value',
+                            'search_statut.nom LIKE :value',
+                            'a.creationDate LIKE :value'
+                        ) . ')')
+                        ->leftJoin('a.locationFrom', 'search_locationFrom')
+                        ->leftJoin('a.locationTo', 'search_locationTo')
+                        ->leftJoin('a.statut', 'search_statut')
+                        ->leftJoin('a.type', 'search_type')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -87,24 +88,33 @@ class AcheminementsRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'statut') {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    if ($column === 'status') {
                         $qb
-                            ->leftJoin('a.statut', 's2')
-                            ->orderBy('s2.nom', $order);
+                            ->leftJoin('a.statut', 'sort_status')
+                            ->orderBy('sort_status.nom', $order);
                     } else if ($column === 'requester') {
                         $qb
-                            ->leftJoin('a.requester', 'u2')
-                            ->orderBy('u2.username', $order);
+                            ->leftJoin('a.requester', 'sort_requester')
+                            ->orderBy('sort_requester.username', $order);
                     } else if ($column === 'receiver') {
                         $qb
-                            ->leftJoin('a.receiver', 'u2')
-                            ->orderBy('u2.username', $order);
+                            ->leftJoin('a.receiver', 'sort_receiver')
+                            ->orderBy('sort_receiver.username', $order);
                     } else if ($column === 'type') {
                         $qb
-                            ->leftJoin('a.type', 't2')
-                            ->orderBy('t2.label', $order);
-                    }else {
+                            ->leftJoin('a.type', 'sort_type')
+                            ->orderBy('sort_type.label', $order);
+                    } else if ($column === 'locationFrom') {
+                        $qb
+                            ->leftJoin('a.locationFrom', 'sort_locationFrom')
+                            ->orderBy('sort_locationFrom.label', $order);
+                    } else if ($column === 'locationTo') {
+                        $qb
+                            ->leftJoin('a.locationTo', 'sort_locationTo')
+                            ->orderBy('sort_locationTo.label', $order);
+                    }
+                    else {
                         $qb
                             ->orderBy('a.' . $column, $order);
                     }
@@ -113,7 +123,12 @@ class AcheminementsRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = count($qb->getQuery()->getResult());
+        $countFiltered = $qb
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $qb
+            ->select('a');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -160,5 +175,50 @@ class AcheminementsRepository extends EntityRepository
         )->setParameter('emplacementId', $emplacementId);
 
         return $query->getSingleScalarResult();
+    }
+
+    public function getLastDispatchNumberByPrefix($prefix)
+    {
+        $queryBuilder = $this->createQueryBuilder('dispatch');
+        $queryBuilder
+            ->select('dispatch.number')
+            ->where('dispatch.number LIKE :value')
+            ->orderBy('dispatch.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '%');
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+
+    public function getMobileDispatches(Utilisateur $user)
+    {
+        $queryBuilder = $this->createQueryBuilder('dispatch');
+        $queryBuilder
+            ->select('dispatch_requester.username AS requester')
+            ->addSelect('dispatch.id AS id')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.startDate AS startDate')
+            ->addSelect('dispatch.endDate AS endDate')
+            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('locationFrom.label AS locationFromLabel')
+            ->addSelect('locationTo.label AS locationToLabel')
+            ->addSelect('type.label AS typeLabel')
+            ->addSelect('type.id AS typeId')
+            ->addSelect('status.nom AS statusLabel')
+            ->join('dispatch.requester', 'dispatch_requester')
+            ->leftJoin('dispatch.locationFrom', 'locationFrom')
+            ->leftJoin('dispatch.locationTo', 'locationTo')
+            ->join('dispatch.type', 'type')
+            ->join('dispatch.statut', 'status')
+            ->where('status.needsMobileSync = 1')
+            ->andWhere('status.treated = 0')
+            ->andWhere('type.id IN (:dispatchTypeIds)')
+            ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 }
