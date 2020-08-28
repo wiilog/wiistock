@@ -356,10 +356,12 @@ Class AcheminementsController extends AbstractController
                 $acheminementsService->sendMailsAccordingToStatus($acheminement, true);
             }
 
+            $dispatchStatus = $acheminement->getStatut();
+
             $response = [
                 'entete' => $this->renderView('acheminements/acheminement-show-header.html.twig', [
                     'acheminement' => $acheminement,
-                    'modifiable' => !$acheminement->getStatut()->getTreated(),
+                    'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
                     'showDetails' => $acheminementsService->createHeaderDetailsConfig($acheminement)
                 ]),
                 'success' => true,

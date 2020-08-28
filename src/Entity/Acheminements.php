@@ -29,11 +29,6 @@ class Acheminements extends FreeFieldEntity
     private $date;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $packs = [];
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsReceive")
      * @ORM\JoinColumn(nullable=true)
      */
@@ -125,17 +120,6 @@ class Acheminements extends FreeFieldEntity
     {
         $this->date = $date;
 
-        return $this;
-    }
-
-    public function getPacks(): ?array
-    {
-        return $this->packs;
-    }
-
-    public function setPacks(?array $packs): self
-    {
-        $this->packs = $packs;
         return $this;
     }
 
