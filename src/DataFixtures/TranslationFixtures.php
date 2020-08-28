@@ -115,6 +115,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'référence' => $isCurrentClientCEA
                     ? 'Référence CEA'
                     : 'Référence'
+            ],
+            'services' => [
+                'Types de service' => 'Types de service'
             ]
         ];
 
