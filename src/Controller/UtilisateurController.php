@@ -86,7 +86,8 @@ class UtilisateurController extends AbstractController
             'utilisateurs' => $utilisateurRepository->findAll(),
             'roles' => $roleRepository->findAll(),
             'deliveryTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-            'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
+            'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT),
+            'handlingTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_HANDLING)
         ]);
     }
 
@@ -96,7 +97,7 @@ class UtilisateurController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function newUser(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
@@ -179,6 +180,12 @@ class UtilisateurController extends AbstractController
                 }
             }
 
+            if (isset($data['handlingTypes'])) {
+                foreach ($data['handlingTypes'] as $type) {
+                    $utilisateur->addHandlingType($typeRepository->find($type));
+                }
+            }
+
             $entityManager->persist($utilisateur);
             $entityManager->flush();
 
@@ -207,19 +214,24 @@ class UtilisateurController extends AbstractController
             $user = $utilisateurRepository->find($data['id']);
             $deliveryTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
             $dispatchTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+            $handlingTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_HANDLING);
 
             return new JsonResponse([
             	'userDeliveryTypes' => $user->getDeliveryTypeIds(),
             	'userDispatchTypes' => $user->getDispatchTypeIds(),
+            	'userHandlingTypes' => $user->getHandlingTypeIds(),
 				'html' => $this->renderView('utilisateur/modalEditUserContent.html.twig', [
                     'user' => $user,
                     'deliveryTypes' => $deliveryTypes,
-                    'dispatchTypes' => $dispatchTypes
+                    'dispatchTypes' => $dispatchTypes,
+                    'handlingTypes' => $handlingTypes,
                 ]),
-				'dropzone' => $user->getDropzone() ? [
-					'id' => $user->getDropzone()->getId(),
-					'text' => $user->getDropzone()->getLabel()
-                ] : null]);
+				'dropzone' => $user->getDropzone()
+                    ? [
+                        'id' => $user->getDropzone()->getId(),
+                        'text' => $user->getDropzone()->getLabel()
+                    ]
+                    : null]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -308,6 +320,14 @@ class UtilisateurController extends AbstractController
             if (isset($data['dispatchTypes'])) {
                 foreach ($data['dispatchTypes'] as $type) {
                     $utilisateur->addDispatchType($typeRepository->find($type));
+                }
+            }
+            foreach ($utilisateur->getHandlingTypes() as $typeToRemove) {
+                $utilisateur->removeHandlingType($typeToRemove);
+            }
+            if (isset($data['handlingTypes'])) {
+                foreach ($data['handlingTypes'] as $type) {
+                    $utilisateur->addHandlingType($typeRepository->find($type));
                 }
             }
 

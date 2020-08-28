@@ -183,6 +183,12 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $dispatchTypes;
 
     /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="handlingUsers")
+     * @ORM\JoinTable(name="user_handling_type")
+     */
+    private $handlingTypes;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
      */
     private $inventoryEntries;
@@ -270,6 +276,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->inventoryEntries = new ArrayCollection();
         $this->deliveryTypes = new ArrayCollection();
         $this->dispatchTypes = new ArrayCollection();
+        $this->handlingTypes = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
         $this->acheminementsReceive = new ArrayCollection();
@@ -914,6 +921,40 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if ($this->dispatchTypes->contains($type)) {
             $this->dispatchTypes->removeElement($type);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getHandlingTypes(): Collection {
+        return $this->handlingTypes;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getHandlingTypeIds(): array {
+        return $this->handlingTypes
+            ->map(function (Type $type) {return $type->getId();})
+            ->toArray();
+    }
+
+    public function addHandlingType(Type $type): self
+    {
+        if (!$this->handlingTypes->contains($type)) {
+            $this->handlingTypes[] = $type;
+        }
+
+        return $this;
+    }
+
+    public function removeHandlingType(Type $type): self
+    {
+        if ($this->handlingTypes->contains($type)) {
+            $this->handlingTypes->removeElement($type);
         }
 
         return $this;
