@@ -13,9 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Acheminements extends FreeFieldEntity
 {
     const CATEGORIE = 'acheminements';
-    const STATUT_A_TRAITER = 'à traiter';
-    const STATUT_TRAITE = 'traité';
-    const STATUT_BROUILLON = 'brouillon';
 
     const PREFIX_NUMBER = 'A-';
 

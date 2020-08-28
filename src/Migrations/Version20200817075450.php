@@ -68,8 +68,6 @@ final class Version20200817075450 extends AbstractMigration
             $acheminementID = $acheminement['id'];
             $locationTo = $acheminement['location_drop'];
             $locationFrom = $acheminement['location_take'];
-            $requester = $acheminement['requester_id'];
-            $date = $acheminement['date'];
             $packs = json_decode($acheminement['packs']);
             $locationToID = $this
                 ->connection
@@ -101,45 +99,20 @@ final class Version20200817075450 extends AbstractMigration
                     UPDATE acheminements SET location_from_id = ${locationFromID}, location_to_id = ${locationToID} WHERE id = ${acheminementID}
                 ");
             foreach ($packs as $pack) {
-                $packTreated = $acheminement['statut'] === Acheminements::STATUT_A_TRAITER ? 0 : 1;
                 $packID = $this->connection->executeQuery("SELECT id FROM pack WHERE code = '${pack}'")->fetchColumn();
                 if (!$packID) {
                     $this
                         ->connection
-                        ->executeQuery("
-                            INSERT INTO pack (code, last_drop_id, last_tracking_id, treated)
-                            VALUES ('${pack}', NULL, NULL, ${packTreated})
-                            ");
+                        ->executeQuery("INSERT INTO pack (code) VALUES ('${pack}')");
                     $packID = intval($this->connection->lastInsertId());
                 }
 
                 $this
                     ->connection
                     ->executeQuery("
-                            INSERT INTO pack_acheminement (pack_id, acheminement_id, treated, quantity)
-                            VALUES (${packID}, ${acheminementID}, ${packTreated}, 1)
-                            ");
-
-                if ($packTreated) {
-                    $this
-                        ->connection
-                        ->executeQuery("
-                            INSERT INTO mouvement_traca (emplacement_id, type_id, operateur_id, colis, datetime, finished, pack_id)
-                            VALUES (${locationFromID}, (SELECT id FROM statut WHERE nom = 'prise'), ${requester}, '${pack}', '${date}', 1, ${packID})
-                            ");
-                    $this
-                        ->connection
-                        ->executeQuery("
-                            INSERT INTO mouvement_traca (emplacement_id, type_id, operateur_id, colis, datetime, finished, pack_id)
-                            VALUES (${locationToID}, (SELECT id FROM statut WHERE nom = 'depose'), ${requester}, '${pack}', '${date}', 1, ${packID})
-                            ");
-                    $mvtDropId = intval($this->connection->lastInsertId());
-
-                    $this
-                        ->connection
-                        ->executeQuery("UPDATE pack SET last_drop_id = ${mvtDropId}, last_tracking_id = ${mvtDropId} WHERE id = ${packID}");
-
-                }
+                        INSERT INTO pack_acheminement (pack_id, acheminement_id, quantity)
+                        VALUES (${packID}, ${acheminementID}, 1)
+                    ");
             }
         }
         $this->connection->executeQuery('ALTER TABLE acheminements DROP location_take');

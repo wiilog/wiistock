@@ -71,8 +71,7 @@ Class AcheminementsController extends AbstractController
                                 AcheminementsService $acheminementsService,
                                 PieceJointeRepository $pieceJointeRepository,
                                 AttachmentService $attachmentService,
-                                TranslatorInterface $translator)
-    {
+                                TranslatorInterface $translator) {
         $this->userService = $userService;
         $this->acheminementsService = $acheminementsService;
         $this->pieceJointeRepository = $pieceJointeRepository;
@@ -297,8 +296,6 @@ Class AcheminementsController extends AbstractController
      * @param AcheminementsService $acheminementsService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function edit(Request $request,
                          AcheminementsService $acheminementsService,
@@ -314,11 +311,6 @@ Class AcheminementsController extends AbstractController
             /** @var Acheminements $acheminement */
             $post = $request->request;
             $acheminement = $acheminementsRepository->find($data['id']);
-
-            $statutLabel = (intval($data['statut']) === 1) ? Acheminements::STATUT_A_TRAITER : Acheminements::STATUT_TRAITE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ACHEMINEMENT, $statutLabel);
-
-            $acheminement->setStatut($statut);
 
             $startDate = $acheminementsService->createDateFromStr($data['startDate']);
             $endDate = $acheminementsService->createDateFromStr($data['endDate']);
