@@ -35,14 +35,14 @@ final class Version20200826214801 extends AbstractMigration
             ->fetchAll();
         $oldActionId = !empty($res) ? $res[0]['id'] : null;
 
-        $this->connection->executeQuery("INSERT INTO action (menu_id, label) VALUES ((SELECT id FROM menu WHERE menu.label = '${demMenuLabel}' LIMIT 1), 'afficher acheminements')");
-        $newActionId = $this->connection->lastInsertId();
-
-        if (!empty($oldActionId) && !empty($newActionId)) {
-            $this->addSql("UPDATE action_role SET action_id = ${newActionId} WHERE action_id = ${oldActionId}");
-        }
-
         if (!empty($oldActionId)) {
+            $this->connection->executeQuery("INSERT INTO action (menu_id, label) VALUES ((SELECT id FROM menu WHERE menu.label = '${demMenuLabel}' LIMIT 1), 'afficher acheminements')");
+            $newActionId = $this->connection->lastInsertId();
+
+            if (!empty($newActionId)) {
+                $this->addSql("UPDATE action_role SET action_id = ${newActionId} WHERE action_id = ${oldActionId}");
+            }
+
             $this->addSql("DELETE FROM action WHERE id = ${oldActionId}");
         }
     }
