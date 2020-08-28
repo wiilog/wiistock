@@ -14,7 +14,6 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -107,7 +106,8 @@ class AcheminementsService
         return [
             'id' => $acheminement->getId() ?? 'Non défini',
             'number' => $acheminement->getNumber() ?? '',
-            'date' => $acheminement->getDate() ? $acheminement->getDate()->format('d/m/Y H:i:s') : 'Non défini',
+            'creationDate' => $acheminement->getCreationDate() ? $acheminement->getCreationDate()->format('d/m/Y H:i:s') : '',
+            'validationDate' => $acheminement->getValidationDate() ? $acheminement->getValidationDate()->format('d/m/Y H:i:s') : '',
             'requester' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
             'receiver' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
             'locationFrom' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : '',
@@ -130,7 +130,8 @@ class AcheminementsService
         $requester = $acheminement->getRequester();
         $locationFrom = $acheminement->getLocationFrom();
         $locationTo = $acheminement->getLocationTo();
-        $creationDate = $acheminement->getDate();
+        $creationDate = $acheminement->getCreationDate();
+        $validationDate = $acheminement->getValidationDate() ? $acheminement->getValidationDate() : '';
         $comment = $acheminement->getCommentaire();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
@@ -148,6 +149,7 @@ class AcheminementsService
                 ['label' => 'Emplacement de prise', 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
                 ['label' => 'Emplacement de dépose', 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
+                ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
             ],
             $freeFieldArray,
             [

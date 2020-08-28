@@ -54,11 +54,11 @@ class AcheminementsRepository extends EntityRepository
                         ->setParameter('requester', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('a.date >= :dateMin')
+                    $qb->andWhere('a.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00.00.00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('a.date <= :dateMax')
+                    $qb->andWhere('a.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
             }
@@ -69,12 +69,12 @@ class AcheminementsRepository extends EntityRepository
                 if (!empty($search)) {
                     $qb
                         ->andWhere('(' . $exprBuilder->orX(
-                            'a.date LIKE :value',
+                            'a.creationDate LIKE :value',
                             'a.number LIKE :value',
                             'search_locationFrom.label LIKE :value',
                             'search_locationTo.label LIKE :value',
                             'search_statut.nom LIKE :value',
-                            'a.date LIKE :value'
+                            'a.creationDate LIKE :value'
                         ) . ')')
                         ->leftJoin('a.locationFrom', 'search_locationFrom')
                         ->leftJoin('a.locationTo', 'search_locationTo')
@@ -183,7 +183,7 @@ class AcheminementsRepository extends EntityRepository
         $queryBuilder
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
-            ->orderBy('dispatch.date', 'DESC')
+            ->orderBy('dispatch.creationDate', 'DESC')
             ->setParameter('value', $prefix . '%');
 
         $result = $queryBuilder
