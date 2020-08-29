@@ -66,14 +66,14 @@ class Pack
     private $quantity;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="pack", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
      */
-    private $packAcheminements;
+    private $dispatchPacks;
 
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
-        $this->packAcheminements = new ArrayCollection();
+        $this->dispatchPacks = new ArrayCollection();
         $this->quantity = 1;
     }
 
@@ -198,30 +198,29 @@ class Pack
     }
 
     /**
-     * @return Collection|PackAcheminement[]
+     * @return Collection|DispatchPack[]
      */
-    public function getPackAcheminements(): Collection
-    {
-        return $this->packAcheminements;
+    public function getDispatchPacks(): Collection {
+        return $this->dispatchPacks;
     }
 
-    public function addPackAcheminement(PackAcheminement $packAcheminement): self
+    public function addDispatchPack(DispatchPack $dispatchPack): self
     {
-        if (!$this->packAcheminements->contains($packAcheminement)) {
-            $this->packAcheminements[] = $packAcheminement;
-            $packAcheminement->setPack($this);
+        if (!$this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks[] = $dispatchPack;
+            $dispatchPack->setPack($this);
         }
 
         return $this;
     }
 
-    public function removePackAcheminement(PackAcheminement $packAcheminement): self
+    public function removeDispatchPack(DispatchPack $dispatchPack): self
     {
-        if ($this->packAcheminements->contains($packAcheminement)) {
-            $this->packAcheminements->removeElement($packAcheminement);
+        if ($this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks->removeElement($dispatchPack);
             // set the owning side to null (unless already changed)
-            if ($packAcheminement->getPack() === $this) {
-                $packAcheminement->setPack(null);
+            if ($dispatchPack->getPack() === $this) {
+                $dispatchPack->setPack(null);
             }
         }
 

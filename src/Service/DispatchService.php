@@ -112,7 +112,7 @@ class DispatchService
             'receiver' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUserName() : '',
             'locationFrom' => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : '',
             'locationTo' => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
-            'nbPacks' => $dispatch->getPackAcheminements()->count(),
+            'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
             'urgent' => $dispatch->isUrgent() ? 'oui' : 'non',
@@ -265,13 +265,13 @@ class DispatchService
                                             Utilisateur $loggedUser,
                                             bool $fromNomade = false): void {
         $dispatch->setStatut($treatedStatus);
-        $packsDispatch = $dispatch->getPackAcheminements();
+        $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-        foreach ($packsDispatch as $packDispatch) {
-            $pack = $packDispatch->getPack();
+        foreach ($dispatchPacks as $dispatchPack) {
+            $pack = $dispatchPack->getPack();
 
             $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
                 $pack,

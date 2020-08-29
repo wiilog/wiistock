@@ -93,9 +93,9 @@ class Dispatch extends FreeFieldEntity
     private $locationTo;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="dispatch", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="dispatch", orphanRemoval=true)
      */
-    private $packAcheminements;
+    private $dispatchPacks;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
@@ -114,7 +114,7 @@ class Dispatch extends FreeFieldEntity
 
     public function __construct()
     {
-        $this->packAcheminements = new ArrayCollection();
+        $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgent = false;
     }
@@ -251,30 +251,30 @@ class Dispatch extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PackAcheminement[]
+     * @return Collection|DispatchPack[]
      */
-    public function getPackAcheminements(): Collection
+    public function getDispatchPacks(): Collection
     {
-        return $this->packAcheminements;
+        return $this->dispatchPacks;
     }
 
-    public function addPackAcheminement(PackAcheminement $packAcheminement): self
+    public function addDispatchPack(DispatchPack $dispatchPack): self
     {
-        if (!$this->packAcheminements->contains($packAcheminement)) {
-            $this->packAcheminements[] = $packAcheminement;
-            $packAcheminement->setDispatch($this);
+        if (!$this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks[] = $dispatchPack;
+            $dispatchPack->setDispatch($this);
         }
 
         return $this;
     }
 
-    public function removePackAcheminement(PackAcheminement $packAcheminement): self
+    public function removeDispatchPack(DispatchPack $dispatchPack): self
     {
-        if ($this->packAcheminements->contains($packAcheminement)) {
-            $this->packAcheminements->removeElement($packAcheminement);
+        if ($this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks->removeElement($dispatchPack);
             // set the owning side to null (unless already changed)
-            if ($packAcheminement->getDispatch() === $this) {
-                $packAcheminement->setDispatch(null);
+            if ($dispatchPack->getDispatch() === $this) {
+                $dispatchPack->setDispatch(null);
             }
         }
 

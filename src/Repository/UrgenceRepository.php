@@ -30,8 +30,8 @@ class UrgenceRepository extends EntityRepository
 
     /**
      * @param DateTime $arrivalDate
-     * @param Fournisseur $arrivalProvider
-     * @param string $numeroCommande
+     * @param Fournisseur|null $arrivalProvider
+     * @param string|null $numeroCommande
      * @param string|null $postNb
      * @param bool $excludeTriggered
      * @return Urgence[]
@@ -267,17 +267,15 @@ class UrgenceRepository extends EntityRepository
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-        $qb
-            ->select('u')
-            ->from('App\Entity\Urgence ', 'u')
-            ->where('u.dateStart > :dateMin' )
-           ->andWhere('u.dateEnd < :dateMax')
-        ->setParameters([
-        'dateMin' => $dateMin,
-        'dateMax' => $dateMax
-    ]);
-        return $qb->getQuery()->getResult();
+        $qb = $this->createQueryBuilder('u')
+            ->where('u.dateStart > :dateMin')
+            ->andWhere('u.dateEnd < :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
+        return $qb
+            ->getQuery()
+            ->getResult();
     }
 }

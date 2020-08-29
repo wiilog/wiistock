@@ -294,8 +294,8 @@ class EmplacementController extends AbstractController
         $demandes = $demandeRepository->countByEmplacement($emplacementId);
         if ($demandes > 0) $usedBy[] = 'demandes';
 
-        $acheminements = $dispatchRepository->countByEmplacement($emplacementId);
-        if ($acheminements > 0) $usedBy[] = 'acheminements';
+        $dispatches = $dispatchRepository->countByEmplacement($emplacementId);
+        if ($dispatches > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
         if ($livraisons > 0) $usedBy[] = 'livraisons';

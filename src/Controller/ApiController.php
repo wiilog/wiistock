@@ -21,7 +21,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
-use App\Entity\PackAcheminement;
+use App\Entity\DispatchPack;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -1311,7 +1311,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $rights = $this->getMenuRights($user, $userService);
@@ -1431,7 +1431,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             );
 
             $dispatches = $dispatchRepository->getMobileDispatches($user);
-            $dispatchPacks = $packDispatchRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
+            $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
                 return $dispatch['id'];
             }, $dispatches));
 
@@ -1753,13 +1753,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/dispatches", name="api_pack_nature", condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param DispatchService $acheminementsService
+     * @param DispatchService $dispatchService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
     public function patchDispatches(Request $request,
-                                    DispatchService $acheminementsService,
+                                    DispatchService $dispatchService,
                                     EntityManagerInterface $entityManager): JsonResponse {
 
         $resData = [];
@@ -1778,7 +1778,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 if (!$dispatchStatut || !$dispatchStatut->getTreated()) {
                     $treatedDispatch = $statusRepository->find($dispatchArray['treatedStatusId']);
                     if ($treatedDispatch && $treatedDispatch->getTreated()) {
-                        $acheminementsService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
+                        $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
                     }
                 }
             }

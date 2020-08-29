@@ -157,7 +157,7 @@ class DispatchRepository extends EntityRepository
         /** @lang DQL */
             "SELECT COUNT(a)
             FROM App\Entity\Dispatch a
-            WHERE a.receiver = :user"
+            WHERE a.receiver = :user OR a.requester = :user"
         )->setParameter('user', $user);
 
         return $query->getSingleScalarResult();

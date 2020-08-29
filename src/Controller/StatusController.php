@@ -57,7 +57,13 @@ class StatusController extends AbstractController
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $categories = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
+        $categories = $categoryStatusRepository->findByLabelLike(
+            [
+                CategorieStatut::DISPATCH,
+                CategorieStatut::LITIGE_ARR,
+                CategorieStatut::LITIGE_RECEPT
+            ]
+        );
 		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
         $categoryStatusDispatchIds = array_filter($categories, function ($category) {
@@ -164,7 +170,12 @@ class StatusController extends AbstractController
 
             $status = $statutRepository->find($data['id']);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $categories = $categoryStatusRepository->findByLabelLike('litige', 'acheminement');
+            $categories = $categoryStatusRepository->findByLabelLike(
+                [
+                    CategorieStatut::DISPATCH,
+                    CategorieStatut::LITIGE_ARR,
+                    CategorieStatut::LITIGE_RECEPT
+                ]);
             $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
             $transCategories = array_map(

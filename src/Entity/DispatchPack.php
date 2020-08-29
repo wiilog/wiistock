@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\PackAcheminementRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DispatchPackRepository")
  */
-class PackAcheminement
+class DispatchPack
 {
     /**
      * @ORM\Id()
@@ -22,13 +22,13 @@ class PackAcheminement
     private $quantity;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="packAcheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="dispatchPacks")
      * @ORM\JoinColumn(nullable=false)
      */
     private $pack;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="packAcheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="dispatchPacks")
      * @ORM\JoinColumn(nullable=false)
      */
     private $dispatch;

@@ -13,7 +13,7 @@ use App\Entity\Menu;
 
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\PackAcheminement;
+use App\Entity\DispatchPack;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -261,15 +261,15 @@ Class DispatchController extends AbstractController
     public function printDispatchStateSheet(Dispatch $dispatch,
                                             PDFGeneratorService $PDFGenerator): ?Response
     {
-        if ($dispatch->getPackAcheminements()->isEmpty()) {
+        if ($dispatch->getDispatchPacks()->isEmpty()) {
             throw new NotFoundHttpException('La fiche d\'état n\'existe pas pour cet acheminement.');
         }
 
-        $packsConfig = $dispatch->getPackAcheminements()
-            ->map(function(PackAcheminement $packAcheminement) use ($dispatch){
+        $packsConfig = $dispatch->getDispatchPacks()
+            ->map(function(DispatchPack $dispatchPack) use ($dispatch){
                 return [
                     'title' => 'Acheminement n°' . $dispatch->getId(),
-                    'code' => $packAcheminement->getPack()->getCode(),
+                    'code' => $dispatchPack->getPack()->getCode(),
                     'content' => [
                         'Date de création' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
                         'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
@@ -463,21 +463,21 @@ Class DispatchController extends AbstractController
     public function apiPack(Dispatch $dispatch): Response
     {
         return new JsonResponse([
-            'data' => $dispatch->getPackAcheminements()
-                ->map(function (PackAcheminement $packAcheminement) {
-                    $pack = $packAcheminement->getPack();
+            'data' => $dispatch->getDispatchPacks()
+                ->map(function (DispatchPack $dispatchPack) {
+                    $pack = $dispatchPack->getPack();
                     $lastTracking = $pack->getLastTracking();
                     return [
                         'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
                         'code' => $pack->getCode(),
-                        'quantity' => $packAcheminement->getQuantity(),
+                        'quantity' => $dispatchPack->getQuantity(),
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
-                            'packDispatch' => $packAcheminement,
-                            'modifiable' => !$packAcheminement->getDispatch()->getStatut()->getTreated()
+                            'packDispatch' => $dispatchPack,
+                            'modifiable' => !$dispatchPack->getDispatch()->getStatut()->getTreated()
                         ])
                     ];
                 })
@@ -506,9 +506,9 @@ Class DispatchController extends AbstractController
         $quantity = $data['quantity'];
 
         $alreadyCreated = !$dispatch
-            ->getPackAcheminements()
-            ->filter(function (PackAcheminement $packAcheminement) use ($packCode) {
-                $pack = $packAcheminement->getPack();
+            ->getDispatchPacks()
+            ->filter(function (DispatchPack $dispatchPack) use ($packCode) {
+                $pack = $dispatchPack->getPack();
                 return $pack->getCode() === $packCode;
             })
             ->isEmpty();
@@ -530,7 +530,7 @@ Class DispatchController extends AbstractController
                 $entityManager->persist($pack);
             }
 
-            $packDispatch = new PackAcheminement();
+            $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
                 ->setDispatch($dispatch);
@@ -566,26 +566,26 @@ Class DispatchController extends AbstractController
                              EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $packDispatchId = $data['packDispatchId'];
-        /** @var PackAcheminement $packDispatch */
-        $packDispatch = $packDispatchRepository->find($packDispatchId);
-        if (empty($packDispatch)) {
+        /** @var DispatchPack $dispatchPack */
+        $dispatchPack = $dispatchPackRepository->find($packDispatchId);
+        if (empty($dispatchPack)) {
             $success = false;
             $message = $translator->trans("acheminement.Le colis n''existe pas");
         } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
 
-            $pack = $packDispatch->getPack();
+            $pack = $dispatchPack->getPack();
 
             $nature = $natureRepository->find($natureId);
             $pack
                 ->setNature($nature);
 
-            $packDispatch
+            $dispatchPack
                 ->setQuantity($quantity);
 
             $entityManager->flush();
@@ -609,9 +609,9 @@ Class DispatchController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+            $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-            $pack = $packDispatchRepository->find($data['pack']);
+            $pack = $dispatchPackRepository->find($data['pack']);
             $entityManager->remove($pack);
             $entityManager->flush();
 
@@ -687,7 +687,7 @@ Class DispatchController extends AbstractController
     public function getDispatchPackCounter(Dispatch $dispatch) {
         return new JsonResponse([
             'success' => true,
-            'packsCounter' => $dispatch->getPackAcheminements()->count()
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
         ]);
     }
 }

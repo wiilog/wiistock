@@ -4,8 +4,8 @@
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
-        'page': 'PAGE_ACHEMINEMENTS',
-        'tableSelector': '#tableAcheminement'
+        'page': 'PAGE_DISPATCHES',
+        'tableSelector': '#tableDispatches'
     } %}
 {% endblock %}
 
@@ -18,7 +18,7 @@
                             data-toggle="modal"
                             data-target="#modalNewDispatch"
                             class="btn btn-primary btn-ripple"
-                            onclick='initNewAcheminementEditor("#modalNewDispatch")'>
+                            onclick='initNewDispatchEditor("#modalNewDispatch")'>
                         <span class="fa fa-plus mr-2"></span>{{ 'acheminement.nouvelle demande'|trans }}
                     </button>
                 {% endif %}
@@ -26,13 +26,13 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <table id="tableAcheminement" class="table w-100"></table>
+                <table id="tableDispatches" class="table w-100"></table>
             </div>
         </div>
     </div>
 
-    <input type="hidden" id="dropOffLocationAcheminement" value="{{ 'acheminement.emplacement dépose'|trans }}">
-    <input type="hidden" id="takenLocationAcheminement" value="{{ 'acheminement.emplacement prise'|trans }}">
+    <input type="hidden" id="dispatchLocationTo" value="{{ 'acheminement.emplacement dépose'|trans }}">
+    <input type="hidden" id="dispatchLocationFrom" value="{{ 'acheminement.emplacement prise'|trans }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" %}
 {% endblock %}

@@ -24,7 +24,7 @@
                 </div>
                 <div class="form-group">
                     <label for="type">Statut*</label>
-                    <select name="statut" class="form-control data d-block status-acheminement needed">
+                    <select name="statut" class="form-control data d-block needed">
                         <option value="">Choisir un statut...</option>
                         {% for statut in notTreatedStatus %}
                             <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>

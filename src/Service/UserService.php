@@ -191,7 +191,7 @@ class UserService
         $isUsedInManutentions = $manutentionRepository->countByUser($user) > 0;
         $isUsedInPreparationOrders = $preparationRepository->countByUser($user) > 0;
         $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
-        $isUsedInAcheminements = $dispatchRepository->countByUser($user) > 0;
+        $isUsedInDispatches = $dispatchRepository->countByUser($user) > 0;
         $isUsedInArrivals = $arrivageRepository->countByUser($user) > 0;
 
 		return (
@@ -202,7 +202,7 @@ class UserService
             || $isUsedInManutentions
             || $isUsedInPreparationOrders
             || $isUsedInReceptions
-            || $isUsedInAcheminements
+            || $isUsedInDispatches
             || $isUsedInArrivals
         );
 	}
