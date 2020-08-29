@@ -22,7 +22,7 @@ final class Version20200826093645 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         $typeLabelStandard = Type::LABEL_STANDARD;
-        $categoryTypeAcheminement = CategoryType::DEMANDE_ACHEMINEMENT;
+        $categoryTypeAcheminement = CategoryType::DEMANDE_DISPATCH;
 
         $sqlCategoryTypeAcheminement = "SELECT id FROM category_type WHERE category_type.label = '$categoryTypeAcheminement' LIMIT 1";
         $sqlTypeAcheminement = "SELECT id FROM type WHERE category_id = ($sqlCategoryTypeAcheminement) and label = '$typeLabelStandard' LIMIT 1";

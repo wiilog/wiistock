@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Collecte;
@@ -181,7 +181,7 @@ class UserService
 	    $manutentionRepository = $this->entityManager->getRepository(Manutention::class);
 	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
-        $acheminementRepository = $this->entityManager->getRepository(Acheminements::class);
+        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user) > 0;
@@ -191,7 +191,7 @@ class UserService
         $isUsedInManutentions = $manutentionRepository->countByUser($user) > 0;
         $isUsedInPreparationOrders = $preparationRepository->countByUser($user) > 0;
         $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
-        $isUsedInAcheminements = $acheminementRepository->countByUser($user) > 0;
+        $isUsedInAcheminements = $dispatchRepository->countByUser($user) > 0;
         $isUsedInArrivals = $arrivageRepository->countByUser($user) > 0;
 
 		return (

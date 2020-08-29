@@ -15,12 +15,12 @@
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Date de validation
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
                 Libellé
             </th>
-            {#<th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Date de réalisation
-            </th>#}
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
                 Type
@@ -39,27 +39,31 @@
         <tr>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.number }}
+                {{ dispatch.number }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.date|date('d/m/Y H:i:s') }}
+                {{ dispatch.creationDate|date('d/m/Y H:i:s') }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.requester }}
+                {{ dispatch.creationDate is not null ? dispatch.validationDate|date('d/m/Y H:i:s') }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.type.label }}
+                {{ dispatch.requester }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.statut.nom }}
+                {{ dispatch.type.label }}
             </td>
             <td class="td"
                 style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ acheminement.commentaire|raw }}
+                {{ dispatch.statut.nom }}
+            </td>
+            <td class="td"
+                style="border: 1px solid black; padding: 10px; text-align: center;">
+                {{ dispatch.commentaire|raw }}
             </td>
         </tbody>
     </table>

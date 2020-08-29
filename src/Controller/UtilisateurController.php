@@ -86,7 +86,7 @@ class UtilisateurController extends AbstractController
             'utilisateurs' => $utilisateurRepository->findAll(),
             'roles' => $roleRepository->findAll(),
             'deliveryTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-            'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
+            'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH)
         ]);
     }
 
@@ -206,7 +206,7 @@ class UtilisateurController extends AbstractController
 
             $user = $utilisateurRepository->find($data['id']);
             $deliveryTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-            $dispatchTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+            $dispatchTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
             return new JsonResponse([
             	'userDeliveryTypes' => $user->getDeliveryTypeIds(),

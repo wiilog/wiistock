@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use DateTime;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -39,7 +39,7 @@ final class Version20200819145755 extends AbstractMigration
             $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $acheminement['date']);
             $dateStr = $creationDate->format('Ymd');
 
-            $dayCounterKey = Acheminements::PREFIX_NUMBER . $dateStr;
+            $dayCounterKey = Dispatch::PREFIX_NUMBER . $dateStr;
 
             if (!isset($daysCounter[$dayCounterKey])) {
                 $daysCounter[$dayCounterKey] = 0;
@@ -56,7 +56,7 @@ final class Version20200819145755 extends AbstractMigration
             }
 
             $id = $acheminement['id'];
-            $dispatchNumber = Acheminements::PREFIX_NUMBER . $dateStr . $suffix . $daysCounter[$dayCounterKey];
+            $dispatchNumber = Dispatch::PREFIX_NUMBER . $dateStr . $suffix . $daysCounter[$dayCounterKey];
             $sqlDispatchNumber = ("UPDATE acheminements SET numero_acheminement = '$dispatchNumber' WHERE acheminements.id = '$id'");
             $this->addSql($sqlDispatchNumber);
         }

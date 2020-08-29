@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Collecte;
@@ -287,14 +287,14 @@ class EmplacementController extends AbstractController
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
-        $acheminementRepository = $entityManager->getRepository(Acheminements::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         $usedBy = [];
 
         $demandes = $demandeRepository->countByEmplacement($emplacementId);
         if ($demandes > 0) $usedBy[] = 'demandes';
 
-        $acheminements = $acheminementRepository->countByEmplacement($emplacementId);
+        $acheminements = $dispatchRepository->countByEmplacement($emplacementId);
         if ($acheminements > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);

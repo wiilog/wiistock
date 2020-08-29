@@ -1,18 +1,18 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Demande | {{ 'acheminement.acheminements'|trans }} | Détails{% endblock %}
-{% block titleLink path('acheminements_index') %}
+{% block titleLink path('dispatch_index') %}
 
 {% block page_content %}
     <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
-    <input type="hidden" id="dispatchId" value="{{ acheminement.id }}">
+    <input type="hidden" id="dispatchId" value="{{ dispatch.id }}">
 
     <div class="m-4">
         <div class="row">
             <div class="col-12">
                 <div class="zone-entete">
-                    {% include "acheminements/acheminement-show-header.html.twig" with {
-                        acheminement: acheminement,
+                    {% include "dispatch/dispatch-show-header.html.twig" with {
+                        dispatch: dispatch,
                         showDetails: detailsConfig,
                         modifiable: modifiable
                     } %}
@@ -30,7 +30,7 @@
                             <div class="col-auto ml-auto">
                                 <button onclick="openNewPackModal()"
                                         class="btn btn-primary">
-                                    <i class="fa fa-plus"></i>
+                                    <i class="fa fa-plus mr-2"></i>
                                     {{ 'acheminement.Ajouter un colis'|trans }}
                                 </button>
                             </div>
@@ -46,15 +46,15 @@
         </div>
     </div>
 
-    {% include "acheminements/modalDeleteAcheminements.html.twig" %}
-    {% include "acheminements/modalEditAcheminements.html.twig" %}
-    {% include "acheminements/modalPack.html.twig" with newPackConfig %}
-    {% include "acheminements/modalValidateDispatch.html.twig" with dispatchValidate %}
-    {% include "acheminements/modalDeletePack.html.twig" %}
+    {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
+    {% include "dispatch/modalEditDispatch.html.twig" %}
+    {% include "dispatch/modalPack.html.twig" with newPackConfig %}
+    {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
+    {% include "dispatch/modalDeletePack.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/acheminements-show.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/dispatch-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

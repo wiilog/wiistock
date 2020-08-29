@@ -89,9 +89,9 @@ class Statut
     private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="statut")
      */
-    private $acheminements;
+    private $dispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
@@ -139,7 +139,7 @@ class Statut
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
-        $this->acheminements = new ArrayCollection();
+        $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
     }
 
@@ -495,30 +495,30 @@ class Statut
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminements(): Collection
+    public function getDispatches(): Collection
     {
-        return $this->acheminements;
+        return $this->dispatches;
     }
 
-    public function addAcheminement(Acheminements $acheminement): self
+    public function addDispatch(Dispatch $dispatch): self
     {
-        if (!$this->acheminements->contains($acheminement)) {
-            $this->acheminements[] = $acheminement;
-            $acheminement->setStatut($this);
+        if (!$this->dispatches->contains($dispatch)) {
+            $this->dispatches[] = $dispatch;
+            $dispatch->setStatut($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminement(Acheminements $acheminement): self
+    public function removeDispatch(Dispatch $dispatch): self
     {
-        if ($this->acheminements->contains($acheminement)) {
-            $this->acheminements->removeElement($acheminement);
+        if ($this->dispatches->contains($dispatch)) {
+            $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
-            if ($acheminement->getStatut() === $this) {
-                $acheminement->setStatut(null);
+            if ($dispatch->getStatut() === $this) {
+                $dispatch->setStatut(null);
             }
         }
 

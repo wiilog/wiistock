@@ -82,14 +82,14 @@ class Emplacement
     private $allowedNatures;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="locationFrom")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="locationFrom")
      */
-    private $acheminementsFrom;
+    private $dispatchesFrom;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="locationTo")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="locationTo")
      */
-    private $acheminementsTo;
+    private $dispatchesTo;
 
 
     public function __construct()
@@ -102,8 +102,8 @@ class Emplacement
         $this->isActive = true;
         $this->utilisateurs = new ArrayCollection();
         $this->allowedNatures = new ArrayCollection();
-        $this->acheminementsFrom = new ArrayCollection();
-        $this->acheminementsTo = new ArrayCollection();
+        $this->dispatchesFrom = new ArrayCollection();
+        $this->dispatchesTo = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -391,30 +391,30 @@ class Emplacement
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminementsFrom(): Collection
+    public function getDispatchesFrom(): Collection
     {
-        return $this->acheminementsFrom;
+        return $this->dispatchesFrom;
     }
 
-    public function addAcheminementsFrom(Acheminements $acheminementsFrom): self
+    public function addDispatchFrom(Dispatch $dispatchFrom): self
     {
-        if (!$this->acheminementsFrom->contains($acheminementsFrom)) {
-            $this->acheminementsFrom[] = $acheminementsFrom;
-            $acheminementsFrom->setLocationFrom($this);
+        if (!$this->dispatchesFrom->contains($dispatchFrom)) {
+            $this->dispatchesFrom[] = $dispatchFrom;
+            $dispatchFrom->setLocationFrom($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminementsFrom(Acheminements $acheminementsFrom): self
+    public function removeDispatchFrom(Dispatch $dispatchFrom): self
     {
-        if ($this->acheminementsFrom->contains($acheminementsFrom)) {
-            $this->acheminementsFrom->removeElement($acheminementsFrom);
+        if ($this->dispatchesFrom->contains($dispatchFrom)) {
+            $this->dispatchesFrom->removeElement($dispatchFrom);
             // set the owning side to null (unless already changed)
-            if ($acheminementsFrom->getLocationFrom() === $this) {
-                $acheminementsFrom->setLocationFrom(null);
+            if ($dispatchFrom->getLocationFrom() === $this) {
+                $dispatchFrom->setLocationFrom(null);
             }
         }
 
@@ -422,30 +422,30 @@ class Emplacement
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminementsTo(): Collection
+    public function getDispatchesTo(): Collection
     {
-        return $this->acheminementsTo;
+        return $this->dispatchesTo;
     }
 
-    public function addAcheminementsTo(Acheminements $acheminementsTo): self
+    public function addDispatchTo(Dispatch $dispatchTo): self
     {
-        if (!$this->acheminementsTo->contains($acheminementsTo)) {
-            $this->acheminementsTo[] = $acheminementsTo;
-            $acheminementsTo->setLocationTo($this);
+        if (!$this->dispatchesTo->contains($dispatchTo)) {
+            $this->dispatchesTo[] = $dispatchTo;
+            $dispatchTo->setLocationTo($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminementsTo(Acheminements $acheminementsTo): self
+    public function removeDispatchTo(Dispatch $dispatchTo): self
     {
-        if ($this->acheminementsTo->contains($acheminementsTo)) {
-            $this->acheminementsTo->removeElement($acheminementsTo);
+        if ($this->dispatchesTo->contains($dispatchTo)) {
+            $this->dispatchesTo->removeElement($dispatchTo);
             // set the owning side to null (unless already changed)
-            if ($acheminementsTo->getLocationTo() === $this) {
-                $acheminementsTo->setLocationTo(null);
+            if ($dispatchTo->getLocationTo() === $this) {
+                $dispatchTo->setLocationTo(null);
             }
         }
 

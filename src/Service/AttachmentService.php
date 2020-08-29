@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\Arrivage;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
@@ -78,10 +78,10 @@ class AttachmentService
 	 * @param PieceJointe $attachment
 	 * @param Arrivage $arrivage
 	 * @param Litige|null $litige
-     * @param Acheminements|null $acheminement
+     * @param Dispatch|null $dispatch
 	 * @param MouvementTraca|null $mvtTraca
 	 */
-	public function removeAndDeleteAttachment($attachment, $arrivage, $litige = null, $mvtTraca = null, $acheminement = null)
+	public function removeAndDeleteAttachment($attachment, $arrivage, $litige = null, $mvtTraca = null, $dispatch = null)
 	{
 		if ($arrivage) {
 			$arrivage->removeAttachement($attachment);
@@ -89,8 +89,8 @@ class AttachmentService
 			$litige->removeAttachement($attachment);
 		} elseif ($mvtTraca) {
 			$mvtTraca->removeAttachement($attachment);
-		} elseif ($acheminement) {
-		    $acheminement->removeAttachement($attachment);
+		} elseif ($dispatch) {
+		    $dispatch->removeAttachement($attachment);
         }
 
         $pieceJointeRepository = $this->em->getRepository(PieceJointe::class);

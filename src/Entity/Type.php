@@ -111,9 +111,9 @@ class Type
     private $sendMail;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="type")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="type")
      */
-    private $acheminements;
+    private $dispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type")
@@ -131,7 +131,7 @@ class Type
         $this->collectes = new ArrayCollection();
         $this->deliveryUsers = new ArrayCollection();
         $this->dispatchUsers = new ArrayCollection();
-        $this->acheminements = new ArrayCollection();
+        $this->dispatches = new ArrayCollection();
         $this->statuts = new ArrayCollection();
     }
 
@@ -507,30 +507,30 @@ class Type
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminements(): Collection
+    public function getDispatches(): Collection
     {
-        return $this->acheminements;
+        return $this->dispatches;
     }
 
-    public function addAcheminement(Acheminements $acheminement): self
+    public function addDispatch(Dispatch $dispatch): self
     {
-        if (!$this->acheminements->contains($acheminement)) {
-            $this->acheminements[] = $acheminement;
-            $acheminement->setType($this);
+        if (!$this->dispatches->contains($dispatch)) {
+            $this->dispatches[] = $dispatch;
+            $dispatch->setType($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminement(Acheminements $acheminement): self
+    public function removeDispatch(Dispatch $dispatch): self
     {
-        if ($this->acheminements->contains($acheminement)) {
-            $this->acheminements->removeElement($acheminement);
+        if ($this->dispatches->contains($dispatch)) {
+            $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
-            if ($acheminement->getType() === $this) {
-                $acheminement->setType(null);
+            if ($dispatch->getType() === $this) {
+                $dispatch->setType(null);
             }
         }
 

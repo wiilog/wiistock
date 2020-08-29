@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -101,7 +101,7 @@ final class Version20200817075450 extends AbstractMigration
                     UPDATE acheminements SET location_from_id = ${locationFromID}, location_to_id = ${locationToID} WHERE id = ${acheminementID}
                 ");
             foreach ($packs as $pack) {
-                $packTreated = $acheminement['statut'] === Acheminements::STATUT_A_TRAITER ? 0 : 1;
+                $packTreated = $acheminement['statut'] === Dispatch::STATUT_A_TRAITER ? 0 : 1;
                 $packID = $this->connection->executeQuery("SELECT id FROM pack WHERE code = '${pack}'")->fetchColumn();
                 if (!$packID) {
                     $this

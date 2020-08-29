@@ -8,9 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\AcheminementsRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DispatchRepository")
  */
-class Acheminements extends FreeFieldEntity
+class Dispatch extends FreeFieldEntity
 {
     const CATEGORIE = 'acheminements';
     const STATUT_A_TRAITER = 'à traiter';
@@ -37,13 +37,13 @@ class Acheminements extends FreeFieldEntity
     private $packs = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsReceive")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
      * @ORM\JoinColumn(nullable=true)
      */
     private $receiver;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsRequester")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
      * @ORM\JoinColumn(nullable=false)
      */
     private $requester;
@@ -72,33 +72,33 @@ class Acheminements extends FreeFieldEntity
     private $endDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="acheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
      * @ORM\JoinColumn(nullable=false)
      */
     private $statut;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="acheminement")
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="dispatch")
      */
     private $attachements;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="acheminementsFrom")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesFrom")
      */
     private $locationFrom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="acheminementsTo")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesTo")
      */
     private $locationTo;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="acheminement", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="dispatch", orphanRemoval=true)
      */
     private $packAcheminements;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="acheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
      */
     private $type;
 
@@ -207,7 +207,7 @@ class Acheminements extends FreeFieldEntity
     {
         if (!$this->attachements->contains($attachement)) {
             $this->attachements[] = $attachement;
-            $attachement->setAcheminement($this);
+            $attachement->setDispatch($this);
         }
 
         return $this;
@@ -218,8 +218,8 @@ class Acheminements extends FreeFieldEntity
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getAcheminement() === $this) {
-                $attachement->setAcheminement(null);
+            if ($attachement->getDispatch() === $this) {
+                $attachement->setDispatch(null);
             }
         }
 
@@ -262,7 +262,7 @@ class Acheminements extends FreeFieldEntity
     {
         if (!$this->packAcheminements->contains($packAcheminement)) {
             $this->packAcheminements[] = $packAcheminement;
-            $packAcheminement->setAcheminement($this);
+            $packAcheminement->setDispatch($this);
         }
 
         return $this;
@@ -273,8 +273,8 @@ class Acheminements extends FreeFieldEntity
         if ($this->packAcheminements->contains($packAcheminement)) {
             $this->packAcheminements->removeElement($packAcheminement);
             // set the owning side to null (unless already changed)
-            if ($packAcheminement->getAcheminement() === $this) {
-                $packAcheminement->setAcheminement(null);
+            if ($packAcheminement->getDispatch() === $this) {
+                $packAcheminement->setDispatch(null);
             }
         }
 

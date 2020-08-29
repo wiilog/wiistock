@@ -1,10 +1,9 @@
-let pathacheminements = Routing.generate('acheminements_api', true);
 let tableAcheminementsConfig = {
     serverSide: true,
     processing: true,
     order: [[1, "desc"]],
     ajax: {
-        "url": pathacheminements,
+        "url": Routing.generate('dispatch_api', true),
         "type": "POST",
     },
     rowConfig: {
@@ -33,10 +32,10 @@ let tableAcheminementsConfig = {
 };
 let tableAcheminements = initDataTable('tableAcheminement', tableAcheminementsConfig);
 
-let modalNewAcheminements = $("#modalNewAcheminements");
-let submitNewAcheminements = $("#submitNewAcheminements");
-let urlNewAcheminements = Routing.generate('acheminements_new', true);
-initModalWithAttachments(modalNewAcheminements, submitNewAcheminements, urlNewAcheminements, tableAcheminements);
+let $modalNewDispatch = $("#modalNewDispatch");
+let $submitNewDispatch = $("#submitNewDispatch");
+let urlNewAcheminements = Routing.generate('dispatch_new', true);
+initModalWithAttachments($modalNewDispatch, $submitNewDispatch, urlNewAcheminements, tableAcheminements);
 
 $(function() {
     initSelect2($('#statut'), 'Statuts');

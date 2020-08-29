@@ -28,10 +28,10 @@ class PackAcheminement
     private $pack;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Acheminements", inversedBy="packAcheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="packAcheminements")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $acheminement;
+    private $dispatch;
 
     public function __construct() {
         $this->quantity = 1;
@@ -54,14 +54,14 @@ class PackAcheminement
         return $this;
     }
 
-    public function getAcheminement(): ?Acheminements
+    public function getDispatch(): ?Dispatch
     {
-        return $this->acheminement;
+        return $this->dispatch;
     }
 
-    public function setAcheminement(?Acheminements $acheminement): self
+    public function setDispatch(?Dispatch $dispatch): self
     {
-        $this->acheminement = $acheminement;
+        $this->dispatch = $dispatch;
 
         return $this;
     }
