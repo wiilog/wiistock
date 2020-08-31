@@ -24,12 +24,12 @@ let tableUser = initDataTable('tableUser_id', tableUserConfig);
 let modalNewUser = $("#modalNewUser");
 let submitNewUser = $("#submitNewUser");
 let pathNewUser = Routing.generate('user_new', true);
-InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, displayErrorUser, false);
+InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, displayErrorUser);
 
 let modalEditUser = $("#modalEditUser");
 let submitEditUser = $("#submitEditUser");
 let pathEditUser = Routing.generate('user_edit', true);
-InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, displayErrorUser, false);
+InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, displayErrorUser);
 
 let modalDeleteUser = $("#modalDeleteUser");
 let submitDeleteUser = $("#submitDeleteUser");

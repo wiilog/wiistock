@@ -106,6 +106,11 @@ class Type
     private $dispatchUsers;
 
     /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="handlingTypes")
+     */
+    private $handlingUsers;
+
+    /**
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $sendMail;
@@ -133,6 +138,7 @@ class Type
         $this->dispatchUsers = new ArrayCollection();
         $this->acheminements = new ArrayCollection();
         $this->statuts = new ArrayCollection();
+        $this->handlingUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -489,6 +495,34 @@ class Type
         if ($this->dispatchUsers->contains($user)) {
             $this->dispatchUsers->removeElement($user);
             $user->removeDispatchType($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getHandlingUsers(): Collection
+    {
+        return $this->handlingUsers;
+    }
+
+    public function addHandlingUser(Utilisateur $user): self
+    {
+        if (!$this->handlingUsers->contains($user)) {
+            $this->handlingUsers[] = $user;
+            $user->addHandlingType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHandlingUser(Utilisateur $user): self
+    {
+        if ($this->handlingUsers->contains($user)) {
+            $this->handlingUsers->removeElement($user);
+            $user->removeHandlingType($this);
         }
 
         return $this;

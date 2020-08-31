@@ -7,7 +7,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid row">
+            <div class="modal-body modal-input row">
                 <div class="col-12 form-group">
                     <label for="username">Nom d'utilisateur*</label>
                     <input type="text" class="form-control data needed" name="username" required="">
@@ -47,7 +47,7 @@
                     </select>
                 </div>
                 <div class="form-group col-12">
-                    <label>Types d'{{ 'acheminement.acheminement'|trans }}</label>
+                    <label>{{ 'acheminement.type d\'acheminement'|trans }}</label>
                     <select name="dispatchTypes"
                             class="form-control select2 data w-100"
                             multiple="multiple"
@@ -58,11 +58,11 @@
                     </select>
                 </div>
                 <div class="form-group col-12">
-                    <label>Types d'{{ 'services.Types de service'|trans }}</label>
+                    <label>{{ 'services.Types de service'|trans }}</label>
                     <select name="handlingTypes"
                             class="form-control data select2 w-100"
                             multiple="multiple"
-                            title="Types d'{{ 'services.Types de service'|trans }}">
+                            title="{{ 'services.Types de service'|trans }}">
                         {% for type in handlingTypes %}
                             <option value="{{ type.id }}">{{ type.label }}</option>
                         {% endfor %}
