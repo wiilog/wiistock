@@ -1,92 +1,90 @@
-<form method="">
-    <div class="modal-body modal-input container-fluid row">
-        <div class="col-12 form-group required d-none">
-            <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
+<form method="" class="row">
+    <div class="col-12 form-group required d-none">
+        <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
+    </div>
+    <div class="col-12 form-group">
+        <label for="username">Nom d'utilisateur*</label>
+        <input type="text" class="form-control data needed" name="username" required="" value="{{ user.username }}">
+    </div>
+    <div class="col-12 form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control data needed" name="email" value="{{ user.email }}" disabled>
+    </div>
+    {% for email in user.secondaryEmails %}
+        <div class="col-12 form-group">
+            <label for="email">Email {{ loop.index + 1 }}</label>
+            <input type="email" class="form-control data-array" name="secondaryEmails" value="{{ email }}">
+        </div>
+    {% else %}
+        <div class="col-12 form-group">
+            <label for="email">Email 2</label>
+            <input type="email" class="form-control data-array" name="secondaryEmails">
         </div>
         <div class="col-12 form-group">
-            <label for="username">Nom d'utilisateur*</label>
-            <input type="text" class="form-control data needed" name="username" required="" value="{{ user.username }}">
+            <label for="email">Email 3</label>
+            <input type="email" class="form-control data-array" name="secondaryEmails">
         </div>
-        <div class="col-12 form-group">
-            <label for="email">Email</label>
-            <input type="email" class="form-control data needed" name="email" value="{{ user.email }}" disabled>
-        </div>
-        {% for email in user.secondaryEmails %}
-            <div class="col-12 form-group">
-                <label for="email">Email {{ loop.index + 1 }}</label>
-                <input type="email" class="form-control data-array" name="secondaryEmails" value="{{ email }}">
+    {% endfor %}
+    <div class="col-12 form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" class="form-control data optional-password" name="password">
+        <div class="password-error-msg"></div>
+    </div>
+    <div class="col-12 form-group">
+        <label for="password2">Confirmer mot de passe</label>
+        <input type="password" class="form-control data optional-password" name="password2">
+    </div>
+    <div class="col-12 form-group">
+        <label for="mobileLoginKey">Clé de connexion nomade*</label>
+        <input type="text" class="form-control data needed is-barcode" name="mobileLoginKey" id="mobileLoginKey" value="{{ user.mobileLoginKey }}"/>
+    </div>
+    <div class="form-group col-12">
+        <label>Types de livraison</label>
+        <select name="deliveryTypes"
+                class="form-control data select2 w-100"
+                multiple="multiple"
+                title="Types de livraison">
+            {% for type in deliveryTypes %}
+                <option value="{{ type.id }}">{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group col-12">
+        <label>{{ 'acheminement.type d\'acheminement'|trans }}</label>
+        <select name="dispatchTypes"
+                class="form-control data select2 w-100"
+                multiple="multiple"
+                title="{{ 'acheminement.type d\'acheminement'|trans }}">
+            {% for type in dispatchTypes %}
+                <option value="{{ type.id }}">{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group col-12">
+        <label>{{'services.Types de service'|trans }}</label>
+        <select name="handlingTypes"
+                class="form-control data select2 w-100"
+                multiple="multiple"
+                title="{{ 'services.Types de service'|trans }}">
+            {% for type in handlingTypes %}
+                <option value="{{ type.id }}">{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12 form-group w-100">
+        <label for="dropzone">Dropzone</label>
+        <select name="dropzone" class="form-control data ajax-autocompleteEmplacement-edit" id="dropzone">
+        </select>
+    </div>
+    <div class="col-12 form-group">
+        <div class="input-group radio-btn">
+            <div>
+                <span class="btn {{ user.status == 1 ? 'active' : 'not-active' }}" data-toggle="status"
+                      data-title="active" onclick="toggleRadioButton($(this))">Actif</span><span
+                    class="btn {{ user.status == 0 ? 'active' : 'not-active' }}" data-toggle="status"
+                    data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
             </div>
-        {% else %}
-            <div class="col-12 form-group">
-                <label for="email">Email 2</label>
-                <input type="email" class="form-control data-array" name="secondaryEmails">
-            </div>
-            <div class="col-12 form-group">
-                <label for="email">Email 3</label>
-                <input type="email" class="form-control data-array" name="secondaryEmails">
-            </div>
-        {% endfor %}
-        <div class="col-12 form-group">
-            <label for="password">Mot de passe</label>
-            <input type="password" class="form-control data optional-password" name="password">
-            <div class="password-error-msg"></div>
-        </div>
-        <div class="col-12 form-group">
-            <label for="password2">Confirmer mot de passe</label>
-            <input type="password" class="form-control data optional-password" name="password2">
-        </div>
-        <div class="col-12 form-group">
-            <label for="mobileLoginKey">Clé de connexion nomade*</label>
-            <input type="text" class="form-control data needed is-barcode" name="mobileLoginKey" id="mobileLoginKey" value="{{ user.mobileLoginKey }}"/>
-        </div>
-        <div class="form-group col-12">
-            <label>Types de livraison</label>
-            <select name="deliveryTypes"
-                    class="form-control data select2 w-100"
-                    multiple="multiple"
-                    title="Types de livraison">
-                {% for type in deliveryTypes %}
-                    <option value="{{ type.id }}">{{ type.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group col-12">
-            <label>Types d'{{ 'acheminement.acheminement'|trans }}</label>
-            <select name="dispatchTypes"
-                    class="form-control data select2 w-100"
-                    multiple="multiple"
-                    title="Types d'{{ 'acheminement.acheminement'|trans }}">
-                {% for type in dispatchTypes %}
-                    <option value="{{ type.id }}">{{ type.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group col-12">
-            <label>Types d'{{ 'services.Types de service'|trans }}</label>
-            <select name="handlingTypes"
-                    class="form-control data select2 w-100"
-                    multiple="multiple"
-                    title="Types d'{{ 'services.Types de service'|trans }}">
-                {% for type in handlingTypes %}
-                    <option value="{{ type.id }}">{{ type.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-12 form-group w-100">
-            <label for="dropzone">Dropzone</label>
-            <select name="dropzone" class="form-control data ajax-autocompleteEmplacement-edit" id="dropzone">
-            </select>
-        </div>
-        <div class="col-12 form-group">
-            <div class="input-group radio-btn">
-                <div>
-                    <span class="btn {{ user.status == 1 ? 'active' : 'not-active' }}" data-toggle="status"
-                          data-title="active" onclick="toggleRadioButton($(this))">Actif</span><span
-                        class="btn {{ user.status == 0 ? 'active' : 'not-active' }}" data-toggle="status"
-                        data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
-                </div>
-                <input type="hidden" name="status" id="status" class="data" value="{{ user.status ? 'active' : 'inactive' }}">
-            </div>
+            <input type="hidden" name="status" id="status" class="data" value="{{ user.status ? 'active' : 'inactive' }}">
         </div>
     </div>
 </form>
