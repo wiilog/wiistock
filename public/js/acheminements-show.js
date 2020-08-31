@@ -47,6 +47,10 @@ $(function () {
     InitialiserModal($modalPack, $submitNewPack, urlNewPack, packTable, null, true, true, true);
     InitialiserModal($modalPack, $submitEditPack, urlEditPack, packTable, null, true, true, true);
 
+    let modalDeletePack = $('#modalDeletePack');
+    let submitDeletePack = $('#submitDeletePack');
+    let urlDeletePack = Routing.generate('dispatch_delete_pack', true);
+    InitialiserModal(modalDeletePack, submitDeletePack, urlDeletePack, packTable);
 });
 
 function togglePackDetails(emptyDetails = false) {
@@ -157,4 +161,18 @@ function openValidateDispatchModal() {
     clearModal(modalSelector);
 
     $modal.modal('show');
+}
+
+function runDispatchPrint() {
+    const dispatchId = $('#dispatchId').val();
+    $.get({
+        url: Routing.generate('get_dispatch_packs_counter', {dispatch: dispatchId}),
+    })
+        .then(function ({packsCounter}) {
+            if (!packsCounter) {
+                alertErrorMsg('Vous ne pouvez pas imprimer un acheminement sans colis', true);
+            } else {
+                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
+            }
+        })
 }

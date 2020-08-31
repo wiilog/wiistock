@@ -112,10 +112,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 			],
             CategorieStatut::LITIGE_ARR => [],
             CategorieStatut::LITIGE_RECEPT => [],
-            CategorieStatut::ACHEMINEMENT => [
-                Acheminements::STATUT_A_TRAITER,
-                Acheminements::STATUT_TRAITE,
-            ],
+            CategorieStatut::ACHEMINEMENT => [],
 			CategorieStatut::IMPORT => [
 				Import::STATUS_PLANNED,
 				Import::STATUS_FINISHED,

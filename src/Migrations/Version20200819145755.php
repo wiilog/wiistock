@@ -39,7 +39,7 @@ final class Version20200819145755 extends AbstractMigration
             $creationDate = DateTime::createFromFormat('Y-m-d H:i:s', $acheminement['date']);
             $dateStr = $creationDate->format('Ymd');
 
-            $dayCounterKey =Acheminements::PREFIX_NUMBER . $dateStr;
+            $dayCounterKey = Acheminements::PREFIX_NUMBER . $dateStr;
 
             if (!isset($daysCounter[$dayCounterKey])) {
                 $daysCounter[$dayCounterKey] = 0;
