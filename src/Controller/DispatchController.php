@@ -89,28 +89,23 @@ Class DispatchController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
-        $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
-
-        $typeChampLibre = [];
-
-        $freeFieldsGroupedByTypes = [];
-        foreach ($listTypes as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
-        }
+        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
         return $this->render('dispatch/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH),
-			'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
-            'typeChampsLibres' => $typeChampLibre,
-            'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH)
+            'types' => $types,
+			'modalNewConfig' => [
+                'utilisateurs' => $utilisateurRepository->findAll(),
+                'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
+                    $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+                    return [
+                        'typeLabel' => $type->getLabel(),
+                        'typeId' => $type->getId(),
+                        'champsLibres' => $champsLibres,
+                    ];
+                }, $types),
+			    'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
+            ]
         ]);
     }
 
@@ -299,18 +294,19 @@ Class DispatchController extends AbstractController
      * @Route("/modifier", name="dispatch_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param DispatchService $dispatchService
+     * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
                          DispatchService $dispatchService,
+                         FreeFieldService $freeFieldService,
                          EntityManagerInterface $entityManager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
 
         $post = $request->request;
         $dispatch = $dispatchRepository->find($post->get('id'));
@@ -339,9 +335,10 @@ Class DispatchController extends AbstractController
             ->setUrgent((bool) $post->get('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
-            ->setType($typeRepository->find($post->get('type')))
             ->setStatut($statutRepository->find($post->get('statut')))
             ->setCommentaire($post->get('commentaire') ?: '');
+
+        $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
         $listAttachmentIdToKeep = $post->get('files') ?? [];
 
@@ -393,31 +390,12 @@ Class DispatchController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-
-            $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
-
-            $typeChampLibre = [];
-
-            $freeFieldsGroupedByTypes = [];
-            foreach ($listTypes as $type) {
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
-                $typeChampLibre[] = [
-                    'typeLabel' => $type->getLabel(),
-                    'typeId' => $type->getId(),
-                    'champsLibres' => $champsLibres,
-                ];
-                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
-            }
 
             $dispatch = $dispatchRepository->find($data['id']);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
                 'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
-                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-                'typeChampsLibres' => $typeChampLibre,
                 'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch]),
             ]);
 
