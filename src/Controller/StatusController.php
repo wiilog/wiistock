@@ -57,11 +57,17 @@ class StatusController extends AbstractController
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $categories = $categoryStatusRepository->findByLabelLike('acheminement', 'litige');
-		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+        $categories = $categoryStatusRepository->findByLabelLike(
+            [
+                CategorieStatut::DISPATCH,
+                CategorieStatut::LITIGE_ARR,
+                CategorieStatut::LITIGE_RECEPT
+            ]
+        );
+		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
         $categoryStatusDispatchIds = array_filter($categories, function ($category) {
-            return $category['nom'] === CategorieStatut::ACHEMINEMENT;
+            return $category['nom'] === CategorieStatut::DISPATCH;
         });
 
         return $this->render('status/index.html.twig', [
@@ -164,8 +170,13 @@ class StatusController extends AbstractController
 
             $status = $statutRepository->find($data['id']);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $categories = $categoryStatusRepository->findByLabelLike('litige', 'acheminement');
-            $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+            $categories = $categoryStatusRepository->findByLabelLike(
+                [
+                    CategorieStatut::DISPATCH,
+                    CategorieStatut::LITIGE_ARR,
+                    CategorieStatut::LITIGE_RECEPT
+                ]);
+            $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
             $transCategories = array_map(
                 function (array $category) {
@@ -211,7 +222,8 @@ class StatusController extends AbstractController
             $statusLabel = $status->getNom();
 
             // on vérifie que le label n'est pas déjà utilisé
-            $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $data['category']);
+            $categoryName = $status->getCategorie() ? $status->getCategorie()->getNom() : '';
+            $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $categoryName);
 
             if (!$labelExist) {
                 $type = $typeRepository->find($data['type']);

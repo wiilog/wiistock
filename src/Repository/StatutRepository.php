@@ -254,7 +254,7 @@ class StatutRepository extends EntityRepository
             ->setParameters([
                 'litigeAr' => CategorieStatut::LITIGE_ARR,
                 'litigeRe' => CategorieStatut::LITIGE_RECEPT,
-                'ach' => CategorieStatut::ACHEMINEMENT
+                'ach' => CategorieStatut::DISPATCH
             ]);
 
         $qb
@@ -320,7 +320,7 @@ class StatutRepository extends EntityRepository
             ->andWhere('status.treated = true')
             ->andWhere('status.type = :type')
             ->setParameters([
-                'ach' => CategorieStatut::ACHEMINEMENT,
+                'ach' => CategorieStatut::DISPATCH,
                 'type' => $type
             ]);
 
@@ -339,7 +339,7 @@ class StatutRepository extends EntityRepository
             ->join('status.categorie', 'status_category')
             ->leftJoin('status.type', 'type')
             ->where('status_category.nom = :dispatchCategory')
-            ->setParameter('dispatchCategory', CategorieStatut::ACHEMINEMENT);
+            ->setParameter('dispatchCategory', CategorieStatut::DISPATCH);
         return $queryBuilder
             ->getQuery()
             ->getResult();

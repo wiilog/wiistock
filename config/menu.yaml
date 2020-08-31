@@ -69,7 +69,7 @@ parameters:
                         action: App\Entity\Action::DISPLAY_MANU
                 -   label: 'acheminement.acheminements'
                     isTranslation: true
-                    path: 'acheminements_index'
+                    path: 'dispatch_index'
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_ACHE

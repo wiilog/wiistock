@@ -24,20 +24,20 @@ $(function () {
         order: [[2, 'asc']]
     });
 
-    const modalModifyAcheminements = $('#modalEditAcheminements');
-    const submitModifyAcheminements = $('#submitEditAcheminements');
-    const urlModifyAcheminements = Routing.generate('acheminement_edit', true);
-    InitialiserModal(modalModifyAcheminements, submitModifyAcheminements, urlModifyAcheminements);
+    const $modalEditDispatch = $('#modalEditDispatch');
+    const $submitEditDispatch = $('#submitEditDispatch');
+    const urlDispatchEdit = Routing.generate('dispatch_edit', true);
+    initModalWithAttachments($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
     const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
     InitialiserModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, packTable, null, true, true, true);
 
-    const modalDeleteAcheminements = $('#modalDeleteAcheminements');
-    const submitDeleteAcheminements = $('#submitDeleteAcheminements');
-    const urlDeleteAcheminements = Routing.generate('acheminement_delete', true);
-    InitialiserModal(modalDeleteAcheminements, submitDeleteAcheminements, urlDeleteAcheminements);
+    const $modalDeleteDispatch = $('#modalDeleteDispatch');
+    const $submitDeleteDispatch = $('#submitDeleteDispatch');
+    const urlDispatchDelete = Routing.generate('dispatch_delete', true);
+    InitialiserModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
 
     const $modalPack = $('#modalPack');
     const $submitNewPack = $modalPack.find('button.submit-new-pack');

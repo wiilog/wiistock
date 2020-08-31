@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -50,7 +50,7 @@ final class Version20200817075450 extends AbstractMigration
                 ALTER TABLE acheminements ADD location_from_id INT DEFAULT NULL, ADD location_to_id INT DEFAULT NULL;");
 
         // this up() migration is auto-generated, please modify it to your needs
-        $allAcheminements = $this
+        $allDispatches = $this
                                 ->connection
                                 ->executeQuery("
                                     SELECT acheminements.id,
@@ -64,11 +64,11 @@ final class Version20200817075450 extends AbstractMigration
                                     INNER JOIN statut s on acheminements.statut_id = s.id
                                 ")->fetchAll();
 
-        foreach ($allAcheminements as $acheminement) {
-            $acheminementID = $acheminement['id'];
-            $locationTo = $acheminement['location_drop'];
-            $locationFrom = $acheminement['location_take'];
-            $packs = json_decode($acheminement['packs']);
+        foreach ($allDispatches as $dispatch) {
+            $dispatchId = $dispatch['id'];
+            $locationTo = $dispatch['location_drop'];
+            $locationFrom = $dispatch['location_take'];
+            $packs = json_decode($dispatch['packs']);
             $locationToID = $this
                 ->connection
                 ->executeQuery("SELECT id FROM emplacement WHERE label = '${locationTo}'")->fetchColumn();
@@ -96,7 +96,7 @@ final class Version20200817075450 extends AbstractMigration
             $this
                 ->connection
                 ->executeQuery("
-                    UPDATE acheminements SET location_from_id = ${locationFromID}, location_to_id = ${locationToID} WHERE id = ${acheminementID}
+                    UPDATE acheminements SET location_from_id = ${locationFromID}, location_to_id = ${locationToID} WHERE id = ${dispatchId}
                 ");
             foreach ($packs as $pack) {
                 $packID = $this->connection->executeQuery("SELECT id FROM pack WHERE code = '${pack}'")->fetchColumn();
@@ -111,7 +111,7 @@ final class Version20200817075450 extends AbstractMigration
                     ->connection
                     ->executeQuery("
                         INSERT INTO pack_acheminement (pack_id, acheminement_id, quantity)
-                        VALUES (${packID}, ${acheminementID}, 1)
+                        VALUES (${packID}, ${dispatchId}, 1)
                     ");
             }
         }

@@ -17,7 +17,7 @@ class CategoryType
     const LITIGE = 'litige';
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';
-    const DEMANDE_ACHEMINEMENT = 'acheminements';
+    const DEMANDE_DISPATCH = 'acheminements';
     const ARRIVAGE = 'arrivage';
     const MOUVEMENT_TRACA = 'mouvement traca';
 //    const MOUVEMENT = 'mouvement';

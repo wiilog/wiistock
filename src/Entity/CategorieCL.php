@@ -16,7 +16,7 @@ class CategorieCL
     const ARTICLE = 'article';
     const RECEPTION = 'réception';
     const DEMANDE_LIVRAISON = 'demande livraison';
-    const DEMANDE_ACHEMINEMENT = 'acheminements';
+    const DEMANDE_DISPATCH = 'acheminements';
     const DEMANDE_COLLECTE = 'demande collecte';
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement traca';

@@ -22,18 +22,18 @@ final class Version20200826224141 extends AbstractMigration
 
     public function up(Schema $schema) : void
     {
-        $categoryStatusDispatch = CategorieStatut::ACHEMINEMENT;
+        $categoryStatusDispatch = CategorieStatut::DISPATCH;
         $typeLabelStandard = Type::LABEL_STANDARD;
-        $categoryTypeAcheminement = CategoryType::DEMANDE_ACHEMINEMENT;
+        $categoryTypeDispatch = CategoryType::DEMANDE_DISPATCH;
 
-        $sqlCategoryTypeAcheminement = "SELECT id FROM category_type WHERE category_type.label = '${categoryTypeAcheminement}' LIMIT 1";
-        $sqlTypeAcheminement = "SELECT id FROM type WHERE category_id = (${sqlCategoryTypeAcheminement}) and label = '$typeLabelStandard' LIMIT 1";
+        $sqlCategoryTypeDispatch = "SELECT id FROM category_type WHERE category_type.label = '${categoryTypeDispatch}' LIMIT 1";
+        $sqlTypeDispatch = "SELECT id FROM type WHERE category_id = (${sqlCategoryTypeDispatch}) and label = '$typeLabelStandard' LIMIT 1";
 
         $this->addSql('ALTER TABLE statut ADD type_id INTEGER');
         $this->addSql("
             UPDATE statut
             INNER JOIN categorie_statut ON statut.categorie_id = categorie_statut.id
-            SET statut.type_id = (${sqlTypeAcheminement})
+            SET statut.type_id = (${sqlTypeDispatch})
             WHERE statut.type_id IS NULL AND categorie_statut.nom = '${categoryStatusDispatch}'
         ");
 

@@ -60,10 +60,10 @@ class PieceJointe
     private $importLog;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Acheminements", inversedBy="attachements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="attachements")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $acheminement;
+    private $dispatch;
 
     public function getId(): ?int
     {
@@ -106,14 +106,14 @@ class PieceJointe
         return $this;
     }
 
-    public function getAcheminement(): ?Acheminements
+    public function getDispatch(): ?Dispatch
     {
-        return $this->acheminement;
+        return $this->dispatch;
     }
 
-    public function setAcheminement(?Acheminements $acheminement): self
+    public function setDispatch(?Dispatch $dispatch): self
     {
-        $this->acheminement = $acheminement;
+        $this->dispatch = $dispatch;
 
         return $this;
     }

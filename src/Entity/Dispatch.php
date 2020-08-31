@@ -8,9 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\AcheminementsRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DispatchRepository")
  */
-class Acheminements extends FreeFieldEntity
+class Dispatch extends FreeFieldEntity
 {
     const CATEGORIE = 'acheminements';
 
@@ -29,13 +29,13 @@ class Acheminements extends FreeFieldEntity
     private $creationDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsReceive")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
      * @ORM\JoinColumn(nullable=true)
      */
     private $receiver;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsRequester")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
      * @ORM\JoinColumn(nullable=false)
      */
     private $requester;
@@ -64,33 +64,33 @@ class Acheminements extends FreeFieldEntity
     private $endDate;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="acheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
      * @ORM\JoinColumn(nullable=false)
      */
     private $statut;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="acheminement")
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="dispatch")
      */
     private $attachements;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="acheminementsFrom")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesFrom")
      */
     private $locationFrom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="acheminementsTo")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesTo")
      */
     private $locationTo;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PackAcheminement", mappedBy="acheminement", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="dispatch", orphanRemoval=true)
      */
-    private $packAcheminements;
+    private $dispatchPacks;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="acheminements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
      */
     private $type;
 
@@ -106,7 +106,7 @@ class Acheminements extends FreeFieldEntity
 
     public function __construct()
     {
-        $this->packAcheminements = new ArrayCollection();
+        $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->urgent = false;
     }
@@ -188,7 +188,7 @@ class Acheminements extends FreeFieldEntity
     {
         if (!$this->attachements->contains($attachement)) {
             $this->attachements[] = $attachement;
-            $attachement->setAcheminement($this);
+            $attachement->setDispatch($this);
         }
 
         return $this;
@@ -199,8 +199,8 @@ class Acheminements extends FreeFieldEntity
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getAcheminement() === $this) {
-                $attachement->setAcheminement(null);
+            if ($attachement->getDispatch() === $this) {
+                $attachement->setDispatch(null);
             }
         }
 
@@ -232,30 +232,30 @@ class Acheminements extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|PackAcheminement[]
+     * @return Collection|DispatchPack[]
      */
-    public function getPackAcheminements(): Collection
+    public function getDispatchPacks(): Collection
     {
-        return $this->packAcheminements;
+        return $this->dispatchPacks;
     }
 
-    public function addPackAcheminement(PackAcheminement $packAcheminement): self
+    public function addDispatchPack(DispatchPack $dispatchPack): self
     {
-        if (!$this->packAcheminements->contains($packAcheminement)) {
-            $this->packAcheminements[] = $packAcheminement;
-            $packAcheminement->setAcheminement($this);
+        if (!$this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks[] = $dispatchPack;
+            $dispatchPack->setDispatch($this);
         }
 
         return $this;
     }
 
-    public function removePackAcheminement(PackAcheminement $packAcheminement): self
+    public function removeDispatchPack(DispatchPack $dispatchPack): self
     {
-        if ($this->packAcheminements->contains($packAcheminement)) {
-            $this->packAcheminements->removeElement($packAcheminement);
+        if ($this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks->removeElement($dispatchPack);
             // set the owning side to null (unless already changed)
-            if ($packAcheminement->getAcheminement() === $this) {
-                $packAcheminement->setAcheminement(null);
+            if ($dispatchPack->getDispatch() === $this) {
+                $dispatchPack->setDispatch(null);
             }
         }
 

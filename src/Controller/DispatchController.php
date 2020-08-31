@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -13,7 +13,7 @@ use App\Entity\Menu;
 
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\PackAcheminement;
+use App\Entity\DispatchPack;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -25,7 +25,7 @@ use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
 use App\Service\UserService;
-use App\Service\AcheminementsService;
+use App\Service\DispatchService;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,17 +49,12 @@ use Twig\Error\SyntaxError;
 /**
  * @Route("/acheminements")
  */
-Class AcheminementsController extends AbstractController
+Class DispatchController extends AbstractController
 {
     /**
      * @var UserService
      */
     private $userService;
-
-    /**
-     * @var AcheminementsService
-     */
-    private $acheminementsService;
 
     private $pieceJointeRepository;
 
@@ -68,12 +63,10 @@ Class AcheminementsController extends AbstractController
     private $translator;
 
     public function __construct(UserService $userService,
-                                AcheminementsService $acheminementsService,
                                 PieceJointeRepository $pieceJointeRepository,
                                 AttachmentService $attachmentService,
                                 TranslatorInterface $translator) {
         $this->userService = $userService;
-        $this->acheminementsService = $acheminementsService;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
         $this->translator = $translator;
@@ -81,7 +74,7 @@ Class AcheminementsController extends AbstractController
 
 
     /**
-     * @Route("/", name="acheminements_index")
+     * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
@@ -96,13 +89,13 @@ Class AcheminementsController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
-        $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+        $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
         $typeChampLibre = [];
 
         $freeFieldsGroupedByTypes = [];
         foreach ($listTypes as $type) {
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_ACHEMINEMENT);
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
             $typeChampLibre[] = [
                 'typeLabel' => $type->getLabel(),
                 'typeId' => $type->getId(),
@@ -111,32 +104,34 @@ Class AcheminementsController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        return $this->render('acheminements/index.html.twig', [
+        return $this->render('dispatch/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
-			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT),
-			'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT, true, true),
+			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH),
+			'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
             'typeChampsLibres' => $typeChampLibre,
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT)
+            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH)
         ]);
     }
 
     /**
-     * @Route("/api", name="acheminements_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="dispatch_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param DispatchService $dispatchService
      * @return Response
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        DispatchService $dispatchService): Response
     {
         if ($request->isXmlHttpRequest()) {
 
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $data = $this->acheminementsService->getDataForDatatable($request->request);
+            $data = $dispatchService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         } else {
@@ -145,10 +140,10 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="acheminements_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param Request $request
      * @param FreeFieldService $freeFieldService
-     * @param AcheminementsService $acheminementsService
+     * @param DispatchService $dispatchService
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -156,7 +151,7 @@ Class AcheminementsController extends AbstractController
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
-                        AcheminementsService $acheminementsService,
+                        DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager): Response
     {
@@ -166,17 +161,17 @@ Class AcheminementsController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $acheminements = new Acheminements();
+            $dispatch = new Dispatch();
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $locationTake = $emplacementRepository->find($post->get('prise'));
             $locationDrop = $emplacementRepository->find($post->get('depose'));
 
-            $startDate = $acheminementsService->createDateFromStr($post->get('startDate'));
-            $endDate = $acheminementsService->createDateFromStr($post->get('endDate'));
-            $number = $acheminementsService->createDispatchNumber($entityManager, $date);
+            $startDate = $dispatchService->createDateFromStr($post->get('startDate'));
+            $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
+            $number = $dispatchService->createDispatchNumber($entityManager, $date);
 
-            $acheminements
+            $dispatch
                 ->setCreationDate($date)
                 ->setStartDate($startDate ?: null)
                 ->setEndDate($endDate ?: null)
@@ -190,7 +185,7 @@ Class AcheminementsController extends AbstractController
                 ->setCommentaire($post->get('commentaire') ?? null)
                 ->setNumber($number);
 
-            $freeFieldService->manageFreeFields($acheminements, $post->all(), $entityManager);
+            $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
             if (isset($fileBag)) {
                 $fileNames = [];
@@ -203,32 +198,32 @@ Class AcheminementsController extends AbstractController
                 $attachments = $attachmentService->createAttachements($fileNames);
                 foreach ($attachments as $attachment) {
                     $entityManager->persist($attachment);
-                    $acheminements->addAttachement($attachment);
+                    $dispatch->addAttachement($attachment);
                 }
             }
 
-            $entityManager->persist($acheminements);
+            $entityManager->persist($dispatch);
             $entityManager->flush();
 
-            $acheminementsService->sendMailsAccordingToStatus($acheminements, false);
+            $dispatchService->sendMailsAccordingToStatus($dispatch, false);
 
-            $response['acheminement'] = $acheminements->getId();
-            $response['redirect'] = $this->generateUrl('acheminement-show', ['id' => $acheminements->getId()]);
+            $response['dispatch'] = $dispatch->getId();
+            $response['redirect'] = $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()]);
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404 not found');
     }
 
     /**
-     * @Route("/voir/{id}", name="acheminement-show", options={"expose"=true}, methods="GET|POST")
-     * @param Acheminements $acheminement
+     * @Route("/voir/{id}", name="dispatch_show", options={"expose"=true}, methods="GET|POST")
+     * @param Dispatch $dispatch
      * @param EntityManagerInterface $entityManager
-     * @param AcheminementsService $acheminementService
+     * @param DispatchService $dispatchService
      * @return RedirectResponse|Response
      */
-    public function show(Acheminements $acheminement,
+    public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
-                         AcheminementsService $acheminementService)
+                         DispatchService $dispatchService)
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
@@ -237,22 +232,22 @@ Class AcheminementsController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
-        return $this->render('acheminements/show.html.twig', [
-            'acheminement' => $acheminement,
-            'detailsConfig' => $acheminementService->createHeaderDetailsConfig($acheminement),
-            'modifiable' => !$acheminement->getStatut()->getTreated(),
+        return $this->render('dispatch/show.html.twig', [
+            'dispatch' => $dispatch,
+            'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
+            'modifiable' => !$dispatch->getStatut()->getTreated(),
             'newPackConfig' => [
                 'natures' => $natureRepository->findAll()
             ],
             'dispatchValidate' => [
-                'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($acheminement->getType())
+                'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($dispatch->getType())
             ]
         ]);
     }
 
     /**
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
-     * @param Acheminements $dispatch
+     * @param Dispatch $dispatch
      * @param PDFGeneratorService $PDFGenerator
      * @return PdfResponse
      * @throws LoaderError
@@ -262,24 +257,22 @@ Class AcheminementsController extends AbstractController
      * @throws SyntaxError
      * @throws Exception
      */
-    public function printDispatchStateSheet(Acheminements $dispatch,
+    public function printDispatchStateSheet(Dispatch $dispatch,
                                             PDFGeneratorService $PDFGenerator): ?Response
     {
-        if ($dispatch->getPackAcheminements()->isEmpty()) {
+        if ($dispatch->getDispatchPacks()->isEmpty()) {
             throw new NotFoundHttpException('La fiche d\'état n\'existe pas pour cet acheminement.');
         }
 
-        $now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-
-        $packsConfig = $dispatch->getPackAcheminements()
-            ->map(function(PackAcheminement $packAcheminement) use ($dispatch, $now){
+        $packsConfig = $dispatch->getDispatchPacks()
+            ->map(function(DispatchPack $dispatchPack) use ($dispatch){
                 return [
                     'title' => 'Acheminement n°' . $dispatch->getId(),
-                    'code' => $packAcheminement->getPack()->getCode(),
+                    'code' => $dispatchPack->getPack()->getCode(),
                     'content' => [
-                        'Date de création' => $now->format('d/m/Y H:i'),
+                        'Date de création' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
                         'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
-                        'Demandeur' => $dispatch->getRequester()->getUsername(),
+                        'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
                         'Destinataire' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUsername() : '',
                         $this->translator->trans('acheminement.emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
                         $this->translator->trans('acheminement.emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
@@ -296,89 +289,85 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="acheminement_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="dispatch_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param AcheminementsService $acheminementsService
+     * @param DispatchService $dispatchService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
-                         AcheminementsService $acheminementsService,
+                         DispatchService $dispatchService,
                          EntityManagerInterface $entityManager): Response {
 
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
-            /** @var Acheminements $acheminement */
-            $post = $request->request;
-            $acheminement = $acheminementsRepository->find($data['id']);
+        $post = $request->request;
+        $dispatch = $dispatchRepository->find($post->get('id'));
 
-            $startDate = $acheminementsService->createDateFromStr($data['startDate']);
-            $endDate = $acheminementsService->createDateFromStr($data['endDate']);
+        $startDate = $dispatchService->createDateFromStr($post->get('startDate'));
+        $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
 
-            $locationTake = $emplacementRepository->find($data['prise']);
-            $locationDrop = $emplacementRepository->find($data['depose']);
+        $locationTake = $emplacementRepository->find($post->get('prise'));
+        $locationDrop = $emplacementRepository->find($post->get('depose'));
 
-            $oldStatus = $acheminement->getStatut();
-            $newStatus = $statutRepository->find($data['statut']);
+        $oldStatus = $dispatch->getStatut();
+        $newStatus = $statutRepository->find($post->get('statut'));
 
-            $acheminement
-                ->setStartDate($startDate)
-                ->setEndDate($endDate)
-                ->setRequester($utilisateurRepository->find($data['demandeur']))
-                ->setReceiver($utilisateurRepository->find($data['destinataire']))
-                ->setUrgent((bool) $data['urgent'])
-                ->setLocationFrom($locationTake)
-                ->setLocationTo($locationDrop)
-                ->setType($typeRepository->find($data['type']))
-                ->setStatut($statutRepository->find($data['statut']))
-                ->setCommentaire($data['commentaire'] ?? '');
+        $dispatch
+            ->setStartDate($startDate)
+            ->setEndDate($endDate)
+            ->setRequester($utilisateurRepository->find($post->get('demandeur')))
+            ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
+            ->setUrgent((bool) $post->get('urgent'))
+            ->setLocationFrom($locationTake)
+            ->setLocationTo($locationDrop)
+            ->setType($typeRepository->find($post->get('type')))
+            ->setStatut($statutRepository->find($post->get('statut')))
+            ->setCommentaire($post->get('commentaire') ?: '');
 
-            $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-            $attachments = $acheminement->getAttachements()->toArray();
-            foreach ($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
-                if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, null, null, $acheminement);
-                }
+        $attachments = $dispatch->getAttachements()->toArray();
+        foreach ($attachments as $attachment) {
+            /** @var PieceJointe $attachment */
+            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+                $this->attachmentService->removeAndDeleteAttachment($attachment, null, null, null, $dispatch);
             }
-
-            $this->persistAttachments($acheminement, $this->attachmentService, $request, $entityManager);
-
-            $entityManager->flush();
-
-            if ((!$oldStatus && $newStatus)
-                || (
-                    $oldStatus
-                    && $newStatus
-                    && ($oldStatus->getId() !== $newStatus->getId())
-                )) {
-                $acheminementsService->sendMailsAccordingToStatus($acheminement, true);
-            }
-
-            $dispatchStatus = $acheminement->getStatut();
-
-            $response = [
-                'entete' => $this->renderView('acheminements/acheminement-show-header.html.twig', [
-                    'acheminement' => $acheminement,
-                    'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
-                    'showDetails' => $acheminementsService->createHeaderDetailsConfig($acheminement)
-                ]),
-                'success' => true,
-                'msg' => 'La ' . $this->translator->trans('acheminement.demande d\'acheminement') . ' a bien été modifiée.'
-            ];
-            return new JsonResponse($response);
         }
-        throw new NotFoundHttpException('404');
+
+        $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
+
+        $entityManager->flush();
+
+        if ((!$oldStatus && $newStatus)
+            || (
+                $oldStatus
+                && $newStatus
+                && ($oldStatus->getId() !== $newStatus->getId())
+            )) {
+            $dispatchService->sendMailsAccordingToStatus($dispatch, true);
+        }
+
+        $dispatchStatus = $dispatch->getStatut();
+
+        $response = [
+            'entete' => $this->renderView('dispatch/dispatch-show-header.html.twig', [
+                'dispatch' => $dispatch,
+                'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
+                'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
+            ]),
+            'success' => true,
+            'msg' => 'La ' . $this->translator->trans('acheminement.demande d\'acheminement') . ' a bien été modifiée.'
+        ];
+        return new JsonResponse($response);
     }
 
     /**
-     * @Route("/api-modifier", name="acheminement_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="dispatch_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -388,18 +377,18 @@ Class AcheminementsController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
-            $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_ACHEMINEMENT);
+            $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
             $typeChampLibre = [];
 
             $freeFieldsGroupedByTypes = [];
             foreach ($listTypes as $type) {
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_ACHEMINEMENT);
+                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 $typeChampLibre[] = [
                     'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),
@@ -408,14 +397,14 @@ Class AcheminementsController extends AbstractController
                 $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
             }
 
-            $acheminement = $acheminementsRepository->find($data['id']);
-            $json = $this->renderView('acheminements/modalEditContentAcheminements.html.twig', [
-                'acheminement' => $acheminement,
+            $dispatch = $dispatchRepository->find($data['id']);
+            $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
+                'dispatch' => $dispatch,
                 'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
-                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ACHEMINEMENT, true, true),
+                'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'typeChampsLibres' => $typeChampLibre,
-                'attachements' => $this->pieceJointeRepository->findBy(['acheminement' => $acheminement]),
+                'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch]),
             ]);
 
             return new JsonResponse($json);
@@ -424,7 +413,7 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="acheminement_delete", options={"expose"=true},methods={"GET","POST"})
+     * @Route("/supprimer", name="dispatch_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -433,15 +422,15 @@ Class AcheminementsController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
-            $acheminements = $acheminementsRepository->find($data['acheminements']);
-            $entityManager->remove($acheminements);
+            $dispatch = $dispatchRepository->find($data['dispatch']);
+            $entityManager->remove($dispatch);
             $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('acheminements_index')
+                'redirect' => $this->generateUrl('dispatch_index')
             ]);
         }
 
@@ -449,12 +438,12 @@ Class AcheminementsController extends AbstractController
     }
 
     /**
-     * @param Acheminements $entity
+     * @param Dispatch $entity
      * @param AttachmentService $attachmentService
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(Acheminements $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
+    private function persistAttachments(Dispatch $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
     {
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
@@ -467,27 +456,27 @@ Class AcheminementsController extends AbstractController
 
     /**
      * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Acheminements $dispatch
+     * @param Dispatch $dispatch
      * @return Response
      */
-    public function apiPack(Acheminements $dispatch): Response
+    public function apiPack(Dispatch $dispatch): Response
     {
         return new JsonResponse([
-            'data' => $dispatch->getPackAcheminements()
-                ->map(function (PackAcheminement $packAcheminement) {
-                    $pack = $packAcheminement->getPack();
+            'data' => $dispatch->getDispatchPacks()
+                ->map(function (DispatchPack $dispatchPack) {
+                    $pack = $dispatchPack->getPack();
                     $lastTracking = $pack->getLastTracking();
                     return [
                         'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
                         'code' => $pack->getCode(),
-                        'quantity' => $packAcheminement->getQuantity(),
+                        'quantity' => $dispatchPack->getQuantity(),
                         'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
                         'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
                         'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
-                        'actions' => $this->renderView('acheminements/datatablePackRow.html.twig', [
+                        'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
-                            'packDispatch' => $packAcheminement,
-                            'modifiable' => !$packAcheminement->getAcheminement()->getStatut()->getTreated()
+                            'packDispatch' => $dispatchPack,
+                            'modifiable' => !$dispatchPack->getDispatch()->getStatut()->getTreated()
                         ])
                     ];
                 })
@@ -501,14 +490,14 @@ Class AcheminementsController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
      * @param PackService $packService
-     * @param Acheminements $dispatch
+     * @param Dispatch $dispatch
      * @return Response
      */
     public function newPack(Request $request,
                             EntityManagerInterface $entityManager,
                             TranslatorInterface $translator,
                             PackService $packService,
-                            Acheminements $dispatch): Response {
+                            Dispatch $dispatch): Response {
         $data = json_decode($request->getContent(), true);
 
         $packCode = $data['pack'];
@@ -516,9 +505,9 @@ Class AcheminementsController extends AbstractController
         $quantity = $data['quantity'];
 
         $alreadyCreated = !$dispatch
-            ->getPackAcheminements()
-            ->filter(function (PackAcheminement $packAcheminement) use ($packCode) {
-                $pack = $packAcheminement->getPack();
+            ->getDispatchPacks()
+            ->filter(function (DispatchPack $dispatchPack) use ($packCode) {
+                $pack = $dispatchPack->getPack();
                 return $pack->getCode() === $packCode;
             })
             ->isEmpty();
@@ -540,10 +529,10 @@ Class AcheminementsController extends AbstractController
                 $entityManager->persist($pack);
             }
 
-            $packDispatch = new PackAcheminement();
+            $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
-                ->setAcheminement($dispatch);
+                ->setDispatch($dispatch);
             $entityManager->persist($packDispatch);
 
             $nature = $natureRepository->find($natureId);
@@ -576,26 +565,26 @@ Class AcheminementsController extends AbstractController
                              EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $packDispatchId = $data['packDispatchId'];
-        /** @var PackAcheminement $packDispatch */
-        $packDispatch = $packDispatchRepository->find($packDispatchId);
-        if (empty($packDispatch)) {
+        /** @var DispatchPack $dispatchPack */
+        $dispatchPack = $dispatchPackRepository->find($packDispatchId);
+        if (empty($dispatchPack)) {
             $success = false;
             $message = $translator->trans("acheminement.Le colis n''existe pas");
         } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
 
-            $pack = $packDispatch->getPack();
+            $pack = $dispatchPack->getPack();
 
             $nature = $natureRepository->find($natureId);
             $pack
                 ->setNature($nature);
 
-            $packDispatch
+            $dispatchPack
                 ->setQuantity($quantity);
 
             $entityManager->flush();
@@ -619,9 +608,9 @@ Class AcheminementsController extends AbstractController
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+            $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-            $pack = $packDispatchRepository->find($data['pack']);
+            $pack = $dispatchPackRepository->find($data['pack']);
             $entityManager->remove($pack);
             $entityManager->flush();
 
@@ -640,19 +629,19 @@ Class AcheminementsController extends AbstractController
      * @Route("/{id}/validate", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param AcheminementsService $acheminementsService
+     * @param DispatchService $dispatchService
      * @param TranslatorInterface $translator
-     * @param Acheminements $acheminement
+     * @param Dispatch $dispatch
      * @return Response
      * @throws Exception
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
-                                            AcheminementsService $acheminementsService,
+                                            DispatchService $dispatchService,
                                             TranslatorInterface $translator,
-                                            Acheminements $acheminement): Response
+                                            Dispatch $dispatch): Response
     {
-        $status = $acheminement->getStatut();
+        $status = $dispatch->getStatut();
 
         if(!$status || !$status->getTreated()) {
             $data = json_decode($request->getContent(), true);
@@ -664,13 +653,13 @@ Class AcheminementsController extends AbstractController
 
             if ($treatedStatus
                 && $treatedStatus->getTreated()
-                && $treatedStatus->getType() === $acheminement->getType()) {
+                && $treatedStatus->getType() === $dispatch->getType()) {
 
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
 
-                $acheminementsService->validateDispatchRequest($entityManager, $acheminement, $treatedStatus, $loggedUser);
-                $acheminement->setValidationDate($now);
+                $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
+                $dispatch->setValidationDate($now);
 
                 $entityManager->flush();
             }
@@ -685,19 +674,19 @@ Class AcheminementsController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'msg' => 'La ' . $translator->trans('acheminement.acheminement') . 'a bien été traité(e).',
-            'redirect' => $this->generateUrl('acheminement-show', ['id' => $acheminement->getId()])
+            'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()])
         ]);
     }
 
     /**
      * @Route("/{dispatch}/packs-counter", name="get_dispatch_packs_counter", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Acheminements $dispatch
+     * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function getDispatchPackCounter(Acheminements $dispatch) {
+    public function getDispatchPackCounter(Dispatch $dispatch) {
         return new JsonResponse([
             'success' => true,
-            'packsCounter' => $dispatch->getPackAcheminements()->count()
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
         ]);
     }
 }

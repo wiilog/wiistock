@@ -15,28 +15,24 @@ class CategorieStatutRepository extends EntityRepository
 {
 
     /**
-     * @param string|null $disputeStatusLabel
-     * @param string|null $acheminementStatusLabel
+     * @param string[] $labels
      * @return CategorieStatut[]
      */
-    public function findByLabelLike(?string $disputeStatusLabel, ?string $acheminementStatusLabel)
+    public function findByLabelLike(array $labels)
     {
             $queryBuilder = $this->createQueryBuilder('categorie_statut')
                 ->select('categorie_statut.id')
-                ->addSelect('categorie_statut.nom')
-                ->where('categorie_statut.nom LIKE :disputeStatusLabel')
-                ->orWhere('categorie_statut.nom LIKE :acheminementStatusLabel');
+                ->addSelect('categorie_statut.nom');
 
-            if ($disputeStatusLabel) {
-                $queryBuilder->setParameter('disputeStatusLabel', '%' . $disputeStatusLabel . '%');
+            foreach($labels as $index => $label) {
+                $parameterKey = "label_$index";
+                $queryBuilder
+                    ->orWhere("categorie_statut.nom LIKE :$parameterKey")
+                    ->setParameter($parameterKey, "%$label%");
             }
 
-            if ($acheminementStatusLabel) {
-                $queryBuilder->setParameter('acheminementStatusLabel', '%' . $acheminementStatusLabel . '%');
-            }
-
-            return $queryBuilder
-                ->getQuery()
-                ->getResult();
+            return !empty($labels)
+                ? $queryBuilder->getQuery()->getResult()
+                : [];
     }
 }

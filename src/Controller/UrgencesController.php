@@ -259,28 +259,6 @@ class UrgencesController extends AbstractController
 	}
 
     /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Urgence[]|null
-     */
-    public function findByDates($dateMin, $dateMax)
-    {
-        $dateMax = $dateMax->format('Y-m-d H:i:s');
-        $dateMin = $dateMin->format('Y-m-d H:i:s');
-
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT u
-            FROM App\Entity\Urgence u
-            WHERE d.date BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
-    }
-
-    /**
      * @Route("/urgences-infos", name="get_urgence_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param EntityManagerInterface $entityManager
      * @param Request $request

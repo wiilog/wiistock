@@ -25,7 +25,7 @@ class CategorieStatut
     const MVT_STOCK = 'mouvement_stock';
     const LITIGE_ARR = 'litige arrivage';
     const LITIGE_RECEPT = 'litige reception';
-    const ACHEMINEMENT = 'acheminement';
+    const DISPATCH = 'acheminement';
     const IMPORT = 'import';
 
     /**
@@ -76,7 +76,7 @@ class CategorieStatut
         return $this->statuts;
     }
 
-    public function addStatut(CategorieStatut $statut): self
+    public function addStatut(Statut $statut): self
     {
         if (!$this->statuts->contains($statut)) {
             $this->statuts[] = $statut;
@@ -86,7 +86,7 @@ class CategorieStatut
         return $this;
     }
 
-    public function removeStatut(CategorieStatut $statut): self
+    public function removeStatut(Statut $statut): self
     {
         if ($this->statuts->contains($statut)) {
             $this->statuts->removeElement($statut);

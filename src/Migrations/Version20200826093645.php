@@ -22,21 +22,21 @@ final class Version20200826093645 extends AbstractMigration
     public function up(Schema $schema) : void
     {
         $typeLabelStandard = Type::LABEL_STANDARD;
-        $categoryTypeAcheminement = CategoryType::DEMANDE_ACHEMINEMENT;
+        $categoryTypeDispatch = CategoryType::DEMANDE_DISPATCH;
 
-        $sqlCategoryTypeAcheminement = "SELECT id FROM category_type WHERE category_type.label = '$categoryTypeAcheminement' LIMIT 1";
-        $sqlTypeAcheminement = "SELECT id FROM type WHERE category_id = ($sqlCategoryTypeAcheminement) and label = '$typeLabelStandard' LIMIT 1";
+        $sqlCategoryTypeDispatch = "SELECT id FROM category_type WHERE category_type.label = '$categoryTypeDispatch' LIMIT 1";
+        $sqlTypeDispatch = "SELECT id FROM type WHERE category_id = ($sqlCategoryTypeDispatch) and label = '$typeLabelStandard' LIMIT 1";
 
         $isAlreadyDefined = $this->connection
-            ->executeQuery($sqlTypeAcheminement)
+            ->executeQuery($sqlTypeDispatch)
             ->fetchAll();
 
         if(empty($isAlreadyDefined)) {
-            $this->addSql("INSERT INTO `type` (category_id, label) VALUES (($sqlCategoryTypeAcheminement), '$typeLabelStandard')");
+            $this->addSql("INSERT INTO `type` (category_id, label) VALUES (($sqlCategoryTypeDispatch), '$typeLabelStandard')");
         }
 
-        $sqlTypeAcheminement = ("UPDATE acheminements SET type_id = ($sqlTypeAcheminement) WHERE type_id IS NULL");
-        $this->addSql($sqlTypeAcheminement);
+        $sqlTypeDispatch = ("UPDATE acheminements SET type_id = ($sqlTypeDispatch) WHERE type_id IS NULL");
+        $this->addSql($sqlTypeDispatch);
     }
 
     public function down(Schema $schema) : void

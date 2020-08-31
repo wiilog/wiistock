@@ -3,7 +3,7 @@
 
 namespace App\Service;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
@@ -22,7 +22,7 @@ use Twig\Error\RuntimeError as Twig_Error_Runtime;
 use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
-class AcheminementsService
+class DispatchService
 {
     /**
      * @var Twig_Environment
@@ -73,16 +73,16 @@ class AcheminementsService
     public function getDataForDatatable($params = null) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $acheminementsRepository = $this->entityManager->getRepository(Acheminements::class);
+        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ACHEMINEMENTS, $this->user);
-        $queryResult = $acheminementsRepository->findByParamAndFilters($params, $filters);
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters);
 
-        $acheminementsArray = $queryResult['data'];
+        $dispatchesArray = $queryResult['data'];
 
         $rows = [];
-        foreach ($acheminementsArray as $acheminement) {
-            $rows[] = $this->dataRowAcheminement($acheminement);
+        foreach ($dispatchesArray as $dispatch) {
+            $rows[] = $this->dataRowDispatch($dispatch);
         }
 
         return [
@@ -93,52 +93,52 @@ class AcheminementsService
     }
 
 	/**
-	 * @param Acheminements $acheminement
+	 * @param Dispatch $dispatch
 	 * @return array
 	 * @throws Twig_Error_Loader
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 */
-    public function dataRowAcheminement($acheminement)
+    public function dataRowDispatch(Dispatch $dispatch)
     {
-        $url = $this->router->generate('acheminement-show', ['id' => $acheminement->getId()]);
+        $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
 
         return [
-            'id' => $acheminement->getId() ?? 'Non défini',
-            'number' => $acheminement->getNumber() ?? '',
-            'creationDate' => $acheminement->getCreationDate() ? $acheminement->getCreationDate()->format('d/m/Y H:i:s') : '',
-            'validationDate' => $acheminement->getValidationDate() ? $acheminement->getValidationDate()->format('d/m/Y H:i:s') : '',
-            'requester' => $acheminement->getRequester() ? $acheminement->getRequester()->getUserName() : '',
-            'receiver' => $acheminement->getReceiver() ? $acheminement->getReceiver()->getUserName() : '',
-            'locationFrom' => $acheminement->getLocationFrom() ? $acheminement->getLocationFrom()->getLabel() : '',
-            'locationTo' => $acheminement->getLocationTo() ? $acheminement->getLocationTo()->getLabel() : '',
-            'nbPacks' => $acheminement->getPackAcheminements()->count(),
-            'type' => $acheminement->getType() ? $acheminement->getType()->getLabel() : '',
-            'status' => $acheminement->getStatut() ? $acheminement->getStatut()->getNom() : '',
-            'urgent' => $acheminement->isUrgent() ? 'oui' : 'non',
-            'actions' => $this->templating->render('acheminements/datatableAcheminementsRow.html.twig', [
-                'acheminement' => $acheminement,
-                'url' => $url,
+            'id' => $dispatch->getId() ?? 'Non défini',
+            'number' => $dispatch->getNumber() ?? '',
+            'creationDate' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
+            'validationDate' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
+            'requester' => $dispatch->getRequester() ? $dispatch->getRequester()->getUserName() : '',
+            'receiver' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUserName() : '',
+            'locationFrom' => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : '',
+            'locationTo' => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
+            'nbPacks' => $dispatch->getDispatchPacks()->count(),
+            'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
+            'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
+            'urgent' => $dispatch->isUrgent() ? 'oui' : 'non',
+            'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
+                'dispatch' => $dispatch,
+                'url' => $url
             ]),
         ];
     }
 
-    public function createHeaderDetailsConfig(Acheminements $acheminement): array
+    public function createHeaderDetailsConfig(Dispatch $dispatch): array
     {
-        $status = $acheminement->getStatut();
-        $type = $acheminement->getType();
-        $requester = $acheminement->getRequester();
-        $locationFrom = $acheminement->getLocationFrom();
-        $locationTo = $acheminement->getLocationTo();
-        $creationDate = $acheminement->getCreationDate();
-        $validationDate = $acheminement->getValidationDate() ? $acheminement->getValidationDate() : '';
-        $comment = $acheminement->getCommentaire();
+        $status = $dispatch->getStatut();
+        $type = $dispatch->getType();
+        $requester = $dispatch->getRequester();
+        $locationFrom = $dispatch->getLocationFrom();
+        $locationTo = $dispatch->getLocationTo();
+        $creationDate = $dispatch->getCreationDate();
+        $validationDate = $dispatch->getValidationDate() ? $dispatch->getValidationDate() : '';
+        $comment = $dispatch->getCommentaire();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
-            $acheminement,
-            CategorieCL::DEMANDE_ACHEMINEMENT,
-            CategoryType::DEMANDE_ACHEMINEMENT
+            $dispatch,
+            CategorieCL::DEMANDE_DISPATCH,
+            CategoryType::DEMANDE_DISPATCH
         );
 
         return array_merge(
@@ -154,6 +154,13 @@ class AcheminementsService
             $freeFieldArray,
             [
                 [
+                    'label' => 'Pièces jointes',
+                    'value' => $dispatch->getAttachements()->toArray(),
+                    'colClass' => 'col-sm-6 col-12',
+                    'isAttachments' => true,
+                    'isNeededNotEmpty' => true
+                ],
+                [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
                     'isRaw' => true,
@@ -168,11 +175,11 @@ class AcheminementsService
     public function createDispatchNumber(EntityManagerInterface $entityManager,
                                          DateTime $date): string {
 
-        $acheminementRepository = $entityManager->getRepository(Acheminements::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         $dateStr = $date->format('Ymd');
 
-        $lastDispatchNumber = $acheminementRepository->getLastDispatchNumberByPrefix(Acheminements::PREFIX_NUMBER . $dateStr);
+        $lastDispatchNumber = $dispatchRepository->getLastDispatchNumberByPrefix(Dispatch::PREFIX_NUMBER . $dateStr);
 
         if ($lastDispatchNumber) {
             $lastCounter = (int) substr($lastDispatchNumber, -4, 4);
@@ -189,7 +196,7 @@ class AcheminementsService
                     $currentCounter))
         );
 
-        return (Acheminements::PREFIX_NUMBER . $dateStr . $currentCounterStr);
+        return (Dispatch::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -202,15 +209,15 @@ class AcheminementsService
         return $date ?: null;
     }
 
-    public function sendMailsAccordingToStatus(Acheminements $acheminement, bool $isUpdate) {
-        $status = $acheminement->getStatut();
+    public function sendMailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate) {
+        $status = $dispatch->getStatut();
         $recipientAbleToReceivedMail = $status ? $status->getSendNotifToRecipient() : false;
         $requesterAbleToReceivedMail = $status ? $status->getSendNotifToDeclarant() : false;
 
         if ($recipientAbleToReceivedMail || $requesterAbleToReceivedMail) {
-            $type = $acheminement->getType() ? $acheminement->getType()->getLabel() : '';
-            $receiverEmails = $acheminement->getReceiver() ? $acheminement->getReceiver()->getMainAndSecondaryEmails() : [];
-            $requesterEmails = $acheminement->getRequester() ? $acheminement->getRequester()->getMainAndSecondaryEmails() : [];
+            $type = $dispatch->getType() ? $dispatch->getType()->getLabel() : '';
+            $receiverEmails = $dispatch->getReceiver() ? $dispatch->getReceiver()->getMainAndSecondaryEmails() : [];
+            $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
             $title = !$isUpdate
@@ -233,8 +240,8 @@ class AcheminementsService
             if (!empty($emails)) {
                 $this->mailerService->sendMail(
                     $subject,
-                    $this->templating->render('mails/contents/mailAcheminement.html.twig', [
-                        'acheminement' => $acheminement,
+                    $this->templating->render('mails/contents/mailDispatch.html.twig', [
+                        'dispatch' => $dispatch,
                         'title' => $title,
                         'urlSuffix' => $translatedCategory
                     ]),
@@ -246,25 +253,25 @@ class AcheminementsService
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param Acheminements $acheminement
+     * @param Dispatch $dispatch
      * @param Statut $treatedStatus
      * @param Utilisateur $loggedUser
      * @param bool $fromNomade
      * @throws Exception
      */
     public function validateDispatchRequest(EntityManagerInterface $entityManager,
-                                            Acheminements $acheminement,
+                                            Dispatch $dispatch,
                                             Statut $treatedStatus,
                                             Utilisateur $loggedUser,
                                             bool $fromNomade = false): void {
-        $acheminement->setStatut($treatedStatus);
-        $packsDispatch = $acheminement->getPackAcheminements();
-        $takingLocation = $acheminement->getLocationFrom();
-        $dropLocation = $acheminement->getLocationTo();
+        $dispatch->setStatut($treatedStatus);
+        $dispatchPacks = $dispatch->getDispatchPacks();
+        $takingLocation = $dispatch->getLocationFrom();
+        $dropLocation = $dispatch->getLocationTo();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-        foreach ($packsDispatch as $packDispatch) {
-            $pack = $packDispatch->getPack();
+        foreach ($dispatchPacks as $dispatchPack) {
+            $pack = $dispatchPack->getPack();
 
             $trackingTaking = $this->mouvementTracaService->createTrackingMovement(
                 $pack,
@@ -291,6 +298,6 @@ class AcheminementsService
         }
         $entityManager->flush();
 
-        $this->sendMailsAccordingToStatus($acheminement, true);
+        $this->sendMailsAccordingToStatus($dispatch, true);
     }
 }

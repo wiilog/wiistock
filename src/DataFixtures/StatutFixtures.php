@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -112,7 +112,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 			],
             CategorieStatut::LITIGE_ARR => [],
             CategorieStatut::LITIGE_RECEPT => [],
-            CategorieStatut::ACHEMINEMENT => [],
+            CategorieStatut::DISPATCH => [],
 			CategorieStatut::IMPORT => [
 				Import::STATUS_PLANNED,
 				Import::STATUS_FINISHED,

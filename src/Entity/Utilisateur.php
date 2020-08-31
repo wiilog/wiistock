@@ -121,14 +121,14 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="receiver")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="receiver")
      */
-    private $acheminementsReceive;
+    private $receivedDispatches;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="requester")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="requester")
      */
-    private $acheminementsRequester;
+    private $requestedDispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
@@ -272,8 +272,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->dispatchTypes = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
         $this->litigeHistorics = new ArrayCollection();
-        $this->acheminementsReceive = new ArrayCollection();
-        $this->acheminementsRequester = new ArrayCollection();
+        $this->receivedDispatches = new ArrayCollection();
+        $this->requestedDispatches = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
@@ -818,7 +818,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if (!$this->arrivagesUtilisateur->contains($arrivagesUtilisateur)) {
             $this->arrivagesUtilisateur[] = $arrivagesUtilisateur;
-            $arrivagesUtilisateur->setUtilisateurs($this);
+            $arrivagesUtilisateur->setUtilisateur($this);
         }
 
         return $this;
@@ -829,8 +829,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         if ($this->arrivagesUtilisateur->contains($arrivagesUtilisateur)) {
             $this->arrivagesUtilisateur->removeElement($arrivagesUtilisateur);
             // set the owning side to null (unless already changed)
-            if ($arrivagesUtilisateur->getUtilisateurs() === $this) {
-                $arrivagesUtilisateur->setUtilisateurs(null);
+            if ($arrivagesUtilisateur->getUtilisateur() === $this) {
+                $arrivagesUtilisateur->setUtilisateur(null);
             }
         }
 
@@ -1049,30 +1049,30 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminementsReceive(): Collection
+    public function getReceivedDispatches(): Collection
     {
-        return $this->acheminementsReceive;
+        return $this->receivedDispatches;
     }
 
-    public function addAcheminementsReceive(Acheminements $acheminementsReceive): self
+    public function addReceivedDispatch(Dispatch $receivedDispatch): self
     {
-        if (!$this->acheminementsReceive->contains($acheminementsReceive)) {
-            $this->acheminementsReceive[] = $acheminementsReceive;
-            $acheminementsReceive->setReceiver($this);
+        if (!$this->receivedDispatches->contains($receivedDispatch)) {
+            $this->receivedDispatches[] = $receivedDispatch;
+            $receivedDispatch->setReceiver($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminementsReceive(Acheminements $acheminementsReceive): self
+    public function removeReceivedDispatch(Dispatch $receivedDispatch): self
     {
-        if ($this->acheminementsReceive->contains($acheminementsReceive)) {
-            $this->acheminementsReceive->removeElement($acheminementsReceive);
+        if ($this->receivedDispatches->contains($receivedDispatch)) {
+            $this->receivedDispatches->removeElement($receivedDispatch);
             // set the owning side to null (unless already changed)
-            if ($acheminementsReceive->getReceiver() === $this) {
-                $acheminementsReceive->setReceiver(null);
+            if ($receivedDispatch->getReceiver() === $this) {
+                $receivedDispatch->setReceiver(null);
             }
         }
 
@@ -1080,30 +1080,30 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminementsRequester(): Collection
+    public function getRequestedDispatches(): Collection
     {
-        return $this->acheminementsRequester;
+        return $this->requestedDispatches;
     }
 
-    public function addAcheminementsRequester(Acheminements $acheminementsRequester): self
+    public function addRequestedDispatch(Dispatch $requestedDispatch): self
     {
-        if (!$this->acheminementsRequester->contains($acheminementsRequester)) {
-            $this->acheminementsRequester[] = $acheminementsRequester;
-            $acheminementsRequester->setRequester($this);
+        if (!$this->requestedDispatches->contains($requestedDispatch)) {
+            $this->requestedDispatches[] = $requestedDispatch;
+            $requestedDispatch->setRequester($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminementsRequester(Acheminements $acheminementsRequester): self
+    public function removeRequestedDispatch(Dispatch $requestedDispatch): self
     {
-        if ($this->acheminementsRequester->contains($acheminementsRequester)) {
-            $this->acheminementsRequester->removeElement($acheminementsRequester);
+        if ($this->requestedDispatches->contains($requestedDispatch)) {
+            $this->requestedDispatches->removeElement($requestedDispatch);
             // set the owning side to null (unless already changed)
-            if ($acheminementsRequester->getRequester() === $this) {
-                $acheminementsRequester->setRequester(null);
+            if ($requestedDispatch->getRequester() === $this) {
+                $requestedDispatch->setRequester(null);
             }
         }
 

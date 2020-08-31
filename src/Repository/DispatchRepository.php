@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
@@ -11,12 +11,12 @@ use Doctrine\ORM\NoResultException;
 
 
 /**
- * @method Acheminements|null find($id, $lockMode = null, $lockVersion = null)
- * @method Acheminements|null findOneBy(array $criteria, array $orderBy = null)
- * @method Acheminements[]    findAll()
- * @method Acheminements[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Dispatch|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Dispatch[]    findAll()
+ * @method Dispatch[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class AcheminementsRepository extends EntityRepository
+class DispatchRepository extends EntityRepository
 {
     public function findByParamAndFilters($params, $filters)
     {
@@ -156,8 +156,8 @@ class AcheminementsRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(a)
-            FROM App\Entity\Acheminements a
-            WHERE a.receiver = :user"
+            FROM App\Entity\Dispatch a
+            WHERE a.receiver = :user OR a.requester = :user"
         )->setParameter('user', $user);
 
         return $query->getSingleScalarResult();
@@ -169,7 +169,7 @@ class AcheminementsRepository extends EntityRepository
         $query = $em->createQuery(
         /** @lang DQL */
             "SELECT COUNT(a)
-            FROM App\Entity\Acheminements a
+            FROM App\Entity\Dispatch a
             WHERE a.locationFrom = :emplacementId
             OR a.locationTo = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);

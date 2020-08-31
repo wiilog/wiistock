@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Acheminements;
+use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -21,7 +21,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
-use App\Entity\PackAcheminement;
+use App\Entity\DispatchPack;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -38,7 +38,7 @@ use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Service\AcheminementsService;
+use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
@@ -1310,8 +1310,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $natureRepository = $entityManager->getRepository(Nature::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
-        $acheminementsRepository = $entityManager->getRepository(Acheminements::class);
-        $packDispatchRepository = $entityManager->getRepository(PackAcheminement::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $rights = $this->getMenuRights($user, $userService);
@@ -1430,8 +1430,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
             );
 
-            $dispatches = $acheminementsRepository->getMobileDispatches($user);
-            $dispatchPacks = $packDispatchRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
+            $dispatches = $dispatchRepository->getMobileDispatches($user);
+            $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
                 return $dispatch['id'];
             }, $dispatches));
 
@@ -1753,13 +1753,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * @Rest\Post("/api/dispatches", name="api_pack_nature", condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param AcheminementsService $acheminementsService
+     * @param DispatchService $dispatchService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
      */
     public function patchDispatches(Request $request,
-                                    AcheminementsService $acheminementsService,
+                                    DispatchService $dispatchService,
                                     EntityManagerInterface $entityManager): JsonResponse {
 
         $resData = [];
@@ -1768,17 +1768,17 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser) {
             $dispatches = json_decode($request->request->get('dispatches'), true);
 
-            $acheminementRepository = $entityManager->getRepository(Acheminements::class);
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             foreach ($dispatches as $dispatchArray) {
-                /** @var Acheminements $dispatch */
-                $dispatch = $acheminementRepository->find($dispatchArray['id']);
+                /** @var Dispatch $dispatch */
+                $dispatch = $dispatchRepository->find($dispatchArray['id']);
                 $dispatchStatut = $dispatch->getStatut();
                 if (!$dispatchStatut || !$dispatchStatut->getTreated()) {
                     $treatedDispatch = $statusRepository->find($dispatchArray['treatedStatusId']);
                     if ($treatedDispatch && $treatedDispatch->getTreated()) {
-                        $acheminementsService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
+                        $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
                     }
                 }
             }

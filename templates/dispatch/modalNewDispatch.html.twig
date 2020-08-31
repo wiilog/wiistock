@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewAcheminements" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewDispatch" role="dialog" aria-labelledby="dataModalCenterTitle"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -24,7 +24,7 @@
                 </div>
                 <div class="form-group">
                     <label for="type">Statut*</label>
-                    <select name="statut" class="form-control data d-block status-acheminement needed">
+                    <select name="statut" class="form-control data d-block needed">
                         <option value="">Choisir un statut...</option>
                         {% for statut in notTreatedStatus %}
                             <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
@@ -126,7 +126,7 @@
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewAcheminements" type="button" class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
+                <button id="submitNewDispatch" type="button" class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
             </div>
         </div>
     </div>
