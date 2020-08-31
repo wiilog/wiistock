@@ -900,7 +900,6 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param ArrivageDataService $arrivageDataService
      * @param Arrivage $arrivage
-     * @param TranslatorInterface $translator
      * @param bool $printColis
      * @param bool $printArrivage
      *

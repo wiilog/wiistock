@@ -234,10 +234,12 @@ Class DispatchController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
+        $dispatchStatus = $dispatch->getStatut();
+
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
-            'modifiable' => !$dispatch->getStatut()->getTreated(),
+            'modifiable' => $dispatchStatus || !$dispatchStatus->getTreated(),
             'newPackConfig' => [
                 'natures' => $natureRepository->findAll()
             ],

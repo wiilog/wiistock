@@ -1,8 +1,9 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('acheminement.acheminement'|trans ~' n°'~ dispatch.number) %}
+{% block showTitle ('acheminement.acheminement'|trans ~ ' n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+{% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
 
 {% block showActions %}
@@ -18,37 +19,42 @@
                 </button>
             {% endif %}
         {% endif %}
-        <button type="button"
-                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            {% if modifiable %}
-                {% if hasRightEdit %}
-                    <a href="#"
-                       data-id='{{ dispatch.id }}'
-                       data-target='#modalEditDispatch'
-                       data-toggle='modal'
-                       onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
-                       class="dropdown-item">
-                        <i class="fa fa-pen mr-2"></i>Modifier
+        {% if hasRightEdit or hasRightDelete or hasRightExport %}
+            <button type="button"
+                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if modifiable %}
+                    {% if hasRightEdit %}
+                        <a href="#"
+                           data-id='{{ dispatch.id }}'
+                           data-target='#modalEditDispatch'
+                           data-toggle='modal'
+                           onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
+                           class="dropdown-item">
+                            <i class="fa fa-pen mr-2"></i>Modifier
+                        </a>
+                    {% endif %}
+                    {% if hasRightDelete %}
+                        <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
+                           class="dropdown-item">
+                            <i class="fa fa-trash mr-2"></i>Supprimer
+                        </a>
+                    {% endif %}
+                {% endif %}
+                {% if hasRightExport %}
+                    <a class="dropdown-item"
+                       onclick="runDispatchPrint()">
+                        <i class='fas fa-print mr-2'></i>Imprimer
                     </a>
                 {% endif %}
-                {% if hasRightDelete %}
-                    <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
-                       class="dropdown-item">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
-                {% endif %}
-            {% endif %}
-            <a class="dropdown-item"
-               onclick="runDispatchPrint()">
-                <i class='fas fa-print mr-2'></i>Imprimer
-            </a>
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock %}
 
 {% block showUrgence %}
