@@ -50,3 +50,10 @@
         </div>
     </div>
 {% endblock %}
+
+{% block showUrgence %}
+    {% if dispatch.urgent is defined and dispatch.urgent == true %}
+        <i class="fa fa-exclamation-triangle mr-2"></i>
+        <span title="Cet acheminement est à traiter en urgence">{{ 'acheminement.Cet acheminement est à traiter en urgence'|trans }}.</span>
+    {% endif %}
+{% endblock %}

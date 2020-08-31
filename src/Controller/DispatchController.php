@@ -171,6 +171,13 @@ Class DispatchController extends AbstractController
             $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
             $number = $dispatchService->createDispatchNumber($entityManager, $date);
 
+            if ($endDate < $startDate) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
+                ]);
+            }
+
             $dispatch
                 ->setCreationDate($date)
                 ->setStartDate($startDate ?: null)
@@ -317,6 +324,13 @@ Class DispatchController extends AbstractController
         $oldStatus = $dispatch->getStatut();
         $newStatus = $statutRepository->find($post->get('statut'));
 
+        if ($endDate < $startDate) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'La date de fin d\'échéance est antérieure à la date de début.'
+            ]);
+        }
+
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
@@ -423,8 +437,16 @@ Class DispatchController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
 
             $dispatch = $dispatchRepository->find($data['dispatch']);
+
+            if($dispatch) {
+                $attachments = $attachmentRepository->findBy(['dispatch' => $dispatch]);
+                foreach ($attachments as $attachment) {
+                    $entityManager->remove($attachment);
+                }
+            }
             $entityManager->remove($dispatch);
             $entityManager->flush();
 

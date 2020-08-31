@@ -44,7 +44,11 @@
 <div class="form-group">
     <label for="destinataire">Destinataire</label>
     <select class="destinataire form-control data ajax-autocomplete-user-edit w-100" name="destinataire">
-        <option value="{{ dispatch.receiver.id }}">{{ dispatch.receiver.username }}</option>
+        {% if dispatch.receiver is not null %}
+            <option value="{{ dispatch.receiver.id }}">{{ dispatch.receiver.username }}</option>
+        {% else %}
+            <option value=""></option>
+        {% endif %}
     </select>
 </div>
 <div class="form-group">
@@ -83,7 +87,7 @@
     </div>
 </div>
 <div class="form-group w-100">
-    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+    <label for="prise" title="Emplacement de prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
     <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
         {% if dispatch.locationFrom %}
             <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
@@ -91,7 +95,7 @@
     </select>
 </div>
 <div class="form-group w-100">
-    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+    <label for="depose" title="Emplacement de dépose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
     <select name="depose" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-depose" id="depose">
         {% if dispatch.locationTo %}
             <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
