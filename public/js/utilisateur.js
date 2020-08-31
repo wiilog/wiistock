@@ -24,12 +24,12 @@ let tableUser = initDataTable('tableUser_id', tableUserConfig);
 let modalNewUser = $("#modalNewUser");
 let submitNewUser = $("#submitNewUser");
 let pathNewUser = Routing.generate('user_new', true);
-InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, displayErrorUser, false);
+InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, displayErrorUser);
 
 let modalEditUser = $("#modalEditUser");
 let submitEditUser = $("#submitEditUser");
 let pathEditUser = Routing.generate('user_edit', true);
-InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, displayErrorUser, false);
+InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, displayErrorUser);
 
 let modalDeleteUser = $("#modalDeleteUser");
 let submitDeleteUser = $("#submitDeleteUser");
@@ -67,6 +67,7 @@ function editRowUser(button) {
         modal.find('.modal-body').html(data.html);
         modal.find('[name="deliveryTypes"]').val(data.userDeliveryTypes).select2();
         modal.find('[name="dispatchTypes"]').val(data.userDispatchTypes).select2();
+        modal.find('[name="handlingTypes"]').val(data.userHandlingTypes).select2();
         ajaxAutoCompleteEmplacementInit($('#dropzone'));
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);
