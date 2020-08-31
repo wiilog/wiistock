@@ -423,8 +423,16 @@ Class DispatchController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+            $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
 
             $dispatch = $dispatchRepository->find($data['dispatch']);
+
+            if($dispatch) {
+                $attachments = $attachmentRepository->findBy(['dispatch' => $dispatch]);
+                foreach ($attachments as $attachment) {
+                    $entityManager->remove($attachment);
+                }
+            }
             $entityManager->remove($dispatch);
             $entityManager->flush();
 

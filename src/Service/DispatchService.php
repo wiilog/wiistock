@@ -128,10 +128,15 @@ class DispatchService
         $status = $dispatch->getStatut();
         $type = $dispatch->getType();
         $requester = $dispatch->getRequester();
+        $receiver = $dispatch->getReceiver();
         $locationFrom = $dispatch->getLocationFrom();
         $locationTo = $dispatch->getLocationTo();
         $creationDate = $dispatch->getCreationDate();
         $validationDate = $dispatch->getValidationDate() ? $dispatch->getValidationDate() : '';
+        $startDate = $dispatch->getStartDate();
+        $endDate = $dispatch->getEndDate();
+        $startDateStr = $startDate ? $startDate->format('d/m/Y') : '-';
+        $endDateStr = $endDate ? $endDate->format('d/m/Y') : '-';
         $comment = $dispatch->getCommentaire();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
@@ -146,17 +151,18 @@ class DispatchService
                 ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
                 ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Destinataire', 'value' => $receiver ? $requester->getUsername() : ''],
                 ['label' => 'Emplacement de prise', 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
                 ['label' => 'Emplacement de dépose', 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
+                ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : '']
             ],
             $freeFieldArray,
             [
                 [
                     'label' => 'Pièces jointes',
                     'value' => $dispatch->getAttachements()->toArray(),
-                    'colClass' => 'col-sm-6 col-12',
                     'isAttachments' => true,
                     'isNeededNotEmpty' => true
                 ],
@@ -164,7 +170,6 @@ class DispatchService
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
                     'isRaw' => true,
-                    'colClass' => 'col-sm-6 col-12',
                     'isScrollable' => true,
                     'isNeededNotEmpty' => true
                 ]

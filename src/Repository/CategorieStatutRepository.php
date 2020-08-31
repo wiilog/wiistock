@@ -20,19 +20,19 @@ class CategorieStatutRepository extends EntityRepository
      */
     public function findByLabelLike(array $labels)
     {
-            $queryBuilder = $this->createQueryBuilder('categorie_statut')
-                ->select('categorie_statut.id')
-                ->addSelect('categorie_statut.nom');
+        $queryBuilder = $this->createQueryBuilder('categorie_statut')
+            ->select('categorie_statut.id')
+            ->addSelect('categorie_statut.nom');
 
-            foreach($labels as $index => $label) {
-                $parameterKey = "label_$index";
-                $queryBuilder
-                    ->orWhere("categorie_statut.nom LIKE :$parameterKey")
-                    ->setParameter($parameterKey, "%$label%");
-            }
+        foreach($labels as $index => $label) {
+            $parameterKey = "label_$index";
+            $queryBuilder
+                ->orWhere("categorie_statut.nom LIKE :$parameterKey")
+                ->setParameter($parameterKey, "%$label%");
+        }
 
-            return !empty($labels)
-                ? $queryBuilder->getQuery()->getResult()
-                : [];
+        return !empty($labels)
+            ? $queryBuilder->getQuery()->getResult()
+            : [];
     }
 }
