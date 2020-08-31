@@ -1,16 +1,25 @@
 <div class="d-flex">
-    <div class="dropdown dropright">
-        {{ include('datatable/dotsRow.html.twig') }}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            <a class="dropdown-item pointer"
-               onclick="openEditPackModal({
-                   packDispatchId: {{ packDispatch.id }},
-                   code: '{{ pack.code }}',
-                   quantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
-                   natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
-               })">
-                <i class='fas fa-pen mr-2'></i>Modifier
-            </a>
+    {% if modifiable %}
+        <div class="dropdown dropright">
+            {{ include('datatable/dotsRow.html.twig') }}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <a class="dropdown-item pointer"
+                   onclick="openEditPackModal({
+                       packDispatchId: {{ packDispatch.id }},
+                       code: '{{ pack.code }}',
+                       quantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
+                       natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
+                   })">
+                    <i class='fas fa-pen mr-2'></i>Modifier
+                </a>
+                <div class="dropdown-item"
+                     data-id='{{ packDispatch.id }}'
+                     data-target='#modalDeletePack'
+                     data-toggle='modal'
+                     onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            </div>
         </div>
-    </div>
+    {% endif %}
 </div>

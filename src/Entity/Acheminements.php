@@ -26,7 +26,7 @@ class Acheminements extends FreeFieldEntity
     /**
      * @ORM\Column(type="datetime")
      */
-    private $date;
+    private $creationDate;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="acheminementsReceive")
@@ -99,6 +99,11 @@ class Acheminements extends FreeFieldEntity
      */
     private $number;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $validationDate;
+
     public function __construct()
     {
         $this->packAcheminements = new ArrayCollection();
@@ -111,14 +116,14 @@ class Acheminements extends FreeFieldEntity
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getCreationDate(): ?\DateTimeInterface
     {
-        return $this->date;
+        return $this->creationDate;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setCreationDate(\DateTimeInterface $date): self
     {
-        $this->date = $date;
+        $this->creationDate = $date;
 
         return $this;
     }
@@ -319,6 +324,18 @@ class Acheminements extends FreeFieldEntity
      */
     public function setEndDate(?DateTime $endDate): self {
         $this->endDate = $endDate;
+        return $this;
+    }
+
+    public function getValidationDate(): ?\DateTimeInterface
+    {
+        return $this->validationDate;
+    }
+
+    public function setValidationDate(?\DateTimeInterface $validationDate): self
+    {
+        $this->validationDate = $validationDate;
+
         return $this;
     }
 
