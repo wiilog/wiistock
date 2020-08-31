@@ -94,8 +94,12 @@ Class PackService
         /** @var MouvementTraca $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
+            'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
+                'pack' => $pack
+            ]),
             'packNum' => $pack->getCode(),
             'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
+            'quantity' => $pack->getQuantity() ?: 1,
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
                     ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')

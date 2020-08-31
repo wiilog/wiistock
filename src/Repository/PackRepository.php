@@ -30,6 +30,7 @@ class PackRepository extends EntityRepository
         'packLastDate' => 'packLastDate',
         'packOrigin' => 'packOrigin',
         'packLocation' => 'packLocation',
+        'quantity' => 'quantity'
     ];
 
     /**

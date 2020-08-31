@@ -33,7 +33,7 @@
                     <select class="form-control data needed"
                             name="nature"
                             title="{{ 'natures.Nature de colis'|trans }}">
-                        <option>{{ 'acheminement.Sélectionner une nature'|trans }}</option>
+                        <option>{{ 'natures.Sélectionner une nature'|trans }}</option>
                         {% for nature in natures %}
                             <option value="{{ nature.id }}">{{ nature.label }}</option>
                         {% endfor %}
@@ -45,6 +45,7 @@
                            class="form-control data needed"
                            name="quantity"
                            min="1"
+                           step="1"
                            title="{{'acheminement.Quantité à acheminer'|trans}}"/>
                 </div>
                 <div class="form-group pack-details">

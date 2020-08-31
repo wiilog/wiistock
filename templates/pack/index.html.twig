@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block page_content %}
+    <input type="hidden" id="packNatureTranslation" value="{{ 'natures.Nature de colis' | trans }}"/>
+    <input type="hidden" id="packCodeTranslation" value="{{ 'colis.Numéro colis' | trans }}"/>
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 wii-page-card">
         {% if hasRightExport %}
@@ -28,13 +30,11 @@
         {% endif %}
         <div class="row">
             <div class="col-12">
-                <table id="packTable" class="table w-100"></table>
+                <table id="packsTable" class="table w-100"></table>
             </div>
-
         </div>
     </div>
-    <input type="text" hidden id="packNature"
-           value="{{ 'natures.Nature de colis' | trans }}">
+    {% include 'pack/modalEditPack.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
