@@ -40,12 +40,20 @@
                     </select>
                 </div>
                 <div class="form-group pack-details">
-                    <label>Quantité*</label>
+                    <label>{{'acheminement.Quantité à acheminer'|trans}}*</label>
                     <input type="number"
                            class="form-control data needed"
                            name="quantity"
                            min="1"
-                           title="Quantité"/>
+                           title="{{'acheminement.Quantité à acheminer'|trans}}"/>
+                </div>
+                <div class="form-group pack-details">
+                    <label>{{'acheminement.Quantité colis'|trans}}</label>
+                    <input type="number"
+                           class="form-control"
+                           name="pack-quantity"
+                           title="{{'acheminement.Quantité colis'|trans}}"
+                           disabled/>
                 </div>
             </div>
 

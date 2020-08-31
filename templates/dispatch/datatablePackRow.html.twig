@@ -7,7 +7,8 @@
                    onclick="openEditPackModal({
                        packDispatchId: {{ packDispatch.id }},
                        code: '{{ pack.code }}',
-                       quantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
+                       quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
+                       packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
                        natureId: {{ pack.nature is not null ? pack.nature.id : 'null' }},
                    })">
                     <i class='fas fa-pen mr-2'></i>Modifier

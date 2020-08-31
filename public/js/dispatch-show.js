@@ -16,7 +16,7 @@ $(function () {
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val()},
             {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'quantity', 'name': 'code', 'title': 'Quantité'},
+            {"data": 'quantity', 'name': 'code', 'title': $('#dispatchQuantityTranslation').val()},
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
@@ -63,6 +63,8 @@ function togglePackDetails(emptyDetails = false) {
     $natureField.val(null).trigger('change');
     const $quantityField = $modal.find('[name="quantity"]');
     $quantityField.val(null);
+    const $packQuantityField = $modal.find('[name="pack-quantity"]');
+    $packQuantityField.val(null);
 
     if (packCode && !emptyDetails) {
         $.get(Routing.generate('get_pack_intel', {packCode}))
@@ -73,6 +75,7 @@ function togglePackDetails(emptyDetails = false) {
                     }
                     if (pack.quantity || pack.quantity === 0) {
                         $quantityField.val(pack.quantity);
+                        $packQuantityField.val(pack.quantity);
                     }
                 }
 
@@ -113,7 +116,7 @@ function openNewPackModal() {
     $modal.modal('show');
 }
 
-function openEditPackModal({packDispatchId, code, quantity, natureId}) {
+function openEditPackModal({packDispatchId, code, quantity, natureId, packQuantity}) {
     const modalSelector = '#modalPack'
     const $modal = $(modalSelector);
 
@@ -138,18 +141,15 @@ function openEditPackModal({packDispatchId, code, quantity, natureId}) {
     $modal.find('[name="pack"]').prop('disabled', true);
     $modal.find('button.submit-edit-pack').removeClass('d-none');
 
-    /**TODO disble all for a treated dispatch
-        $modal.find('.data').prop('disabled', true);
-        $modal.find('button.submit-edit-pack').addClass('d-none');
-    */
-
     const $natureField = $modal.find('[name="nature"]');
     const $quantityField = $modal.find('[name="quantity"]');
     const $packField = $modal.find('[name="pack"]');
+    const $packQuantityField = $modal.find('[name="pack-quantity"]');
 
     $packField.val(code);
     $natureField.val(natureId);
     $quantityField.val(quantity);
+    $packQuantityField.val(packQuantity);
 
     $modal.modal('show');
 }
