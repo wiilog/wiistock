@@ -40,7 +40,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'nature colis' => 'nature colis',
                 "une nature" => "une nature",
                 "cette nature" => "cette nature",
-                "natures requises" => "natures requises"
+                "natures requises" => "natures requises",
+                'Sélectionner une nature' => 'Sélectionner une nature'
             ],
             'arrivage' => [
                 'flux - arrivages' => 'flux - arrivages',
@@ -67,7 +68,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
                 'Le colis a déjà été traité' => 'Le colis a déjà été traité',
-                'Sélectionner une nature' => 'Sélectionner une nature',
                 'Ajouter un colis' => 'Ajouter un colis',
                 'Modifier un colis' => 'Modifier un colis',
                 'Traiter un colis' => 'Traiter un colis',
@@ -115,6 +115,14 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'référence' => $isCurrentClientCEA
                     ? 'Référence CEA'
                     : 'Référence'
+            ],
+            'colis' => [
+                'Modifier un colis' => 'Modifier un colis',
+                'Numéro colis' => 'Numéro colis',
+                'Votre colis a bien été modifié' => 'Votre colis a bien été modifié'
+            ],
+            'services' => [
+                'Types de service' => 'Types de service'
             ]
         ];
 

@@ -224,7 +224,7 @@ class UtilisateurController extends AbstractController
                     'user' => $user,
                     'deliveryTypes' => $deliveryTypes,
                     'dispatchTypes' => $dispatchTypes,
-                    'handlingTypes' => $handlingTypes,
+                    'handlingTypes' => $handlingTypes
                 ]),
 				'dropzone' => $user->getDropzone()
                     ? [

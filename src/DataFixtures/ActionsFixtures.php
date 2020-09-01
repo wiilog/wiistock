@@ -38,6 +38,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_ASSO,
 				Action::DISPLAY_ENCO,
 				Action::DISPLAY_URGE,
+				Action::DISPLAY_PACK,
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
