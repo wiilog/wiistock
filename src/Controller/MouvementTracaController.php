@@ -159,7 +159,15 @@ class MouvementTracaController extends AbstractController
 
             $colisStr = $post->get('colis');
             $commentaire = $post->get('commentaire');
-            $quantity = $post->get('quantity') ?: 1;
+            $quantity = $post->getInt('quantity') ?: 1;
+
+            if ($quantity < 1) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être supérieure à 0.'
+                ]);
+            }
+
             $date = new DateTime($post->get('datetime') ?: 'now', new \DateTimeZone('Europe/Paris'));
             $fromNomade = false;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
@@ -358,7 +366,14 @@ class MouvementTracaController extends AbstractController
             $type = $statutRepository->find($post->get('type'));
             $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
-            $quantity = $post->get('quantity') ?: 1;
+            $quantity = $post->getInt('quantity') ?: 1;
+
+            if ($quantity < 1) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être supérieure à 0.'
+                ]);
+            }
 
             /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
@@ -481,6 +496,7 @@ class MouvementTracaController extends AbstractController
                 'date',
                 'colis',
                 'emplacement',
+                'quantité',
                 'type',
                 'opérateur',
                 'commentaire',
@@ -499,6 +515,7 @@ class MouvementTracaController extends AbstractController
                     $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
                     $row[] = $mouvement['colis'];
                     $row[] = $mouvement['locationLabel'] ?: '';
+                    $row[] = $mouvement['quantity'] ?: '';
                     $row[] = $mouvement['typeName'] ?: '';
                     $row[] = $mouvement['operatorUsername'] ?: '';
                     $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';

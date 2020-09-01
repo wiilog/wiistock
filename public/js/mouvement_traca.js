@@ -45,6 +45,7 @@ let tableMvtConfig = {
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": "reference", 'name': 'reference', 'title': 'Référence'},
         {"data": "label", 'name': 'label', 'title': 'Libellé'},
+        {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},

@@ -123,6 +123,7 @@ class MouvementTracaService
                 : ($mouvement->getArticle()
                     ? $mouvement->getArticle()->getLabel()
                     : ''),
+            'quantity' => $mouvement->getQuantity() ? $mouvement->getQuantity() : '',
             'type' => $mouvement->getType() ? $mouvement->getType()->getNom() : '',
             'operateur' => $mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '',
             'Actions' => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
