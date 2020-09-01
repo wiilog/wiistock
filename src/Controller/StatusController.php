@@ -10,7 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Statut;
 
 use App\Entity\Type;
-use App\Service\StatutService;
+use App\Service\StatusService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,7 +38,9 @@ class StatusController extends AbstractController
     private $statusService;
     private $translator;
 
-    public function __construct(UserService $userService, TranslatorInterface $translator, StatutService $statusService) {
+    public function __construct(UserService $userService,
+                                TranslatorInterface $translator,
+                                StatusService $statusService) {
         $this->userService = $userService;
         $this->translator = $translator;
         $this->statusService = $statusService;
@@ -98,12 +100,14 @@ class StatusController extends AbstractController
     /**
      * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param StatusService $statusService
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
     public function new(Request $request,
+                        StatusService $statusService,
                         EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -121,32 +125,45 @@ class StatusController extends AbstractController
             if (!$labelExist) {
                 $category = $categoryStatusRepository->find($data['category']);
                 $type = $typeRepository->find($data['type']);
-                $status = new Statut();
-				$status
-                    ->setNom($data['label'])
-                    ->setComment($data['description'])
-					->setTreated($data['treated'])
-                    ->setSendNotifToBuyer((bool) $data['sendMails'])
-                    ->setSendNotifToDeclarant((bool) $data['sendMailsDeclarant'])
-                    ->setSendNotifToRecipient((bool) $data['sendMailsRecipient'])
-                    ->setNeedsMobileSync((bool) $data['needsMobileSync'])
-					->setDisplayOrder((int)$data['displayOrder'])
-                    ->setCategorie($category)
-                    ->setType($type ?? null);
+                $defaultForCategory = $data['defaultForCategory'] ?? false;
+                $statusCanBeCreated = (
+                    !$defaultForCategory
+                    || $statusService->canStatusBeDefault($entityManager, $category->getNom(), $type)
+                );
+                if (!$statusCanBeCreated) {
+                    $success = false;
+                    $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+                }
+                else {
+                    $type = $typeRepository->find($data['type']);
+                    $status = new Statut();
+                    $status
+                        ->setNom($data['label'])
+                        ->setComment($data['description'])
+                        ->setTreated($data['treated'] ?? false)
+                        ->setDefaultForCategory($defaultForCategory)
+                        ->setSendNotifToBuyer((bool)$data['sendMails'])
+                        ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
+                        ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
+                        ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+                        ->setDisplayOrder((int)$data['displayOrder'])
+                        ->setCategorie($category)
+                        ->setType($type ?? null);
 
-                $entityManager->persist($status);
-                $entityManager->flush();
+                    $entityManager->persist($status);
+                    $entityManager->flush();
 
-				return new JsonResponse([
-					'success' => true,
-					'msg' => 'Le statut "' . $data['label'] . '" a bien été créé.'
-				]);
+                    $success = true;
+                    $message = 'Le statut "' . $data['label'] . '" a bien été créé.';
+                }
             } else {
-				return new JsonResponse([
-					'success' => false,
-					'msg' => 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.'
-				]);
+                $success = false;
+                $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
             }
+            return new JsonResponse([
+                'success' => $success,
+                'msg' => $message
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -170,12 +187,11 @@ class StatusController extends AbstractController
 
             $status = $statutRepository->find($data['id']);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $categories = $categoryStatusRepository->findByLabelLike(
-                [
-                    CategorieStatut::DISPATCH,
-                    CategorieStatut::LITIGE_ARR,
-                    CategorieStatut::LITIGE_RECEPT
-                ]);
+            $categories = $categoryStatusRepository->findByLabelLike([
+                CategorieStatut::DISPATCH,
+                CategorieStatut::LITIGE_ARR,
+                CategorieStatut::LITIGE_RECEPT
+            ]);
             $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
             $transCategories = array_map(
@@ -204,10 +220,12 @@ class StatusController extends AbstractController
     /**
      * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
+     * @param StatusService $statusService
      * @param Request $request
      * @return Response
      */
     public function edit(EntityManagerInterface $entityManager,
+                         StatusService $statusService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -226,31 +244,43 @@ class StatusController extends AbstractController
             $labelExist = $statutRepository->countByLabelDiff($data['label'], $statusLabel, $categoryName);
 
             if (!$labelExist) {
-                $type = $typeRepository->find($data['type']);
-                $status
-                    ->setNom($data['label'])
-					->setTreated($data['treated'])
-                    ->setSendNotifToBuyer((bool) $data['sendMails'])
-                    ->setSendNotifToDeclarant((bool) $data['sendMailsDeclarant'])
-                    ->setSendNotifToRecipient((bool) $data['sendMailsRecipient'])
-                    ->setNeedsMobileSync((bool) $data['needsMobileSync'])
-					->setDisplayOrder((int)$data['displayOrder'])
-                    ->setComment($data['comment'])
-                    ->setType($type ?? null);
+                $defaultForCategory = $data['defaultForCategory'] ?? false;
+                $statusCanBeCreated = (
+                    !$defaultForCategory
+                    || $statusService->canStatusBeDefault($entityManager, $categoryName, $status->getType(), $status)
+                );
+                if (!$statusCanBeCreated) {
+                    $success = false;
+                    $message = 'Vous ne pouvez pas ajouter de statut par défaut pour cette entité et ce type, il en existe déjà un.';
+                }
+                else {
+                    $type = $typeRepository->find($data['type']);
+                    $status
+                        ->setNom($data['label'])
+                        ->setTreated($data['treated'] ?? false)
+                        ->setDefaultForCategory($defaultForCategory)
+                        ->setSendNotifToBuyer((bool)$data['sendMails'])
+                        ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
+                        ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
+                        ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+                        ->setDisplayOrder((int)$data['displayOrder'])
+                        ->setComment($data['comment'])
+                        ->setType($type ?? null);
 
-                $entityManager->persist($status);
-                $entityManager->flush();
+                    $entityManager->persist($status);
+                    $entityManager->flush();
 
-                return new JsonResponse([
-                	'success' => true,
-					'msg' => 'Le statut "' . $statusLabel . '" a bien été modifié.'
-				]);
+                    $success = true;
+                    $message = 'Le statut "' . $statusLabel . '" a bien été modifié.';
+                }
             } else {
-                return new JsonResponse([
-                	'success' => false,
-					'msg' => 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.'
-				]);
+                $success = false;
+                $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
             }
+            return new JsonResponse([
+                'success' => $success,
+                'msg' => $message
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

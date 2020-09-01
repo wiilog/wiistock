@@ -112,8 +112,8 @@
                             {% for statut in statusLitige %}
                                 <option value="{{ statut.id }}">{{ statut.nom }}</option>
                             {% endfor %}
-                            {% if defaultLitigeStatusId is defined and defaultLitigeStatusId != null %}
-                                <input hidden name="default-status" data-id="{{ defaultLitigeStatusId }}"/>
+                            {% if defaultDisputeStatusId is not null %}
+                                <input type="hidden" name="default-status" data-id="{{ defaultDisputeStatusId }}"/>
                             {% endif %}
                         </select>
                     </div>

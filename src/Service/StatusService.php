@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
@@ -14,7 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 
-class StatutService
+class StatusService
 {
 
     private $specificService;
@@ -86,21 +87,48 @@ class StatutService
     public function dataRowStatus($status)
     {
 
-        $url['edit'] = $this->router->generate('status_api_edit',['id' => $status->getId()]);
-        $row =
-            [
-                'id' => $status->getId() ?? '',
-                'Category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
-                'Label' => $status->getNom() ? $status->getNom() : '',
-                'Comment' => $status->getComment() ? $status->getComment() : '',
-                'Treated' => $status->getTreated() ? 'oui' : 'non',
-                'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
-                'Order' => $status->getDisplayOrder() ?? '',
-                'Actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
-                    'url' => $url,
-                    'statusId' => $status->getId(),
-                ]),
-            ];
-        return $row;
+        $url['edit'] = $this->router->generate('status_api_edit', ['id' => $status->getId()]);
+        return [
+            'id' => $status->getId() ?? '',
+            'Category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
+            'Label' => $status->getNom() ? $status->getNom() : '',
+            'Comment' => $status->getComment() ? $status->getComment() : '',
+            'Treated' => $status->getTreated() ? 'oui' : 'non',
+            'default' => $status->isDefaultForCategory() ? 'oui' : 'non',
+            'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
+            'Order' => $status->getDisplayOrder() ?? '',
+            'Actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
+                'url' => $url,
+                'statusId' => $status->getId(),
+            ]),
+        ];
+    }
+
+    public function canStatusBeDefault(EntityManagerInterface $entityManager,
+                                       string $categoryStatusLabel,
+                                       ?Type $type = null,
+                                       Statut $status = null): bool {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeId = $type ? $type->getId() : null;
+        $definedDefaultStatus = array_values(array_filter(
+            $statutRepository->findByCategorieNames([$categoryStatusLabel]),
+            function (Statut $savedStatus) use ($typeId) {
+                $savedTypeId = $savedStatus->getType() ? $savedStatus->getType()->getId() : null;
+                return (
+                    $savedTypeId === $typeId
+                    && $savedStatus->isDefaultForCategory()
+                );
+            }
+        ));
+        $definedDefaultStatusCounter = count($definedDefaultStatus);
+
+        return (
+            $definedDefaultStatusCounter === 0
+            || (
+                !empty($status)
+                && $definedDefaultStatusCounter === 1
+                && $status->getId() === $definedDefaultStatus[0]->getId()
+            )
+        );
     }
 }

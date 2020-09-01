@@ -128,6 +128,12 @@ class Statut
      */
     private $needsMobileSync;
 
+    /**
+     * @var bool
+     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     */
+    private $defaultForCategory;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -141,6 +147,8 @@ class Statut
         $this->litiges = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+
+        $this->defaultForCategory = false;
     }
 
     public function getId(): ? int
@@ -625,6 +633,22 @@ class Statut
     {
         $this->needsMobileSync = $needsMobileSync;
 
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDefaultForCategory(): bool {
+        return $this->defaultForCategory;
+    }
+
+    /**
+     * @param bool $defaultForCategory
+     * @return self
+     */
+    public function setDefaultForCategory(bool $defaultForCategory): self {
+        $this->defaultForCategory = $defaultForCategory;
         return $this;
     }
 
