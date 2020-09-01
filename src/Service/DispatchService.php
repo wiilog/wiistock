@@ -245,6 +245,8 @@ class DispatchService
                 array_push($emails, ...$requesterEmails);
             }
 
+            $isTreatedStatus = $dispatch->getStatut()->getTreated() ? true : false;
+
             if (!empty($emails)) {
                 $this->mailerService->sendMail(
                     $subject,
@@ -252,8 +254,8 @@ class DispatchService
                         'dispatch' => $dispatch,
                         'title' => $title,
                         'urlSuffix' => $translatedCategory,
-                        'hideNumber' => true,
-                        'hideValidationDate' => true
+                        'hideNumber' => $isTreatedStatus,
+                        'hideValidationDate' => $isTreatedStatus
                     ]),
                     $emails
                 );

@@ -10,15 +10,15 @@
     {% set emergency = dispatch.urgent ? 'Oui' : 'Non' %}
     {% set receiver = dispatch.receiver ? dispatch.receiver.username %}
     {% set comment = dispatch.commentaire ? dispatch.commentaire|raw %}
-    {% set hideNumber = hideNumber is defined and hideNumber %}
-    {% set hideValidationDate = hideValidationDate is defined and hideValidationDate %}
+    {% set hideNumberParam = hideNumber is defined and hideNumber %}
+    {% set hideValidationDateParam = hideValidationDate is defined and hideValidationDate %}
 
     <ul>
-        {% if not hideNumber %}
+        {% if not hideNumberParam %}
             <li>Numéro de demande : <strong>{{ dispatch.number }}</strong></li>
         {% endif %}
         <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y H:i:s') }}</strong></li>
-        {% if not hideValidationDate %}
+        {% if not hideValidationDateParam %}
             <li>Date de validation : <strong>{{ validationDate }}</strong></li>
         {% endif %}
         <li>Demandeur : <strong>{{ dispatch.requester.username }}</strong></li>
@@ -31,7 +31,7 @@
         <li>Pièces-jointes : </li>
         <ul style="list-style-type: none;">
         {% for attachment in dispatch.attachements %}
-            <li>{{ attachment.fileName }}</li>
+            <li>{{ attachment.originalName }}</li>
         {% endfor %}
         </ul>
     </ul>
@@ -91,7 +91,7 @@
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.pack.quantity }}
+                        {{ pack.quantity }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">

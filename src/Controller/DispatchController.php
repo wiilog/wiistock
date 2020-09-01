@@ -239,7 +239,7 @@ Class DispatchController extends AbstractController
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
-            'modifiable' => $dispatchStatus || !$dispatchStatus->getTreated(),
+            'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
             'newPackConfig' => [
                 'natures' => $natureRepository->findAll()
             ],
