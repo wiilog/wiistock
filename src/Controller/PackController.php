@@ -230,6 +230,13 @@ class PackController extends AbstractController
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
 
+            if ($quantity < 1) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être supérieure à 0.'
+                ]);
+            }
+
             if (!empty($natureId)) {
                 $nature = $natureRepository->find($natureId);
                 if (!empty($nature)) {
@@ -241,14 +248,12 @@ class PackController extends AbstractController
                 $pack->setQuantity($quantity);
             }
 
-
             $entityManager->flush();
         }
 
-        $response = [
+        return new JsonResponse([
             'success' => true,
-            'msg' => 'Votre colis a bien été modifier'
-        ];
-        return new JsonResponse($response);
+            'msg' => 'Votre colis a bien été modifié.'
+        ]);
     }
 }

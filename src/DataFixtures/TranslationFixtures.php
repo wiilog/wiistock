@@ -119,7 +119,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             'colis' => [
                 'Modifier un colis' => 'Modifier un colis',
                 'Numéro colis' => 'Numéro colis',
-                'Votre colis a bien été modifier' => 'Votre colis a bien été modifier'
+                'Votre colis a bien été modifié' => 'Votre colis a bien été modifié'
             ],
             'services' => [
                 'Types de service' => 'Types de service'
