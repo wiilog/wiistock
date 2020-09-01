@@ -1,6 +1,5 @@
-$('.select2').select2();
-
 $(function() {
+    $('.select2').select2();
     initDateTimePicker();
     initSelect2($('.filter-select2[name="natures"]'), 'Natures');
 

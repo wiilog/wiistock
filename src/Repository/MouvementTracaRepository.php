@@ -39,6 +39,7 @@ class MouvementTracaRepository extends EntityRepository
         'reference' => 'reference',
         'label' => 'label',
         'operateur' => 'user',
+        'quantity' => 'quantity'
     ];
 
     public function getLastDropsGroupedByColis() {
@@ -114,6 +115,7 @@ class MouvementTracaRepository extends EntityRepository
             ->select('mouvementTraca.id')
             ->addSelect('mouvementTraca.datetime')
             ->addSelect('mouvementTraca.colis')
+            ->addSelect('mouvementTraca.quantity')
             ->addSelect('location.label as locationLabel')
             ->addSelect('type.nom as typeName')
             ->addSelect('operator.username as operatorUsername')

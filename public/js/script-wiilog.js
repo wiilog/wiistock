@@ -419,12 +419,12 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
         modal.find('.select2').select2();
-        ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-        ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
-        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoFournisseurInit(modal.find('.ajax-autocomplete-fournisseur-edit'));
+        ajaxAutoRefArticleInit(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
+        ajaxAutoCompleteEmplacementInit(modal.find('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
-        ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-        $('.list-multiple').select2();
+        ajaxAutoUserInit(modal.find('.ajax-autocomplete-user-edit'));
+        modal.find('.list-multiple').each(function (){$(this).select2()});
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
