@@ -141,6 +141,7 @@ class MouvementTracaService
      * @param string|int $typeMouvementTraca label ou id du mouvement traca
      * @param array $options = [
      *      'commentaire' => string|null,
+     *      'quantity' => int|null,
      *      'natureId' => int|null,
      *      'mouvementStock' => MouvementStock|null,
      *      'fileBag' => FileBag|null, from => Arrivage|Reception|null],
@@ -177,6 +178,7 @@ class MouvementTracaService
         $commentaire = $options['commentaire'] ?? null;
         $mouvementStock = $options['mouvementStock'] ?? null;
         $fileBag = $options['fileBag'] ?? null;
+        $quantity = $options['quantity'] ?? 1;
         $from = $options['from'] ?? null;
         $receptionReferenceArticle = $options['receptionReferenceArticle'] ?? null;
         $uniqueIdForMobile = $options['uniqueIdForMobile'] ?? null;
@@ -184,6 +186,7 @@ class MouvementTracaService
         $mouvementTraca = new MouvementTraca();
         $mouvementTraca
             ->setColis($codePack)
+            ->setQuantity($quantity)
             ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null))
@@ -200,6 +203,7 @@ class MouvementTracaService
             $type,
             $pack,
             false,
+            $quantity,
             $options['natureId'] ?? null
         );
 
@@ -270,6 +274,7 @@ class MouvementTracaService
      * @param Statut $type
      * @param string|Pack $pack
      * @param bool $persist
+     * @param int $defaultQuantity Quantity used if pack does not exist
      * @param int|null $natureId
      */
     public function managePackLinksWithTracking(MouvementTraca $tracking,
@@ -277,6 +282,7 @@ class MouvementTracaService
                                                 Statut $type,
                                                 $pack,
                                                 bool $persist,
+                                                int $defaultQuantity,
                                                 int $natureId = null): void {
         $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -291,7 +297,9 @@ class MouvementTracaService
 
         if (empty($packs)) {
             $newPack = new Pack();
-            $newPack->setCode($pack);
+            $newPack
+                ->setQuantity($defaultQuantity)
+                ->setCode($pack);
 
             $packs[] = $newPack;
 

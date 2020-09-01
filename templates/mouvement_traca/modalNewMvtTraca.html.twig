@@ -9,53 +9,60 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid">
+            <div class="modal-body modal-input">
                 <div class="row">
                     <div class="col-6">
-                        <div class="form-group col-12 {{ isSafran ? 'd-none' : '' }}">
-                            <label for="datetime">Date*</label>
-                            <input type="datetime-local" class="form-control data datetime needed no-clear"
-                                   id="datetime"
-                                   name="datetime">
-                        </div>
-
-                        <div class="form-group col-12 w-100 {{ isSafran ? 'd-none' : '' }}">
-                            <label for="operator my-auto mr-2">Opérateur*</label>
-                            <select name="operator"
-                                    class="form-control ajax-autocomplete-user data needed operator no-clear">
-                            </select>
-                            <input hidden
-                                   name="logged-user"
-                                   data-username="{{ app.user.username }}"
-                                   data-id="{{ app.user.id }}"/>
-                        </div>
-                        <div class="form-group col-12 {{ isSafran ? 'd-none' : '' }}">
-                            <label for="type">Action*</label>
-                            <select class="form-control data needed {{ isSafran ? 'no-clear' }}" id="type" name="type" onchange="switchMvtCreationType($(this))">
-                                {{ not isSafran ? '<option disabled selected></option>' : '' }}
-                                {% for statut in statuts %}
-                                    <option value="{{ statut.id }}"
-                                        {{ isSafran and statut.nom == constant('App\\Entity\\MouvementTraca::TYPE_PRISE_DEPOSE') ? 'selected' : ''}}>
-                                        {{ statut.nom }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="more-body-new-mvt-traca col-12 form-group {{ not isSafran ? 'd-none' : '' }}">
+                        <div class="row">
                             {% if isSafran %}
-                                {% include 'mouvement_traca/newMassMvtTraca.html.twig' %}
+                                <div class="col-12">
+                                    {% include 'mouvement_traca/newMassMvtTraca.html.twig' %}
+                                </div>
+                            {% else %}
+                                <div class="form-group col-12">
+                                    <label for="datetime">Date*</label>
+                                    <input type="datetime-local" class="form-control data datetime needed no-clear"
+                                           id="datetime"
+                                           name="datetime">
+                                </div>
+                                <div class="form-group col-12">
+                                    <label for="operator my-auto mr-2">Opérateur*</label>
+                                    <select name="operator"
+                                            class="form-control ajax-autocomplete-user data needed operator no-clear w-100">
+                                    </select>
+                                    <input hidden
+                                           name="logged-user"
+                                           data-username="{{ app.user.username }}"
+                                           data-id="{{ app.user.id }}"/>
+                                </div>
+                                <div class="form-group col-12">
+                                    <label for="type">Action*</label>
+                                    <select class="form-control data needed w-100"
+                                            id="type"
+                                            name="type"
+                                            onchange="switchMvtCreationType($(this))">
+                                        <option disabled selected></option>
+                                        {% for statut in statuts %}
+                                            <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="more-body-new-mvt-traca col-12">
+                                </div>
                             {% endif %}
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="form-group col-12 h-fit-content">
-                            <label for="commentaire">Commentaire</label>
-                            <input id="commentaire" class="commentaire form-control data" name="commentaire"
-                                   type="hidden">
-                            <div class="editor-container-new"></div>
-                        </div>
-                        <div class="form-group col-12">
-                            <div>
-                                {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                        <div class="row">
+                            <div class="form-group col-12 h-fit-content">
+                                <label for="commentaire">Commentaire</label>
+                                <input id="commentaire" class="commentaire form-control data" name="commentaire"
+                                       type="hidden">
+                                <div class="editor-container-new"></div>
+                            </div>
+                            <div class="form-group col-12">
+                                <div>
+                                    {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -85,6 +85,12 @@ class MouvementTraca extends FreeFieldEntity
     private $finished;
 
     /**
+     * @var int
+     * @ORM\Column(type="integer", nullable=false, options={"default": 1})
+     */
+    private $quantity;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="mouvementsTraca")
      */
     private $reception;
@@ -121,8 +127,8 @@ class MouvementTraca extends FreeFieldEntity
 
     public function __construct()
     {
+        $this->quantity = 1;
         $this->attachements = new ArrayCollection();
-        $this->emplacement = new ArrayCollection();
         $this->linkedPackLastDrops = new ArrayCollection();
         $this->linkedPackLastTrackings = new ArrayCollection();
     }
@@ -377,5 +383,21 @@ class MouvementTraca extends FreeFieldEntity
 
     public function getPack(): Pack {
         return $this->pack;
+    }
+
+    /**
+     * @return int
+     */
+    public function getQuantity(): int {
+        return $this->quantity;
+    }
+
+    /**
+     * @param int $quantity
+     * @return self
+     */
+    public function setQuantity(int $quantity): self {
+        $this->quantity = $quantity;
+        return $this;
     }
 }

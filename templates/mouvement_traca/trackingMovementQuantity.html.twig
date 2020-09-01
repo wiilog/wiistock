@@ -1,0 +1,10 @@
+{% set value = quantity is defined ? quantity : 1 %}
+<div class="form-group col-12">
+    <label>Quantité*</label>
+    <input name="quantity"
+           title="Quantité"
+           min="1"
+           step="1"
+           value="{{ value }}"
+           class="form-control data needed"/>
+</div>

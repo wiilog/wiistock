@@ -132,7 +132,6 @@ class MouvementStockController extends AbstractController
      * @throws Exception
      */
     public function new(Request $request,
-                        UserService $userService,
                         MouvementStockService $mouvementStockService,
                         MouvementTracaService $mouvementTracaService,
                         EntityManagerInterface $entityManager): Response
@@ -205,8 +204,7 @@ class MouvementStockController extends AbstractController
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFERT) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
-                        $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement,
-                        impossible de la transférer.';
+                        $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement, impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
                     } else {
@@ -215,27 +213,32 @@ class MouvementStockController extends AbstractController
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
                         $chosenArticleToMove->setEmplacement($emplacementTo);
+
+                        /** @var Utilisateur $user */
+                        $user = $this->getUser();
+
                         $associatedPickTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
-                            $this->getUser(),
+                            $user,
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_PRISE
+                            MouvementTraca::TYPE_PRISE,
+                            ['quantity' => $quantity]
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
 
-
                         $associatedDropTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $createdPack,
                             $emplacementTo,
-                            $this->getUser(),
+                            $user,
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_DEPOSE
+                            MouvementTraca::TYPE_DEPOSE,
+                            ['quantity' => $quantity]
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                         $entityManager->persist($associatedPickTracaMvt);
