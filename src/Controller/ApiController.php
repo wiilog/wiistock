@@ -336,6 +336,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                                         $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
                                         $options['mouvementStock'] = $newMouvement;
+                                        $options['quantity'] = $newMouvement->getQuantity();
                                         $entityManager->persist($newMouvement);
 
                                         $configStatus = ($article instanceof Article)
@@ -372,6 +373,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             throw new Exception(MouvementTracaService::INVALID_LOCATION_TO);
                                         } else {
                                             $options['mouvementStock'] = $mouvementStockPrise;
+                                            $options['quantity'] = $mouvementStockPrise->getQuantity();
                                             $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 
                                             $configStatus = ($article instanceof Article)
@@ -393,6 +395,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                             else {
                                 $options['natureId'] = $mvt['nature_id'] ?? null;
+                                $options['quantity'] = $mvt['quantity'] ?? null;
                             }
 
                             if (!empty($mvt['comment'])) {
