@@ -1,9 +1,7 @@
 $('.select2').select2();
 
-let $submitSearchManut = $('#submitSearchManutention');
-
-let pathManut = Routing.generate('manutention_api', true);
-let tableManutentionConfig = {
+let pathHandling = Routing.generate('manutention_api', true);
+let tableHandlingConfig = {
     serverSide: true,
     processing: true,
     order: [[1, 'desc']],
@@ -24,7 +22,7 @@ let tableManutentionConfig = {
         needsSearchOverride: true,
     },
     ajax: {
-        "url": pathManut,
+        "url": pathHandling,
         "type": "POST",
         'data' : {
             'filterStatus': $('#filterStatus').val()
@@ -40,7 +38,7 @@ let tableManutentionConfig = {
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
 };
-let tableManutention = initDataTable('tableManutention_id', tableManutentionConfig);
+let tableHandling = initDataTable('tableManutention_id', tableHandlingConfig);
 
 $(function() {
     initDateTimePicker();
@@ -59,35 +57,27 @@ $(function() {
 
 // filtres de recheches
 
-let modalNewManutention = $("#modalNewManutention");
-let submitNewManutention = $("#submitNewManutention");
-let urlNewManutention = Routing.generate('manutention_new', true);
-InitialiserModal(modalNewManutention, submitNewManutention, urlNewManutention, tableManutention);
+let modalNewHandling = $("#modalNewManutention");
+let submitNewHandling = $("#submitNewManutention");
+let urlNewHandling = Routing.generate('manutention_new', true);
+InitialiserModal(modalNewHandling, submitNewHandling, urlNewHandling, tableHandling);
 
-let modalModifyManutention = $('#modalEditManutention');
-let submitModifyManutention = $('#submitEditManutention');
-let urlModifyManutention = Routing.generate('manutention_edit', true);
-InitialiserModal(modalModifyManutention, submitModifyManutention, urlModifyManutention, tableManutention);
+let modalModifyHandling = $('#modalEditManutention');
+let submitModifyHandling = $('#submitEditManutention');
+let urlModifyHandling = Routing.generate('manutention_edit', true);
+InitialiserModal(modalModifyHandling, submitModifyHandling, urlModifyHandling, tableHandling);
 
-let modalDeleteManutention = $('#modalDeleteManutention');
-let submitDeleteManutention = $('#submitDeleteManutention');
-let urlDeleteManutention = Routing.generate('manutention_delete', true);
-InitialiserModal(modalDeleteManutention, submitDeleteManutention, urlDeleteManutention, tableManutention);
-
-let editorEditManutAlreadyDone = false;
-function initEditManutEditor(modal) {
-    if (!editorEditManutAlreadyDone) {
-        initEditorInModal(modal);
-        editorEditManutAlreadyDone = true;
-    }
-}
+let modalDeleteHandling = $('#modalDeleteManutention');
+let submitDeleteHandling = $('#submitDeleteManutention');
+let urlDeleteHandling = Routing.generate('manutention_delete', true);
+InitialiserModal(modalDeleteHandling, submitDeleteHandling, urlDeleteHandling, tableHandling);
 
 //initialisation editeur de texte une seule fois
-let editorNewManutAlreadyDone = false;
-function initNewManutentionEditor(modal) {
-    if (!editorNewManutAlreadyDone) {
+let editorNewHandlingAlreadyDone = false;
+function initNewHandlingEditor(modal) {
+    if (!editorNewHandlingAlreadyDone) {
         initEditor('.editor-container-new');
-        editorNewManutAlreadyDone = true;
+        editorNewHandlingAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 }
@@ -107,7 +97,7 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function toggleManutQuill() {
+function toggleHandlingQuill() {
     let $modal = $('#modalEditManutention');
     let enable = $modal.find('#statut').val() === '1';
     toggleQuill($modal, enable);

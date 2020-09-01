@@ -18,7 +18,7 @@
                         <div class="btn btn-primary btn-ripple split-button"
                              data-toggle="modal"
                              data-target="#modalNewManutention"
-                             onclick='initNewManutentionEditor("#modalNewManutention")'>
+                             onclick='initNewHandlingEditor("#modalNewManutention")'>
                             <span class="fa fa-plus mr-2"></span>Nouvelle demande
                         </div>
                         <button type="button"
@@ -42,7 +42,7 @@
                     {% endif %}
                     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                         <a href="" data-toggle="modal" data-target="#modalNewManutention" class="btn btn-primary btn-ripple"
-                           onclick='initNewManutentionEditor("#modalNewManutention")'>
+                           onclick='initNewHandlingEditor("#modalNewManutention")'>
                             <span class="fa fa-plus mr-2"></span>Nouvelle demande
                         </a>
                     {% endif %}
