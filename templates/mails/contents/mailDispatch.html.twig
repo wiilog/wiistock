@@ -28,12 +28,14 @@
         <li>Commentaire : {{ comment|striptags }}</li>
         <li>Dates d'échéance : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
         <li>Urgence : <strong>{{ emergency }}</strong></li>
-        <li>Pièces-jointes : </li>
-        <ul style="list-style-type: none;">
-        {% for attachment in dispatch.attachements %}
-            <li>{{ attachment.originalName }}</li>
-        {% endfor %}
-        </ul>
+        <li>
+            Pièces-jointes :
+            <ul>
+                {% for attachment in dispatch.attachements %}
+                    <li>{{ attachment.originalName }}</li>
+                {% endfor %}
+            </ul>
+        </li>
     </ul>
 
     <table class="table"

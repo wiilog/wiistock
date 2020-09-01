@@ -245,7 +245,7 @@ class DispatchService
                 array_push($emails, ...$requesterEmails);
             }
 
-            $isTreatedStatus = $dispatch->getStatut()->getTreated() ? true : false;
+            $isTreatedStatus = $dispatch->getStatut() && $dispatch->getStatut()->getTreated();
 
             if (!empty($emails)) {
                 $this->mailerService->sendMail(
