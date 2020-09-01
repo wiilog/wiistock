@@ -294,7 +294,8 @@ class DispatchService
                 $date,
                 $fromNomade,
                 true,
-                MouvementTraca::TYPE_PRISE
+                MouvementTraca::TYPE_PRISE,
+                ['quantity' => $dispatchPack->getQuantity()]
             );
 
             $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
@@ -304,7 +305,8 @@ class DispatchService
                 $date,
                 $fromNomade,
                 true,
-                MouvementTraca::TYPE_DEPOSE
+                MouvementTraca::TYPE_DEPOSE,
+                ['quantity' => $dispatchPack->getQuantity()]
             );
 
             $entityManager->persist($trackingTaking);

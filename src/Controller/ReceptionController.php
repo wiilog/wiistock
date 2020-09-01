@@ -756,7 +756,6 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
@@ -871,6 +870,7 @@ class ReceptionController extends AbstractController
                             MouvementTraca::TYPE_DEPOSE,
                             [
                                 'mouvementStock' => $mouvementStock,
+                                'quantity' => $mouvementStock->getQuantity(),
                                 'from' => $reception,
                                 'receptionReferenceArticle' => $receptionReferenceArticle
                             ]
@@ -1942,6 +1942,7 @@ class ReceptionController extends AbstractController
                     MouvementTraca::TYPE_DEPOSE,
                     [
                         'mouvementStock' => $mouvementStock,
+                        'quantity' => $mouvementStock->getQuantity(),
                         'from' => $reception
                     ]
                 );

@@ -42,14 +42,14 @@ class Pack
     /**
      * @var MouvementTraca
      * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrops")
-     * @ORM\JoinColumn(name="last_drop_id")
+     * @ORM\JoinColumn(name="last_drop_id", onDelete="SET NULL")
      */
     private $lastDrop;
 
     /**
      * @var MouvementTraca
      * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTrackings")
-     * @ORM\JoinColumn(name="last_tracking_id")
+     * @ORM\JoinColumn(name="last_tracking_id", onDelete="SET NULL")
      */
     private $lastTracking;
 

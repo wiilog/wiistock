@@ -148,13 +148,29 @@ class MouvementTracaController extends AbstractController
             $packTranslation = $translator->trans('arrivage.colis');
             $natureTranslation = $translator->trans('natures.natures requises');
 
-            $operator = $utilisateurRepository->find($post->get('operator'));
+            $operatorId = $post->get('operator');
+            if (!empty($operatorId)) {
+                $operator = $utilisateurRepository->find($operatorId);
+            }
+            if (empty($operator)) {
+                /** @var Utilisateur $operator */
+                $operator = $this->getUser();
+            }
+
             $colisStr = $post->get('colis');
             $commentaire = $post->get('commentaire');
-            $date = new DateTime($post->get('datetime'), new \DateTimeZone('Europe/Paris'));
+            $quantity = $post->getInt('quantity') ?: 1;
+
+            if ($quantity < 1) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être supérieure à 0.'
+                ]);
+            }
+
+            $date = new DateTime($post->get('datetime') ?: 'now', new \DateTimeZone('Europe/Paris'));
             $fromNomade = false;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
-            $type = $post->getInt('type');
 
             $codeToPack = [];
             $createdMouvements = [];
@@ -168,8 +184,11 @@ class MouvementTracaController extends AbstractController
                     $date,
                     $fromNomade,
                     null,
-                    $type,
-                    ['commentaire' => $commentaire]
+                    $post->getInt('type'),
+                    [
+                        'commentaire' => $commentaire,
+                        'quantity' => $quantity
+                    ]
                 );
 
                 $movementType = $createdMvt->getType();
@@ -199,7 +218,10 @@ class MouvementTracaController extends AbstractController
                         $fromNomade,
                         true,
                         MouvementTraca::TYPE_PRISE,
-                        ['commentaire' => $commentaire]
+                        [
+                            'commentaire' => $commentaire,
+                            'quantity' => $quantity
+                        ]
                     );
 
                     $mouvementTracaService->persistSubEntities($entityManager, $createdMvt);
@@ -215,7 +237,10 @@ class MouvementTracaController extends AbstractController
                         $fromNomade,
                         true,
                         MouvementTraca::TYPE_DEPOSE,
-                        ['commentaire' => $commentaire]
+                        [
+                            'commentaire' => $commentaire,
+                            'quantity' => $quantity
+                        ]
                     );
 
                     // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
@@ -341,6 +366,14 @@ class MouvementTracaController extends AbstractController
             $type = $statutRepository->find($post->get('type'));
             $location = $emplacementRepository->find($post->get('emplacement'));
             $operator = $utilisateurRepository->find($post->get('operator'));
+            $quantity = $post->getInt('quantity') ?: 1;
+
+            if ($quantity < 1) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La quantité doit être supérieure à 0.'
+                ]);
+            }
 
             /** @var MouvementTraca $mvt */
             $mvt = $mouvementTracaRepository->find($post->get('id'));
@@ -349,6 +382,7 @@ class MouvementTracaController extends AbstractController
                 $entityManager,
                 $type,
                 $post->get('colis'),
+                $quantity,
                 true
             );
 
@@ -356,6 +390,7 @@ class MouvementTracaController extends AbstractController
                 ->setDatetime($date)
                 ->setOperateur($operator)
                 ->setColis($post->get('colis'))
+                ->setQuantity($quantity)
                 ->setType($type)
                 ->setEmplacement($location)
                 ->setCommentaire($post->get('commentaire'));
@@ -461,6 +496,7 @@ class MouvementTracaController extends AbstractController
                 'date',
                 'colis',
                 'emplacement',
+                'quantité',
                 'type',
                 'opérateur',
                 'commentaire',
@@ -479,6 +515,7 @@ class MouvementTracaController extends AbstractController
                     $row[] = $mouvement['datetime'] ? $mouvement['datetime']->format('d/m/Y H:i') : '';
                     $row[] = $mouvement['colis'];
                     $row[] = $mouvement['locationLabel'] ?: '';
+                    $row[] = $mouvement['quantity'] ?: '';
                     $row[] = $mouvement['typeName'] ?: '';
                     $row[] = $mouvement['operatorUsername'] ?: '';
                     $row[] = $mouvement['commentaire'] ? strip_tags($mouvement['commentaire']) : '';
