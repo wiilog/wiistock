@@ -64,7 +64,7 @@ class FiltreSup
     const PAGE_TO_CATEGORY = [
         self::PAGE_DEM_COLLECTE => CategorieStatut::DEM_COLLECTE,
         self::PAGE_DEM_LIVRAISON => CategorieStatut::DEM_LIVRAISON,
-        self::PAGE_MANUT => CategorieStatut::MANUTENTION,
+        self::PAGE_MANUT => CategorieStatut::HANDLING,
         self::PAGE_RECEPTION => CategorieStatut::RECEPTION,
         self::PAGE_ORDRE_COLLECTE => CategorieStatut::ORDRE_COLLECTE,
         self::PAGE_ORDRE_LIVRAISON => CategorieStatut::ORDRE_LIVRAISON,

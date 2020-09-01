@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Manutention;
+use App\Entity\Handling;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -11,12 +11,12 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method Manutention|null find($id, $lockMode = null, $lockVersion = null)
- * @method Manutention|null findOneBy(array $criteria, array $orderBy = null)
- * @method Manutention[]    findAll()
- * @method Manutention[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Handling|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Handling|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Handling[]    findAll()
+ * @method Handling[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ManutentionRepository extends ServiceEntityRepository
+class HandlingRepository extends ServiceEntityRepository
 {
 
     private const DtToDbLabels = [
@@ -30,16 +30,16 @@ class ManutentionRepository extends ServiceEntityRepository
 
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Manutention::class);
+        parent::__construct($registry, Handling::class);
     }
 
     public function countByStatut($statut){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         	/** @lang DQL */
-            "SELECT COUNT(m)
-            FROM App\Entity\Manutention m
-            WHERE m.statut = :statut
+            "SELECT COUNT(h)
+            FROM App\Entity\Handling h
+            WHERE h.statut = :statut
            "
             )->setParameter('statut', $statut);
         return $query->getSingleScalarResult();
@@ -49,10 +49,10 @@ class ManutentionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @Lang DQL */
-        "SELECT m.id, m.dateAttendue as dateAttendueDT, d.username as demandeur, m.commentaire, m.source, m.destination, m.libelle as objet
-        FROM App\Entity\Manutention m
-        JOIN m.demandeur d
-        WHERE m.statut = :statut
+            "SELECT h.id, h.dateAttendue as dateAttendueDT, d.username as demandeur, h.commentaire, h.source, h.destination, h.libelle as objet
+        FROM App\Entity\Handling h
+        JOIN h.demandeur d
+        WHERE h.statut = :statut
         "
         )->setParameter('statut', $statut);
         return $query->execute();
@@ -69,9 +69,9 @@ class ManutentionRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 		/** @lang DQL */
-			"SELECT COUNT(m)
-            FROM App\Entity\Manutention m
-            WHERE m.demandeur = :user"
+            "SELECT COUNT(h)
+            FROM App\Entity\Handling h
+            WHERE h.demandeur = :user"
 		)->setParameter('user', $user);
 
 		return $query->getSingleScalarResult();
@@ -80,7 +80,7 @@ class ManutentionRepository extends ServiceEntityRepository
     /**
      * @param DateTime $dateMin
      * @param DateTime $dateMax
-     * @return Manutention[]|null
+     * @return Handling[]|null
      */
     public function findByDates($dateMin, $dateMax)
     {
@@ -89,9 +89,9 @@ class ManutentionRepository extends ServiceEntityRepository
 
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'SELECT m
-            FROM App\Entity\Manutention m
-            WHERE m.date BETWEEN :dateMin AND :dateMax'
+            'SELECT h
+            FROM App\Entity\Handling h
+            WHERE h.date BETWEEN :dateMin AND :dateMax'
         )->setParameters([
             'dateMin' => $dateMin,
             'dateMax' => $dateMax
@@ -105,8 +105,8 @@ class ManutentionRepository extends ServiceEntityRepository
         $qb = $em->createQueryBuilder();
 
         $qb
-			->select('m')
-            ->from('App\Entity\Manutention', 'm');
+			->select('h')
+            ->from('Handling', 'h');
 
         $countTotal = count($qb->getQuery()->getResult());
 
@@ -116,7 +116,7 @@ class ManutentionRepository extends ServiceEntityRepository
                 case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('m.statut', 's')
+						->join('h.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
@@ -124,16 +124,16 @@ class ManutentionRepository extends ServiceEntityRepository
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('m.demandeur', 'd')
+                        ->join('h.demandeur', 'd')
                         ->andWhere("d.id in (:username)")
                         ->setParameter('username', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('m.date >= :dateMin')
+                    $qb->andWhere('h.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb->andWhere('m.date <= :dateMax')
+                    $qb->andWhere('h.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
             }
@@ -145,7 +145,7 @@ class ManutentionRepository extends ServiceEntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->andWhere('m.libelle LIKE :value OR m.date LIKE :value')
+						->andWhere('h.libelle LIKE :value OR h.date LIKE :value')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -157,15 +157,15 @@ class ManutentionRepository extends ServiceEntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     if ($column === 'statut') {
                         $qb
-                            ->leftJoin('m.statut', 's2')
+                            ->leftJoin('h.statut', 's2')
                             ->orderBy('s2.nom', $order);
                     } else if ($column === 'demandeur') {
                         $qb
-                            ->leftJoin('m.demandeur', 'u2')
+                            ->leftJoin('h.demandeur', 'u2')
                             ->orderBy('u2.username', $order);
                     } else {
                         $qb
-                            ->orderBy('m.' . $column, $order);
+                            ->orderBy('h.' . $column, $order);
                     }
                 }
             }

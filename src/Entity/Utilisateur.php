@@ -116,9 +116,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $mobileLoginKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="Handling", mappedBy="demandeur")
      */
-    private $manutentions;
+    private $handlings;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="receiver")
@@ -266,7 +266,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->manutentions = new ArrayCollection();
+        $this->handlings = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
         $this->arrivagesDestinataire = new ArrayCollection();
@@ -572,30 +572,30 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Manutention[]
+     * @return Collection|Handling[]
      */
-    public function getManutentions(): Collection
+    public function getHandlings(): Collection
     {
-        return $this->manutentions;
+        return $this->handlings;
     }
 
-    public function addManutention(Manutention $manutention): self
+    public function addManutention(Handling $handling): self
     {
-        if (!$this->manutentions->contains($manutention)) {
-            $this->manutentions[] = $manutention;
-            $manutention->setDemandeur($this);
+        if (!$this->handlings->contains($handling)) {
+            $this->handlings[] = $handling;
+            $handling->setDemandeur($this);
         }
 
         return $this;
     }
 
-    public function removeManutention(Manutention $manutention): self
+    public function removeManutention(Handling $handling): self
     {
-        if ($this->manutentions->contains($manutention)) {
-            $this->manutentions->removeElement($manutention);
+        if ($this->handlings->contains($handling)) {
+            $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if ($manutention->getDemandeur() === $this) {
-                $manutention->setDemandeur(null);
+            if ($handling->getDemandeur() === $this) {
+                $handling->setDemandeur(null);
             }
         }
 

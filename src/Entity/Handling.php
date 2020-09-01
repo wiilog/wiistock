@@ -5,11 +5,11 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ManutentionRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\HandlingRepository")
  */
-class Manutention
+class Handling
 {
-    const CATEGORIE = 'manutention';
+    const CATEGORIE = 'service';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
     /**

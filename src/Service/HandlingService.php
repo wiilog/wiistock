@@ -5,7 +5,7 @@ namespace App\Service;
 
 
 use App\Entity\FiltreSup;
-use App\Entity\Manutention;
+use App\Entity\Handling;
 use App\Entity\Utilisateur;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,7 +15,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class ManutentionService
+class HandlingService
 {
     /**
      * @var Twig_Environment
@@ -51,7 +51,7 @@ class ManutentionService
     public function getDataForDatatable($params = null, $statusFilter = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $manutentionRepository = $this->entityManager->getRepository(Manutention::class);
+        $handlingRepository = $this->entityManager->getRepository(Handling::class);
 
         if ($statusFilter) {
             $filters = [
@@ -64,13 +64,13 @@ class ManutentionService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
         }
 
-        $queryResult = $manutentionRepository->findByParamAndFilters($params, $filters);
+        $queryResult = $handlingRepository->findByParamAndFilters($params, $filters);
 
-        $manutArray = $queryResult['data'];
+        $handlingArray = $queryResult['data'];
 
         $rows = [];
-        foreach ($manutArray as $manutention) {
-            $rows[] = $this->dataRowManut($manutention);
+        foreach ($handlingArray as $handling) {
+            $rows[] = $this->dataRowManut($handling);
         }
 
         return [
@@ -81,42 +81,42 @@ class ManutentionService
     }
 
     /**
-     * @param Manutention $manutention
+     * @param Handling $handling
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowManut(Manutention $manutention)
+    public function dataRowManut(Handling $handling)
     {
         return [
-            'id' => ($manutention->getId() ? $manutention->getId() : 'Non défini'),
-            'Date demande' => ($manutention->getDate() ? $manutention->getDate()->format('d/m/Y') : null),
-            'Demandeur' => ($manutention->getDemandeur() ? $manutention->getDemandeur()->getUserName() : null),
-            'Libellé' => ($manutention->getlibelle() ? $manutention->getLibelle() : null),
-            'Date souhaitée' => ($manutention->getDateAttendue() ? $manutention->getDateAttendue()->format('d/m/Y H:i') : null),
-            'Date de réalisation' => ($manutention->getDateEnd() ? $manutention->getDateEnd()->format('d/m/Y H:i') : null),
-            'Statut' => ($manutention->getStatut()->getNom() ? $manutention->getStatut()->getNom() : null),
+            'id' => ($handling->getId() ? $handling->getId() : 'Non défini'),
+            'Date demande' => ($handling->getDate() ? $handling->getDate()->format('d/m/Y') : null),
+            'Demandeur' => ($handling->getDemandeur() ? $handling->getDemandeur()->getUserName() : null),
+            'Libellé' => ($handling->getlibelle() ? $handling->getLibelle() : null),
+            'Date souhaitée' => ($handling->getDateAttendue() ? $handling->getDateAttendue()->format('d/m/Y H:i') : null),
+            'Date de réalisation' => ($handling->getDateEnd() ? $handling->getDateEnd()->format('d/m/Y H:i') : null),
+            'Statut' => ($handling->getStatut()->getNom() ? $handling->getStatut()->getNom() : null),
             'Actions' => $this->templating->render('manutention/datatableManutentionRow.html.twig', [
-                'manut' => $manutention
+                'manut' => $handling
             ]),
         ];
     }
 
     /**
-     * @param Manutention $manutention
+     * @param Handling $handling
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendTreatedEmail(Manutention $manutention): void {
+    public function sendTreatedEmail(Handling $handling): void {
         $this->mailerService->sendMail(
             'FOLLOW GT // Manutention effectuée',
             $this->templating->render('mails/contents/mailManutentionDone.html.twig', [
-                'manut' => $manutention,
+                'manut' => $handling,
                 'title' => 'Votre demande de manutention a bien été effectuée.',
             ]),
-            $manutention->getDemandeur()->getMainAndSecondaryEmails()
+            $handling->getDemandeur()->getMainAndSecondaryEmails()
         );
     }
 }

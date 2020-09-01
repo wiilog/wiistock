@@ -8,7 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Livraison;
-use App\Entity\Manutention;
+use App\Entity\Handling;
 use App\Entity\OrdreCollecte;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
@@ -169,8 +169,6 @@ class UserService
     /**
      * @param Utilisateur|int $user
      * @return bool
-     * @throws NonUniqueResultException
-     * @throws NoResultException
      */
 	public function isUsedByDemandsOrOrders($user)
 	{
@@ -178,7 +176,7 @@ class UserService
 	    $demandeRepository = $this->entityManager->getRepository(Demande::class);
 	    $livraisonRepository = $this->entityManager->getRepository(Livraison::class);
 	    $ordreCollecteRepository = $this->entityManager->getRepository(OrdreCollecte::class);
-	    $manutentionRepository = $this->entityManager->getRepository(Manutention::class);
+	    $handlingRepository = $this->entityManager->getRepository(Handling::class);
 	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
@@ -188,7 +186,7 @@ class UserService
         $isUsedInCollects = $collecteRepository->countByUser($user) > 0;
         $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user) > 0;
         $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user) > 0;
-        $isUsedInManutentions = $manutentionRepository->countByUser($user) > 0;
+        $isUsedInHandlings = $handlingRepository->countByUser($user) > 0;
         $isUsedInPreparationOrders = $preparationRepository->countByUser($user) > 0;
         $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
         $isUsedInDispatches = $dispatchRepository->countByUser($user) > 0;
@@ -199,7 +197,7 @@ class UserService
             || $isUsedInCollects
             || $isUsedInDeliveryOrders
             || $isUsedInCollectOrders
-            || $isUsedInManutentions
+            || $isUsedInHandlings
             || $isUsedInPreparationOrders
             || $isUsedInReceptions
             || $isUsedInDispatches

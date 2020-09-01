@@ -5,15 +5,14 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\Manutention;
+use App\Entity\Handling;
 
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Repository\ManutentionRepository;
 
 use App\Service\MailerService;
 use App\Service\UserService;
-use App\Service\ManutentionService;
+use App\Service\HandlingService;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,14 +30,10 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 /**
- * @Route("/manutention")
+ * @Route("/service")
  */
-class ManutentionController extends AbstractController
+class HandlingController extends AbstractController
 {
-    /**
-     * @var ManutentionRepository
-     */
-    private $manutentionRepository;
 
     /**
      * @var UserService
@@ -50,29 +45,21 @@ class ManutentionController extends AbstractController
      */
     private $mailerService;
 
-    /**
-     * @var ManutentionService
-     */
-    private $manutentionService;
 
-
-    public function __construct(ManutentionRepository $manutentionRepository,
-                                UserService $userService,
-                                MailerService $mailerService,
-                                ManutentionService $manutentionService)
+    public function __construct(UserService $userService,
+                                MailerService $mailerService)
     {
-        $this->manutentionRepository = $manutentionRepository;
         $this->userService = $userService;
-        $this->mailerService = $mailerService;
-        $this->manutentionService = $manutentionService;
+        $this->mailerService = $mailerService;;
     }
 
     /**
      * @Route("/api", name="manutention_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param HandlingService $handlingService
      * @return Response
      */
-    public function api(Request $request): Response
+    public function api(Request $request, HandlingService $handlingService): Response
     {
 		if ($request->isXmlHttpRequest()) {
 
@@ -82,7 +69,7 @@ class ManutentionController extends AbstractController
 
 			// cas d'un filtre statut depuis page d'accueil
 			$filterStatus = $request->request->get('filterStatus');
-			$data = $this->manutentionService->getDataForDatatable($request->request, $filterStatus);
+			$data = $handlingService->getDataForDatatable($request->request, $filterStatus);
 
 			return new JsonResponse($data);
 		} else {
@@ -108,24 +95,28 @@ class ManutentionController extends AbstractController
 
         return $this->render('manutention/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
-            'statuts' => $statutRepository->findByCategorieName(Manutention::CATEGORIE),
+            'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
 			'filterStatus' => $filter
 		]);
     }
 
     /**
      * @Route("/voir", name="manutention_show", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function show(Request $request): Response
+    public function show(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
-            $manutention = $this->manutentionRepository->find($data);
+			$handlingRepository = $entityManager->getRepository(Handling::class);
+            $handling = $handlingRepository->find($data);
             $json = $this->renderView('manutention/modalShowManutentionContent.html.twig', [
-                'manut' => $manutention,
+                'manut' => $handling,
             ]);
             return new JsonResponse($json);
         }
@@ -139,6 +130,7 @@ class ManutentionController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
                         Request $request): Response
@@ -151,11 +143,11 @@ class ManutentionController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
-            $manutention = new Manutention();
+            $status = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
+            $handling = new Handling();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
-            $manutention
+            $handling
                 ->setDate($date)
                 ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
@@ -166,7 +158,7 @@ class ManutentionController extends AbstractController
 				->setCommentaire($data['commentaire']);
 
             $em = $this->getDoctrine()->getManager();
-            $em->persist($manutention);
+            $em->persist($handling);
 
             $em->flush();
 
@@ -189,17 +181,17 @@ class ManutentionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $manutentionRepository = $entityManager->getRepository(Manutention::class);
+            $handlingRepository = $entityManager->getRepository(Handling::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $manutention = $manutentionRepository->find($data['id']);
+            $handling = $handlingRepository->find($data['id']);
             $json = $this->renderView('manutention/modalEditManutentionContent.html.twig', [
-                'manut' => $manutention,
+                'manut' => $handling,
                 'utilisateurs' => $utilisateurRepository->findAll(),
                 'emplacements' => $emplacementRepository->findAll(),
-                'statusTreated' => ($manutention->getStatut()->getNom() === Manutention::STATUT_A_TRAITER) ? 1 : 0,
-                'statuts' => $statutRepository->findByCategorieName(Manutention::CATEGORIE),
+                'statusTreated' => ($handling->getStatut()->getNom() === Handling::STATUT_A_TRAITER) ? 1 : 0,
+                'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
             ]);
 
             return new JsonResponse($json);
@@ -210,7 +202,7 @@ class ManutentionController extends AbstractController
     /**
      * @Route("/modifier", name="manutention_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param ManutentionService $manutentionService
+     * @param HandlingService $handlingService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
@@ -220,7 +212,7 @@ class ManutentionController extends AbstractController
      * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
-                         ManutentionService $manutentionService,
+                         HandlingService $handlingService,
                          Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -229,20 +221,20 @@ class ManutentionController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $manutentionRepository = $entityManager->getRepository(Manutention::class);
+            $handlingRepository = $entityManager->getRepository(Handling::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $manutention = $manutentionRepository->find($data['id']);
+            $handling = $handlingRepository->find($data['id']);
 
-            $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, $statutLabel);
-            if ($statut->getNom() === Manutention::STATUT_TRAITE
-                && $statut !== $manutention->getStatut()) {
-                $manutentionService->sendTreatedEmail($manutention);
-                $manutention->setDateEnd(new DateTime('now', new \DateTimeZone('Europe/Paris')));
+            $statutLabel = (intval($data['statut']) === 1) ? Handling::STATUT_A_TRAITER : Handling::STATUT_TRAITE;
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, $statutLabel);
+            if ($statut->getNom() === Handling::STATUT_TRAITE
+                && $statut !== $handling->getStatut()) {
+                $handlingService->sendTreatedEmail($handling);
+                $handling->setDateEnd(new DateTime('now', new \DateTimeZone('Europe/Paris')));
             }
 
-            $manutention
+            $handling
                 ->setStatut($statut)
                 ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
@@ -260,19 +252,22 @@ class ManutentionController extends AbstractController
 
     /**
      * @Route("/supprimer", name="manutention_delete", options={"expose"=true},methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
+            $handlingRepository = $entityManager->getRepository(Handling::class);
+            $handling = $handlingRepository->find($data['manutention']);
 
-            $manutention = $this->manutentionRepository->find($data['manutention']);
-
-            if ($manutention->getStatut()->getNom() == Manutention::STATUT_A_TRAITER) {
+            if ($handling->getStatut()->getNom() == Handling::STATUT_A_TRAITER) {
 				$entityManager = $this->getDoctrine()->getManager();
-				$entityManager->remove($manutention);
+				$entityManager->remove($handling);
 				$entityManager->flush();
 				$response = true;
             } else {
@@ -288,8 +283,11 @@ class ManutentionController extends AbstractController
 
     /**
      * @Route("/infos", name="get_manutentions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function getOrdreLivraisonIntels(Request $request): Response
+    public function getOrdreLivraisonIntels(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
@@ -298,7 +296,8 @@ class ManutentionController extends AbstractController
             $dateTimeMin = DateTime::createFromFormat('d/m/Y H:i:s', $dateMin);
             $dateTimeMax = DateTime::createFromFormat('d/m/Y H:i:s', $dateMax);
 
-            $manutentions = $this->manutentionRepository->findByDates($dateTimeMin, $dateTimeMax);
+            $handlingRepository = $entityManager->getRepository(Handling::class);
+            $handlings = $handlingRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [
                 'date création',
@@ -313,8 +312,8 @@ class ManutentionController extends AbstractController
             $data = [];
             $data[] = $headers;
 
-            foreach ($manutentions as $manutention) {
-                $this->buildInfos($manutention, $data);
+            foreach ($handlings as $handling) {
+                $this->buildInfos($handling, $data);
             }
             return new JsonResponse($data);
         } else {
@@ -323,17 +322,17 @@ class ManutentionController extends AbstractController
     }
 
 
-    private function buildInfos(Manutention $manutention, &$data)
+    private function buildInfos(Handling $handling, &$data)
     {
         $data[] =
             [
-                $manutention->getDate()->format('d/m/Y H:i'),
-                $manutention->getDemandeur()->getUsername(),
-                $manutention->getSource(),
-                $manutention->getDestination(),
-                $manutention->getDateAttendue()->format('d/m/Y H:i'),
-                $manutention->getDateEnd() ? $manutention->getDateEnd()->format('d/m/Y H:i') : '',
-                $manutention->getStatut() ? $manutention->getStatut()->getNom() : '',
+                $handling->getDate()->format('d/m/Y H:i'),
+                $handling->getDemandeur()->getUsername(),
+                $handling->getSource(),
+                $handling->getDestination(),
+                $handling->getDateAttendue()->format('d/m/Y H:i'),
+                $handling->getDateEnd() ? $handling->getDateEnd()->format('d/m/Y H:i') : '',
+                $handling->getStatut() ? $handling->getStatut()->getNom() : '',
             ];
     }
 }

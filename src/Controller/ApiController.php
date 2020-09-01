@@ -16,7 +16,7 @@ use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
-use App\Entity\Manutention;
+use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
@@ -35,7 +35,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
-use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\DispatchService;
@@ -44,7 +43,7 @@ use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
-use App\Service\ManutentionService;
+use App\Service\HandlingService;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
 use App\Service\NatureService;
@@ -122,11 +121,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $inventoryService;
 
     /**
-     * @var ManutentionRepository
-     */
-    private $manutentionRepository;
-
-    /**
      * @var OrdreCollecteService
      */
     private $ordreCollecteService;
@@ -139,7 +133,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * ApiController constructor.
      * @param InventoryEntryRepository $inventoryEntryRepository
-     * @param ManutentionRepository $manutentionRepository
      * @param OrdreCollecteService $ordreCollecteService
      * @param InventoryService $inventoryService
      * @param UserService $userService
@@ -150,7 +143,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param UserPasswordEncoderInterface $passwordEncoder
      */
     public function __construct(InventoryEntryRepository $inventoryEntryRepository,
-                                ManutentionRepository $manutentionRepository,
                                 OrdreCollecteService $ordreCollecteService,
                                 InventoryService $inventoryService,
                                 UserService $userService,
@@ -160,7 +152,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 MailerService $mailerService,
                                 UserPasswordEncoderInterface $passwordEncoder)
     {
-        $this->manutentionRepository = $manutentionRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
         $this->passwordEncoder = $passwordEncoder;
@@ -806,7 +797,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param ManutentionService $manutentionService
+     * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
      * @throws NonUniqueResultException
@@ -814,32 +805,33 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws SyntaxError
      * @throws Exception
      */
-    public function validateManut(Request $request,
-                                  EntityManagerInterface $entityManager,
-                                  ManutentionService $manutentionService)
+    public function validateHandling(Request $request,
+                                     EntityManagerInterface $entityManager,
+                                     HandlingService $handlingService)
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $handlingRepository = $entityManager->getRepository(Handling::class);
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
 
             $id = $request->request->get('id');
-            $manut = $this->manutentionRepository->find($id);
+            $handling = $handlingRepository->find($id);
 
-            if ($manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
+            if ($handling->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
                 $commentaire = $request->request->get('commentaire');
                 if (!empty($commentaire)) {
-                    $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                    $handling->setCommentaire($handling->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
                 $statutRepository = $entityManager->getRepository(Statut::class);
-                $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE);
-                $manut
+                $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_TRAITE);
+                $handling
                     ->setStatut($statusTreated)
                     ->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
-                if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
-                    $manutentionService->sendTreatedEmail($manut);
+                if ($handling->getStatut()->getNom() == Handling::STATUT_TRAITE) {
+                    $handlingService->sendTreatedEmail($handling);
                 }
                 $this->successDataMsg['success'] = true;
             } else {
@@ -1391,12 +1383,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['demande']) {
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $manutentionRepository = $entityManager->getRepository(Manutention::class);
-            $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
-            $manutentions = array_map(function (array $manutention) {
-                $manutention['date_attendue'] = $manutention['dateAttendueDT']->format('d/m/Y H:i:s');
-                return $manutention;
-            }, $manutentions);
+            $handlingRepository = $entityManager->getRepository(Handling::class);
+            $handlings = $handlingRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_A_TRAITER));
+            $handlings = array_map(function (array $handling) {
+                $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
+                return $handling;
+            }, $handlings);
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [
@@ -1405,7 +1397,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 ];
             }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON));
         } else {
-            $manutentions = [];
+            $handlings = [];
             $demandeLivraisonArticles = [];
             $demandeLivraisonTypes = [];
         }
@@ -1457,7 +1449,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'manutentions' => $manutentions,
+            'manutentions' => $handlings,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,

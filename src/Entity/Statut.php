@@ -84,9 +84,9 @@ class Statut
     private $referenceArticles;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="Handling", mappedBy="statut")
      */
-    private $manutentions;
+    private $handlings;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="statut")
@@ -137,7 +137,7 @@ class Statut
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
-        $this->manutentions = new ArrayCollection();
+        $this->handlings = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
@@ -403,31 +403,31 @@ class Statut
 
 
     /**
-    * @return Collection|Manutention[]
+    * @return Collection|Handling[]
      */
-    public function getManutentions(): Collection
+    public function getHandlings(): Collection
     {
-        return $this->manutentions;
+        return $this->handlings;
     }
 
-    public function addManutention(Manutention $manutention): self
+    public function addManutention(Handling $handling): self
     {
-        if (!$this->manutentions->contains($manutention)) {
-            $this->manutentions[] = $manutention;
-            $manutention->setStatut($this);
+        if (!$this->handlings->contains($handling)) {
+            $this->handlings[] = $handling;
+            $handling->setStatut($this);
         }
 
         return $this;
     }
 
 
-    public function removeManutention(Manutention $manutention): self
+    public function removeManutention(Handling $handling): self
     {
-        if ($this->manutentions->contains($manutention)) {
-            $this->manutentions->removeElement($manutention);
+        if ($this->handlings->contains($handling)) {
+            $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if ($manutention->getStatut() === $this) {
-                $manutention->setStatut(null);
+            if ($handling->getStatut() === $this) {
+                $handling->setStatut(null);
             }
         }
 

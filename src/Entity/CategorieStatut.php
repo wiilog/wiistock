@@ -19,7 +19,7 @@ class CategorieStatut
     const ORDRE_LIVRAISON = 'livraison';
     const PREPARATION = 'preparation';
     const RECEPTION = 'reception';
-    const MANUTENTION = 'manutention';
+    const HANDLING = 'manutention';
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement_traca';
     const MVT_STOCK = 'mouvement_stock';
