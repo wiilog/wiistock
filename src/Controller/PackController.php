@@ -51,7 +51,7 @@ class PackController extends AbstractController
     public function index(EntityManagerInterface $entityManager,
                           UserService $userService)
     {
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+        if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -75,7 +75,7 @@ class PackController extends AbstractController
                         PackService $packService): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
+            if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -87,18 +87,25 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="pack_export_csv", options={"expose"=true}, methods={"GET"})
+     * @Route("/csv", name="print_csv_packs", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
+     * @param UserService $userService
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function getPackCsv(Request $request,
-                                         CSVExportService $CSVExportService,
-                                         TranslatorInterface $translator,
-                                         EntityManagerInterface $entityManager): Response
+    public function printCSVPacks(Request $request,
+                                  CSVExportService $CSVExportService,
+                                  UserService $userService,
+                                  TranslatorInterface $translator,
+                                  EntityManagerInterface $entityManager): Response
     {
+
+        if (!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 

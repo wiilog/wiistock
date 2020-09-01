@@ -1,13 +1,7 @@
 <div class="form-group">
-    <label for="type">Type*</label>
-    <select name="type" class="form-control data d-block type needed"
-            onclick="typeChoice($(this), '-new', $('#typeContentNew'))" disabled>
+    <label>Type*</label>
+    <select name="type" class="form-control d-block type needed" disabled title="Type">
         <option selected value={{ dispatch.type.id }}>{{ dispatch.type.label }}</option>
-        {% for type in typeChampsLibres %}
-            {% if type.typeId != dispatch.type.id %}
-                <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
-            {% endif %}
-        {% endfor %}
     </select>
 </div>
 <div class="form-group">
@@ -104,19 +98,19 @@
 </div>
 
 <!-- CHAMPS LIBRES -->
-<div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
-    {% for type in typeChampsLibres %}
-        <div class="d-none row" id="{{ type.typeId }}-new">
+{% if dispatch.type is not null and dispatch.type.champsLibres.count > 0 %}
+    <div class="form-group col-12 blocVisible d-block">
+        <div class="row">
             {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
-                freeFields: type.champsLibres,
-                freeFieldValues: [],
+                freeFields: dispatch.type.champsLibres,
+                freeFieldValues: dispatch.freeFields,
                 colType: 'col-12',
-                requiredType: 'requiredCreate',
-                actionType: 'new'
+                requiredType: 'requiredEdit',
+                actionType: 'edit'
             } %}
         </div>
-    {% endfor %}
-</div>
+    </div>
+{% endif %}
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
     <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" value="{{ dispatch.commentaire }}">
