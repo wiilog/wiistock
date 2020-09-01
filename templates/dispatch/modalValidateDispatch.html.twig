@@ -23,10 +23,12 @@
                         </select>
                     </div>
                 {% else %}
-                    <div class="text-danger p-4">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Vous n'avez pas configuré de statut traité pour ce {{ 'acheminement.type d\'acheminement'|trans }}. Vous devez en définir un.
-                    </div>
+                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                        array: [],
+                        warningLabel: 'Vous n\'avez pas configuré de statut traité pour ce '~('acheminement.type d\'acheminement'|trans),
+                        redirectPath: path('status_param_index'),
+                        redirectLabel: 'Aller vers la création des statuts.'
+                    } %}
                 {% endif %}
             </div>
 

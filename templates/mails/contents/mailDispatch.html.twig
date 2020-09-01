@@ -1,70 +1,112 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
+
+    {% set validationDate = dispatch.validationDate ? dispatch.validationDate|date('d/m/Y H:i:s') %}
+    {% set startDate = dispatch.startDate %}
+    {% set endDate = dispatch.endDate %}
+    {% set startDateStr = startDate ? startDate.format('d/m/Y') : '-' %}
+    {% set endDateStr = endDate ? startDate.format('d/m/Y') : '-' %}
+    {% set emergency = dispatch.urgent ? 'Oui' : 'Non' %}
+    {% set receiver = dispatch.receiver ? dispatch.receiver.username %}
+    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw %}
+    {% set hideNumber = hideNumber is defined and hideNumber %}
+    {% set hideValidationDate = hideValidationDate is defined and hideValidationDate %}
+
+    <ul>
+        {% if not hideNumber %}
+            <li>Numéro de demande : <strong>{{ dispatch.number }}</strong></li>
+        {% endif %}
+        <li>Date de création : <strong>{{ dispatch.creationDate|date('d/m/Y H:i:s') }}</strong></li>
+        {% if not hideValidationDate %}
+            <li>Date de validation : <strong>{{ validationDate }}</strong></li>
+        {% endif %}
+        <li>Demandeur : <strong>{{ dispatch.requester.username }}</strong></li>
+        <li>Destinataire : <strong>{{ receiver }}</strong></li>
+        <li>Type : <strong>{{ dispatch.type.label }}</strong></li>
+        <li>Statut : <strong>{{ dispatch.statut.nom }}</strong></li>
+        <li>Commentaire : {{ comment|striptags }}</li>
+        <li>Dates d'échéance : <strong>{{ (startDate or endDate) ? ('Du ' ~ startDateStr ~ ' au ' ~ endDateStr) : '' }}</strong></li>
+        <li>Urgence : <strong>{{ emergency }}</strong></li>
+        <li>Pièces-jointes : </li>
+        <ul style="list-style-type: none;">
+        {% for attachment in dispatch.attachements %}
+            <li>{{ attachment.fileName }}</li>
+        {% endfor %}
+        </ul>
+    </ul>
+
     <table class="table"
-           style="border: 1px solid black;border-collapse: collapse;">
+           style="border: 1px solid black;border-collapse: collapse;"
+           role="presentation"
+           cellspacing="0"
+           border="0">
         <thead>
         <tr>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Numéro de demande
+                {{ 'natures.nature'|trans }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Date demande
+                Code
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Date de validation
+                Quantité à acheminer
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Libellé
+                Date dernier mouvement
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Type
+                Dernier emplacement
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Statut
-            </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Commentaire
+                Opérateur
             </th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.number }}
-            </td>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.creationDate|date('d/m/Y H:i:s') }}
-            </td>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.creationDate is not null ? dispatch.validationDate|date('d/m/Y H:i:s') }}
-            </td>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.requester }}
-            </td>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.type.label }}
-            </td>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.statut.nom }}
-            </td>
-            <td class="td"
-                style="border: 1px solid black; padding: 10px; text-align: center;">
-                {{ dispatch.commentaire|raw }}
-            </td>
+            {% if dispatch.dispatchPacks.count == 0 %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        colspan="6">
+                        Aucune donnée à afficher.
+                    </td>
+                </tr>
+            {% endif %}
+            {% for pack in dispatch.dispatchPacks %}
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ pack.pack.nature.label }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ pack.pack.code }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ pack.pack.quantity }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ pack.pack.lastTracking.datetime|date('d/m/Y H:i:s') }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ pack.pack.lastTracking.emplacement.label }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ pack.pack.lastTracking.operateur.username }}
+                    </td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
     <br>

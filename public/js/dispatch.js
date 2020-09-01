@@ -47,9 +47,21 @@ function addInputColisClone(button)
 
 function availableStatusOnChange($select) {
     const type = parseInt($select.val());
-    $('select[name="statut"] option[data-type-id="' + type + '"]').removeClass('d-none');
-    $('select[name="statut"] option[data-type-id!="' + type + '"]').addClass('d-none');
-    $('select[name="statut"] option:selected').prop("selected", false);
+    let $modalNewDispatch = $("#modalNewDispatch");
+    const $selectStatus = $modalNewDispatch.find('select[name="statut"]');
+
+    $selectStatus.removeAttr('disabled');
+    $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
+    $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
+    $selectStatus.val(null).trigger('change');
+
+    if($selectStatus.find('option:not(.d-none)').length === 0) {
+        $selectStatus.siblings('.error-empty-status').removeClass('d-none');
+        $selectStatus.addClass('d-none');
+    } else {
+        $selectStatus.siblings('.error-empty-status').addClass('d-none');
+        $selectStatus.removeClass('d-none');
+    }
 }
 
 function initPage() {

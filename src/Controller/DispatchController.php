@@ -171,7 +171,7 @@ Class DispatchController extends AbstractController
             $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
             $number = $dispatchService->createDispatchNumber($entityManager, $date);
 
-            if ($endDate < $startDate) {
+            if ($startDate && $endDate && $startDate > $endDate) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
@@ -324,7 +324,7 @@ Class DispatchController extends AbstractController
         $oldStatus = $dispatch->getStatut();
         $newStatus = $statutRepository->find($post->get('statut'));
 
-        if ($endDate < $startDate) {
+        if ($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
                 'success' => false,
                 'msg' => 'La date de fin d\'échéance est antérieure à la date de début.'
@@ -669,7 +669,6 @@ Class DispatchController extends AbstractController
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $now = new DateTime('now');
             $statusId = $data['status'];
             $treatedStatus = $statusRepository->find($statusId);
 
@@ -681,9 +680,6 @@ Class DispatchController extends AbstractController
                 $loggedUser = $this->getUser();
 
                 $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
-                $dispatch->setValidationDate($now);
-
-                $entityManager->flush();
             }
             else {
                 return new JsonResponse([

@@ -225,12 +225,15 @@ class DispatchService
             $requesterEmails = $dispatch->getRequester() ? $dispatch->getRequester()->getMainAndSecondaryEmails() : [];
 
             $translatedCategory = $this->translator->trans('acheminement.demande d\'acheminement');
-            $title = !$isUpdate
-                ? ('Une' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
-                : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :');
-            $subject = !$isUpdate
+            $title = $status->getTreated()
+                ? ($this->translator->trans('acheminement.acheminement') . ' traité(e) : '.$dispatch->getNumber() . ', le ' . $dispatch->getValidationDate()->format('d/m/Y à H:i:s'))
+                : (!$isUpdate
+                    ? ('Une ' . $translatedCategory . ' de type ' . $type . ' vous concerne :')
+                    : ('Changement de statut d\'une ' . $translatedCategory . ' de type ' . $type . ' vous concernant :'));
+            $subject = $status->getTreated() ? ('FOLLOW GT // Notification de traitement d\'une ' . $this->translator->trans('acheminement.demande d\'acheminement') . '.')
+                : (!$isUpdate
                 ? ('FOLLOW GT // Création d\'une ' . $translatedCategory)
-                : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.';
+                : 'FOLLOW GT // Changement de statut d\'une ' . $translatedCategory . '.');
 
             $emails = [];
 
@@ -248,7 +251,9 @@ class DispatchService
                     $this->templating->render('mails/contents/mailDispatch.html.twig', [
                         'dispatch' => $dispatch,
                         'title' => $title,
-                        'urlSuffix' => $translatedCategory
+                        'urlSuffix' => $translatedCategory,
+                        'hideNumber' => true,
+                        'hideValidationDate' => true
                     ]),
                     $emails
                 );
@@ -269,11 +274,13 @@ class DispatchService
                                             Statut $treatedStatus,
                                             Utilisateur $loggedUser,
                                             bool $fromNomade = false): void {
-        $dispatch->setStatut($treatedStatus);
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $dispatch
+            ->setStatut($treatedStatus)
+            ->setValidationDate($date);
 
         foreach ($dispatchPacks as $dispatchPack) {
             $pack = $dispatchPack->getPack();
