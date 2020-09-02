@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-let pathHandling = Routing.generate('manutention_api', true);
+let pathHandling = Routing.generate('handling_api', true);
 let tableHandlingConfig = {
     serverSide: true,
     processing: true,
@@ -38,7 +38,7 @@ let tableHandlingConfig = {
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
     ],
 };
-let tableHandling = initDataTable('tableManutention_id', tableHandlingConfig);
+let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
 
 $(function() {
     initDateTimePicker();
@@ -49,7 +49,7 @@ $(function() {
 
         // sinon, filtres enregistrés en base pour chaque utilisateur
         let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_MANUT);
+        let params = JSON.stringify(PAGE_HAND);
         $.post(path, params, function (data) {
             displayFiltersSup(data);
         }, 'json');
@@ -57,19 +57,19 @@ $(function() {
 
 // filtres de recheches
 
-let modalNewHandling = $("#modalNewManutention");
-let submitNewHandling = $("#submitNewManutention");
-let urlNewHandling = Routing.generate('manutention_new', true);
+let modalNewHandling = $("#modalNewHandling");
+let submitNewHandling = $("#submitNewHandling");
+let urlNewHandling = Routing.generate('handling_new', true);
 InitialiserModal(modalNewHandling, submitNewHandling, urlNewHandling, tableHandling);
 
-let modalModifyHandling = $('#modalEditManutention');
-let submitModifyHandling = $('#submitEditManutention');
-let urlModifyHandling = Routing.generate('manutention_edit', true);
+let modalModifyHandling = $('#modalEditHandling');
+let submitModifyHandling = $('#submitEditHandling');
+let urlModifyHandling = Routing.generate('handling_edit', true);
 InitialiserModal(modalModifyHandling, submitModifyHandling, urlModifyHandling, tableHandling);
 
-let modalDeleteHandling = $('#modalDeleteManutention');
-let submitDeleteHandling = $('#submitDeleteManutention');
-let urlDeleteHandling = Routing.generate('manutention_delete', true);
+let modalDeleteHandling = $('#modalDeleteHandling');
+let submitDeleteHandling = $('#submitDeleteHandling');
+let urlDeleteHandling = Routing.generate('handling_delete', true);
 InitialiserModal(modalDeleteHandling, submitDeleteHandling, urlDeleteHandling, tableHandling);
 
 //initialisation editeur de texte une seule fois
@@ -85,11 +85,13 @@ function initNewHandlingEditor(modal) {
 function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
+    let $statusHandling = $("#statusHandling").val();
+
     if ($(button).hasClass('not-active')) {
-        if ($("#statutManut").val() === "0") {
-            $("#statutManut").val("1");
+        if ($statusHandling === "0") {
+            $statusHandling.val("1");
         } else {
-            $("#statutManut").val("0");
+            $statusHandling.val("0");
         }
     }
 
@@ -98,15 +100,14 @@ function changeStatus(button) {
 }
 
 function toggleHandlingQuill() {
-    let $modal = $('#modalEditManutention');
-    let enable = $modal.find('#statut').val() === '1';
-    toggleQuill($modal, enable);
+    let enable = modalModifyHandling.find('#statut').val() === '1';
+    toggleQuill(modalModifyHandling, enable);
 }
 
 function callbackSaveFilter() {
     // supprime le filtre de l'url
     let str = window.location.href.split('/');
     if (str[5]) {
-        window.location.href = Routing.generate('manutention_index');
+        window.location.href = Routing.generate('handling_index');
     }
 }

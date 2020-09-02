@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewManutention" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewHandling" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -29,14 +29,14 @@
                     <label for="source">Chargement*</label>
                     <input class="form-control data needed" name="source" id="source">
                 </div>
-                
+
                 <div class="form-group needed">
                     <label for="destination">Déchargement*</label>
                     <input class="form-control data needed" name="destination" id="destination">
                 </div>
 
                 <div class="form-group">
-                    <label for="date-attendue">Date attendue</label>
+                    <label for="date-attendue">Date attendue*</label>
                     <input class="form-control data needed" type="datetime-local" name="date-attendue" id="date-attendue"
                            min="{{ 'now' | date('Y-m-d') }}">
                 </div>
@@ -52,7 +52,7 @@
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewManutention" type="button" class="btn btn-success"
+                <button id="submitNewHandling" type="button" class="btn btn-success"
                     onclick="setCommentaire('.editor-container-new')">Enregistrer</button>
             </div>
         </div>

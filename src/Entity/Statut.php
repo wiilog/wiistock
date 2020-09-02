@@ -84,7 +84,7 @@ class Statut
     private $referenceArticles;
 
     /**
-     * @ORM\OneToMany(targetEntity="Handling", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="statut")
      */
     private $handlings;
 
@@ -410,7 +410,7 @@ class Statut
         return $this->handlings;
     }
 
-    public function addManutention(Handling $handling): self
+    public function addHandling(Handling $handling): self
     {
         if (!$this->handlings->contains($handling)) {
             $this->handlings[] = $handling;
@@ -421,7 +421,7 @@ class Statut
     }
 
 
-    public function removeManutention(Handling $handling): self
+    public function removeHandling(Handling $handling): self
     {
         if ($this->handlings->contains($handling)) {
             $this->handlings->removeElement($handling);

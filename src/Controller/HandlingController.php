@@ -54,7 +54,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="manutention_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param HandlingService $handlingService
      * @return Response
@@ -63,7 +63,7 @@ class HandlingController extends AbstractController
     {
 		if ($request->isXmlHttpRequest()) {
 
-			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -78,7 +78,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/liste/{filter}", name="manutention_index", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/liste/{filter}", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param string|null $filter
      * @return Response
@@ -86,14 +86,14 @@ class HandlingController extends AbstractController
     public function index(EntityManagerInterface $entityManager,
                           $filter = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
+        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
             return $this->redirectToRoute('access_denied');
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        return $this->render('manutention/index.html.twig', [
+        return $this->render('handling/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
 			'filterStatus' => $filter
@@ -101,7 +101,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/voir", name="manutention_show", options={"expose"=true}, methods="GET|POST")
+     * @Route("/voir", name="handling_show", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -109,14 +109,14 @@ class HandlingController extends AbstractController
     public function show(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_MANU)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
 			$handlingRepository = $entityManager->getRepository(Handling::class);
             $handling = $handlingRepository->find($data);
-            $json = $this->renderView('manutention/modalShowManutentionContent.html.twig', [
-                'manut' => $handling,
+            $json = $this->renderView('handling/modalShowHandlingContent.html.twig', [
+                'handling' => $handling,
             ]);
             return new JsonResponse($json);
         }
@@ -125,7 +125,7 @@ class HandlingController extends AbstractController
 
 
     /**
-     * @Route("/creer", name="manutention_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="handling_new", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
@@ -168,7 +168,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="manutention_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
@@ -186,8 +186,8 @@ class HandlingController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $handling = $handlingRepository->find($data['id']);
-            $json = $this->renderView('manutention/modalEditManutentionContent.html.twig', [
-                'manut' => $handling,
+            $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
+                'handling' => $handling,
                 'utilisateurs' => $utilisateurRepository->findAll(),
                 'emplacements' => $emplacementRepository->findAll(),
                 'statusTreated' => ($handling->getStatut()->getNom() === Handling::STATUT_A_TRAITER) ? 1 : 0,
@@ -200,7 +200,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="manutention_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="handling_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
      * @param HandlingService $handlingService
      * @param Request $request
@@ -251,7 +251,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="manutention_delete", options={"expose"=true},methods={"GET","POST"})
+     * @Route("/supprimer", name="handling_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -263,7 +263,7 @@ class HandlingController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handling = $handlingRepository->find($data['manutention']);
+            $handling = $handlingRepository->find($data['handling']);
 
             if ($handling->getStatut()->getNom() == Handling::STATUT_A_TRAITER) {
 				$entityManager = $this->getDoctrine()->getManager();
@@ -282,7 +282,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/infos", name="get_manutentions_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/infos", name="get_handlings_for_csv", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response

@@ -116,7 +116,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $mobileLoginKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="Handling", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="demandeur")
      */
     private $handlings;
 
@@ -579,7 +579,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this->handlings;
     }
 
-    public function addManutention(Handling $handling): self
+    public function addHandling(Handling $handling): self
     {
         if (!$this->handlings->contains($handling)) {
             $this->handlings[] = $handling;
@@ -589,7 +589,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeManutention(Handling $handling): self
+    public function removeHandling(Handling $handling): self
     {
         if ($this->handlings->contains($handling)) {
             $this->handlings->removeElement($handling);

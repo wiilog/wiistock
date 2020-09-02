@@ -1,30 +1,30 @@
 <div class="form-group ">
     <label for="Objet">Objet</label>
-    <input type="text" id="libelle" class="form-control data needed input" name="Libelle" value="{{manut.libelle}}"
+    <input type="text" id="libelle" class="form-control data needed input" name="Libelle" value="{{handling.libelle}}"
         disabled placeholder="Objet">
 </div>
 
 <div class="form-group">
     <label for="demandeur">Demandeur</label>
     <select type="text" class="demandeur form-control data input" name="demandeur" disabled>
-        <option value="{{manut.demandeur.id}}">{{manut.demandeur }}</option>
+        <option value="{{handling.demandeur.id}}">{{handling.demandeur }}</option>
     </select>
 </div>
 
 <div class="form-group ">
     <label for="Localité">Chargement</label>
-    <input class="form-control data " value="{{manut.source}}" name="source" disabled>
+    <input class="form-control data " value="{{handling.source}}" name="source" disabled>
 </div>
 
 <div class="form-group ">
     <label for="Localité">Déchargement</label>
-    <input class="form-control data" value="{{manut.destination}}" name="destination" disabled>
+    <input class="form-control data" value="{{handling.destination}}" name="destination" disabled>
 </div>
 
 <div class="form-group">
     <div class="input-group radio-btn">
         <label for="statut" class="my-auto mr-2">Statut</label>
-        <input class="form-control data" value="{{manut.statut.nom}}" name="destination" disabled>
+        <input class="form-control data" value="{{handling.statut.nom}}" name="destination" disabled>
     </div>
 
 </div>
@@ -33,8 +33,8 @@
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
     <input id="commentaire" class="form-control data input" name="commentaire" type="hidden"
-        value="{{manut.commentaire}}">
-    <div class="editor-container input" value="{{manut.commentaire}}"> {{manut.commentaire|raw}}
+        value="{{handling.commentaire}}">
+    <div class="editor-container input" value="{{handling.commentaire}}"> {{handling.commentaire|raw}}
     </div>
 
 </div>

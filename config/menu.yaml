@@ -65,11 +65,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_DEM_LIVR
-                -   label: 'Manutention'
-                    path: 'manutention_index'
+                -   label: 'Service'
+                    path: 'handling_index'
                     rights:
                         menu: App\Entity\Menu::DEM
-                        action: App\Entity\Action::DISPLAY_MANU
+                        action: App\Entity\Action::DISPLAY_HAND
                 -   label: 'acheminement.acheminements'
                     isTranslation: true
                     path: 'dispatch_index'

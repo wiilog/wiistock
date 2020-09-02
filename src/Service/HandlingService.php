@@ -61,7 +61,7 @@ class HandlingService
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MANUT, $this->user);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_HAND, $this->user);
         }
 
         $queryResult = $handlingRepository->findByParamAndFilters($params, $filters);
@@ -70,7 +70,7 @@ class HandlingService
 
         $rows = [];
         foreach ($handlingArray as $handling) {
-            $rows[] = $this->dataRowManut($handling);
+            $rows[] = $this->dataRowHandling($handling);
         }
 
         return [
@@ -87,7 +87,7 @@ class HandlingService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowManut(Handling $handling)
+    public function dataRowHandling(Handling $handling)
     {
         return [
             'id' => ($handling->getId() ? $handling->getId() : 'Non défini'),
@@ -97,8 +97,8 @@ class HandlingService
             'Date souhaitée' => ($handling->getDateAttendue() ? $handling->getDateAttendue()->format('d/m/Y H:i') : null),
             'Date de réalisation' => ($handling->getDateEnd() ? $handling->getDateEnd()->format('d/m/Y H:i') : null),
             'Statut' => ($handling->getStatut()->getNom() ? $handling->getStatut()->getNom() : null),
-            'Actions' => $this->templating->render('manutention/datatableManutentionRow.html.twig', [
-                'manut' => $handling
+            'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
+                'handling' => $handling
             ]),
         ];
     }
@@ -112,8 +112,8 @@ class HandlingService
     public function sendTreatedEmail(Handling $handling): void {
         $this->mailerService->sendMail(
             'FOLLOW GT // Manutention effectuée',
-            $this->templating->render('mails/contents/mailManutentionDone.html.twig', [
-                'manut' => $handling,
+            $this->templating->render('mails/contents/mailHandlingDone.html.twig', [
+                'handling' => $handling,
                 'title' => 'Votre demande de manutention a bien été effectuée.',
             ]),
             $handling->getDemandeur()->getMainAndSecondaryEmails()

@@ -101,12 +101,7 @@ class HandlingRepository extends ServiceEntityRepository
 
 	public function findByParamAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-			->select('h')
-            ->from('Handling', 'h');
+        $qb = $this->createQueryBuilder('h');
 
         $countTotal = count($qb->getQuery()->getResult());
 
@@ -120,7 +115,6 @@ class HandlingRepository extends ServiceEntityRepository
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
-                    break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb

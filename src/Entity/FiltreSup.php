@@ -38,7 +38,7 @@ class FiltreSup
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
-    const PAGE_MANUT = 'manutention';
+    const PAGE_HAND = 'service';
     const PAGE_RECEPTION = 'reception';
 	const PAGE_ORDRE_COLLECTE = 'ocollecte';
 	const PAGE_ORDRE_LIVRAISON = 'olivraison';
@@ -64,7 +64,7 @@ class FiltreSup
     const PAGE_TO_CATEGORY = [
         self::PAGE_DEM_COLLECTE => CategorieStatut::DEM_COLLECTE,
         self::PAGE_DEM_LIVRAISON => CategorieStatut::DEM_LIVRAISON,
-        self::PAGE_MANUT => CategorieStatut::HANDLING,
+        self::PAGE_HAND => CategorieStatut::HANDLING,
         self::PAGE_RECEPTION => CategorieStatut::RECEPTION,
         self::PAGE_ORDRE_COLLECTE => CategorieStatut::ORDRE_COLLECTE,
         self::PAGE_ORDRE_LIVRAISON => CategorieStatut::ORDRE_LIVRAISON,

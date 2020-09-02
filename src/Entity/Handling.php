@@ -35,13 +35,13 @@ class Handling
     private $commentaire;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="manutentions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="handlings")
      * @ORM\JoinColumn(nullable=false)
      */
     private $demandeur;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="manutentions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="handlings")
      * @ORM\JoinColumn(nullable=false)
      */
     private $statut;

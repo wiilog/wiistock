@@ -38,7 +38,7 @@ class Action
 	// menu demande
 	const DISPLAY_DEM_COLL = 'afficher collectes';
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
-	const DISPLAY_MANU = 'afficher manutentions';
+	const DISPLAY_HAND = 'afficher services';
     const DISPLAY_ACHE = 'afficher acheminements';
 
 	// menu ordre

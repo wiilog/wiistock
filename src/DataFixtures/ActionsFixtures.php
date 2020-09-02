@@ -55,7 +55,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			Menu::DEM => [
 				Action::DISPLAY_DEM_COLL,
 				Action::DISPLAY_DEM_LIVR,
-				Action::DISPLAY_MANU,
+				Action::DISPLAY_HAND,
                 Action::DISPLAY_ACHE,
 				Action::CREATE,
 				Action::EDIT,

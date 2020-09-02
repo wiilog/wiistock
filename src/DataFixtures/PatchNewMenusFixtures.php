@@ -44,7 +44,7 @@ class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface
 			'Collecte/lister' => [Menu::ORDRE => [Action::DISPLAY_ORDRE_COLL]],
 			'Collecte/créer+modifier' => [Menu::ORDRE => [Action::CREATE, Action::EDIT]],
 			'Collecte/exporter' => [Menu::ORDRE => [Action::EXPORT]],
-			'Manutention/lister' => [Menu::DEM => [Action::DISPLAY_MANU]],
+			'Manutention/lister' => [Menu::DEM => [Action::DISPLAY_HAND]],
 			'Manutention/créer' => [Menu::DEM => [Action::CREATE]],
 			'Manutention/modifier+supprimer' => [Menu::DEM => [Action::EDIT, Action::DELETE]],
 			'Manutention/exporter' => [Menu::DEM => [Action::EXPORT]],

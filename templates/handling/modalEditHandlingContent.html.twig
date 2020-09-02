@@ -1,33 +1,33 @@
 <div class="form-group needed">
     <label for="objet">Objet*</label>
-    <input type="text" id="objet" class="form-control data needed input" name="Libelle" value="{{manut.libelle}}" maxlength="64">
+    <input type="text" id="objet" class="form-control data needed input" name="Libelle" value="{{handling.libelle}}" maxlength="64">
 </div>
 
 <div class="form-group needed">
     <label for="demandeur">Demandeur</label>
     <select type="text" class="demandeur form-control data needed input" id="demandeur" name="demandeur" disabled>
-        <option value="{{manut.demandeur.id}}">{{manut.demandeur }}</option>
+        <option value="{{handling.demandeur.id}}">{{handling.demandeur }}</option>
     </select>
 </div>
 
 <div class="form-group needed">
     <label for="Localité">Chargement*</label>
-    <input class="form-control data needed input" value="{{manut.source}}" name="source">
+    <input class="form-control data needed input" value="{{handling.source}}" name="source">
 </div>
 
 <div class="form-group needed">
     <label for="Localité">Déchargement*</label>
-    <input class="form-control data needed input" value="{{manut.destination}}" name="destination">
+    <input class="form-control data needed input" value="{{handling.destination}}" name="destination">
 </div>
 
 <div class="form-group">
     <label for="date-attendue">Date attendue</label>
-    <input class="form-control data needed" type="datetime-local" value="{{manut.dateAttendue|date('Y-m-d\\TH:i')}}" name="date-attendue" id="date-attendue"
+    <input class="form-control data needed" type="datetime-local" value="{{handling.dateAttendue|date('Y-m-d\\TH:i')}}" name="date-attendue" id="date-attendue"
            min="{{ 'now' | date('Y-m-d') }}">
 </div>
 <div class="form-group">
     <label for="date-attendue">Date de réalisation</label>
-    <input class="form-control" type="datetime-local" value="{{manut.dateEnd ? manut.dateEnd|date('Y-m-d\\TH:i')}}" name="date-real" id="date-real" disabled>
+    <input class="form-control" type="datetime-local" value="{{handling.dateEnd ? handling.dateEnd|date('Y-m-d\\TH:i')}}" name="date-real" id="date-real" disabled>
 </div>
 <div class="form-group col-12 w-100">
     <div class="input-group radio-btn">
@@ -45,16 +45,16 @@
                 onclick="changeStatus(this)" data-value="0" style="pointer-events:none">Traité</span>
             {% endif %}
         </div>
-        <input id="statutManut" type="hidden" value="{{statusTreated}}" name="statut" class="data">
+        <input id="statusHandling" type="hidden" value="{{statusTreated}}" name="statut" class="data">
     </div>
 </div>
 
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
     <input id="commentaire" class="form-control data" name="commentaire" type="hidden"
-        value="{{manut.commentaire}}">
-    <div class="editor-container-edit" value="{{manut.commentaire}}"
+        value="{{handling.commentaire}}">
+    <div class="editor-container-edit" value="{{handling.commentaire}}"
          contenteditable="{{ statusTreated == '1' ? 'false' : 'true' }}"
-    > {{manut.commentaire|raw}}
+    > {{handling.commentaire|raw}}
     </div>
 </div>

@@ -498,7 +498,7 @@ function goToFilteredDemande(type, filter) {
     } else if (type === 'collecte') {
         path = 'collecte_index';
     } else if (type === 'manutention') {
-        path = 'manutention_index';
+        path = 'handling_index';
     }
 
     let params = {
