@@ -59,11 +59,6 @@ class Nature
     private $needsMobileSync;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $default;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Emplacement", mappedBy="allowedNatures")
      */
     private $emplacements;
@@ -192,16 +187,6 @@ class Nature
         $this->needsMobileSync = $needsMobileSync;
 
         return $this;
-    }
-
-    public function setDefault(): ?bool
-    {
-        return $this->default;
-    }
-
-    public function isDefault(): ?bool
-    {
-        return $this->isDefault();
     }
 
     /**
