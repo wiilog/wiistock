@@ -3,25 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Arrivage;
-use App\Entity\CategoryType;
-use App\Entity\ChampLibre;
-use App\Entity\Chauffeur;
-use App\Entity\FieldsParam;
-use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 
-use App\Entity\ParametrageGlobal;
-use App\Entity\PieceJointe;
-use App\Entity\Statut;
-use App\Entity\Type;
-use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\PackService;
-use App\Service\SpecificService;
-use App\Service\StatutService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;

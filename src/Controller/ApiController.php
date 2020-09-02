@@ -1754,7 +1754,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/dispatches", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/dispatches", name="api_patch_dispatches", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param DispatchService $dispatchService
      * @param EntityManagerInterface $entityManager

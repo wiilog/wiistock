@@ -61,6 +61,13 @@ function availableStatusOnChange($select) {
     } else {
         $selectStatus.siblings('.error-empty-status').addClass('d-none');
         $selectStatus.removeClass('d-none');
+
+        const dispatchDefaultStatus = JSON.parse($selectStatus.siblings('input[name="dispatchDefaultStatus"]').val() || '{}');
+        if (dispatchDefaultStatus[type]) {
+            $selectStatus.val(dispatchDefaultStatus[type]);
+        }
+
+        $selectStatus.find('option');
     }
 }
 

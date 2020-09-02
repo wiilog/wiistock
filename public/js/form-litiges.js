@@ -5,7 +5,7 @@ function openNewLitigeModal($button) {
     // we select default litige
     const $modal = $(modalSelector);
     const $selectStatusLitige = $modal.find('#statutLitige');
-    const $statutLitigeDefault = $selectStatusLitige.siblings('input[hidden][name="default-status"]');
+    const $statutLitigeDefault = $selectStatusLitige.siblings('input[type="hidden"][name="default-status"]');
     fillDemandeurField($modal);
     if ($statutLitigeDefault.length > 0) {
         const idSelected = $statutLitigeDefault.data('id');
