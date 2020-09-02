@@ -19,6 +19,7 @@ $(function () {
             {"data": 'Category', 'title': 'Entité'},
             {"data": 'Label', 'title': 'Libellé'},
             {"data": 'Comment', 'title': 'Commentaire'},
+            {"data": 'default', 'title': 'Statut par défaut'},
             {"data": 'Treated', 'title': 'Statut traité'},
             {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
             {"data": 'Order', 'title': 'Ordre'},

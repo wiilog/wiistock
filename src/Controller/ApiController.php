@@ -327,6 +327,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                                         $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
                                         $options['mouvementStock'] = $newMouvement;
+                                        $options['quantity'] = $newMouvement->getQuantity();
                                         $entityManager->persist($newMouvement);
 
                                         $configStatus = ($article instanceof Article)
@@ -363,6 +364,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             throw new Exception(MouvementTracaService::INVALID_LOCATION_TO);
                                         } else {
                                             $options['mouvementStock'] = $mouvementStockPrise;
+                                            $options['quantity'] = $mouvementStockPrise->getQuantity();
                                             $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 
                                             $configStatus = ($article instanceof Article)
@@ -384,6 +386,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                             else {
                                 $options['natureId'] = $mvt['nature_id'] ?? null;
+                                $options['quantity'] = $mvt['quantity'] ?? null;
                             }
 
                             if (!empty($mvt['comment'])) {
@@ -1743,12 +1746,13 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/dispatches", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/dispatches", name="api_patch_dispatches", condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param DispatchService $dispatchService
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function patchDispatches(Request $request,
                                     DispatchService $dispatchService,
@@ -1759,18 +1763,57 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $nomadUser = $utilisateurRepository->findOneByApiKey($request->request->get('apiKey'));
         if ($nomadUser) {
             $dispatches = json_decode($request->request->get('dispatches'), true);
+            $dispatchPacksParam = json_decode($request->request->get('dispatchPacks'), true);
 
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
+            $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+
+            $dispatchPacksByDispatch = is_array($dispatchPacksParam)
+                ? array_reduce($dispatchPacksParam, function (array $acc, array $current) {
+                    $id = (int) $current['id'];
+                    $natureId = $current['natureId'];
+                    $quantity = $current['quantity'];
+                    $dispatchId = (int) $current['dispatchId'];
+                    if (!isset($acc[$dispatchId])) {
+                        $acc[$dispatchId] = [];
+                    }
+                    $acc[$dispatchId][] = [
+                        'id' => $id,
+                        'natureId' => $natureId,
+                        'quantity' => $quantity
+                    ];
+                    return $acc;
+                }, [])
+                : [];
 
             foreach ($dispatches as $dispatchArray) {
                 /** @var Dispatch $dispatch */
                 $dispatch = $dispatchRepository->find($dispatchArray['id']);
-                $dispatchStatut = $dispatch->getStatut();
-                if (!$dispatchStatut || !$dispatchStatut->getTreated()) {
-                    $treatedDispatch = $statusRepository->find($dispatchArray['treatedStatusId']);
-                    if ($treatedDispatch && $treatedDispatch->getTreated()) {
-                        $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedDispatch, $nomadUser, true);
+                $dispatchStatus = $dispatch->getStatut();
+                if (!$dispatchStatus || !$dispatchStatus->getTreated()) {
+                    $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
+                    if ($treatedStatus && $treatedStatus->getTreated()) {
+                        // we treat pack edits
+                        if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
+                            foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
+                                $packDispatch = $dispatchPackRepository->find($packArray['id']);
+                                if (!empty($packDispatch)) {
+                                    $nature = $natureRepository->find($packArray['natureId']);
+                                    if ($nature) {
+                                        $pack = $packDispatch->getPack();
+                                        $pack->setNature($nature);
+                                    }
+
+                                    $quantity = (int) $packArray['quantity'];
+                                    if ($quantity > 0) {
+                                        $packDispatch->setQuantity($quantity);
+                                    }
+                                }
+                            }
+                        }
+                        $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
                     }
                 }
             }

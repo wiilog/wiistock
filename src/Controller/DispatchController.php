@@ -77,6 +77,7 @@ Class DispatchController extends AbstractController
      * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
+     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager)
     {
@@ -95,6 +96,7 @@ Class DispatchController extends AbstractController
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH),
             'types' => $types,
 			'modalNewConfig' => [
+                'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'utilisateurs' => $utilisateurRepository->findAll(),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                     $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
@@ -398,7 +400,7 @@ Class DispatchController extends AbstractController
                 'dispatch' => $dispatch,
                 'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
-                'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch]),
+                'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);
 
             return new JsonResponse($json);

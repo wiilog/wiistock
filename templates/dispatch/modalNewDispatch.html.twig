@@ -2,7 +2,6 @@
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h5 class="modal-title">{{ 'acheminement.nouvelle demande'|trans }}</h5>
 
@@ -24,12 +23,14 @@
                 </div>
                 <div class="form-group">
                     <label for="type">Statut*</label>
-                    <select name="statut" class="form-control data w-100 needed">
+                    <select name="statut"
+                            class="form-control data w-100 needed need-default">
                         <option value="">Choisir un statut...</option>
                         {% for statut in notTreatedStatus %}
                             <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
                         {% endfor %}
                     </select>
+                    <input type="hidden" name="dispatchDefaultStatus" value="{{ dispatchDefaultStatus|json_encode }}"/>
                     <div class="error-empty-status d-none">
                         {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                             array: [],
