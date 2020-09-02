@@ -22,6 +22,8 @@ final class Version20200901214328 extends AbstractMigration
         $defaultDisputeStatusReceptionLabel = 'DEFAULT_STATUT_LITIGE_REC';
         $defaultDisputeStatusArrivalLabel = 'DEFAULT_STATUT_LITIGE_ARR';
 
+        $this->addSql("ALTER TABLE statut ADD default_for_category TINYINT(1) DEFAULT '0' NOT NULL;");
+
         $receptionDefaultStatus = $this
             ->connection
             ->executeQuery("SELECT value FROM parametrage_global WHERE label = '${defaultDisputeStatusReceptionLabel}'")

@@ -313,10 +313,6 @@ class StatutRepository extends EntityRepository
             }
         }
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
 
         $qb
             ->select('count(status)');
@@ -325,6 +321,11 @@ class StatutRepository extends EntityRepository
 
         $qb
             ->select('status');
+
+        if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
 
         $query = $qb->getQuery();
 
