@@ -5,10 +5,9 @@ namespace App\Repository;
 use App\Entity\Handling;
 use App\Entity\Utilisateur;
 use DateTime;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Handling|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Handling[]    findAll()
  * @method Handling[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class HandlingRepository extends ServiceEntityRepository
+class HandlingRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
@@ -27,11 +26,6 @@ class HandlingRepository extends ServiceEntityRepository
         'Date de réalisation' => 'dateEnd',
         'Statut' => 'statut',
     ];
-
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Handling::class);
-    }
 
     public function countByStatut($statut){
         $entityManager = $this->getEntityManager();
