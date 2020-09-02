@@ -107,6 +107,13 @@
                     </div>
                     <div class="form-group col-4">
                         <label for="statutLitige">Statut*</label>
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: statusLitige,
+                            warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
+                            redirectPath: path('status_param_index'),
+                            redirectLabel: 'Aller vers la page de statuts'
+                        } %}
+
                         <select class="form-control data needed" id="statutLitige" name="statutLitige">
                             <option disabled selected></option>
                             {% for statut in statusLitige %}
