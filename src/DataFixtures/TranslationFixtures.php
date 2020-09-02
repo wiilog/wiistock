@@ -122,7 +122,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Votre colis a bien été modifié' => 'Votre colis a bien été modifié'
             ],
             'services' => [
-                'Types de service' => 'Types de service'
+                'Types de service' => 'Types de service',
+                'Service' => 'Service',
+                'service' => 'service',
+                'Demande de service' => 'Demande de service',
+                'Supprimer la demande de service' => 'Supprimer la demande de service',
+                'Nouvelle demande de service' => 'Nouvelle demande de service',
+                "Détails d'une demande de service" => "Détail d'une demande de service",
+                'Modifier une demande de service' => 'Modifier une demande de service',
+                'Voulez-vous réellement supprimer cette demande de service' => 'Voulez-vous réellement supprimer cette demande de service',
+                'Votre demande de service a bien été effectuée' => 'Votre demande de service a bien été effectuée',
+                'Demande de service effectuée' => 'Demande de service effectuée'
             ]
         ];
 

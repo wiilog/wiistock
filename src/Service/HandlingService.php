@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Utilisateur;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -34,18 +35,21 @@ class HandlingService
 
     private $entityManager;
     private $mailerService;
+    private $translator;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 MailerService $mailerService,
                                 EntityManagerInterface $entityManager,
-                                Twig_Environment $templating)
+                                Twig_Environment $templating,
+                                TranslatorInterface $translator)
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->mailerService = $mailerService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->translator = $translator;
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null)
@@ -111,10 +115,10 @@ class HandlingService
      */
     public function sendTreatedEmail(Handling $handling): void {
         $this->mailerService->sendMail(
-            'FOLLOW GT // Manutention effectuée',
+            'FOLLOW GT // '.$this->translator->trans('services.Demande de service effectuée'),
             $this->templating->render('mails/contents/mailHandlingDone.html.twig', [
                 'handling' => $handling,
-                'title' => 'Votre demande de manutention a bien été effectuée.',
+                'title' => $this->translator->trans('services.Votre demande de service a bien été effectuée').'.',
             ]),
             $handling->getDemandeur()->getMainAndSecondaryEmails()
         );
