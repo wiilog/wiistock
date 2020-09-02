@@ -189,7 +189,7 @@ class ArrivageController extends AbstractController
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
-            'users' => $utilisateurRepository->findAllSorted(),
+            'users' => $utilisateurRepository->findBy(['status' => true],['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $natureRepository->findAll(),

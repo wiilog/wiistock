@@ -95,7 +95,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             "SELECT u.id, u.username as text, d.id as idEmp, d.label as textEmp
           FROM App\Entity\Utilisateur u
           LEFT JOIN u.dropzone d
-          WHERE u.username LIKE :search"
+          WHERE u.username LIKE :search
+          AND u.status = 1 "
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
@@ -187,7 +188,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         /** @lang DQL */
             "SELECT u
             FROM App\Entity\Utilisateur u
-            WHERE u.apiKey = :key"
+            WHERE u.apiKey = :key
+              AND u.status = true"
         )->setParameter('key', $key);
 
         return $query->getOneOrNullResult();
