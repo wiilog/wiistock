@@ -497,7 +497,7 @@ function goToFilteredDemande(type, filter) {
         path = 'demande_index';
     } else if (type === 'collecte') {
         path = 'collecte_index';
-    } else if (type === 'manutention') {
+    } else if (type === 'service') {
         path = 'handling_index';
     }
 

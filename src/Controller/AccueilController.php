@@ -145,7 +145,7 @@ class AccueilController extends AbstractController
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
-            'nbDemandeManutentionAT' => $nbrDemandeHandlingAT,
+            'nbDemandeHandlingAT' => $nbrDemandeHandlingAT,
             'emplacements' => $emplacementRepository->findAll(),
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,

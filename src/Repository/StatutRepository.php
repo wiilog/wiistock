@@ -223,7 +223,7 @@ class StatutRepository extends EntityRepository
             LEFT JOIN s.litiges l
             LEFT JOIN s.receptions r
             LEFT JOIN s.referenceArticles ra
-            LEFT JOIN s.manutentions m
+            LEFT JOIN s.handlings m
             WHERE a.statut = :id OR c.statut = :id OR dl.statut = :id OR ol.statut = :id OR p.statut = :id
             OR l.status = :id OR r.statut = :id OR ra.statut = :id OR m.statut = :id
            "

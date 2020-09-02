@@ -78,7 +78,7 @@ class Action
 	// menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
-    const MODULE_ACCESS_MANUT = 'Accès Demande';
+    const MODULE_ACCESS_HAND = 'Accès Demande';
     const DEMO_MODE = 'Mode découverte';
 
     /**

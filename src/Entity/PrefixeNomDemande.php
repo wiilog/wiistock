@@ -11,7 +11,7 @@ class PrefixeNomDemande
 {
 	const TYPE_LIVRAISON = 'livraison';
 	const TYPE_COLLECTE = 'collecte';
-	const TYPE_MANUT = 'manutention';
+	const TYPE_HANDLING = 'service';
 
     /**
      * @ORM\Id()

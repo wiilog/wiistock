@@ -85,10 +85,10 @@ function initNewHandlingEditor(modal) {
 function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
-    let $statusHandling = $("#statusHandling").val();
+    let $statusHandling = $("#statusHandling");
 
     if ($(button).hasClass('not-active')) {
-        if ($statusHandling === "0") {
+        if ($statusHandling.val() === "0") {
             $statusHandling.val("1");
         } else {
             $statusHandling.val("0");

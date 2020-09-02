@@ -793,7 +793,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/validateManut", name="api-validate-manut", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/validateHandling", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -836,7 +836,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 $this->successDataMsg['success'] = true;
             } else {
                 $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Cette manutention a déjà été prise en charge par un opérateur.";
+                $this->successDataMsg['msg'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
             }
         } else {
             $this->successDataMsg['success'] = false;
@@ -1449,7 +1449,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'manutentions' => $handlings,
+            'handlings' => $handlings,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
