@@ -1953,8 +1953,7 @@ class ReceptionController extends AbstractController
             if (isset($demande) && $demande->getType()->getSendMail()) {
                 $nowDate = new DateTime('now');
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Réception d\'un colis '
-                    . 'de type «' . $demande->getType()->getLabel() . '».',
+                    'FOLLOW GT // Réception d\'un colis ' . 'de type «' . $demande->getType()->getLabel() . '».',
                     $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
