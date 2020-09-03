@@ -336,6 +336,13 @@ class StatusController extends AbstractController
 
             $status = $statutRepository->find($data['status']);
 
+            if (!$status->getDispatches()->isEmpty()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Ce statut est utilisé, vous ne pouvez pas le supprimer.'
+                ]);
+            }
+
             $entityManager->remove($status);
             $entityManager->flush();
             return new JsonResponse();
