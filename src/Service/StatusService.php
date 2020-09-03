@@ -93,8 +93,8 @@ class StatusService
             'Category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
             'Label' => $status->getNom() ? $status->getNom() : '',
             'Comment' => $status->getComment() ? $status->getComment() : '',
-            'Treated' => $status->getTreated() ? 'oui' : 'non',
-            'default' => $status->isDefaultForCategory() ? 'oui' : 'non',
+            'TreatedStatus' => $status->getTreated() ? 'oui' : 'non',
+            'DefaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
             'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
             'Order' => $status->getDisplayOrder() ?? '',
             'Actions' => $this->templating->render('status/datatableStatusRow.html.twig', [

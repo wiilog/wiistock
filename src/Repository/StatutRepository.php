@@ -17,6 +17,17 @@ use Doctrine\ORM\NoResultException;
  */
 class StatutRepository extends EntityRepository
 {
+
+    private const DtToDbLabels = [
+        'Category' => 'entity',
+        'Label' => 'label',
+        'Comment' => 'comment',
+        'DefaultStatus' => 'defaultStatus',
+        'TreatedStatus' => 'treatedStatus',
+        'NotifToDeclarant' => 'notifToDeclarant',
+        'Order' => 'order'
+    ];
+
     /**
      * @param string $categorieName
      * @param bool $ordered
@@ -288,6 +299,9 @@ class StatutRepository extends EntityRepository
         // compte le nombre total d'éléments
         $countTotal = $qb->getQuery()->getSingleScalarResult();
 
+        $qb
+            ->select('status');
+
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statusEntity':
@@ -311,8 +325,40 @@ class StatutRepository extends EntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-        }
 
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order))
+                {
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    if ($column === 'entity') {
+                        $qb
+                            ->orderBy('status.categorie', $order);
+                    } else if ($column === 'label') {
+                        $qb
+                            ->orderBy('status.nom', $order);
+                    } else if ($column === 'comment') {
+                        $qb
+                            ->orderBy('status.comment', $order);
+                    } else if ($column === 'order') {
+                        $qb
+                            ->orderBy('status.displayOrder', $order);
+                    } else if ($column === 'defaultStatus') {
+                        $qb
+                            ->orderBy('status.defaultForCategory', $order);
+                    } else if ($column === 'treatedStatus') {
+                        $qb
+                            ->orderBy('status.treated', $order);
+                    } else if ($column === 'notifToDeclarant') {
+                        $qb
+                            ->orderBy('status.sendNotifToDeclarant', $order);
+                    } else {
+                        $qb
+                            ->orderBy('status.' . $column, $order);
+                    }
+                }
+            }
+        }
 
         $qb
             ->select('count(status)');
