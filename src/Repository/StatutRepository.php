@@ -19,13 +19,13 @@ class StatutRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
-        'Category' => 'entity',
-        'Label' => 'label',
-        'Comment' => 'comment',
-        'DefaultStatus' => 'defaultStatus',
-        'TreatedStatus' => 'treatedStatus',
-        'NotifToDeclarant' => 'notifToDeclarant',
-        'Order' => 'order'
+        'category' => 'categorie',
+        'label' => 'nom',
+        'comment' => 'comment',
+        'defaultStatus' => 'defaultForCategory',
+        'treatedStatus' => 'treated',
+        'notifToDeclarant' => 'sendNotifToDeclarant',
+        'order' => 'displayOrder'
     ];
 
     /**
@@ -299,9 +299,6 @@ class StatutRepository extends EntityRepository
         // compte le nombre total d'éléments
         $countTotal = $qb->getQuery()->getSingleScalarResult();
 
-        $qb
-            ->select('status');
-
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statusEntity':
@@ -317,44 +314,24 @@ class StatutRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('
-                        status.nom LIKE :value
-                        OR status.comment LIKE :value
-                        OR status.code LIKE :value
-                        ')
+                        ->andWhere('(
+                            status.nom LIKE :value
+                            OR status.comment LIKE :value
+                            OR status.code LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order))
-                {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'entity') {
-                        $qb
-                            ->orderBy('status.categorie', $order);
-                    } else if ($column === 'label') {
-                        $qb
-                            ->orderBy('status.nom', $order);
-                    } else if ($column === 'comment') {
-                        $qb
-                            ->orderBy('status.comment', $order);
-                    } else if ($column === 'order') {
-                        $qb
-                            ->orderBy('status.displayOrder', $order);
-                    } else if ($column === 'defaultStatus') {
-                        $qb
-                            ->orderBy('status.defaultForCategory', $order);
-                    } else if ($column === 'treatedStatus') {
-                        $qb
-                            ->orderBy('status.treated', $order);
-                    } else if ($column === 'notifToDeclarant') {
-                        $qb
-                            ->orderBy('status.sendNotifToDeclarant', $order);
-                    } else {
-                        $qb
-                            ->orderBy('status.' . $column, $order);
+            $orderArray = $params->get('order');
+            if (!empty($orderArray)) {
+                foreach ($orderArray as $order) {
+                    $dir = $order['dir'];
+                    $column = $order['column'];
+                    if (!empty($dir)) {
+                        $key = $params->get('columns')[$column]['data'] ?? '';
+                        $column = (self::DtToDbLabels[$key] ?? $key);
+                        $qb->addOrderBy('status.' . $column, $dir);
                     }
                 }
             }
