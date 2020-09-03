@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ 'acheminement.nouvelle demande'|trans }}</h5>
+                <h5 class="modal-title" title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -94,12 +94,12 @@
                     </div>
                 </div>
                 <div class="form-group w-100">
-                    <label for="prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+                    <label for="prise" title="emplacement prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
                     </select>
                 </div>
                 <div class="form-group w-100">
-                    <label for="depose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+                    <label for="depose" title="emplacement dépose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
                     <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
                     </select>
                 </div>

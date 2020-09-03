@@ -553,7 +553,7 @@ Class DispatchController extends AbstractController
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('acheminement.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
         }
 
         return new JsonResponse([
@@ -582,7 +582,7 @@ Class DispatchController extends AbstractController
         $dispatchPack = $dispatchPackRepository->find($packDispatchId);
         if (empty($dispatchPack)) {
             $success = false;
-            $message = $translator->trans("acheminement.Le colis n''existe pas");
+            $message = $translator->trans("colis.Le colis n''existe pas");
         } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
@@ -599,7 +599,7 @@ Class DispatchController extends AbstractController
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('acheminement.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
         }
         return new JsonResponse([
             'success' => $success,
@@ -610,11 +610,13 @@ Class DispatchController extends AbstractController
     /**
      * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
+     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function deletePack(Request $request,
-                           EntityManagerInterface $entityManager): Response
+                               TranslatorInterface $translator,
+                               EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -625,7 +627,7 @@ Class DispatchController extends AbstractController
 
             $data = [
                 'success' => true,
-                'msg' => 'Le colis a bien été supprimé.'
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé.')
             ];
 
             return new JsonResponse($data);
