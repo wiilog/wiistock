@@ -528,6 +528,7 @@ class MouvementTracaRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('mouvementTraca')
             ->select('mouvementTraca.colis AS ref_article')
             ->addSelect('mouvementTracaType.nom AS type')
+            ->addSelect('mouvementTraca.quantity AS quantity')
             ->addSelect('mouvementTraca.freeFields')
             ->addSelect('operator.username AS operateur')
             ->addSelect('location.label AS ref_emplacement')

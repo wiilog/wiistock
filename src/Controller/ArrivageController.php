@@ -35,7 +35,7 @@ use App\Service\GlobalParamService;
 use App\Service\LitigeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
-use App\Service\StatutService;
+use App\Service\StatusService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
@@ -137,13 +137,13 @@ class ArrivageController extends AbstractController
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
      * @param TranslatorInterface $translator
-     * @param StatutService $statutService
+     * @param StatusService $statusService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
                           TranslatorInterface $translator,
-                          StatutService $statutService)
+                          StatusService $statusService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
             return $this->redirectToRoute('access_denied');
@@ -184,7 +184,7 @@ class ArrivageController extends AbstractController
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
         $paramGlobalDefaultStatusArrivageId = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE);
 
-        $status = $statutService->findAllStatusArrivage();
+        $status = $statusService->findAllStatusArrivage();
 
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
@@ -380,12 +380,12 @@ class ArrivageController extends AbstractController
      * @Route("/api-modifier", name="arrivage_edit_api", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
-     * @param StatutService $statutService
+     * @param StatusService $statusService
      * @return Response
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager,
-                            StatutService $statutService): Response
+                            StatusService $statusService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -407,7 +407,7 @@ class ArrivageController extends AbstractController
 
             $champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
 
-            $status = $statutService->findAllStatusArrivage();
+            $status = $statusService->findAllStatusArrivage();
 
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
 
@@ -919,7 +919,6 @@ class ArrivageController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -933,22 +932,24 @@ class ArrivageController extends AbstractController
         }
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        return $this->render("arrivage/show.html.twig",
-            [
-                'arrivage' => $arrivage,
-                'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
-                'acheteurs' => $acheteursNames,
-                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'allColis' => $arrivage->getPacks(),
-                'natures' => $natureRepository->findAll(),
-                'printColis' => $printColis,
-                'printArrivage' => $printArrivage,
-                'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
-                'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
-                'fieldsParam' => $fieldsParam,
-                'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
-                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
-            ]);
+
+        $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_ARR);
+
+        return $this->render("arrivage/show.html.twig", [
+            'arrivage' => $arrivage,
+            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'acheteurs' => $acheteursNames,
+            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
+            'allColis' => $arrivage->getPacks(),
+            'natures' => $natureRepository->findAll(),
+            'printColis' => $printColis,
+            'printArrivage' => $printArrivage,
+            'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
+            'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
+            'fieldsParam' => $fieldsParam,
+            'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+            'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null
+        ]);
     }
 
     /**
