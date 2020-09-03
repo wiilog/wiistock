@@ -296,14 +296,14 @@ class StatusController extends AbstractController
     public function checkStatusCanBeDeleted(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $statusId = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $statusIsUsed = $statutRepository->countUsedById($typeId);
+            $statusIsUsed = $statutRepository->countUsedById($statusId);
 
             if (!$statusIsUsed) {
                 $delete = true;
@@ -323,6 +323,8 @@ class StatusController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function delete(EntityManagerInterface $entityManager,
                            Request $request): Response
@@ -335,8 +337,8 @@ class StatusController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
 
             $status = $statutRepository->find($data['status']);
-
-            if (!$status->getDispatches()->isEmpty()) {
+            $statusIsUsed = $statutRepository->countUsedById($status->getId());
+            if ($statusIsUsed) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Ce statut est utilisé, vous ne pouvez pas le supprimer.'
