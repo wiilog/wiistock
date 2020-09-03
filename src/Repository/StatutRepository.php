@@ -17,6 +17,17 @@ use Doctrine\ORM\NoResultException;
  */
 class StatutRepository extends EntityRepository
 {
+
+    private const DtToDbLabels = [
+        'category' => 'categorie',
+        'label' => 'nom',
+        'comment' => 'comment',
+        'defaultStatus' => 'defaultForCategory',
+        'treatedStatus' => 'treated',
+        'notifToDeclarant' => 'sendNotifToDeclarant',
+        'order' => 'displayOrder'
+    ];
+
     /**
      * @param string $categorieName
      * @param bool $ordered
@@ -303,16 +314,28 @@ class StatutRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('
-                        status.nom LIKE :value
-                        OR status.comment LIKE :value
-                        OR status.code LIKE :value
-                        ')
+                        ->andWhere('(
+                            status.nom LIKE :value
+                            OR status.comment LIKE :value
+                            OR status.code LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-        }
 
+            $orderArray = $params->get('order');
+            if (!empty($orderArray)) {
+                foreach ($orderArray as $order) {
+                    $dir = $order['dir'];
+                    $column = $order['column'];
+                    if (!empty($dir)) {
+                        $key = $params->get('columns')[$column]['data'] ?? '';
+                        $column = (self::DtToDbLabels[$key] ?? $key);
+                        $qb->addOrderBy('status.' . $column, $dir);
+                    }
+                }
+            }
+        }
 
         $qb
             ->select('count(status)');

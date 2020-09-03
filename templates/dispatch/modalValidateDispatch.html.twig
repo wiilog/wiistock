@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ 'acheminement.Traiter un acheminement'|trans }}</h5>
+                <h5 class="modal-title" title="Traiter un acheminement">{{ 'acheminement.Traiter un acheminement'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -25,7 +25,7 @@
                 {% else %}
                     {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                         array: [],
-                        warningLabel: 'Vous n\'avez pas configuré de statut traité pour ce '~('acheminement.type d\'acheminement'|trans),
+                        warningLabel: 'Vous n\'avez pas configuré de statut traité pour ce ' ~ ('acheminement.type d\'acheminement'|trans),
                         redirectPath: path('status_param_index'),
                         redirectLabel: 'Aller vers la création des statuts.'
                     } %}

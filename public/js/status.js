@@ -15,18 +15,18 @@ $(function () {
             "type": "POST"
         },
         columns: [
-            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Category', 'title': 'Entité'},
-            {"data": 'Label', 'title': 'Libellé'},
-            {"data": 'Comment', 'title': 'Commentaire'},
-            {"data": 'default', 'title': 'Statut par défaut'},
-            {"data": 'Treated', 'title': 'Statut traité'},
-            {"data": 'NotifToDeclarant', 'title': 'Envoi de mails au déclarant'},
-            {"data": 'Order', 'title': 'Ordre'},
+            {"data": 'actions', "name": 'actions', 'title': '', className: 'noVis', orderable: false},
+            {"data": 'category', "name": 'category', 'title': 'Entité'},
+            {"data": 'label', "name": 'label', 'title': 'Libellé'},
+            {"data": 'comment', "name": 'comment', 'title': 'Commentaire'},
+            {"data": 'defaultStatus', "name": 'defaultStatus', 'title': 'Statut par défaut'},
+            {"data": 'treatedStatus', "name": 'treatedStatus', 'title': 'Statut traité'},
+            {"data": 'notifToDeclarant', "name": 'notifToDeclarant', 'title': 'Envoi de mails au déclarant'},
+            {"data": 'order', "name": 'order', 'title': 'Ordre'},
         ],
         order: [
             [1, 'asc'],
-            [6, 'asc']
+            [7, 'asc']
         ],
         rowConfig: {
             needsRowClickAction: true,

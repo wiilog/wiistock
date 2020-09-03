@@ -90,14 +90,14 @@ class StatusService
         $url['edit'] = $this->router->generate('status_api_edit', ['id' => $status->getId()]);
         return [
             'id' => $status->getId() ?? '',
-            'Category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
-            'Label' => $status->getNom() ? $status->getNom() : '',
-            'Comment' => $status->getComment() ? $status->getComment() : '',
-            'Treated' => $status->getTreated() ? 'oui' : 'non',
-            'default' => $status->isDefaultForCategory() ? 'oui' : 'non',
-            'NotifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
-            'Order' => $status->getDisplayOrder() ?? '',
-            'Actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
+            'category' => $status->getCategorie() ? $status->getCategorie()->getNom() : '',
+            'label' => $status->getNom() ? $status->getNom() : '',
+            'comment' => $status->getComment() ? $status->getComment() : '',
+            'treatedStatus' => $status->getTreated() ? 'oui' : 'non',
+            'defaultStatus' => $status->isDefaultForCategory() ? 'oui' : 'non',
+            'notifToDeclarant' => $status->getSendNotifToDeclarant() ? 'oui' : 'non',
+            'order' => $status->getDisplayOrder() ?? '',
+            'actions' => $this->templating->render('status/datatableStatusRow.html.twig', [
                 'url' => $url,
                 'statusId' => $status->getId(),
             ]),

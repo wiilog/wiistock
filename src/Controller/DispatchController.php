@@ -322,7 +322,13 @@ Class DispatchController extends AbstractController
         $locationDrop = $emplacementRepository->find($post->get('depose'));
 
         $oldStatus = $dispatch->getStatut();
-        $newStatus = $statutRepository->find($post->get('statut'));
+        if (!$oldStatus || !$oldStatus->getTreated()) {
+            $newStatus = $statutRepository->find($post->get('statut'));
+            $dispatch->setStatut($newStatus);
+        }
+        else {
+            $newStatus = null;
+        }
 
         if ($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
@@ -336,10 +342,9 @@ Class DispatchController extends AbstractController
             ->setEndDate($endDate)
             ->setRequester($utilisateurRepository->find($post->get('demandeur')))
             ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
-            ->setUrgent((bool) $post->get('urgent'))
+            ->setUrgent($post->getBoolean('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
-            ->setStatut($statutRepository->find($post->get('statut')))
             ->setCommentaire($post->get('commentaire') ?: '');
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
@@ -548,7 +553,7 @@ Class DispatchController extends AbstractController
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('acheminement.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
         }
 
         return new JsonResponse([
@@ -577,7 +582,7 @@ Class DispatchController extends AbstractController
         $dispatchPack = $dispatchPackRepository->find($packDispatchId);
         if (empty($dispatchPack)) {
             $success = false;
-            $message = $translator->trans("acheminement.Le colis n''existe pas");
+            $message = $translator->trans("colis.Le colis n''existe pas");
         } else {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
@@ -594,7 +599,7 @@ Class DispatchController extends AbstractController
             $entityManager->flush();
 
             $success = true;
-            $message = $translator->trans('acheminement.Le colis a bien été sauvegardé');
+            $message = $translator->trans('colis.Le colis a bien été sauvegardé');
         }
         return new JsonResponse([
             'success' => $success,
@@ -605,11 +610,13 @@ Class DispatchController extends AbstractController
     /**
      * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
+     * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function deletePack(Request $request,
-                           EntityManagerInterface $entityManager): Response
+                               TranslatorInterface $translator,
+                               EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
@@ -620,7 +627,7 @@ Class DispatchController extends AbstractController
 
             $data = [
                 'success' => true,
-                'msg' => 'Le colis a bien été supprimé.'
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé.')
             ];
 
             return new JsonResponse($data);

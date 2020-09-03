@@ -101,6 +101,11 @@ class MouvementTraca extends FreeFieldEntity
     private $arrivage;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="trackingMovements")
+     */
+    private $dispatch;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="mouvementTracas")
      */
     private $referenceArticle;
@@ -297,6 +302,21 @@ class MouvementTraca extends FreeFieldEntity
     {
         $this->arrivage = $arrivage;
 
+        return $this;
+    }
+
+    public function getDispatch()
+    {
+        return $this->dispatch;
+    }
+
+    /**
+     * @param mixed $dispatch
+     * @return MouvementTraca
+     */
+    public function setDispatch($dispatch): self
+    {
+        $this->dispatch = $dispatch;
         return $this;
     }
 

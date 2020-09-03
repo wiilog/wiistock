@@ -65,18 +65,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'emplacement dépose' => 'emplacement dépose',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
-                'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
-                'Le colis n\'existe pas' => 'Le colis n\'existe pas',
-                'Le colis a déjà été traité' => 'Le colis a déjà été traité',
-                'Ajouter un colis' => 'Ajouter un colis',
-                'Modifier un colis' => 'Modifier un colis',
-                'Traiter un colis' => 'Traiter un colis',
                 'Traiter un acheminement' => 'Traiter un acheminement',
                 'type d\'acheminement' => 'type d\'acheminement',
-                "Voulez-vous réellement supprimer ce colis" => " Voulez-vous réellement supprimer ce colis",
                 "Quantité à acheminer" => "Quantité à acheminer",
                 "Quantité colis" => "Quantité colis",
-                "Cet acheminement est à traiter en urgence" => "Cet acheminement est à traiter en urgence"
+                "Cet acheminement est urgent" => "Cet acheminement est urgent"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -117,9 +110,15 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     : 'Référence'
             ],
             'colis' => [
+                'Ajouter un colis' => 'Ajouter un colis',
                 'Modifier un colis' => 'Modifier un colis',
                 'Numéro colis' => 'Numéro colis',
-                'Votre colis a bien été modifié' => 'Votre colis a bien été modifié'
+                "Quantité colis" => "Quantité colis",
+                'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
+                "Voulez-vous réellement supprimer ce colis" => "Voulez-vous réellement supprimer ce colis",
+                "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
+                'Le colis n\'existe pas' => 'Le colis n\'existe pas',
+                'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
             ],
             'services' => [
                 'Types de service' => 'Types de service',
