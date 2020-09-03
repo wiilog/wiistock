@@ -70,6 +70,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         /** @lang DQL */
             "SELECT u.id, u.username
             FROM App\Entity\Utilisateur u
+            WHERE u.status = true
             ORDER BY u.username
             "
         );
@@ -83,7 +84,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         $query = $em->createQuery(
             "SELECT u.id, u.username as text
           FROM App\Entity\Utilisateur u
-          WHERE u.username LIKE :search"
+          WHERE u.username LIKE :search
+          AND u.status = true"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
@@ -96,7 +98,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
           FROM App\Entity\Utilisateur u
           LEFT JOIN u.dropzone d
           WHERE u.username LIKE :search
-          AND u.status = 1 "
+          AND u.status = true "
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
@@ -114,7 +116,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         /** @lang DQL */
             "SELECT u
           FROM App\Entity\Utilisateur u
-          WHERE u.username = :search"
+          WHERE u.username = :search
+          AND u.status = true"
         )->setParameter('search', $search);
 
         return $query->getOneOrNullResult();
