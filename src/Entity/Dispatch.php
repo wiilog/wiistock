@@ -92,7 +92,7 @@ class Dispatch extends FreeFieldEntity
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="dispatch")
      */
-    private $mouvementsTraca;
+    private $trackingMovements;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
@@ -347,28 +347,28 @@ class Dispatch extends FreeFieldEntity
     /**
      * @return Collection|MouvementTraca[]
      */
-    public function getMouvementsTraca(): Collection
+    public function getTrackingMovements(): Collection
     {
-        return $this->mouvementsTraca;
+        return $this->trackingMovements;
     }
 
-    public function addMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function addTrackingMovement(MouvementTraca $trackingMovement): self
     {
-        if (!$this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca[] = $mouvementsTraca;
-            $mouvementsTraca->setDispatch($this);
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setDispatch($this);
         }
 
         return $this;
     }
 
-    public function removeMouvementsTraca(MouvementTraca $mouvementsTraca): self
+    public function removeTrackingMovement(MouvementTraca $trackingMovement): self
     {
-        if ($this->mouvementsTraca->contains($mouvementsTraca)) {
-            $this->mouvementsTraca->removeElement($mouvementsTraca);
+        if ($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if ($mouvementsTraca->getDispatch() === $this) {
-                $mouvementsTraca->setDispatch(null);
+            if ($trackingMovement->getDispatch() === $this) {
+                $trackingMovement->setDispatch(null);
             }
         }
 
