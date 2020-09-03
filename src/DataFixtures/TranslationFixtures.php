@@ -76,7 +76,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Voulez-vous réellement supprimer ce colis" => " Voulez-vous réellement supprimer ce colis",
                 "Quantité à acheminer" => "Quantité à acheminer",
                 "Quantité colis" => "Quantité colis",
-                "Cet acheminement est à traiter en urgence" => "Cet acheminement est à traiter en urgence"
+                "Cet acheminement est urgent" => "Cet acheminement est urgent"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

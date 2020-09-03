@@ -336,7 +336,7 @@ Class DispatchController extends AbstractController
             ->setEndDate($endDate)
             ->setRequester($utilisateurRepository->find($post->get('demandeur')))
             ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
-            ->setUrgent((bool) $post->get('urgent'))
+            ->setUrgent($post->getBoolean('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setStatut($statutRepository->find($post->get('statut')))
