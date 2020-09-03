@@ -295,7 +295,7 @@ class DispatchService
                 $fromNomade,
                 true,
                 MouvementTraca::TYPE_PRISE,
-                ['quantity' => $dispatchPack->getQuantity(), $dispatch]
+                ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
             );
 
             $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
