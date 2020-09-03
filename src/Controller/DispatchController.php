@@ -398,7 +398,7 @@ Class DispatchController extends AbstractController
             $dispatch = $dispatchRepository->find($data['id']);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
-                'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
+                'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);

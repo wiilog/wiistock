@@ -50,33 +50,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $query->getSingleScalarResult();
     }
 
-    public function countApiKey($apiKey)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
-            FROM App\Entity\Utilisateur u
-            WHERE u.apiKey = :apiKey"
-        )->setParameter('apiKey', $apiKey);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function getIdAndUsername()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT u.id, u.username
-            FROM App\Entity\Utilisateur u
-            ORDER BY u.username
-            "
-        );
-
-        return $query->execute();
-    }
-
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();
@@ -273,19 +246,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         );
 
         return $query->getSingleScalarResult();
-    }
-
-    public function findAllSorted()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT u FROM App\Entity\Utilisateur u
-            ORDER BY u.username
-            "
-        );
-
-        return $query->execute();
     }
 
     public function getUsernameBuyersGroupByArrival()
