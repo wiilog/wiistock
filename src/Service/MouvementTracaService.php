@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
+use App\Entity\Dispatch;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -91,11 +92,16 @@ class MouvementTracaService
             $fromLabel = 'arrivage.arrivage';
             $fromEntityId = $mouvement->getArrivage()->getId();
             $originFrom = $mouvement->getArrivage()->getNumeroArrivage();
-        } elseif ($mouvement->getReception()) {
+        } else if ($mouvement->getReception()) {
             $fromPath = 'reception_show';
             $fromLabel = 'réception.réception';
             $fromEntityId = $mouvement->getReception()->getId();
             $originFrom = $mouvement->getReception()->getNumeroReception();
+        } else if ($mouvement->getDispatch()) {
+            $fromPath = 'dispatch_show';
+            $fromLabel = 'acheminement.acheminement';
+            $fromEntityId = $mouvement->getDispatch()->getId();
+            $originFrom = $mouvement->getDispatch()->getNumber();
         } else {
             $fromPath = null;
             $fromEntityId = null;
@@ -221,6 +227,8 @@ class MouvementTracaService
                 $mouvementTraca->setArrivage($from);
             } else if ($from instanceof Reception) {
                 $mouvementTraca->setReception($from);
+            } else if ($from instanceof Dispatch) {
+                $mouvementTraca->setDispatch($from);
             }
         }
 
