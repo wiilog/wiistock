@@ -8,16 +8,14 @@
 
 {% block showActions %}
     <div class="btn-group">
-        {% if modifiable %}
-            {% if hasRightEdit %}
-                <button type="button"
-                        data-id='{{ dispatch.id }}'
-                        onclick="openValidateDispatchModal()"
-                        class="btn btn-primary btn-ripple split-button">
-                    <i class="fa fa-check mr-2 button-icon"></i>
-                    Valider la demande
-                </button>
-            {% endif %}
+        {% if modifiable and hasRightEdit %}
+            <button type="button"
+                    data-id='{{ dispatch.id }}'
+                    onclick="openValidateDispatchModal()"
+                    class="btn btn-primary btn-ripple split-button">
+                <i class="fa fa-check mr-2 button-icon"></i>
+                Valider la demande
+            </button>
         {% endif %}
         {% if hasRightEdit or hasRightDelete or hasRightExport %}
             <button type="button"
@@ -28,23 +26,21 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if modifiable %}
-                    {% if hasRightEdit %}
-                        <a href="#"
-                           data-id='{{ dispatch.id }}'
-                           data-target='#modalEditDispatch'
-                           data-toggle='modal'
-                           onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
-                           class="dropdown-item">
-                            <i class="fa fa-pen mr-2"></i>Modifier
-                        </a>
-                    {% endif %}
-                    {% if hasRightDelete %}
-                        <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
-                           class="dropdown-item">
-                            <i class="fa fa-trash mr-2"></i>Supprimer
-                        </a>
-                    {% endif %}
+                {% if hasRightEdit %}
+                    <a href="#"
+                       data-id='{{ dispatch.id }}'
+                       data-target='#modalEditDispatch'
+                       data-toggle='modal'
+                       onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), true, '#modalEditDispatch .editor-container-edit')"
+                       class="dropdown-item">
+                        <i class="fa fa-pen mr-2"></i>Modifier
+                    </a>
+                {% endif %}
+                {% if hasRightDelete %}
+                    <a href="" data-id='{{ dispatch.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
+                       class="dropdown-item">
+                        <i class="fa fa-trash mr-2"></i>Supprimer
+                    </a>
                 {% endif %}
                 {% if hasRightExport %}
                     <a class="dropdown-item"

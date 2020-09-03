@@ -322,7 +322,13 @@ Class DispatchController extends AbstractController
         $locationDrop = $emplacementRepository->find($post->get('depose'));
 
         $oldStatus = $dispatch->getStatut();
-        $newStatus = $statutRepository->find($post->get('statut'));
+        if (!$oldStatus || !$oldStatus->getTreated()) {
+            $newStatus = $statutRepository->find($post->get('statut'));
+            $dispatch->setStatut($newStatus);
+        }
+        else {
+            $newStatus = null;
+        }
 
         if ($startDate && $endDate && $startDate > $endDate) {
             return new JsonResponse([
@@ -339,7 +345,6 @@ Class DispatchController extends AbstractController
             ->setUrgent((bool) $post->get('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
-            ->setStatut($statutRepository->find($post->get('statut')))
             ->setCommentaire($post->get('commentaire') ?: '');
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
