@@ -90,16 +90,21 @@ class OrdreCollecteRepository extends EntityRepository
             ->leftJoin('dc.type', 'typeDemandeCollecte');
 	}
 
+    /**
+     * @param $params
+     * @param $filters
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function findByParamsAndFilters($params, $filters)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $qb = $this->createQueryBuilder('oc');
 
-        $qb
-            ->select('oc')
-            ->from('App\Entity\OrdreCollecte', 'oc');
-
-        $countTotal = count($qb->getQuery()->getResult());
+        $countTotal = $qb
+            ->select('COUNT(oc)')
+            ->getQuery()
+            ->getSingleScalarResult();
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -157,14 +162,16 @@ class OrdreCollecteRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->join('oc.statut', 's2')
-                        ->join('oc.utilisateur', 'u2')
-                        ->join('oc.demandeCollecte', 'dc2')
-                        ->join('dc2.type', 't2')
-                        ->andWhere('oc.numero LIKE :value
-						OR s2.nom LIKE :value
-						OR u2.username LIKE :value
-						OR t2.label LIKE :value')
+                        ->leftJoin('oc.statut', 's2')
+                        ->leftJoin('oc.utilisateur', 'u2')
+                        ->leftJoin('oc.demandeCollecte', 'dc2')
+                        ->leftJoin('dc2.type', 't2')
+                        ->andWhere('(
+                            oc.numero LIKE :value
+                            OR s2.nom LIKE :value
+                            OR u2.username LIKE :value
+                            OR t2.label LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -201,7 +208,12 @@ class OrdreCollecteRepository extends EntityRepository
 		}
 
 		// compte éléments filtrés
-		$countFiltered = count($qb->getQuery()->getResult());
+        $countFiltered = $qb
+            ->select('COUNT(oc)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $qb->select('oc');
 
 		if ($params) {
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -210,7 +222,8 @@ class OrdreCollecteRepository extends EntityRepository
 
 		$query = $qb->getQuery();
 
-		return ['data' => $query ? $query->getResult() : null ,
+		return [
+		    'data' => $query ? $query->getResult() : null,
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
