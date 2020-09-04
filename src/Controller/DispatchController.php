@@ -432,6 +432,11 @@ Class DispatchController extends AbstractController
                 foreach ($attachments as $attachment) {
                     $entityManager->remove($attachment);
                 }
+
+                $trackingMovements = $dispatch->getTrackingMovements()->toArray();
+                foreach ($trackingMovements as $trackingMovement) {
+                    $dispatch->removeTrackingMovement($trackingMovement);
+                }
             }
             $entityManager->remove($dispatch);
             $entityManager->flush();

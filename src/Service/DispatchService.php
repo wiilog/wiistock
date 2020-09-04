@@ -151,7 +151,7 @@ class DispatchService
                 ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
                 ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-                ['label' => 'Destinataire', 'value' => $receiver ? $requester->getUsername() : ''],
+                ['label' => 'Destinataire', 'value' => $receiver ? $receiver->getUsername() : ''],
                 ['label' => $this->translator->trans('acheminement.emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
                 ['label' => $this->translator->trans('acheminement.emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
