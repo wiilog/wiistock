@@ -1,10 +1,16 @@
 <div class="d-flex">
     {% if entityPath is not null %}
-        <a href="{{ path(entityPath, {'id': entityId}) }}" target="_blank">
-            <i class='fas fa-share-square mr-2'></i>&nbsp;{{ fromLabel|trans }}<br/>
-            {{ from }}
+        <a href="{{ path(entityPath, {'id': entityId}) }}"
+           class="d-flex align-items-center"
+           target="_blank">
+            <i class='fas fa-share-square mr-2'></i>
+            <span>
+                <span>{{ fromLabel|trans }}</span>
+                <br/>
+                <span>{{ from }}</span>
+            </span>
         </a>
     {% elseif from is not null %}
-        {{ from }}
+        <span>{{ from }}</span>
     {% endif %}
 </div>

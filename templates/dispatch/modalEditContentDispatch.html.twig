@@ -1,25 +1,35 @@
 <div class="form-group">
     <label>Type*</label>
-    <select name="type" class="form-control d-block type needed" disabled title="Type">
+    <select name="type"
+            class="form-control d-block type needed"
+            disabled
+            title="Type">
         <option selected value={{ dispatch.type.id }}>{{ dispatch.type.label }}</option>
     </select>
 </div>
 <div class="form-group">
-    <label for="type">Statut*</label>
-    <select name="statut" class="form-control data d-block needed">
-        <option selected
-                value="{{ dispatch.statut.id }}"
-                data-type-id="{{ dispatch.statut.type.id }}">
-            {{ dispatch.statut.nom }}
-        </option>
-        {% for statut in notTreatedStatus %}
-            {% if statut.id != dispatch.statut.id and statut.type.id == dispatch.type.id %}
-                <option data-type-id="{{ statut.type.id }}"
-                        value="{{ statut.id }}">
-                    {{ statut.nom }}
-                </option>
-            {% endif %}
-        {% endfor %}
+    <label>Statut*</label>
+    <select name="statut"
+            {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
+            class="form-control data d-block needed"
+            title="Statut">
+        {% if dispatch.statut is not null %}
+            <option selected
+                    value="{{ dispatch.statut.id }}"
+                    data-type-id="{{ dispatch.statut.type.id }}">
+                {{ dispatch.statut.nom }}
+            </option>
+        {% endif %}
+        {% if dispatch.statut is null or not dispatch.statut.treated %}
+            {% for status in dispatchStatus %}
+                {% if status.id != dispatch.statut.id %}
+                    <option data-type-id="{{ status.type.id }}"
+                            value="{{ status.id }}">
+                        {{ status.nom }}
+                    </option>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     </select>
 </div>
 <div class="form-group">

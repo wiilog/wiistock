@@ -24,7 +24,6 @@ final class Version20200829103245 extends AbstractMigration
 
         $this->addSql('ALTER TABLE acheminements RENAME TO dispatch;');
         $this->addSql('ALTER TABLE pack_acheminement CHANGE acheminement_id dispatch_id INT NOT NULL');
-        $this->addSql('ALTER TABLE piece_jointe CHANGE acheminement_id dispatch_id INT DEFAULT NULL');
         $this->addSql('ALTER TABLE pack_acheminement RENAME TO dispatch_pack;');
     }
 

@@ -90,6 +90,11 @@ class Dispatch extends FreeFieldEntity
     private $dispatchPacks;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="dispatch")
+     */
+    private $trackingMovements;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
      */
     private $type;
@@ -335,6 +340,37 @@ class Dispatch extends FreeFieldEntity
     public function setValidationDate(?\DateTimeInterface $validationDate): self
     {
         $this->validationDate = $validationDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementTraca[]
+     */
+    public function getTrackingMovements(): Collection
+    {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(MouvementTraca $trackingMovement): self
+    {
+        if (!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setDispatch($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(MouvementTraca $trackingMovement): self
+    {
+        if ($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if ($trackingMovement->getDispatch() === $this) {
+                $trackingMovement->setDispatch(null);
+            }
+        }
 
         return $this;
     }

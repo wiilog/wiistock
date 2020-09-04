@@ -77,7 +77,6 @@
                     padding-top: 0.7rem;
                     padding-bottom: 0.7rem;
                     color: $greyDashboard;
-                    width: 260px;
 
                     &:active,
                     &:hover,
@@ -104,6 +103,10 @@
                     .label {
                         font-size: 1rem;
                         color: $greyDashboard;
+                        width: 115px;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
                     }
 
                     .icon-container {
@@ -121,7 +124,7 @@
                 .dropdown-menu-sub {
                     margin-right: 3px;
 
-                    .dropdown-item {
+                    .dropdown-item > .label {
                         width: 235px;
                     }
                 }

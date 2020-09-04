@@ -4,8 +4,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <span class="title-new-pack">{{ 'acheminement.Ajouter un colis'|trans }}</span>
-                    <span class="title-edit-pack">{{ 'acheminement.Modifier un colis'|trans }}</span>
+                    <span class="title-new-pack" title="Ajouter un colis">{{ 'colis.Ajouter un colis'|trans }}</span>
+                    <span class="title-edit-pack" title="Modifier un colis">{{ 'colis.Modifier un colis'|trans }}</span>
                 </h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -14,7 +14,7 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
-                    <label for="type">{{ 'mouvement de traçabilité.Colis'|trans }}*</label>
+                    <label for="type" title="Colis">{{ 'mouvement de traçabilité.Colis'|trans }}*</label>
                     <input type="text"
                            class="form-control data needed"
                            name="pack"
@@ -29,18 +29,18 @@
                 </div>
 
                 <div class="form-group pack-details">
-                    <label>{{ 'natures.Nature de colis'|trans }}*</label>
+                    <label title="Nature de colis">{{ 'natures.Nature de colis'|trans }}*</label>
                     <select class="form-control data needed"
                             name="nature"
                             title="{{ 'natures.Nature de colis'|trans }}">
-                        <option>{{ 'natures.Sélectionner une nature'|trans }}</option>
+                        <option title="Sélectionner une nature">{{ 'natures.Sélectionner une nature'|trans }}</option>
                         {% for nature in natures %}
                             <option value="{{ nature.id }}">{{ nature.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group pack-details">
-                    <label>{{'acheminement.Quantité à acheminer'|trans}}*</label>
+                    <label title="Quantité à acheminer">{{'acheminement.Quantité à acheminer'|trans}}*</label>
                     <input type="number"
                            class="form-control data needed"
                            name="quantity"
@@ -49,11 +49,11 @@
                            title="{{'acheminement.Quantité à acheminer'|trans}}"/>
                 </div>
                 <div class="form-group pack-details">
-                    <label>{{'acheminement.Quantité colis'|trans}}</label>
+                    <label title="Quantité colis">{{'colis.Quantité colis'|trans}}</label>
                     <input type="number"
                            class="form-control"
                            name="pack-quantity"
-                           title="{{'acheminement.Quantité colis'|trans}}"
+                           title="{{'colis.Quantité colis'|trans}}"
                            disabled/>
                 </div>
             </div>
