@@ -45,19 +45,19 @@ class DispatchRepository extends EntityRepository
                         ->andWhere('t.id in (:type)')
                         ->setParameter('type', $value);
                     break;
-                case 'requesters':
+                case FiltreSup::FIELD_REQUESTERS:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.requester', 'requester')
-                        ->andWhere('requester.id in (:filter_requester)')
-                        ->setParameter('filter_requester', $value);
+                        ->join('a.requester', 'filter_requester')
+                        ->andWhere('filter_requester.id in (:filter_requester_values)')
+                        ->setParameter('filter_requester_values', $value);
                     break;
-                case 'receivers':
+                case FiltreSup::FIELD_RECEIVERS:
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.receiver', 'receiver')
-                        ->andWhere('a.receiver.id in (:filter_receiver)')
-                        ->setParameter('filter_receiver', $value);
+                        ->join('a.receiver', 'filter_receiver')
+                        ->andWhere('filter_receiver.id in (:filter_receiver_values)')
+                        ->setParameter('filter_receiver_values', $value);
                     break;
                 case 'dateMin':
                     $qb->andWhere('a.creationDate >= :dateMin')

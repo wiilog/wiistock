@@ -6,6 +6,7 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
  * @method Utilisateur|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,7 +14,7 @@ use Doctrine\ORM\NoResultException;
  * @method Utilisateur[]    findAll()
  * @method Utilisateur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UtilisateurRepository extends EntityRepository
+class UtilisateurRepository extends EntityRepository implements UserLoaderInterface
 {
     private const DtToDbLabels = [
         'Nom d\'utilisateur' => 'username',
@@ -195,5 +196,10 @@ class UtilisateurRepository extends EntityRepository
         return array_map(function (array $userMail) {
             return $userMail['email'];
         }, $result);
+    }
+
+    // implemented
+    public function loadUserByUsername($username) {
+        return $this->findOneBy(['email' => $username]);
     }
 }
