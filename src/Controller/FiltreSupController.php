@@ -93,7 +93,9 @@ class FiltreSupController extends AbstractController
                 'demCollecte' => FiltreSup::FIELD_DEM_COLLECTE,
                 'demande' => FiltreSup::FIELD_DEMANDE,
                 'natures' => FiltreSup::FIELD_NATURES,
-                'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER
+                'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER,
+                'receivers' => FiltreSup::FIELD_RECEIVERS,
+                'requesters' => FiltreSup::FIELD_REQUESTERS
             ];
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {
                 if (array_key_exists($filterLabel, $data)) {
