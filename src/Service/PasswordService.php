@@ -53,7 +53,7 @@ class PasswordService
     public function sendToken($token, $to)
     {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $user = $utilisateurRepository->findOneByMail($to);
+        $user = $utilisateurRepository->findOneBy(['email' => $to, 'status' => true]);
         if ($user) {
         	$user->setToken($token);
         	$this->entityManager->flush();

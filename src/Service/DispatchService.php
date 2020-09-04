@@ -152,8 +152,8 @@ class DispatchService
                 ['label' => 'Type', 'value' => $type ? $type->getLabel() : ''],
                 ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
                 ['label' => 'Destinataire', 'value' => $receiver ? $requester->getUsername() : ''],
-                ['label' => 'Emplacement de prise', 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
-                ['label' => 'Emplacement de dépose', 'value' => $locationTo ? $locationTo->getLabel() : ''],
+                ['label' => $this->translator->trans('acheminement.emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
+                ['label' => $this->translator->trans('acheminement.emplacement dépose'), 'value' => $locationTo ? $locationTo->getLabel() : ''],
                 ['label' => 'Date de création', 'value' => $creationDate ? $creationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i:s') : ''],
                 ['label' => 'Dates d\'échéance', 'value' => ($startDate || $endDate) ? ('Du ' . $startDateStr . ' au ' . $endDateStr) : '']

@@ -306,7 +306,6 @@ class DemandeController extends AbstractController
             ];
         }
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
@@ -388,10 +387,9 @@ class DemandeController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
-            'utilisateurs' => $utilisateurRepository->getIdAndUsername(),
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),

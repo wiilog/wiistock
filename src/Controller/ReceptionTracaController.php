@@ -68,7 +68,7 @@ class ReceptionTracaController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         return $this->render('reception_traca/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAllSorted(),
+            'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
         ]);
     }
 

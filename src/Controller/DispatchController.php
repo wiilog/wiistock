@@ -97,7 +97,6 @@ Class DispatchController extends AbstractController
             'types' => $types,
 			'modalNewConfig' => [
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
-                'utilisateurs' => $utilisateurRepository->findAll(),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                     $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                     return [
@@ -403,7 +402,7 @@ Class DispatchController extends AbstractController
             $dispatch = $dispatchRepository->find($data['id']);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
-                'utilisateurs' => $utilisateurRepository->findBy([], ['username' => 'ASC']),
+                'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
                 'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);

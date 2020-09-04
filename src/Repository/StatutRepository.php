@@ -247,26 +247,38 @@ class StatutRepository extends EntityRepository
      */
     public function countUsedById($id)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(s)
-            FROM App\Entity\Statut s
-            LEFT JOIN s.articles a
-            LEFT JOIN s.collectes c
-            LEFT JOIN s.demandes dl
-            LEFT JOIN s.livraisons ol
-            LEFT JOIN s.preparations p
-            LEFT JOIN s.litiges l
-            LEFT JOIN s.receptions r
-            LEFT JOIN s.referenceArticles ra
-            LEFT JOIN s.manutentions m
-            WHERE a.statut = :id OR c.statut = :id OR dl.statut = :id OR ol.statut = :id OR p.statut = :id
-            OR l.status = :id OR r.statut = :id OR ra.statut = :id OR m.statut = :id
-           "
-        )->setParameter('id', $id);
+        $queryBuilder = $this->createQueryBuilder('s');
+        $exprBuilder = $queryBuilder->expr();
 
-        return $query->getSingleScalarResult();
+        $queryBuilder
+            ->select('COUNT(s)')
+            ->leftJoin('s.articles', 'a')
+            ->leftJoin('s.collectes', 'c')
+            ->leftJoin('s.demandes', 'dl')
+            ->leftJoin('s.livraisons', 'ol')
+            ->leftJoin('s.preparations', 'p')
+            ->leftJoin('s.litiges', 'l')
+            ->leftJoin('s.receptions', 'r')
+            ->leftJoin('s.referenceArticles', 'ra')
+            ->leftJoin('s.manutentions', 'm')
+            ->leftJoin('s.dispatches', 'dispatch')
+            ->where('s.id = :statusId')
+            ->andWhere($exprBuilder->orX(
+                'a IS NOT NULL',
+                'c IS NOT NULL',
+                'dl IS NOT NULL',
+                'ol IS NOT NULL',
+                'l IS NOT NULL',
+                'r IS NOT NULL',
+                'ra IS NOT NULL',
+                'm IS NOT NULL',
+                'dispatch IS NOT NULL'
+            ))
+            ->setParameter('statusId', $id);
+
+        return (int) $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

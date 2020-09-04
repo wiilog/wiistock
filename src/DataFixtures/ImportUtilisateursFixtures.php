@@ -56,7 +56,7 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
                 $emplacementStr = $row[4];
                 $roleStr = $row[5];
                 $pass = $this->passwordService->generateToken(8);
-				$utilisateur = $utilisateurRepository->findOneByMail($mail);
+				$utilisateur = $utilisateurRepository->findOneBy(['email' => $mail]);
 				if (empty($utilisateur)) {
                     $role = $roleRepository->findByLabel($roleStr);
                     $emplacement = $emplacementRepository->findOneByLabel($emplacementStr);

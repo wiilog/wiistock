@@ -39,7 +39,6 @@ final class Version20200817075450 extends AbstractMigration
                                               pack_id INT NOT NULL,
                                               acheminement_id INT NOT NULL,
                                               quantity INT NOT NULL,
-                                              treated TINYINT(1) NOT NULL,
                                               INDEX IDX_3781F5A11919B217 (pack_id),
                                               INDEX IDX_3781F5A16BB47450 (acheminement_id),
                                               PRIMARY KEY(id))
