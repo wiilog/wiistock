@@ -83,7 +83,6 @@ class UtilisateurController extends AbstractController
         }
 
         return $this->render('utilisateur/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
             'roles' => $roleRepository->findAll(),
             'deliveryTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
             'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH),
@@ -121,8 +120,9 @@ class UtilisateurController extends AbstractController
 				]);
 
 			}
+
             // unicité de l'email
-            $emailAlreadyUsed = intval($utilisateurRepository->countByEmail($data['email']));
+            $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
             if ($emailAlreadyUsed) {
 				return new JsonResponse([
@@ -133,7 +133,7 @@ class UtilisateurController extends AbstractController
             }
 
 			// unicité de l'username
-			$usernameAlreadyUsed = intval($utilisateurRepository->countByUsername($data['username']));
+            $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
 			if ($usernameAlreadyUsed) {
 				return new JsonResponse([
@@ -265,7 +265,7 @@ class UtilisateurController extends AbstractController
             }
 
             // unicité de l'email
-            $emailAlreadyUsed = intval($utilisateurRepository->countByEmail($data['email']));
+            $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
             if ($emailAlreadyUsed && $data['email'] != $utilisateur->getEmail()) {
 				return new JsonResponse([
@@ -276,7 +276,7 @@ class UtilisateurController extends AbstractController
 			}
 
 			// unicité de l'username
-			$usernameAlreadyUsed = intval($utilisateurRepository->countByUsername($data['username']));
+            $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
 			if ($usernameAlreadyUsed && $data['username'] != $utilisateur->getUsername()) {
 				return new JsonResponse([
@@ -494,7 +494,7 @@ class UtilisateurController extends AbstractController
             $search = $request->query->get('term');
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $results = $utilisateurRepository->getIdAndLibelleAndDropzoneBySearch($search);
+            $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $results]);
         }
         throw new NotFoundHttpException("404");

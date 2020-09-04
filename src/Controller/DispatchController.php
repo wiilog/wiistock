@@ -97,7 +97,6 @@ Class DispatchController extends AbstractController
             'types' => $types,
 			'modalNewConfig' => [
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
-                'utilisateurs' => $utilisateurRepository->findAll(),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                     $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                     return [

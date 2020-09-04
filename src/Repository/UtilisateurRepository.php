@@ -6,7 +6,6 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
  * @method Utilisateur|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,7 +13,7 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
  * @method Utilisateur[]    findAll()
  * @method Utilisateur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UtilisateurRepository extends EntityRepository implements UserLoaderInterface
+class UtilisateurRepository extends EntityRepository
 {
     private const DtToDbLabels = [
         'Nom d\'utilisateur' => 'username',
@@ -24,103 +23,19 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         'Rôle' => 'role',
     ];
 
-    public function countByEmail($email)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
-            FROM App\Entity\Utilisateur u
-            WHERE u.email = :email"
-        )->setParameter('email', $email);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countByUsername($username)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
-			FROM App\Entity\Utilisateur u
-			WHERE u.username = :username"
-        )->setParameter('username', $username);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countApiKey($apiKey)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
-            FROM App\Entity\Utilisateur u
-            WHERE u.apiKey = :apiKey"
-        )->setParameter('apiKey', $apiKey);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function getIdAndUsername()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT u.id, u.username
-            FROM App\Entity\Utilisateur u
-            WHERE u.status = true
-            ORDER BY u.username
-            "
-        );
-
-        return $query->execute();
-    }
-
     public function getIdAndLibelleBySearch($search)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT u.id, u.username as text
-          FROM App\Entity\Utilisateur u
-          WHERE u.username LIKE :search
-          AND u.status = true"
-        )->setParameter('search', '%' . $search . '%');
-
-        return $query->execute();
-    }
-
-    public function getIdAndLibelleAndDropzoneBySearch($search) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT u.id, u.username as text, d.id as idEmp, d.label as textEmp
-          FROM App\Entity\Utilisateur u
-          LEFT JOIN u.dropzone d
-          WHERE u.username LIKE :search
-          AND u.status = true "
-        )->setParameter('search', '%' . $search . '%');
-
-        return $query->execute();
-    }
-
-    /**
-     * @param $search
-     * @return Utilisateur|null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByUsername($search)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT u
-          FROM App\Entity\Utilisateur u
-          WHERE u.username = :search
-          AND u.status = true"
-        )->setParameter('search', $search);
-
-        return $query->getOneOrNullResult();
+        return $this->createQueryBuilder('u')
+            ->select('u.id')
+            ->addSelect('u.username as text')
+            ->addSelect('d.id as idEmp')
+            ->addSelect('d.label as textEmp')
+            ->leftJoin('u.dropzone', 'd')
+            ->where('u.username LIKE :search')
+            ->andWhere('u.status = true')
+            ->setParameter('search', '%' . $search . '%')
+            ->getQuery()
+            ->execute();
     }
 
     public function removeFromSearch(string $searchField, string $fieldToRemove) {
@@ -153,32 +68,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $query->getSingleScalarResult();
     }
 
-    public function findOneByMail($mail)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT u
-            FROM App\Entity\Utilisateur u
-            WHERE u.email = :email"
-        )->setParameter('email', $mail);
-
-        return $query->getOneOrNullResult();
-    }
-
-    public function findOneByToken($token)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT u
-            FROM App\Entity\Utilisateur u
-            WHERE u.token = :token"
-        )->setParameter('token', $token);
-
-        return $query->getOneOrNullResult();
-    }
-
     /**
      * @param $key
      * @return Utilisateur | null
@@ -196,15 +85,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         )->setParameter('key', $key);
 
         return $query->getOneOrNullResult();
-    }
-
-    public function loadUserByUsername($username)
-    {
-        return $this->createQueryBuilder('u')
-            ->where('u.email = :username AND u.status = 1')
-            ->setParameter('username', $username)
-            ->getQuery()
-            ->getOneOrNullResult();
     }
 
     public function findByFieldNotNull(string $field) {

@@ -109,7 +109,6 @@ class CollecteController extends AbstractController
 
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
-            'utilisateurs' => $utilisateurRepository->findAll(),
 			'typeChampsLibres' => $typeChampLibre,
 			'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
 			'filterStatus' => $filter
@@ -442,7 +441,6 @@ class CollecteController extends AbstractController
 				return $this->redirectToRoute('access_denied');
 			}
             $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
@@ -474,7 +472,6 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'emplacements' => $emplacementRepository->findAll(),
                 'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
 				'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes

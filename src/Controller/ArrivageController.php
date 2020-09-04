@@ -556,7 +556,7 @@ class ArrivageController extends AbstractController
             $acheteurs = $post->get('acheteurs');
 
             $acheteursEntities = array_map(function ($acheteur) use ($utilisateurRepository) {
-                return $utilisateurRepository->findOneByUsername($acheteur);
+                return $utilisateurRepository->findOneBy(['username' => $acheteur]);
             }, explode(',', $acheteurs));
 
             $arrivage->removeAllAcheteur();

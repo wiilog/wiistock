@@ -42,11 +42,7 @@
                 </div>
                 <div class="form-group">
                     <label for="demandeur">Demandeur*</label>
-                    <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="demandeur">
-                        {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-                        {% endfor %}
-                    </select>
+                    <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="demandeur"></select>
                     <input hidden
                            name="logged-user"
                            data-username="{{ app.user.username }}"
@@ -55,10 +51,6 @@
                 <div class="form-group">
                     <label for="destinataire">Destinataire</label>
                     <select class="destinataire form-control data ajax-autocomplete-user w-100" name="destinataire">
-                        <option value="" selected></option>
-                        {% for utilisateur in utilisateurs %}
-                            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-                        {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
