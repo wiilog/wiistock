@@ -278,19 +278,6 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $query->getSingleScalarResult();
     }
 
-    public function findAllSorted()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT u FROM App\Entity\Utilisateur u
-            ORDER BY u.username
-            "
-        );
-
-        return $query->execute();
-    }
-
     public function getUsernameBuyersGroupByArrival()
     {
         $queryBuilder = $this->createQueryBuilder('utilisateur')

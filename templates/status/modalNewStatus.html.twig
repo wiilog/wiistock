@@ -42,6 +42,14 @@
                     </div>
 
                     <div class="col-12 form-group">
+                        <label>Statut par défaut pour cette entité ?</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="defaultForCategory"/>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="col-12 form-group">
                         <label>Statut de type 'traité' ?</label>
                         <label class="switch">
                             <input class="checkbox" type="checkbox" name="treated">
@@ -87,8 +95,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewStatus" type="button" class="btn btn-success">Enregistrer</button>
-
-                <input hidden id="acheminementTranslation" value="{{ 'acheminement.acheminements'|trans }}">
             </div>
         </div>
     </div>

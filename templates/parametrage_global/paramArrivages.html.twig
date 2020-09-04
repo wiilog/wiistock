@@ -66,16 +66,4 @@
                    data-text="{{ location ? location.text }}"/>
         </div>
     </div>
-    <div class="row mt-2">
-        <div class="form-group w-450px col-4">
-            <label for="arrivageStatusLitige" class="d-block">Statut litige par défaut</label>
-            <select class="form-control d-block" id="arrivageStatusLitige" onchange="editStatusLitigeArrivage($(this))">
-                <option></option>
-                {% for status in listStatusLitige %}
-                    {% set selected = (status.id == defaultStatusLitigeId) ? 'selected' %}
-                    <option value="{{ status.id }}" {{ selected }}>{{ status.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
 </div>
