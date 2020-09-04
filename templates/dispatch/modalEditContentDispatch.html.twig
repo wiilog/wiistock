@@ -21,7 +21,7 @@
             </option>
         {% endif %}
         {% if dispatch.statut is null or not dispatch.statut.treated %}
-            {% for status in dispatchStatus %}
+            {% for status in notTreatedStatus %}
                 {% if status.id != dispatch.statut.id %}
                     <option data-type-id="{{ status.type.id }}"
                             value="{{ status.id }}">
