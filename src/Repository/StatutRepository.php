@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieStatut;
 use App\Entity\Statut;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -16,12 +17,24 @@ use Doctrine\ORM\NoResultException;
  */
 class StatutRepository extends EntityRepository
 {
+
+    private const DtToDbLabels = [
+        'category' => 'categorie',
+        'label' => 'nom',
+        'comment' => 'comment',
+        'defaultStatus' => 'defaultForCategory',
+        'treatedStatus' => 'treated',
+        'notifToDeclarant' => 'sendNotifToDeclarant',
+        'order' => 'displayOrder'
+    ];
+
     /**
      * @param string $categorieName
      * @param bool $ordered
+     * @param bool $onlyNotTreated
      * @return Statut[]
      */
-    public function findByCategorieName($categorieName, $ordered = false)
+    public function findByCategorieName($categorieName, $ordered = false, $onlyNotTreated = false)
     {
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
@@ -29,7 +42,12 @@ class StatutRepository extends EntityRepository
 
         if ($ordered) {
             $queryBuilder->orderBy('status.displayOrder', 'ASC');
-		}
+        }
+
+        if ($onlyNotTreated) {
+            $queryBuilder
+                ->andWhere('status.treated = 0');
+        }
 
         $queryBuilder
             ->setParameter("categorieName", $categorieName);
@@ -37,6 +55,32 @@ class StatutRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->execute();
+    }
+
+    /**
+     * Status for given category grouped by
+     * @param string $categoryName
+     * @return Statut[]
+     */
+    public function getIdDefaultsByCategoryName(string $categoryName): array
+    {
+        $queryBuilder = $this->createQueryBuilder('status')
+            ->addSelect('type.id AS typeId')
+            ->join('status.categorie', 'categorie')
+            ->leftJoin('status.type', 'type')
+            ->andWhere('categorie.nom = :categoryName')
+            ->andWhere('status.defaultForCategory = 1')
+            ->setParameter("categoryName", $categoryName);
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return array_reduce($res, function (array $carry, $status) {
+            $typeId = $status['typeId'] ?: 0;
+            $carry[$typeId] = $status[0]->getId();
+            return $carry;
+        }, []);
     }
 
     /**
@@ -58,16 +102,16 @@ class StatutRepository extends EntityRepository
         return $queryBuilder->getQuery()->execute();
     }
 
-	/**
-	 * @param string $categoryName
-	 * @param string[] $statusCodes
-	 * @return mixed
-	 */
+    /**
+     * @param string $categoryName
+     * @param string[] $statusCodes
+     * @return mixed
+     */
     public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        	/** @lang DQL */
+        /** @lang DQL */
             "SELECT s
             FROM App\Entity\Statut s
             JOIN s.categorie c
@@ -120,19 +164,19 @@ class StatutRepository extends EntityRepository
         );
 
         $query
-			->setParameter('categorieName', $categorieName)
-			->setParameter('listStatusName', $listStatusName, Connection::PARAM_STR_ARRAY);
+            ->setParameter('categorieName', $categorieName)
+            ->setParameter('listStatusName', $listStatusName, Connection::PARAM_STR_ARRAY);
 
-		return array_column($query->execute(), 'id');
+        return array_column($query->execute(), 'id');
     }
 
-	/**
-	 * @param string $categorieName
-	 * @param string $statusName
-	 * @return int
-	 * @throws NoResultException
-	 * @throws NonUniqueResultException
-	 */
+    /**
+     * @param string $categorieName
+     * @param string $statusName
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function getOneIdByCategorieNameAndStatusName($categorieName, $statusName)
     {
         $em = $this->getEntityManager();
@@ -145,83 +189,221 @@ class StatutRepository extends EntityRepository
         );
 
         $query
-			->setParameters([
-				'categorieName' => $categorieName,
-				'statusName' => $statusName
-			]);
+            ->setParameters([
+                'categorieName' => $categorieName,
+                'statusName' => $statusName
+            ]);
 
-		return $query->getSingleScalarResult();
+        return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param string $label
-	 * @param string $category
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-	public function countByLabelAndCategory($label, $category)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(s)
+    /**
+     * @param string $label
+     * @param string $category
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countByLabelAndCategory($label, $category)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
+            "SELECT COUNT(s)
             FROM App\Entity\Statut s
             WHERE LOWER(s.nom) = :label AND s.categorie = :category
            "
-		)->setParameters([
-			'label' => $label,
-			'category' => $category
-		]);
+        )->setParameters([
+            'label' => $label,
+            'category' => $category
+        ]);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
-	public function countByLabelDiff($label, $statusLabel, $category)
-	{
-		$em = $this->getEntityManager();
+    public function countByLabelDiff($label, $statusLabel, $category)
+    {
+        $em = $this->getEntityManager();
 
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT count(s)
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "SELECT count(s)
             FROM App\Entity\Statut s
             WHERE s.nom = :label AND s.nom != :statusLabel AND s.categorie = :category"
-		)->setParameters([
-			'label' => $label,
-			'statusLabel' => $statusLabel,
-			'category' => $category
-		]);
+        )->setParameters([
+            'label' => $label,
+            'statusLabel' => $statusLabel,
+            'category' => $category
+        ]);
 
-		return $query->getSingleScalarResult();
-	}
+        return $query->getSingleScalarResult();
+    }
 
-	/**
-	 * @param int $id
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-	public function countUsedById($id)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT COUNT(s)
-            FROM App\Entity\Statut s
-            LEFT JOIN s.articles a
-            LEFT JOIN s.collectes c
-            LEFT JOIN s.demandes dl
-            LEFT JOIN s.livraisons ol
-            LEFT JOIN s.preparations p
-            LEFT JOIN s.litiges l
-            LEFT JOIN s.receptions r
-            LEFT JOIN s.referenceArticles ra
-            LEFT JOIN s.manutentions m
-            WHERE a.statut = :id OR c.statut = :id OR dl.statut = :id OR ol.statut = :id OR p.statut = :id
-            OR l.status = :id OR r.statut = :id OR ra.statut = :id OR m.statut = :id
-           "
-		)->setParameter('id', $id);
+    /**
+     * @param int $id
+     * @return int
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function countUsedById($id)
+    {
+        $queryBuilder = $this->createQueryBuilder('s');
+        $exprBuilder = $queryBuilder->expr();
 
-		return $query->getSingleScalarResult();
-	}
+        $queryBuilder
+            ->select('COUNT(s)')
+            ->leftJoin('s.articles', 'a')
+            ->leftJoin('s.collectes', 'c')
+            ->leftJoin('s.demandes', 'dl')
+            ->leftJoin('s.livraisons', 'ol')
+            ->leftJoin('s.preparations', 'p')
+            ->leftJoin('s.litiges', 'l')
+            ->leftJoin('s.receptions', 'r')
+            ->leftJoin('s.referenceArticles', 'ra')
+            ->leftJoin('s.manutentions', 'm')
+            ->leftJoin('s.dispatches', 'dispatch')
+            ->where('s.id = :statusId')
+            ->andWhere($exprBuilder->orX(
+                'a IS NOT NULL',
+                'c IS NOT NULL',
+                'dl IS NOT NULL',
+                'ol IS NOT NULL',
+                'l IS NOT NULL',
+                'r IS NOT NULL',
+                'ra IS NOT NULL',
+                'm IS NOT NULL',
+                'dispatch IS NOT NULL'
+            ))
+            ->setParameter('statusId', $id);
+
+        return (int) $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param $params
+     * @param array|null $filters
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function findByParamsAndFilters($params, $filters)
+    {
+        $qb = $this->createQueryBuilder('status');
+        $exprBuilder = $qb->expr();
+
+        $qb
+            ->join('status.categorie', 'category')
+            ->where('(' . $exprBuilder->orX(
+                    'category.nom = :litigeAr',
+                    'category.nom = :litigeRe',
+                    'category.nom = :ach'
+                ) . ')')
+            ->setParameters([
+                'litigeAr' => CategorieStatut::LITIGE_ARR,
+                'litigeRe' => CategorieStatut::LITIGE_RECEPT,
+                'ach' => CategorieStatut::DISPATCH
+            ]);
+
+        $qb
+            ->select('count(status)');
+        // compte le nombre total d'éléments
+        $countTotal = $qb->getQuery()->getSingleScalarResult();
+
+        foreach ($filters as $filter) {
+            switch ($filter['field']) {
+                case 'statusEntity':
+                    $qb
+                        ->andWhere('category.id in (:categoryFilter)')
+                        ->setParameter('categoryFilter', $filter['value']);
+                    break;
+            }
+        }
+
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('(
+                            status.nom LIKE :value
+                            OR status.comment LIKE :value
+                            OR status.code LIKE :value
+                        )')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+
+            $orderArray = $params->get('order');
+            if (!empty($orderArray)) {
+                foreach ($orderArray as $order) {
+                    $dir = $order['dir'];
+                    $column = $order['column'];
+                    if (!empty($dir)) {
+                        $key = $params->get('columns')[$column]['data'] ?? '';
+                        $column = (self::DtToDbLabels[$key] ?? $key);
+                        $qb->addOrderBy('status.' . $column, $dir);
+                    }
+                }
+            }
+        }
+
+        $qb
+            ->select('count(status)');
+        // compte éléments filtrés
+        $countFiltered = $qb->getQuery()->getSingleScalarResult();
+
+        $qb
+            ->select('status');
+
+        if ($params) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        }
+
+        $query = $qb->getQuery();
+
+        return [
+            'data' => $query ? $query->getResult() : null,
+            'count' => $countFiltered,
+            'total' => $countTotal
+        ];
+    }
+
+    public function findDispatchStatusTreatedByType($type)
+    {
+        $qb = $this->createQueryBuilder('status');
+
+        $qb
+            ->select('status')
+            ->join('status.categorie', 'category')
+            ->where('category.nom = :ach')
+            ->andWhere('status.treated = true')
+            ->andWhere('status.type = :type')
+            ->setParameters([
+                'ach' => CategorieStatut::DISPATCH,
+                'type' => $type
+            ]);
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getMobileStatus(): array {
+        $queryBuilder = $this->createQueryBuilder('status')
+            ->select('status.id AS id')
+            ->addSelect('status.nom AS label')
+            ->addSelect('status_category.nom AS category')
+            ->addSelect('type.id AS typeId')
+            ->addSelect('status.treated AS treated')
+            ->join('status.categorie', 'status_category')
+            ->leftJoin('status.type', 'type')
+            ->where('status_category.nom = :dispatchCategory')
+            ->setParameter('dispatchCategory', CategorieStatut::DISPATCH);
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
 }

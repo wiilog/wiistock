@@ -92,7 +92,7 @@ class SecuriteController extends AbstractController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $user = $utilisateurRepository->findOneByMail($lastUsername);
+        $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
         if ($user && $user->getStatus() === false) {
             $errorToDisplay = 'Utilisateur inactif.';
         } else if ($error) {
@@ -269,7 +269,7 @@ class SecuriteController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $token = $data['token'];
-            $user = $utilisateurRepository->findOneByToken($token);
+            $user = $utilisateurRepository->findOneBy(['token' => $token]);
             if (!$user) {
                 return new JsonResponse('Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.');
             }
@@ -331,7 +331,7 @@ class SecuriteController extends AbstractController
         	$errorCode = '';
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $user = $utilisateurRepository->findOneByMail($email);
+            $user = $utilisateurRepository->findOneBy(['email' => $email]);
             if ($user) {
 				if ($user->getStatus()) {
 					$token = $this->passwordService->generateToken(80);

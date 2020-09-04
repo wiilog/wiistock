@@ -75,7 +75,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
         <div class="form-group col-4">
-            <label for="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
+            <label for="destinataire" title="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
             <select class="form-control data {{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? 'needed' : '' }}" id="destinataire" name="destinataire">
                 <option disabled selected></option>
                 {% for utilisateur in utilisateurs %}
@@ -103,7 +103,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
         <div class="form-group col-2">
-            <label>{{ 'arrivage.douane'|trans }}</label>
+            <label title="douane">{{ 'arrivage.douane'|trans }}</label>
             <label class="switch d-block-switch mt-2">
                 {% set checked =  arrivage.duty ? 'checked' : '' %}
                 <input class="checkbox no-clear" type="checkbox" name="duty" {{ checked }}>

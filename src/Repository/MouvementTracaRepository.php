@@ -16,7 +16,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-use Doctrine\ORM\QueryBuilder;
 use Exception;
 
 
@@ -40,6 +39,7 @@ class MouvementTracaRepository extends EntityRepository
         'reference' => 'reference',
         'label' => 'label',
         'operateur' => 'user',
+        'quantity' => 'quantity'
     ];
 
     public function getLastDropsGroupedByColis() {
@@ -115,6 +115,7 @@ class MouvementTracaRepository extends EntityRepository
             ->select('mouvementTraca.id')
             ->addSelect('mouvementTraca.datetime')
             ->addSelect('mouvementTraca.colis')
+            ->addSelect('mouvementTraca.quantity')
             ->addSelect('location.label as locationLabel')
             ->addSelect('type.nom as typeName')
             ->addSelect('operator.username as operatorUsername')
@@ -527,6 +528,7 @@ class MouvementTracaRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('mouvementTraca')
             ->select('mouvementTraca.colis AS ref_article')
             ->addSelect('mouvementTracaType.nom AS type')
+            ->addSelect('mouvementTraca.quantity AS quantity')
             ->addSelect('mouvementTraca.freeFields')
             ->addSelect('operator.username AS operateur')
             ->addSelect('location.label AS ref_emplacement')

@@ -107,23 +107,43 @@ class InventoryEntryController extends AbstractController
             $entries = $this->inventoryEntryRepository->findByDates($dateTimeMin, $dateTimeMax);
 
             $headers = [];
-            $headers = array_merge($headers, ['Référence ou article', 'Opérateur', 'Emplacement', 'Date de saisie', 'Quantité']);
+            $headers = array_merge($headers, [
+                'Libellé',
+                'Référence',
+                'Code barre',
+                'Opérateur',
+                'Emplacement',
+                'Date de saisie',
+                'Quantité'
+            ]);
 
             $data = [];
             $data[] = $headers;
 
             foreach ($entries as $entry) {
-                $entryData = [];
                 $article = $entry->getArticle();
-                if ($article == null)
-                    $article = $entry->getRefArticle()->getLibelle();
-                else
-                    $article = $article->getLabel();
+                $referenceArticle = $entry->getRefArticle();
 
-                $entryData[] = $article;
-                $entryData[] = $entry->getOperator()->getUsername();
-                $entryData[] = $entry->getLocation()->getLabel();
-                $entryData[] = $entry->getDate()->format('d/m/Y');
+                if (!empty($referenceArticle)) {
+                    $articleLabel = $referenceArticle->getLibelle();
+                    $reference = $referenceArticle->getReference();
+                    $barCode = $referenceArticle->getBarCode();
+                }
+                else if (!empty($article)) {
+                    $articleLabel = $article->getLabel();
+                    $articleFournisseur = $article->getArticleFournisseur();
+                    $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
+                    $reference = $referenceArticle ? $referenceArticle->getReference() : '';
+                    $barCode = $article->getBarCode();
+                }
+
+                $entryData = [];
+                $entryData[] = $articleLabel ?? '';
+                $entryData[] = $reference ?? '';
+                $entryData[] = $barCode ?? '';
+                $entryData[] = $entry->getOperator() ? $entry->getOperator()->getUsername() : '';
+                $entryData[] = $entry->getLocation() ? $entry->getLocation()->getLabel() : '';
+                $entryData[] = $entry->getDate() ? $entry->getDate()->format('d/m/Y') : '';
                 $entryData[] = $entry->getQuantity();
 
                 $data[] = $entryData;

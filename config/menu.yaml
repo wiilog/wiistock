@@ -22,11 +22,9 @@ parameters:
                         action: App\Entity\Action::DISPLAY_MOUV
                 -   label: 'Colis'
                     path: 'pack_index'
-                -   label: 'Acheminements'
-                    path: 'acheminements_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
-                        action: App\Entity\Action::DISPLAY_ACHE
+                        action: App\Entity\Action::DISPLAY_PACK
                 -   label: 'Association BR'
                     path: 'reception_traca_index'
                     rights:
@@ -72,6 +70,12 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_MANU
+                -   label: 'acheminement.acheminements'
+                    isTranslation: true
+                    path: 'dispatch_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_ACHE
 
         -   label: 'Ordre'
             icon: 'ordre'
@@ -197,7 +201,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_TYPE
-                -   label: 'Statuts litiges'
+                -   label: 'Statuts'
                     path: 'status_param_index'
                     rights:
                         menu: App\Entity\Menu::PARAM

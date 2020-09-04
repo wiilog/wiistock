@@ -14,22 +14,25 @@ use Doctrine\ORM\EntityRepository;
 class CategorieStatutRepository extends EntityRepository
 {
 
-	/**
-	 * @param string $label
-	 * @return CategorieStatut[]
-	 */
-    public function findByLabelLike($label)
-	{
-		$em = $this->getEntityManager();
+    /**
+     * @param string[] $labels
+     * @return CategorieStatut[]
+     */
+    public function findByLabelLike(array $labels)
+    {
+        $queryBuilder = $this->createQueryBuilder('categorie_statut')
+            ->select('categorie_statut.id')
+            ->addSelect('categorie_statut.nom');
 
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT cs
-			FROM App\Entity\CategorieStatut cs
-			WHERE cs.nom LIKE :label
-			")
-		->setParameter('label', '%' . $label . '%');
+        foreach($labels as $index => $label) {
+            $parameterKey = "label_$index";
+            $queryBuilder
+                ->orWhere("categorie_statut.nom LIKE :$parameterKey")
+                ->setParameter($parameterKey, "%$label%");
+        }
 
-		return $query->execute();
-	}
+        return !empty($labels)
+            ? $queryBuilder->getQuery()->getResult()
+            : [];
+    }
 }

@@ -188,9 +188,10 @@ class MouvementStockController extends AbstractController
                             $chosenArticleToMove
                                 ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
                         } else {
-                            $chosenArticleToMove->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
                             if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
                                 $chosenArticleToMove->setStatut($unavailableArticleStatus);
+                            } else {
+                                $chosenArticleToMove->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
                             }
                         }
                     }
@@ -207,8 +208,7 @@ class MouvementStockController extends AbstractController
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFERT) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
                     if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
-                        $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement,
-                        impossible de la transférer.';
+                        $response['msg'] = 'La référence saisie est présente dans une demande livraison/collecte en cours de traitement, impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
                     } else {
@@ -224,11 +224,11 @@ class MouvementStockController extends AbstractController
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_PRISE
+                            MouvementTraca::TYPE_PRISE,
+                            ['quantity' => $quantity]
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedPickTracaMvt);
                         $createdPack = $associatedPickTracaMvt->getPack();
-
 
                         $associatedDropTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $createdPack,
@@ -237,7 +237,8 @@ class MouvementStockController extends AbstractController
                             $now,
                             false,
                             true,
-                            MouvementTraca::TYPE_DEPOSE
+                            MouvementTraca::TYPE_DEPOSE,
+                            ['quantity' => $quantity]
                         );
                         $mouvementTracaService->persistSubEntities($entityManager, $associatedDropTracaMvt);
                         $entityManager->persist($associatedPickTracaMvt);

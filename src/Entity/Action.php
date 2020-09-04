@@ -25,9 +25,9 @@ class Action
 	// menu traça
 	const DISPLAY_ARRI = 'afficher arrivages';
 	const DISPLAY_MOUV = 'afficher mouvements';
-	const DISPLAY_ACHE = 'afficher acheminements';
 	const DISPLAY_ASSO = 'afficher associations BR';
 	const DISPLAY_ENCO = 'afficher encours';
+	const DISPLAY_PACK = 'afficher colis';
 	const DISPLAY_URGE = 'afficher urgences';
 	const LIST_ALL = 'lister tous les arrivages';
 
@@ -39,6 +39,7 @@ class Action
 	const DISPLAY_DEM_COLL = 'afficher collectes';
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
 	const DISPLAY_MANU = 'afficher manutentions';
+    const DISPLAY_ACHE = 'afficher acheminements';
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';

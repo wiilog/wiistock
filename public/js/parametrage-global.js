@@ -261,36 +261,6 @@ function editDashboardParams() {
     });
 }
 
-function editStatusLitigeReception($select) {
-    let path = Routing.generate('edit_status_litige_reception',true);
-    const param = {
-        value: $select.val()
-    };
-
-    $.post(path, param, (resp) => {
-        if (resp) {
-            alertSuccessMsg("Le statut de litige réception par défaut a bien été mis à jour.");
-        } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut de litige réception par défaut.");
-        }
-    });
-}
-
-function editStatusLitigeArrivage($select) {
-    let path = Routing.generate('edit_status_litige_arrivage',true);
-    const param = {
-        value: $select.val()
-    };
-
-    $.post(path, param, (resp) => {
-        if (resp) {
-            alertSuccessMsg("Le statut de litige arrivage par défaut a bien été mis à jour.");
-        } else {
-            alertErrorMsg("Une erreur est survenue lors de la mise à jour du statut de litige arrivage par défaut.");
-        }
-    });
-}
-
 function editStatusArrivage($select) {
     let path = Routing.generate('edit_status_arrivage',true);
     const param = {

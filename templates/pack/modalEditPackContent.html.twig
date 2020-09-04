@@ -1,0 +1,34 @@
+<form>
+    <div class="row">
+        <div class="form-group col-12">
+            <label title="Numéro colis">{{"colis.Numéro colis"|trans}}</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ pack.code }}"
+                   title="{{"colis.Numéro colis"|trans}}"
+                   disabled/>
+        </div>
+        <div class="form-group col-12">
+            <label title="Nature de colis">{{ 'natures.Nature de colis'|trans }}*</label>
+            <select class="form-control data needed"
+                    name="nature"
+                    title="{{ 'natures.Nature de colis'|trans }}">
+                <option value>{{ 'natures.Sélectionner une nature'|trans }}</option>
+                {% set packNatureId = pack.nature is not null ? pack.nature.id : null %}
+                {% for nature in natures %}
+                    <option value="{{ nature.id }}" {{ packNatureId == nature.id ? 'selected' }}>{{ nature.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-12">
+            <label>Quantité</label>
+            <input type="number"
+                   class="form-control data needed"
+                   value="{{ pack.quantity }}"
+                   name="quantity"
+                   min="1"
+                   step="1"
+                   title="Quantité"/>
+        </div>
+    </div>
+</form>

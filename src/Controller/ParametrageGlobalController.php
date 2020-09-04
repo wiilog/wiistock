@@ -22,7 +22,7 @@ use App\Repository\PrefixeNomDemandeRepository;
 use App\Repository\TranslationRepository;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
-use App\Service\StatutService;
+use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,7 +55,7 @@ class ParametrageGlobalController extends AbstractController
      * @param UserService $userService
      * @param GlobalParamService $globalParamService
      * @param EntityManagerInterface $entityManager
-     * @param StatutService $statutService
+     * @param StatusService $statusService
      * @return Response
      * @throws NonUniqueResultException
      */
@@ -63,7 +63,7 @@ class ParametrageGlobalController extends AbstractController
     public function index(UserService $userService,
                           GlobalParamService $globalParamService,
                           EntityManagerInterface $entityManager,
-                          StatutService $statutService): Response
+                          StatusService $statusService): Response
     {
 
         if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
@@ -97,7 +97,6 @@ class ParametrageGlobalController extends AbstractController
                 'paramReceptions' => [
                     'receptionLocation' => $globalParamService->getReceptionDefaultLocation(),
                     'listStatus' => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, true),
-                    'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
                 'paramLivraisons' => [
@@ -108,10 +107,9 @@ class ParametrageGlobalController extends AbstractController
                 ],
                 'paramArrivages' => [
                     'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
-                    'defaultStatusLitigeId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR),
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_ARR),
                     'defaultStatusArrivageId' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_ARRIVAGE),
-                    'listStatusArrivage' => $statutService->findAllStatusArrivage(),
+                    'listStatusArrivage' => $statusService->findAllStatusArrivage(),
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
@@ -618,72 +616,6 @@ class ParametrageGlobalController extends AbstractController
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route(
-     *     "/statut-litige-reception",
-     *     name="edit_status_litige_reception",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editStatusLitigeReception(Request $request): Response
-    {
-        $post = $request->request;
-        $em = $this->getDoctrine()->getManager();
-        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
-        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
-
-        if (empty($parametrageGlobal)) {
-            $parametrageGlobal = new ParametrageGlobal();
-            $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC);
-            $em->persist($parametrageGlobal);
-        }
-        $value = $post->get('value');
-        $trimmedValue = trim($value);
-        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
-
-        $em->flush();
-
-        return new JsonResponse(true);
-    }
-
-    /**
-     * @Route(
-     *     "/statut-litige-arrivage",
-     *     name="edit_status_litige_arrivage",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editStatusLitigeArrivage(Request $request): Response
-    {
-        $post = $request->request;
-        $em = $this->getDoctrine()->getManager();
-        $paramGlobalRepository = $em->getRepository(ParametrageGlobal::class);
-        $parametrageGlobal = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
-
-        if (empty($parametrageGlobal)) {
-            $parametrageGlobal = new ParametrageGlobal();
-            $parametrageGlobal->setLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_ARR);
-            $em->persist($parametrageGlobal);
-        }
-        $value = $post->get('value');
-        $trimmedValue = trim($value);
-        $parametrageGlobal->setValue(!empty($trimmedValue) ? $trimmedValue : null);
-
-        $em->flush();
-
-        return new JsonResponse(true);
     }
 
     /**

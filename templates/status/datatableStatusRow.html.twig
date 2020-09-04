@@ -4,7 +4,7 @@
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
                 <div class="action-on-click" data-id='{{ statusId }}' data-toggle='modal' data-target='#modalEditStatus'
-                     onclick="clearErrorMsg($('#submitEditStatus')), editRow($(this), Routing.generate('status_api_edit', true), $('#modalEditStatus'), $('#submitEditStatus'))">
+                     onclick="clearErrorMsg($('#submitEditStatus')), editRow($(this), Routing.generate('status_api_edit', true), $('#modalEditStatus'), $('#submitEditStatus'), false, '.editor-container-edit', false, () => {hideOptionOnChange($('#modalEditStatus'), false)})">
                     <i class='fas fa-pencil-alt'></i>
                 </div>
             </div>

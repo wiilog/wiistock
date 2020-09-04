@@ -1,0 +1,44 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | {{ 'acheminement.acheminements'|trans }}{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersAcheminements.html.twig' with {
+        page: 'PAGE_DISPATCHES',
+        tableSelector: '#tableDispatches'
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                    <button type="button"
+                            data-toggle="modal"
+                            data-target="#modalNewDispatch"
+                            class="btn btn-primary btn-ripple"
+                            onclick='initNewDispatchEditor("#modalNewDispatch")'>
+                        <span class="fa fa-plus mr-2"></span><span title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</span>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableDispatches" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="dispatchLocationTo" value="{{ 'acheminement.emplacement dépose'|trans }}">
+    <input type="hidden" id="dispatchLocationFrom" value="{{ 'acheminement.emplacement prise'|trans }}">
+
+    {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
+    <script src="{{ asset('js/dispatch.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

@@ -81,6 +81,16 @@ class Emplacement
      */
     private $allowedNatures;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="locationFrom")
+     */
+    private $dispatchesFrom;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="locationTo")
+     */
+    private $dispatchesTo;
+
 
     public function __construct()
     {
@@ -92,6 +102,8 @@ class Emplacement
         $this->isActive = true;
         $this->utilisateurs = new ArrayCollection();
         $this->allowedNatures = new ArrayCollection();
+        $this->dispatchesFrom = new ArrayCollection();
+        $this->dispatchesTo = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -376,5 +388,67 @@ class Emplacement
     {
         return $this->getAllowedNatures()->isEmpty()
             || ($pack->getNature() && $this->getAllowedNatures()->contains($pack->getNature()));
+    }
+
+    /**
+     * @return Collection|Dispatch[]
+     */
+    public function getDispatchesFrom(): Collection
+    {
+        return $this->dispatchesFrom;
+    }
+
+    public function addDispatchFrom(Dispatch $dispatchFrom): self
+    {
+        if (!$this->dispatchesFrom->contains($dispatchFrom)) {
+            $this->dispatchesFrom[] = $dispatchFrom;
+            $dispatchFrom->setLocationFrom($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatchFrom(Dispatch $dispatchFrom): self
+    {
+        if ($this->dispatchesFrom->contains($dispatchFrom)) {
+            $this->dispatchesFrom->removeElement($dispatchFrom);
+            // set the owning side to null (unless already changed)
+            if ($dispatchFrom->getLocationFrom() === $this) {
+                $dispatchFrom->setLocationFrom(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Dispatch[]
+     */
+    public function getDispatchesTo(): Collection
+    {
+        return $this->dispatchesTo;
+    }
+
+    public function addDispatchTo(Dispatch $dispatchTo): self
+    {
+        if (!$this->dispatchesTo->contains($dispatchTo)) {
+            $this->dispatchesTo[] = $dispatchTo;
+            $dispatchTo->setLocationTo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatchTo(Dispatch $dispatchTo): self
+    {
+        if ($this->dispatchesTo->contains($dispatchTo)) {
+            $this->dispatchesTo->removeElement($dispatchTo);
+            // set the owning side to null (unless already changed)
+            if ($dispatchTo->getLocationTo() === $this) {
+                $dispatchTo->setLocationTo(null);
+            }
+        }
+
+        return $this;
     }
 }

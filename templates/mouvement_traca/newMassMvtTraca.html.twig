@@ -1,19 +1,28 @@
-<div class="form-mass-mvt-container">
-    <div class="form-group w-100">
-        <label class="my-auto mr-2">Emplacement de prise*</label>
-        <select name="emplacement-prise" class="form-control ajax-autocompleteEmplacement data needed">
+<div class="form-mass-mvt-container row">
+    <div class="form-group col-12">
+        <label>Emplacement de prise*</label>
+        <select name="emplacement-prise"
+                class="form-control ajax-autocompleteEmplacement data needed w-100"
+                title="Emplacement de prise">
         </select>
     </div>
-    <div class="form-group w-100">
+    <div class="form-group col-12">
         <label for="colis" title="Colis">{{"mouvement de traçabilité.Colis"|trans}}*</label>
-        <select class="form-control data needed select2-free select2-fit-content" name="colis" multiple="multiple">
+        <select class="form-control data needed select2-free select2-fit-content w-100"
+                name="colis"
+                multiple="multiple"
+                title="{{ "mouvement de traçabilité.Colis"|trans }}">
         </select>
     </div>
-    <div class="form-group w-100">
-        <label class="my-auto mr-2">Emplacement de dépose*</label>
-        <select name="emplacement-depose" class="form-control ajax-autocompleteEmplacement data needed">
+    <div class="form-group col-12">
+        <label>Emplacement de dépose*</label>
+        <select name="emplacement-depose"
+                class="form-control ajax-autocompleteEmplacement data needed w-100"
+                title="Emplacement de dépose">
         </select>
     </div>
+
+    {% include 'mouvement_traca/trackingMovementQuantity.html.twig' %}
 
     <input type="hidden" value="1" name="is-mass" class="data"/>
 </div>

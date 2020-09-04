@@ -4,7 +4,7 @@
 {% block titleLink path('arrivage_index') %}
 
 {% block page_content %}
-    <input type="hidden" id="natureTranslation" value="{{ natureTranslation }}"/>
+    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
 
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
     <div class="m-4">
@@ -25,7 +25,7 @@
             <div class="{{ displayLitiges ? 'col-6 pr-2' : 'col-12' }}">
                 <div class="wii-page-card">
                     <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des {{'arrivage.colis'|trans}}</h5>
+                        <h5 class="col-auto h5">Liste des <span title="colis">{{'arrivage.colis'|trans}}</span></h5>
                     </div>
                     <div class="row wii-page-card-header">
                         <div class="col-auto ml-auto">

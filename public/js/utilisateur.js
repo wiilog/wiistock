@@ -60,7 +60,9 @@ function editRowUser(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        modal.find('#inputEditType').val(data.userTypes).select2();
+        modal.find('[name="deliveryTypes"]').val(data.userDeliveryTypes).select2();
+        modal.find('[name="dispatchTypes"]').val(data.userDispatchTypes).select2();
+        modal.find('[name="handlingTypes"]').val(data.userHandlingTypes).select2();
         ajaxAutoCompleteEmplacementInit($('#dropzone'));
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);

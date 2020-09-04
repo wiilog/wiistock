@@ -366,7 +366,10 @@ class OrdreCollecteService
             $fromNomade,
             !$fromNomade,
             MouvementTraca::TYPE_PRISE,
-            ['mouvementStock' => $mouvementStock]
+            [
+                'mouvementStock' => $mouvementStock,
+                'quantity' => $mouvementStock->getQuantity()
+            ]
         );
         $this->mouvementTracaService->persistSubEntities($this->entityManager, $createdMvt);
         $this->entityManager->persist($createdMvt);
@@ -386,7 +389,10 @@ class OrdreCollecteService
                 $fromNomade,
                 !$fromNomade,
                 MouvementTraca::TYPE_DEPOSE,
-                ['mouvementStock' => $mouvementStock]
+                [
+                    'mouvementStock' => $mouvementStock,
+                    'quantity' => $mouvementStock->getQuantity()
+                ]
             );
             $this->mouvementTracaService->persistSubEntities($this->entityManager, $createdMvt);
             $this->entityManager->persist($createdMvt);

@@ -24,5 +24,4 @@ class CategoryTypeRepository extends EntityRepository
         ;
         return $query->execute();
     }
-
 }

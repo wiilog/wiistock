@@ -42,27 +42,39 @@ class Pack
     /**
      * @var MouvementTraca
      * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastDrops")
-     * @ORM\JoinColumn(name="last_drop_id")
+     * @ORM\JoinColumn(name="last_drop_id", onDelete="SET NULL")
      */
     private $lastDrop;
 
     /**
      * @var MouvementTraca
      * @ORM\ManyToOne(targetEntity="App\Entity\MouvementTraca", inversedBy="linkedPackLastTrackings")
-     * @ORM\JoinColumn(name="last_tracking_id")
+     * @ORM\JoinColumn(name="last_tracking_id", onDelete="SET NULL")
      */
     private $lastTracking;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack")
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementTraca", mappedBy="pack", cascade={"remove"})
      * @ORM\OrderBy({"datetime" = "DESC"})
      */
     private $trackingMovements;
 
+    /**
+     * @ORM\Column(type="integer", options={"default": 1})
+     */
+    private $quantity;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
+     */
+    private $dispatchPacks;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
+        $this->dispatchPacks = new ArrayCollection();
+        $this->quantity = 1;
     }
 
     public function getId(): ?int
@@ -156,7 +168,7 @@ class Pack
     }
 
     /**
-     * @return Collection
+     * @return Collection|MouvementTraca[]
      */
     public function getTrackingMovements(): Collection {
         return $this->trackingMovements;
@@ -183,5 +195,44 @@ class Pack
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection|DispatchPack[]
+     */
+    public function getDispatchPacks(): Collection {
+        return $this->dispatchPacks;
+    }
+
+    public function addDispatchPack(DispatchPack $dispatchPack): self
+    {
+        if (!$this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks[] = $dispatchPack;
+            $dispatchPack->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatchPack(DispatchPack $dispatchPack): self
+    {
+        if ($this->dispatchPacks->contains($dispatchPack)) {
+            $this->dispatchPacks->removeElement($dispatchPack);
+            // set the owning side to null (unless already changed)
+            if ($dispatchPack->getPack() === $this) {
+                $dispatchPack->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setQuantity(int $quantity): self {
+        $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function getQuantity(): int {
+        return $this->quantity;
     }
 }

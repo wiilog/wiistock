@@ -13,7 +13,9 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
     	$categoriesTypes = [
-    		CategoryType::ARTICLE => [Type::LABEL_STANDARD],
+            CategoryType::DEMANDE_DISPATCH => [Type::LABEL_STANDARD],
+            CategoryType::DEMANDE_HANDLING => [Type::LABEL_STANDARD],
+            CategoryType::ARTICLE => [Type::LABEL_STANDARD],
 			CategoryType::RECEPTION => [Type::LABEL_RECEPTION],
 			CategoryType::DEMANDE_LIVRAISON => [Type::LABEL_STANDARD],
 			CategoryType::DEMANDE_COLLECTE => [Type::LABEL_STANDARD],

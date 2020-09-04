@@ -2,19 +2,15 @@
     {% set entityValue = freeFieldValues[freeField.id] is defined
         ? freeFieldValues[freeField.id]
         : ( freeField.defaultValue is defined
-        ? freeField.defaultValue
-        : '')
+            ? freeField.defaultValue
+            : '')
     %}
     <div class="{{ colType }} my-2">
         <div class="row form-group">
             <div class="col-12">
                 <label for="input">
                     {{ freeField.label }}
-                    {{
-                        attribute(freeField, requiredType)
-                            ? '*'
-                            : ''
-                    }}
+                    {{ attribute(freeField, requiredType) ? '*' : '' }}
                 </label>
             </div>
             <div class="col-12">
@@ -23,8 +19,8 @@
                         {% set entityValue = freeFieldValues[freeField.id] is defined
                             ? freeFieldValues[freeField.id]
                             : ( freeField.defaultValue is defined
-                            ? freeField.defaultValue
-                            : "0")
+                                ? freeField.defaultValue
+                                : "0")
                         %}
                         {% set checked = (entityValue == "1" ? 'checked') %}
                         <label class="switch">

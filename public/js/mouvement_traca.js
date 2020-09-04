@@ -1,9 +1,10 @@
 
 let quillNew;
 
-$('.select2').select2();
-
 $(function() {
+    $('.select2').select2();
+    $('#modalNewMvtTraca').find('.champsLibresBlock .list-multiple').select2();
+
     initDateTimePicker();
     initSelect2($('#statut'), 'Types');
     initSelect2($('#emplacement'), 'Emplacements');
@@ -18,6 +19,7 @@ $(function() {
     ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Opérateurs');
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     initNewModal($('#modalNewMvtTraca'));
+
 });
 
 let pathMvt = Routing.generate('mvt_traca_api', true);
@@ -43,6 +45,7 @@ let tableMvtConfig = {
         {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
         {"data": "reference", 'name': 'reference', 'title': 'Référence'},
         {"data": "label", 'name': 'label', 'title': 'Libellé'},
+        {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
         {"data": 'location', 'name': 'location', 'title': 'Emplacement'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
@@ -124,8 +127,7 @@ function initNewModal($modal) {
     ajaxAutoUserInit($operatorSelect, 'Opérateur');
 
     // Init mouvement fields if already loaded
-    const $moreContainer = $modal.find('.more-body-new-mvt-traca');
-    const $moreMassMvtContainer = $moreContainer.find('.form-mass-mvt-container');
+    const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');
     if ($moreMassMvtContainer.length > 0) {
         const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-prise"]');
         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-depose"]');
@@ -151,12 +153,12 @@ function resetNewModal($modal) {
         .append(option)
         .trigger('change');
 
+    $modal.find('.more-body-new-mvt-traca').empty();
+
     // focus emplacementPrise if mass mouvement form is already loaded
-    const $moreContainer = $modal.find('.more-body-new-mvt-traca');
-    const $moreMassMvtContainer = $moreContainer.find('.form-mass-mvt-container');
-    if ($moreMassMvtContainer.length > 0) {
+    const $emplacementPrise = $modal.find('.ajax-autocompleteEmplacement[name="emplacement-prise"]');
+    if ($modal.length > 0) {
         setTimeout(() => {
-            const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocompleteEmplacement[name="emplacement-prise"]');
             $emplacementPrise.select2('open');
         }, 400);
     }
@@ -172,7 +174,7 @@ function switchMvtCreationType($input) {
             $modal.find('.new-mvt-common-body').removeClass('d-none');
             $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
             ajaxAutoCompleteEmplacementInit($modal.find('.ajax-autocompleteEmplacement'));
-            initFreeSelect2($('.select2-free'));
+            initFreeSelect2($modal.find('.select2-free'));
         }
     });
 }
