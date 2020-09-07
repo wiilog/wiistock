@@ -35,6 +35,8 @@ class FiltreSup
 	const FIELD_FROZEN = 'frozen';
 	const FIELD_STATUS_ENTITY = 'statusEntity';
 	const FIELD_MULTIPLE_TYPES = 'multipleTypes';
+	const FIELD_RECEIVERS = 'receivers';
+	const FIELD_REQUESTERS = 'requesters';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';

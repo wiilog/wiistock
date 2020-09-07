@@ -95,7 +95,7 @@ class UserService
 
         $data = $this->getUtilisateurDataByParams($params);
         $data['recordsTotal'] = (int) $utilisateurRepository->countAll();
-        $data['recordsFiltered'] = (int) $utilisateurRepository->countAll();
+        $data['recordsFiltered'] = $data['recordsTotal'];
         return $data;
     }
 

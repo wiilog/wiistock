@@ -189,7 +189,7 @@ class ArrivageController extends AbstractController
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
-            'users' => $utilisateurRepository->findAllSorted(),
+            'users' => $utilisateurRepository->findBy(['status' => true],['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
             'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
             'natures' => $natureRepository->findAll(),
@@ -419,7 +419,7 @@ class ArrivageController extends AbstractController
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
                     'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
-                    'utilisateurs' => $utilisateurRepository->findAllSorted(),
+                    'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
@@ -556,7 +556,7 @@ class ArrivageController extends AbstractController
             $acheteurs = $post->get('acheteurs');
 
             $acheteursEntities = array_map(function ($acheteur) use ($utilisateurRepository) {
-                return $utilisateurRepository->findOneByUsername($acheteur);
+                return $utilisateurRepository->findOneBy(['username' => $acheteur]);
             }, explode(',', $acheteurs));
 
             $arrivage->removeAllAcheteur();

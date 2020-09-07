@@ -1,12 +1,13 @@
 let editorNewDispatchAlreadyDone = false;
 
-
 $(function() {
     initPage();
 
     initSelect2($('#statut'), 'Statuts');
-    initSelect2($('#utilisateur'), 'Demandeur');
-    ajaxAutoUserInit($('.ajax-autocomplete-user'), 'Demandeurs');
+    const filtersContainer = $('.filters-container');
+
+    ajaxAutoUserInit(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
+    ajaxAutoUserInit(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
     initSelect2($('.filter-select2[name="multipleTypes"]'), 'Types');
     initDateTimePicker();
 
@@ -24,7 +25,7 @@ function initNewDispatchEditor(modal) {
         editorNewDispatchAlreadyDone = true;
     }
     clearModal(modal);
-    ajaxAutoUserInit($('.ajax-autocomplete-user'));
+    ajaxAutoUserInit($(modal).find('.ajax-autocomplete-user'));
     const $operatorSelect = $(modal).find('.ajax-autocomplete-user').first();
     const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
     let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);

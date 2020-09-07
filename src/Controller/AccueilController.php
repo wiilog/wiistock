@@ -85,7 +85,6 @@ class AccueilController extends AbstractController
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $collecteRepository = $entityManager->getRepository(Collecte::class);
@@ -146,7 +145,6 @@ class AccueilController extends AbstractController
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
             'nbDemandeHandlingAT' => $nbrDemandeHandlingAT,
-            'emplacements' => $emplacementRepository->findAll(),
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,

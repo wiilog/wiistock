@@ -1321,6 +1321,8 @@ function displayFiltersSup(data) {
             case 'disputeNumber':
             case 'demande':
             case 'multipleTypes':
+            case 'receivers':
+            case 'requesters':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
                 $select.find('option').prop('selected', false);
@@ -1592,19 +1594,22 @@ function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
 function fillDemandeurField($modal) {
     const $operatorSelect = $modal.find('.select2-declarant');
     const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
-    if ($loggedUserInput.data('id')) {
-        let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
-        $operatorSelect
-            .select2()
-            .val(null)
-            .trigger('change')
-            .append(option)
-            .trigger('change');
-    } else {
-        $operatorSelect
-            .select2()
-            .val(null)
-            .trigger('change');
+    const userId = $loggedUserInput.data('id');
+    const $operatorSelect2 = $operatorSelect
+        .select2()
+        .val(null)
+        .trigger('change');
+
+    if (userId) {
+        const $alreadyLoggedUserOption = $operatorSelect.find(`option[value="${userId}"]`);
+        if ($alreadyLoggedUserOption.length > 0) {
+            $operatorSelect2.val(userId);
+        }
+        else {
+            let option = new Option($loggedUserInput.data('username'), userId, true, true);
+            $operatorSelect2.append(option);
+        }
+        $operatorSelect2.trigger('change');
     }
 }
 

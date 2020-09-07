@@ -182,7 +182,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $mobileKey = $request->request->get('loginKey');
 
-        $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey]);
+        $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
         $data = [];
 
         if (!empty($loggedUser)) {
