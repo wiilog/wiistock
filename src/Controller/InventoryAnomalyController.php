@@ -142,23 +142,17 @@ class InventoryAnomalyController extends AbstractController
                     $this->getUser()
                 );
 
-                if ($quantitiesAreEqual) {
-                    $responseData = [
-                        'success' => true,
-                        'quantitiesAreEqual' => $quantitiesAreEqual,
-                        'msg' => 'L\'anomalie a bien été traitée.'
-                    ];
-                } else {
-                    $responseData = [
-                        'success' => true,
-                        'msg' => 'Un mouvement de stock correctif vient d\'être créé.'
-                    ];
-                }
+                $responseData = [
+                    'success' => true,
+                    'msg' => $quantitiesAreEqual
+                        ? 'L\'anomalie a bien été traitée.'
+                        : 'Un mouvement de stock correctif vient d\'être créé.'
+                ];
             }
             catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
                 $responseData = [
                     'success' => false,
-                    'message' => ($exception instanceof RequestNeedToBeProcessedException)
+                    'msg' => ($exception instanceof RequestNeedToBeProcessedException)
                         ? 'Impossible : un ordre de livraison est en cours sur cet article'
                         : 'Impossible : l\'article n\'est pas disponible'
                 ];

@@ -342,14 +342,18 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 }
 
 function articleChanged($select) {
+    const $modal = $select.parents('.modal');
     const selectedReferences = $select.select2('data');
     const $addArticleAndRedirectSubmit = $('#addArticleLigneSubmitAndRedirect');
+    const $addArticleLigneSubmit = $('#addArticleLigneSubmit');
     const classDNone = 'd-none';
+    const classDFlex = 'd-flex';
 
     if (selectedReferences.length > 0) {
-
         const selectedReference = selectedReferences[0];
         const typeQuantity = selectedReference.typeQuantity;
+
+        $addArticleLigneSubmit.prop('disabled', false);
         if (typeQuantity === 'article') {
             $addArticleAndRedirectSubmit.removeClass(classDNone);
         } else {
@@ -365,11 +369,17 @@ function articleChanged($select) {
             $emergencyContainer.addClass(classDNone);
             $emergencyCommentContainer.text('');
         }
-        $('.body-add-ref').css('display', 'flex');
+        $modal.find('.body-add-ref')
+            .removeClass(classDNone)
+            .addClass(classDFlex);
         $('#innerNewRef').html('');
     }
     else {
         $addArticleAndRedirectSubmit.addClass(classDNone);
+        $addArticleLigneSubmit.prop('disabled', true);
+        $modal.find('.body-add-ref')
+            .addClass(classDNone)
+            .removeClass(classDFlex);
     }
 }
 
@@ -388,15 +398,21 @@ function initNewReferenceArticleEditor() {
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitialiserModalRefArticleFromRecep(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, false, (data) => {
-        let option = new Option(data.text, data.id, true, true);
-        $('#reception-add-ligne').append(option).trigger('change');
+    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {
+        keepModal: true,
+        success: ({success, data}) => {
+            if (success && data) {
+                let option = new Option(data.reference, data.id, true, true);
+                $('#reception-add-ligne').append(option).trigger('change');
+            }
+        }
     });
 }
 
 function addArticle() {
     let path = Routing.generate('get_modal_new_ref', true);
     $.post(path, {}, function (modalNewRef) {
+        $('#reception-add-ligne').val(null).trigger('change');
         $('#innerNewRef').html(modalNewRef);
         initNewReferenceArticleEditor();
     });
@@ -421,38 +437,11 @@ function finishReception(receptionId, confirmed, $button) {
 
 function clearAddRefModal() {
     $('#innerNewRef').html('');
-    $('.body-add-ref').css('display', 'none');
-}
-
-function InitialiserModalRefArticleFromRecep(modal, submit, path, close = true, successCallback = null) {
-    submit.click(function () {
-        submitActionRefArticleFromRecep(modal, path, close, successCallback);
-    });
+    $('.body-add-ref').addClass('d-none');
 }
 
 function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
-}
-
-function submitActionRefArticleFromRecep(modal, path, close, successCallback) {
-    let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
-    // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
-        if (close == true) modal.find('.close').click();
-        $.post(path, JSON.stringify(Data), function (data) {
-            if (data.success) {
-                $('#innerNewRef').html('');
-                modal.find('.error-msg').html('');
-                if (successCallback) successCallback(data);
-            } else {
-                modal.find('.error-msg').html(data.msg);
-            }
-        });
-    } else {
-        // ... sinon on construit les messages d'erreur
-        let msg = buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef);
-        modal.find('.error-msg').html(msg);
-    }
 }
 
 function openModalLigneReception($button) {
@@ -599,7 +588,7 @@ function initNewLigneReception($button) {
         } else {
             $errorContainer.text('');
             wrapLoadingOnActionButton($button, () => (
-                submitAction($modalNewLigneReception, urlNewLigneReception, {tables: [tableArticle]})
+                submitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {tables: [tableArticle]})
                     .then(function (success) {
                         if (success) {
                             const $printButton = $('#buttonPrintMultipleBarcodes');
