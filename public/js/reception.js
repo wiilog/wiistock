@@ -47,10 +47,10 @@ $(function () {
     };
     tableReception = initDataTable('tableReception_id', tableReceptionConfig);
 
-    let modalReceptionNew = $("#modalNewReception");
-    let SubmitNewReception = $("#submitReceptionButton");
+    let $modalReceptionNew = $("#modalNewReception");
+    let $submitNewReception = $("#submitReceptionButton");
     let urlReceptionIndex = Routing.generate('reception_new', true);
-    InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex);
+    InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

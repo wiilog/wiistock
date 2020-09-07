@@ -6,6 +6,11 @@
     em {
         font-style: italic !important;
     }
+
+    &.is-invalid {
+        padding-right: 0;
+        border-top: #dc3545 1px solid;
+    }
 }
 
 .ql-container.ql-snow {

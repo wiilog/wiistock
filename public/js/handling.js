@@ -57,20 +57,20 @@ $(function() {
 
 // filtres de recheches
 
-let modalNewHandling = $("#modalNewHandling");
-let submitNewHandling = $("#submitNewHandling");
+let $modalNewHandling = $("#modalNewHandling");
+let $submitNewHandling = $("#submitNewHandling");
 let urlNewHandling = Routing.generate('handling_new', true);
-InitialiserModal(modalNewHandling, submitNewHandling, urlNewHandling, tableHandling);
+InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
 
-let modalModifyHandling = $('#modalEditHandling');
-let submitModifyHandling = $('#submitEditHandling');
+let $modalModifyHandling = $('#modalEditHandling');
+let $submitModifyHandling = $('#submitEditHandling');
 let urlModifyHandling = Routing.generate('handling_edit', true);
-InitialiserModal(modalModifyHandling, submitModifyHandling, urlModifyHandling, tableHandling);
+InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
 
-let modalDeleteHandling = $('#modalDeleteHandling');
-let submitDeleteHandling = $('#submitDeleteHandling');
+let $modalDeleteHandling = $('#modalDeleteHandling');
+let $submitDeleteHandling = $('#submitDeleteHandling');
 let urlDeleteHandling = Routing.generate('handling_delete', true);
-InitialiserModal(modalDeleteHandling, submitDeleteHandling, urlDeleteHandling, tableHandling);
+InitModal($modalDeleteHandling, $submitDeleteHandling, urlDeleteHandling, {tables: [tableHandling]});
 
 //initialisation editeur de texte une seule fois
 let editorNewHandlingAlreadyDone = false;
@@ -100,8 +100,8 @@ function changeStatus(button) {
 }
 
 function toggleHandlingQuill() {
-    let enable = modalModifyHandling.find('#statut').val() === '1';
-    toggleQuill(modalModifyHandling, enable);
+    let enable = $modalModifyHandling.find('#statut').val() === '1';
+    toggleQuill($modalModifyHandling, enable);
 }
 
 function callbackSaveFilter() {

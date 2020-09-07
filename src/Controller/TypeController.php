@@ -56,7 +56,8 @@ class TypeController extends AbstractController
                 $cl = $champLibreRepository->find(intval($value['value']));
                 $options = $cl->getElements();
                 $isType = false;
-            } else {
+            }
+            else {
                 $options = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             }
 
@@ -104,44 +105,6 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="type_new", options={"expose"=true}, methods={"POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
-
-
-            // on vérifie que le nom du type n'est pas déjà utilisé
-            $typeExist = $typeRepository->countByLabel($data['label']);
-
-            if (!$typeExist) {
-                if ($data['category'] === null) {
-                    $category = $categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
-                } else {
-                    $category = $categoryTypeRepository->find($data['category']);
-                }
-
-                $type = new Type();
-                $type
-                    ->setlabel($data["label"])
-                    ->setCategory($category);
-                $entityManager->persist($type);
-                $entityManager->flush();
-                return new JsonResponse($data);
-            } else {
-                return new JsonResponse(false);
-            }
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/supprimer", name="type_delete", options={"expose"=true}, methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -166,7 +129,8 @@ class TypeController extends AbstractController
                 }
                 $champLibreRepository->deleteByType($type);
                 $entityManager->flush();
-            } else {
+            }
+            else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
                 $articlesRefExist = $referenceArticleRepository->countByType($type);
                 $articlesExist = $articleRepository->countByType($type);
@@ -176,18 +140,22 @@ class TypeController extends AbstractController
                     $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
-                    $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
-                        'champLibreFilter' => $filters !== 0
+                    return new JsonResponse([
+                        'success' => true,
+                        'nextModal' => $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
+                            'champLibreFilter' => $filters !== 0
+                        ])
                     ]);
-                    return new JsonResponse($result);
                 }
             }
 
             if ($type !== null) $entityManager->remove($type);
             $entityManager->flush();
-            $result = true;
 
-            return new JsonResponse($result);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le type ' .$type->getLabel(). ' a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -235,7 +203,10 @@ class TypeController extends AbstractController
                 ->setCategory($category);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le type ' . $type->getLabel() . ' a bien été modifié.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }

@@ -155,14 +155,12 @@ class ReceptionController extends AbstractController
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      * @param EntityManagerInterface $entityManager
      * @param FreeFieldService $champLibreService
-     * @param ReceptionService $receptionService
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
-                        ReceptionService $receptionService,
                         Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
@@ -176,7 +174,6 @@ class ReceptionController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
             $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
             $reception = new Reception();
@@ -607,13 +604,17 @@ class ReceptionController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
 
-            if (!$ligneArticle) return new JsonResponse(false);
+            if (!$ligneArticle) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La référence est introuvable'
+                ]);
+            }
 
             $reception = $ligneArticle->getReception();
 
@@ -626,7 +627,10 @@ class ReceptionController extends AbstractController
                 $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
                 $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
                 if ($newRefAvailableQuantity < 0) {
-                    return new JsonResponse(false);
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'La suppression de la référence engendre des quantités négatives'
+                    ]);
                 }
                 $reference->setQuantiteStock($newRefQuantity);
             }
@@ -644,15 +648,16 @@ class ReceptionController extends AbstractController
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
-            $json = [
+
+            $entityManager->flush();
+            return new JsonResponse([
+                'success' => true,
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
                     'showDetails' => $receptionService->createHeaderDetailsConfig($reception)
                 ])
-            ];
-            $entityManager->flush();
-            return new JsonResponse($json);
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -725,6 +730,8 @@ class ReceptionController extends AbstractController
                 $entityManager->flush();
 
                 $json = [
+                    'success' => true,
+                    'msg' => 'La référence a été ajoutée à la réception',
 					'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                         'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                         'reception' => $reception,
@@ -734,7 +741,8 @@ class ReceptionController extends AbstractController
 			}
 			else {
 				$json = [
-					'errorMsg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.'
+				    'success' => false,
+					'msg' => 'Attention ! La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.'
 				];
 			}
             return new JsonResponse($json);
@@ -822,8 +830,8 @@ class ReceptionController extends AbstractController
                 // protection quantité reçue <= quantité à recevoir
                 if ($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse([
-                        'status' => false,
-                        'msgError' => 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir !'
+                        'success' => false,
+                        'msg' => 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir.'
                     ]);
                 }
 
@@ -837,8 +845,8 @@ class ReceptionController extends AbstractController
                     $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
                     if ($newRefQuantity - $referenceArticle->getQuantiteReservee() < 0) {
                         return new JsonResponse([
-                            'status' => false,
-                            'msgError' =>
+                            'success' => false,
+                            'msg' =>
                                 'Vous ne pouvez pas avoir reçu '
                                 . $newReceivedQuantity
                                 . ' : la quantité disponible de la référence est : '
@@ -892,8 +900,8 @@ class ReceptionController extends AbstractController
             $entityManager->flush();
 
             $json = [
-                'status' => true,
-                'msgError' => '',
+                'success' => true,
+                'msg' => '',
                 'entete' => $this->renderView('reception/reception-show-header.html.twig', [
                     'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
                     'reception' => $reception,
@@ -1110,7 +1118,6 @@ class ReceptionController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $articleRepository = $entityManager->getRepository(Article::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -1301,9 +1308,10 @@ class ReceptionController extends AbstractController
             $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
             $entityManager->flush();
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
-            $response = [];
 
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException("404");
     }

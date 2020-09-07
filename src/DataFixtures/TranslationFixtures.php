@@ -69,7 +69,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'type d\'acheminement' => 'type d\'acheminement',
                 "Quantité à acheminer" => "Quantité à acheminer",
                 "Quantité colis" => "Quantité colis",
-                "Cet acheminement est urgent" => "Cet acheminement est urgent"
+                "Cet acheminement est urgent" => "Cet acheminement est urgent",
+                "L'acheminement a bien été créé" => "L'acheminement a bien été créé",
+                "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
+                "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
+                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -115,8 +119,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Numéro colis' => 'Numéro colis',
                 "Quantité colis" => "Quantité colis",
                 'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
-                "Voulez-vous réellement supprimer ce colis" => "Voulez-vous réellement supprimer ce colis",
+                "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
                 "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
+                "Le colis a bien été modifié" => "Le colis a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
                 'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
             ],

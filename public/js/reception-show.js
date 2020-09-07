@@ -13,7 +13,7 @@ $(function () {
     const dataTableInitRes = InitPageDataTable();
     tableArticle = dataTableInitRes.tableArticle;
     tableLitigesReception = dataTableInitRes.tableLitigesReception;
-    InitiliserPageModals();
+    initPageModals();
     $('#packing-package-number, #packing-number-in-package').on('keypress keydown keyup', function () {
         if ($(this).val() === '' || $(this).val() < 0) {
             $(this).val('');
@@ -21,55 +21,59 @@ $(function () {
     });
 });
 
-function InitiliserPageModals() {
-    let modal = $("#modalAddLigneArticle");
-    let submit = $("#addArticleLigneSubmit");
-    let submitAndRedirect = $('#addArticleLigneSubmitAndRedirect');
-    let url = Routing.generate('reception_article_add', true);
+function initPageModals() {
+    let $modalAddLigneArticle = $("#modalAddLigneArticle");
+    let $submitAddLigneArticle = $("#addArticleLigneSubmit");
+    let $submitAndRedirectLigneArticle = $('#addArticleLigneSubmitAndRedirect');
+    let urlAddLigneArticle = Routing.generate('reception_article_add', true);
+    InitModal($modalAddLigneArticle, $submitAddLigneArticle, urlAddLigneArticle, {tables: [tableArticle]});
+    InitModal($modalAddLigneArticle, $submitAndRedirectLigneArticle, urlAddLigneArticle, {
+        tables: [tableArticle],
+        success: createHandlerAddLigneArticleResponseAndRedirect($modalAddLigneArticle),
+        keepForm: true,
+        keepModal: true
+    });
+    registerNumberInputProtection($modalAddLigneArticle.find('input[type="number"]'));
 
-    InitialiserModal(modal, submit, url, tableArticle, createHandlerAddLigneArticleResponse(modal), false, false);
-    InitialiserModal(modal, submitAndRedirect, url, tableArticle, createHandlerAddLigneArticleResponseAndRedirect(modal), false, false);
-    registerNumberInputProtection(modal.find('input[type="number"]'));
-
-    let modalDeleteArticle = $("#modalDeleteLigneArticle");
-    let submitDeleteArticle = $("#submitDeleteLigneArticle");
+    let $modalDeleteArticle = $("#modalDeleteLigneArticle");
+    let $submitDeleteArticle = $("#submitDeleteLigneArticle");
     let urlDeleteArticle = Routing.generate('reception_article_remove', true);
-    InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+    InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
 
-    let modalEditArticle = $("#modalEditLigneArticle");
-    let submitEditArticle = $("#submitEditLigneArticle");
+    let $modalEditArticle = $("#modalEditLigneArticle");
+    let $submitEditArticle = $("#submitEditLigneArticle");
     let urlEditArticle = Routing.generate('reception_article_edit', true);
-    InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle, displayErrorReception, false, false);
+    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {tables: [tableArticle]});
 
-    let ModalDelete = $("#modalDeleteReception");
-    let SubmitDelete = $("#submitDeleteReception");
+    let $modalDelete = $("#modalDeleteReception");
+    let $submitDelete = $("#submitDeleteReception");
     let urlDeleteReception = Routing.generate('reception_delete', true);
-    InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception);
+    InitModal($modalDelete, $submitDelete, urlDeleteReception);
 
-    let ModalCancel = $("#modalCancelReception");
-    let SubmitCancel = $("#submitCancelReception");
+    let $modalCancel = $("#modalCancelReception");
+    let $submitCancel = $("#submitCancelReception");
     let urlCancelReception = Routing.generate('reception_cancel', true);
-    InitialiserModal(ModalCancel, SubmitCancel, urlCancelReception);
+    InitModal($modalCancel, $submitCancel, urlCancelReception);
 
-    let modalModifyReception = $('#modalEditReception');
-    let submitModifyReception = $('#submitEditReception');
+    let $modalModifyReception = $('#modalEditReception');
+    let $submitModifyReception = $('#submitEditReception');
     let urlModifyReception = Routing.generate('reception_edit', true);
-    InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception);
+    InitModal($modalModifyReception, $submitModifyReception, urlModifyReception);
 
     let modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('litige_new_reception', true);
-    initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableLitigesReception);
+    InitModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableLitigesReception]});
 
     let modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitigesReception);
+    InitModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitigesReception]});
 
-    let ModalDeleteLitige = $("#modalDeleteLitige");
-    let SubmitDeleteLitige = $("#submitDeleteLitige");
+    let $modalDeleteLitige = $("#modalDeleteLitige");
+    let $submitDeleteLitige = $("#submitDeleteLitige");
     let urlDeleteLitige = Routing.generate('litige_delete_reception', true);
-    InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitigesReception);
+    InitModal($modalDeleteLitige, $submitDeleteLitige, urlDeleteLitige, {tables: [tableLitigesReception]});
 }
 
 function InitPageDataTable() {
@@ -164,11 +168,6 @@ function initDateTimePickerReception() {
     $('.date-cl').each(function () {
         initDateTimePicker('#' + $(this).attr('id'));
     });
-}
-
-function displayErrorReception(data) {
-    let $modal = $("#modalEditLigneArticle");
-    displayError($modal, data.msgError, data.status);
 }
 
 function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {
@@ -295,17 +294,15 @@ function initDatatableConditionnement() {
 }
 
 function initModalCondit(tableFromArticle) {
-    let modalEditInnerArticle = $("#modalEditArticle");
-    let submitEditInnerArticle = $("#submitEditArticle");
+    let $modalEditInnerArticle = $("#modalEditArticle");
+    let $submitEditInnerArticle = $("#submitEditArticle");
     let urlEditInnerArticle = Routing.generate('article_edit', true);
-    InitialiserModal(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle, tableFromArticle);
+    InitModal($modalEditInnerArticle, $submitEditInnerArticle, urlEditInnerArticle, {tables: [tableFromArticle]});
 
-    let modalDeleteInnerArticle = $("#modalDeleteArticle");
-    let submitDeleteInnerArticle = $("#submitDeleteArticle");
+    let $modalDeleteInnerArticle = $("#modalDeleteArticle");
+    let $submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitialiserModal(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle, () => {
-        tableArticle.ajax.reload();
-    });
+    InitModal($modalDeleteInnerArticle, $submitDeleteInnerArticle, urlDeleteInnerArticle, {tables: [tableFromArticle, tableArticle]});
 }
 
 function initNewArticleEditor(modal) {
@@ -602,7 +599,7 @@ function initNewLigneReception($button) {
         } else {
             $errorContainer.text('');
             wrapLoadingOnActionButton($button, () => (
-                submitAction($modalNewLigneReception, urlNewLigneReception, tableArticle)
+                submitAction($modalNewLigneReception, urlNewLigneReception, {tables: [tableArticle]})
                     .then(function (success) {
                         if (success) {
                             const $printButton = $('#buttonPrintMultipleBarcodes');
@@ -697,8 +694,10 @@ function removePackingItem($button) {
 
 function createHandlerAddLigneArticleResponse($modal) {
     return (data) => {
-        if (data.errorMsg) {
-            alertErrorMsg(data.errorMsg, true);
+        if (!data.success) {
+            if (data.msg) {
+                alertErrorMsg(data.msg, true);
+            }
         } else {
             alertSuccessMsg('La référence a été ajoutée à la réception', true);
             $modal.find('.close').click();
@@ -712,7 +711,7 @@ function createHandlerAddLigneArticleResponseAndRedirect($modal) {
         const [{text: refSelectedReference} = {}] = $modal.find('select[name="referenceArticle"]').select2('data') || [];
         const commande = $modal.find('input[name="commande"]').val();
         createHandlerAddLigneArticleResponse($modal)(data);
-        if (!data.errorMsg) {
+        if (data.success) {
             $('#modalNewLigneReception').modal('show');
 
             $.get({

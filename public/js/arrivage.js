@@ -2,9 +2,6 @@ $('.select2').select2();
 
 let modalColumnVisible = $('#modalColumnVisibleArrivage');
 let submitColumnVisible = $('#submitColumnVisibleArrivage');
-let modalEditArrivage = $('#modalEditArrivage');
-let submitEditArrivage = $('#submitEditArrivage');
-let urlEditArrivage = Routing.generate('arrivage_edit', true);
 let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
 let onFlyFormOpened = {};
 let clicked = false;
@@ -15,8 +12,7 @@ $(function () {
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
-    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
-    initModalWithAttachments(modalEditArrivage, submitEditArrivage, urlEditArrivage, tableArrivage);
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
@@ -119,8 +115,15 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, null, (params) => arrivalCallback(true, params, tableArrivage), redirectAfterArrival === 1, false);
+InitModalWithAttachments(
+    $modalNewArrivage,
+    submitNewArrivage,
+    urlNewArrivage,
+    {
+        keepForm: true,
+        keepModal: true,
+        success: (params) => arrivalCallback(true, params, tableArrivage)
+    });
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;

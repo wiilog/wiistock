@@ -39,22 +39,9 @@ let tableMissions = initDataTable('tableMissionsInv', tableMisionsConfig);
 let modalNewMission = $("#modalNewMission");
 let submitNewMission = $("#submitNewMission");
 let urlNewMission = Routing.generate('mission_new', true);
-InitialiserModal(modalNewMission, submitNewMission, urlNewMission, tableMissions, displayErrorMision, false);
+InitModal(modalNewMission, submitNewMission, urlNewMission, {tables: [tableMissions]});
 
 let modalDeleteMission = $("#modalDeleteMission");
 let submitDeleteMission = $("#submitDeleteMission");
 let urlDeleteMission = Routing.generate('mission_delete', true)
-InitialiserModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, tableMissions);
-
-function displayErrorMision(data) {
-    let modal = $("#modalNewMission");
-    let msg = null;
-    if (data === false) {
-        msg = 'La date de début doit être antérieure à celle de fin.';
-        displayError(modal, msg, data);
-    } else {
-        modal.find('.close').click();
-        msg = 'La mission d\'inventaire a bien été créée.';
-        alertSuccessMsg(msg);
-    }
-}
+InitModal(modalDeleteMission, submitDeleteMission, urlDeleteMission, {tables: [tableMissions]});

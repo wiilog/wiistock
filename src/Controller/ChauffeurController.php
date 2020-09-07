@@ -97,6 +97,8 @@ class ChauffeurController extends AbstractController
 
     /**
      * @Route("/creer", name="chauffeur_new", options={"expose"=true}, methods={"GET","POST"})
+     * @param Request $request
+     * @return Response
      */
     public function new(Request $request): Response
     {
@@ -120,7 +122,10 @@ class ChauffeurController extends AbstractController
             $data['id'] = $chauffeur->getId();
             $data['text'] = $data['nom'];
 
-            return new JsonResponse($data);
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le chauffeur ' . $data['nom'] . ' ' . $data['prenom'] . ' a bien été créé.'
+            ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
@@ -178,7 +183,10 @@ class ChauffeurController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le chauffeur a bien été modifié.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -240,24 +248,33 @@ class ChauffeurController extends AbstractController
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
 				$chauffeur = $chauffeurRepository->find($chauffeurId);
 
-				// on vérifie que le fournisseur n'est plus utilisé
+				// on vérifie que le chauffeur n'est plus utilisé
 				$isUsedChauffeur = $this->isChauffeurUsed($chauffeur);
 
 				if ($isUsedChauffeur) {
-					return new JsonResponse(false);
+					return new JsonResponse([
+					    'success' => false,
+                        'msg' => 'Le chauffeur ' .$chauffeur->getNom(). ' ' .$chauffeur->getPrenom(). ' est utilisé, vous ne pouvez pas le supprimer.'
+                    ]);
 				}
 
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->remove($chauffeur);
 				$entityManager->flush();
+
 			}
-			return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le chauffeur ' .$chauffeur->getNom(). ' ' .$chauffeur->getPrenom(). ' a bien été supprimé.'
+            ]);
 		}
 		throw new NotFoundHttpException("404");
 	}
 
     /**
      * @Route("/autocomplete", name="get_transporteurs", options={"expose"=true})
+     * @param Request $request
+     * @return JsonResponse
      */
     public function getTransporteurs(Request $request)
     {

@@ -27,30 +27,30 @@ $(function () {
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
     const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    initModalWithAttachments($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
+    InitModalWithAttachments($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
     const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
-    InitialiserModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, packTable, null, true, true, true);
+    InitModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, {tables: [packTable]});
 
     const $modalDeleteDispatch = $('#modalDeleteDispatch');
     const $submitDeleteDispatch = $('#submitDeleteDispatch');
     const urlDispatchDelete = Routing.generate('dispatch_delete', true);
-    InitialiserModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
+    InitModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
 
     const $modalPack = $('#modalPack');
     const $submitNewPack = $modalPack.find('button.submit-new-pack');
     const $submitEditPack = $modalPack.find('button.submit-edit-pack');
     const urlNewPack = Routing.generate('dispatch_new_pack', {dispatch: dispatchId}, true);
     const urlEditPack = Routing.generate('dispatch_edit_pack', true);
-    InitialiserModal($modalPack, $submitNewPack, urlNewPack, packTable, null, true, true, true);
-    InitialiserModal($modalPack, $submitEditPack, urlEditPack, packTable, null, true, true, true);
+    InitModal($modalPack, $submitNewPack, urlNewPack, {tables: [packTable]});
+    InitModal($modalPack, $submitEditPack, urlEditPack, {tables: [packTable]});
 
     let modalDeletePack = $('#modalDeletePack');
     let submitDeletePack = $('#submitDeletePack');
     let urlDeletePack = Routing.generate('dispatch_delete_pack', true);
-    InitialiserModal(modalDeletePack, submitDeletePack, urlDeletePack, packTable);
+    InitModal(modalDeletePack, submitDeletePack, urlDeletePack, {tables: [packTable]});
 });
 
 function togglePackDetails(emptyDetails = false) {

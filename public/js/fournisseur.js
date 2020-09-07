@@ -33,19 +33,14 @@ let tableFournisseur = initDataTable('tableFournisseur_id', tableFournisseurConf
 let modalNewFournisseur = $("#modalNewFournisseur");
 let submitNewFournisseur = $("#submitNewFournisseur");
 let urlNewFournisseur = Routing.generate('fournisseur_new', true);
-InitialiserModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, tableFournisseur, displayErrorFournisseur, false);
+InitModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, {tables: [tableFournisseur]});
 
 let ModalDeleteFournisseur = $("#modalDeleteFournisseur");
 let SubmitDeleteFournisseur = $("#submitDeleteFournisseur");
 let urlDeleteFournisseur = Routing.generate('fournisseur_delete', true)
-InitialiserModal(ModalDeleteFournisseur, SubmitDeleteFournisseur, urlDeleteFournisseur, tableFournisseur);
+InitModal(ModalDeleteFournisseur, SubmitDeleteFournisseur, urlDeleteFournisseur, {tables: [tableFournisseur]});
 
 let modalModifyFournisseur = $('#modalEditFournisseur');
 let submitModifyFournisseur = $('#submitEditFournisseur');
 let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
-InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur, tableFournisseur);
-
-function displayErrorFournisseur(data) {
-    let modal = $('#modalNewFournisseur');
-    displayError(modal, data.msg, data.success);
-}
+InitModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur, {tables: [tableFournisseur]});

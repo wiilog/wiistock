@@ -6,22 +6,29 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                <a href="{{ path('types_param_index') }}" class="btn btn-primary btn-ripple">
-                    <span class="fa fa-plus mr-2"></span>Aller vers la création d'un type
+                <a href="{{ path('types_param_index') }}"
+                   class="btn btn-primary btn-ripple">
+                    <span class="fa fa-plus mr-2"></span>
+                    Aller vers la création d'un type
                 </a>
             </div>
         </div>
 
         <div class="row">
             <div class="col-12">
-                <table id="tableType_id" class="table w-100">
+                <table id="tableType_id"
+                       class="table w-100">
                 </table>
             </div>
         </div>
 
     </div>
+    <div class="d-none"
+         id="contentFirstDeleteTypeModal">
+        En supprimant ce type, vous supprimerez également les champs libres qu'il contient.<br>
+        Voulez-vous réellement le supprimer ?
+    </div>
 
-    {% include "champ_libre/modalNewType.html.twig" %}
     {% include "champ_libre/modalDeleteType.html.twig" %}
     {% include "champ_libre/modalEditType.html.twig" %}
 

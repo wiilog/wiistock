@@ -33,48 +33,15 @@ function InitPageModal(tableArticleFournisseur) {
     let $modalNewArticleFournisseur = $("#modalNewArticleFournisseur");
     let $submitNewArticleFournisseur = $("#submitNewArticleFournisseur");
     let urlNewArticleFournisseur = Routing.generate('article_fournisseur_new', true);
-    InitialiserModal(
-        $modalNewArticleFournisseur,
-        $submitNewArticleFournisseur,
-        urlNewArticleFournisseur,
-        tableArticleFournisseur,
-        handleFormSuccess($modalNewArticleFournisseur),
-        false,
-        false
-    );
+    InitModal($modalNewArticleFournisseur, $submitNewArticleFournisseur, urlNewArticleFournisseur, {tables: [tableArticleFournisseur]});
 
     let $modalDeleteArticleFournisseur = $("#modalDeleteArticleFournisseur");
     let $submitDeleteArticleFournisseur = $("#submitDeleteArticleFournisseur");
     let urlDeleteArticleFournisseur = Routing.generate('article_fournisseur_delete', true);
-    InitialiserModal(
-        $modalDeleteArticleFournisseur,
-        $submitDeleteArticleFournisseur,
-        urlDeleteArticleFournisseur,
-        tableArticleFournisseur
-    );
+    InitModal($modalDeleteArticleFournisseur, $submitDeleteArticleFournisseur, urlDeleteArticleFournisseur, {tables: [tableArticleFournisseur]});
 
     let $modalEditArticleFournisseur = $('#modalEditArticleFournisseur');
     let $submitEditArticleFournisseur = $('#submitEditArticleFournisseur');
     let urlEditArticleFournisseur = Routing.generate('article_fournisseur_edit', true);
-    InitialiserModal(
-        $modalEditArticleFournisseur,
-        $submitEditArticleFournisseur,
-        urlEditArticleFournisseur,
-        tableArticleFournisseur,
-        handleFormSuccess($modalEditArticleFournisseur),
-        false,
-        false
-    );
-}
-
-function handleFormSuccess($modal) {
-    return (data) => {
-        if (data.success){
-            $modal.modal('hide');
-            clearModal($modal);
-        }
-        else {
-            $modal.find('.error-msg').text(data.message);
-        }
-    }
+    InitModal($modalEditArticleFournisseur, $submitEditArticleFournisseur, urlEditArticleFournisseur, {tables: [tableArticleFournisseur]});
 }

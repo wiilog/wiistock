@@ -4,7 +4,10 @@
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="d-none">
-                    <div class="action-on-click" data-id='{{ fournisseurId }}' data-target='#modalEditFournisseur' data-toggle='modal'
+                    <div class="action-on-click"
+                         data-id='{{ fournisseurId }}'
+                         data-target='#modalEditFournisseur'
+                         data-toggle='modal'
                          onclick="editRow($(this), Routing.generate('fournisseur_api_edit', true), $('#modalEditFournisseur'), $('#submitEditFournisseur'))">
                         <i class='fas fa-pencil-alt '></i>
                     </div>
@@ -14,8 +17,11 @@
                 <div>
                     <div class="dropdown-item"
                          onclick="checkAndDeleteRow($(this), '#modalDeleteFournisseur', 'fournisseur_check_delete', '#submitDeleteFournisseur')"
-                         data-id='{{ fournisseurId }}' data-target='#modalDeleteFournisseur' data-toggle='modal'>
-                        <i class='fas fa-trash mr-2'></i>Supprimer
+                         data-id='{{ fournisseurId }}'
+                         data-target='#modalDeleteFournisseur'
+                         data-toggle='modal'>
+                        <i class='fas fa-trash mr-2'></i>
+                        Supprimer
                     </div>
                 </div>
             {% endif %}

@@ -1,5 +1,7 @@
 const FILE_MAX_SIZE = 2000000;
 
+let droppedFiles = [];
+
 function displayAttachements(files, $dropFrame, isMultiple = true) {
 
     let errorMsg = [];
@@ -88,8 +90,6 @@ function dragLeaveDiv(event, div) {
     return false;
 }
 
-let droppedFiles = [];
-
 function openFileExplorer(span) {
     span.closest('.modal').find('.fileInput').trigger('click');
 }
@@ -130,171 +130,21 @@ function saveInputFiles($inputFile, files) {
     $inputFile[0].value = '';
 }
 
-function initModalWithAttachments(modal, submit, path, table = null, callback = null, close = true, clear = true) {
-    submit.click(function () {
-        submitActionWithAttachments(modal, path, table, callback, close, clear);
+function InitModalWithAttachments($modal, $submit, path, options = {}) {
+    InitModal($modal, $submit, path, {
+        getFiles: () => droppedFiles,
+        ...options,
+        success: (data) => {
+            if (data && data.success) {
+                if (options.success) {
+                    options.success(data);
+                }
+                resetDroppedFiles();
+            }
+        }
     });
 }
 
-function submitActionWithAttachments(modal, path, table, callback, close, clear) {
-    // On récupère toutes les données qui nous intéressent
-    // dans les inputs...
-    let inputs = modal.find(".data");
-    let inputsArray = modal.find(".data-array");
-    $('.is-invalid').removeClass('is-invalid');
-    let Data = new FormData();
-    let missingInputs = [];
-    let wrongNumberInputs = [];
-    let passwordIsValid = true;
-    let name;
-    let arrayIdVal = {};
-    let totalForInputsArrayNeededPositive = {};
-
-    inputsArray.each(function () {
-        name = $(this).attr("name");
-        if ($(this).hasClass('needed-positiv')) {
-            if (!totalForInputsArrayNeededPositive[name]) {
-                totalForInputsArrayNeededPositive[name] = 0;
-            }
-            totalForInputsArrayNeededPositive[name] += Number($(this).val());
-        }
-        if (!arrayIdVal[name]) {
-            arrayIdVal[name] = {};
-        }
-        arrayIdVal[name][$(this).data('id')] = $(this).val();
-    });
-    for (const name in arrayIdVal) {
-        Data.append(name, JSON.stringify(arrayIdVal[name]));
-    }
-    inputs.each(function () {
-        let val = $(this).val();
-        name = $(this).attr("name");
-        Data.append(name, val);
-        // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))) {
-            let label = $(this).closest('.form-group').find('label').text();
-            // on enlève l'éventuelle * du nom du label
-            label = label.replace(/\*/, '');
-            missingInputs.push(label);
-            $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').addClass('is-invalid');
-        }
-        // validation valeur des inputs de type number
-        if ($(this).attr('type') === 'number') {
-            let val = parseInt($(this).val());
-            let min = parseInt($(this).attr('min'));
-            let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
-                wrongNumberInputs.push($(this));
-                $(this).addClass('is-invalid');
-            } else if (!isNaN(val)) {
-                $(this).removeClass('is-invalid');
-            }
-            if ($(this).is(':disabled') === true) {
-                $(this).removeClass('is-invalid');
-            }
-        }
-    });
-    // ... et dans les checkboxes
-    let checkboxes = modal.find('.checkbox');
-    checkboxes.each(function () {
-        Data.append([$(this).attr("name")], $(this).is(':checked'));
-    });
-    $("div[name='id']").each(function () {
-        Data.append([$(this).attr("name")], $(this).attr('value'));
-    });
-    modal.find(".elem").remove();
-    $.each(droppedFiles, function(index, file) {
-        Data.append('file' + index, file);
-    });
-    // si tout va bien on envoie la requête ajax...
-    const inputArrayNames = Object.keys(totalForInputsArrayNeededPositive);
-    const firstNameNeededPositiveArray = inputArrayNames.reduce(
-        (lastName, currentName) => {
-            return (!lastName && totalForInputsArrayNeededPositive[currentName] === 0)
-                ? currentName
-                : lastName
-        },
-        undefined);
-    if (missingInputs.length === 0 && wrongNumberInputs.length === 0 && passwordIsValid && !firstNameNeededPositiveArray) {
-        clearInvalidInputs(modal);
-        clearErrorMsg(modal.find(':first-child'));
-        $.ajax({
-            url: path,
-            data: Data,
-            type: 'post',
-            contentType: false,
-            processData: false,
-            cache: false,
-            dataType: 'json',
-            success: (data) => {
-                if (data.success === false) {
-                    $(modal).find('.error-msg').html(data.msg);
-                } else {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                        return;
-                    }
-
-                    if (table) {
-                        table.ajax.reload(null, false);
-                    }
-
-                    // mise à jour des données d'en-tête après modification
-                    if (data.entete) {
-                        $('.zone-entete').html(data.entete)
-                    }
-
-                    if (clear) {
-                        clearModal(modal);
-                    }
-                    droppedFiles = [];
-                    if (callback !== null) callback(data);
-                    if (close) modal.find('.close').click();
-                }
-            }
-        });
-    } else {
-        // ... sinon on construit les messages d'erreur
-        let msg = '';
-
-        // cas où il manque des champs obligatoires
-        if (missingInputs.length > 0) {
-            if (missingInputs.length === 1) {
-                msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-            } else {
-                msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-            }
-        }
-        // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-        if (wrongNumberInputs.length > 0) {
-            wrongNumberInputs.forEach(function (elem) {
-                let label = elem.closest('.form-group').find('label').text();
-
-                msg += 'La valeur du champ ' + label;
-
-                let min = elem.attr('min');
-                let max = elem.attr('max');
-
-                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                    if (min > max) {
-                        msg += " doit être inférieure à " + max + ".<br>";
-                    } else {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-                    }
-                } else if (typeof (min) == 'undefined') {
-                    msg += ' doit être inférieure à ' + max + ".<br>";
-                } else if (typeof (max) == 'undefined') {
-                    msg += ' doit être supérieure à ' + min + ".<br>";
-                } else if (min < 1) {
-                    msg += ' ne peut pas être rempli'
-                }
-            })
-        }
-        if (firstNameNeededPositiveArray) {
-            msg += "Veuillez renseigner au moins un " + firstNameNeededPositiveArray + ".<br>";
-            $('.data-array.needed-positiv[name="' + firstNameNeededPositiveArray + '"]').addClass('is-invalid');
-        }
-        modal.find('.error-msg').html(msg);
-    }
+function resetDroppedFiles() {
+    droppedFiles = [];
 }

@@ -31,20 +31,20 @@ let tableEmplacementConfig = {
 };
 let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);
 
-let modalNewEmplacement = $("#modalNewEmplacement");
-let submitNewEmplacement = $("#submitNewEmplacement");
+let $modalNewEmplacement = $("#modalNewEmplacement");
+let $submitNewEmplacement = $("#submitNewEmplacement");
 let urlNewEmplacement = Routing.generate('emplacement_new', true);
-InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalNewEmplacement"), response), true, false);
+InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [tableEmplacement]});
 
 let modalDeleteEmplacement = $('#modalDeleteEmplacement');
 let submitDeleteEmplacement = $('#submitDeleteEmplacement');
 let urlDeleteEmplacement = Routing.generate('emplacement_delete', true);
-InitialiserModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, tableEmplacement);
+InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [tableEmplacement]});
 
-let modalModifyEmplacement = $('#modalEditEmplacement');
-let submitModifyEmplacement = $('#submitEditEmplacement');
+let $modalModifyEmplacement = $('#modalEditEmplacement');
+let $submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement, (response) => displayErrorEmplacement($("#modalEditEmplacement"), response), true, false);
+InitModal($modalModifyEmplacement, $submitModifyEmplacement, urlModifyEmplacement, {tables: [tableEmplacement]});
 
 $(function () {
     const $printButton = $('#btnPrint');
@@ -66,14 +66,6 @@ function checkAndDeleteRowEmplacement(icon) {
             submitDeleteEmplacement.text('Supprimer');
         }
     });
-}
-
-function displayErrorEmplacement($modal, response) {
-    if (!response.success) {
-        $modal.find('.error-msg').html(response.message);
-    } else {
-        $modal.find('.close').click();
-    }
 }
 
 function printLocationsBarCodes($button, event) {

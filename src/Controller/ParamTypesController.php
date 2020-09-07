@@ -262,7 +262,10 @@ class ParamTypesController extends AbstractController
 
             $entityManager->remove($type);
             $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le type ' . $type->getLabel() . ' a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

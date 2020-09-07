@@ -1,39 +1,21 @@
 <div class="col-auto pb-2">
     <div class="btn filter has-tooltip" title="{{ (filter.champFixe ? filter.champFixe : filter.champLibre.label) | capitalize }} : {{ filter.value }}">
-        <input hidden value="{{ filter.id }}" class="filter-id">
         <div class="row align-items-center">
-            {% if filter.champFixe is not null %}
-                <div class="col">
-                    <span class="bold">
-                        {% if (filter.value == 'on' or filter.value == '1') %}
-                            {% set value = 'oui' %}
-                        {% elseif (filter.value == '') %}
-                            {% set value = 'non' %}
-                        {% else %}
-                            {% set value = filter.value %}
-                        {% endif %}
-                        {{ filter.champFixe | capitalize }} : {{ value }}</span><br>
-                </div>
-                <div class="col-auto">
-                    <i class="fas fa-times remove-filter"></i>
-                </div>
+            {% set fieldLabel = filter.champFixe is not null ? filter.champFixe : filter.champLibre.label %}
+            {% if (filter.value == 'on' or filter.value == '1') %}
+                {% set value = 'oui' %}
+            {% elseif (filter.value == '') %}
+                {% set value = 'non' %}
             {% else %}
-                <div class="col">
-                    {% if (filter.value == 'on' or filter.value == '1') %}
-                        {% set value = 'oui' %}
-                    {% elseif (filter.value == '') %}
-                        {% set value = 'non' %}
-                    {% else %}
-                        {% set value = filter.value %}
-                    {% endif %}
-                    <span class="bold">
-                        {{ filter.champLibre.label|capitalize }} : {{ value }}</span><br>
-                </div>
-                <div class="col-auto">
-                    <i class="fas fa-times remove-filter"></i>
-                </div>
-
+                {% set value = filter.value %}
             {% endif %}
+            <div class="col">
+                <span class="bold">{{ fieldLabel|capitalize }} : {{ value }}</span>
+            </div>
+            <div class="col-auto">
+                <i class="fas fa-times pointer"
+                   onclick="removeFilter($(this), {{ filter.id }})"></i>
+            </div>
         </div>
     </div>
 </div>

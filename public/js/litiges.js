@@ -1,8 +1,5 @@
 $('.select2').select2();
 let tableLitiges;
-let modalNewLitiges = $('#modalNewLitiges');
-let submitNewLitiges = $('#submitNewLitiges');
-let urlNewLitiges = Routing.generate('litige_new', true);
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
@@ -33,10 +30,10 @@ $(function () {
     }, 'json');
 
     initDatatableLitiges();
-    InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
-    initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
-    InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
-    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+
+    InitModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
+    InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableLitiges]});
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
 function initDatatableLitiges() {

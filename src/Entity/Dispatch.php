@@ -345,7 +345,7 @@ class Dispatch extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection
      */
     public function getTrackingMovements(): Collection
     {

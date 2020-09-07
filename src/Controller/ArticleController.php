@@ -31,6 +31,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -461,7 +462,9 @@ class ArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      *
      * @return Response
-     *
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function editApi(Request $request,
                             ArticleDataService $articleDataService,
@@ -541,12 +544,14 @@ class ArticleController extends AbstractController
                     $this->articleDataService->editArticle($data);
                     $response = ['success' => true];
                 }
+                /** @noinspection PhpRedundantCatchClauseInspection */
                 catch(ArticleNotAvailableException $exception) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
                     ];
                 }
+                /** @noinspection PhpRedundantCatchClauseInspection */
                 catch(RequestNeedToBeProcessedException $exception) {
                     $response = [
                         'success' => false,
@@ -792,7 +797,6 @@ class ArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -949,7 +953,7 @@ class ArticleController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param CSVExportService $CSVExportService
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function exportAllArticles(EntityManagerInterface $entityManager,
                                   CSVExportService $CSVExportService): Response
@@ -987,7 +991,7 @@ class ArticleController extends AbstractController
             ],
             $freeFieldsHeader
         );
-        $today = new \DateTime();
+        $today = new DateTime();
         $globalTitle = 'export-articles-' . $today->format('d-m-Y H:i:s') . '.csv';
         $articlesExportFiles = [];
         $allArticlesCount = intval($articleRepository->countAll());

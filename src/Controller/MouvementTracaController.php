@@ -412,7 +412,9 @@ class MouvementTracaController extends AbstractController
 
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

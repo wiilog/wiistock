@@ -341,6 +341,14 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
                 $data = [
                     'redirect' => $this->generateUrl('demande_index'),
+                    'success' => true
+                ];
+            }
+            else {
+
+                $data = [
+                    'message' => 'Vous ne pouvez pas supprimer cette demande, vous devez d\'abord supprimer ses ordres.',
+                    'success' => false
                 ];
             }
             return new JsonResponse($data);

@@ -27,7 +27,7 @@ let workFreeDaysTable;
 let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
-InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEditDays, false, false);
+InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
     initSelect2($('.select2'));
@@ -101,16 +101,6 @@ function initSelect2ValuesForDashboard() {
     initDisplaySelect2Multiple('#packagingDestinationGT','#packagingLocationDestinationGT');
     initDisplaySelect2Multiple('#packagingOrigineGT','#packagingLocationOrigineGT');
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
-}
-
-function errorEditDays(data) {
-    let modal = $("#modalEditDays");
-    if (data.success === false) {
-        displayError(modal, data.msg, data.success);
-    } else {
-        modal.find('.close').click();
-        alertSuccessMsg(data.msg);
-    }
 }
 
 function updateToggledParam(switchButton) {

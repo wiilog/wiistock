@@ -3,6 +3,8 @@ $('.select2').select2();
 let prepaHasBegun = false;
 let tableArticleSplitting;
 let $modalSubmitPreparation = $('#modal-select-location');
+let $preparationId = $('#prepa-id');
+
 $(function () {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
     initDateTimePicker();
@@ -69,7 +71,7 @@ let tableConfig = {
 };
 let table = initDataTable('table_id', tableConfig);
 
-let pathArticle = Routing.generate('preparation_article_api', {'preparation': $('#prepa-id').val()});
+let pathArticle = Routing.generate('preparation_article_api', {'preparation': $preparationId.val()});
 
 let tableArticleConfig = {
     ajax: pathArticle,
@@ -122,7 +124,7 @@ function startPicking($button) {
 let urlEditLigneArticle = Routing.generate('prepa_edit_ligne_article', true);
 let modalEditLigneArticle = $("#modalEditLigneArticle");
 let submitEditLigneArticle = $("#submitEditLigneArticle");
-InitialiserModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, tableArticle);
+InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {tables: [tableArticle]});
 
 function submitSplitting(submit) {
     let $inputs = $('#tableSplittingArticles').find('.input');
@@ -251,7 +253,7 @@ function clearValidatePreparationModal() {
 
 function beginPrepa() {
     if (!prepaHasBegun) {
-        let prepaId = $('#prepa-id').val();
+        let prepaId = $preparationId.val();
         let path = Routing.generate('prepa_begin');
 
         $.post(path, prepaId, () => {
@@ -288,7 +290,7 @@ function finishPrepa($button) {
                     $button,
                     () => (
                         $.post({
-                            url: Routing.generate('preparation_finish', {'idPrepa': $('#prepa-id').val()}),
+                            url: Routing.generate('preparation_finish', {'idPrepa': $preparationId.val()}),
                             data: {
                                 emplacement: value
                             }
@@ -320,7 +322,7 @@ function printPrepaBarCodes() {
         window.location.href = Routing.generate(
             'preparation_bar_codes_print',
             {
-                preparation: $('#prepa-id').val()
+                preparation: $preparationId.val()
             },
             true
         );

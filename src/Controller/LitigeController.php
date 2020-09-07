@@ -109,7 +109,6 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $litigeRepository = $entityManager->getRepository(Litige::class);
 
         $user = $this->getUser();
         $fieldsInTab = [
@@ -489,17 +488,16 @@ class LitigeController extends AbstractController
     /**
      * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     *
      * @return Response
      */
-    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function getColumnVisible(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $user = $this->getUser();     ;
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
 
         return new JsonResponse($user->getColumnsVisibleForLitige());
     }

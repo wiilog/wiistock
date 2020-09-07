@@ -60,16 +60,12 @@ Class DispatchController extends AbstractController
 
     private $attachmentService;
 
-    private $translator;
-
     public function __construct(UserService $userService,
                                 PieceJointeRepository $pieceJointeRepository,
-                                AttachmentService $attachmentService,
-                                TranslatorInterface $translator) {
+                                AttachmentService $attachmentService) {
         $this->userService = $userService;
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
-        $this->translator = $translator;
     }
 
 
@@ -77,7 +73,6 @@ Class DispatchController extends AbstractController
      * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager)
     {
@@ -142,6 +137,7 @@ Class DispatchController extends AbstractController
      * @param DispatchService $dispatchService
      * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @return Response
      * @throws Exception
      */
@@ -149,7 +145,8 @@ Class DispatchController extends AbstractController
                         FreeFieldService $freeFieldService,
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest()) {
             $post = $request->request;
@@ -210,9 +207,11 @@ Class DispatchController extends AbstractController
 
             $dispatchService->sendMailsAccordingToStatus($dispatch, false);
 
-            $response['dispatch'] = $dispatch->getId();
-            $response['redirect'] = $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()]);
-            return new JsonResponse($response);
+            return new JsonResponse([
+                'success' => true,
+                'redirect' => $this->generateUrl('dispatch_show', ['id' => $dispatch->getId()]),
+                'msg' => $translator->trans("acheminement.L''acheminement a bien été créé") . '.'
+            ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
@@ -254,23 +253,24 @@ Class DispatchController extends AbstractController
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
      * @param Dispatch $dispatch
      * @param PDFGeneratorService $PDFGenerator
+     * @param TranslatorInterface $translator
      * @return PdfResponse
      * @throws LoaderError
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function printDispatchStateSheet(Dispatch $dispatch,
-                                            PDFGeneratorService $PDFGenerator): ?Response
+                                            PDFGeneratorService $PDFGenerator,
+                                            TranslatorInterface $translator): ?Response
     {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
-            throw new NotFoundHttpException('La fiche d\'état n\'existe pas pour cet acheminement.');
+            throw new NotFoundHttpException($translator->trans("acheminement.La fiche d\'état n\'existe pas pour cet acheminement"));
         }
 
         $packsConfig = $dispatch->getDispatchPacks()
-            ->map(function(DispatchPack $dispatchPack) use ($dispatch){
+            ->map(function(DispatchPack $dispatchPack) use ($dispatch, $translator){
                 return [
                     'title' => 'Acheminement n°' . $dispatch->getId(),
                     'code' => $dispatchPack->getPack()->getCode(),
@@ -279,8 +279,8 @@ Class DispatchController extends AbstractController
                         'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
                         'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
                         'Destinataire' => $dispatch->getReceiver() ? $dispatch->getReceiver()->getUsername() : '',
-                        $this->translator->trans('acheminement.emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
-                        $this->translator->trans('acheminement.emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
+                        $translator->trans('acheminement.emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
+                        $translator->trans('acheminement.emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
                     ]
                 ];
             })
@@ -299,12 +299,14 @@ Class DispatchController extends AbstractController
      * @param DispatchService $dispatchService
      * @param FreeFieldService $freeFieldService
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @return Response
      */
     public function edit(Request $request,
                          DispatchService $dispatchService,
                          FreeFieldService $freeFieldService,
-                         EntityManagerInterface $entityManager): Response {
+                         EntityManagerInterface $entityManager,
+                         TranslatorInterface $translator): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -373,16 +375,15 @@ Class DispatchController extends AbstractController
 
         $dispatchStatus = $dispatch->getStatut();
 
-        $response = [
+        return new JsonResponse([
             'entete' => $this->renderView('dispatch/dispatch-show-header.html.twig', [
                 'dispatch' => $dispatch,
                 'modifiable' => !$dispatchStatus || !$dispatchStatus->getTreated(),
                 'showDetails' => $dispatchService->createHeaderDetailsConfig($dispatch)
             ]),
             'success' => true,
-            'msg' => 'La ' . $this->translator->trans('acheminement.demande d\'acheminement') . ' a bien été modifiée.'
-        ];
-        return new JsonResponse($response);
+            'msg' => $translator->trans("acheminement.L''acheminement a bien été modifié") . '.'
+        ]);
     }
 
     /**
@@ -416,10 +417,12 @@ Class DispatchController extends AbstractController
      * @Route("/supprimer", name="dispatch_delete", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @return Response
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
+                           EntityManagerInterface $entityManager,
+                           TranslatorInterface $translator): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -443,7 +446,8 @@ Class DispatchController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('dispatch_index')
+                'redirect' => $this->generateUrl('dispatch_index'),
+                'msg' => $translator->trans("acheminement.L''acheminement a bien été supprimé") . '.'
             ]);
         }
 
