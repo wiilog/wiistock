@@ -81,14 +81,13 @@ Class DispatchController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
         $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
         return $this->render('dispatch/index.html.twig', [
-			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH),
+			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
 			'modalNewConfig' => [
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
@@ -244,7 +243,7 @@ Class DispatchController extends AbstractController
                 'natures' => $natureRepository->findAll()
             ],
             'dispatchValidate' => [
-                'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($dispatch->getType())
+                'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($dispatch->getType(), true)
             ]
         ]);
     }
@@ -635,7 +634,7 @@ Class DispatchController extends AbstractController
 
             $data = [
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé.')
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé'.'.')
             ];
 
             return new JsonResponse($data);
