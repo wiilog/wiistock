@@ -59,7 +59,7 @@ Class WiilockService
         return (!empty($dashboardLock) && $dashboardLock->getValue());
     }
 
-    public function getLastDashboardFeedingTime(EntityManagerInterface $entityManager): \DateTimeInterface {
+    public function getLastDashboardFeedingTime(EntityManagerInterface $entityManager): ?\DateTimeInterface {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $dashboardLock = $wiilockRepository->findOneBy([
             'lockKey' => Wiilock::DASHBOARD_FED_KEY

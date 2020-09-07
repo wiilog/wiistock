@@ -86,7 +86,6 @@ Class DispatchController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
