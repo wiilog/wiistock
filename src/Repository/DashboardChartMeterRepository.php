@@ -43,10 +43,12 @@ class DashboardChartMeterRepository extends EntityRepository
         ]);
         $meter = $query->getOneOrNullResult();
 
-        $meter['data'] = array_reduce($meter['data'], function (array $carry, $item) {
-            $carry[$item['dataKey']] = $item['data'];
-            return $carry;
-        }, []);
+        if (!empty($meter) && !empty($meter['data'])) {
+            $meter['data'] = array_reduce($meter['data'], function (array $carry, $item) {
+                $carry[$item['dataKey']] = $item['data'];
+                return $carry;
+            }, []);
+        }
 
         return $meter;
     }
