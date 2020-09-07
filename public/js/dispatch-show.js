@@ -31,8 +31,8 @@ $(function () {
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
-    const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
-    InitModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, {tables: [packTable]});
+    const urlValidateDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
+    InitModal($modalValidateDispatch, $submitTreatedDispatch, urlValidateDispatch, {tables: [packTable]});
 
     const $modalDeleteDispatch = $('#modalDeleteDispatch');
     const $submitDeleteDispatch = $('#submitDeleteDispatch');
