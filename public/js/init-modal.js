@@ -2,13 +2,7 @@ const FORM_INVALID_CLASS = 'is-invalid';
 const FORM_ERROR_CONTAINER = 'error-msg';
 
 /**
- * Initialise une fenêtre modale
- *
- * Pour utiliser la validation des données :
- *      ajouter une <div class="error-msg"> à la fin du modal-body
- *      ajouter la classe "needed" aux inputs qui sont obligatoires
- *      supprimerle data-dismiss=modal du bouton submit de la modale (la gestion de la fermeture doit se faire dans cette fonction)
- *      pour un affichage optimal de l'erreur, le label et l'input doivent être dans une div avec la classe "form-group"
+ * Init form validation modal.
  *
  * @param {*} $modal jQuery element of the modal
  * @param {*} $submit jQuery element of the submit button
@@ -31,16 +25,21 @@ function InitModal($modal, $submit, path, options = {}) {
 
     $submit
         .click(function () {
-            submitAction($modal, path, options)
-                .then((data) => {
-                    if (data
-                        && data.success
-                        && options
-                        && options.success) {
-                        options.success(data);
-                    }
-                })
-                .catch(() => {})
+            if ($submit.find('.spinner-border').length > 0) {
+                alertSuccessMsg('L\'opération est en cours de traitement');
+            }
+            else {
+                submitAction($modal, $modal, path, options)
+                    .then((data) => {
+                        if (data
+                            && data.success
+                            && options
+                            && options.success) {
+                            options.success(data);
+                        }
+                    })
+                    .catch(() => {});
+            }
         });
 }
 
@@ -52,9 +51,13 @@ function InitModal($modal, $submit, path, options = {}) {
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  * @param {*} $modal jQuery element of the modal
+ * @param {*} $submit jQuery element of the submit button
  * @param {string} path
  */
-function submitAction($modal, path, {getFiles, tables, keepModal, keepForm} = {}) {
+function submitAction($modal,
+                      $submit,
+                      path,
+                      {getFiles, tables, keepModal, keepForm} = {}) {
     clearFormErrors($modal);
     const {success, errorMessages, $isInvalidElements, data} = processForm($modal, getFiles);
 
@@ -63,6 +66,19 @@ function submitAction($modal, path, {getFiles, tables, keepModal, keepForm} = {}
             ? createFormData(data)
             : JSON.stringify(data);
 
+        // spinner on submit button
+        const $spinner = $('<div/>', {
+            class: 'spinner-border spinner-border-sm mr-2',
+            role: 'status',
+            html: $('<span/>', {
+                class: 'sr-only',
+                text: 'Chargement...'
+            })
+        });
+
+        $submit.prepend($spinner);
+
+        // launch ajax request
         return $
             .ajax({
                 url: path,
@@ -74,6 +90,8 @@ function submitAction($modal, path, {getFiles, tables, keepModal, keepForm} = {}
                 dataType: 'json',
             })
             .then((data) => {
+                $submit.find('.spinner-border').remove();
+
                 if (data.success === false) {
                     displayFormErrors($modal, {
                         $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,

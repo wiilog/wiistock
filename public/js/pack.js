@@ -1,6 +1,5 @@
-$('.select2').select2();
-
 $(function() {
+    $('.select2').select2();
     initDateTimePicker();
     initSelect2($('.filter-select2[name="natures"]'), 'Natures');
 
@@ -12,31 +11,35 @@ $(function() {
     }, 'json');
 
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
+
+    const packsTable = initDataTable('packsTable', {
+        responsive: true,
+        serverSide: true,
+        processing: true,
+        order: [[3, "desc"]],
+        ajax: {
+            "url": Routing.generate('pack_api', true),
+            "type": "POST",
+        },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
+        rowConfig: {
+            needsRowClickAction: true
+        },
+        columns: [
+            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
+            {"data": 'packNum', 'name': 'packNum', 'title': $('#packCodeTranslation').val()},
+            {"data": 'packNature', 'name': 'packNature', 'title': $('#packNatureTranslation').val()},
+            {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
+            {"data": 'packLastDate', 'name': 'packLastDate', 'title': 'Date du dernier mouvement'},
+            {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis'},
+            {"data": "packLocation", 'name': 'packLocation', 'title': 'Emplacement'}
+        ]
+    });
+
+    const $modalEditPack = $('#modalEditPack');
+    const $submitEditPack = $('#submitEditPack');
+    const urlEditPack = Routing.generate('pack_edit', true);
+    InitialiserModal($modalEditPack, $submitEditPack, urlEditPack, packsTable)
 });
-
-let pathPackAPI = Routing.generate('pack_api', true);
-let tablePackConfig = {
-    responsive: true,
-    serverSide: true,
-    processing: true,
-    order: [[2, "desc"]],
-    ajax: {
-        "url": pathPackAPI,
-        "type": "POST",
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
-    rowConfig: {
-        needsRowClickAction: true
-    },
-    columns: [
-        {"data": 'packNum', 'name': 'packNum', 'title': 'Numéro colis'},
-        {"data": 'packNature', 'name': 'packNature', 'title': $('#packNature').val()},
-        {"data": 'packLastDate', 'name': 'packLastDate', 'title': 'Date du dernier mouvement'},
-        {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis'},
-        {"data": "packLocation", 'name': 'packLocation', 'title': 'Emplacement'},
-    ]
-};
-let tableMvt = initDataTable('packTable', tablePackConfig);
-

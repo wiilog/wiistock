@@ -30,6 +30,7 @@ class PackRepository extends EntityRepository
         'packLastDate' => 'packLastDate',
         'packOrigin' => 'packOrigin',
         'packLocation' => 'packLocation',
+        'quantity' => 'quantity'
     ];
 
     /**
@@ -204,6 +205,7 @@ class PackRepository extends EntityRepository
             ->select('count(pack)');
         // compte éléments filtrés
         $countFiltered = $qb->getQuery()->getSingleScalarResult();
+
         $qb
             ->select('pack');
 

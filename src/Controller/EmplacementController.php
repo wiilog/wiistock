@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Collecte;
@@ -245,6 +246,8 @@ class EmplacementController extends AbstractController
 
     /**
      * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @return Response
      */
     public function checkEmplacementCanBeDeleted(Request $request): Response
     {
@@ -284,11 +287,15 @@ class EmplacementController extends AbstractController
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         $usedBy = [];
 
         $demandes = $demandeRepository->countByEmplacement($emplacementId);
         if ($demandes > 0) $usedBy[] = 'demandes';
+
+        $dispatches = $dispatchRepository->countByEmplacement($emplacementId);
+        if ($dispatches > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
         if ($livraisons > 0) $usedBy[] = 'livraisons';
@@ -299,14 +306,14 @@ class EmplacementController extends AbstractController
         $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
         if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
 
-        $mouvementsStock = $mouvementTracaRepository->countByEmplacement($emplacementId);
-        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de traçabilité';
+        $mouvementsTraca = $mouvementTracaRepository->countByEmplacement($emplacementId);
+        if ($mouvementsTraca > 0) $usedBy[] = 'mouvements de traçabilité';
 
         $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
         if ($refArticle > 0)$usedBy[] = 'références article';
 
         $articles = $articleRepository->countByEmplacement($emplacementId);
-        if ($articles > 0) $usedBy[] ='articles';
+        if ($articles > 0) $usedBy[] = 'articles';
 
         return $usedBy;
     }

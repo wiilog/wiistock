@@ -1,90 +1,96 @@
 <form method="">
-    <div class="col-12 form-group required d-none">
-        <input type="text"
-               class="form-control data needed"
-               name="status"
-               required=""
-               value="{{ status.id }}">
-    </div>
+    <input type="hidden" class="form-control data" name="status" value="{{ status.id }}">
 
     <div class="row">
-        <div class="mb-3 form-group col-12">
-            <label for="label">Catégorie*</label>
+        <div class="col-12 form-group">
+            <label>Entité*</label>
             <select name="category"
-                    id="categories"
-                    class="data form-control needed">
-                <option value="{{ status.categorie.id }}">
-                    {{ status.categorie.nom }}
-                </option>
+                    title="Entité"
+                    class="form-control needed"
+                    disabled>
                 {% for category in categories %}
-                    {% if category.nom != status.categorie.nom %}
-                        <option value="{{ category.id }}">
-                            {{ category.nom }}
-                        </option>
-                    {% endif %}
+                    <option {{ category.id == status.categorie.id ? 'selected' }} value="{{ category.id }}">{{ category.nom }}</option>
                 {% endfor %}
             </select>
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">
-                Libellé*
-            </label>
+            <label for="username">Libellé*</label>
             <input type="text"
                    class="form-control data needed"
                    name="label"
-                   required=""
-                   value="{{ status.nom }}">
+                   required
+                   value="{{ status.nom }}"/>
+        </div>
+
+        <div class="col-12 form-group dispatch-fields {{ status.categorie.nom != 'acheminement' ? 'd-none'}}">
+            <label for="type">Type*</label>
+            <select name="type" class="data form-control  {{ status.categorie.nom != 'acheminement' ? 'needed'}} field-needed">
+                {% if status.type is not null %}
+                    <option selected value="{{ status.type.id }}">{{ status.type.label }}</option>
+                {% else %}
+                    <option selected value="">Type à choisir...</option>
+                {% endif %}
+                {% for type in types %}
+                    {% if status.type is null or status.type.id != type.id  %}
+                        <option value="{{ type.id }}">{{ type.label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 form-group dispute-fields {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+            <label for="username">Commentaire litige</label>
+            <input type="text" class="form-control data" name="comment" value="{{ status.comment }}"/>
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">
-                Commentaire
-            </label>
-            <input type="text"
-                   class="form-control data"
-                   name="comment"
-                   value="{{ status.comment }}">
-        </div>
-
-        {% set checked = status.treated ? 'checked' : '' %}
-        <div class="col-12 form-group">
-            <label>Statut de type 'litige traité' ?</label>
+            <label>Statut par défaut pour cette entité ?</label>
             <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="treated" {{ checked }}>
+                <input class="checkbox" type="checkbox" name="defaultForCategory" {{ status.defaultForCategory ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
 
-        {% set checkedMails = status.sendNotifToBuyer ? 'checked' : '' %}
         <div class="col-12 form-group">
+            <label>Statut de type 'traité' ?</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="treated" {{ status.treated ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <div class="col-12 form-group dispute-fields {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
             <label>Envoi de mails aux acheteurs ?</label>
             <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="sendMails" {{ checkedMails }}>
+                <input class="checkbox" type="checkbox" name="sendMails" {{ status.sendNotifToBuyer ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
-        {% set checkedMails = status.sendNotifToDeclarant ? 'checked' : '' %}
         <div class="col-12 form-group">
             <label>Envoi de mails au déclarant ?</label>
             <label class="switch">
-                <input class="checkbox"
-                       type="checkbox"
-                       name="sendMailsDeclarant" {{ checkedMails }}>
+                <input class="checkbox" type="checkbox" name="sendMailsDeclarant" {{ status.sendNotifToDeclarant ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col-12 form-group dispatch-fields">
+            <label>Envoi de mails au destinataire ?</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="sendMailsRecipient" {{ status.sendNotifToRecipient ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col-12 form-group dispatch-fields">
+            <label>Synchronisation nomade ?</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="needsMobileSync" {{ status.needsMobileSync ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
         <div class="form-group col-3">
             <label for="label">Ordre</label>
-            <input type="number"
-                   class="data form-control"
-                   name="displayOrder"
-                   value="{{ status.displayOrder }}"
-                   min="1">
+            <input type="number" class="data form-control" name="displayOrder" value="{{ status.displayOrder }}" min="1"/>
         </div>
     </div>
 </form>

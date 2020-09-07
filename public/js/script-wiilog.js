@@ -17,7 +17,8 @@ const PAGE_INV_ENTRIES = 'inv_entries';
 const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RCPT_TRACA = 'reception_traca';
-const PAGE_ACHEMINEMENTS = 'acheminement';
+const PAGE_DISPATCHES = 'acheminement';
+const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_URGENCES = 'urgences';
 
@@ -80,8 +81,7 @@ function showRow(button, path, modal) {
  * @param wantsFreeFieldsRequireCheck
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {
-}, wantsFreeFieldsRequireCheck = true) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
@@ -98,14 +98,14 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
         modal.find('.select2').select2();
-        initFreeSelect2($('.select2-free'));
-        ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
+        initFreeSelect2(modal.find('.select2-free'));
+        ajaxAutoFournisseurInit(modal.find('.ajax-autocomplete-fournisseur-edit'));
         ajaxAutoCompleteFrequencyInit(modal.find('.ajax-autocomplete-frequency'));
-        ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
-        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoRefArticleInit(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
+        ajaxAutoCompleteEmplacementInit(modal.find('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
-        ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-        $('.list-multiple').select2();
+        ajaxAutoUserInit(modal.find('.ajax-autocomplete-user-edit'));
+        modal.find('.list-multiple').select2();
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
@@ -1007,6 +1007,9 @@ function displayFiltersSup(data) {
             case 'demCollecte':
             case 'disputeNumber':
             case 'demande':
+            case 'multipleTypes':
+            case 'receivers':
+            case 'requesters':
                 let valuesElement = element.value.split(',');
                 let $select = $(`.filter-select2[name="${element.field}"]`);
                 $select.find('option').prop('selected', false);
@@ -1072,7 +1075,11 @@ function displayFiltersSup(data) {
                 break;
 
             default:
-                $('#' + element.field).val(element.value);
+                const $fieldWithId = $('#' + element.field);
+                const $field = $fieldWithId.length > 0
+                    ? $fieldWithId
+                    : $('.filters-container').find(`[name="${element.field}"]`);
+                $field.val(element.value);
         }
     });
 }
@@ -1274,19 +1281,22 @@ function wrapLoadingOnActionButton($button, action = null, endLoading = true) {
 function fillDemandeurField($modal) {
     const $operatorSelect = $modal.find('.select2-declarant');
     const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
-    if ($loggedUserInput.data('id')) {
-        let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
-        $operatorSelect
-            .select2()
-            .val(null)
-            .trigger('change')
-            .append(option)
-            .trigger('change');
-    } else {
-        $operatorSelect
-            .select2()
-            .val(null)
-            .trigger('change');
+    const userId = $loggedUserInput.data('id');
+    const $operatorSelect2 = $operatorSelect
+        .select2()
+        .val(null)
+        .trigger('change');
+
+    if (userId) {
+        const $alreadyLoggedUserOption = $operatorSelect.find(`option[value="${userId}"]`);
+        if ($alreadyLoggedUserOption.length > 0) {
+            $operatorSelect2.val(userId);
+        }
+        else {
+            let option = new Option($loggedUserInput.data('username'), userId, true, true);
+            $operatorSelect2.append(option);
+        }
+        $operatorSelect2.trigger('change');
     }
 }
 

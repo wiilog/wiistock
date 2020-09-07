@@ -36,6 +36,7 @@ class Type
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
 
+
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -95,14 +96,34 @@ class Type
     private $collectes;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="types")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="deliveryTypes")
      */
-    private $utilisateurs;
+    private $deliveryUsers;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dispatchTypes")
+     */
+    private $dispatchUsers;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="handlingTypes")
+     */
+    private $handlingUsers;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $sendMail;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="type")
+     */
+    private $dispatches;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type")
+     */
+    private $statuts;
 
     public function __construct()
     {
@@ -113,7 +134,11 @@ class Type
         $this->litiges = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
         $this->collectes = new ArrayCollection();
-        $this->utilisateurs = new ArrayCollection();
+        $this->deliveryUsers = new ArrayCollection();
+        $this->dispatchUsers = new ArrayCollection();
+        $this->dispatches = new ArrayCollection();
+        $this->statuts = new ArrayCollection();
+        $this->handlingUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -422,26 +447,82 @@ class Type
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getUtilisateurs(): Collection
+    public function getDeliveryUsers(): Collection
     {
-        return $this->utilisateurs;
+        return $this->deliveryUsers;
     }
 
-    public function addUtilisateur(Utilisateur $utilisateur): self
+    public function addDeliveryUser(Utilisateur $user): self
     {
-        if (!$this->utilisateurs->contains($utilisateur)) {
-            $this->utilisateurs[] = $utilisateur;
-            $utilisateur->addType($this);
+        if (!$this->deliveryUsers->contains($user)) {
+            $this->deliveryUsers[] = $user;
+            $user->addDeliveryType($this);
         }
 
         return $this;
     }
 
-    public function removeUtilisateur(Utilisateur $utilisateur): self
+    public function removeDeliveryUser(Utilisateur $user): self
     {
-        if ($this->utilisateurs->contains($utilisateur)) {
-            $this->utilisateurs->removeElement($utilisateur);
-            $utilisateur->removeType($this);
+        if ($this->deliveryUsers->contains($user)) {
+            $this->deliveryUsers->removeElement($user);
+            $user->removeDeliveryType($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getDispatchUsers(): Collection
+    {
+        return $this->dispatchUsers;
+    }
+
+    public function addDispatchUser(Utilisateur $user): self
+    {
+        if (!$this->dispatchUsers->contains($user)) {
+            $this->dispatchUsers[] = $user;
+            $user->addDispatchType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatchUser(Utilisateur $user): self
+    {
+        if ($this->dispatchUsers->contains($user)) {
+            $this->dispatchUsers->removeElement($user);
+            $user->removeDispatchType($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getHandlingUsers(): Collection
+    {
+        return $this->handlingUsers;
+    }
+
+    public function addHandlingUser(Utilisateur $user): self
+    {
+        if (!$this->handlingUsers->contains($user)) {
+            $this->handlingUsers[] = $user;
+            $user->addHandlingType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHandlingUser(Utilisateur $user): self
+    {
+        if ($this->handlingUsers->contains($user)) {
+            $this->handlingUsers->removeElement($user);
+            $user->removeHandlingType($this);
         }
 
         return $this;
@@ -455,6 +536,68 @@ class Type
     public function setSendMail(?bool $sendMail): self
     {
         $this->sendMail = $sendMail;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Dispatch[]
+     */
+    public function getDispatches(): Collection
+    {
+        return $this->dispatches;
+    }
+
+    public function addDispatch(Dispatch $dispatch): self
+    {
+        if (!$this->dispatches->contains($dispatch)) {
+            $this->dispatches[] = $dispatch;
+            $dispatch->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatch(Dispatch $dispatch): self
+    {
+        if ($this->dispatches->contains($dispatch)) {
+            $this->dispatches->removeElement($dispatch);
+            // set the owning side to null (unless already changed)
+            if ($dispatch->getType() === $this) {
+                $dispatch->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Statut[]
+     */
+    public function getStatuts(): Collection
+    {
+        return $this->statuts;
+    }
+
+    public function addStatut(Statut $statut): self
+    {
+        if (!$this->statuts->contains($statut)) {
+            $this->statuts[] = $statut;
+            $statut->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatut(Statut $statut): self
+    {
+        if ($this->statuts->contains($statut)) {
+            $this->statuts->removeElement($statut);
+            // set the owning side to null (unless already changed)
+            if ($statut->getType() === $this) {
+                $statut->setType(null);
+            }
+        }
 
         return $this;
     }

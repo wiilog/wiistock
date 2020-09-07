@@ -40,7 +40,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'nature colis' => 'nature colis',
                 "une nature" => "une nature",
                 "cette nature" => "cette nature",
-                "natures requises" => "natures requises"
+                "natures requises" => "natures requises",
+                'Sélectionner une nature' => 'Sélectionner une nature'
             ],
             'arrivage' => [
                 'flux - arrivages' => 'flux - arrivages',
@@ -55,6 +56,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'destinataire' => 'destinataire',
                 'douane' => 'douane',
                 'congelé' => 'congelé',
+            ],
+            'acheminement' => [
+                'nouvelle demande' => 'nouvelle demande',
+                'acheminements' => 'acheminements',
+                'acheminement' => 'acheminement',
+                'emplacement prise' => 'emplacement prise',
+                'emplacement dépose' => 'emplacement dépose',
+                'demande d\'acheminement' => 'demande d\'acheminement',
+                'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
+                'Traiter un acheminement' => 'Traiter un acheminement',
+                'type d\'acheminement' => 'type d\'acheminement',
+                "Quantité à acheminer" => "Quantité à acheminer",
+                "Quantité colis" => "Quantité colis",
+                "Cet acheminement est urgent" => "Cet acheminement est urgent",
+                "L'acheminement a bien été créé" => "L'acheminement a bien été créé",
+                "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
+                "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
+                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -93,8 +112,35 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'référence' => $isCurrentClientCEA
                     ? 'Référence CEA'
                     : 'Référence'
+            ],
+            'colis' => [
+                'Ajouter un colis' => 'Ajouter un colis',
+                'Modifier un colis' => 'Modifier un colis',
+                'Numéro colis' => 'Numéro colis',
+                "Quantité colis" => "Quantité colis",
+                'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
+                "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
+                "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
+                'Le colis n\'existe pas' => 'Le colis n\'existe pas',
+                'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
+            ],
+            'services' => [
+                'Types de service' => 'Types de service'
             ]
         ];
+
+        $translationRepository = $manager->getRepository(Translation::class);
+        $allSavedTranslations = $translationRepository->findAll();
+
+        foreach ($allSavedTranslations as $savedTranslation) {
+            $menu = $savedTranslation->getMenu();
+            $label = $savedTranslation->getLabel();
+
+            if (!isset($translations[$menu][$label])) {
+                $manager->remove($savedTranslation);
+                dump("Suppression de la traduction :  $menu / $label");
+            }
+        }
 
         foreach ($translations as $menu => $translation) {
             foreach ($translation as $label => $translatedLabel) {

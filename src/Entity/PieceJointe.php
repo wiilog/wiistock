@@ -59,6 +59,12 @@ class PieceJointe
      */
     private $importLog;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="attachements")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $dispatch;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -96,6 +102,18 @@ class PieceJointe
     public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
+
+        return $this;
+    }
+
+    public function getDispatch(): ?Dispatch
+    {
+        return $this->dispatch;
+    }
+
+    public function setDispatch(?Dispatch $dispatch): self
+    {
+        $this->dispatch = $dispatch;
 
         return $this;
     }

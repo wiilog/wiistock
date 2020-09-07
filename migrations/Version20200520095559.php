@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Utilisateur;
+use App\Repository\UtilisateurRepository;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -31,6 +32,7 @@ final class Version20200520095559 extends AbstractMigration implements Container
     public function postUp(Schema $schema): void
     {
         $em = $this->container->get('doctrine.orm.entity_manager');
+        /** @var UtilisateurRepository $usersRepository */
         $usersRepository = $em->getRepository(Utilisateur::class);
         $users = $usersRepository->findByFieldNotNull('rechercheForArticle');
         foreach ($users as $user) {

@@ -1,0 +1,134 @@
+<form method="" class="modal fade" id="modalNewDispatch" role="dialog" aria-labelledby="dataModalCenterTitle"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="type">Type*</label>
+                    <select name="type" class="form-control data d-block type needed"
+                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                            onchange="toggleRequiredChampsLibres($(this), 'create', availableStatusOnChange($(this)))">
+                        <option value="">Type à choisir...</option>
+                        {% for type in typeChampsLibres %}
+                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="type">Statut*</label>
+                    <select name="statut"
+                            class="form-control data w-100 needed need-default">
+                        <option value="">Choisir un statut...</option>
+                        {% for statut in notTreatedStatus %}
+                            <option class="d-none" data-type-id="{{ statut.type.id }}" value="{{ statut.id }}">{{ statut.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="dispatchDefaultStatus" value="{{ dispatchDefaultStatus|json_encode }}"/>
+                    <div class="error-empty-status d-none">
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: [],
+                            warningLabel: 'Attention ! Aucun statut pour ce type n\'a été créé.',
+                            redirectPath: path('status_param_index'),
+                            redirectLabel: 'Aller vers la création des statuts.'
+                        } %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="demandeur">Demandeur*</label>
+                    <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="demandeur"></select>
+                    <input hidden
+                           name="logged-user"
+                           data-username="{{ app.user.username }}"
+                           data-id="{{ app.user.id }}"/>
+                </div>
+                <div class="form-group">
+                    <label for="destinataire">Destinataire</label>
+                    <select class="destinataire form-control data ajax-autocomplete-user w-100" name="destinataire">
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Echéance</label>
+                    <div class="input-group w-100">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text w-50px">Du</span>
+                        </div>
+                        <input type="date"
+                               class="form-control data"
+                               name="startDate"
+                               title="Date d'échéance min"
+                               placeholder="jj/mm/aaaa"/>
+                        <div class="input-group-prepend">
+                            <span class="input-group-text w-50px">Au</span>
+                        </div>
+                        <input type="date"
+                               class="form-control data"
+                               name="endDate"
+                               title="Date d'échéance max"
+                               placeholder="jj/mm/aaaa"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Urgence</label>
+                    <div class="w-100">
+                        <label class="switch mt-2">
+                            <input class="checkbox"
+                                   name="urgent"
+                                   type="checkbox"/>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group w-100">
+                    <label for="prise" title="emplacement prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+                    <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
+                    </select>
+                </div>
+                <div class="form-group w-100">
+                    <label for="depose" title="emplacement dépose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+                    <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
+                    </select>
+                </div>
+
+                <!-- CHAMPS LIBRES -->
+                <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+                    {% for type in typeChampsLibres %}
+                        <div class="d-none row" id="{{ type.typeId }}-new">
+                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                                freeFields: type.champsLibres,
+                                freeFieldValues: [],
+                                colType: 'col-12',
+                                requiredType: 'requiredCreate',
+                                actionType: 'new'
+                            } %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label for="commentaire">Commentaire</label>
+                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
+                    <div class="editor-container" id="editor-container-new">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewDispatch" type="button" class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

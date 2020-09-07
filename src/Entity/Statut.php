@@ -83,15 +83,15 @@ class Statut
      */
     private $referenceArticles;
 
-    /** 
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="statut")
      */
     private $manutentions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Acheminements", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="statut")
      */
-    private $acheminements;
+    private $dispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
@@ -113,6 +113,27 @@ class Statut
      */
     private $sendNotifToDeclarant;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="statuts")
+     */
+    private $type;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $sendNotifToRecipient;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $needsMobileSync;
+
+    /**
+     * @var bool
+     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     */
+    private $defaultForCategory;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -124,8 +145,10 @@ class Statut
         $this->referenceArticles = new ArrayCollection();
         $this->manutentions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
-        $this->acheminements = new ArrayCollection();
+        $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+
+        $this->defaultForCategory = false;
     }
 
     public function getId(): ? int
@@ -480,30 +503,30 @@ class Statut
     }
 
     /**
-     * @return Collection|Acheminements[]
+     * @return Collection|Dispatch[]
      */
-    public function getAcheminements(): Collection
+    public function getDispatches(): Collection
     {
-        return $this->acheminements;
+        return $this->dispatches;
     }
 
-    public function addAcheminement(Acheminements $acheminement): self
+    public function addDispatch(Dispatch $dispatch): self
     {
-        if (!$this->acheminements->contains($acheminement)) {
-            $this->acheminements[] = $acheminement;
-            $acheminement->setStatut($this);
+        if (!$this->dispatches->contains($dispatch)) {
+            $this->dispatches[] = $dispatch;
+            $dispatch->setStatut($this);
         }
 
         return $this;
     }
 
-    public function removeAcheminement(Acheminements $acheminement): self
+    public function removeDispatch(Dispatch $dispatch): self
     {
-        if ($this->acheminements->contains($acheminement)) {
-            $this->acheminements->removeElement($acheminement);
+        if ($this->dispatches->contains($dispatch)) {
+            $this->dispatches->removeElement($dispatch);
             // set the owning side to null (unless already changed)
-            if ($acheminement->getStatut() === $this) {
-                $acheminement->setStatut(null);
+            if ($dispatch->getStatut() === $this) {
+                $dispatch->setStatut(null);
             }
         }
 
@@ -574,6 +597,58 @@ class Statut
     {
         $this->sendNotifToDeclarant = $sendNotifToDeclarant;
 
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getSendNotifToRecipient(): ?bool
+    {
+        return $this->sendNotifToRecipient;
+    }
+
+    public function setSendNotifToRecipient(?bool $sendNotifToRecipient): self
+    {
+        $this->sendNotifToRecipient = $sendNotifToRecipient;
+
+        return $this;
+    }
+
+    public function getNeedsMobileSync(): ?bool
+    {
+        return $this->needsMobileSync;
+    }
+
+    public function setNeedsMobileSync(?bool $needsMobileSync): self
+    {
+        $this->needsMobileSync = $needsMobileSync;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDefaultForCategory(): bool {
+        return $this->defaultForCategory;
+    }
+
+    /**
+     * @param bool $defaultForCategory
+     * @return self
+     */
+    public function setDefaultForCategory(bool $defaultForCategory): self {
+        $this->defaultForCategory = $defaultForCategory;
         return $this;
     }
 

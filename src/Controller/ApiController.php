@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -20,6 +21,7 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
+use App\Entity\DispatchPack;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -36,6 +38,7 @@ use App\Repository\MailerServerRepository;
 use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
@@ -188,7 +191,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $mobileKey = $request->request->get('loginKey');
 
-        $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey]);
+        $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
         $data = [];
 
         if (!empty($loggedUser)) {
@@ -333,6 +336,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
                                         $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFERT);
                                         $options['mouvementStock'] = $newMouvement;
+                                        $options['quantity'] = $newMouvement->getQuantity();
                                         $entityManager->persist($newMouvement);
 
                                         $configStatus = ($article instanceof Article)
@@ -369,6 +373,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                             throw new Exception(MouvementTracaService::INVALID_LOCATION_TO);
                                         } else {
                                             $options['mouvementStock'] = $mouvementStockPrise;
+                                            $options['quantity'] = $mouvementStockPrise->getQuantity();
                                             $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
 
                                             $configStatus = ($article instanceof Article)
@@ -390,6 +395,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             }
                             else {
                                 $options['natureId'] = $mvt['nature_id'] ?? null;
+                                $options['quantity'] = $mvt['quantity'] ?? null;
                             }
 
                             if (!empty($mvt['comment'])) {
@@ -702,7 +708,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }
 
             if (!empty($insertedPrepasIds)) {
-                $resData['data']['preparations'] = $preparationRepository->getAvailablePreparations($nomadUser, $insertedPrepasIds);
+                $resData['data']['preparations'] = $preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds);
                 $resData['data']['articlesPrepa'] = $this->getArticlesPrepaArrays($insertedPrepasIds, true);
                 $resData['data']['articlesPrepaByRefArticle'] = $articleRepository->getArticlePrepaForPickingByUser($nomadUser, $insertedPrepasIds);
             }
@@ -1307,6 +1313,9 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $natureRepository = $entityManager->getRepository(Nature::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $translationsRepository = $entityManager->getRepository(Translation::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $rights = $this->getMenuRights($user, $userService);
 
@@ -1320,7 +1329,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
         if ($rights['stock']) {
             // livraisons
-            $livraisons = $livraisonRepository->getByStatusLabelAndWithoutOtherUser(Livraison::STATUT_A_TRAITER, $user);
+            $livraisons = $livraisonRepository->getMobileDelivery($user);
 
             $livraisonsIds = array_map(function ($livraisonArray) {
                 return $livraisonArray['id'];
@@ -1330,10 +1339,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
 
             /// preparations
-            $preparations = $preparationRepository->getAvailablePreparations($user);
+            $preparations = $preparationRepository->getMobilePreparations($user);
 
             /// collecte
-            $collectes = $ordreCollecteRepository->getByStatutLabelAndUser(OrdreCollecte::STATUT_A_TRAITER, $user);
+            $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
             /// On tronque le commentaire à 200 caractères (sans les tags)
             $collectes = array_map(function ($collecteArray) {
@@ -1423,11 +1432,21 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 },
                 $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA])
             );
+
+            $dispatches = $dispatchRepository->getMobileDispatches($user);
+            $dispatchPacks = $dispatchPackRepository->getMobilePacksFromDispatches(array_map(function ($dispatch) {
+                return $dispatch['id'];
+            }, $dispatches));
+
+            $status = $statutRepository->getMobileStatus();
         } else {
             $trackingTaking = [];
             $natures = [];
             $allowedNatureInLocations = [];
             $trackingFreeFields = [];
+            $dispatches = [];
+            $dispatchPacks = [];
+            $status = [];
         }
 
         return [
@@ -1450,7 +1469,10 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'demandeLivraisonArticles' => $demandeLivraisonArticles,
             'natures' => $natures,
             'rights' => $rights,
-            'translations' => $translationsRepository->findAllObjects()
+            'translations' => $translationsRepository->findAllObjects(),
+            'dispatches' => $dispatches,
+            'dispatchPacks' => $dispatchPacks,
+            'status' => $status
         ];
     }
 
@@ -1729,6 +1751,89 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 ? $natureService->serializeNature($nature)
                 : null
         ]);
+    }
+
+    /**
+     * @Rest\Post("/api/dispatches", name="api_patch_dispatches", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param DispatchService $dispatchService
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    public function patchDispatches(Request $request,
+                                    DispatchService $dispatchService,
+                                    EntityManagerInterface $entityManager): JsonResponse {
+
+        $resData = [];
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $nomadUser = $utilisateurRepository->findOneByApiKey($request->request->get('apiKey'));
+        if ($nomadUser) {
+            $dispatches = json_decode($request->request->get('dispatches'), true);
+            $dispatchPacksParam = json_decode($request->request->get('dispatchPacks'), true);
+
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+            $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+
+            $dispatchPacksByDispatch = is_array($dispatchPacksParam)
+                ? array_reduce($dispatchPacksParam, function (array $acc, array $current) {
+                    $id = (int) $current['id'];
+                    $natureId = $current['natureId'];
+                    $quantity = $current['quantity'];
+                    $dispatchId = (int) $current['dispatchId'];
+                    if (!isset($acc[$dispatchId])) {
+                        $acc[$dispatchId] = [];
+                    }
+                    $acc[$dispatchId][] = [
+                        'id' => $id,
+                        'natureId' => $natureId,
+                        'quantity' => $quantity
+                    ];
+                    return $acc;
+                }, [])
+                : [];
+
+            foreach ($dispatches as $dispatchArray) {
+                /** @var Dispatch $dispatch */
+                $dispatch = $dispatchRepository->find($dispatchArray['id']);
+                $dispatchStatus = $dispatch->getStatut();
+                if (!$dispatchStatus || !$dispatchStatus->getTreated()) {
+                    $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
+                    if ($treatedStatus && $treatedStatus->getTreated()) {
+                        // we treat pack edits
+                        if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
+                            foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
+                                $packDispatch = $dispatchPackRepository->find($packArray['id']);
+                                if (!empty($packDispatch)) {
+                                    $nature = $natureRepository->find($packArray['natureId']);
+                                    if ($nature) {
+                                        $pack = $packDispatch->getPack();
+                                        $pack->setNature($nature);
+                                    }
+
+                                    $quantity = (int) $packArray['quantity'];
+                                    if ($quantity > 0) {
+                                        $packDispatch->setQuantity($quantity);
+                                    }
+                                }
+                            }
+                        }
+                        $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true);
+                    }
+                }
+            }
+            $statusCode = Response::HTTP_OK;
+            $resData['success'] = true;
+        }
+        else {
+            $statusCode = Response::HTTP_UNAUTHORIZED;
+            $resData['success'] = false;
+            $resData['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+        return new JsonResponse($resData, $statusCode);
     }
 
     private function getArticlesPrepaArrays(array $preparations, bool $isIdArray = false): array

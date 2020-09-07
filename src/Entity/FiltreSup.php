@@ -33,6 +33,10 @@ class FiltreSup
 	const FIELD_NATURES = 'natures';
 	const FIELD_DUTY = 'duty';
 	const FIELD_FROZEN = 'frozen';
+	const FIELD_STATUS_ENTITY = 'statusEntity';
+	const FIELD_MULTIPLE_TYPES = 'multipleTypes';
+	const FIELD_RECEIVERS = 'receivers';
+	const FIELD_REQUESTERS = 'requesters';
 
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
@@ -45,7 +49,8 @@ class FiltreSup
 	const PAGE_ARRIVAGE = 'arrivage';
 	const PAGE_MVT_STOCK = 'mvt_stock';
 	const PAGE_MVT_TRACA = 'mvt_traca';
-	const PAGE_ACHEMINEMENTS = 'acheminement';
+	const PAGE_DISPATCH = 'acheminement';
+    const PAGE_STATUS = 'status';
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_INV_MISSIONS = 'inv_missions';
 	const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
@@ -69,7 +74,7 @@ class FiltreSup
         self::PAGE_ARRIVAGE => CategorieStatut::ARRIVAGE,
         self::PAGE_MVT_STOCK => CategorieStatut::MVT_STOCK,
         self::PAGE_MVT_TRACA => CategorieStatut::MVT_TRACA,
-        self::PAGE_ACHEMINEMENTS => CategorieStatut::ACHEMINEMENT,
+        self::PAGE_DISPATCH => CategorieStatut::DISPATCH,
         self::PAGE_LITIGE => CategorieStatut::LITIGE_ARR,
         self::PAGE_ARTICLE => CategorieStatut::ARTICLE
     ];

@@ -1,20 +1,20 @@
-<form method="" class="modal fade" id="modalNewAcheminements" role="dialog" aria-labelledby="dataModalCenterTitle"
-      aria-hidden="true">
+<form method="" class="modal fade" id="modalEditDispatch" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-
             <div class="modal-header">
-                <h5 class="modal-title">Nouvelle demande d'acheminement</h5>
-
+                <h5 class="modal-title">Modifier un(e) <span title="acheminement">{{ 'acheminement.acheminement'|trans }}</span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+
             <div class="modal-body modal-input container-fluid"></div>
+
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewAcheminements" type="button" class="btn btn-success">Enregistrer</button>
+                <button id="submitEditDispatch" type="button" name="id"
+                        class="btn btn-success data" onclick="setCommentaire('#editor-container-edit')">Enregistrer</button>
             </div>
         </div>
     </div>

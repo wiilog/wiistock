@@ -41,13 +41,13 @@ class PreparationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getAvailablePreparations($user, array $preparationIdsFilter = [])
+    /**
+     * @param Utilisateur $user
+     * @param array $preparationIdsFilter
+     * @return array
+     */
+    public function getMobilePreparations(Utilisateur $user, array $preparationIdsFilter = [])
     {
-        $userTypes = [];
-        foreach ($user->getTypes() as $type) {
-            $userTypes[] = $type->getId();
-        }
-
         $queryBuilder = $this->createQueryBuilder('p');
         $queryBuilder
             ->select('p.id')
@@ -60,13 +60,13 @@ class PreparationRepository extends EntityRepository
             ->join('d.destination', 'dest')
             ->join('d.type', 't')
             ->join('d.utilisateur', 'user')
-            ->andWhere('s.nom = :statusLabel or (s.nom = :enCours AND p.utilisateur = :user)')
+            ->andWhere('s.nom = :toTreatStatusLabel or (s.nom = :inProgressStatusLabel AND p.utilisateur = :user)')
             ->andWhere('t.id IN (:type)')
             ->setParameters([
-                'statusLabel' => Preparation::STATUT_A_TRAITER,
+                'toTreatStatusLabel' => Preparation::STATUT_A_TRAITER,
+                'inProgressStatusLabel' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
                 'user' => $user,
-                'enCours' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
-                'type' => $userTypes,
+                'type' => $user->getDeliveryTypeIds()
             ]);
 
         if (!empty($preparationIdsFilter)) {

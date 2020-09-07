@@ -764,7 +764,6 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
@@ -879,6 +878,7 @@ class ReceptionController extends AbstractController
                             MouvementTraca::TYPE_DEPOSE,
                             [
                                 'mouvementStock' => $mouvementStock,
+                                'quantity' => $mouvementStock->getQuantity(),
                                 'from' => $reception,
                                 'receptionReferenceArticle' => $receptionReferenceArticle
                             ]
@@ -931,7 +931,6 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $paramGlobalRepository = $this->getDoctrine()->getRepository(ParametrageGlobal::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
@@ -952,6 +951,7 @@ class ReceptionController extends AbstractController
         $createDL = $this->paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
         $needsCurrentUser = $this->paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
 
+        $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
@@ -961,7 +961,7 @@ class ReceptionController extends AbstractController
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'livraisonLocation' => $globalParamService->getLivraisonDefaultLocation(),
-            'defaultLitigeStatusId' => $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_STATUT_LITIGE_REC),
+            'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)
         ]);
@@ -1950,6 +1950,7 @@ class ReceptionController extends AbstractController
                     MouvementTraca::TYPE_DEPOSE,
                     [
                         'mouvementStock' => $mouvementStock,
+                        'quantity' => $mouvementStock->getQuantity(),
                         'from' => $reception
                     ]
                 );
@@ -1960,8 +1961,7 @@ class ReceptionController extends AbstractController
             if (isset($demande) && $demande->getType()->getSendMail()) {
                 $nowDate = new DateTime('now');
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Réception d\'un colis '
-                    . 'de type «' . $demande->getType()->getLabel() . '».',
+                    'FOLLOW GT // Réception d\'un colis ' . 'de type «' . $demande->getType()->getLabel() . '».',
                     $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                         'demande' => $demande,
                         'fournisseur' => $reception->getFournisseur(),
