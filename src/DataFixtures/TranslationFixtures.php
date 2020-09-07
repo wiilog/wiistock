@@ -121,6 +121,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
                 "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
                 "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
+                "Le colis a bien été modifié" => "Le colis a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
                 'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé',
             ],

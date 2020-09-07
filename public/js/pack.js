@@ -41,5 +41,5 @@ $(function() {
     const $modalEditPack = $('#modalEditPack');
     const $submitEditPack = $('#submitEditPack');
     const urlEditPack = Routing.generate('pack_edit', true);
-    InitialiserModal($modalEditPack, $submitEditPack, urlEditPack, packsTable)
+    InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]});
 });
