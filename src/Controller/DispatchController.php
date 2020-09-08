@@ -634,7 +634,7 @@ Class DispatchController extends AbstractController
 
             $data = [
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé'.'.')
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé' . '.')
             ];
 
             return new JsonResponse($data);
