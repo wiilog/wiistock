@@ -97,7 +97,10 @@ final class Version20200817075450 extends AbstractMigration
                 ->executeQuery("
                     UPDATE acheminements SET location_from_id = ${locationFromID}, location_to_id = ${locationToID} WHERE id = ${dispatchId}
                 ");
+
             foreach ($packs as $pack) {
+                $pack = str_replace("\\", "\\\\", $pack);
+                $pack = str_replace("'", "''", $pack);
                 $packID = $this->connection->executeQuery("SELECT id FROM pack WHERE code = '${pack}'")->fetchColumn();
                 if (!$packID) {
                     $this

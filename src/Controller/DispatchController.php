@@ -81,11 +81,10 @@ Class DispatchController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         return $this->render('dispatch/index.html.twig', [
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH),

@@ -59,23 +59,29 @@ class StatusController extends AbstractController
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $categories = $categoryStatusRepository->findByLabelLike(
-            [
-                CategorieStatut::DISPATCH,
-                CategorieStatut::LITIGE_ARR,
-                CategorieStatut::LITIGE_RECEPT,
-                CategorieStatut::HANDLING
-            ]
-        );
-		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
+        $categories = $categoryStatusRepository->findByLabelLike([
+            CategorieStatut::DISPATCH,
+            CategorieStatut::HANDLING,
+            CategorieStatut::LITIGE_ARR,
+            CategorieStatut::LITIGE_RECEPT
+        ]);
+		$types = $typeRepository->findByCategoryLabels([
+		    CategoryType::DEMANDE_DISPATCH,
+            CategoryType::DEMANDE_HANDLING
+        ]);
 
         $categoryStatusDispatchIds = array_filter($categories, function ($category) {
             return $category['nom'] === CategorieStatut::DISPATCH;
         });
 
+        $categoryStatusHandlingIds = array_filter($categories, function ($category) {
+            return $category['nom'] === CategorieStatut::HANDLING;
+        });
+
         return $this->render('status/index.html.twig', [
-            'categories' => $categories,
             'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
+            'categoryStatusHandlingId' => array_values($categoryStatusHandlingIds)[0]['id'] ?? 0,
+            'categories' => $categories,
             'types' => $types
         ]);
     }
@@ -184,33 +190,23 @@ class StatusController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
 
             $status = $statutRepository->find($data['id']);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $categories = $categoryStatusRepository->findByLabelLike([
-                CategorieStatut::DISPATCH,
-                CategorieStatut::LITIGE_ARR,
-                CategorieStatut::LITIGE_RECEPT,
-                CategorieStatut::HANDLING
-            ]);
-            $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 
-            $transCategories = array_map(
-                function (array $category) {
-                    return [
-                        'id' => $category['id'],
-                        'nom' => $category['nom'] === 'acheminement'
-                            ? $this->translator->trans('acheminement.acheminements')
-                            : $category['nom']
-                    ];
-                },
-                $categories
+            $statusCategory = $status->getCategorie();
+            $categoryTypeToGet = (
+                ($statusCategory->getNom() === CategorieStatut::HANDLING) ? CategoryType::DEMANDE_HANDLING :
+                (($statusCategory->getNom() === CategorieStatut::DISPATCH) ? CategoryType::DEMANDE_DISPATCH :
+                null)
             );
+
+            $types = isset($categoryTypeToGet)
+                ? $typeRepository->findByCategoryLabels([$categoryTypeToGet])
+                : [];
 
             $json = $this->renderView('status/modalEditStatusContent.html.twig', [
                 'status' => $status,
-                'categories' => $transCategories,
                 'types' => $types
             ]);
 

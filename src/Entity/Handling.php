@@ -45,6 +45,12 @@ class Handling extends FreeFieldEntity
     private $requester;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="handlings")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $type;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="handlings")
      * @ORM\JoinColumn(nullable=false)
      */

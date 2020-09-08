@@ -296,16 +296,16 @@ class StatutRepository extends EntityRepository
         $qb
             ->join('status.categorie', 'category')
             ->where('(' . $exprBuilder->orX(
-                    'category.nom = :litigeAr',
-                    'category.nom = :litigeRe',
-                    'category.nom = :ach',
-                    'category.nom = :serv'
+                    'category.nom = :categoryLabel_arrivalDispute',
+                    'category.nom = :categoryLabel_receptionDispute',
+                    'category.nom = :categoryLabel_dispatch',
+                    'category.nom = :categoryLabel_handling'
                 ) . ')')
             ->setParameters([
-                'litigeAr' => CategorieStatut::LITIGE_ARR,
-                'litigeRe' => CategorieStatut::LITIGE_RECEPT,
-                'ach' => CategorieStatut::DISPATCH,
-                'serv' => CategorieStatut::HANDLING
+                'categoryLabel_arrivalDispute' => CategorieStatut::LITIGE_ARR,
+                'categoryLabel_receptionDispute' => CategorieStatut::LITIGE_RECEPT,
+                'categoryLabel_dispatch' => CategorieStatut::DISPATCH,
+                'categoryLabel_handling' => CategorieStatut::HANDLING
             ]);
 
         $qb
@@ -328,11 +328,13 @@ class StatutRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('(
-                            status.nom LIKE :value
-                            OR status.comment LIKE :value
-                            OR status.code LIKE :value
-                        )')
+                        ->andWhere('(' .
+                            $exprBuilder->orX(
+                                'status.nom LIKE :value',
+                                'status.comment LIKE :value',
+                                'status.code LIKE :value'
+                            )
+                        . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

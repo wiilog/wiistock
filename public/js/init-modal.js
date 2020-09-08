@@ -29,7 +29,7 @@ function InitModal($modal, $submit, path, options = {}) {
                 alertSuccessMsg('L\'opération est en cours de traitement');
             }
             else {
-                submitAction($modal, $modal, path, options)
+                SubmitAction($modal, $submit, path, options)
                     .then((data) => {
                         if (data
                             && data.success
@@ -54,7 +54,7 @@ function InitModal($modal, $submit, path, options = {}) {
  * @param {*} $submit jQuery element of the submit button
  * @param {string} path
  */
-function submitAction($modal,
+function SubmitAction($modal,
                       $submit,
                       path,
                       {getFiles, tables, keepModal, keepForm} = {}) {

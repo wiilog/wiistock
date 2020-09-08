@@ -66,7 +66,7 @@ class LivraisonController extends AbstractController
             'filtersDisabled' => isset($filterDemand),
             'displayDemandFilter' => true,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
         ]);
     }
 

@@ -181,7 +181,7 @@ class PreparationController extends AbstractController
             'filtersDisabled' => isset($demandeLivraison),
             'displayDemandFilter' => true,
             'statuts' => $statutRepository->findByCategorieName(Preparation::CATEGORIE),
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON)
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON])
         ]);
     }
 

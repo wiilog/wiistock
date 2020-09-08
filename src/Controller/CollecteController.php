@@ -92,9 +92,8 @@ class CollecteController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
 		$typeChampLibre = [];
 		foreach ($types as $type) {
@@ -110,7 +109,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
-			'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+			'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
 			'filterStatus' => $filter
         ]);
     }
@@ -446,7 +445,7 @@ class CollecteController extends AbstractController
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $collecte = $collecteRepository->find($data['id']);
-			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+			$listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
 			$typeChampLibre = [];
             $freeFieldsGroupedByTypes = [];
@@ -473,7 +472,7 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+                'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
 				'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);

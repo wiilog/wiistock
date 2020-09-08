@@ -86,9 +86,9 @@ class UtilisateurController extends AbstractController
 
         return $this->render('utilisateur/index.html.twig', [
             'roles' => $roleRepository->findAll(),
-            'deliveryTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-            'dispatchTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH),
-            'handlingTypes' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_HANDLING)
+            'deliveryTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
+            'dispatchTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
+            'handlingTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING])
         ]);
     }
 
@@ -213,9 +213,9 @@ class UtilisateurController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->find($data['id']);
-            $deliveryTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-            $dispatchTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
-            $handlingTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_HANDLING);
+            $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+            $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+            $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
 
             return new JsonResponse([
             	'userDeliveryTypes' => $user->getDeliveryTypeIds(),
