@@ -19,36 +19,39 @@ class HandlingRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
-        'Date demande' => 'date',
-        'Demandeur' => 'demandeur',
-        'Libellé' => 'libelle',
-        'Date souhaitée' => 'dateAttendue',
-        'Date de réalisation' => 'dateEnd',
-        'Statut' => 'statut',
+        'number' => 'number',
+        'creationDate' => 'creationDate',
+        'type' => 'type',
+        'requester' => 'requester',
+        'subject' => 'subject',
+        'desiredDate' => 'desiredDate',
+        'validationDate' => 'validationDate',
+        'status' => 'status',
+        'emergency' => 'emergency',
     ];
 
-    public function countByStatut($statut){
+    public function countByStatut($status){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         	/** @lang DQL */
-            "SELECT COUNT(h)
-            FROM App\Entity\Handling h
-            WHERE h.statut = :statut
+            "SELECT COUNT(handling)
+            FROM App\Entity\Handling handling
+            WHERE handling.status = :status
            "
-            )->setParameter('statut', $statut);
+            )->setParameter('status', $status);
         return $query->getSingleScalarResult();
     }
 
-    public function findByStatut($statut) {
+    public function findByStatut($status) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @Lang DQL */
-            "SELECT h.id, h.dateAttendue as dateAttendueDT, d.username as demandeur, h.commentaire, h.source, h.destination, h.libelle as objet
-        FROM App\Entity\Handling h
-        JOIN h.demandeur d
-        WHERE h.statut = :statut
+            "SELECT handling.id, handling.desiredDate as desiredDate, requester.username as requester, handling.comment, handling.source, handling.destination, handling.subject as objet
+        FROM App\Entity\Handling handling
+        JOIN handling.requester requester
+        WHERE handling.status = :status
         "
-        )->setParameter('statut', $statut);
+        )->setParameter('$status', $status);
         return $query->execute();
     }
 
@@ -63,9 +66,9 @@ class HandlingRepository extends EntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 		/** @lang DQL */
-            "SELECT COUNT(h)
-            FROM App\Entity\Handling h
-            WHERE h.demandeur = :user"
+            "SELECT COUNT(handling)
+            FROM App\Entity\Handling handling
+            WHERE handling.requester = :user"
 		)->setParameter('user', $user);
 
 		return $query->getSingleScalarResult();
@@ -83,9 +86,9 @@ class HandlingRepository extends EntityRepository
 
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'SELECT h
-            FROM App\Entity\Handling h
-            WHERE h.date BETWEEN :dateMin AND :dateMax'
+            'SELECT handling
+            FROM App\Entity\Handling handling
+            WHERE handling.creationDate BETWEEN :dateMin AND :dateMax'
         )->setParameters([
             'dateMin' => $dateMin,
             'dateMax' => $dateMax
@@ -95,33 +98,40 @@ class HandlingRepository extends EntityRepository
 
 	public function findByParamAndFilters($params, $filters)
     {
-        $qb = $this->createQueryBuilder('h');
+        $qb = $this->createQueryBuilder('handling');
 
         $countTotal = count($qb->getQuery()->getResult());
 
         // filtres sup
         foreach ($filters as $filter) {
             switch($filter['field']) {
-                case 'statut':
+                case 'status':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('h.statut', 's')
-						->andWhere('s.id in (:statut)')
-						->setParameter('statut', $value);
+						->join('handling.status', 'status')
+						->andWhere('status.id in (:status)')
+						->setParameter('status', $value);
 					break;
-                case 'utilisateurs':
+                case 'requesters':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('h.demandeur', 'd')
-                        ->andWhere("d.id in (:username)")
+                        ->join('handling.requester', 'requester')
+                        ->andWhere("requester.id in (:username)")
                         ->setParameter('username', $value);
                     break;
+                case 'types':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('handling.type', 'type')
+                        ->andWhere("type.id in (:type)")
+                        ->setParameter('type', $value);
+                    break;
                 case 'dateMin':
-                    $qb->andWhere('h.date >= :dateMin')
+                    $qb->andWhere('handling.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb->andWhere('h.date <= :dateMax')
+                    $qb->andWhere('handling.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
             }
@@ -133,7 +143,7 @@ class HandlingRepository extends EntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->andWhere('h.libelle LIKE :value OR h.date LIKE :value')
+						->andWhere('handling.subject LIKE :value OR handling.creationDate LIKE :value')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -143,17 +153,40 @@ class HandlingRepository extends EntityRepository
                 if (!empty($order))
                 {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
-                    if ($column === 'statut') {
+                    if ($column === 'number') {
                         $qb
-                            ->leftJoin('h.statut', 's2')
-                            ->orderBy('s2.nom', $order);
-                    } else if ($column === 'demandeur') {
+                            ->orderBy('handling.number', $order);
+                    } else if ($column === 'creationDate') {
                         $qb
-                            ->leftJoin('h.demandeur', 'u2')
-                            ->orderBy('u2.username', $order);
+                            ->orderBy('handling.creationDate', $order);
+                    }else if ($column === 'type') {
+                        $qb
+                            ->leftJoin('handling.type', 'type')
+                            ->orderBy('type.label', $order);
+                    } else if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('handling.requester', 'requester')
+                            ->orderBy('requester.username', $order);
+                    } else if ($column === 'subject') {
+                        $qb
+                            ->leftJoin('handling.subject', 'subject')
+                            ->orderBy('subject.username', $order);
+                    } else if ($column === 'desiredDate') {
+                        $qb
+                            ->orderBy('handling.desiredDate', $order);
+                    } else if ($column === 'validationDate') {
+                        $qb
+                            ->orderBy('handling.validationDate', $order);
+                    } else if ($column === 'status') {
+                        $qb
+                            ->leftJoin('handling.status', 'status')
+                            ->orderBy('status.nom', $order);
+                    } else if ($column === 'emergency') {
+                        $qb
+                            ->orderBy('handling.emergency', $order);
                     } else {
                         $qb
-                            ->orderBy('h.' . $column, $order);
+                            ->orderBy('handling.' . $column, $order);
                     }
                 }
             }
@@ -174,5 +207,20 @@ class HandlingRepository extends EntityRepository
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function getLastHandlingNumberByPrefix($prefix)
+    {
+        $queryBuilder = $this->createQueryBuilder('handling');
+        $queryBuilder
+            ->select('handling.number')
+            ->where('handling.number LIKE :value')
+            ->orderBy('handling.creationDate', 'DESC')
+            ->setParameter('value', $prefix . '%');
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
     }
 }

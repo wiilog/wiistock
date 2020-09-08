@@ -65,6 +65,12 @@ class PieceJointe
      */
     private $dispatch;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Handling", inversedBy="attachements")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $handling;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -114,6 +120,18 @@ class PieceJointe
     public function setDispatch(?Dispatch $dispatch): self
     {
         $this->dispatch = $dispatch;
+
+        return $this;
+    }
+
+    public function getHandling(): ?Handling
+    {
+        return $this->handling;
+    }
+
+    public function setHandling(?Handling $handling): self
+    {
+        $this->handling = $handling;
 
         return $this;
     }

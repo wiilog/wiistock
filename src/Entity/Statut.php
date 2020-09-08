@@ -422,7 +422,7 @@ class Statut
     {
         if (!$this->handlings->contains($handling)) {
             $this->handlings[] = $handling;
-            $handling->setStatut($this);
+            $handling->setStatus($this);
         }
 
         return $this;
@@ -434,8 +434,8 @@ class Statut
         if ($this->handlings->contains($handling)) {
             $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if ($handling->getStatut() === $this) {
-                $handling->setStatut(null);
+            if ($handling->getStatus() === $this) {
+                $handling->setStatus(null);
             }
         }
 

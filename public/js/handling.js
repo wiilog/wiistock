@@ -4,7 +4,7 @@ let pathHandling = Routing.generate('handling_api', true);
 let tableHandlingConfig = {
     serverSide: true,
     processing: true,
-    order: [[1, 'desc']],
+    order: [[2, 'desc']],
     columnDefs: [
         {
             "type": "customDate",
@@ -30,12 +30,15 @@ let tableHandlingConfig = {
     },
     columns: [
         { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
-        { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
-        { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
-        { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-        { "data": 'Date souhaitée', 'name': 'Date souhaitée', 'title': 'Date souhaitée' },
-        { "data": 'Date de réalisation', 'name': 'Date de réalisation', 'title': 'Date de réalisation' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'number', 'name': 'number', 'title': 'Numéro de demande' },
+        { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
+        { "data": 'type', 'name': 'type', 'title': 'Type' },
+        { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
+        { "data": 'subject', 'name': 'subject', 'title': 'Objet' },
+        { "data": 'desiredDate', 'name': 'desiredDate', 'title': 'Date souhaitée' },
+        { "data": 'validationDate', 'name': 'validationDate', 'title': 'Date de réalisation' },
+        { "data": 'status', 'name': 'status', 'title': 'Statut' },
+        { "data": 'emergency', 'name': 'emergency', 'title': 'Urgence' },
     ],
 };
 let tableHandling = initDataTable('tableHandling_id', tableHandlingConfig);
