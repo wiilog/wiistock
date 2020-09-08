@@ -16,6 +16,8 @@ let tableHandlingConfig = {
         }
     ],
     rowConfig: {
+        needsColor: true,
+        color: 'danger',
         needsRowClickAction: true,
     },
     drawConfig: {
@@ -29,7 +31,7 @@ let tableHandlingConfig = {
         },
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis' },
+        { "data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
         { "data": 'number', 'name': 'number', 'title': 'Numéro de demande' },
         { "data": 'creationDate', 'name': 'creationDate', 'title': 'Date demande' },
         { "data": 'type', 'name': 'type', 'title': 'Type' },

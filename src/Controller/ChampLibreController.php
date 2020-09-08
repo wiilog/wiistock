@@ -11,6 +11,7 @@ use App\Entity\ChampLibre;
 
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -39,6 +40,7 @@ class ChampLibreController extends AbstractController
         CategorieCL::ARRIVAGE => Arrivage::class,
         CategorieCL::DEMANDE_COLLECTE => Collecte::class,
         CategorieCL::DEMANDE_LIVRAISON => Demande::class,
+        CategorieCL::DEMANDE_HANDLING => Handling::class,
         CategorieCL::AUCUNE => null
     ];
 

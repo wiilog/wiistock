@@ -140,7 +140,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Voulez-vous réellement supprimer cette demande de service' => 'Voulez-vous réellement supprimer cette demande de service',
                 'Vous ne pouvez pas supprimer cette demande de service' => 'Vous ne pouvez pas supprimer cette demande de service',
                 'Votre demande de service a bien été effectuée' => 'Votre demande de service a bien été effectuée',
-                'Demande de service effectuée' => 'Demande de service effectuée'
+                'Demande de service effectuée' => 'Demande de service effectuée',
+                'Type de demande de service' => 'Type de demande de service'
             ]
         ];
 

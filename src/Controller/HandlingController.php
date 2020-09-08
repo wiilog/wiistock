@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Action;
-use App\Entity\Emplacement;
+use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\Menu;
 use App\Entity\Handling;
 
@@ -96,12 +99,29 @@ class HandlingController extends AbstractController
         }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+
+        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_HANDLING);
 
         return $this->render('handling/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
-			'filterStatus' => $filter
+			'filterStatus' => $filter,
+            'types' => $types,
+            'modalNewConfig' => [
+                'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
+                'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
+                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
+                    return [
+                        'typeLabel' => $type->getLabel(),
+                        'typeId' => $type->getId(),
+                        'freeFields' => $freeFields,
+                    ];
+                }, $types),
+                'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, true),
+            ]
 		]);
     }
 
@@ -157,15 +177,22 @@ class HandlingController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
+            $date = new DateTime('now');
             $post = $request->request;
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
             $handling = new Handling();
             $creationDate = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $type = $typeRepository->find($data['type']);
-            $requester = $utilisateurRepository->find($data['demandeur']);
+            $requester = $utilisateurRepository->find($data['requester']);
             $desiredDate = $data['desired-date'] ? new \DateTime($data['desired-date']) : null;
-            $validationDate = $data['validation-date'] ? new \DateTime($data['validation-date']) : null;
             $number = $handlingService->createHandlingNumber($entityManager, $creationDate);
+
+            if ($desiredDate < $date) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'La date attendue ne peut être antérieure à la date de création.'
+                ]);
+            }
 
             $handling
                 ->setNumber($number)
@@ -177,8 +204,7 @@ class HandlingController extends AbstractController
                 ->setDestination($data['destination'])
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
-				->setValidationDate($validationDate)
-				->setComment($data['commentaire'])
+				->setComment($data['comment'])
                 ->setEmergency($data['emergency']);
 
             $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
@@ -226,16 +252,15 @@ class HandlingController extends AbstractController
             }
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
 
             $handling = $handlingRepository->find($data['id']);
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
                 'utilisateurs' => $utilisateurRepository->findAll(),
-                'emplacements' => $emplacementRepository->findAll(),
-                'statusTreated' => ($handling->getStatus()->getNom() === Handling::STATUT_A_TRAITER) ? 1 : 0,
-                'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
+                'treatedStatus' => $statutRepository->findTreatedStatusByType(CategorieStatut::HANDLING, $handling->getType()),
+                'attachements' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);
 
             return new JsonResponse($json);
@@ -271,20 +296,14 @@ class HandlingController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
 
             $post = $request->request;
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
             $handling = new Handling();
-            $creationDate = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $type = $typeRepository->find($data['type']);
-            $requester = $utilisateurRepository->find($data['demandeur']);
             $desiredDate = $data['desired-date'] ? new \DateTime($data['desired-date']) : null;
-            $validationDate = $data['validation-date'] ? new \DateTime($data['validation-date']) : null;
-            $number = $handlingService->createHandlingNumber($entityManager, $creationDate);
+            /*$validationDate = $data['validation-date'] ? new \DateTime($data['validation-date']) : null;*/
 
-            $statutLabel = (intval($data['statut']) === 1) ? Handling::STATUT_A_TRAITER : Handling::STATUT_TRAITE;
+            $statutLabel = (intval($data['status']) === 1) ? Handling::STATUT_A_TRAITER : Handling::STATUT_TRAITE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, $statutLabel);
             if ($statut->getNom() === Handling::STATUT_TRAITE
                 && $statut !== $handling->getStatus()) {
@@ -293,16 +312,12 @@ class HandlingController extends AbstractController
             }
 
             $handling
-                ->setNumber($number)
-                ->setCreationDate($creationDate)
-                ->setType($type)
-                ->setRequester($requester)
                 ->setSubject(substr($data['subject'], 0, 64))
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
-                ->setValidationDate($validationDate)
+                /*->setValidationDate($validationDate)*/
                 ->setComment($data['commentaire'])
                 ->setEmergency($data['emergency']);
 

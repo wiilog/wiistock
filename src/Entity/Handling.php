@@ -76,7 +76,7 @@ class Handling extends FreeFieldEntity
     private $number;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="handlings")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="handlings")
      */
     private $type;
 

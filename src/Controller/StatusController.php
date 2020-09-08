@@ -63,7 +63,8 @@ class StatusController extends AbstractController
             [
                 CategorieStatut::DISPATCH,
                 CategorieStatut::LITIGE_ARR,
-                CategorieStatut::LITIGE_RECEPT
+                CategorieStatut::LITIGE_RECEPT,
+                CategorieStatut::HANDLING
             ]
         );
 		$types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
@@ -190,7 +191,8 @@ class StatusController extends AbstractController
             $categories = $categoryStatusRepository->findByLabelLike([
                 CategorieStatut::DISPATCH,
                 CategorieStatut::LITIGE_ARR,
-                CategorieStatut::LITIGE_RECEPT
+                CategorieStatut::LITIGE_RECEPT,
+                CategorieStatut::HANDLING
             ]);
             $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_DISPATCH);
 

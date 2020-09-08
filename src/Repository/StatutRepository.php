@@ -298,12 +298,14 @@ class StatutRepository extends EntityRepository
             ->where('(' . $exprBuilder->orX(
                     'category.nom = :litigeAr',
                     'category.nom = :litigeRe',
-                    'category.nom = :ach'
+                    'category.nom = :ach',
+                    'category.nom = :serv'
                 ) . ')')
             ->setParameters([
                 'litigeAr' => CategorieStatut::LITIGE_ARR,
                 'litigeRe' => CategorieStatut::LITIGE_RECEPT,
-                'ach' => CategorieStatut::DISPATCH
+                'ach' => CategorieStatut::DISPATCH,
+                'serv' => CategorieStatut::HANDLING
             ]);
 
         $qb
@@ -371,18 +373,18 @@ class StatutRepository extends EntityRepository
         ];
     }
 
-    public function findDispatchStatusTreatedByType($type)
+    public function findTreatedStatusByType($entity, $type)
     {
         $qb = $this->createQueryBuilder('status');
 
         $qb
             ->select('status')
             ->join('status.categorie', 'category')
-            ->where('category.nom = :ach')
+            ->where('category.nom = :entity')
             ->andWhere('status.treated = true')
             ->andWhere('status.type = :type')
             ->setParameters([
-                'ach' => CategorieStatut::DISPATCH,
+                'entity' => $entity,
                 'type' => $type
             ]);
 

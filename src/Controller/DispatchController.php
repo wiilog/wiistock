@@ -244,7 +244,7 @@ Class DispatchController extends AbstractController
                 'natures' => $natureRepository->findAll()
             ],
             'dispatchValidate' => [
-                'treatedStatus' => $statusRepository->findDispatchStatusTreatedByType($dispatch->getType())
+                'treatedStatus' => $statusRepository->findTreatedStatusByType(CategorieStatut::DISPATCH, $dispatch->getType())
             ]
         ]);
     }

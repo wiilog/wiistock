@@ -27,7 +27,7 @@ class HandlingRepository extends EntityRepository
         'desiredDate' => 'desiredDate',
         'validationDate' => 'validationDate',
         'status' => 'status',
-        'emergency' => 'emergency',
+        'emergency' => 'emergency'
     ];
 
     public function countByStatut($status){
@@ -143,7 +143,19 @@ class HandlingRepository extends EntityRepository
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
 					$qb
-						->andWhere('handling.subject LIKE :value OR handling.creationDate LIKE :value')
+                        ->leftJoin('handling.type', 'searchType')
+                        ->leftJoin('handling.requester', 'searchRequester')
+                        ->leftJoin('handling.status', 'searchStatus')
+						->andWhere('
+						handling.number LIKE :value
+						OR handling.creationDate LIKE :value
+						OR searchType.label LIKE :value
+						OR searchRequester.username LIKE :value
+						OR handling.subject LIKE :value
+						OR handling.desiredDate LIKE :value
+						OR handling.validationDate LIKE :value
+						OR searchStatus.nom LIKE :value
+						')
 						->setParameter('value', '%' . $search . '%');
 				}
 			}
@@ -169,8 +181,7 @@ class HandlingRepository extends EntityRepository
                             ->orderBy('requester.username', $order);
                     } else if ($column === 'subject') {
                         $qb
-                            ->leftJoin('handling.subject', 'subject')
-                            ->orderBy('subject.username', $order);
+                            ->orderBy('handling.subject', $order);
                     } else if ($column === 'desiredDate') {
                         $qb
                             ->orderBy('handling.desiredDate', $order);
