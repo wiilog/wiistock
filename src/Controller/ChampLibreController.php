@@ -181,9 +181,8 @@ class ChampLibreController extends AbstractController
 					->setElements(null)
 					->setDefaultValue($data['valeur']);
 			}
-			$em = $this->getDoctrine()->getManager();
-			$em->persist($champLibre);
-            $em->flush();
+			$entityManager->persist($champLibre);
+            $entityManager->flush();
 
 			return new JsonResponse([
 			    'success' => true

@@ -66,39 +66,6 @@ function afterLoadingEditModal($button) {
     $('#typeContentEdit .list-multiple').select2();
 }
 
-function submitActionRefArticle(modal, path, callback = null, close = true) {
-    let {Data, missingInputs, wrongNumberInputs, doublonRef} = getDataFromModalReferenceArticle(modal);
-
-    // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
-        if (close == true) modal.find('.close').click();
-        $.post(path, JSON.stringify(Data), function (data) {
-            if (!data) {
-                $('#cannotDelete').click();
-            }
-            if (typeof data === 'object') {
-                if (!data.success) {
-                    if (data.msg) {
-                        alertErrorMsg(data.msg);
-                    }
-                }
-            }
-
-            if (callback !== null) callback(data, modal);
-
-            clearModalRefArticle(modal, data);
-        });
-
-        modal.find('.error-msg').html('');
-
-    } else {
-        // ... sinon on construit les messages d'erreur
-        let msg = buildErrorMsgReferenceArticle(missingInputs, wrongNumberInputs, doublonRef);
-        modal.find('.error-msg').html(msg);
-    }
-
-}
-
 function clearModalRefArticle(modal, data) {
     if (typeof (data.msg) == 'undefined') {
         // on vide tous les inputs

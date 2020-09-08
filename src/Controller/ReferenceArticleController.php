@@ -311,17 +311,10 @@ class ReferenceArticleController extends AbstractController
      * @param Request $request
      * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
-     * @param EntityManagerInterface $entityManager
-     * @param ValeurChampLibreService $valeurChampLibreService
      * @param MouvementStockService $mouvementStockService
      * @param ArticleFournisseurService $articleFournisseurService
      * @return Response
-     * @throws DBALException
-     * @throws LoaderError
      * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $champLibreService,
@@ -459,7 +452,11 @@ class ReferenceArticleController extends AbstractController
             $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée'
+                'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
+                'data' => [ // for reference created in reception-show
+                    'id' => $refArticle->getId(),
+                    'reference' => $refArticle->getReference()
+                ]
             ]);
         }
         throw new NotFoundHttpException("404");

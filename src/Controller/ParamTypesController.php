@@ -72,19 +72,18 @@ class ParamTypesController extends AbstractController
             foreach ($types as $type) {
                 $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
 
-                $rows[] =
-                    [
-                        'Label' => $type->getLabel(),
-                        'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
-                        'Description' => $type->getDescription(),
-                        'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
-                            ? ($type->getSendMail() ? 'Oui' : 'Non')
-                            : '',
-                        'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
-                            'url' => $url,
-                            'typeId' => $type->getId(),
-                        ]),
-                    ];
+                $rows[] = [
+                    'Label' => $type->getLabel(),
+                    'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
+                    'Description' => $type->getDescription(),
+                    'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
+                        ? ($type->getSendMail() ? 'Oui' : 'Non')
+                        : '',
+                    'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
+                        'url' => $url,
+                        'typeId' => $type->getId(),
+                    ]),
+                ];
             }
             $data['data'] = $rows;
             return new JsonResponse($data);

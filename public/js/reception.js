@@ -8,7 +8,6 @@ $(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statuts');
     initOnTheFlyCopies($('.copyOnTheFly'));
-    $('.body-add-ref').css('display', 'none');
 
     // RECEPTION
     let pathTableReception = Routing.generate('reception_api', true);

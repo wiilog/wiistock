@@ -136,9 +136,9 @@ class Type
         $this->collectes = new ArrayCollection();
         $this->deliveryUsers = new ArrayCollection();
         $this->dispatchUsers = new ArrayCollection();
+        $this->handlingUsers = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->statuts = new ArrayCollection();
-        $this->handlingUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
