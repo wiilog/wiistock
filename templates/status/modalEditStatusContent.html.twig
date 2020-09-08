@@ -8,9 +8,7 @@
                     title="Entité"
                     class="form-control needed"
                     disabled>
-                {% for category in categories %}
-                    <option {{ category.id == status.categorie.id ? 'selected' }} value="{{ category.id }}">{{ category.nom }}</option>
-                {% endfor %}
+                <option selected value="{{ status.categorie.id }}">{{ status.categorie.nom }}</option>
             </select>
         </div>
 
@@ -23,9 +21,13 @@
                    value="{{ status.nom }}"/>
         </div>
 
-        <div class="col-12 form-group dispatch-fields {{ status.categorie.nom != 'acheminement' ? 'd-none'}}">
+        {% set hideType = (
+            status.categorie.nom != constant('App\\Entity\\CategorieStatut::DISPATCH')
+            and status.categorie.nom != constant('App\\Entity\\CategorieStatut::HANDLING')
+        ) %}
+        <div class="col-12 form-group {{ hideType ? 'd-none'}}">
             <label for="type">Type*</label>
-            <select name="type" class="data form-control  {{ status.categorie.nom != 'acheminement' ? 'needed'}} field-needed">
+            <select name="type" class="data form-control {{ not hideType ? 'needed'}}">
                 {% if status.type is not null %}
                     <option selected value="{{ status.type.id }}">{{ status.type.label }}</option>
                 {% else %}
@@ -38,8 +40,11 @@
                 {% endfor %}
             </select>
         </div>
-
-        <div class="col-12 form-group dispute-fields {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+        {% set hideDisputeComment = (
+            status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
+        ) %}
+        <div class="col-12 form-group {{ hideDisputeComment ? 'd-none' }}">
             <label for="username">Commentaire litige</label>
             <input type="text" class="form-control data" name="comment" value="{{ status.comment }}"/>
         </div>
@@ -60,7 +65,11 @@
             </label>
         </div>
 
-        <div class="col-12 form-group dispute-fields {{ status.categorie.nom == 'acheminement' ? 'd-none'}}">
+        {% set hideSendNotifToBuyer = (
+            status.categorie.nom == constant('App\\Entity\\CategorieStatut::DISPATCH')
+            or status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING')
+        ) %}
+        <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none'}}">
             <label>Envoi de mails aux acheteurs ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="sendMails" {{ status.sendNotifToBuyer ? 'checked' }}/>
@@ -74,14 +83,20 @@
                 <span class="slider round"></span>
             </label>
         </div>
-        <div class="col-12 form-group dispatch-fields">
+        {% set hideSendNotifToBuyer = status.categorie.nom == constant('App\\Entity\\CategorieStatut::HANDLING') %}
+        <div class="col-12 form-group {{ hideSendNotifToBuyer ? 'd-none' }}">
             <label>Envoi de mails au destinataire ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="sendMailsRecipient" {{ status.sendNotifToRecipient ? 'checked' }}/>
                 <span class="slider round"></span>
             </label>
         </div>
-        <div class="col-12 form-group dispatch-fields">
+
+        {% set hideNeedMobileSync = (
+            status.categorie.nom != constant('App\\Entity\\CategorieStatut::DISPATCH')
+            and status.categorie.nom != constant('App\\Entity\\CategorieStatut::HANDLING')
+            ) %}
+        <div class="col-12 form-group" {{ hideNeedMobileSync ? 'd-none' }}>
             <label>Synchronisation nomade ?</label>
             <label class="switch">
                 <input class="checkbox" type="checkbox" name="needsMobileSync" {{ status.needsMobileSync ? 'checked' }}/>

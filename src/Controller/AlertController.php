@@ -46,7 +46,7 @@ class AlertController extends AbstractController
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
 
         return $this->render('alerte_reference/index.html.twig', [
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::ARTICLE)
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE])
         ]);
     }
 

@@ -53,15 +53,20 @@ $(function () {
 function hideOptionOnChange($modal, forceClear = true) {
     const $select = $modal.find('[name="category"]');
     const $dispatchFields = $modal.find('.dispatch-fields');
+    const $handlingFields = $modal.find('.handling-fields');
     const $disputeFields = $modal.find('.dispute-fields');
 
     $dispatchFields.addClass('d-none');
+    $handlingFields.addClass('d-none');
     $disputeFields.addClass('d-none');
     $modal.find('.field-needed').removeClass('needed');
 
     if (forceClear) {
         $dispatchFields.find('select').find('option:selected').prop("selected", false);
         $dispatchFields.find('select').val('');
+
+        $handlingFields.find('select').find('option:selected').prop("selected", false);
+        $handlingFields.find('select').val('');
 
         $disputeFields.find('select').find('option:selected').prop("selected", false);
         $disputeFields.find('select').val('');
@@ -70,7 +75,12 @@ function hideOptionOnChange($modal, forceClear = true) {
     const category = Number($select.val());
     if (category) {
         const categoryStatusDispatchId = Number($('#categoryStatusDispatchId').val());
-        const $fields = (category === categoryStatusDispatchId) ? $dispatchFields : $disputeFields;
+        const categoryStatusHandlingId = Number($('#categoryStatusHandlingId').val());
+        const $fields = (
+            (category === categoryStatusDispatchId) ? $dispatchFields :
+            (category === categoryStatusHandlingId) ? $handlingFields :
+            $disputeFields
+        );
         $fields.removeClass('d-none');
         $fields.find('.field-needed').addClass('needed');
     }

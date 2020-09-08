@@ -1260,7 +1260,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id' => $type->getId(),
                             'label' => $type->getLabel(),
                         ];
-                    }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON))
+                    }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
                 ];
             } else {
                 $dataResponse['data'] = [
@@ -1398,7 +1398,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
                 ];
-            }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON));
+            }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
         } else {
             $handlings = [];
             $demandeLivraisonArticles = [];

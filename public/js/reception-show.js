@@ -588,7 +588,7 @@ function initNewLigneReception($button) {
         } else {
             $errorContainer.text('');
             wrapLoadingOnActionButton($button, () => (
-                submitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {tables: [tableArticle]})
+                SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {tables: [tableArticle]})
                     .then(function (success) {
                         if (success) {
                             const $printButton = $('#buttonPrintMultipleBarcodes');

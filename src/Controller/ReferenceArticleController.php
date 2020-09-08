@@ -637,7 +637,7 @@ class ReferenceArticleController extends AbstractController
 			return strcasecmp($a['label'], $b['label']);
 		});
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
         $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];

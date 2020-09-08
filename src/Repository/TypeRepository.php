@@ -22,27 +22,28 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class TypeRepository extends EntityRepository
 {
-	/**
-	 * @param string $categoryLabel
-	 * @param string|null $order ("asc" ou "desc")
-	 * @return Type[]
-	 */
-    public function findByCategoryLabel($categoryLabel, $order = null)
+    /**
+     * @param array $categoryLabels
+     * @param string|null $order ("asc" ou "desc")
+     * @return Type[]
+     */
+    public function findByCategoryLabels(array $categoryLabels, $order = null)
     {
-        $em = $this->getEntityManager();
-        $dql = "SELECT t
-            FROM App\Entity\Type t
-            JOIN t.category c
-            WHERE c.label = :category";
+        $queryBuilder = $this
+            ->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->where('category.label IN (:categoryLabels)')
+            ->setParameter('categoryLabels', $categoryLabels);
 
         if ($order) {
-        	$dql .= " ORDER BY t.label " . $order;
-		}
-        $query = $em->createQuery($dql);
+            $queryBuilder->orderBy('type.label', $order);
+        }
 
-        $query->setParameter("category", $categoryLabel);
-
-        return $query->execute();
+        return !empty($categoryLabels)
+            ? $queryBuilder
+                ->getQuery()
+                ->execute()
+            : [];
     }
 
     public function getIdAndLabelByCategoryLabel($category)

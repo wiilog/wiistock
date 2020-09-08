@@ -41,6 +41,12 @@ class Handling
     private $demandeur;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="handlings")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $type;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="handlings")
      * @ORM\JoinColumn(nullable=false)
      */
