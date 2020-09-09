@@ -66,7 +66,7 @@ class PieceJointe
     private $dispatch;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Handling", inversedBy="attachements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Handling", inversedBy="attachments")
      * @ORM\JoinColumn(nullable=true)
      */
     private $handling;

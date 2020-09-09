@@ -116,7 +116,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $mobileLoginKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="requester")
      */
     private $handlings;
 

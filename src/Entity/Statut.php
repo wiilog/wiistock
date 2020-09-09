@@ -84,7 +84,7 @@ class Statut
     private $referenceArticles;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="status")
      */
     private $handlings;
 

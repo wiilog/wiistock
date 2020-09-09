@@ -8,17 +8,27 @@
     </select>
 </div>
 
-{% if treatedStatus is not empty %}
+{% if handlingStatus is not empty %}
     <div class="form-group">
         <label>Statut*</label>
-        <select name="statut"
+        <select name="status"
+                {{ handling.status is not null and handling.status.treated ? 'disabled' }}
                 class="form-control data d-block needed"
                 title="Statut">
-            {% for status in treatedStatus %}
-                <option data-type-id="{{ status.type.id }}"
-                        value="{{ status.id }}">
-                    {{ status.nom }}
+            {% if handling.status is not null %}
+                <option selected
+                        value="{{ handling.status.id }}"
+                        data-type-id="{{ handling.status.type.id }}">
+                    {{ handling.status.nom }}
                 </option>
+            {% endif %}
+            {% for status in handlingStatus %}
+                {% if status.id != handling.status.id %}
+                    <option data-type-id="{{ status.type.id }}"
+                            value="{{ status.id }}">
+                        {{ status.nom }}
+                    </option>
+                {% endif %}
             {% endfor %}
         </select>
     </div>
@@ -91,20 +101,18 @@
 </div>
 
 <div class="form-group">
-    <label>Urgence</label>
-    <div class="w-100">
-        <label class="switch mt-2">
-            <input class="checkbox"
-                   name="emergency"
-                {{ handling.emergency ? 'checked' }}
-                   type="checkbox"/>
-            <span class="slider round"></span>
-        </label>
+    <div>
+        {% include 'attachment/attachment.html.twig' with {'isNew' : false} %}
     </div>
 </div>
 
 <div class="form-group">
-    <div>
-        {% include 'attachment/attachment.html.twig' with {'isNew' : false} %}
-    </div>
+    <label>Urgence</label>
+    <label class="switch mt-2">
+        <input class="checkbox"
+               name="emergency"
+            {{ handling.emergency ? 'checked' }}
+               type="checkbox"/>
+        <span class="slider round"></span>
+    </label>
 </div>
