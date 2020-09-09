@@ -162,10 +162,12 @@ class HandlingController extends AbstractController
             $handling = new Handling();
             $creationDate = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $type = $typeRepository->find($data['type']);
-            $requester = $utilisateurRepository->find($data['demandeur']);
             $desiredDate = $data['desired-date'] ? new \DateTime($data['desired-date']) : null;
             $validationDate = $data['validation-date'] ? new \DateTime($data['validation-date']) : null;
             $number = $handlingService->createHandlingNumber($entityManager, $creationDate);
+
+            /** @var Utilisateur $requester */
+            $requester = $this->getUser();
 
             $handling
                 ->setNumber($number)
@@ -198,10 +200,8 @@ class HandlingController extends AbstractController
                 }
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($handling);
-
-            $em->flush();
+            $entityManager->persist($handling);
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
