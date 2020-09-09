@@ -1,3 +1,5 @@
+{% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
+
 <div class="form-group">
     <label>Type*</label>
     <select name="type"
@@ -62,6 +64,14 @@
            min="{{ 'now' | date('Y-m-d') }}">
 </div>
 
+<div class="form-group">
+    <label for="desired-date">Date de réalisation</label>
+    <input class="form-control needed"
+           type="datetime-local"
+           value="{{ validationDate }}"
+           name="validation-date" disabled>
+</div>
+
 <div class="form-group needed">
     <label for="source">Chargement*</label>
     <input class="form-control data needed input" value="{{ handling.source }}" name="source">
@@ -87,8 +97,8 @@
 {% endif %}
 
 <div class="form-group">
-    <label for="comment">Commentaire</label>
-    <input id='comment'
+    <label for="commentaire">Commentaire</label>
+    <input id='commentaire'
            class="comment form-control data"
            name="comment"
            type="hidden"

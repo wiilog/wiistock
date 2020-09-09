@@ -1,13 +1,13 @@
 {% extends 'mails/template.html.twig' %}
 
-{% set emergency : handling.emergency ? 'Oui' : 'Non' %}
+{% set emergency = handling.emergency ? 'Oui' : 'Non' %}
 
 {% block content %}
     <div>Numéro de demande :
         <strong>{{ handling.number }}</strong>
     </div>
     <div>Date demande :
-        <strong>{{ handling.creationDate|date('d/m/Y') }}</strong>
+        <strong>{{ handling.creationDate|date('Y-m-d à H:i:s') }}</strong>
     </div>
     <div>Type :
         <strong>{{ handling.type.label }}</strong>
@@ -25,10 +25,10 @@
         <strong>{{ handling.destination }}</strong>
     </div>
     <div>Date souhaitée :
-        <strong>{{ handling.desiredDate|date('d/m/Y') }}</strong>
+        <strong>{{ handling.desiredDate|date('Y-m-d à H:i:s') }}</strong>
     </div>
     <div>Date de réalisation :
-        <strong>{{ handling.validationDate|date('d/m/Y') }}</strong>
+        <strong>{{ handling.validationDate|date('Y-m-d à H:i:s') }}</strong>
     </div>
     <div>Statut :
         <strong>{{ handling.status.nom }}</strong>
@@ -42,7 +42,7 @@
     <div>
         Pièces-jointes :
         <ul>
-            {% for attachments in handling.attachements %}
+            {% for attachment in handling.attachements %}
                 <li>{{ attachment.originalName }}</li>
             {% endfor %}
         </ul>

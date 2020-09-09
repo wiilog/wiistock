@@ -5,24 +5,24 @@
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="d-none">
                     <div class="btn btn-col-action action-on-click" data-id='{{ handling.id }}' data-target='#modalEditHandling' data-toggle='modal'
-                         onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '.editor-container-edit', false, toggleHandlingQuill)">
+                         onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')">
                         <i class='fas fa-pencil-alt'></i>
                     </div>
                 </div>
+                    <a href="#"
+                       data-id='{{ handling.id }}'
+                       data-target='#modalEditHandling'
+                       data-toggle='modal'
+                       onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling #editor-container-edit')"
+                       class="dropdown-item">
+                        <i class="fa fa-pen mr-2"></i>Modifier
+                    </a>
                 {% if handling.status.treated != 1 %}
                     <div class="dropdown-item" data-id='{{ handling.id }}' data-target='#modalDeleteHandling' data-toggle='modal'
                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
                         <i class='fas fa-trash mr-2'></i>Supprimer
                     </div>
                 {% endif %}
-                    <a href="#"
-                       data-id='{{ handling.id }}'
-                       data-target='#modalEditHandling'
-                       data-toggle='modal'
-                       onclick="editRow($(this), Routing.generate('handling_edit_api', true), $('#modalEditHandling'), $('#submitEditHandling'), true, '#modalEditHandling .editor-container-edit')"
-                       class="dropdown-item">
-                        <i class="fa fa-pen mr-2"></i>Modifier
-                    </a>
             {% endif %}
         </div>
     </div>

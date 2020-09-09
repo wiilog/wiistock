@@ -97,12 +97,12 @@ class HandlingService
         return [
             'id' => $handling->getId() ? $handling->getId() : 'Non défini',
             'number' => $handling->getNumber() ? $handling->getNumber() : '',
-            'creationDate' => $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y') : null,
+            'creationDate' => $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i:s') : null,
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
             'requester' => $handling->getRequester() ? $handling->getRequester()->getUserName() : null,
             'subject' => $handling->getSubject() ? $handling->getSubject() : '',
-            'desiredDate' => $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i') : null,
-            'validationDate' => $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : null,
+            'desiredDate' => $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i:s') : null,
+            'validationDate' => $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i:s') : null,
             'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
             'emergency' => $handling->getEmergency() ? 'oui' : 'non',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
