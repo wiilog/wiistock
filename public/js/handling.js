@@ -5,20 +5,11 @@ let tableHandlingConfig = {
     serverSide: true,
     processing: true,
     order: [[2, 'desc']],
-    columnDefs: [
-        {
-            "type": "customDate",
-            "targets": 1
-        },
-        {
-            "orderable" : false,
-            "targets" : 0
-        }
-    ],
     rowConfig: {
+        needsRowClickAction: true,
         needsColor: true,
         color: 'danger',
-        needsRowClickAction: true,
+        dataToCheck: 'emergency'
     },
     drawConfig: {
         needsSearchOverride: true,
@@ -65,12 +56,12 @@ $(function() {
 let $modalNewHandling = $("#modalNewHandling");
 let $submitNewHandling = $("#submitNewHandling");
 let urlNewHandling = Routing.generate('handling_new', true);
-InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
+InitModalWithAttachments($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
 
 let $modalModifyHandling = $('#modalEditHandling');
 let $submitModifyHandling = $('#submitEditHandling');
 let urlModifyHandling = Routing.generate('handling_edit', true);
-InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
+InitModalWithAttachments($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
 
 let $modalDeleteHandling = $('#modalDeleteHandling');
 let $submitDeleteHandling = $('#submitDeleteHandling');

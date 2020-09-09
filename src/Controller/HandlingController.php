@@ -22,8 +22,8 @@ use App\Service\UserService;
 use App\Service\HandlingService;
 
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -33,12 +33,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
- * @Route("/service")
+ * @Route("/services")
  */
 class HandlingController extends AbstractController
 {
@@ -53,12 +50,19 @@ class HandlingController extends AbstractController
      */
     private $mailerService;
 
+    /**
+     * @var AttachmentService
+     */
+    private $attachmentService;
+
 
     public function __construct(UserService $userService,
-                                MailerService $mailerService)
+                                MailerService $mailerService,
+                                AttachmentService $attachmentService)
     {
         $this->userService = $userService;
-        $this->mailerService = $mailerService;;
+        $this->mailerService = $mailerService;
+        $this->attachmentService = $attachmentService;
     }
 
     /**
@@ -86,7 +90,7 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/liste/{filter}", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
      * @param string|null $filter
      * @return Response
@@ -103,7 +107,7 @@ class HandlingController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_HANDLING);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
 
         return $this->render('handling/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
@@ -111,7 +115,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filter,
             'types' => $types,
             'modalNewConfig' => [
-                'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
+                'handlingDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
                 'freeFieldsTypes' => array_map(function (Type $type) use ($freeFieldsRepository) {
                     $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                     return [
@@ -120,7 +124,7 @@ class HandlingController extends AbstractController
                         'freeFields' => $freeFields,
                     ];
                 }, $types),
-                'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, true),
+                'handlingStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, false),
             ]
 		]);
     }
@@ -158,7 +162,6 @@ class HandlingController extends AbstractController
      * @param AttachmentService $attachmentService
      * @param TranslatorInterface $translator
      * @return Response
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function new(EntityManagerInterface $entityManager,
@@ -168,7 +171,7 @@ class HandlingController extends AbstractController
                         AttachmentService $attachmentService,
                         TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -177,14 +180,17 @@ class HandlingController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
-            $date = new DateTime('now');
             $post = $request->request;
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
+
+            $date = new DateTime('now');
             $handling = new Handling();
             $creationDate = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $type = $typeRepository->find($data['type']);
-            $requester = $utilisateurRepository->find($data['requester']);
-            $desiredDate = $data['desired-date'] ? new \DateTime($data['desired-date']) : null;
+
+            $status = $statutRepository->find($post->get('status'));
+            $type = $typeRepository->find($post->get('type'));
+            $requester = $utilisateurRepository->find($post->get('requester'));
+            $desiredDate = $post->get('desired-date') ? new \DateTime($post->get('desired-date')) : null;
+            $fileBag = $request->files->count() > 0 ? $request->files : null;
             $number = $handlingService->createHandlingNumber($entityManager, $creationDate);
 
             if ($desiredDate < $date) {
@@ -199,13 +205,13 @@ class HandlingController extends AbstractController
                 ->setCreationDate($creationDate)
                 ->setType($type)
                 ->setRequester($requester)
-                ->setSubject(substr($data['subject'], 0, 64))
-                ->setSource($data['source'])
-                ->setDestination($data['destination'])
+                ->setSubject(substr($post->get('subject'), 0, 64))
+                ->setSource($post->get('source'))
+                ->setDestination($post->get('destination'))
                 ->setStatus($status)
                 ->setDesiredDate($desiredDate)
-				->setComment($data['comment'])
-                ->setEmergency($data['emergency']);
+				->setComment($post->get('comment'))
+                ->setEmergency($post->get('emergency'));
 
             $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
@@ -224,10 +230,8 @@ class HandlingController extends AbstractController
                 }
             }
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($handling);
-
-            $em->flush();
+            $entityManager->persist($handling);
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,
@@ -250,6 +254,7 @@ class HandlingController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -271,78 +276,63 @@ class HandlingController extends AbstractController
     /**
      * @Route("/modifier", name="handling_edit", options={"expose"=true}, methods="GET|POST")
      * @param EntityManagerInterface $entityManager
-     * @param HandlingService $handlingService
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param AttachmentService $attachmentService
      * @param TranslatorInterface $translator
      * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      * @throws Exception
      */
     public function edit(EntityManagerInterface $entityManager,
-                         HandlingService $handlingService,
                          Request $request,
                          FreeFieldService $freeFieldService,
-                         AttachmentService $attachmentService,
                          TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $handlingRepository = $entityManager->getRepository(Handling::class);
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
+        $post = $request->request;
 
-            $post = $request->request;
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
-            $handling = new Handling();
-            $desiredDate = $data['desired-date'] ? new \DateTime($data['desired-date']) : null;
-            /*$validationDate = $data['validation-date'] ? new \DateTime($data['validation-date']) : null;*/
+        $handling = $handlingRepository->find($post->get('id'));
 
-            $statutLabel = (intval($data['status']) === 1) ? Handling::STATUT_A_TRAITER : Handling::STATUT_TRAITE;
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, $statutLabel);
-            if ($statut->getNom() === Handling::STATUT_TRAITE
-                && $statut !== $handling->getStatus()) {
-                $handlingService->sendTreatedEmail($handling);
-                $handling->setValidationDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
-            }
+        $desiredDate = $post->get('desired-date') ? new \DateTime($post->get('desired-date')) : null;
+        $status = $statutRepository->find( $post->get('status'));
+        $validationDate = $status->getTreated() ? (new DateTime('now', new DateTimeZone('Europe/Paris'))) : null;
 
-            $handling
-                ->setSubject(substr($data['subject'], 0, 64))
-                ->setSource($data['source'])
-                ->setDestination($data['destination'])
-                ->setStatus($status)
-                ->setDesiredDate($desiredDate)
-                /*->setValidationDate($validationDate)*/
-                ->setComment($data['commentaire'])
-                ->setEmergency($data['emergency']);
+        $handling
+            ->setSubject(substr($post->get('subject'), 0, 64))
+            ->setSource($post->get('source'))
+            ->setDestination($post->get('destination'))
+            ->setStatus($status)
+            ->setDesiredDate($desiredDate)
+            ->setComment($post->get('comment'))
+            ->setEmergency($post->get('emergency'));
 
-            $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
-
-            $listAttachmentIdToKeep = $post->get('files') ?? [];
-
-            $attachments = $handling->getAttachements()->toArray();
-            foreach ($attachments as $attachment) {
-                /** @var PieceJointe $attachment */
-                if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $attachmentService->removeAndDeleteAttachment($attachment, null, null, null, $handling);
-                }
-            }
-
-            $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'msg' => $translator->trans("services.La demande de service a bien été modifiée") . '.'
-            ]);
+        if (!$handling->getValidationDate()) {
+            $handling->setValidationDate($validationDate);
         }
-        throw new NotFoundHttpException('404');
+
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
+
+        $listAttachmentIdToKeep = $data['files'] ?? [];
+
+        $attachments = $handling->getAttachements()->toArray();
+        foreach ($attachments as $attachment) {
+            /** @var PieceJointe $attachment */
+            if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+                $this->attachmentService->removeAndDeleteAttachment($attachment, null, null, null, $handling);
+            }
+        }
+
+        $this->persistAttachments($handling, $this->attachmentService, $request, $entityManager);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => $translator->trans("services.La demande de service a bien été modifiée") . '.'
+        ]);
+
     }
 
     /**

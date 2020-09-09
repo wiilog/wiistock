@@ -116,26 +116,25 @@ class HandlingRepository extends EntityRepository
         // filtres sup
         foreach ($filters as $filter) {
             switch($filter['field']) {
-                case 'status':
+                case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb
 						->join('handling.status', 'status')
 						->andWhere('status.id in (:status)')
 						->setParameter('status', $value);
 					break;
-                case 'requesters':
+                case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('handling.requester', 'requester')
                         ->andWhere("requester.id in (:username)")
                         ->setParameter('username', $value);
                     break;
-                case 'types':
-                    $value = explode(',', $filter['value']);
+                case 'type':
                     $qb
                         ->join('handling.type', 'type')
-                        ->andWhere("type.id in (:type)")
-                        ->setParameter('type', $value);
+                        ->andWhere("type.label in (:type)")
+                        ->setParameter('type', $filter['value']);
                     break;
                 case 'dateMin':
                     $qb->andWhere('handling.creationDate >= :dateMin')
