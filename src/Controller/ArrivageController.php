@@ -192,7 +192,7 @@ class ArrivageController extends AbstractController
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
             'users' => $utilisateurRepository->findBy(['status' => true],['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
-            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'natures' => $natureRepository->findAll(),
             'statuts' => $status,
             'fieldsParam' => $fieldsParam,
@@ -424,7 +424,7 @@ class ArrivageController extends AbstractController
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
-                    'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                    'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
                     'freeFieldsGroupedByTypes' => $champsLibres
@@ -942,7 +942,7 @@ class ArrivageController extends AbstractController
 
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
-            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'acheteurs' => $acheteursNames,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
             'allColis' => $arrivage->getPacks(),
@@ -1177,7 +1177,7 @@ class ArrivageController extends AbstractController
                 'litige' => $litige,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
-                'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
                 'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getPacks(),

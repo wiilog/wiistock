@@ -84,12 +84,24 @@ class DashboardChartMeter
 
     public function getData(): ?array
     {
-        return $this->data;
+        return array_reduce($this->data, function (array $carry, $item) {
+            $carry[$item['dataKey']] = $item['data'];
+            return $carry;
+        }, []);
     }
 
     public function setData(array $data): self
     {
-        $this->data = $data;
+
+        $savedData = [];
+        foreach ($data as $key => $datum) {
+            $savedData[] = [
+                'dataKey' => $key,
+                'data' => $datum
+            ];
+        }
+        $this->data = $savedData;
+
 
         return $this;
     }

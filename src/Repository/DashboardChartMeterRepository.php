@@ -41,7 +41,16 @@ class DashboardChartMeterRepository extends EntityRepository
             'dashboard' => $dashboard,
             'key' => $id,
         ]);
-        return $query->getOneOrNullResult();
+        $meter = $query->getOneOrNullResult();
+
+        if (!empty($meter) && !empty($meter['data'])) {
+            $meter['data'] = array_reduce($meter['data'], function (array $carry, $item) {
+                $carry[$item['dataKey']] = $item['data'];
+                return $carry;
+            }, []);
+        }
+
+        return $meter;
     }
 
     /**

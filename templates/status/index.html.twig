@@ -11,6 +11,7 @@
 
 {% block page_content %}
     <input type="hidden" id="categoryStatusDispatchId" value="{{ categoryStatusDispatchId }}"/>
+    <input type="hidden" id="categoryStatusHandlingId" value="{{ categoryStatusHandlingId }}"/>
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
@@ -30,7 +31,10 @@
         </div>
     </div>
 
-    {% include 'status/modalNewStatus.html.twig' %}
+    {% include 'status/modalNewStatus.html.twig' with {
+        categories: categories,
+        types: types
+    } %}
     {% include 'status/modalEditStatus.html.twig' %}
     {% include 'status/modalDeleteStatus.html.twig' %}
 

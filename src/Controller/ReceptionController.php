@@ -935,7 +935,7 @@ class ReceptionController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
 
         foreach ($listTypesDL as $typeDL) {
@@ -956,7 +956,7 @@ class ReceptionController extends AbstractController
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibresDL' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
@@ -1348,7 +1348,7 @@ class ReceptionController extends AbstractController
 
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
                 'litige' => $litige,
-                'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
                 'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
@@ -1534,7 +1534,7 @@ class ReceptionController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
-            $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
 
             $inventoryCategories = $inventoryCategoryRepository->findAll();
             $typeChampLibre = [];
@@ -1548,7 +1548,7 @@ class ReceptionController extends AbstractController
             }
             return new JsonResponse($this->renderView('reception/modalNewRefArticle.html.twig', [
                 'typeChampsLibres' => $typeChampLibre,
-                'types' => $typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
+                'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
                 'categories' => $inventoryCategories,
             ]));
         }

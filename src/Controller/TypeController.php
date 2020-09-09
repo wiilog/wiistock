@@ -58,7 +58,7 @@ class TypeController extends AbstractController
                 $isType = false;
             }
             else {
-                $options = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+                $options = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [

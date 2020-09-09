@@ -172,7 +172,7 @@ class RefArticleDataService
 
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
 
         $categories = $preloadCategories
             ? $inventoryCategoryRepository->findAll()
