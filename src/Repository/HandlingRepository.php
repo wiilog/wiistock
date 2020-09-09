@@ -42,17 +42,28 @@ class HandlingRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByStatut($status) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @Lang DQL */
-            "SELECT handling.id, handling.desiredDate as desiredDate, requester.username as requester, handling.comment, handling.source, handling.destination, handling.subject as objet
-        FROM App\Entity\Handling handling
-        JOIN handling.requester requester
-        WHERE handling.status = :status
-        "
-        )->setParameter('$status', $status);
-        return $query->execute();
+    public function getMobileHandlingsByUserType(Utilisateur $user) {
+
+        $queryBuilder = $this->createQueryBuilder('handling');
+        $queryBuilder
+            ->select('handling.id AS id')
+            ->addSelect('handling.desiredDate AS desiredDate')
+            ->addSelect('requester.username AS requester')
+            ->addSelect('handling.comment AS comment')
+            ->addSelect('handling.source AS source')
+            ->addSelect('handling.destination AS destination')
+            ->addSelect('handling.subject AS subject')
+            ->leftJoin('handling.requester', 'handling_requester')
+            ->leftJoin('handling.status', 'status')
+            ->leftJoin('handling.type', 'handlingType')
+            ->where('status.treated = false')
+            ->andWhere('status.needsMobileSync = true')
+            ->andWhere('handlingType.id IN (:userTypes)')
+            ->setParameter('userTypes', $user->getHandlingTypeIds());
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 
     /**
