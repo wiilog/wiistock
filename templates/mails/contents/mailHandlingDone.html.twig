@@ -1,15 +1,52 @@
 {% extends 'mails/template.html.twig' %}
 
+{% set emergency : handling.emergency ? 'Oui' : 'Non' %}
+
 {% block content %}
-    <div>Date de demande : {{ handling.date|date('d/m/Y') }}</div>>
-    <div>Date de réalisation : {{ handling.dateEnd|date('d/m/Y') }}</div>>
-    <div>Libellé : {{ handling.libelle }}</div>>
-    <div>Demandeur : {{ handling.demandeur.username }}</div>>
-    <div>Source : {{ handling.source }}</div>>
-    <div>Destination : {{ handling.destination }}</div>>
-    {% if (handling.commentaire is not empty and handling.commentaire != '<p><br></p>') %}
-        <div>Commentaire : {{ handling.commentaire|raw }}</div>>
+    <div>Numéro de demande :
+        <strong>{{ handling.number }}</strong>
+    </div>
+    <div>Date demande :
+        <strong>{{ handling.creationDate|date('d/m/Y') }}</strong>
+    </div>
+    <div>Type :
+        <strong>{{ handling.type.label }}</strong>
+    </div>
+    <div>Demandeur :
+        <strong>{{ handling.requester.username }}</strong>
+    </div>
+    <div>Objet :
+        <strong>{{ handling.subject }}</strong>
+    </div>
+    <div>Chargement :
+        <strong>{{ handling.source }}</strong>
+    </div>
+    <div>Déchargement :
+        <strong>{{ handling.destination }}</strong>
+    </div>
+    <div>Date souhaitée :
+        <strong>{{ handling.desiredDate|date('d/m/Y') }}</strong>
+    </div>
+    <div>Date de réalisation :
+        <strong>{{ handling.validationDate|date('d/m/Y') }}</strong>
+    </div>
+    <div>Statut :
+        <strong>{{ handling.status.nom }}</strong>
+    </div>
+    <div>Urgence :
+        <strong>{{ emergency }}</strong>
+    </div>
+    {% if (handling.comment is not empty and handling.comment != '<p><br></p>') %}
+        <div>Commentaire : {{ handling.comment|raw }}</div>
     {% endif %}
+    <div>
+        Pièces-jointes :
+        <ul>
+            {% for attachments in handling.attachements %}
+                <li>{{ attachment.originalName }}</li>
+            {% endfor %}
+        </ul>
+    </div>
     <br>
     <br>
 {% endblock %}

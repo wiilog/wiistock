@@ -9,7 +9,7 @@
                         <i class='fas fa-pencil-alt'></i>
                     </div>
                 </div>
-                {% if handling.statut.nom != constant('App\\Entity\\Handling::STATUT_TRAITE') %}
+                {% if handling.status.nom != constant('App\\Entity\\Handling::STATUT_TRAITE') %}
                     <div class="dropdown-item" data-id='{{ handling.id }}' data-target='#modalDeleteHandling' data-toggle='modal'
                          onclick="deleteRow($(this), $('#modalDeleteHandling'), $('#submitDeleteHandling'))">
                         <i class='fas fa-trash mr-2'></i>Supprimer

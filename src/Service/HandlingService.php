@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Utilisateur;
+use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,7 +61,7 @@ class HandlingService
         if ($statusFilter) {
             $filters = [
                 [
-                    'field' => 'statut',
+                    'field' => 'status',
                     'value' => $statusFilter
                 ]
             ];
@@ -94,13 +95,16 @@ class HandlingService
     public function dataRowHandling(Handling $handling)
     {
         return [
-            'id' => ($handling->getId() ? $handling->getId() : 'Non défini'),
-            'Date demande' => ($handling->getDate() ? $handling->getDate()->format('d/m/Y') : null),
-            'Demandeur' => ($handling->getDemandeur() ? $handling->getDemandeur()->getUserName() : null),
-            'Libellé' => ($handling->getlibelle() ? $handling->getLibelle() : null),
-            'Date souhaitée' => ($handling->getDateAttendue() ? $handling->getDateAttendue()->format('d/m/Y H:i') : null),
-            'Date de réalisation' => ($handling->getDateEnd() ? $handling->getDateEnd()->format('d/m/Y H:i') : null),
-            'Statut' => ($handling->getStatut()->getNom() ? $handling->getStatut()->getNom() : null),
+            'id' => $handling->getId() ? $handling->getId() : 'Non défini',
+            'number' => $handling->getNumber() ? $handling->getNumber() : '',
+            'creationDate' => $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y') : null,
+            'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
+            'requester' => $handling->getRequester() ? $handling->getRequester()->getUserName() : null,
+            'subject' => $handling->getSubject() ? $handling->getSubject() : '',
+            'desiredDate' => $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i') : null,
+            'validationDate' => $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i') : null,
+            'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
+            'emergency' => $handling->getEmergency() ? 'Oui' : 'Non',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
             ]),
@@ -120,7 +124,34 @@ class HandlingService
                 'handling' => $handling,
                 'title' => $this->translator->trans('services.Votre demande de service a bien été effectuée').'.',
             ]),
-            $handling->getDemandeur()->getMainAndSecondaryEmails()
+            $handling->getRequester()->getMainAndSecondaryEmails()
         );
+    }
+
+    public function createHandlingNumber(EntityManagerInterface $entityManager,
+                                         DateTime $date): string {
+
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+
+        $dateStr = $date->format('Ymd');
+
+        $lastHandlingNumber = $handlingRepository->getLastHandlingNumberByPrefix(Handling::PREFIX_NUMBER . $dateStr);
+
+        if ($lastHandlingNumber) {
+            $lastCounter = (int) substr($lastHandlingNumber, -4, 4);
+            $currentCounter = ($lastCounter + 1);
+        }
+        else {
+            $currentCounter = 1;
+        }
+
+        $currentCounterStr = (
+        $currentCounter < 10 ? ('000' . $currentCounter) :
+            ($currentCounter < 100 ? ('00' . $currentCounter) :
+                ($currentCounter < 1000 ? ('0' . $currentCounter) :
+                    $currentCounter))
+        );
+
+        return (Handling::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
 }

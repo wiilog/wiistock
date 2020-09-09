@@ -1,60 +1,110 @@
-<div class="form-group needed">
-    <label for="objet">Objet*</label>
-    <input type="text" id="objet" class="form-control data needed input" name="Libelle" value="{{handling.libelle}}" maxlength="64">
-</div>
-
-<div class="form-group needed">
-    <label for="demandeur">Demandeur</label>
-    <select type="text" class="demandeur form-control data needed input" id="demandeur" name="demandeur" disabled>
-        <option value="{{handling.demandeur.id}}">{{handling.demandeur }}</option>
+<div class="form-group">
+    <label>Type*</label>
+    <select name="type"
+            class="form-control d-block type needed"
+            disabled
+            title="Type">
+        <option selected value={{ handling.type.id }}>{{ handling.type.label }}</option>
     </select>
 </div>
 
+{% if treatedStatus is not empty %}
+    <div class="form-group">
+        <label>Statut*</label>
+        <select name="statut"
+                class="form-control data d-block needed"
+                title="Statut">
+            {% for status in treatedStatus %}
+                <option data-type-id="{{ status.type.id }}"
+                        value="{{ status.id }}">
+                    {{ status.nom }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+{% else %}
+    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+        array: [],
+        warningLabel: 'Vous n\'avez pas configuré de statut traité pour ce ' ~ ('services.Type de demande de service'|trans),
+        redirectPath: path('status_param_index'),
+        redirectLabel: 'Aller vers la création des statuts'
+    } %}
+{% endif %}
+
 <div class="form-group needed">
-    <label for="Localité">Chargement*</label>
-    <input class="form-control data needed input" value="{{handling.source}}" name="source">
+    <label for="subject">Objet*</label>
+    <input class="form-control data needed" name="subject" value="{{ handling.subject }}">
 </div>
 
 <div class="form-group needed">
-    <label for="Localité">Déchargement*</label>
-    <input class="form-control data needed input" value="{{handling.destination}}" name="destination">
+    <label for="requester">Demandeur</label>
+    <select type="text" class="demandeur form-control data needed input" name="requester" disabled>
+        <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+    </select>
 </div>
 
 <div class="form-group">
-    <label for="date-attendue">Date attendue</label>
-    <input class="form-control data needed" type="datetime-local" value="{{handling.dateAttendue|date('Y-m-d\\TH:i')}}" name="date-attendue" id="date-attendue"
+    <label for="desired-date">Date attendue</label>
+    <input class="form-control data needed"
+           type="datetime-local"
+           value="{{ handling.desiredDate|date('Y-m-d\\TH:i') }}"
+           name="desired-date"
            min="{{ 'now' | date('Y-m-d') }}">
 </div>
-<div class="form-group">
-    <label for="date-attendue">Date de réalisation</label>
-    <input class="form-control" type="datetime-local" value="{{handling.dateEnd ? handling.dateEnd|date('Y-m-d\\TH:i')}}" name="date-real" id="date-real" disabled>
+
+<div class="form-group needed">
+    <label for="source">Chargement*</label>
+    <input class="form-control data needed input" value="{{ handling.source }}" name="source">
 </div>
-<div class="form-group col-12 w-100">
-    <div class="input-group radio-btn">
-        <label for="statut" class="my-auto mr-2">Statut*</label>
-        <div>
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT') ) %}
-            <span class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                onclick="changeStatus(this)" data-value="1">A Traiter</span><span
-                class="btn {{ statusTreated == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                onclick="changeStatus(this)" data-value="0">Traité</span>
-            {% else %}
-            <span class="btn {{ statusTreated == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                onclick="changeStatus(this)" data-value="1" style="pointer-events:none">A Traiter</span><span
-                class="btn {{ statusTreated == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                onclick="changeStatus(this)" data-value="0" style="pointer-events:none">Traité</span>
-            {% endif %}
+
+<div class="form-group needed">
+    <label for="destination">Déchargement*</label>
+    <input class="form-control data needed input" value="{{ handling.destination }}" name="destination">
+</div>
+
+{% if handling.type is not null and handling.type.champsLibres.count > 0 %}
+    <div class="form-group col-12 blocVisible d-block">
+        <div class="row">
+            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                freeFields: handling.type.champsLibres,
+                freeFieldValues: handling.freeFields,
+                colType: 'col-12',
+                requiredType: 'requiredEdit',
+                actionType: 'edit'
+            } %}
         </div>
-        <input id="statusHandling" type="hidden" value="{{statusTreated}}" name="statut" class="data">
+    </div>
+{% endif %}
+
+<div class="form-group">
+    <label for="comment">Commentaire</label>
+    <input id='comment'
+           class="comment form-control data"
+           name="comment"
+           type="hidden"
+           value="{{ handling.comment }}">
+    <div class="editor-container-edit"
+         id="editor-container-edit"
+         value="{{ handling.comment }}">
+        {{ handling.comment|raw }}
     </div>
 </div>
 
 <div class="form-group">
-    <label for="commentaire">Commentaire</label>
-    <input id="commentaire" class="form-control data" name="commentaire" type="hidden"
-        value="{{handling.commentaire}}">
-    <div class="editor-container-edit" value="{{handling.commentaire}}"
-         contenteditable="{{ statusTreated == '1' ? 'false' : 'true' }}"
-    > {{handling.commentaire|raw}}
+    <label>Urgence</label>
+    <div class="w-100">
+        <label class="switch mt-2">
+            <input class="checkbox"
+                   name="emergency"
+                {{ handling.emergency ? 'checked' }}
+                   type="checkbox"/>
+            <span class="slider round"></span>
+        </label>
+    </div>
+</div>
+
+<div class="form-group">
+    <div>
+        {% include 'attachment/attachment.html.twig' with {'isNew' : false} %}
     </div>
 </div>

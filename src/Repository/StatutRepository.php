@@ -375,18 +375,18 @@ class StatutRepository extends EntityRepository
         ];
     }
 
-    public function findDispatchStatusTreatedByType($type, $orderedBy = false)
+    public function findTreatedStatusByType($category, $type, $orderedBy = false)
     {
         $qb = $this->createQueryBuilder('status');
 
         $qb
             ->select('status')
             ->join('status.categorie', 'category')
-            ->where('category.nom = :ach')
+            ->where('category.nom = :category')
             ->andWhere('status.treated = true')
             ->andWhere('status.type = :type')
             ->setParameters([
-                'ach' => CategorieStatut::DISPATCH,
+                'category' => $category,
                 'type' => $type
             ]);
 
