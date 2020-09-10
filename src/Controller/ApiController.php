@@ -796,7 +796,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/validateHandling", name="api-validate-handling", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -1386,7 +1386,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($rights['demande']) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = $handlingRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_A_TRAITER));
+            $handlings = $handlingRepository->getMobileHandlings($user);
             $handlings = array_map(function (array $handling) {
                 $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
                 return $handling;
@@ -1451,7 +1451,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'manutentions' => $handlings,
+            'handlings' => $handlings,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,

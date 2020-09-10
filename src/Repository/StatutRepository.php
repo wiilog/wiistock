@@ -375,18 +375,18 @@ class StatutRepository extends EntityRepository
         ];
     }
 
-    public function findTreatedStatusByType($entity, $type, $orderedBy = false)
+    public function findTreatedStatusByType($categoryLabel, $type, $orderedBy = false)
     {
         $qb = $this->createQueryBuilder('status');
 
         $qb
             ->select('status')
             ->join('status.categorie', 'category')
-            ->where('category.nom = :entity')
+            ->where('category.nom = :categoryLabel')
             ->andWhere('status.treated = true')
             ->andWhere('status.type = :type')
             ->setParameters([
-                'entity' => $entity,
+                'categoryLabel' => $categoryLabel,
                 'type' => $type
             ]);
 
