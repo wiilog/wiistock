@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
@@ -57,9 +57,9 @@ final class Version20200907142945 extends AbstractMigration
             }
 
             $id = $handling['id'];
-            $dispatchNumber = Handling::PREFIX_NUMBER . $dateStr . $suffix . $daysCounter[$dayCounterKey];
-            $sqlDispatchNumber = ("UPDATE handling SET number = '$dispatchNumber' WHERE handling.id = '$id'");
-            $this->addSql($sqlDispatchNumber);
+            $handlingNumber = $dayCounterKey . $suffix . $daysCounter[$dayCounterKey];
+            $sqlHandlingNumber = ("UPDATE handling SET number = '$handlingNumber' WHERE handling.id = ${id}");
+            $this->addSql($sqlHandlingNumber);
         }
     }
 

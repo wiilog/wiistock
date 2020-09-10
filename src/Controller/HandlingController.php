@@ -53,19 +53,11 @@ class HandlingController extends AbstractController
      */
     private $mailerService;
 
-    /**
-     * @var AttachmentService
-     */
-    private $attachmentService;
-
-
     public function __construct(UserService $userService,
-                                MailerService $mailerService,
-                                AttachmentService $attachmentService)
+                                MailerService $mailerService)
     {
         $this->userService = $userService;
         $this->mailerService = $mailerService;
-        $this->attachmentService = $attachmentService;
     }
 
     /**
@@ -180,7 +172,6 @@ class HandlingController extends AbstractController
             }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
             $post = $request->request;
@@ -227,16 +218,14 @@ class HandlingController extends AbstractController
                 $attachments = $attachmentService->createAttachements($fileNames);
                 foreach ($attachments as $attachment) {
                     $entityManager->persist($attachment);
-                    $handling->addAttachement($attachment);
+                    $handling->addAttachment($attachment);
                 }
             }
 
             $entityManager->persist($handling);
             $entityManager->flush();
 
-            if ($status && $status->getSendNotifToDeclarant()) {
-                $handlingService->sendTreatedEmail($handling);
-            }
+            $handlingService->sendEmailsAccordingToStatus($handling);
 
             return new JsonResponse([
                 'success' => true,
@@ -270,7 +259,7 @@ class HandlingController extends AbstractController
                 'handling' => $handling,
                 'utilisateurs' => $utilisateurRepository->findAll(),
                 'handlingStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING),
-                'attachements' => $attachmentsRepository->findBy(['handling' => $handling]),
+                'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);
 
             return new JsonResponse($json);
@@ -284,6 +273,7 @@ class HandlingController extends AbstractController
      * @param Request $request
      * @param FreeFieldService $freeFieldService
      * @param TranslatorInterface $translator
+     * @param AttachmentService $attachmentService
      * @param HandlingService $handlingService
      * @return Response
      * @throws LoaderError
@@ -295,6 +285,7 @@ class HandlingController extends AbstractController
                          Request $request,
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
+                         AttachmentService $attachmentService,
                          HandlingService $handlingService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -307,13 +298,6 @@ class HandlingController extends AbstractController
         $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
         $desiredDate = $post->get('desired-date') ? new \DateTime($post->get('desired-date')) : null;
         $newStatus = $statutRepository->find($post->get('status'));
-
-        if ($desiredDate < $date) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'La date attendue ne peut être antérieure à la date de création.'
-            ]);
-        }
 
         $oldStatus = $handling->getStatus();
         $handling
@@ -333,31 +317,26 @@ class HandlingController extends AbstractController
 
         $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-        $attachments = $handling->getAttachements()->toArray();
+        $attachments = $handling->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
             /** @var PieceJointe $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, null, null, null, $handling);
+                $attachmentService->removeAndDeleteAttachment($attachment, $handling);
             }
         }
 
-        $this->persistAttachments($handling, $this->attachmentService, $request, $entityManager);
+        $this->persistAttachments($handling, $attachmentService, $request, $entityManager);
 
         $entityManager->flush();
 
-        $canSendEmail = (
-            (
-                (!$oldStatus && $newStatus)
-                || (
-                    $oldStatus
-                    && $newStatus
-                    && ($oldStatus->getId() !== $newStatus->getId())
-                )
-            )
-            && $newStatus->getSendNotifToDeclarant()
-        );
-        if ($canSendEmail) {
-            $handlingService->sendTreatedEmail($handling);
+        // check if status has changed
+        if ((!$oldStatus && $newStatus)
+            || (
+                $oldStatus
+                && $newStatus
+                && ($oldStatus->getId() !== $newStatus->getId())
+            )) {
+            $handlingService->sendEmailsAccordingToStatus($handling);
         }
 
         return new JsonResponse([
@@ -378,7 +357,7 @@ class HandlingController extends AbstractController
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $entity->addAttachement($attachment);
+            $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
         $entityManager->flush();

@@ -56,12 +56,12 @@ $(function() {
 let $modalNewHandling = $("#modalNewHandling");
 let $submitNewHandling = $("#submitNewHandling");
 let urlNewHandling = Routing.generate('handling_new', true);
-InitModalWithAttachments($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
+InitModal($modalNewHandling, $submitNewHandling, urlNewHandling, {tables: [tableHandling]});
 
 let $modalModifyHandling = $('#modalEditHandling');
 let $submitModifyHandling = $('#submitEditHandling');
 let urlModifyHandling = Routing.generate('handling_edit', true);
-InitModalWithAttachments($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
+InitModal($modalModifyHandling, $submitModifyHandling, urlModifyHandling, {tables: [tableHandling]});
 
 let $modalDeleteHandling = $('#modalDeleteHandling');
 let $submitDeleteHandling = $('#submitDeleteHandling');

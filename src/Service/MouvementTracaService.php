@@ -239,7 +239,7 @@ class MouvementTracaService
         if (isset($fileBag)) {
             $attachements = $this->attachmentService->createAttachements($fileBag);
             foreach ($attachements as $attachement) {
-                $mouvementTraca->addAttachement($attachement);
+                $mouvementTraca->addAttachment($attachement);
             }
         }
         return $mouvementTraca;
@@ -272,7 +272,7 @@ class MouvementTracaService
         foreach ($mouvementTraca->getLinkedPackLastDrops() as $colisMvt) {
             $entityManager->persist($colisMvt);
         }
-        foreach ($mouvementTraca->getAttachements() as $attachement) {
+        foreach ($mouvementTraca->getAttachments() as $attachement) {
             $entityManager->persist($attachement);
         }
     }

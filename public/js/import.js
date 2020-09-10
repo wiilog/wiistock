@@ -56,7 +56,7 @@ function displayFirstModal(importId = null) {
     $inputImportId.val('');
     $submitNewImport.off();
     let urlNewImportFirst = Routing.generate('import_new', true);
-    InitModalWithAttachments(
+    InitModal(
         $modalNewImport,
         $submitNewImport,
         urlNewImportFirst,

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,7 +16,8 @@ class Handling extends FreeFieldEntity
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
 
-    const PREFIX_NUMBER = 'D-';
+    const PREFIX_NUMBER = 'S-';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -102,12 +104,12 @@ class Handling extends FreeFieldEntity
         return $this->id;
     }
 
-    public function getCreationDate(): ?\DateTimeInterface
+    public function getCreationDate(): ?DateTime
     {
         return $this->creationDate;
     }
 
-    public function setCreationDate(\DateTimeInterface $creationDate): self
+    public function setCreationDate(DateTime $creationDate): self
     {
         $this->creationDate = $creationDate;
 
@@ -186,24 +188,24 @@ class Handling extends FreeFieldEntity
         return $this;
     }
 
-    public function getDesiredDate(): ?\DateTimeInterface
+    public function getDesiredDate(): ?DateTime
     {
         return $this->desiredDate;
     }
 
-    public function setDesiredDate(?\DateTimeInterface $desiredDate): self
+    public function setDesiredDate(?DateTime $desiredDate): self
     {
         $this->desiredDate = $desiredDate;
 
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
+    public function getValidationDate(): ?DateTime
     {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
+    public function setValidationDate(?DateTime $validationDate): self
     {
         $this->validationDate = $validationDate;
 
@@ -249,12 +251,12 @@ class Handling extends FreeFieldEntity
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getAttachments(): Collection
     {
         return $this->attachments;
     }
 
-    public function addAttachement(PieceJointe $attachment): self
+    public function addAttachment(PieceJointe $attachment): self
     {
         if (!$this->attachments->contains($attachment)) {
             $this->attachments[] = $attachment;
@@ -264,7 +266,7 @@ class Handling extends FreeFieldEntity
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachment): self
+    public function removeAttachment(PieceJointe $attachment): self
     {
         if ($this->attachments->contains($attachment)) {
             $this->attachments->removeElement($attachment);

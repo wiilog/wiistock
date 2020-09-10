@@ -462,7 +462,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                     'date' => $date,
                                                     'operateur' => $nomadUser->getUsername(),
-                                                    'pjs' => $arrivage->getAttachements()
+                                                    'pjs' => $arrivage->getAttachments()
                                                 ]
                                             ),
                                             $destinataire->getMainAndSecondaryEmails()
@@ -833,9 +833,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
-                if ($handling->getStatus()->getNom() == Handling::STATUT_TRAITE) {
-                    $handlingService->sendTreatedEmail($handling);
-                }
+                $handlingService->sendEmailsAccordingToStatus($handling);
                 $this->successDataMsg['success'] = true;
             } else {
                 $this->successDataMsg['success'] = false;
