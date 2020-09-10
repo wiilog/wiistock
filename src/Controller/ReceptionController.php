@@ -592,6 +592,7 @@ class ReceptionController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
@@ -652,7 +653,7 @@ class ReceptionController extends AbstractController
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $quantity = $ligneArticle->getQuantite();
-            $mouvementStock = $this->mouvementStockService->createMouvementStock(
+            $stockMovement = $this->mouvementStockService->createMouvementStock(
                 $currentUser,
                 null,
                 $quantity,
@@ -660,10 +661,10 @@ class ReceptionController extends AbstractController
                 MouvementStock::TYPE_SORTIE
             );
 
-            $mouvementStock->setReceptionOrder($reception);
+            $stockMovement->setReceptionOrder($reception);
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
-            $this->mouvementStockService->finishMouvementStock($mouvementStock, $date, $reception->getLocation());
-            $entityManager->persist($mouvementStock);
+            $this->mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
+            $entityManager->persist($stockMovement);
 
             $entityManager->flush();
             return new JsonResponse([
