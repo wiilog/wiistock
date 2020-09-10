@@ -28,7 +28,8 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postUpdate(Article $article) {
-        $this->treatAlertAndUpdateRefArticleQuantities($article);
+        $entityManager = $this->getEntityManager();
+        $this->treatAlertAndUpdateRefArticleQuantities($entityManager, $article);
     }
 
     /**
@@ -36,7 +37,8 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postPersist(Article $article) {
-        $this->treatAlertAndUpdateRefArticleQuantities($article);
+        $entityManager = $this->getEntityManager();
+        $this->treatAlertAndUpdateRefArticleQuantities($entityManager, $article);
     }
 
     /**
@@ -44,15 +46,16 @@ class ArticleQuantityNotifier
      * @throws Exception
      */
     public function postRemove(Article $article) {
-        $this->treatAlertAndUpdateRefArticleQuantities($article);
+        $entityManager = $this->getEntityManager(true);
+        $this->treatAlertAndUpdateRefArticleQuantities($entityManager, $article);
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param Article $article
      * @throws Exception
      */
-    private function treatAlertAndUpdateRefArticleQuantities(Article $article) {
-        $entityManager = $this->getEntityManager();
+    private function treatAlertAndUpdateRefArticleQuantities(EntityManagerInterface $entityManager, Article $article) {
         $articleFournisseur = $article->getArticleFournisseur();
         if (isset($articleFournisseur)) {
             $referenceArticle = $articleFournisseur->getReferenceArticle();
@@ -64,11 +67,12 @@ class ArticleQuantityNotifier
     }
 
     /**
+     * @param bool $cleaned
      * @return EntityManagerInterface
      * @throws ORMException
      */
-    private function getEntityManager(): EntityManagerInterface {
-        return $this->entityManager->isOpen()
+    private function getEntityManager(bool $cleaned = false): EntityManagerInterface {
+        return $this->entityManager->isOpen() && !$cleaned
             ? $this->entityManager
             : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
