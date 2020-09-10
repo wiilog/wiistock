@@ -33,6 +33,7 @@
 
     <input type="hidden" id="dispatchLocationTo" value="{{ 'acheminement.emplacement dépose'|trans }}">
     <input type="hidden" id="dispatchLocationFrom" value="{{ 'acheminement.emplacement prise'|trans }}">
+    <input type="hidden" id="dispatchPack" value="{{ 'colis.colis'|trans }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
 {% endblock %}

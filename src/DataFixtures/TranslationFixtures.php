@@ -115,10 +115,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     : 'Référence'
             ],
             'colis' => [
+                'colis' => 'colis',
                 'Ajouter un colis' => 'Ajouter un colis',
                 'Modifier un colis' => 'Modifier un colis',
                 'Numéro colis' => 'Numéro colis',
                 "Quantité colis" => "Quantité colis",
+                "Liste des colis" => "Liste des colis",
                 'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
                 "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
                 "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
