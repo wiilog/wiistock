@@ -258,7 +258,7 @@ class HandlingController extends AbstractController
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
                 'utilisateurs' => $utilisateurRepository->findAll(),
-                'treatedStatus' => $statutRepository->findTreatedStatusByType(CategorieStatut::HANDLING, $handling->getType(), true),
+                'handlingStatus' => $statutRepository->findTreatedStatusByType(CategorieStatut::HANDLING, $handling->getType(), true),
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);
 
