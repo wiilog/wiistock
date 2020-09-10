@@ -14,7 +14,9 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed">
+                    <select name="type" class="form-control data d-block type needed"
+                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                            onchange="toggleRequiredChampsLibres($(this), 'create', availableStatusOnChange($(this)))">
                         <option value="">Type à choisir...</option>
                         {% for type in freeFieldsTypes %}
                             <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
@@ -28,7 +30,7 @@
                             class="form-control data w-100 needed need-default">
                         <option value="">Choisir un statut...</option>
                         {% for status in handlingStatus %}
-                            <option data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
+                            <option class="d-none" data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
                         {% endfor %}
                     </select>
                     <input type="hidden" name="handlingDefaultStatus" value="{{ handlingDefaultStatus|json_encode }}"/>

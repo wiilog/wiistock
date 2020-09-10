@@ -374,15 +374,14 @@ class HandlingController extends AbstractController
                            EntityManagerInterface $entityManager,
                            TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
 
-            $post = $request->request;
-            $handling = $handlingRepository->find($post->get('handling'));
+            $handling = $handlingRepository->find($data['handling']);
 
             if ($handling) {
                 $attachments = $attachmentRepository->findBy(['handling' => $handling]);
