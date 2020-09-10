@@ -60,6 +60,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             'acheminement' => [
                 'nouvelle demande' => 'nouvelle demande',
                 'acheminements' => 'acheminements',
+                'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
@@ -160,11 +161,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         foreach ($translations as $menu => $translation) {
             foreach ($translation as $label => $translatedLabel) {
-
-                $translationObject = $this->translationRepository->findOneBy([
-                    'menu' => $menu,
-                    'label' => $label
-                ]);
+                // array_reduce to force request with case sensitive
+                $translationObject = array_reduce(
+                    $this->translationRepository->findBy([ 'menu' => $menu, 'label' => $label]),
+                    function (?Translation $res, Translation $translation) use ($label, $menu) {
+                        return $res ?? (
+                            ($translation->getLabel() === $label && $translation->getMenu() === $menu)
+                                ? $translation
+                                : null
+                        );
+                    },
+                    null
+                );
 
                 if (empty($translationObject)) {
                     $translationObject = new Translation();
