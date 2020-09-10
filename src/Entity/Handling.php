@@ -13,8 +13,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Handling extends FreeFieldEntity
 {
     const CATEGORIE = 'service';
-    const STATUT_A_TRAITER = 'à traiter';
-    const STATUT_TRAITE = 'traité';
 
     const PREFIX_NUMBER = 'S-';
 

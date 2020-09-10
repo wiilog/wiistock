@@ -61,7 +61,7 @@ class HandlingService
         if ($statusFilter) {
             $filters = [
                 [
-                    'field' => 'status',
+                    'field' => 'statut',
                     'value' => $statusFilter
                 ]
             ];

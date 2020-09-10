@@ -89,10 +89,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Reception::STATUT_RECEPTION_TOTALE,
 				Reception::STATUT_ANOMALIE
 			],
-			CategorieStatut::HANDLING => [
-				Handling::STATUT_A_TRAITER,
-				Handling::STATUT_TRAITE,
-			],
 			CategorieStatut::MVT_TRACA => [
 				MouvementTraca::TYPE_PRISE,
                 MouvementTraca::TYPE_DEPOSE,
