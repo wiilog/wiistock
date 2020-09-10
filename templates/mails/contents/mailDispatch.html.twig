@@ -31,7 +31,7 @@
         <li>
             Pièces-jointes :
             <ul>
-                {% for attachment in dispatch.attachements %}
+                {% for attachment in dispatch.attachments %}
                     <li>{{ attachment.originalName }}</li>
                 {% endfor %}
             </ul>
@@ -81,31 +81,33 @@
                     </td>
                 </tr>
             {% endif %}
-            {% for pack in dispatch.dispatchPacks %}
+            {% for dispatchPack in dispatch.dispatchPacks %}
+
+                {% set natureLabel = dispatchPack.pack.nature ? dispatchPack.pack.nature.label : '' %}
                 <tr>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.pack.nature.label }}
+                        {{ natureLabel }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.pack.code }}
+                        {{ dispatchPack.pack.code }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.quantity }}
+                        {{ dispatchPack.quantity }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.pack.lastTracking.datetime|date('d/m/Y H:i:s') }}
+                        {{ dispatchPack.pack.lastTracking.datetime|date('d/m/Y H:i:s') }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.pack.lastTracking.emplacement.label }}
+                        {{ dispatchPack.pack.lastTracking.emplacement.label }}
                     </td>
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
-                        {{ pack.pack.lastTracking.operateur.username }}
+                        {{ dispatchPack.pack.lastTracking.operateur.username }}
                     </td>
                 </tr>
             {% endfor %}

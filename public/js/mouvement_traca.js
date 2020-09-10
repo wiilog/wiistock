@@ -76,7 +76,7 @@ $.fn.dataTable.ext.search.push(
 let modalNewMvtTraca = $("#modalNewMvtTraca");
 let submitNewMvtTraca = $("#submitNewMvtTraca");
 let urlNewMvtTraca = Routing.generate('mvt_traca_new', true);
-InitModalWithAttachments(
+InitModal(
     modalNewMvtTraca,
     submitNewMvtTraca,
     urlNewMvtTraca,
@@ -111,7 +111,7 @@ InitModalWithAttachments(
 let $modalEditMvtTraca = $("#modalEditMvtTraca");
 let $submitEditMvtTraca = $("#submitEditMvtTraca");
 let urlEditMvtTraca = Routing.generate('mvt_traca_edit', true);
-InitModalWithAttachments($modalEditMvtTraca, $submitEditMvtTraca, urlEditMvtTraca, {tables: [tableMvt]});
+InitModal($modalEditMvtTraca, $submitEditMvtTraca, urlEditMvtTraca, {tables: [tableMvt]});
 
 let $modalDeleteMvtTraca = $('#modalDeleteMvtTraca');
 let $submitDeleteMvtTraca = $('#submitDeleteMvtTraca');

@@ -117,15 +117,29 @@ class HandlingService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendTreatedEmail(Handling $handling): void {
-        $this->mailerService->sendMail(
-            'FOLLOW GT // '.$this->translator->trans('services.Demande de service effectuée'),
-            $this->templating->render('mails/contents/mailHandlingDone.html.twig', [
-                'handling' => $handling,
-                'title' => $this->translator->trans('services.Votre demande de service a bien été effectuée').'.',
-            ]),
-            $handling->getRequester()->getMainAndSecondaryEmails()
-        );
+    public function sendEmailsAccordingToStatus(Handling $handling): void {
+        $requester = $handling->getRequester();
+        $emails = $requester ? $requester->getMainAndSecondaryEmails() : [];
+        if (!empty($emails)) {
+            $status = $handling->getStatus();
+            if ($status && $status->getSendNotifToDeclarant()) {
+                $statusTreated = $status->getTreated();
+                $subject = $statusTreated
+                    ? $this->translator->trans('services.Demande de service effectuée')
+                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                $title = $statusTreated
+                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
+                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // ' . $subject,
+                    $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
+                        'handling' => $handling,
+                        'title' => $title
+                    ]),
+                    $emails
+                );
+            }
+        }
     }
 
     public function createHandlingNumber(EntityManagerInterface $entityManager,

@@ -1,5 +1,8 @@
 const FORM_INVALID_CLASS = 'is-invalid';
 const FORM_ERROR_CONTAINER = 'error-msg';
+const FILE_MAX_SIZE = 2000000;
+
+let droppedFiles = [];
 
 /**
  * Init form validation modal.
@@ -7,8 +10,7 @@ const FORM_ERROR_CONTAINER = 'error-msg';
  * @param {*} $modal jQuery element of the modal
  * @param {*} $submit jQuery element of the submit button
  * @param {string} path le chemin pris pour envoyer les données.
- * @param {{getFiles: undefined|function, tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
- *   - getFiles return Array<File>
+ * @param {{tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
@@ -29,7 +31,12 @@ function InitModal($modal, $submit, path, options = {}) {
                 alertSuccessMsg('L\'opération est en cours de traitement');
             }
             else {
-                SubmitAction($modal, $submit, path, options)
+                SubmitAction(
+                    $modal,
+                    $submit,
+                    path,
+                    options
+                )
                     .then((data) => {
                         if (data
                             && data.success
@@ -45,8 +52,7 @@ function InitModal($modal, $submit, path, options = {}) {
 
 /**
  *
- * @param {{getFiles: undefined|function, tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean}} options Object containing some options.
- *   - getFiles return Array<File>
+ * @param {{tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
@@ -57,12 +63,12 @@ function InitModal($modal, $submit, path, options = {}) {
 function SubmitAction($modal,
                       $submit,
                       path,
-                      {getFiles, tables, keepModal, keepForm} = {}) {
+                      {tables, keepModal, keepForm} = {}) {
     clearFormErrors($modal);
-    const {success, errorMessages, $isInvalidElements, data} = processForm($modal, getFiles);
+    const {success, errorMessages, $isInvalidElements, data} = processForm($modal);
 
     if (success) {
-        const smartData = getFiles
+        const smartData = $modal.find('input[type="file"]').length > 0
             ? createFormData(data)
             : JSON.stringify(data);
 
@@ -107,6 +113,10 @@ function SubmitAction($modal,
 
                 return data;
             })
+            .catch((err) => {
+                $submit.find('.spinner-border').remove();
+                throw err;
+            })
     }
     else {
         displayFormErrors($modal, {
@@ -139,6 +149,8 @@ function clearFormErrors($modal) {
 }
 
 function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
+    resetDroppedFiles();
+
     if (data.redirect) {
         window.location.href = data.redirect;
         return;
@@ -177,14 +189,13 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm) {
 /**
  *
  * @param {*} $modal jQuery modal
- * @param {undefined|function} getFiles return Array<File>
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processForm($modal, getFiles = undefined) {
+function processForm($modal) {
     const dataArrayForm = processDataArrayForm($modal);
     const dataInputsForm = processInputsForm($modal);
     const dataCheckboxesForm = processCheckboxesForm($modal);
-    const dataFilesForm = processFilesForm($modal, getFiles);
+    const dataFilesForm = processFilesForm($modal);
 
     // TODO remove ?
     const subData = {};
@@ -227,7 +238,7 @@ function processForm($modal, getFiles = undefined) {
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
 function processInputsForm($modal) {
-    const $inputs = $modal.find(".data");
+    const $inputs = $modal.find('.data:not([name^="savedFiles"])');
     const data = {};
     const $isInvalidElements = [];
     const missingInputNames = [];
@@ -431,16 +442,18 @@ function processCheckboxesForm($modal) {
 /**
  *
  * @param {*} $modal jQuery modal
- * @param {function} getFiles jQuery modal
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
  */
-function processFilesForm($modal, getFiles) {
+function processFilesForm($modal) {
     const data = {};
-    if (getFiles) {
-        const files = getFiles();
+    $.each(droppedFiles, function(index, file) {
+        data[`file${index}`] = file;
+    });
 
-        $.each(files, function(index, file) {
-            data[`file${index}`] = file;
+    const $savedFiles = $modal.find('.data[name="savedFiles[]"]');
+    if ($savedFiles.length > 0) {
+        $savedFiles.each(function (index, field) {
+            data[`files[${index}]`] = $(field).val();
         });
     }
 
@@ -565,4 +578,136 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
             alertErrorMsg($message, true)
         }
     }
+}
+
+function displayAttachements(files, $dropFrame, isMultiple = true) {
+
+    let errorMsg = [];
+
+    const $fileBag = $dropFrame.siblings('.file-bag');
+
+    if (!isMultiple) {
+        $fileBag.empty();
+    }
+
+    $.each(files, function(index, file) {
+        let formatValid = checkFileFormat(file, $dropFrame);
+        let sizeValid = checkSizeFormat(file, $dropFrame);
+
+        if (!formatValid) {
+            errorMsg.push('"' + file.name + '" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.');
+        } else if (!sizeValid) {
+            errorMsg.push('"' + file.name + '" : La taille du fichier ne doit pas dépasser 2 Mo.');
+        } else {
+            let fileName = file.name;
+
+            let reader = new FileReader();
+            reader.addEventListener('load', function () {
+                $fileBag.append(`
+                    <p class="attachement" value="` + withoutExtension(fileName) + `">
+                        <a target="_blank" href="` + reader.result + `">
+                            <i class="fa fa-file mr-2"></i>` + fileName + `
+                        </a>
+                        <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
+                    </p>`);
+            });
+            reader.readAsDataURL(file);
+        }
+    });
+
+    if (errorMsg.length === 0) {
+        displayRight($dropFrame);
+        clearErrorMsg($dropFrame);
+    } else {
+        displayWrong($dropFrame);
+        $dropFrame.closest('.modal').find('.error-msg').html(errorMsg.join("<br>"));
+    }
+
+}
+
+function withoutExtension(fileName) {
+    let array = fileName.split('.');
+    return array[0];
+}
+
+function removeAttachment($elem) {
+    let deleted = false;
+    let fileName = $elem.closest('.attachement').find('a').first().text().trim();
+    $elem.closest('.attachement').remove();
+    droppedFiles.forEach(file => {
+        if (file.name === fileName && !deleted) {
+            deleted = true;
+            droppedFiles.splice(droppedFiles.indexOf(file), 1);
+        }
+    });
+}
+
+function checkFileFormat(file) {
+    return file.name.includes('.') !== false;
+}
+
+function checkSizeFormat(file) {
+    return file.size < FILE_MAX_SIZE;
+}
+
+function dragEnterDiv(event, div) {
+    displayWrong(div);
+}
+
+function dragOverDiv(event, div) {
+    event.preventDefault();
+    event.stopPropagation();
+    displayWrong(div);
+    return false;
+}
+
+function dragLeaveDiv(event, div) {
+    event.preventDefault();
+    event.stopPropagation();
+    displayNeutral(div);
+    return false;
+}
+
+function openFileExplorer(span) {
+    span.closest('.modal').find('.fileInput').trigger('click');
+}
+
+function saveDroppedFiles(event, $div) {
+    if (event.dataTransfer) {
+        if (event.dataTransfer.files.length) {
+            event.preventDefault();
+            event.stopPropagation();
+            let files = Array.from(event.dataTransfer.files);
+
+            const $inputFile = $div.find('.fileInput');
+            saveInputFiles($inputFile, files);
+        }
+    }
+    else {
+        displayWrong($div);
+    }
+    return false;
+}
+
+function saveInputFiles($inputFile, files) {
+    let filesToSave = files || $inputFile[0].files;
+    const isMultiple = $inputFile.prop('multiple');
+
+    Array.from(filesToSave).forEach(file => {
+        if (checkSizeFormat(file) && checkFileFormat(file)) {
+            if (!isMultiple) {
+                droppedFiles = [];
+            }
+            droppedFiles.push(file);
+        }
+    });
+
+    let dropFrame = $inputFile.closest('.dropFrame');
+
+    displayAttachements(filesToSave, dropFrame, isMultiple);
+    $inputFile[0].value = '';
+}
+
+function resetDroppedFiles() {
+    droppedFiles = [];
 }

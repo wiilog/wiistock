@@ -27,7 +27,7 @@ $(function () {
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
     const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    InitModalWithAttachments($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
+    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');

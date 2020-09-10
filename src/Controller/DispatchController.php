@@ -87,7 +87,7 @@ Class DispatchController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         return $this->render('dispatch/index.html.twig', [
-			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH),
+			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
 			'modalNewConfig' => [
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
@@ -197,14 +197,14 @@ Class DispatchController extends AbstractController
                 $attachments = $attachmentService->createAttachements($fileNames);
                 foreach ($attachments as $attachment) {
                     $entityManager->persist($attachment);
-                    $dispatch->addAttachement($attachment);
+                    $dispatch->addAttachment($attachment);
                 }
             }
 
             $entityManager->persist($dispatch);
             $entityManager->flush();
 
-            $dispatchService->sendMailsAccordingToStatus($dispatch, false);
+            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
 
             return new JsonResponse([
                 'success' => true,
@@ -243,7 +243,7 @@ Class DispatchController extends AbstractController
                 'natures' => $natureRepository->findAll()
             ],
             'dispatchValidate' => [
-                'treatedStatus' => $statusRepository->findTreatedStatusByType(CategorieStatut::DISPATCH, $dispatch->getType())
+                'treatedStatus' => $statusRepository->findTreatedStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), true)
             ]
         ]);
     }
@@ -351,11 +351,11 @@ Class DispatchController extends AbstractController
 
         $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-        $attachments = $dispatch->getAttachements()->toArray();
+        $attachments = $dispatch->getAttachments()->toArray();
         foreach ($attachments as $attachment) {
             /** @var PieceJointe $attachment */
             if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $this->attachmentService->removeAndDeleteAttachment($attachment, null, null, null, $dispatch);
+                $this->attachmentService->removeAndDeleteAttachment($attachment, $dispatch);
             }
         }
 
@@ -369,7 +369,7 @@ Class DispatchController extends AbstractController
                 && $newStatus
                 && ($oldStatus->getId() !== $newStatus->getId())
             )) {
-            $dispatchService->sendMailsAccordingToStatus($dispatch, true);
+            $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
         }
 
         $dispatchStatus = $dispatch->getStatut();
@@ -404,7 +404,7 @@ Class DispatchController extends AbstractController
                 'dispatch' => $dispatch,
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
-                'attachements' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
+                'attachments' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);
 
             return new JsonResponse($json);
@@ -464,7 +464,7 @@ Class DispatchController extends AbstractController
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $entity->addAttachement($attachment);
+            $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
         $entityManager->flush();
@@ -634,7 +634,7 @@ Class DispatchController extends AbstractController
 
             $data = [
                 'success' => true,
-                'msg' => $translator->trans('colis.Le colis a bien été supprimé.')
+                'msg' => $translator->trans('colis.Le colis a bien été supprimé' . '.')
             ];
 
             return new JsonResponse($data);

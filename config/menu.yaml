@@ -65,14 +65,17 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_DEM_LIVR
-                -   label: 'Service'
+                -   label: 'services.Service'
+                    isTranslation: true
+                    title: 'Service'
                     path: 'handling_index'
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_HAND
-                -   label: 'acheminement.acheminements'
+                -   label: 'acheminement.Acheminement'
                     isTranslation: true
                     path: 'dispatch_index'
+                    title: 'Acheminement'
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_ACHE
@@ -207,6 +210,7 @@ parameters:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_STATU_LITI
                 -   label: 'natures.Natures de colis'
+                    title: Natures de colis
                     path: 'nature_param_index'
                     isTranslation: true
                     rights:

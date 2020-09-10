@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Dispatch;
 use App\Entity\Arrivage;
+use App\Entity\Handling;
 use App\Entity\Litige;
 use App\Entity\MouvementTraca;
 use App\Entity\PieceJointe;
@@ -76,22 +77,13 @@ class AttachmentService
 
 	/**
 	 * @param PieceJointe $attachment
-	 * @param Arrivage $arrivage
-	 * @param Litige|null $litige
-     * @param Dispatch|null $dispatch
-	 * @param MouvementTraca|null $mvtTraca
+	 * @param Arrivage|Litige|Dispatch|MouvementTraca|Handling $entity
 	 */
-	public function removeAndDeleteAttachment($attachment, $arrivage, $litige = null, $mvtTraca = null, $dispatch = null)
+	public function removeAndDeleteAttachment(PieceJointe $attachment, $entity)
 	{
-		if ($arrivage) {
-			$arrivage->removeAttachement($attachment);
-		} elseif ($litige) {
-			$litige->removeAttachement($attachment);
-		} elseif ($mvtTraca) {
-			$mvtTraca->removeAttachement($attachment);
-		} elseif ($dispatch) {
-		    $dispatch->removeAttachement($attachment);
-        }
+		if ($entity) {
+            $entity->removeAttachment($attachment);
+		}
 
         $pieceJointeRepository = $this->em->getRepository(PieceJointe::class);
         $pieceJointeAlreadyInDB = $pieceJointeRepository->findOneByFileName($attachment->getFileName());

@@ -328,7 +328,7 @@ class MouvementTracaController extends AbstractController
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
                 'mvt' => $mvt,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachements' => $mvt->getAttachements(),
+                'attachments' => $mvt->getAttachments(),
                 'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             ]);
 
@@ -399,11 +399,11 @@ class MouvementTracaController extends AbstractController
 
             $listAttachmentIdToKeep = $post->get('files');
 
-            $attachments = $mvt->getAttachements()->toArray();
+            $attachments = $mvt->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, null, $mvt);
+                    $this->attachmentService->removeAndDeleteAttachment($attachment, $mvt);
                 }
             }
 
@@ -559,7 +559,7 @@ class MouvementTracaController extends AbstractController
             $json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
                 'mvt' => $mouvementTraca,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachments' => $mouvementTraca->getAttachements()
+                'attachments' => $mouvementTraca->getAttachments()
             ]);
             return new JsonResponse($json);
         }
@@ -616,7 +616,7 @@ class MouvementTracaController extends AbstractController
         $attachments = $attachmentService->createAttachements($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $mouvementTraca->addAttachement($attachment);
+            $mouvementTraca->addAttachment($attachment);
         }
     }
 }

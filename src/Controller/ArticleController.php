@@ -10,6 +10,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
+use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -605,17 +606,18 @@ class ArticleController extends AbstractController
             $rows = $article->getId();
 
             // Delete mvt traca
-            foreach ($article->getMouvementTracas() as $mouvementTraca) {
+            /** @var MouvementTraca $mouvementTraca */
+            foreach ($article->getMouvementTracas()->toArray() as $mouvementTraca) {
                 $mouvementTracaService->manageMouvementTracaPreRemove($mouvementTraca);
-                $entityManager->flush();
+                $article->removeMouvementTraca($mouvementTraca);
                 $entityManager->remove($mouvementTraca);
             }
-            $entityManager->flush();
 
             // Delete mvt stock
-            foreach ($article->getMouvements() as $mouvementStock) {
+            /** @var MouvementStock $mouvementStock */
+            foreach ($article->getMouvements()->toArray() as $mouvementStock) {
                 $mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager, $mouvementTracaService);
-                $entityManager->flush();
+                $article->removeMouvement($mouvementStock);
                 $entityManager->remove($mouvementStock);
             }
             $entityManager->flush();

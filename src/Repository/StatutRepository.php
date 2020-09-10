@@ -375,20 +375,24 @@ class StatutRepository extends EntityRepository
         ];
     }
 
-    public function findTreatedStatusByType($entity, $type)
+    public function findTreatedStatusByType($categoryLabel, $type, $orderedBy = false)
     {
         $qb = $this->createQueryBuilder('status');
 
         $qb
             ->select('status')
             ->join('status.categorie', 'category')
-            ->where('category.nom = :entity')
+            ->where('category.nom = :categoryLabel')
             ->andWhere('status.treated = true')
             ->andWhere('status.type = :type')
             ->setParameters([
-                'entity' => $entity,
+                'categoryLabel' => $categoryLabel,
                 'type' => $type
             ]);
+
+        if ($orderedBy) {
+            $qb->orderBy('status.displayOrder', 'ASC');
+        }
 
         return $qb
             ->getQuery()
@@ -402,8 +406,10 @@ class StatutRepository extends EntityRepository
             ->addSelect('status_category.nom AS category')
             ->addSelect('type.id AS typeId')
             ->addSelect('status.treated AS treated')
+            ->addSelect('status.displayOrder AS displayOrder')
             ->join('status.categorie', 'status_category')
             ->leftJoin('status.type', 'type')
+            ->orderBy('status.displayOrder', 'ASC')
             ->where('status_category.nom = :dispatchCategory')
             ->setParameter('dispatchCategory', CategorieStatut::DISPATCH);
         return $queryBuilder

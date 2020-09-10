@@ -592,6 +592,7 @@ class ReceptionController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
@@ -648,6 +649,22 @@ class ReceptionController extends AbstractController
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $quantity = $ligneArticle->getQuantite();
+            $stockMovement = $this->mouvementStockService->createMouvementStock(
+                $currentUser,
+                null,
+                $quantity,
+                $reference,
+                MouvementStock::TYPE_SORTIE
+            );
+
+            $stockMovement->setReceptionOrder($reception);
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $this->mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
+            $entityManager->persist($stockMovement);
 
             $entityManager->flush();
             return new JsonResponse([
@@ -1213,11 +1230,11 @@ class ReceptionController extends AbstractController
             }
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
-            $attachments = $litige->getAttachements()->toArray();
+            $attachments = $litige->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
+                    $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
             }
 
@@ -1350,7 +1367,7 @@ class ReceptionController extends AbstractController
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
@@ -1995,7 +2012,7 @@ class ReceptionController extends AbstractController
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $entity->addAttachement($attachment);
+            $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
         $entityManager->flush();

@@ -115,7 +115,7 @@ tableArrivage.on('responsive-resize', function (e, datatable) {
 let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitModalWithAttachments(
+InitModal(
     $modalNewArrivage,
     submitNewArrivage,
     urlNewArrivage,

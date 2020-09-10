@@ -56,6 +56,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/dispatch-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

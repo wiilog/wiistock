@@ -162,7 +162,7 @@ class DispatchService
             [
                 [
                     'label' => 'Pièces jointes',
-                    'value' => $dispatch->getAttachements()->toArray(),
+                    'value' => $dispatch->getAttachments()->toArray(),
                     'isAttachments' => true,
                     'isNeededNotEmpty' => true
                 ],
@@ -214,7 +214,7 @@ class DispatchService
         return $date ?: null;
     }
 
-    public function sendMailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate) {
+    public function sendEmailsAccordingToStatus(Dispatch $dispatch, bool $isUpdate) {
         $status = $dispatch->getStatut();
         $recipientAbleToReceivedMail = $status ? $status->getSendNotifToRecipient() : false;
         $requesterAbleToReceivedMail = $status ? $status->getSendNotifToDeclarant() : false;
@@ -314,6 +314,6 @@ class DispatchService
         }
         $entityManager->flush();
 
-        $this->sendMailsAccordingToStatus($dispatch, true);
+        $this->sendEmailsAccordingToStatus($dispatch, true);
     }
 }

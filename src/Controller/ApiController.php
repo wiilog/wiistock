@@ -462,7 +462,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                     'date' => $date,
                                                     'operateur' => $nomadUser->getUsername(),
-                                                    'pjs' => $arrivage->getAttachements()
+                                                    'pjs' => $arrivage->getAttachments()
                                                 ]
                                             ),
                                             $destinataire->getMainAndSecondaryEmails()
@@ -796,7 +796,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/validateHandling", name="api-validate-handling", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -820,7 +820,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $id = $request->request->get('id');
             $handling = $handlingRepository->find($id);
 
-            if ($handling->getStatus()->getNom() == Livraison::STATUT_A_TRAITER) {
+            if ($handling->getStatus()->getNom() == Handling::STATUT_A_TRAITER) {
                 $commentaire = $request->request->get('commentaire');
                 if (!empty($commentaire)) {
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
@@ -833,9 +833,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
-                if ($handling->getStatus()->getNom() == Handling::STATUT_TRAITE) {
-                    $handlingService->sendTreatedEmail($handling);
-                }
+                $handlingService->sendEmailsAccordingToStatus($handling);
                 $this->successDataMsg['success'] = true;
             } else {
                 $this->successDataMsg['success'] = false;
@@ -1286,6 +1284,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param EntityManagerInterface $entityManager
      * @return array
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     private function getDataArray($user,
                                   UserService $userService,
@@ -1387,7 +1386,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($rights['demande']) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = $handlingRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_A_TRAITER));
+            $handlings = $handlingRepository->getMobileHandlings($user);
             $handlings = array_map(function (array $handling) {
                 $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
                 return $handling;
@@ -1800,10 +1799,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
                                 $packDispatch = $dispatchPackRepository->find($packArray['id']);
                                 if (!empty($packDispatch)) {
-                                    $nature = $natureRepository->find($packArray['natureId']);
-                                    if ($nature) {
-                                        $pack = $packDispatch->getPack();
-                                        $pack->setNature($nature);
+                                    if (!empty($packArray['natureId'])) {
+                                        $nature = $natureRepository->find($packArray['natureId']);
+                                        if ($nature) {
+                                            $pack = $packDispatch->getPack();
+                                            $pack->setNature($nature);
+                                        }
                                     }
 
                                     $quantity = (int) $packArray['quantity'];
