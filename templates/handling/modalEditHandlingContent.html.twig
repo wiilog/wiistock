@@ -10,38 +10,25 @@
     </select>
 </div>
 
-{% if handlingStatus is not empty %}
-    <div class="form-group">
-        <label>Statut*</label>
-        <select name="status"
-                {{ handling.status is not null and handling.status.treated ? 'disabled' }}
-                class="form-control data d-block needed"
-                title="Statut">
-            {% if handling.status is not null %}
-                <option selected
-                        value="{{ handling.status.id }}"
-                        data-type-id="{{ handling.status.type.id }}">
-                    {{ handling.status.nom }}
-                </option>
-            {% endif %}
+{% set statusDisabled = handling.status is not null and handling.status.treated %}
+<div class="form-group">
+    <label>Statut*</label>
+    <select name="status"
+            {{ statusDisabled ? 'disabled' }}
+            class="form-control data d-block needed"
+            title="Statut">
+        {% if handling.status is not null %}
+            <option selected value="{{ handling.status.id }}">{{ handling.status.nom }}</option>
+        {% endif %}
+        {% if not statusDisabled %}
             {% for status in handlingStatus %}
                 {% if status.id != handling.status.id %}
-                    <option data-type-id="{{ status.type.id }}"
-                            value="{{ status.id }}">
-                        {{ status.nom }}
-                    </option>
+                    <option value="{{ status.id }}">{{ status.nom }}</option>
                 {% endif %}
             {% endfor %}
-        </select>
-    </div>
-{% else %}
-    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-        array: [],
-        warningLabel: 'Vous n\'avez pas configuré de statut traité pour ce ' ~ ('services.Type de demande de service'|trans),
-        redirectPath: path('status_param_index'),
-        redirectLabel: 'Aller vers la création des statuts'
-    } %}
-{% endif %}
+        {% endif %}
+    </select>
+</div>
 
 <div class="form-group needed">
     <label for="subject">Objet*</label>

@@ -46,7 +46,9 @@ function addInputColisClone(button)
     $parent.children().last().find('.data-array').val('');
 }
 
-function availableStatusOnChange($select) {
+function onDispatchTypeChange($select) {
+    toggleRequiredChampsLibres($select, 'create');
+
     const type = parseInt($select.val());
     let $modalNewDispatch = $("#modalNewDispatch");
     const $selectStatus = $modalNewDispatch.find('select[name="statut"]');

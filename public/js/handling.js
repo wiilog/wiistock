@@ -118,7 +118,9 @@ function callbackSaveFilter() {
     }
 }
 
-function availableStatusOnChange($select) {
+function onHandlingTypeChange($select) {
+    toggleRequiredChampsLibres($select, 'create');
+
     const type = parseInt($select.val());
     let $modalNewHandling = $("#modalNewHandling");
     const $selectStatus = $modalNewHandling.find('select[name="status"]');

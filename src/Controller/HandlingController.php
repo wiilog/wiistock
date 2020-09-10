@@ -177,11 +177,11 @@ class HandlingController extends AbstractController
             $post = $request->request;
 
             $handling = new Handling();
-            $date = (new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+            $date = (new DateTime('now', new \DateTimeZone('Europe/Paris')));
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
-            $desiredDate = $post->get('desired-date') ? new \DateTime($post->get('desired-date')) : null;
+            $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $number = $handlingService->createHandlingNumber($entityManager, $date);
 
@@ -254,9 +254,13 @@ class HandlingController extends AbstractController
             $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
 
             $handling = $handlingRepository->find($data['id']);
+            $status = $handling->getStatus();
+            $statusTreated = $status && $status->getTreated();
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
-                'handlingStatus' => $statutRepository->findTreatedStatusByType(CategorieStatut::HANDLING, $handling->getType(), true),
+                'handlingStatus' => !$statusTreated
+                    ? $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, false, $handling->getType())
+                    : [],
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);
 
@@ -294,15 +298,23 @@ class HandlingController extends AbstractController
         $handling = $handlingRepository->find($post->get('id'));
 
         $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
-        $desiredDate = $post->get('desired-date') ? new \DateTime($post->get('desired-date')) : null;
-        $newStatus = $statutRepository->find($post->get('status'));
+        $desiredDateStr = $post->get('desired-date');
+        $desiredDate = $desiredDateStr ? new DateTime($desiredDateStr) : null;
 
         $oldStatus = $handling->getStatus();
+
+        if (!$oldStatus || !$oldStatus->getTreated()) {
+            $newStatus = $statutRepository->find($post->get('status'));
+            $handling->setStatus($newStatus);
+        }
+        else {
+            $newStatus = null;
+        }
+
         $handling
             ->setSubject(substr($post->get('subject'), 0, 64))
             ->setSource($post->get('source'))
             ->setDestination($post->get('destination'))
-            ->setStatus($newStatus)
             ->setDesiredDate($desiredDate)
             ->setComment($post->get('comment') ?: '')
             ->setEmergency($post->getBoolean('emergency'));

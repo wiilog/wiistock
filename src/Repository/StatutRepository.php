@@ -32,21 +32,31 @@ class StatutRepository extends EntityRepository
      * @param string $categorieName
      * @param bool $ordered
      * @param bool $onlyNotTreated
+     * @param null $type
      * @return Statut[]
      */
-    public function findByCategorieName($categorieName, $ordered = false, $onlyNotTreated = false)
+    public function findByCategorieName($categorieName,
+                                        $ordered = false,
+                                        $onlyNotTreated = false,
+                                        $type = null)
     {
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieName');
 
-        if ($ordered) {
-            $queryBuilder->orderBy('status.displayOrder', 'ASC');
-        }
-
         if ($onlyNotTreated) {
             $queryBuilder
-                ->andWhere('status.treated = 0');
+                ->andWhere('status.treated = false');
+        }
+
+        if (!empty($type)) {
+            $queryBuilder
+                ->andWhere('status.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($ordered) {
+            $queryBuilder->orderBy('status.displayOrder', 'ASC');
         }
 
         $queryBuilder
