@@ -102,7 +102,7 @@ function initPage() {
             { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },
             { "data": 'locationFrom', 'name': 'locationFrom', 'title': $('#dispatchLocationFrom').val() },
             { "data": 'locationTo', 'name': 'locationTo', 'title': $('#dispatchLocationTo').val() },
-            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'Nb Colis', orderable: false },
+            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'Nb ' + $('#dispatchPack').val() , orderable: false },
             { "data": 'status', 'name': 'status', 'title': 'Statut' },
             { "data": 'urgent', 'name': 'urgent', 'title': 'Urgence' }
         ],
