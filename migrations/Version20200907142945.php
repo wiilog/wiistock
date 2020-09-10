@@ -31,7 +31,7 @@ final class Version20200907142945 extends AbstractMigration
         $this->addSql('ALTER TABLE handling ADD number VARCHAR(64) DEFAULT NULL');
 
         $handlings = $this->connection
-            ->executeQuery('SELECT id, creation_date FROM handling')
+            ->executeQuery('SELECT id, date FROM handling')
             ->fetchAll();
 
         $daysCounter = [];
