@@ -462,7 +462,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                     'date' => $date,
                                                     'operateur' => $nomadUser->getUsername(),
-                                                    'pjs' => $arrivage->getAttachements()
+                                                    'pjs' => $arrivage->getAttachments()
                                                 ]
                                             ),
                                             $destinataire->getMainAndSecondaryEmails()
@@ -796,7 +796,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/validateHandling", name="api-validate-handling", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
      * @param EntityManagerInterface $entityManager
@@ -820,22 +820,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $id = $request->request->get('id');
             $handling = $handlingRepository->find($id);
 
-            if ($handling->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
+            if ($handling->getStatus()->getNom() == Handling::STATUT_A_TRAITER) {
                 $commentaire = $request->request->get('commentaire');
                 if (!empty($commentaire)) {
-                    $handling->setCommentaire($handling->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                    $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
                 $statutRepository = $entityManager->getRepository(Statut::class);
                 $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_TRAITE);
                 $handling
-                    ->setStatut($statusTreated)
-                    ->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                    ->setStatus($statusTreated)
+                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
-                if ($handling->getStatut()->getNom() == Handling::STATUT_TRAITE) {
-                    $handlingService->sendTreatedEmail($handling);
-                }
+                $handlingService->sendEmailsAccordingToStatus($handling);
                 $this->successDataMsg['success'] = true;
             } else {
                 $this->successDataMsg['success'] = false;
@@ -1388,7 +1386,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($rights['demande']) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = $handlingRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_A_TRAITER));
+            $handlings = $handlingRepository->getMobileHandlings($user);
             $handlings = array_map(function (array $handling) {
                 $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
                 return $handling;
@@ -1453,7 +1451,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'manutentions' => $handlings,
+            'handlings' => $handlings,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,

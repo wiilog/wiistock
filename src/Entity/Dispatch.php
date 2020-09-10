@@ -184,28 +184,28 @@ class Dispatch extends FreeFieldEntity
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachement(PieceJointe $attachement): self
+    public function addAttachment(PieceJointe $attachment): self
     {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setDispatch($this);
+        if (!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setDispatch($this);
         }
 
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachement): self
+    public function removeAttachment(PieceJointe $attachment): self
     {
-        if ($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
+        if ($this->attachements->contains($attachment)) {
+            $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachement->getDispatch() === $this) {
-                $attachement->setDispatch(null);
+            if ($attachment->getDispatch() === $this) {
+                $attachment->setDispatch(null);
             }
         }
 

@@ -12,40 +12,104 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
-
                 <div class="form-group">
-                    <label for="Objet">Objet*</label>
-                    <input type="text" id="libelle" class="form-control data needed" name="Libelle" maxlength="64">
+                    <label for="type">Type*</label>
+                    <select name="type" class="form-control data d-block type needed">
+                        <option value="">Type à choisir...</option>
+                        {% for type in freeFieldsTypes %}
+                            <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="demandeur">Demandeur</label>
-                    <select type="text" class="demandeur form-control data needed" name="demandeur" disabled>
-                        <option value="{{app.user.id}}">{{ app.user.username }}</option>
+                    <label for="type">Statut*</label>
+                    <select name="status"
+                            class="form-control data w-100 needed need-default">
+                        <option value="">Choisir un statut...</option>
+                        {% for status in handlingStatus %}
+                            <option data-type-id="{{ status.type.id }}" value="{{ status.id }}">{{ status.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="handlingDefaultStatus" value="{{ handlingDefaultStatus|json_encode }}"/>
+                    <div class="error-empty-status d-none">
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: [],
+                            warningLabel: 'Attention ! Aucun statut pour ce type n\'a été créé.',
+                            redirectPath: path('status_param_index'),
+                            redirectLabel: 'Aller vers la création des statuts.'
+                        } %}
+                    </div>
+                </div>
+
+                <div class="form-group needed">
+                    <label for="subject">Objet*</label>
+                    <input class="form-control data needed" name="subject">
+                </div>
+
+                <div class="form-group">
+                    <label for="requester">Demandeur</label>
+                    <select type="text" class="demandeur form-control data needed" name="requester" disabled>
+                        <option value="{{ app.user.id }}">{{ app.user.username }}</option>
                     </select>
                 </div>
 
                 <div class="form-group needed">
+                    <label for="desired-date">Date attendue*</label>
+                    <input type="datetime-local"
+                           class="form-control data"
+                           name="desired-date"
+                           title="Date attendue"
+                           placeholder="jj/mm/aaaa"
+                           min = "{{ 'now' | date('Y-m-d\\TH:i') }}"/>
+                </div>
+
+                <div class="form-group needed">
                     <label for="source">Chargement*</label>
-                    <input class="form-control data needed" name="source" id="source">
+                    <input class="form-control data needed" name="source">
                 </div>
 
                 <div class="form-group needed">
                     <label for="destination">Déchargement*</label>
-                    <input class="form-control data needed" name="destination" id="destination">
+                    <input class="form-control data needed" name="destination">
+                </div>
+
+                <!-- CHAMPS LIBRES -->
+                <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
+                    {% for type in freeFieldsTypes %}
+                        <div class="d-none row" id="{{ type.typeId }}-new">
+                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                                freeFields: type.freeFields,
+                                freeFieldValues: [],
+                                colType: 'col-12',
+                                requiredType: 'requiredCreate',
+                                actionType: 'new'
+                            } %}
+                        </div>
+                    {% endfor %}
                 </div>
 
                 <div class="form-group">
-                    <label for="date-attendue">Date attendue*</label>
-                    <input class="form-control data needed" type="datetime-local" name="date-attendue" id="date-attendue"
-                           min="{{ 'now' | date('Y-m-d') }}">
-                </div>
-
-                <div class="form-group">
-                    <label for="commentaire">Commentaire</label>
-                    <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-                    <div class="editor-container-new">
+                    <label for="comment">Commentaire</label>
+                    <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
+                    <div class="editor-container-new" id="editor-container-edit">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <div>
+                        {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Urgence</label>
+                    <label class="switch mt-2">
+                        <input class="checkbox"
+                               name="emergency"
+                               type="checkbox"/>
+                        <span class="slider round"></span>
+                    </label>
                 </div>
             </div>
 

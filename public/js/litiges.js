@@ -31,7 +31,7 @@ $(function () {
 
     initDatatableLitiges();
 
-    InitModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
+    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
     InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableLitiges]});
     InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });

@@ -2,16 +2,22 @@
 
 namespace App\Entity;
 
+use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\HandlingRepository")
  */
-class Handling
+class Handling extends FreeFieldEntity
 {
     const CATEGORIE = 'service';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
+
+    const PREFIX_NUMBER = 'S-';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -22,23 +28,23 @@ class Handling
     /**
      * @ORM\Column(type="datetime")
      */
-    private $date;
+    private $creationDate;
 
     /**
      * @ORM\Column(type="string", length=64)
      */
-    private $libelle;
+    private $subject;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private $comment;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="handlings")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $demandeur;
+    private $requester;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="handlings")
@@ -50,7 +56,7 @@ class Handling
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="handlings")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $statut;
+    private $status;
 
     /**
      * @ORM\Column(type="string", length=64)
@@ -65,75 +71,95 @@ class Handling
 	/**
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
-    private $dateAttendue;
+    private $desiredDate;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateEnd;
+    private $validationDate;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $number;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $emergency;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="handling")
+     */
+    private $attachments;
+
+    public function __construct()
+    {
+        $this->attachments = new ArrayCollection();
+        $this->emergency = false;
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getCreationDate(): ?DateTime
     {
-        return $this->date;
+        return $this->creationDate;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setCreationDate(DateTime $creationDate): self
     {
-        $this->date = $date;
+        $this->creationDate = $creationDate;
 
         return $this;
     }
 
-    public function getLibelle(): ?string
+    public function getSubject(): ?string
     {
-        return $this->libelle;
+        return $this->subject;
     }
 
-    public function setLibelle(string $libelle): self
+    public function setSubject(string $subject): self
     {
-        $this->libelle = $libelle;
+        $this->subject = $subject;
 
         return $this;
     }
 
-    public function getCommentaire(): ?string
+    public function getComment(): ?string
     {
-        return $this->commentaire;
+        return $this->comment;
     }
 
-    public function setCommentaire(?string $commentaire): self
+    public function setComment(?string $comment): self
     {
-        $this->commentaire = $commentaire;
+        $this->comment = $comment;
 
         return $this;
     }
 
-    public function getDemandeur(): ?utilisateur
+    public function getRequester(): ?utilisateur
     {
-        return $this->demandeur;
+        return $this->requester;
     }
 
-    public function setDemandeur(?utilisateur $demandeur): self
+    public function setRequester(?utilisateur $requester): self
     {
-        $this->demandeur = $demandeur;
+        $this->requester = $requester;
 
         return $this;
     }
 
-    public function getStatut(): ?Statut
+    public function getStatus(): ?Statut
     {
-        return $this->statut;
+        return $this->status;
     }
 
-    public function setStatut(?Statut $statut): self
+    public function setStatus(?Statut $status): self
     {
-        $this->statut = $statut;
+        $this->status = $status;
 
         return $this;
     }
@@ -162,26 +188,93 @@ class Handling
         return $this;
     }
 
-    public function getDateAttendue(): ?\DateTimeInterface
+    public function getDesiredDate(): ?DateTime
     {
-        return $this->dateAttendue;
+        return $this->desiredDate;
     }
 
-    public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
+    public function setDesiredDate(?DateTime $desiredDate): self
     {
-        $this->dateAttendue = $dateAttendue;
+        $this->desiredDate = $desiredDate;
 
         return $this;
     }
 
-    public function getDateEnd(): ?\DateTimeInterface
+    public function getValidationDate(): ?DateTime
     {
-        return $this->dateEnd;
+        return $this->validationDate;
     }
 
-    public function setDateEnd(?\DateTimeInterface $dateEnd): self
+    public function setValidationDate(?DateTime $validationDate): self
     {
-        $this->dateEnd = $dateEnd;
+        $this->validationDate = $validationDate;
+
+        return $this;
+    }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    public function setNumber(string $number): self
+    {
+        $this->number = $number;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getEmergency(): ?bool
+    {
+        return $this->emergency;
+    }
+
+    public function setEmergency(bool $emergency): self
+    {
+        $this->emergency = $emergency;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PieceJointe[]
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(PieceJointe $attachment): self
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments[] = $attachment;
+            $attachment->setHandling($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(PieceJointe $attachment): self
+    {
+        if ($this->attachments->contains($attachment)) {
+            $this->attachments->removeElement($attachment);
+            // set the owning side to null (unless already changed)
+            if ($attachment->getHandling() === $this) {
+                $attachment->setHandling(null);
+            }
+        }
 
         return $this;
     }

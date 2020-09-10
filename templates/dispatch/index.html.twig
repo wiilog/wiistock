@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | {{ 'acheminement.acheminements'|trans }}{% endblock %}
+{% block title %}Demande | {{ 'acheminement.Acheminement'|trans }}{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -39,6 +39,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/dispatch.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

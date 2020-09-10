@@ -125,6 +125,11 @@ class Type
      */
     private $statuts;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Handling::class, mappedBy="type")
+     */
+    private $handlings;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -139,6 +144,7 @@ class Type
         $this->handlingUsers = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->statuts = new ArrayCollection();
+        $this->handlings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -596,6 +602,37 @@ class Type
             // set the owning side to null (unless already changed)
             if ($statut->getType() === $this) {
                 $statut->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Handling[]
+     */
+    public function getHandlings(): Collection
+    {
+        return $this->handlings;
+    }
+
+    public function addHandling(Handling $handling): self
+    {
+        if (!$this->handlings->contains($handling)) {
+            $this->handlings[] = $handling;
+            $handling->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHandling(Handling $handling): self
+    {
+        if ($this->handlings->contains($handling)) {
+            $this->handlings->removeElement($handling);
+            // set the owning side to null (unless already changed)
+            if ($handling->getType() === $this) {
+                $handling->setType(null);
             }
         }
 

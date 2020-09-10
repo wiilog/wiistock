@@ -453,22 +453,22 @@ class Arrivage extends FreeFieldEntity
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachement(PieceJointe $attachement): self
+    public function addAttachment(PieceJointe $attachment): self
     {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setArrivage($this);
+        if (!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setArrivage($this);
         }
 
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachement): self
+    public function removeAttachment(PieceJointe $attachement): self
     {
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);

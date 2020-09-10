@@ -1229,11 +1229,11 @@ class ReceptionController extends AbstractController
             }
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
-            $attachments = $litige->getAttachements()->toArray();
+            $attachments = $litige->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
+                    $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
             }
 
@@ -1366,7 +1366,7 @@ class ReceptionController extends AbstractController
                 'litige' => $litige,
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, true),
-                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
@@ -2011,7 +2011,7 @@ class ReceptionController extends AbstractController
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $entity->addAttachement($attachment);
+            $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
         $entityManager->flush();

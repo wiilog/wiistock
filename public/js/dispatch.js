@@ -110,5 +110,5 @@ function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
     let $submitNewDispatch = $("#submitNewDispatch");
     let urlDispatchNew = Routing.generate('dispatch_new', true);
-    InitModalWithAttachments($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
+    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
 }
