@@ -592,6 +592,7 @@ class ReceptionController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws NonUniqueResultException
+     * @throws Exception
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
@@ -648,6 +649,22 @@ class ReceptionController extends AbstractController
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $quantity = $ligneArticle->getQuantite();
+            $stockMovement = $this->mouvementStockService->createMouvementStock(
+                $currentUser,
+                null,
+                $quantity,
+                $reference,
+                MouvementStock::TYPE_SORTIE
+            );
+
+            $stockMovement->setReceptionOrder($reception);
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $this->mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
+            $entityManager->persist($stockMovement);
 
             $entityManager->flush();
             return new JsonResponse([
