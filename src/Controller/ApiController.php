@@ -1801,10 +1801,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
                                 $packDispatch = $dispatchPackRepository->find($packArray['id']);
                                 if (!empty($packDispatch)) {
-                                    $nature = $natureRepository->find($packArray['natureId']);
-                                    if ($nature) {
-                                        $pack = $packDispatch->getPack();
-                                        $pack->setNature($nature);
+                                    if (!empty($packArray['natureId'])) {
+                                        $nature = $natureRepository->find($packArray['natureId']);
+                                        if ($nature) {
+                                            $pack = $packDispatch->getPack();
+                                            $pack->setNature($nature);
+                                        }
                                     }
 
                                     $quantity = (int) $packArray['quantity'];
