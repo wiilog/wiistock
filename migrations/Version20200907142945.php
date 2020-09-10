@@ -25,8 +25,8 @@ final class Version20200907142945 extends AbstractMigration
         $this->addSql('ALTER TABLE handling CHANGE `date_attendue` `desired_date` DATETIME');
         $this->addSql('ALTER TABLE handling CHANGE `date_end` `validation_date` DATETIME');
         $this->addSql('ALTER TABLE handling CHANGE `libelle` `subject` TEXT');
-        $this->addSql('ALTER TABLE handling CHANGE `demandeur_id` `requester_id` INTEGER');
-        $this->addSql('ALTER TABLE handling CHANGE `commentaire` `comment` TEXT');
+        $this->addSql('ALTER TABLE handling CHANGE `demandeur_id` `requester_id` INTEGER NOT NULL');
+        $this->addSql('ALTER TABLE handling CHANGE `commentaire` `comment` LONGTEXT');
 
         $this->addSql('ALTER TABLE handling ADD number VARCHAR(64) DEFAULT NULL');
 
