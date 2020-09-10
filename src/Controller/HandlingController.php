@@ -107,13 +107,11 @@ class HandlingController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
 
         return $this->render('handling/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
 			'filterStatus' => $filter,
             'types' => $types,
@@ -267,13 +265,11 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
 
             $handling = $handlingRepository->find($data['id']);
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
-                'utilisateurs' => $utilisateurRepository->findAll(),
                 'handlingStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING),
                 'attachements' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);

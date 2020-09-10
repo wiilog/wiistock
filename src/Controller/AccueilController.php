@@ -134,8 +134,7 @@ class AccueilController extends AbstractController
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $statutHandlingAT = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
-        $nbrDemandeHandlingAT = $handlingRepository->countByStatut($statutHandlingAT);
+        $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
         return [
             'nbAlerts' => $nbAlerts,
             'visibleDashboards' => $isDashboardExt
@@ -144,7 +143,7 @@ class AccueilController extends AbstractController
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
-            'nbDemandeHandlingAT' => $nbrDemandeHandlingAT,
+            'nbDemandeHandlingAT' => $handlingCounterToTreat,
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,

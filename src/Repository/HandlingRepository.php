@@ -30,16 +30,17 @@ class HandlingRepository extends EntityRepository
         'emergency' => 'emergency'
     ];
 
-    public function countByStatut($status){
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        	/** @lang DQL */
-            "SELECT COUNT(handling)
-            FROM App\Entity\Handling handling
-            WHERE handling.status = :status
-           "
-            )->setParameter('status', $status);
-        return $query->getSingleScalarResult();
+    public function countHandlingToTreat(){
+
+        $qb = $this->createQueryBuilder('handling');
+
+        $qb->select('COUNT(handling)')
+            ->join('handling.status', 'status')
+            ->where('status.treated = false');
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findByStatut($status) {
