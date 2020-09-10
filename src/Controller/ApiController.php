@@ -1386,7 +1386,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($rights['demande']) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = $handlingRepository->getMobileHandlings($user);
+            $handlings = []; // $handlingRepository->getMobileHandlings($user);
             $handlings = array_map(function (array $handling) {
                 $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
                 return $handling;
