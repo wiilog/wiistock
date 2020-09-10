@@ -87,11 +87,11 @@ class HandlingController extends AbstractController
     /**
      * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
-     * @param string|null $filter
+     * @param Request $request
      * @return Response
      */
     public function index(EntityManagerInterface $entityManager,
-                          $filter = null): Response
+                          Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
             return $this->redirectToRoute('access_denied');
@@ -99,15 +99,15 @@ class HandlingController extends AbstractController
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
 
+        $filterStatus = $request->query->get('filter');
+
         return $this->render('handling/index.html.twig', [
-            'utilisateurs' => $utilisateurRepository->findAll(),
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
-			'filterStatus' => $filter,
+			'filterStatus' => $filterStatus,
             'types' => $types,
             'modalNewConfig' => [
                 'handlingDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
@@ -251,13 +251,11 @@ class HandlingController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $attachmentsRepository = $entityManager->getRepository(PieceJointe::class);
 
             $handling = $handlingRepository->find($data['id']);
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
-                'utilisateurs' => $utilisateurRepository->findAll(),
                 'handlingStatus' => $statutRepository->findTreatedStatusByType(CategorieStatut::HANDLING, $handling->getType(), true),
                 'attachments' => $attachmentsRepository->findBy(['handling' => $handling]),
             ]);

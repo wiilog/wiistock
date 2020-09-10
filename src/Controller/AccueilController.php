@@ -134,8 +134,7 @@ class AccueilController extends AbstractController
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $statutHandlingAT = $statutRepository->findOneByCategorieNameAndStatutCode(Handling::CATEGORIE, Handling::STATUT_A_TRAITER);
-        $nbrDemandeHandlingAT = $handlingRepository->countByStatut($statutHandlingAT);
+        $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
         return [
             'nbAlerts' => $nbAlerts,
             'visibleDashboards' => $isDashboardExt
@@ -144,7 +143,7 @@ class AccueilController extends AbstractController
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
-            'nbDemandeHandlingAT' => $nbrDemandeHandlingAT,
+            'nbDemandeHandlingAT' => $handlingCounterToTreat,
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
@@ -154,7 +153,7 @@ class AccueilController extends AbstractController
                 'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
                 'DLprepared' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
                 'DCToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
-                'MToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::HANDLING, Handling::STATUT_A_TRAITER)
+                'handlingToTreat' => implode(', ', $statutRepository->getIdNotTreatedByCategory(CategorieStatut::HANDLING))
             ],
             'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
             'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))

@@ -820,16 +820,16 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $id = $request->request->get('id');
             $handling = $handlingRepository->find($id);
 
-            if ($handling->getStatus()->getNom() == Handling::STATUT_A_TRAITER) {
+            if ($handling->getStatus()->getTreated()) {
                 $commentaire = $request->request->get('commentaire');
                 if (!empty($commentaire)) {
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
                 $statutRepository = $entityManager->getRepository(Statut::class);
-                $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_TRAITE);
+                /*$statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_TRAITE);*/
                 $handling
-                    ->setStatus($statusTreated)
+                    /*->setStatus($statusTreated)*/
                     ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
@@ -1386,7 +1386,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($rights['demande']) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = $handlingRepository->getMobileHandlings($user);
+            $handlings = []; // $handlingRepository->getMobileHandlings($user);
             $handlings = array_map(function (array $handling) {
                 $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
                 return $handling;
@@ -1451,7 +1451,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'handlings' => $handlings,
+            'manutentions' => $handlings,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,

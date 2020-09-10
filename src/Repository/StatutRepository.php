@@ -416,4 +416,20 @@ class StatutRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function getIdNotTreatedByCategory(string $categoryLabel) {
+        return array_map(
+            function($handling) {
+                return $handling['id'];
+            },
+            $this->createQueryBuilder('status')
+                ->select('status.id')
+                ->leftJoin('status.categorie', 'category')
+                ->where('status.treated = false')
+                ->andWhere('category.nom LIKE :categoryLabel')
+                ->setParameter('categoryLabel', $categoryLabel)
+                ->getQuery()
+                ->getResult()
+        );
+    }
 }

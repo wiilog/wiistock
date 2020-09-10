@@ -210,6 +210,7 @@ parameters:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_STATU_LITI
                 -   label: 'natures.Natures de colis'
+                    title: Natures de colis
                     path: 'nature_param_index'
                     isTranslation: true
                     rights:
