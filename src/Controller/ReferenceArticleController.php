@@ -639,7 +639,6 @@ class ReferenceArticleController extends AbstractController
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
-        $emplacements = $emplacementRepository->findAll();
         $typeChampLibre =  [];
         $freeFieldsGroupedByTypes = [];
         $search = $this->getUser()->getRecherche();
@@ -662,7 +661,6 @@ class ReferenceArticleController extends AbstractController
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
-            'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'categories' => $inventoryCategories,
