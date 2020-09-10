@@ -419,7 +419,7 @@ class ArrivageController extends AbstractController
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
-                    'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
+                    'attachments' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
@@ -574,7 +574,7 @@ class ArrivageController extends AbstractController
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-            $attachments = $arrivage->getAttachements()->toArray();
+            $attachments = $arrivage->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
@@ -639,7 +639,7 @@ class ArrivageController extends AbstractController
                         $entityManager->remove($litige);
                     }
                 }
-                foreach ($arrivage->getAttachements() as $attachement) {
+                foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }
                 foreach ($arrivage->getUrgences() as $urgence) {
@@ -1179,7 +1179,7 @@ class ArrivageController extends AbstractController
                 'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getPacks(),
             ]);
 
@@ -1292,11 +1292,11 @@ class ArrivageController extends AbstractController
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-            $attachments = $litige->getAttachements()->toArray();
+            $attachments = $litige->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
+                    $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
             }
 
@@ -1575,7 +1575,7 @@ class ArrivageController extends AbstractController
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $entity->addAttachement($attachment);
+            $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
         $entityManager->flush();

@@ -116,7 +116,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $mobileLoginKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="requester")
      */
     private $handlings;
 
@@ -583,7 +583,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if (!$this->handlings->contains($handling)) {
             $this->handlings[] = $handling;
-            $handling->setDemandeur($this);
+            $handling->setRequester($this);
         }
 
         return $this;
@@ -594,8 +594,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         if ($this->handlings->contains($handling)) {
             $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if ($handling->getDemandeur() === $this) {
-                $handling->setDemandeur(null);
+            if ($handling->getRequester() === $this) {
+                $handling->setRequester(null);
             }
         }
 

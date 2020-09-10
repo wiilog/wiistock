@@ -339,7 +339,7 @@ class ArrivageDataService
         $destinataire = $arrivage->getDestinataire();
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
-        $attachments = $arrivage->getAttachements();
+        $attachments = $arrivage->getAttachments();
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,

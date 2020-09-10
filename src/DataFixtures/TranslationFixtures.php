@@ -60,6 +60,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             'acheminement' => [
                 'nouvelle demande' => 'nouvelle demande',
                 'acheminements' => 'acheminements',
+                'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
@@ -131,12 +132,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'service' => 'service',
                 'Demande de service' => 'Demande de service',
                 'Supprimer la demande de service' => 'Supprimer la demande de service',
+                'La demande de service a bien été supprimée' => 'La demande de service a bien été supprimée',
                 'Nouvelle demande de service' => 'Nouvelle demande de service',
+                'La demande de service a bien été créée' => 'La demande de service a bien été créée',
                 "Détails d'une demande de service" => "Détail d'une demande de service",
                 'Modifier une demande de service' => 'Modifier une demande de service',
+                'La demande de service a bien été modifiée' => 'La demande de service a bien été modifiée',
                 'Voulez-vous réellement supprimer cette demande de service' => 'Voulez-vous réellement supprimer cette demande de service',
+                'Vous ne pouvez pas supprimer cette demande de service' => 'Vous ne pouvez pas supprimer cette demande de service',
                 'Votre demande de service a bien été effectuée' => 'Votre demande de service a bien été effectuée',
-                'Demande de service effectuée' => 'Demande de service effectuée'
+                'Demande de service effectuée' => 'Demande de service effectuée',
+                'Type de demande de service' => 'Type de demande de service',
+                "Changement de statut d'une demande de service" => "Changement de statut d'une demande de service",
+                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut"
             ]
         ];
 
@@ -155,11 +163,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         foreach ($translations as $menu => $translation) {
             foreach ($translation as $label => $translatedLabel) {
-
-                $translationObject = $this->translationRepository->findOneBy([
-                    'menu' => $menu,
-                    'label' => $label
-                ]);
+                // array_reduce to force request with case sensitive
+                $translationObject = array_reduce(
+                    $this->translationRepository->findBy([ 'menu' => $menu, 'label' => $label]),
+                    function (?Translation $res, Translation $translation) use ($label, $menu) {
+                        return $res ?? (
+                            ($translation->getLabel() === $label && $translation->getMenu() === $menu)
+                                ? $translation
+                                : null
+                        );
+                    },
+                    null
+                );
 
                 if (empty($translationObject)) {
                     $translationObject = new Translation();

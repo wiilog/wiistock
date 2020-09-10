@@ -462,7 +462,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                     'date' => $date,
                                                     'operateur' => $nomadUser->getUsername(),
-                                                    'pjs' => $arrivage->getAttachements()
+                                                    'pjs' => $arrivage->getAttachments()
                                                 ]
                                             ),
                                             $destinataire->getMainAndSecondaryEmails()
@@ -820,22 +820,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             $id = $request->request->get('id');
             $handling = $handlingRepository->find($id);
 
-            if ($handling->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
+            if ($handling->getStatus()->getNom() == Handling::STATUT_A_TRAITER) {
                 $commentaire = $request->request->get('commentaire');
                 if (!empty($commentaire)) {
-                    $handling->setCommentaire($handling->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                    $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
                 $statutRepository = $entityManager->getRepository(Statut::class);
                 $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_TRAITE);
                 $handling
-                    ->setStatut($statusTreated)
-                    ->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                    ->setStatus($statusTreated)
+                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
                 $entityManager->flush();
-                if ($handling->getStatut()->getNom() == Handling::STATUT_TRAITE) {
-                    $handlingService->sendTreatedEmail($handling);
-                }
+                $handlingService->sendEmailsAccordingToStatus($handling);
                 $this->successDataMsg['success'] = true;
             } else {
                 $this->successDataMsg['success'] = false;

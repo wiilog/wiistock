@@ -63,12 +63,12 @@ function initPageModals() {
     let modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
     let urlNewLitige = Routing.generate('litige_new_reception', true);
-    InitModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableLitigesReception]});
+    InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableLitigesReception]});
 
     let modalEditLitige = $('#modalEditLitige');
     let submitEditLitige = $('#submitEditLitige');
     let urlEditLitige = Routing.generate('litige_edit_reception', true);
-    InitModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitigesReception]});
+    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitigesReception]});
 
     let $modalDeleteLitige = $("#modalDeleteLitige");
     let $submitDeleteLitige = $("#submitDeleteLitige");

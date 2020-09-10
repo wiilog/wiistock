@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Utilisateur;
+use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,7 +61,7 @@ class HandlingService
         if ($statusFilter) {
             $filters = [
                 [
-                    'field' => 'statut',
+                    'field' => 'status',
                     'value' => $statusFilter
                 ]
             ];
@@ -94,13 +95,16 @@ class HandlingService
     public function dataRowHandling(Handling $handling)
     {
         return [
-            'id' => ($handling->getId() ? $handling->getId() : 'Non défini'),
-            'Date demande' => ($handling->getDate() ? $handling->getDate()->format('d/m/Y') : null),
-            'Demandeur' => ($handling->getDemandeur() ? $handling->getDemandeur()->getUserName() : null),
-            'Libellé' => ($handling->getlibelle() ? $handling->getLibelle() : null),
-            'Date souhaitée' => ($handling->getDateAttendue() ? $handling->getDateAttendue()->format('d/m/Y H:i') : null),
-            'Date de réalisation' => ($handling->getDateEnd() ? $handling->getDateEnd()->format('d/m/Y H:i') : null),
-            'Statut' => ($handling->getStatut()->getNom() ? $handling->getStatut()->getNom() : null),
+            'id' => $handling->getId() ? $handling->getId() : 'Non défini',
+            'number' => $handling->getNumber() ? $handling->getNumber() : '',
+            'creationDate' => $handling->getCreationDate() ? $handling->getCreationDate()->format('d/m/Y H:i:s') : null,
+            'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
+            'requester' => $handling->getRequester() ? $handling->getRequester()->getUserName() : null,
+            'subject' => $handling->getSubject() ? $handling->getSubject() : '',
+            'desiredDate' => $handling->getDesiredDate() ? $handling->getDesiredDate()->format('d/m/Y H:i:s') : null,
+            'validationDate' => $handling->getValidationDate() ? $handling->getValidationDate()->format('d/m/Y H:i:s') : null,
+            'status' => $handling->getStatus()->getNom() ? $handling->getStatus()->getNom() : null,
+            'emergency' => $handling->getEmergency() ? 'oui' : 'non',
             'Actions' => $this->templating->render('handling/datatableHandlingRow.html.twig', [
                 'handling' => $handling
             ]),
@@ -113,14 +117,55 @@ class HandlingService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function sendTreatedEmail(Handling $handling): void {
-        $this->mailerService->sendMail(
-            'FOLLOW GT // '.$this->translator->trans('services.Demande de service effectuée'),
-            $this->templating->render('mails/contents/mailHandlingDone.html.twig', [
-                'handling' => $handling,
-                'title' => $this->translator->trans('services.Votre demande de service a bien été effectuée').'.',
-            ]),
-            $handling->getDemandeur()->getMainAndSecondaryEmails()
+    public function sendEmailsAccordingToStatus(Handling $handling): void {
+        $requester = $handling->getRequester();
+        $emails = $requester ? $requester->getMainAndSecondaryEmails() : [];
+        if (!empty($emails)) {
+            $status = $handling->getStatus();
+            if ($status && $status->getSendNotifToDeclarant()) {
+                $statusTreated = $status->getTreated();
+                $subject = $statusTreated
+                    ? $this->translator->trans('services.Demande de service effectuée')
+                    : $this->translator->trans('services.Changement de statut d\'une demande de service');
+                $title = $statusTreated
+                    ? $this->translator->trans('services.Votre demande de service a bien été effectuée') . '.'
+                    : $this->translator->trans('services.Une demande de service vous concernant a changé de statut') . '.';
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // ' . $subject,
+                    $this->templating->render('mails/contents/mailHandlingTreated.html.twig', [
+                        'handling' => $handling,
+                        'title' => $title
+                    ]),
+                    $emails
+                );
+            }
+        }
+    }
+
+    public function createHandlingNumber(EntityManagerInterface $entityManager,
+                                         DateTime $date): string {
+
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+
+        $dateStr = $date->format('Ymd');
+
+        $lastHandlingNumber = $handlingRepository->getLastHandlingNumberByPrefix(Handling::PREFIX_NUMBER . $dateStr);
+
+        if ($lastHandlingNumber) {
+            $lastCounter = (int) substr($lastHandlingNumber, -4, 4);
+            $currentCounter = ($lastCounter + 1);
+        }
+        else {
+            $currentCounter = 1;
+        }
+
+        $currentCounterStr = (
+        $currentCounter < 10 ? ('000' . $currentCounter) :
+            ($currentCounter < 100 ? ('00' . $currentCounter) :
+                ($currentCounter < 1000 ? ('0' . $currentCounter) :
+                    $currentCounter))
         );
+
+        return (Handling::PREFIX_NUMBER . $dateStr . $currentCounterStr);
     }
 }
