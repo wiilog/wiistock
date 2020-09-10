@@ -190,17 +190,12 @@ class HandlingController extends AbstractController
 
             $status = $statutRepository->find($post->get('status'));
             $type = $typeRepository->find($post->get('type'));
-            $requester = $utilisateurRepository->find($post->get('requester'));
             $desiredDate = $post->get('desired-date') ? new \DateTime($post->get('desired-date')) : null;
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $number = $handlingService->createHandlingNumber($entityManager, $date);
 
-            if ($desiredDate < $date) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La date attendue ne peut être antérieure à la date de création.'
-                ]);
-            }
+            /** @var Utilisateur $requester */
+            $requester = $this->getUser();
 
             $handling
                 ->setNumber($number)
