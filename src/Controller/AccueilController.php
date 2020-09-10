@@ -153,7 +153,7 @@ class AccueilController extends AbstractController
                 'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
                 'DLprepared' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
                 'DCToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
-                'MToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::HANDLING, Handling::STATUT_A_TRAITER)
+                'handlingToTreat' => implode(', ', $statutRepository->getIdNotTreatedByCategory(CategorieStatut::HANDLING))
             ],
             'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
             'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))

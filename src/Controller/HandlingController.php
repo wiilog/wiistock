@@ -87,11 +87,11 @@ class HandlingController extends AbstractController
     /**
      * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
      * @param EntityManagerInterface $entityManager
-     * @param string|null $filter
+     * @param Request $request
      * @return Response
      */
     public function index(EntityManagerInterface $entityManager,
-                          $filter = null): Response
+                          Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
             return $this->redirectToRoute('access_denied');
@@ -103,9 +103,11 @@ class HandlingController extends AbstractController
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
 
+        $filterStatus = $request->query->get('filter');
+
         return $this->render('handling/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Handling::CATEGORIE),
-			'filterStatus' => $filter,
+			'filterStatus' => $filterStatus,
             'types' => $types,
             'modalNewConfig' => [
                 'handlingDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
