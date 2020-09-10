@@ -649,6 +649,22 @@ class ReceptionController extends AbstractController
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
             $reception->setStatut($statut);
 
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $quantity = $ligneArticle->getQuantite();
+            $mouvementStock = $this->mouvementStockService->createMouvementStock(
+                $currentUser,
+                null,
+                $quantity,
+                $reference,
+                MouvementStock::TYPE_SORTIE
+            );
+
+            $mouvementStock->setReceptionOrder($reception);
+            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $this->mouvementStockService->finishMouvementStock($mouvementStock, $date, $reception->getLocation());
+            $entityManager->persist($mouvementStock);
+
             $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
