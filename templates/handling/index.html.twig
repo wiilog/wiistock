@@ -6,7 +6,8 @@
     {% include 'filters/filtersDemands.html.twig' with {
         page: 'PAGE_HAND',
         tableSelector: '#tableHandling_id',
-        callback: 'callbackSaveFilter'
+        callback: 'callbackSaveFilter',
+        displayHandlingFilter: displayHandlingFilter
     } %}
 {% endblock %}
 {% block page_content %}

@@ -137,6 +137,11 @@ class HandlingRepository extends EntityRepository
                         ->andWhere("type.label in (:type)")
                         ->setParameter('type', $filter['value']);
                     break;
+                case 'emergency':
+                $qb
+                    ->andWhere("handling.emergency in (:emergency)")
+                    ->setParameter('emergency', $filter['value']);
+                    break;
                 case 'dateMin':
                     $qb->andWhere('handling.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");

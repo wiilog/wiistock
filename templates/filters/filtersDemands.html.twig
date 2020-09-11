@@ -10,4 +10,8 @@
 
     {% include 'filters/filter_item/filterUser.html.twig' %}
     {% include 'filters/filter_item/filterType.html.twig' %}
+
+    {% if displayHandlingFilter is defined and displayHandlingFilter %}
+        {% include 'filters/filter_item/filterEmergency.html.twig' %}
+    {% endif %}
 {% endblock %}
