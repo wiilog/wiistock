@@ -22,6 +22,7 @@ use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
+use App\Entity\PieceJointe;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -799,6 +800,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
      * @param HandlingService $handlingService
      * @return JsonResponse
@@ -808,42 +810,71 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws SyntaxError
      * @throws Exception
      */
-    public function validateHandling(Request $request,
-                                     EntityManagerInterface $entityManager,
-                                     HandlingService $handlingService)
+    public function postHandlings(Request $request,
+                                  AttachmentService $attachmentService,
+                                  EntityManagerInterface $entityManager,
+                                  HandlingService $handlingService)
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
-        if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
+        $statusRepository = $entityManager->getRepository(Statut::class);
 
+        $data = [];
+
+        if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $id = $request->request->get('id');
             $handling = $handlingRepository->find($id);
+            $oldStatus = $handling->getStatus();
 
-            if ($handling->getStatus()->getTreated()) {
+            if (!$oldStatus || !$oldStatus->getTreated()) {
+                $statusId = $request->request->get('statusId');
+                $newStatus = $statusRepository->find($statusId);
+                if (!empty($newStatus)) {
+                    $handling->setStatus($newStatus);
+                }
+
                 $commentaire = $request->request->get('commentaire');
                 if (!empty($commentaire)) {
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
-                $statutRepository = $entityManager->getRepository(Statut::class);
-                /*$statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::HANDLING, Handling::STATUT_TRAITE);*/
-                $handling
-                    /*->setStatus($statusTreated)*/
-                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                $photoFile = $request->files->get("photo");
+                if (!empty($photoFile)) {
+                    $attachments = $attachmentService->createAttachements([$photoFile]);
+                    if (!empty($attachments)) {
+                        $handling->addAttachment($attachments[0]);
+                    }
+                }
+
+                if (!$handling->getValidationDate()
+                    && $newStatus
+                    && $newStatus->getTreated()) {
+                    $handling
+                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                }
 
                 $entityManager->flush();
-                $handlingService->sendEmailsAccordingToStatus($handling);
-                $this->successDataMsg['success'] = true;
+
+                if ((!$oldStatus && $newStatus)
+                    || (
+                        $oldStatus
+                        && $newStatus
+                        && ($oldStatus->getId() !== $newStatus->getId())
+                    )) {
+                    $handlingService->sendEmailsAccordingToStatus($handling);
+                }
+
+                $data['success'] = true;
             } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
+                $data['success'] = false;
+                $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
             }
         } else {
-            $this->successDataMsg['success'] = false;
-            $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            $data['success'] = false;
+            $data['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
-        return new JsonResponse($this->successDataMsg);
+        return new JsonResponse($data);
     }
 
     /**
@@ -1277,19 +1308,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
 
     /**
-     * @param $user
+     * @param Utilisateur $user
      * @param UserService $userService
      * @param NatureService $natureService
      * @param FreeFieldService $freeFieldService
+     * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return array
-     * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function getDataArray($user,
+    private function getDataArray(Utilisateur $user,
                                   UserService $userService,
                                   NatureService $natureService,
                                   FreeFieldService $freeFieldService,
+                                  Request $request,
                                   EntityManagerInterface $entityManager)
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1307,8 +1339,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
         $rights = $this->getMenuRights($user, $userService);
+
+        $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -1384,13 +1420,21 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         }
 
         if ($rights['demande']) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $handlingRepository = $entityManager->getRepository(Handling::class);
-            $handlings = []; // $handlingRepository->getMobileHandlings($user);
-            $handlings = array_map(function (array $handling) {
-                $handling['date_attendue'] = $handling['dateAttendueDT']->format('d/m/Y H:i:s');
-                return $handling;
+            $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
+            $handlingIds = array_map(function (array $handling) {
+                return $handling['id'];
             }, $handlings);
+            $handlingAttachments = array_map(
+                function (array $attachment) use ($request) {
+                    return [
+                        'handlingId' => $attachment['handlingId'],
+                        'fileName' => $attachment['originalName'],
+                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName']
+                    ];
+                },
+                $pieceJointeRepository->getMobileAttachmentForHandling($handlingIds)
+            );
+
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [
@@ -1400,6 +1444,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
         } else {
             $handlings = [];
+            $handlingAttachments = [];
             $demandeLivraisonArticles = [];
             $demandeLivraisonTypes = [];
         }
@@ -1429,7 +1474,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 return $dispatch['id'];
             }, $dispatches));
 
-            $status = $statutRepository->getMobileStatus();
         } else {
             $trackingTaking = [];
             $natures = [];
@@ -1451,7 +1495,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'manutentions' => $handlings,
+            'handlings' => $handlings,
+            'handlingAttachments' => $handlingAttachments,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
@@ -1489,7 +1534,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $entityManager);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $request, $entityManager);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;

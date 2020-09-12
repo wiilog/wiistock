@@ -108,11 +108,6 @@ class ReceptionController extends AbstractController
     private $receptionService;
 
     /**
-     * @var PieceJointeRepository
-     */
-    private $pieceJointeRepository;
-
-    /**
      * @var ParametrageGlobalRepository
      */
     private $paramGlobalRepository;
@@ -128,7 +123,6 @@ class ReceptionController extends AbstractController
         GlobalParamService $globalParamService,
         ReceptionRepository $receptionRepository,
         UserService $userService,
-        PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
         MailerService $mailerService,
         AttachmentService $attachmentService,
@@ -138,7 +132,6 @@ class ReceptionController extends AbstractController
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
-        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
