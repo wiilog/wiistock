@@ -839,13 +839,21 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                     $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
                 }
 
-                $photoFile = $request->files->get("photo");
-                if (!empty($photoFile)) {
-                    $attachments = $attachmentService->createAttachements([$photoFile]);
-                    if (!empty($attachments)) {
-                        $handling->addAttachment($attachments[0]);
+                $maxNbFilesSubmitted = 10;
+                $fileCounter = 1;
+                // upload of photo_1 to photo_10
+                do {
+                    $photoFile = $request->files->get("photo_$fileCounter");
+                    if (!empty($photoFile)) {
+                        $attachments = $attachmentService->createAttachements([$photoFile]);
+                        if (!empty($attachments)) {
+                            $handling->addAttachment($attachments[0]);
+                            $entityManager->persist($attachments[0]);
+                        }
                     }
+                    $fileCounter++;
                 }
+                while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
 
                 if (!$handling->getValidationDate()
                     && $newStatus
