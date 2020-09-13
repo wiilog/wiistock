@@ -28,7 +28,6 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\PieceJointeRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
