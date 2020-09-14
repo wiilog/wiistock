@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
     $.fn.dataTable.ext.errMode = () => {
         alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
     };
@@ -137,7 +137,7 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
     });
     let dtDefaultValue = (
         '<"row mb-2"' +
-            '<"col-auto d-none"f>' +
+        '<"col-auto d-none"f>' +
         '>' +
         't' +
         domFooter +
@@ -231,11 +231,35 @@ function moveSearchInputToHeader($searchInputContainer) {
 }
 
 function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, isArticleOrRefSpecifConfig, ...config}) {
+    let tooltips = [];
+    config.columns.forEach((column, id) => {
+        if(column.translatable) {
+            let translation = translations[column.title];
+
+            column.title = translation.translated;
+            tooltips.push({id, text: translation.original});
+        }
+    });
+
+    let existingHeaderCallback = config.headerCallback;
+    config.headerCallback = (thead) => {
+        let ths = $(thead).find('th');
+
+        for (let data of tooltips) {
+            ths.eq(data.id).attr('title', data.text)
+        }
+
+        if (existingHeaderCallback) {
+            return existingHeaderCallback();
+        }
+    }
+
     let datatableToReturn = null;
     let $tableDom = $('#' + dtId);
     $tableDom
         .addClass('wii-table')
         .addClass('w-100');
+
     datatableToReturn = $tableDom
         .on('error.dt', function (e, settings, techNote, message) {
             console.log('An error has been reported by DataTables: ', message, e, dtId);

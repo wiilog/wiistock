@@ -48,14 +48,14 @@ let tableArrivageConfig = {
     columns: [
         {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Date', 'name': 'date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
+        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': 'arrivage.n° d\'arrivage', translatable: true},
         {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
         {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
         {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
         {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
         {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
-        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
+        {"data": 'Destinataire', 'name': 'destinataire', 'title': 'arrivage.destinataire', translatable: true},
+        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': 'arrivage.acheteurs', translatable: true},
         {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
         {"data": 'Duty', 'name': 'duty', 'title': 'Douane'},
         {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
@@ -64,11 +64,6 @@ let tableArrivageConfig = {
         {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
         {"data": 'url', 'name': 'url', 'title': 'url', visible: false, className: 'noVis'},
     ],
-    headerCallback: function (thead) {
-        $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-        $(thead).find('th').eq(8).attr('title', "destinataire");
-        $(thead).find('th').eq(9).attr('title', "acheteurs");
-    },
     domConfig: {
         needsFullDomOverride: true
     },

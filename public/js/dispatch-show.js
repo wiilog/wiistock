@@ -14,7 +14,7 @@ $(function () {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val()},
+            {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val(), tooltip: ''},
             {"data": 'code', 'name': 'code', 'title': 'Code'},
             {"data": 'quantity', 'name': 'code', 'title': $('#dispatchQuantityTranslation').val()},
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},

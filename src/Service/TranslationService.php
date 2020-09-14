@@ -34,30 +34,50 @@ class TranslationService {
      */
     public function generateTranslationsFile() {
         $projectDir = $this->kernel->getProjectDir();
-        $translationFile = $projectDir . '/translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml';
+        $translationYAML = $projectDir . '/translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml';
+        $translationJS = $projectDir . '/public/js/translations/translations.js';
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 
         if ($translationRepository->countUpdatedRows() > 0 ||
-            !file_exists($translationFile)) {
+            !file_exists($translationYAML) || !file_exists($translationJS)) {
             $translations = $translationRepository->findAll();
 
-            $menus = [];
-            foreach ($translations as $translation) {
-                $menus[$translation->getMenu()][$translation->getLabel()] = (
-                    $translation->getTranslation() ?: $translation->getLabel()
-                );
-            }
-
-            $yaml = Yaml::dump($menus);
-
-            file_put_contents($translationFile, $yaml);
+            $this->generateYamlTranslations($translationYAML, $translations);
+            $this->generateJavascriptTranslations($translationJS, $translations);
 
             $translationRepository->clearUpdate();
 
             $this->cacheClearWarmUp();
-            $this->chmod($translationFile, 'w');
+            $this->chmod($translationYAML, 'w');
+            $this->chmod($translationJS, 'w');
         }
+    }
+
+    private function generateYamlTranslations(string $directory, array $translations) {
+        $menus = [];
+        foreach ($translations as $translation) {
+            $menus[$translation->getMenu()][$translation->getLabel()] = (
+            $translation->getTranslation() ?: $translation->getLabel()
+            );
+        }
+
+        $yaml = Yaml::dump($menus);
+
+        file_put_contents($directory, $yaml);
+    }
+
+    private function generateJavascriptTranslations(string $directory, array $translations) {
+        $output = "const translations = {";
+        foreach($translations as $translation) {
+            $key = $translation->getMenu() . "." . addslashes($translation->getLabel());
+            $value = "{original: '" . addslashes($translation->getLabel()) . "', translated: '" . addslashes($translation->getTranslation()) . "'}";
+
+            $output .= "'$key': $value,";
+        }
+        $output .= "}";
+
+        file_put_contents($directory, $output);
     }
 
     /**
