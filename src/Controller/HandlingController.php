@@ -120,8 +120,7 @@ class HandlingController extends AbstractController
                     ];
                 }, $types),
                 'handlingStatus' => $statutRepository->findByCategorieName(CategorieStatut::HANDLING, true, false),
-            ],
-            'displayHandlingFilter' => true
+            ]
 		]);
     }
 
