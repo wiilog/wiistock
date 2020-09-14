@@ -19,7 +19,6 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Repository\PieceJointeRepository;
 use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
@@ -56,15 +55,11 @@ Class DispatchController extends AbstractController
      */
     private $userService;
 
-    private $pieceJointeRepository;
-
     private $attachmentService;
 
     public function __construct(UserService $userService,
-                                PieceJointeRepository $pieceJointeRepository,
                                 AttachmentService $attachmentService) {
         $this->userService = $userService;
-        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
     }
 
@@ -398,13 +393,14 @@ Class DispatchController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
             $dispatch = $dispatchRepository->find($data['id']);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
-                'attachments' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
+                'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);
 
             return new JsonResponse($json);

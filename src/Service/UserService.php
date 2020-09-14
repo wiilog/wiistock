@@ -18,9 +18,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NoResultException;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
