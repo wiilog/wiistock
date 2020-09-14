@@ -85,14 +85,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
-
+        console.log('hello')
     let json = {id: id, isADemand: 0};
     if (ref !== false) {
         json.ref = ref;
     }
 
     modal.find(submit).attr('value', id);
-    modal.find('#inputId').attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
         const $modalBody = modal.find('.modal-body');
