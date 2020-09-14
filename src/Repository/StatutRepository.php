@@ -409,22 +409,38 @@ class StatutRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getMobileStatus(): array {
-        $queryBuilder = $this->createQueryBuilder('status')
-            ->select('status.id AS id')
-            ->addSelect('status.nom AS label')
-            ->addSelect('status_category.nom AS category')
-            ->addSelect('type.id AS typeId')
-            ->addSelect('status.treated AS treated')
-            ->addSelect('status.displayOrder AS displayOrder')
-            ->join('status.categorie', 'status_category')
-            ->leftJoin('status.type', 'type')
-            ->orderBy('status.displayOrder', 'ASC')
-            ->where('status_category.nom = :dispatchCategory')
-            ->setParameter('dispatchCategory', CategorieStatut::DISPATCH);
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+    public function getMobileStatus(bool $dispatchStatus, bool $handlingStatus): array {
+        if ($dispatchStatus || $handlingStatus) {
+            $queryBuilder = $this->createQueryBuilder('status')
+                ->select('status.id AS id')
+                ->addSelect('status.nom AS label')
+                ->addSelect('status_category.nom AS category')
+                ->addSelect('type.id AS typeId')
+                ->addSelect('status.treated AS treated')
+                ->addSelect('status.displayOrder AS displayOrder')
+                ->join('status.categorie', 'status_category')
+                ->leftJoin('status.type', 'type')
+                ->orderBy('status.displayOrder', 'ASC');
+
+            if ($dispatchStatus) {
+                $queryBuilder
+                    ->where('status_category.nom = :dispatchCategoryLabel')
+                    ->setParameter('dispatchCategoryLabel', CategorieStatut::DISPATCH);
+            }
+
+            if ($handlingStatus) {
+                $queryBuilder
+                    ->orWhere('status_category.nom = :handlingCategoryLabel')
+                    ->setParameter('handlingCategoryLabel', CategorieStatut::HANDLING);
+            }
+
+            return $queryBuilder
+                ->getQuery()
+                ->getResult();
+        }
+        else {
+            return [];
+        }
     }
 
     public function getIdNotTreatedByCategory(string $categoryLabel) {
