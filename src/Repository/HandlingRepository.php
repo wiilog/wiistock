@@ -43,28 +43,39 @@ class HandlingRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function getMobileHandlingsByUserType(Utilisateur $user) {
+    /**
+     * @param int[] $typeIds
+     * @return int|mixed|string
+     */
+    public function getMobileHandlingsByUserTypes(array $typeIds) {
 
         $queryBuilder = $this->createQueryBuilder('handling');
         $queryBuilder
             ->select('handling.id AS id')
             ->addSelect('handling.desiredDate AS desiredDate')
-            ->addSelect('requester.username AS requester')
+            ->addSelect('handling_requester.username AS requester')
             ->addSelect('handling.comment AS comment')
             ->addSelect('handling.source AS source')
             ->addSelect('handling.destination AS destination')
             ->addSelect('handling.subject AS subject')
+            ->addSelect('handling.number AS number')
+            ->addSelect('handling_type.label AS typeLabel')
+            ->addSelect('handling_type.id AS typeId')
             ->leftJoin('handling.requester', 'handling_requester')
             ->leftJoin('handling.status', 'status')
-            ->leftJoin('handling.type', 'handlingType')
+            ->leftJoin('handling.type', 'handling_type')
             ->where('status.treated = false')
             ->andWhere('status.needsMobileSync = true')
-            ->andWhere('handlingType.id IN (:userTypes)')
-            ->setParameter('userTypes', $user->getHandlingTypeIds());
+            ->andWhere('handling_type.id IN (:userTypes)')
+            ->setParameter('userTypes', $typeIds);
 
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+        return array_map(
+            function (array $handling): array {
+                $handling['desiredDate'] = $handling['desiredDate'] ? $handling['desiredDate']->format('d/m/Y H:i:s') : null;
+                return $handling;
+            },
+            $queryBuilder->getQuery()->getResult()
+        );
     }
 
     /**
