@@ -92,7 +92,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     }
 
     modal.find(submit).attr('value', id);
-    modal.find("[name='idRefArticle']").attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
         const $modalBody = modal.find('.modal-body');

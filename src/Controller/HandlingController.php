@@ -124,29 +124,6 @@ class HandlingController extends AbstractController
 		]);
     }
 
-    /**
-     * @Route("/voir", name="handling_show", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function show(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
-				return $this->redirectToRoute('access_denied');
-			}
-
-			$handlingRepository = $entityManager->getRepository(Handling::class);
-            $handling = $handlingRepository->find($data);
-            $json = $this->renderView('handling/modalShowHandlingContent.html.twig', [
-                'handling' => $handling,
-            ]);
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
 
     /**
      * @Route("/creer", name="handling_new", options={"expose"=true}, methods={"GET", "POST"})
