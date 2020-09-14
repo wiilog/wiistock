@@ -48,43 +48,50 @@
                            data-username="{{ app.user.username }}"
                            data-id="{{ app.user.id }}"/>
                 </div>
+                {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
                 <div class="form-group">
-                    <label for="destinataire">Destinataire</label>
-                    <select class="destinataire form-control data ajax-autocomplete-user w-100" name="destinataire">
+                    <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
+                    <select class="destinataire form-control data ajax-autocomplete-user w-100 Destinataire {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }}" name="destinataire">
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Echéance</label>
-                    <div class="input-group w-100">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text w-50px">Du</span>
+                {% endif %}
+                {% if fieldsParam|isFieldRequired('dates d\'échéances', 'displayed') %}
+                    <div class="form-group">
+                        <label>Echéance{{ fieldsParam|isFieldRequired('dates d\'échéances', 'mustToCreate') ? '*' : '' }}</label>
+                        <div class="input-group w-100">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px">Du</span>
+                            </div>
+                            <input type="date"
+                                   class="form-control data {{ (fieldsParam|isFieldRequired('dates d\'échéances', 'mustToCreate') ? 'needed' : '') }}"
+                                   name="startDate"
+                                   title="Date d'échéance min"
+                                   placeholder="jj/mm/aaaa"/>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px">Au</span>
+                            </div>
+                            <input type="date"
+                                   class="form-control data {{ (fieldsParam|isFieldRequired('dates d\'échéances', 'mustToCreate') ? 'needed' : '') }}"
+                                   name="endDate"
+                                   title="Date d'échéance max"
+                                   placeholder="jj/mm/aaaa" />
                         </div>
-                        <input type="date"
-                               class="form-control data"
-                               name="startDate"
-                               title="Date d'échéance min"
-                               placeholder="jj/mm/aaaa"/>
-                        <div class="input-group-prepend">
-                            <span class="input-group-text w-50px">Au</span>
-                        </div>
-                        <input type="date"
-                               class="form-control data"
-                               name="endDate"
-                               title="Date d'échéance max"
-                               placeholder="jj/mm/aaaa"/>
                     </div>
-                </div>
+                {% endif %}
+                {% if fieldsParam|isFieldRequired('urgence', 'displayed') %}
                 <div class="form-group">
-                    <label>Urgence</label>
+                    <label>Urgence{{ fieldsParam|isFieldRequired('urgence', 'mustToCreate') ? '*' : '' }}</label>
                     <div class="w-100">
                         <label class="switch mt-2">
-                            <input class="checkbox"
+                            <input class="checkbox {{ fieldsParam|isFieldRequired('urgence', 'mustToCreate') ? 'needed' : '' }}"
                                    name="urgent"
                                    type="checkbox"/>
                             <span class="slider round"></span>
+                            <input type="hidden" name="isSwitchNeeded" value="{{ fieldsParam|isFieldRequired('urgence', 'mustToCreate') ? 1 : 0 }}"/>
                         </label>
                     </div>
                 </div>
+                {% endif %}
                 <div class="form-group w-100">
                     <label for="prise" title="emplacement prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
@@ -111,17 +118,26 @@
                     {% endfor %}
                 </div>
 
+                {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
                 <div class="form-group">
-                    <label for="commentaire">Commentaire</label>
-                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
+                    <label for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                    <input id='commentaire' class="commentaire form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}" name="commentaire" type="hidden">
                     <div class="editor-container" id="editor-container-new">
                     </div>
                 </div>
-                <div class="form-group">
-                    <div>
-                        {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                {% endif %}
+                {% if fieldsParam|isFieldRequired('pièces-jointes', 'displayed') %}
+                    <div class="form-group">
+                        <div>
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew': true,
+                                'required': fieldsParam|isFieldRequired('pièces-jointes', 'mustToCreate')
+                            } %}
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <input type="hidden" name="isAttachmentForm" value="1"/>
+                {% endif %}
             </div>
 
             <div class="error-msg p-4"></div>

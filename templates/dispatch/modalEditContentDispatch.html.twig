@@ -45,9 +45,10 @@
            data-username="{{ app.user.username }}"
            data-id="{{ app.user.id }}"/>
 </div>
+{% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
 <div class="form-group">
-    <label for="destinataire">Destinataire</label>
-    <select class="destinataire form-control data ajax-autocomplete-user-edit w-100" name="destinataire">
+    <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? '*' : '' }}</label>
+    <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ fieldsParam|isFieldRequired('destinataire', 'mustToModify') ? 'needed' : '' }}" name="destinataire">
         {% if dispatch.receiver is not null %}
             <option value="{{ dispatch.receiver.id }}">{{ dispatch.receiver.username }}</option>
         {% else %}
@@ -55,14 +56,16 @@
         {% endif %}
     </select>
 </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('dates d\'échéances', 'displayed') %}
 <div class="form-group">
-    <label>Echéance</label>
+    <label>Echéance{{ fieldsParam|isFieldRequired('dates d\'échéances', 'mustToModify') ? '*' : '' }}</label>
     <div class="input-group w-100">
         <div class="input-group-prepend">
             <span class="input-group-text w-50px">Du</span>
         </div>
         <input type="date"
-               class="form-control data"
+               class="form-control data {{ (fieldsParam|isFieldRequired('dates d\'échéances', 'mustToModify') ? 'needed' : '') }}"
                name="startDate"
                value="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
                title="Date d'échéance min"
@@ -71,18 +74,20 @@
             <span class="input-group-text w-50px">Au</span>
         </div>
         <input type="date"
-               class="form-control data"
+               class="form-control data {{ (fieldsParam|isFieldRequired('dates d\'échéances', 'mustToModify') ? 'needed' : '') }}"
                name="endDate"
                value="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
                title="Date d'échéance max"
                placeholder="jj/mm/aaaa"/>
     </div>
 </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('urgence', 'displayed') %}
 <div class="form-group">
-    <label>Urgence</label>
+    <label>Urgence{{ fieldsParam|isFieldRequired('urgence', 'mustToModify') ? '*' : '' }}</label>
     <div class="w-100">
         <label class="switch mt-2">
-            <input class="checkbox"
+            <input class="checkbox {{ fieldsParam|isFieldRequired('urgence', 'mustToModify') ? 'needed' : '' }}"
                    name="urgent"
                 {{ dispatch.urgent ? 'checked' }}
                    type="checkbox"/>
@@ -90,6 +95,7 @@
         </label>
     </div>
 </div>
+{% endif %}
 <div class="form-group w-100">
     <label for="prise" title="Emplacement de prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
     <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
@@ -121,15 +127,25 @@
         </div>
     </div>
 {% endif %}
+
+{% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
 <div class="form-group">
-    <label for="commentaire">Commentaire</label>
-    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" value="{{ dispatch.commentaire }}">
+    <label for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? '*' : '' }}</label>
+    <input id='commentaire' class="commentaire form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToModify') ? 'needed' : '' }}" name="commentaire" type="hidden" value="{{ dispatch.commentaire }}">
     <div class="editor-container-new" id="editor-container-new" value="{{ dispatch.commentaire }}">{{ dispatch.commentaire|raw }}
     </div>
 </div>
+{% endif %}
+{% if fieldsParam|isFieldRequired('pièces-jointes', 'displayed') %}
 <div class="form-group">
     <div>
-        {% include 'attachment/attachment.html.twig' with {'isNew': false} %}
+        {% include 'attachment/attachment.html.twig' with {
+            'isNew': false,
+            'required': fieldsParam|isFieldRequired('pièces-jointes', 'mustToModify')
+        } %}
     </div>
 </div>
+{% else %}
+    <input type="hidden" name="isAttachmentForm" value="1"/>
+{% endif %}
 

@@ -320,9 +320,14 @@
                     {% if fieldsParam|isFieldRequired('pj', 'displayed') %}
                         <div class="form-group col-4">
                             <div>
-                                {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                                {% include 'attachment/attachment.html.twig' with {
+                                    'isNew' : true,
+                                    'required': fieldsParam|isFieldRequired('pièces-jointes', 'mustToCreate')
+                                } %}
                             </div>
                         </div>
+                    {% else %}
+                        <input type="hidden" name="isAttachmentForm" value="1"/>
                     {% endif %}
                 </div>
             </div>

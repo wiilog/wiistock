@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 
 use App\Entity\Nature;
@@ -83,12 +84,15 @@ Class DispatchController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         return $this->render('dispatch/index.html.twig', [
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
+            'fieldsParam' => $fieldsParam,
 			'modalNewConfig' => [
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
@@ -153,14 +157,22 @@ Class DispatchController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
             $dispatch = new Dispatch();
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $locationTake = $emplacementRepository->find($post->get('prise'));
             $locationDrop = $emplacementRepository->find($post->get('depose'));
 
-            $startDate = $dispatchService->createDateFromStr($post->get('startDate'));
-            $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
+            $comment = $post->get('commentaire');
+            $startDateRaw = $post->get('startDate');
+            $endDateRaw = $post->get('endDate');
+            $receiver = $post->get('receiver');
+            $emergency = $post->get('emergency');
+
+            $startDate = $dispatchService->createDateFromStr($startDateRaw);
+            $endDate = $dispatchService->createDateFromStr($endDateRaw);
             $number = $dispatchService->createDispatchNumber($entityManager, $date);
 
             if ($startDate && $endDate && $startDate > $endDate) {
@@ -172,17 +184,32 @@ Class DispatchController extends AbstractController
 
             $dispatch
                 ->setCreationDate($date)
-                ->setStartDate($startDate ?: null)
-                ->setEndDate($endDate ?: null)
-                ->setUrgent($post->getBoolean('urgent'))
                 ->setStatut($statutRepository->find($post->get('statut')))
                 ->setType($typeRepository->find($post->get('type')))
-                ->setRequester($utilisateurRepository->find($post->get('demandeur')) ?? null)
-                ->setReceiver($utilisateurRepository->find($post->get('destinataire')) ?? null)
+                ->setRequester($utilisateurRepository->find($post->get('demandeur')))
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
-                ->setCommentaire($post->get('commentaire') ?? null)
                 ->setNumber($number);
+
+            if (!empty($comment)) {
+                $dispatch->setCommentaire($comment);
+            }
+
+            if (!empty($startDateRaw)) {
+                $dispatch->setStartDate($startDate);
+            }
+
+            if (!empty($endDateRaw)) {
+                $dispatch->setEndDate($endDate);
+            }
+
+            if (!empty($receiver)) {
+                $dispatch->setReceiver($utilisateurRepository->find($receiver) ?? null);
+            }
+
+            if (!empty($emergency)) {
+                $dispatch->setUrgent($post->getBoolean('urgent'));
+            }
 
             $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
@@ -204,7 +231,9 @@ Class DispatchController extends AbstractController
             $entityManager->persist($dispatch);
             $entityManager->flush();
 
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            if (!empty($receiver)) {
+                $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            }
 
             return new JsonResponse([
                 'success' => true,
@@ -398,10 +427,14 @@ Class DispatchController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
             $dispatch = $dispatchRepository->find($data['id']);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
+                'fieldsParam' => $fieldsParam,
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
                 'attachments' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])

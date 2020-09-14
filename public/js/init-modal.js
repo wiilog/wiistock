@@ -68,7 +68,7 @@ function SubmitAction($modal,
     const {success, errorMessages, $isInvalidElements, data} = processForm($modal);
 
     if (success) {
-        const smartData = $modal.find('input[type="file"]').length > 0
+        const smartData = $modal.find('input[name="isAttachmentForm"]').val() === '1'
             ? createFormData(data)
             : JSON.stringify(data);
 
@@ -293,6 +293,7 @@ function processInputsForm($modal) {
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
         const $formGroupLabel = $input.closest('.form-group').find('label');
+        const $editorContainer = $input.siblings('.editor-container');
 
         // Fix bug when we write <label>Label<select>...</select></label
         // the label variable had text options
@@ -315,10 +316,14 @@ function processInputsForm($modal) {
                 || val === ''
                 || val === null
                 || (Array.isArray(val) && val.length === 0)
+                || ($editorContainer.length > 0 && val === '<p><br></p>')
             )) {
             if ($input.is(':disabled') === false) {
                 missingInputNames.push(label);
                 $isInvalidElements.push($input, $input.next().find('.select2-selection'));
+                if ($editorContainer.length > 0) {
+                    $isInvalidElements.push($editorContainer);
+                }
             }
         }
         else if ($input.hasClass('is-barcode')
@@ -377,7 +382,7 @@ function processInputsForm($modal) {
             }
         }
         else {
-            const $editorContainer = $input.siblings('.editor-container')
+            const $editorContainer = $input.siblings('.editor-container');
             if ($editorContainer.length > 0) {
                 const maxLength = parseInt($input.attr('max'));
                 if (maxLength) {
@@ -446,6 +451,9 @@ function processCheckboxesForm($modal) {
  */
 function processFilesForm($modal) {
     const data = {};
+    const $requiredFileField = $modal.find('input[name="isFileNeeded"][type="hidden"]');
+    const required = $requiredFileField.val() === '1';
+
     $.each(droppedFiles, function(index, file) {
         data[`file${index}`] = file;
     });
@@ -457,11 +465,13 @@ function processFilesForm($modal) {
         });
     }
 
+    const isInvalidRequired = required && droppedFiles.length === 0 && $savedFiles.length === 0;
+
     return {
-        success: true,
-        errorMessages: [],
-        $isInvalidElements: [],
-        data
+        success: !isInvalidRequired,
+        errorMessages: isInvalidRequired ? ['Vous devez ajouter au moins une pièce-jointe.'] : [],
+        $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : [],
+        data: isInvalidRequired ? {} : data
     };
 }
 

@@ -1,3 +1,6 @@
+<input type="hidden" name="isAttachmentForm" value="1"/>
+<input type="hidden" name="isFileNeeded" value="{{ required is defined and required ? 1 : 0 }}"/>
+
 <label for="dropfile">Pièces jointes</label>
 <div class="dropFrame justify-content-md-center"
      data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
