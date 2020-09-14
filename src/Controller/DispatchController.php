@@ -87,8 +87,8 @@ Class DispatchController extends AbstractController
         return $this->render('dispatch/index.html.twig', [
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
-            'fieldsParam' => $fieldsParam,
 			'modalNewConfig' => [
+                'fieldsParam' => $fieldsParam,
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                     $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);

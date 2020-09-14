@@ -7,10 +7,10 @@ let droppedFiles = [];
 /**
  * Init form validation modal.
  *
- * @param {*} $modal jQuery element of the modal
- * @param {*} $submit jQuery element of the submit button
- * @param {string} path le chemin pris pour envoyer les données.
- * @param {{tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
+ * @param {jQuery} $modal jQuery element of the modal
+ * @param {jQuery} $submit jQuery element of the submit button
+ * @param {string} path url to call on submit
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean}} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
@@ -52,12 +52,12 @@ function InitModal($modal, $submit, path, options = {}) {
 
 /**
  *
- * @param {{tables: undefined|Array<*>, keepModal: undefined|boolean, keepForm: undefined|boolean}} options Object containing some options.
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
- * @param {*} $modal jQuery element of the modal
- * @param {*} $submit jQuery element of the submit button
+ * @param {jQuery} $modal jQuery element of the modal
+ * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
  */
 function SubmitAction($modal,
@@ -293,7 +293,7 @@ function processInputsForm($modal) {
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
         const $formGroupLabel = $input.closest('.form-group').find('label');
-        const $editorContainer = $input.siblings('.editor-container');
+        const $editorContainer = $input.siblings('.ql-container');
 
         // Fix bug when we write <label>Label<select>...</select></label
         // the label variable had text options
@@ -352,13 +352,16 @@ function processInputsForm($modal) {
         }
         // validation valeur des inputs de type number
         else if ($input.attr('type') === 'number') {
-            if (!isNaN(val)
+            if (val
                 && !$input.is(':disabled')) {
                 let val = parseInt($input.val());
                 let min = parseInt($input.attr('min'));
                 let max = parseInt($input.attr('max'));
-                if (val > max
-                    || val < min) {
+                if (!isNaN(val)
+                    && (
+                        val > max
+                        || val < min
+                    )) {
                     let errorMessage = 'La valeur du champ ' + label;
                     if (!isNaN(min) && !isNaN(max)) {
                         errorMessage += min > max
@@ -469,7 +472,7 @@ function processFilesForm($modal) {
 
     return {
         success: !isInvalidRequired,
-        errorMessages: isInvalidRequired ? ['Vous devez ajouter au moins une pièce-jointe.'] : [],
+        errorMessages: isInvalidRequired ? ['Vous devez ajouter au moins une pièce jointe.'] : [],
         $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : [],
         data: isInvalidRequired ? {} : data
     };

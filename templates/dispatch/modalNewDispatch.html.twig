@@ -48,22 +48,26 @@
                            data-username="{{ app.user.username }}"
                            data-id="{{ app.user.id }}"/>
                 </div>
-                {% if fieldsParam|isFieldRequired('destinataire', 'displayed') %}
-                <div class="form-group">
-                    <label for="destinataire">Destinataire{{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? '*' : '' }}</label>
-                    <select class="destinataire form-control data ajax-autocomplete-user w-100 Destinataire {{ fieldsParam|isFieldRequired('destinataire', 'mustToCreate') ? 'needed' : '' }}" name="destinataire">
-                    </select>
-                </div>
-                {% endif %}
-                {% if fieldsParam|isFieldRequired('dates d\'échéances', 'displayed') %}
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECIPIENT_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                     <div class="form-group">
-                        <label>Echéance{{ fieldsParam|isFieldRequired('dates d\'échéances', 'mustToCreate') ? '*' : '' }}</label>
+                        <label for="destinataire">Destinataire{{ required ? '*' }}</label>
+                        <select class="destinataire form-control data ajax-autocomplete-user w-100 Destinataire {{ required ? 'needed' }}" name="destinataire">
+                        </select>
+                    </div>
+                {% endif %}
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label>Echéance{{ required ? '*' }}</label>
                         <div class="input-group w-100">
                             <div class="input-group-prepend">
                                 <span class="input-group-text w-50px">Du</span>
                             </div>
                             <input type="date"
-                                   class="form-control data {{ (fieldsParam|isFieldRequired('dates d\'échéances', 'mustToCreate') ? 'needed' : '') }}"
+                                   class="form-control data {{ required ? 'needed' }}"
                                    name="startDate"
                                    title="Date d'échéance min"
                                    placeholder="jj/mm/aaaa"/>
@@ -71,26 +75,27 @@
                                 <span class="input-group-text w-50px">Au</span>
                             </div>
                             <input type="date"
-                                   class="form-control data {{ (fieldsParam|isFieldRequired('dates d\'échéances', 'mustToCreate') ? 'needed' : '') }}"
+                                   class="form-control data {{ required ? 'needed' }}"
                                    name="endDate"
                                    title="Date d'échéance max"
                                    placeholder="jj/mm/aaaa" />
                         </div>
                     </div>
                 {% endif %}
-                {% if fieldsParam|isFieldRequired('urgence', 'displayed') %}
-                <div class="form-group">
-                    <label>Urgence{{ fieldsParam|isFieldRequired('urgence', 'mustToCreate') ? '*' : '' }}</label>
-                    <div class="w-100">
-                        <label class="switch mt-2">
-                            <input class="checkbox {{ fieldsParam|isFieldRequired('urgence', 'mustToCreate') ? 'needed' : '' }}"
-                                   name="urgent"
-                                   type="checkbox"/>
-                            <span class="slider round"></span>
-                            <input type="hidden" name="isSwitchNeeded" value="{{ fieldsParam|isFieldRequired('urgence', 'mustToCreate') ? 1 : 0 }}"/>
-                        </label>
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label>Urgence{{ required ? '*' }}</label>
+                        <div class="w-100">
+                            <label class="switch mt-2">
+                                <input class="checkbox {{ required ? 'needed' }}"
+                                       name="urgent"
+                                       type="checkbox"/>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
-                </div>
                 {% endif %}
                 <div class="form-group w-100">
                     <label for="prise" title="emplacement prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
@@ -107,7 +112,7 @@
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
                     {% for type in typeChampsLibres %}
                         <div class="d-none row" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-12',
@@ -118,20 +123,25 @@
                     {% endfor %}
                 </div>
 
-                {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
-                <div class="form-group">
-                    <label for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
-                    <input id='commentaire' class="commentaire form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}" name="commentaire" type="hidden">
-                    <div class="editor-container" id="editor-container-new">
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="commentaire">Commentaire{{ required ? '*' }}</label>
+                        <input id='commentaire' class="commentaire form-control data {{ required ? 'needed' }}" name="commentaire" type="hidden">
+                        <div class="editor-container" id="editor-container-new">
+                        </div>
                     </div>
-                </div>
                 {% endif %}
-                {% if fieldsParam|isFieldRequired('pièces-jointes', 'displayed') %}
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                     <div class="form-group">
                         <div>
                             {% include 'attachment/attachment.html.twig' with {
                                 'isNew': true,
-                                'required': fieldsParam|isFieldRequired('pièces-jointes', 'mustToCreate')
+                                'required': required
                             } %}
                         </div>
                     </div>

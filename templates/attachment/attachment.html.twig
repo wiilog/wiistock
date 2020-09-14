@@ -1,7 +1,8 @@
+{% set required = required is defined and required %}
 <input type="hidden" name="isAttachmentForm" value="1"/>
-<input type="hidden" name="isFileNeeded" value="{{ required is defined and required ? 1 : 0 }}"/>
+<input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
-<label for="dropfile">Pièces jointes</label>
+<label for="dropfile">Pièces jointes{{ required ? '*' }}</label>
 <div class="dropFrame justify-content-md-center"
      data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
      data-litige-id="{{ litige is defined ? litige.id : '' }}"

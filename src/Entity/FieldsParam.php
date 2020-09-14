@@ -63,17 +63,17 @@ class FieldsParam
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
 
-    const FIELD_CODE_RECIPIENT_DISPATCH = 'destinataire';
-    const FIELD_CODE_DEADLINE_DISPATCH = 'dates d\'échéances';
-    const FIELD_CODE_EMERGENCY_DISPATCH = 'urgence';
-    const FIELD_CODE_COMMENT_DISPATCH = 'commentaire';
-    const FIELD_CODE_ATTACHMENTS_DISPATCH = 'pièces-jointes';
+    const FIELD_CODE_RECIPIENT_DISPATCH = 'recipient';
+    const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
+    const FIELD_CODE_EMERGENCY_DISPATCH = 'emergency';
+    const FIELD_CODE_COMMENT_DISPATCH = 'comment';
+    const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
 
     const FIELD_LABEL_RECIPIENT_DISPATCH = 'destinataire';
     const FIELD_LABEL_DEADLINE_DISPATCH = 'dates d\'échéances';
     const FIELD_LABEL_EMERGENCY_DISPATCH = 'urgence';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
-    const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces-jointes';
+    const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
 
 	/**
      * @ORM\Id()

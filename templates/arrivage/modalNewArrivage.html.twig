@@ -297,7 +297,7 @@
                 </div>
 
                 <div class="row champsLibresBlock">
-                    {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                         freeFields: champsLibres,
                         freeFieldValues: [],
                         colType: 'col-4',
@@ -308,11 +308,12 @@
 
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('commentaire', 'displayed') %}
+                        {% set commentNeeded = fieldsParam|isFieldRequired('commentaire', 'mustToCreate') %}
                         <div class="form-group col-8 h-fit-content">
                             <label
-                                for="commentaire">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                                for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
                             <input id="commentaire"
-                                   class="commentaire form-control input-sm data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
+                                   class="commentaire form-control input-sm data {{ commentNeeded ? 'needed' }}"
                                    name="commentaire" type="hidden">
                             <div class="editor-container-new"></div>
                         </div>
@@ -321,8 +322,8 @@
                         <div class="form-group col-4">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
-                                    'isNew' : true,
-                                    'required': fieldsParam|isFieldRequired('pièces-jointes', 'mustToCreate')
+                                    'isNew': true,
+                                    'required': fieldsParam|isFieldRequired('pj', 'mustToCreate')
                                 } %}
                             </div>
                         </div>

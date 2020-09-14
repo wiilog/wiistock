@@ -1,12 +1,13 @@
 $(function () {
     $('.table').each(function () {
-        let config = {
+        const $table = $(this);
+        initDataTable($table.attr('id'), {
             ajax: {
-                "url": Routing.generate('fields_param_api', {entityCode: $(this).parent().attr('id')}),
+                "url": Routing.generate('fields_param_api', {entityCode: $table.parent().attr('id')}),
                 "type": "POST"
             },
             columns: [
-                {"data": 'Actions', 'title': '', className: 'noVis'},
+                {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
                 {"data": 'displayed', 'title': 'Affiché'},
                 {"data": 'mustCreate', 'title': 'Obligatoire à la création'},
                 {"data": 'mustEdit', 'title': 'Obligatoire à la modification'},
@@ -18,34 +19,21 @@ $(function () {
             order: [[4, "asc"]],
             info: false,
             filter: false,
-            paging: false,
-            columnDefs: [
-                {orderable: false, targets: 0}
-            ]
-        };
-        initDataTable($(this).attr('id'), config);
-    });
-});
-
-let modalEditFields = $('#modalEditFields');
-let submitEditFields = $('#submitEditFields');
-let urlEditFields = Routing.generate('fields_edit', true);
-InitModal(modalEditFields, submitEditFields, urlEditFields, {
-    success: displayErrorFields
-});
-
-function displayErrorFields(data) {
-    let modal = $("#modalEditFields");
-    if (data.success === false) {
-        displayError(modal, data.msg, data.success);
-    } else {
-        modal.find('.close').click();
-        $('.table').each(function () {
-            let table = $(this).DataTable();
-            table.ajax.reload();
+            paging: false
         });
-        alertSuccessMsg(data.msg);
-    }
+    });
+
+    let $modalEditFields = $('#modalEditFields');
+    let $submitEditFields = $('#submitEditFields');
+    let urlEditFields = Routing.generate('fields_edit', true);
+    InitModal($modalEditFields, $submitEditFields, urlEditFields, {success: displayErrorFields});
+});
+
+function displayErrorFields() {
+    $('.table').each(function () {
+        let table = $(this).DataTable();
+        table.ajax.reload();
+    });
 }
 
 function switchDisplay(checkbox) {

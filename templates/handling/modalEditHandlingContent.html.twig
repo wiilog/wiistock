@@ -71,7 +71,7 @@
 {% if handling.type is not null and handling.type.champsLibres.count > 0 %}
     <div class="form-group col-12 blocVisible d-block">
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: handling.type.champsLibres,
                 freeFieldValues: handling.freeFields,
                 colType: 'col-12',
