@@ -55,13 +55,12 @@
                     <select id="{{ freeField.id ~ actionType }}"
                             class="form-control data list-multiple  {{ attribute(freeField, requiredType) ? 'needed' : '' }} w-100"
                             name="{{ freeField.id }}" multiple="multiple">
+                        {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
                         {% for elem in freeField.elements %}
-                            {% set entityValue = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id] : [] %}
-                            {% set selected = (elem in entityValue ? 'selected' : '') %}
+                            {% set selected = (elem in entityValuesArray ? 'selected' : '') %}
                             <option value="{{ elem }}" {{ selected }}>{{ elem }}</option>
                         {% endfor %}
                     </select>
-
                 {% elseif freeField.typage == constant('App\\Entity\\ChampLibre::TYPE_TEXT') %}
                     <input type="text" id="{{ freeField.id ~ actionType }}"
                            class="form-control needs-default data {{ (attribute(freeField, requiredType)) ? 'needed' : '' }}"

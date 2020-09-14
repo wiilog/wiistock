@@ -85,7 +85,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
-
+        console.log('hello')
     let json = {id: id, isADemand: 0};
     if (ref !== false) {
         json.ref = ref;
