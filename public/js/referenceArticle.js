@@ -63,7 +63,6 @@ function initPageModals() {
 
 function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
-    $('#typeContentEdit .list-multiple').select2();
 }
 
 function clearModalRefArticle(modal, data) {
