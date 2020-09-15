@@ -14,10 +14,12 @@
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if pack.arrivage %}
             <a class="dropdown-item"
                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: pack.arrivage.id, colis: pack.id}) }}">
                 <i class='fas fa-print mr-2'></i>Imprimer
             </a>
+            {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="dropdown-item"
                      data-toggle='modal'
