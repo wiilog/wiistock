@@ -40,6 +40,8 @@ class Action
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
 	const DISPLAY_HAND = 'afficher services';
     const DISPLAY_ACHE = 'afficher acheminements';
+    const CREATE_ACHE = 'créer acheminements';
+    const DELETE_ACHE = 'supprimer acheminements';
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';

@@ -4,7 +4,7 @@
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ACHE')) %}
 
 {% block showActions %}
     <div class="btn-group">
