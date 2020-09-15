@@ -1303,6 +1303,7 @@ function fillDemandeurField($modal) {
 function registerNumberInputProtection($inputs) {
     const forbiddenChars = [
         "e",
+        "E",
         "+",
         "-"
     ];

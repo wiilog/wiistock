@@ -217,8 +217,8 @@ class PackController extends AbstractController {
         if (!empty($pack)) {
             $natureId = $data['nature'];
             $quantity = $data['quantity'];
-            $poids = $data['poids'];
-            $volume = $data['volume'];
+            $poids = str_replace(",", ".", $data['poids']);
+            $volume = str_replace(",", ".", $data['volume']);
 
             if ($quantity <= 0) {
                 return new JsonResponse([
@@ -227,17 +227,17 @@ class PackController extends AbstractController {
                 ]);
             }
 
-            if (!empty($poids) && $poids <= 0) {
+            if (!empty($poids) && ($poids <= 0 || !is_float($poids))) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => 'Le poids doit être supérieur à 0.'
+                    'msg' => 'Le poids doit être un nombre supérieur à 0.'
                 ]);
             }
 
-            if (!empty($volume) && $volume <= 0) {
+            if (!empty($volume) && ($volume <= 0 || !is_float($volume))) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => 'Le volume doit être supérieur à 0.' . $volume
+                    'msg' => 'Le volume doit être un nombre supérieur à 0.' . $volume
                 ]);
             }
 
