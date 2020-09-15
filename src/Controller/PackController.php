@@ -214,9 +214,9 @@ class PackController extends AbstractController {
 
         $pack = $packRepository->find($data['id']);
 
-        if ($pack) {
+        if (!empty($pack)) {
             $natureId = $data['nature'];
-            $quantity = (int)$data['quantity'];
+            $quantity = $data['quantity'];
             $poids = $data['poids'];
             $volume = $data['volume'];
 
@@ -227,14 +227,14 @@ class PackController extends AbstractController {
                 ]);
             }
 
-            if (!$poids || $poids <= 0) {
+            if (!empty($poids) && $poids <= 0) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Le poids doit être supérieur à 0.'
                 ]);
             }
 
-            if (!$volume || $volume <= 0) {
+            if (!empty($volume) && $volume <= 0) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Le volume doit être supérieur à 0.' . $volume
