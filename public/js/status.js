@@ -6,6 +6,13 @@ $(function () {
         displayFiltersSup(data);
     }, 'json');
 
+    $('.filter-tab').click(function() {
+        let id = $(this).data('id');
+
+        $('select[name="statusEntity"]').val(id);
+        $('#save-filters').click();
+    });
+
     let pathStatus = Routing.generate('status_param_api', true);
     let tableStatusConfig = {
         processing: true,
