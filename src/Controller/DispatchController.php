@@ -181,7 +181,7 @@ Class DispatchController extends AbstractController
                 ->setCreationDate($date)
                 ->setStatut($statutRepository->find($post->get('statut')))
                 ->setType($typeRepository->find($post->get('type')))
-                ->setRequester($utilisateurRepository->find($post->get('demandeur')))
+                ->setRequester($utilisateurRepository->find($post->get('requester')))
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
                 ->setNumber($number);
@@ -363,8 +363,8 @@ Class DispatchController extends AbstractController
             ]);
         }
 
-        $receiverData = $post->get('destinataire');
-        $requesterData = $post->get('demandeur');
+        $receiverData = $post->get('receiver');
+        $requesterData = $post->get('requester');
         $receiver = $receiverData ? $utilisateurRepository->find($receiverData) : null;
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
 

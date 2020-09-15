@@ -34,7 +34,7 @@
 </div>
 <div class="form-group">
     <label for="demandeur">Demandeur*</label>
-    <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="demandeur">
+    <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="requester">
         <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
         {% for utilisateur in utilisateurs %}
             <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
@@ -50,7 +50,7 @@
     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
     <div class="form-group">
         <label for="destinataire">Destinataire{{ required ? '*' }}</label>
-        <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ required ? 'needed' }}" name="destinataire">
+        <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ required ? 'needed' }}" name="receiver">
             {% if dispatch.receiver is not null %}
                 <option value="{{ dispatch.receiver.id }}" selected>{{ dispatch.receiver.username }}</option>
             {% else %}
