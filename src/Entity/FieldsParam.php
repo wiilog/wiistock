@@ -63,7 +63,7 @@ class FieldsParam
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
 
-    const FIELD_CODE_RECEIVER_DISPATCH = 'recipient';
+    const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
     const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
     const FIELD_CODE_EMERGENCY_DISPATCH = 'emergency';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
