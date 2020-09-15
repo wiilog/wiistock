@@ -166,8 +166,8 @@ Class DispatchController extends AbstractController
             $receiver = $post->get('receiver');
             $emergency = $post->get('emergency');
 
-            $startDate = $dispatchService->createDateFromStr($startDateRaw);
-            $endDate = $dispatchService->createDateFromStr($endDateRaw);
+            $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
+            $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
             $number = $dispatchService->createDispatchNumber($entityManager, $date);
 
             if ($startDate && $endDate && $startDate > $endDate) {
@@ -190,11 +190,11 @@ Class DispatchController extends AbstractController
                 $dispatch->setCommentaire($comment);
             }
 
-            if (!empty($startDateRaw)) {
+            if (!empty($startDate)) {
                 $dispatch->setStartDate($startDate);
             }
 
-            if (!empty($endDateRaw)) {
+            if (!empty($endDate)) {
                 $dispatch->setEndDate($endDate);
             }
 
@@ -339,8 +339,10 @@ Class DispatchController extends AbstractController
         $post = $request->request;
         $dispatch = $dispatchRepository->find($post->get('id'));
 
-        $startDate = $dispatchService->createDateFromStr($post->get('startDate'));
-        $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
+        $startDateRaw = $post->get('startDate');
+        $endDateRaw = $post->get('endDate');
+        $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
+        $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
         $locationTake = $emplacementRepository->find($post->get('prise'));
         $locationDrop = $emplacementRepository->find($post->get('depose'));
@@ -361,11 +363,16 @@ Class DispatchController extends AbstractController
             ]);
         }
 
+        $receiverData = $post->get('destinataire');
+        $requesterData = $post->get('demandeur');
+        $receiver = $receiverData ? $utilisateurRepository->find($receiverData) : null;
+        $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
+
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
-            ->setRequester($utilisateurRepository->find($post->get('demandeur')))
-            ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
+            ->setRequester($requester)
+            ->setReceiver($receiver)
             ->setUrgent($post->getBoolean('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
