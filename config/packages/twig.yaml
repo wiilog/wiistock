@@ -7,3 +7,4 @@ twig:
     globals:
         dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
         web_version: '%web_version%'
+        app_url: '%env(APP_URL)%'
