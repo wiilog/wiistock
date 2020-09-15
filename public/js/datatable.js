@@ -233,11 +233,9 @@ function moveSearchInputToHeader($searchInputContainer) {
 function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, isArticleOrRefSpecifConfig, ...config}) {
     let tooltips = [];
     config.columns.forEach((column, id) => {
-        if(column.translatable) {
-            let translation = translations[column.title];
-
-            column.title = translation.translated;
-            tooltips.push({id, text: translation.original});
+        if (column.translated) {
+            tooltips.push({id, text: Trans.original(column.title)});
+            column.title = Trans.translated(column.title);
         }
     });
 

@@ -35,7 +35,7 @@ class TranslationService {
     public function generateTranslationsFile() {
         $projectDir = $this->kernel->getProjectDir();
         $translationYAML = $projectDir . '/translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml';
-        $translationJS = $projectDir . '/public/js/translations/translations.js';
+        $translationJS = $projectDir . '/public/js/translations/translations.' . $_SERVER['APP_LOCALE'] . '.js';
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 

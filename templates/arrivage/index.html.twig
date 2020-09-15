@@ -88,9 +88,6 @@
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
     {% include "arrivage/modalColumnVisible.html.twig" with { champs: champs }%}
-    <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans }}">
-    <input hidden id="acheteursTranslation" value="{{ "arrivage.acheteurs"|trans }}">
-    <input hidden id="destinataireTranslation" value="{{ "arrivage.destinataire"|trans }}">
 {% endblock %}
 
 {% block javascripts %}

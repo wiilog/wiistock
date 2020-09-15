@@ -26,7 +26,7 @@ let tableEmplacementConfig = {
         {"data": 'Point de livraison', 'name': 'Point de livraison', 'title': 'Point de livraison'},
         {"data": 'Délai maximum', 'name': 'Délai maximum', 'title': 'Délai maximum'},
         {"data": 'Actif / Inactif', 'name': 'Actif / Inactif', 'title': 'Actif / Inactif'},
-        {"data": 'allowed-natures', 'name': 'allowed-natures', 'title': $('#allowedNaturePackTranslation').val(), orderable: false},
+        {"data": 'allowed-natures', 'name': 'allowed-natures', 'title': 'natures.Natures de colis autorisées', translated: true, orderable: false},
     ]
 };
 let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);

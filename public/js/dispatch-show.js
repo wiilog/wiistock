@@ -14,9 +14,9 @@ $(function () {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val(), tooltip: ''},
+            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
             {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'quantity', 'name': 'code', 'title': $('#dispatchQuantityTranslation').val()},
+            {"data": 'quantity', 'name': 'code', 'title': 'acheminement.Quantité à acheminer', translated: true},
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},

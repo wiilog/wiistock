@@ -6,4 +6,5 @@ twig:
     exception_controller: null
     globals:
         dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
+        app_locale: '%env(APP_LOCALE)%'
         web_version: '%web_version%'
