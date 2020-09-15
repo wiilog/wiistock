@@ -231,7 +231,6 @@ class ParamTypesController extends AbstractController
             }
 
             $typeRepository = $entityManager->getRepository(Type::class);
-                dump($typeId);
             $canDelete = !$typeRepository->isTypeUsed($typeId);
 
 
