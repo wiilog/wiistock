@@ -26,8 +26,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * @Route("/colis")
  */
-class PackController extends AbstractController
-{
+class PackController extends AbstractController {
 
     /**
      * @Route("/", name="pack_index", options={"expose"=true})
@@ -36,8 +35,7 @@ class PackController extends AbstractController
      * @return RedirectResponse|Response
      */
     public function index(EntityManagerInterface $entityManager,
-                          UserService $userService)
-    {
+                          UserService $userService) {
         if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -59,8 +57,7 @@ class PackController extends AbstractController
      */
     public function api(Request $request,
                         UserService $userService,
-                        PackService $packService): Response
-    {
+                        PackService $packService): Response {
         if ($request->isXmlHttpRequest()) {
             if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
                 return $this->redirectToRoute('access_denied');
@@ -86,8 +83,7 @@ class PackController extends AbstractController
                                   CSVExportService $CSVExportService,
                                   UserService $userService,
                                   TranslatorInterface $translator,
-                                  EntityManagerInterface $entityManager): Response
-    {
+                                  EntityManagerInterface $entityManager): Response {
 
         if (!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
             return $this->redirectToRoute('access_denied');
@@ -179,8 +175,7 @@ class PackController extends AbstractController
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager,
-                            UserService $userService): Response
-    {
+                            UserService $userService): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $packRepository = $entityManager->getRepository(Pack::class);
@@ -208,8 +203,7 @@ class PackController extends AbstractController
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager,
-                         UserService $userService): Response
-    {
+                         UserService $userService): Response {
         if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -220,27 +214,41 @@ class PackController extends AbstractController
 
         $pack = $packRepository->find($data['id']);
 
-        if (!empty($pack)) {
+        if ($pack) {
             $natureId = $data['nature'];
-            $quantity = $data['quantity'];
+            $quantity = (int)$data['quantity'];
+            $poids = $data['poids'];
+            $volume = $data['volume'];
 
-            if ($quantity < 1) {
+            if ($quantity <= 0) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'La quantité doit être supérieure à 0.'
                 ]);
             }
 
-            if (!empty($natureId)) {
-                $nature = $natureRepository->find($natureId);
-                if (!empty($nature)) {
-                    $pack->setNature($nature);
-                }
+            if (!$poids || $poids <= 0) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le poids doit être supérieur à 0.'
+                ]);
             }
 
-            if (!empty($quantity)) {
-                $pack->setQuantity($quantity);
+            if (!$volume || $volume <= 0) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le volume doit être supérieur à 0.' . $volume
+                ]);
             }
+
+            $nature = $natureRepository->find($natureId);
+            if (!empty($nature)) {
+                $pack->setNature($nature);
+            }
+
+            $pack->setQuantity($quantity);
+            $pack->setPoids($poids);
+            $pack->setVolume($volume);
 
             $entityManager->flush();
         }
@@ -250,4 +258,30 @@ class PackController extends AbstractController
             'msg' => 'Votre colis a bien été modifié.'
         ]);
     }
+
+    /**
+     * @Route("/supprimer", name="pack_delete", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
+     * @return Response
+     */
+    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $packRepository = $entityManager->getRepository(Pack::class);
+
+            $pack = $packRepository->find($data['pack']);
+            $entityManager->remove($pack);
+            $entityManager->flush();
+
+            return new JsonResponse(['success' => true]);
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
 }

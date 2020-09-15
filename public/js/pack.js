@@ -42,4 +42,11 @@ $(function() {
     const $submitEditPack = $('#submitEditPack');
     const urlEditPack = Routing.generate('pack_edit', true);
     InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]});
+
+
+    let modalDeletePack = $("#modalDeletePack");
+    let SubmitDeletePack = $("#submitDeletePack");
+    let urlDeletePack = Routing.generate('pack_delete', true);
+    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
 });
+

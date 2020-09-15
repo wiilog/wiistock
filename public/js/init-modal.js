@@ -145,6 +145,7 @@ function clearFormErrors($modal) {
 
     $modal
         .find(`.${FORM_ERROR_CONTAINER}`)
+        .removeClass("p-4")
         .empty();
 }
 
@@ -572,9 +573,9 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages} = {}) {
         const $message = filledErrorMessages.join('<br/>');
         const $innerModalMessageError = $modal.find(`.${FORM_ERROR_CONTAINER}`);
         if ($innerModalMessageError.length > 0) {
+            $innerModalMessageError.addClass("p-4");
             $innerModalMessageError.html($message);
-        }
-        else {
+        } else {
             alertErrorMsg($message, true)
         }
     }

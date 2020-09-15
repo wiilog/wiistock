@@ -66,6 +66,16 @@ class Pack
     private $quantity;
 
     /**
+     * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
+     */
+    private $poids;
+
+    /**
+     * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
+     */
+    private $volume;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
      */
     private $dispatchPacks;
@@ -227,12 +237,31 @@ class Pack
         return $this;
     }
 
+    public function getQuantity(): int {
+        return $this->quantity;
+    }
+
     public function setQuantity(int $quantity): self {
         $this->quantity = $quantity;
         return $this;
     }
 
-    public function getQuantity(): int {
-        return $this->quantity;
+    public function getPoids(): ?string {
+        return $this->poids;
     }
+
+    public function setPoids(?string $poids): self {
+        $this->poids = $poids;
+        return $this;
+    }
+
+    public function getVolume(): ?string {
+        return $this->volume;
+    }
+
+    public function setVolume(?string $volume): self {
+        $this->volume = $volume;
+        return $this;
+    }
+
 }
