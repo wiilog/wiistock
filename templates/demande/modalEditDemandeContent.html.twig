@@ -33,7 +33,7 @@
 <div class="row mt-4">
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
                 freeFieldValues: demande.freeFields,
                 colType: 'col-12',

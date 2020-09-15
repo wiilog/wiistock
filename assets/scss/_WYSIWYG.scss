@@ -1,4 +1,8 @@
-.editor-container {
+.ql-container {
+    &.ql-snow {
+        height: 90px;
+    }
+
     strong {
         font-weight: bold !important;
     }
@@ -9,10 +13,6 @@
 
     &.is-invalid {
         padding-right: 0;
-        border-top: #dc3545 1px solid;
+        border-top: #dc3545 1px solid !important;
     }
-}
-
-.ql-container.ql-snow {
-    height: 90px;
 }
