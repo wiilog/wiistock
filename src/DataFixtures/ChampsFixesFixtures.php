@@ -44,7 +44,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
             ],
 
             FieldsParam::ENTITY_CODE_DISPATCH => [
-                ['code' => FieldsParam::FIELD_CODE_RECIPIENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECIPIENT_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_DISPATCH, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayed' => true],
