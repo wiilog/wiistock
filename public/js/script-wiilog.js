@@ -85,7 +85,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
-        console.log('hello')
     let json = {id: id, isADemand: 0};
     if (ref !== false) {
         json.ref = ref;
@@ -553,7 +552,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocompleteTransporteur, .select2, .select2-free');
+        .find('.ajax-autocomplete, .ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free');
     selects.each(function () {
         if (!$(this).hasClass('no-clear')) {
             if ($(this).hasClass('needs-default')) {

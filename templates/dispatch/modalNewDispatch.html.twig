@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</h5>
+                <h5 class="modal-title" title="nouvelle demande">{{ 'acheminement.Nouvelle demande'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -40,6 +40,36 @@
                         } %}
                     </div>
                 </div>
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRANSPORTER_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="transporter">Transporteur{{ required ? '*' }}</label>
+                        <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
+                                id="transporter" name="transporter">
+                        </select>
+                    </div>
+                {% endif %}
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRANSPORTER_TRACKING_NUMBER_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="transporter-tracking-number">Numéro de tracking transporteur{{ required ? '*' }}</label>
+                        <input class="form-control data {{ required ? 'needed' }}" id="transporter-tracking-number" name="transporterTrackingNumber">
+                    </div>
+                {% endif %}
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="command-number">Numéro de commande{{ required ? '*' }}</label>
+                        <input class="form-control data {{ required ? 'needed' }}" id="command-number" name="commandNumber">
+                    </div>
+                {% endif %}
+
                 <div class="form-group">
                     <label for="demandeur">Demandeur*</label>
                     <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="requester"></select>
@@ -48,15 +78,17 @@
                            data-username="{{ app.user.username }}"
                            data-id="{{ app.user.id }}"/>
                 </div>
+
                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                     <div class="form-group">
                         <label for="destinataire">Destinataire{{ required ? '*' }}</label>
-                        <select class="destinataire form-control data ajax-autocomplete-user w-100 Destinataire {{ required ? 'needed' }}" name="receiver">
+                        <select class="destinataire form-control data ajax-autocomplete-user w-100 {{ required ? 'needed' }}" name="receiver">
                         </select>
                     </div>
                 {% endif %}
+
                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
@@ -82,6 +114,7 @@
                         </div>
                     </div>
                 {% endif %}
+
                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
                 {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
                     {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
@@ -98,15 +131,24 @@
                     </div>
                 {% endif %}
                 <div class="form-group w-100">
-                    <label for="prise" title="emplacement prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
+                    <label for="prise" title="emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
                     </select>
                 </div>
                 <div class="form-group w-100">
-                    <label for="depose" title="emplacement dépose">{{ 'acheminement.emplacement dépose'|trans }}*</label>
+                    <label for="depose" title="emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}*</label>
                     <select name="depose" class="form-control data ajax-autocompleteEmplacement d-block needed location-depose" id="depose">
                     </select>
                 </div>
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="project">Project{{ required ? '*' }}</label>
+                        <input class="project form-control data {{ required ? 'needed' }}" id="project" name="project">
+                    </div>
+                {% endif %}
 
                 <!-- CHAMPS LIBRES -->
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>

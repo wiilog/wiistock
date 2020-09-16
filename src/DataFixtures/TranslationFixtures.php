@@ -58,12 +58,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'congelé' => 'congelé',
             ],
             'acheminement' => [
-                'nouvelle demande' => 'nouvelle demande',
-                'acheminements' => 'acheminements',
+                'Acheminements' => 'Acheminements',
                 'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
-                'emplacement prise' => 'emplacement prise',
-                'emplacement dépose' => 'emplacement dépose',
+                'Nouvelle demande' => 'Nouvelle demande',
+                'Modifier un acheminement' => 'Modifier un acheminement',
+                'Emplacement prise' => 'Emplacement prise',
+                'Emplacement dépose' => 'Emplacement dépose',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'Traiter un acheminement' => 'Traiter un acheminement',
@@ -74,6 +75,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été créé" => "L'acheminement a bien été créé",
                 "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
+                "L'acheminement a bien été traité" => "L'acheminement a bien été traité",
+                "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}",
                 "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement"
             ],
             'réception' => [

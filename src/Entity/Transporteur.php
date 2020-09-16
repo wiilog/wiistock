@@ -43,6 +43,11 @@ class Transporteur
      */
     private $reception;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="transporter")
+     */
+    private $dispatches;
+
     public function __construct()
     {
         $this->chauffeurs = new ArrayCollection();
@@ -166,6 +171,37 @@ class Transporteur
             // set the owning side to null (unless already changed)
             if ($reception->getTransporteur() === $this) {
                 $reception->setTransporteur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Dispatch[]
+     */
+    public function getDispatches(): Collection
+    {
+        return $this->dispatches;
+    }
+
+    public function addDispatch(Dispatch $dispatch): self
+    {
+        if (!$this->dispatches->contains($dispatch)) {
+            $this->dispatches[] = $dispatch;
+            $dispatch->setTransporter($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDispatch(Dispatch $dispatch): self
+    {
+        if ($this->dispatches->contains($dispatch)) {
+            $this->dispatches->removeElement($dispatch);
+            // set the owning side to null (unless already changed)
+            if ($dispatch->getTransporter() === $this) {
+                $dispatch->setTransporter(null);
             }
         }
 

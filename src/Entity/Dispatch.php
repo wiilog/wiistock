@@ -41,6 +41,27 @@ class Dispatch extends FreeFieldEntity
     private $requester;
 
     /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="dispatches")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $transporter;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $transporterTrackingNumber;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commandNumber;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $project;
+
+    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
@@ -157,6 +178,26 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
+    public function getTransporter(): ?Transporteur
+    {
+        return $this->transporter;
+    }
+
+    public function setTransporter(?Transporteur $transporter): self
+    {
+        $this->transporter = $transporter;
+        return $this;
+    }
+
+    public function getTransporterTrackingNumber(): ?string {
+        return $this->transporterTrackingNumber;
+    }
+
+    public function setTransporterTrackingNumber(?string $transporterTrackingNumber): self {
+        $this->transporterTrackingNumber = $transporterTrackingNumber;
+        return $this;
+    }
+
     public function getStatut(): ?Statut
     {
         return $this->statut;
@@ -165,6 +206,30 @@ class Dispatch extends FreeFieldEntity
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getCommandNumber(): ?string
+    {
+        return $this->commandNumber;
+    }
+
+    public function setCommandNumber(?string $commandNumber): self
+    {
+        $this->commandNumber = $commandNumber;
+
+        return $this;
+    }
+
+    public function getProject(): ?string
+    {
+        return $this->project;
+    }
+
+    public function setProject(?string $project): self
+    {
+        $this->project = $project;
 
         return $this;
     }
