@@ -140,10 +140,6 @@ function clearFormErrors($modal) {
         .removeClass(FORM_INVALID_CLASS);
 
     $modal
-        .find('.editor-container')
-        .css('border-top', '0px');
-
-    $modal
         .find(`.${FORM_ERROR_CONTAINER}`)
         .removeClass("p-4")
         .empty();
@@ -326,7 +322,9 @@ function processInputsForm($modal) {
                 || (Array.isArray(val) && val.length === 0)
                 || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text())
             )) {
-            missingInputNames.push(label);
+            if (missingInputNames.indexOf(label) === -1) {
+                missingInputNames.push(label);
+            }
             $isInvalidElements.push($input, $input.next().find('.select2-selection'));
             if ($editorContainer.length > 0) {
                 $isInvalidElements.push($editorContainer);

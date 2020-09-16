@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -18,8 +19,7 @@ use Doctrine\ORM\NoResultException;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters($params, $filters)
-    {
+    public function findByParamAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder('a');
         $exprBuilder = $qb->expr();
 
@@ -226,5 +226,27 @@ class DispatchRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    public function getLastDeliveryNumber(DateTime $from)
+    {
+        $year = $from->format('y');
+        $month = $from->format('m');
+        $day = $from->format('d');
+
+        $queryBuilder = $this->createQueryBuilder('dispatch');
+        $queryBuilder
+            ->select('dispatch.deliveryNoteNumber AS deliveryNoteNumber')
+            ->where('dispatch.deliveryNoteNumber = :dispatchDeliveryNoteNumberBegin')
+            ->orderBy('dispatch.deliveryNoteNumber', 'DESC')
+            ->setParameter('dispatchDeliveryNoteNumberBegin', "${year}${month}${day}");
+
+        $res = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return !empty($res)
+            ? $res[0]['deliveryNoteNumber']
+            : null;
     }
 }

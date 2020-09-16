@@ -75,7 +75,6 @@ class Pack
      */
     private $volume;
 
-
     /**
      * @var null|string
      * @ORM\Column(type="text", nullable=true)
