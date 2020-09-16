@@ -210,12 +210,26 @@ function limitTextareaLength($textarea, lineNumber, lineLength) {
     // set max line length
     newValueSplit = newValueSplit.map((line) => line.substr(0, lineLength));
 
-    $textarea.val(newValueSplit.join('\n'));
+    const newVal = newValueSplit.join('\n');
+    const oldVal = $textarea.val();
+
+    if (newVal !== oldVal) {
+        const cursorPosition = $textarea[0].selectionStart
+        $textarea.val(newVal).trigger('change');
+        $textarea[0].selectionStart = cursorPosition;
+        $textarea[0].selectionEnd = cursorPosition;
+    }
 }
 
 function copyTo($button, inputSourceName, inputTargetName) {
     const $modal = $button.closest('.modal');
     const $source = $modal.find(`[name="${inputSourceName}"]`);
     const $target = $modal.find(`[name="${inputTargetName}"]`);
-    $target.val($source.val());
+    const valToCopy = $source.val();
+    if ($target.is('textarea')) {
+        $target.text(valToCopy);
+    }
+    else {
+        $target.val(valToCopy);
+    }
 }

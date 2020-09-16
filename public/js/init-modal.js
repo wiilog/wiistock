@@ -315,7 +315,9 @@ function processInputsForm($modal) {
                 || ($editorContainer.length > 0 && val === '<p><br></p>')
             )) {
             if ($input.is(':disabled') === false) {
-                missingInputNames.push(label);
+                if (missingInputNames.indexOf(label) === -1) {
+                    missingInputNames.push(label);
+                }
                 $isInvalidElements.push($input, $input.next().find('.select2-selection'));
                 if ($editorContainer.length > 0) {
                     $isInvalidElements.push($editorContainer);

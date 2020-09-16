@@ -42,12 +42,12 @@ class Dispatch extends FreeFieldEntity
         'invoiceTo' => false,
         'soldTo' => false,
         'endUserNo' => false,
-        // TODO input without label
+        'deliverNo' => false,
         'endUser' => false,
         'deliverTo' => false,
         'consigner' => true,
         'date' => false,
-        'notes' => true,
+        'notes' => true
     ];
 
     /**
@@ -61,12 +61,6 @@ class Dispatch extends FreeFieldEntity
      * @ORM\Column(type="datetime")
      */
     private $creationDate;
-
-    /**
-     * @var string|null
-     * @ORM\Column(type="string")
-     */
-    private $deliveryNoteNumber;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
@@ -418,22 +412,6 @@ class Dispatch extends FreeFieldEntity
             }
         }
 
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getDeliveryNoteNumber(): ?string {
-        return $this->deliveryNoteNumber;
-    }
-
-    /**
-     * @param string|null $deliveryNoteNumber
-     * @return self
-     */
-    public function setDeliveryNoteNumber(?string $deliveryNoteNumber): self {
-        $this->deliveryNoteNumber = $deliveryNoteNumber;
         return $this;
     }
 

@@ -129,13 +129,17 @@
         <div class="form-group row">
             <label class="col-12">Urgence</label>
             <div class="col-12">
-{#                TODO demander précision sur l'étiquette #}
-                <input title="Urgence"
-                       name="emergency"
-                       maxlength="50"
-                       value="TODO"
-                       class="form-control data disable"
-                       disabled/>
+{#                TODO  #}
+                <select title="Urgence"
+                        name="emergency"
+                        class="form-control data needed">
+                    {% for emergencyValue in dispatchEmergencyValues %}
+                        <option value="{{ emergencyValue }}"
+                                {{ dispatchEmergency == emergencyValue ? 'selected' }}>
+                            {{ emergencyValue }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
     </div>
@@ -311,11 +315,11 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-{#             TODO CHECK LABEL#}
-            <label class="col-12">TODO LABEL</label>
+            <label class="col-12">Deliver No</label>
             <div class="col-12">
-                <input title="TODO"
-                       name="TODO"
+                <input title="Deliver No"
+                       name="deliverNo"
+                       maxlength="50"
                        class="form-control data needed"/>
             </div>
         </div>
@@ -359,7 +363,9 @@
             <label class="col-6">Commentaire</label>
         </div>
         {% for dispatchPack in packs %}
-            <div class="form-group row">
+            <div class="form-group row"
+                 data-multiple-key="packs"
+                 data-multiple-object-index="{{ loop.index0 }}">
                 <div class="col-3">
                     <input class="form-control data needed"
                            name="code"
@@ -368,7 +374,6 @@
                            disabled/>
                 </div>
                 <div class="col-3">
-                    {#                    TODO quantity obligatoire si quantité renseignée ? ??#}
                     <label class="sr-only">Quantité dans le colis</label>
                     <input class="form-control data needed"
                            name="quantity"
@@ -379,13 +384,12 @@
                            value="{{ dispatchPack.quantity }}"/>
                 </div>
                 <div class="col-6">
-{#                    TODO value = commentaire du colis ??#}
                     <label class="sr-only">Commentaire</label>
-                    <textarea class="form-control data"
+                    <textarea class="form-control data needed"
                               name="comment"
                               title="Commentaire"
-                              oninput="limitTextareaLength($(this), 7, 100)"
-                              rows="3">}</textarea>
+                              rows="1"
+                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment is not null ? dispatchPack.pack.comment|striptags }}</textarea>
                 </div>
             </div>
         {% endfor %}

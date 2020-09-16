@@ -316,26 +316,4 @@ class DispatchService
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
     }
-
-    public function generateDeliveryNumber(EntityManagerInterface $entityManager) {
-
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
-        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
-
-        $lastDeliveryNumber = $dispatchRepository->getLastDeliveryNumber($now);
-
-        $counter = !empty($lastDeliveryNumber)
-            ? ((int) $lastDeliveryNumber) + 1
-            : 1;
-
-        $suffix = sprintf('%04u', $counter);
-
-        return (
-            $now->format('y')
-            . $now->format('m')
-            . $now->format('d')
-            . $suffix
-        );
-    }
 }

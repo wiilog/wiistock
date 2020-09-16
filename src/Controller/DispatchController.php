@@ -742,25 +742,30 @@ Class DispatchController extends AbstractController
 
     /**
      * @Route(
-     *     "/{dispatch}/api-print-delivery-note",
-     *     name="api_print_delivery_note_dispatch",
+     *     "/{dispatch}/api-delivery-note",
+     *     name="api_delivery_note_dispatch",
      *     options={"expose"=true},
      *     methods="GET",
      *     condition="request.isXmlHttpRequest()"
      * )
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $dispatchService
+     * @param TranslatorInterface $translator
      * @param Dispatch $dispatch
      * @return JsonResponse
      */
-    public function apiPrintDeliveryNote(Request $request,
-                                         EntityManagerInterface $entityManager,
-                                         DispatchService $dispatchService,
-                                         Dispatch $dispatch): JsonResponse {
+    public function apiDeliveryNote(Request $request,
+                                    TranslatorInterface $translator,
+                                    Dispatch $dispatch): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $maxNumberOfPacks = 7;
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
+            return new JsonResponse('
+                <div class="text-danger">' . $errorMessage . '</div>
+            ');
+        }
 
         $savedData = $loggedUser->getLastDispatchDeliveryNoteData();
 
@@ -777,13 +782,16 @@ Class DispatchController extends AbstractController
             []
         );
 
-        $deliveryNoteData['deliveryNumber'] = $dispatchService->generateDeliveryNumber($entityManager);
+        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
         $deliveryNoteData['projectNumber'] = $dispatch->getProjectNumber();
         $deliveryNoteData['username'] = $loggedUser->getUsername();
         $deliveryNoteData['userPhone'] = $loggedUser->getPhone();
         $deliveryNoteData['packs'] = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
 
-//        TODO erreur si aucun colis ?
+        // TODO get real values
+        $deliveryNoteData['dispatchEmergency'] = '24h';
+        // TODO get database values
+        $deliveryNoteData['dispatchEmergencyValues'] = ['24h', '48h', '72h'];
 
         $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', $deliveryNoteData);
 
@@ -794,18 +802,18 @@ Class DispatchController extends AbstractController
     /**
      * @Route(
      *     "/{dispatch}/delivery-note",
-     *     name="print_delivery_note_dispatch",
+     *     name="delivery_note_dispatch",
      *     options={"expose"=true},
-     *     methods="GET|POST"
+     *     methods="POST"
      * )
-     * @param Dispatch $dispatch
      * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
      * @param Request $request
      * @return JsonResponse
      */
-    public function printDeliveryNote(Dispatch $dispatch,
-                                      EntityManagerInterface $entityManager,
-                                      Request $request): JsonResponse {
+    public function postDeliveryNote(EntityManagerInterface $entityManager,
+                                     Dispatch $dispatch,
+                                     Request $request): JsonResponse {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
@@ -822,8 +830,35 @@ Class DispatchController extends AbstractController
             },
             []
         );
+        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
 
         $loggedUser->setLastDispatchDeliveryNoteData($deliveryNoteData);
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="print_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Dispatch $dispatch,
+                                      Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        // TODO faire en sorte que deliveryNoteData soit un tableau associatif dispatchId => data
 
         $entityManager->flush();
 

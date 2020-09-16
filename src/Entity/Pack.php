@@ -25,6 +25,12 @@ class Pack
     private $code;
 
     /**
+     * @var string|null
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $comment;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="packs")
      */
     private $arrivage;
@@ -235,4 +241,22 @@ class Pack
     public function getQuantity(): int {
         return $this->quantity;
     }
+
+    /**
+     * @return string|null
+     */
+    public function getComment(): ?string {
+        return $this->comment;
+    }
+
+    /**
+     * @param string|null $comment
+     * @return self
+     */
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
+        return $this;
+    }
+
+
 }
