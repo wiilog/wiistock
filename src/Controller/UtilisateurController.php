@@ -136,7 +136,7 @@ class UtilisateurController extends AbstractController
 
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
-			if ($usernameAlreadyUsed > 0 || $data['username'] === "Nom nouvel utilisateur") {
+			if ($usernameAlreadyUsed > 0) {
 				return new JsonResponse([
 					'success' => false,
 					'msg' => "Ce nom d'utilisateur est déjà utilisé.",

@@ -1,4 +1,7 @@
 <form method="" class="row">
+    <input type="text" class="d-none" title="Nom d'utilisateur" name="username">
+    <input type="password" class="d-none" title="Mot de passe" name="password">
+
     <div class="col-12 form-group required d-none">
         <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
     </div>
@@ -13,7 +16,7 @@
     {% for email in user.secondaryEmails %}
         <div class="col-12 form-group">
             <label for="email">Email {{ loop.index + 1 }}</label>
-            <input type="email" class="form-control data-array" name="secondaryEmails" value="{{isEmail(email)? email : "..." }}">
+            <input type="email" class="form-control data-array" name="secondaryEmails" value="{{ email }}">
         </div>
     {% endfor %}
     <div class="col-12 form-group">
