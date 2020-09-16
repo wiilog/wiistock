@@ -140,10 +140,6 @@ function clearFormErrors($modal) {
         .removeClass(FORM_INVALID_CLASS);
 
     $modal
-        .find('.editor-container')
-        .css('border-top', '0px');
-
-    $modal
         .find(`.${FORM_ERROR_CONTAINER}`)
         .empty();
 }

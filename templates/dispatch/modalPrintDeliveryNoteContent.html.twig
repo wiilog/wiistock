@@ -1,0 +1,433 @@
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Expéditeur</label>
+            <div class="col-12">
+                <textarea title="Expéditeur"
+                          name="sender"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed">{{ sender }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Adresse de livraison</label>
+            <div class="col-12">
+                <textarea title="Adresse de livraison"
+                          name="deliveryAddress"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro de livraison / Delivery No</label>
+            <div class="col-12">
+                <input title="Numéro de livraison / Delivery No"
+                       name="deliveryNumber"
+                       value="{{ deliveryNumber }}"
+                       class="form-control data needed"
+                       disabled/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Date de livraison / Delivery date</label>
+            <div class="col-12">
+                <input title="Date de livraison / Delivery date"
+                       name="deliveryDate"
+                       class="form-control data"
+                       type="date"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro de comande de vente / Sales order No</label>
+            <div class="col-12">
+                <input title="Numéro de comande de vente / Sales order No"
+                       name="salesOrderNumber"
+                       maxlength="50"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Lettre de voiture / Way bill</label>
+            <div class="col-12">
+                <input title="Lettre de voiture / Way bill"
+                       name="wayBill"
+                       maxlength="50"
+                       class="form-control data"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Bon de commande client / Customer PO Number</label>
+            <div class="col-12">
+                <input title="Bon de commande client / Customer PO Number"
+                       name="customerPONumber"
+                       maxlength="50"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Date commande client / Customer PO Date</label>
+            <div class="col-12">
+                <input title="Date commande client / Customer PO Date"
+                       name="customerPODate"
+                       class="form-control data"
+                       type="date"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Rep order No</label>
+            <div class="col-12">
+                <input title="Rep order No"
+                       name="repOrderNo"
+                       maxlength="50"
+                       class="form-control data"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Projet No</label>
+            <div class="col-12">
+                <input title="Projet No"
+                       name="projectNumber"
+                       maxlength="50"
+                       value="{{ projectNumber }}"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Urgence</label>
+            <div class="col-12">
+{#                TODO demander précision sur l'étiquette #}
+                <input title="Urgence"
+                       name="emergency"
+                       maxlength="50"
+                       value="TODO"
+                       class="form-control data disable"
+                       disabled/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Contact / Handled by</label>
+            <div class="col-12">
+                <select class="form-control data needed"
+                        name="username"
+                        title="Contact / Handled by"
+                        disabled>
+                    <option value="{{ username }}" selected>{{ username }}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+{#            TODO PHONE IN user form #}
+            <label class="col-12">Tél. / Contact phone</label>
+            <div class="col-12">
+                <input class="form-control data needed"
+                       name="userPhone"
+                       value="{{ userPhone }}"
+                       title="Tél. / Contact phone"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Fax.</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="userFax"
+                       maxlength="50"
+                       title="Fax."/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Client acheteur / Customer buyer</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="buyer"
+                       maxlength="50"
+                       title="Client acheteur / Customer buyer"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Tél. / Phone</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="buyerPhone"
+                       maxlength="50"
+                       title="Tél. / Phone"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Fax</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="buyerFax"
+                       maxlength="50"
+                       title="Fax"/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Invoice No</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="invoiceNumber"
+                       maxlength="50"
+                       title="Invoice No"/>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary btn-sm mt-2"
+                        type="button"
+                        onclick="copyTo($(this), 'invoiceNumber', 'soldNumber')">
+                    Copy invoice to Sold
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Sold No</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="soldNumber"
+                       maxlength="50"
+                       title="Invoice No"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Invoice To</label>
+            <div class="col-12">
+                <textarea title="Invoice To"
+                          name="invoiceTo"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Sold To</label>
+            <div class="col-12">
+                <textarea title="Sold To"
+                          name="soldTo"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">End User No</label>
+            <div class="col-12">
+                <input title="End User No"
+                       name="endUserNo"
+                       class="form-control data needed"/>
+            </div>
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-auto">
+                        <button class="btn btn-primary btn-sm mt-2"
+                                type="button"
+                                onclick="copyTo($(this), 'invoiceTo', 'endUser')">
+                            Copy invoice to End User
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-primary btn-sm mt-2"
+                                type="button"
+                                onclick="copyTo($(this), 'invoiceTo', 'deliverTo')">
+                            Copy invoice to Deliver To
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+{#             TODO CHECK LABEL#}
+            <label class="col-12">TODO LABEL</label>
+            <div class="col-12">
+                <input title="TODO"
+                       name="TODO"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">End User</label>
+            <div class="col-12">
+                <textarea title="End User"
+                          name="endUser"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Deliver To</label>
+            <div class="col-12">
+                <textarea title="Deliver To"
+                          name="deliverTo"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <label class="col-12">Ligne du BL / Order line</label>
+    <div class="col-12">
+        <div class="row">
+            <label class="col-3">Numéro</label>
+            <label class="col-3">Quantité dans le colis</label>
+            <label class="col-6">Commentaire</label>
+        </div>
+        {% for dispatchPack in packs %}
+            <div class="form-group row">
+                <div class="col-3">
+                    <input class="form-control data needed"
+                           name="code"
+                           title="Numéro"
+                           value="{{ (dispatchPack.pack is defined and dispatchPack.pack is not null) ? dispatchPack.pack.code }}"
+                           disabled/>
+                </div>
+                <div class="col-3">
+                    {#                    TODO quantity obligatoire si quantité renseignée ? ??#}
+                    <label class="sr-only">Quantité dans le colis</label>
+                    <input class="form-control data needed"
+                           name="quantity"
+                           title="Quantité dans le colis"
+                           type="number"
+                           step="1"
+                           min="1"
+                           value="{{ dispatchPack.quantity }}"/>
+                </div>
+                <div class="col-6">
+{#                    TODO value = commentaire du colis ??#}
+                    <label class="sr-only">Commentaire</label>
+                    <textarea class="form-control data"
+                              name="comment"
+                              title="Commentaire"
+                              oninput="limitTextareaLength($(this), 7, 100)"
+                              rows="3">}</textarea>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Expéditeur / Consigner</label>
+            <div class="col-12">
+                <input class="form-control data needed"
+                       name="consigner"
+                       value="{{ consigner }}"
+                       title="Expéditeur / Consigner"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Sold No</label>
+            <div class="col-12">
+                <input class="form-control data needed"
+                       name="date"
+                       title="Date"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="pb-5"></div>
+<div class="row">
+    <div class="col-12">
+        <div class="form-group row">
+            <label class="col-12">Note(s)</label>
+            <div class="col-12">
+                <textarea class="form-control data"
+                          name="notes"
+                          title="Note(s)"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 3, 100)"
+                          rows="3">{{ notes }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>

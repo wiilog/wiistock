@@ -16,6 +16,40 @@ class Dispatch extends FreeFieldEntity
 
     const PREFIX_NUMBER = 'A-';
 
+
+    /**
+     * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
+     */
+    const DELIVERY_NOTE_DATA = [
+        'sender' => true,
+        'deliveryAddress' => false,
+        'deliveryNumber' => false,
+        'deliveryDate' => false,
+        'salesOrderNumber' => false,
+        'wayBill' => false,
+        'customerPONumber' => false,
+        'customerPODate' => false,
+        'repOrderNo' => false,
+        'projectNumber' => false,
+        'username' => false,
+        'userPhone' => false,
+        'userFax' => false,
+        'buyer' => false,
+        'buyerPhone' => false,
+        'buyerFax' => false,
+        'invoiceNumber' => false,
+        'soldNumber' => false,
+        'invoiceTo' => false,
+        'soldTo' => false,
+        'endUserNo' => false,
+        // TODO input without label
+        'endUser' => false,
+        'deliverTo' => false,
+        'consigner' => true,
+        'date' => false,
+        'notes' => true,
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -27,6 +61,12 @@ class Dispatch extends FreeFieldEntity
      * @ORM\Column(type="datetime")
      */
     private $creationDate;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string")
+     */
+    private $deliveryNoteNumber;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
@@ -62,6 +102,12 @@ class Dispatch extends FreeFieldEntity
      * @ORM\Column(type="date", nullable=true)
      */
     private $endDate;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $projectNumber;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
@@ -372,6 +418,38 @@ class Dispatch extends FreeFieldEntity
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDeliveryNoteNumber(): ?string {
+        return $this->deliveryNoteNumber;
+    }
+
+    /**
+     * @param string|null $deliveryNoteNumber
+     * @return self
+     */
+    public function setDeliveryNoteNumber(?string $deliveryNoteNumber): self {
+        $this->deliveryNoteNumber = $deliveryNoteNumber;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getProjectNumber(): ?string {
+        return $this->projectNumber;
+    }
+
+    /**
+     * @param string|null $projectNumber
+     * @return self
+     */
+    public function setProjectNumber(?string $projectNumber): self {
+        $this->projectNumber = $projectNumber;
         return $this;
     }
 
