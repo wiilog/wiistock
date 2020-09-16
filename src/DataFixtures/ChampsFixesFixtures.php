@@ -41,6 +41,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
                 ['code' => FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_DUTY_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DUTY_ARRIVAGE, 'displayed' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_FROZEN_ARRIVAGE, 'displayed' => true, 'hidden' => true],
+                ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER_ARRIVAGE, 'displayed' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT_ARRIVAGE, 'displayed' => true, 'default' => true],
             ],
 
             FieldsParam::ENTITY_CODE_DISPATCH => [

@@ -59,6 +59,18 @@
         </div>
     {% endif %}
     <div class="form-group col-4">
+        <label for="chauffeur">Type*</label>
+        <select class="needs-default form-control input-sm data needed"
+                id="type"
+                name="type">
+            <option disabled selected> </option>
+            {% for type in typesArrival %}
+                {% set selected = (arrivage.type is not empty and type.id == arrivage.type.id ? 'selected' : '') %}
+                <option value="{{ type.id }}" {{ selected }}>{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group col-4">
         <label for="chauffeur">Statut*</label>
         <select class="form-control data needed"
                 id="statut"
@@ -94,6 +106,30 @@
                     <option value="{{ utilisateur.username }}">
                         {{ utilisateur.username }}
                     </option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% if fieldsParam|isFieldRequired('numéro projet', 'displayed') %}
+        <div class="form-group col-4">
+            <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired('numéro projet', 'mustToModify') ? '*' : '' }}</label>
+            <input type="text"
+                   class="form-control input-sm data {{ fieldsParam|isFieldRequired('numéro projet', 'mustToModify') ? 'needed' : '' }}"
+                   name="noProject" maxlength="64" value="{{ arrivage.projectNumber }}">
+        </div>
+    {% endif %}
+
+    {% if fieldsParam|isFieldRequired('business unit', 'displayed') %}
+        <div class="form-group col-4">
+            <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired('business unit', 'mustToModify') ? '*' : '' }}</label>
+            <select class="needs-default form-control input-sm data needed {{ fieldsParam|isFieldRequired('business unit', 'mustToModify') ? 'needed' : '' }}"
+                    name="businessUnit">
+                {% for businessUnit in businessUnits %}
+                    {% set selected = (businessUnit is not empty and businessUnit == arrivage.businessUnit ? 'selected' : '') %}
+                    <option value="{{ businessUnit }}" {{ selected }}>{{ businessUnit }}</option>
                 {% endfor %}
             </select>
         </div>

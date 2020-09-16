@@ -72,7 +72,6 @@ function showOrHideColumn(check, concernedTable, concernedTableColumns) {
 
     let column = concernedTable.column(columnName + ':name');
     column.visible(!column.visible());
-
     concernedTableColumns.find('th, td').removeClass('hide');
     concernedTableColumns.find('th, td').addClass('display');
     check.toggleClass('data');
@@ -230,7 +229,7 @@ function moveSearchInputToHeader($searchInputContainer) {
     }
 }
 
-function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, isArticleOrRefSpecifConfig, ...config}) {
+function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCallback, hideColumnConfig, ...config}) {
     let datatableToReturn = null;
     let $tableDom = $('#' + dtId);
     $tableDom
@@ -259,7 +258,7 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
             initComplete: () => {
                 let $searchInputContainer = $tableDom.parents('.dataTables_wrapper ').find('.dataTables_filter');
                 moveSearchInputToHeader($searchInputContainer);
-                articleAndRefTableCallback(isArticleOrRefSpecifConfig || {}, datatableToReturn);
+                tableCallback(hideColumnConfig || {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();
                 }
@@ -383,7 +382,7 @@ function hideAndShowColumns(columns, table) {
     });
 }
 
-function articleAndRefTableCallback({columns, tableFilter}, table) {
+function tableCallback({columns, tableFilter}, table) {
     if (columns) {
         hideSpinner($('#spinner'));
         hideAndShowColumns(columns, table);

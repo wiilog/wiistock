@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\ChampLibre;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\ParametrageGlobal;
@@ -76,19 +78,20 @@ class ArrivageDataService
      */
     public function getDataForDatatable($params, $userId)
     {
-        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
+        $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
+        $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
 
-        $queryResult = $arrivageRepository->findByParamsAndFilters($params, $filters, $userId);
+        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userId);
 
-        $arrivages = $queryResult['data'];
+        $arrivals = $queryResult['data'];
 
         $rows = [];
-        foreach ($arrivages as $arrivage) {
-            $rows[] = $this->dataRowArrivage($arrivage);
+        foreach ($arrivals as $arrival) {
+            $rows[] = $this->dataRowArrivage(is_array($arrival) ? $arrival[0] : $arrival);
         }
+
         return [
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
@@ -97,50 +100,68 @@ class ArrivageDataService
     }
 
     /**
-     * @param Arrivage $arrivage
+     * @param Arrivage $arrival
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws NoResultException
      */
-    public function dataRowArrivage($arrivage)
+    public function dataRowArrivage($arrival)
     {
         $url = $this->router->generate('arrivage_show', [
-            'id' => $arrivage->getId(),
+            'id' => $arrival->getId(),
         ]);
-        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
+        $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
+        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(ChampLibre::class);
+        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::ARRIVAGE);
+
+        $category = CategoryType::ARRIVAGE;
+        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
+
+        $rowCL = [];
+        /** @var ChampLibre $freeField */
+        foreach ($freeFields as $freeField) {
+            $rowCL[$freeField['label']] = $this->freeFieldService->formatValeurChampLibreForDatatable([
+                'valeur' => $arrival->getFreeFieldValue($freeField['id']),
+                "typage" => $freeField['typage'],
+            ]);
+        }
 
         $acheteursUsernames = [];
-        foreach ($arrivage->getAcheteurs() as $acheteur) {
+        foreach ($arrival->getAcheteurs() as $acheteur) {
             $acheteursUsernames[] = $acheteur->getUsername();
         }
 
-        return [
-            'id' => $arrivage->getId(),
-            'NumeroArrivage' => $arrivage->getNumeroArrivage() ?? '',
-            'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
-            'Chauffeur' => $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getPrenomNom() : '',
-            'NoTracking' => $arrivage->getNoTracking() ?? '',
-            'NumeroCommandeList' => implode(',', $arrivage->getNumeroCommandeList()),
-            'NbUM' => $arrivageRepository->countColisByArrivage($arrivage),
-            'Duty' => $arrivage->getDuty() ? 'oui' : 'non',
-            'Frozen' => $arrivage->getFrozen() ? 'oui' : 'non',
-            'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
-            'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
-            'Acheteurs' => implode(', ', $acheteursUsernames),
-            'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
-            'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
-            'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
-            'Urgent' => $arrivage->getIsUrgent() ? 'oui' : 'non',
+        $row = [
+            'id' => $arrival->getId(),
+            'arrivalNumber' => $arrival->getNumeroArrivage() ?? '',
+            'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
+            'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
+            'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
+            'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
+            'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
+            'nbUm' => $arrivalRepository->countColisByArrivage($arrival),
+            'custom' => $arrival->getDuty() ? 'oui' : 'non',
+            'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
+            'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
+            'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
+            'buyers' => implode(', ', $acheteursUsernames),
+            'status' => $arrival->getStatut() ? $arrival->getStatut()->getNom() : '',
+            'date' => $arrival->getDate() ? $arrival->getDate()->format('d/m/Y H:i:s') : '',
+            'user' => $arrival->getUtilisateur() ? $arrival->getUtilisateur()->getUsername() : '',
+            'emergency' => $arrival->getIsUrgent() ? 'oui' : 'non',
+            'projectNumber' => $arrival->getProjectNumber() ?? '',
+            'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'url' => $url,
             'Actions' => $this->templating->render(
                 'arrivage/datatableArrivageRow.html.twig',
-                ['url' => $url, 'arrivage' => $arrivage]
+                ['url' => $url, 'arrivage' => $arrival]
             )
         ];
+
+        $rows = array_merge($rowCL, $row);
+        return $rows;
     }
 
     /**

@@ -1,4 +1,5 @@
 $('.select2').select2();
+let pageTables = [];
 
 let modalColumnVisible = $('#modalColumnVisibleArrivage');
 let submitColumnVisible = $('#submitColumnVisibleArrivage');
@@ -12,7 +13,8 @@ $(function () {
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
-    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+    initTableArrival();
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible, {tables: pageTables});
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
@@ -31,72 +33,73 @@ $(function () {
     });
 });
 
-let pathArrivage = Routing.generate('arrivage_api', true);
-let tableArrivage;
-let tableArrivageConfig = {
-    serverSide: true,
-    processing: true,
-    pageLength: Number($('#pageLengthForArrivage').val()),
-    order: [[1, "desc"]],
-    ajax: {
-        "url": pathArrivage,
-        "type": "POST",
-        'data': {
-            'clicked': () => clicked,
-        },
-    },
-    columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Date', 'name': 'date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
-        {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
-        {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
-        {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
-        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
-        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
-        {"data": 'Duty', 'name': 'duty', 'title': 'Douane'},
-        {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
-        {"data": 'url', 'name': 'url', 'title': 'url', visible: false, className: 'noVis'},
-    ],
-    headerCallback: function (thead) {
-        $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-        $(thead).find('th').eq(8).attr('title', "destinataire");
-        $(thead).find('th').eq(9).attr('title', "acheteurs");
-    },
-    domConfig: {
-        needsFullDomOverride: true
-    },
-    rowConfig: {
-        needsColor: true,
-        color: 'danger',
-        needsRowClickAction: true,
-        dataToCheck: 'Urgent'
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-        needsColumnShow: true
-    },
-    buttons: [
-        {
-            extend: 'colvis',
-            columns: ':not(.noVis)',
-            className: 'd-none'
-        },
+function initTableArrival() {
+    let pathArrivage = Routing.generate('arrivage_api', true);
+    $.post(Routing.generate('arrival_api_columns'), function (columns) {
+        let tableArrivageConfig = {
+            serverSide: true,
+            processing: true,
+            pageLength: Number($('#pageLengthForArrivage').val()),
+            order: [[1, "desc"]],
+            ajax: {
+                "url": pathArrivage,
+                "type": "POST",
+                'data': {
+                    'clicked': () => clicked,
+                }
+            },
+            columns: columns.map(function (column) {
+                return {
+                    ...column,
+                    class: column.title === 'Actions' ? 'noVis' : undefined,
+                    title: column.title === 'Actions' ? '' : column.title
+                }
+            }),
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 0
+                }
+            ],
+            drawConfig: {
+                needsResize: true
+            },
+            rowConfig: {
+                needsColor: true,
+                color: 'danger',
+                needsRowClickAction: true,
+                dataToCheck: 'emergency'
+            },
+            buttons: [
+                {
+                    extend: 'colvis',
+                    columns: ':not(.noVis)',
+                    className: 'd-none'
+                },
 
-    ],
-    "lengthMenu": [10, 25, 50, 100],
-};
+            ],
+            hideColumnConfig: {
+                columns,
+                tableFilter: 'tableArrival'
+            },
+            'lengthMenu': [10, 25, 50, 100],
+        };
 
-tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
-tableArrivage.on('responsive-resize', function (e, datatable) {
-    datatable.columns.adjust().responsive.recalc();
-});
+        const tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
+        tableArrivage.on('responsive-resize', function () {
+            resizeTable();
+        });
+        pageTables.length = 0;
+        pageTables.push(tableArrivage);
+    });
+}
+
+function resizeTable() {
+    pageTables[0]
+        .columns.adjust()
+        .responsive.recalc();
+}
+
 function listColis(elem) {
     let arrivageId = elem.data('id');
     let path = Routing.generate('arrivage_list_colis_api', true);
@@ -108,10 +111,6 @@ function listColis(elem) {
     }, 'json');
 }
 
-tableArrivage.on('responsive-resize', function (e, datatable) {
-    datatable.columns.adjust().responsive.recalc();
-});
-
 let $modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
@@ -122,7 +121,7 @@ InitModal(
     {
         keepForm: true,
         keepModal: true,
-        success: (params) => arrivalCallback(true, params, tableArrivage)
+        success: (params) => arrivalCallback(true, params, pageTables)
     });
 
 let editorNewArrivageAlreadyDone = false;

@@ -169,6 +169,17 @@
                         </div>
                     {% endif %}
                     <div class="form-group col-4">
+                        <label for="chauffeur">Type*</label>
+                        <select class="needs-default form-control input-sm data needed"
+                                id="type"
+                                name="type">
+                            {% for type in typesArrival %}
+                                <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group col-4">
                         <label for="chauffeur">Statut*</label>
                         <select class="needs-default form-control input-sm data needed"
                                 id="statut"
@@ -179,6 +190,7 @@
                             {% endfor %}
                         </select>
                     </div>
+
                 </div>
 
                 <div class="row">
@@ -274,7 +286,28 @@
                         </div>
                     {% endif %}
                 </div>
+                <div class="row">
+                {% if fieldsParam|isFieldRequired('numéro projet', 'displayed') %}
+                    <div class="form-group col-4">
+                        <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired('numéro projet', 'mustToCreate') ? '*' : '' }}</label>
+                        <input type="text"
+                               class="form-control input-sm data {{ fieldsParam|isFieldRequired('numéro projet', 'mustToCreate') ? 'needed' : '' }}"
+                               name="noProject" maxlength="64">
+                    </div>
+                {% endif %}
 
+                {% if fieldsParam|isFieldRequired('business unit', 'displayed') %}
+                    <div class="form-group col-4">
+                        <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired('business unit', 'mustToCreate') ? '*' : '' }}</label>
+                        <select class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired('business unit', 'mustToCreate') ? 'needed' : '' }}"
+                                name="businessUnit">
+                            {% for business in businessUnits %}
+                                <option value="{{ business }}">{{ business }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                </div>
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('duty', 'displayed') %}
                         <div class="form-group col-2">

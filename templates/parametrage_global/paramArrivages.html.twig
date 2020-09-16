@@ -66,4 +66,15 @@
                    data-text="{{ location ? location.text }}"/>
         </div>
     </div>
+    <div class="row mt-2">
+        <div class="form-group col-4">
+            <label for="businessUnit" class="d-block">Business Unit</label>
+            <select class="form-control data select2-free w-100"
+                    multiple="multiple" name="businessUnit">
+                {% for businessUnit in businessUnits %}
+                    <option value="{{ businessUnit }}" selected>{{ businessUnit }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 </div>

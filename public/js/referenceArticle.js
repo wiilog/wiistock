@@ -136,7 +136,7 @@ function initTableRefArticle() {
             rowConfig: {
                 needsRowClickAction: true
             },
-            isArticleOrRefSpecifConfig: {
+            hideColumnConfig: {
                 columns,
                 tableFilter: 'tableRefArticle_id_filter'
             },

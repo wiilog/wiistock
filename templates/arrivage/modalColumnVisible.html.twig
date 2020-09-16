@@ -27,16 +27,16 @@
                             </td>
                             <td>
                                 <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
-                                    {% set checked = (champ.key in columnsVisibles ? 'checked' : '') %}
-
+                                    {% set name = (champ.name is defined and champ.name is not null ? champ.name : champ.label) %}
+                                    {% set checked = (name in columnsVisibles ? 'checked' : '') %}
                                     <input class="visible-column-arrivage-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
-                                           name="{{ champ.key }}"
-                                           onclick="showOrHideColumn($(this), tableArrivage, $('#tableArrivages_id_wrapper'))"
+                                           name="{{ name }}"
+                                           onclick="showOrHideColumn($(this), pageTables[0], $('#tableArrivages_id_wrapper'))"
                                            type="checkbox"
-                                           id="column_visible_arrivage_input_{{ champ.key }}"
+                                           id="column_visible_arrivage_input_{{ loop.index }}"
                                             {{ checked }}
-                                           data-column="{{ i }}" data-name="{{ champ.key }}">
-                                    <label for="column_visible_arrivage_input_{{ champ.key }}" class="pointer"></label>
+                                           data-column="{{ i }}" data-name="{{ name }}">
+                                    <label for="column_visible_arrivage_input_{{ loop.index }}" class="pointer"></label>
                                 </div>
                             </td>
                         </tr>
