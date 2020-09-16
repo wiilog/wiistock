@@ -156,6 +156,7 @@ class UtilisateurController extends AbstractController
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
+                ->setAddress($data['address'])
                 ->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT)
 				->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT)
                 ->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT)
@@ -301,8 +302,10 @@ class UtilisateurController extends AbstractController
                 ->setSecondaryEmails(json_decode($data['secondaryEmails']))
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
+                ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setEmail($data['email']);
+
             if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);

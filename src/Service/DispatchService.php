@@ -147,6 +147,18 @@ class DispatchService {
             CategoryType::DEMANDE_DISPATCH
         );
 
+        $destinataire = [
+            "label" => "Destinataire",
+            "value" => $receiver ? $receiver->getUsername() : "",
+        ];
+
+        if ($receiver && $receiver->getAddress()) {
+            $destinataire["value"] .= '<span class="pl-2" data-toggle="popover" data-trigger="click hover" title="Adresse du destinataire" data-content="' . $receiver->getAddress() . '"><i class="fas fa-search"></i></span>';
+            $destinataire["isRaw"] = true;
+        }
+
+        dump($destinataire);
+
         return array_merge(
             [
                 ['label' => 'Statut', 'value' => $status ? $status->getNom() : ''],
@@ -154,8 +166,8 @@ class DispatchService {
                 ['label' => 'Transporteur', 'value' => $transporter ? $transporter->getLabel() : ''],
                 ['label' => 'Numéro de tracking transporteur', 'value' => $transporterTrackingNumber],
                 ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
-                ['label' => 'Destinataire', 'value' => $receiver ? $receiver->getUsername() : ''],
-                ['label' => 'Project', 'value' => $project],
+                $destinataire,
+                ['label' => 'Numéro de projet', 'value' => $project],
                 ['label' => 'Business unit', 'value' => 'TO DO'],
                 ['label' => 'Numéro de commande', 'value' => $commandNumber],
                 ['label' => $this->translator->trans('acheminement.Emplacement prise'), 'value' => $locationFrom ? $locationFrom->getLabel() : ''],
