@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -222,6 +223,52 @@ class DispatchRepository extends EntityRepository
             ->andWhere('status.treated = 0')
             ->andWhere('type.id IN (:dispatchTypeIds)')
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Dispatch[]
+     */
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.id')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.creationDate AS creationDate')
+            ->addSelect('dispatch.validationDate AS validationDate')
+            ->addSelect('join_type.label AS type')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_receiver.username AS receiver')
+            ->addSelect('join_locationFrom.label AS locationFrom')
+            ->addSelect('join_locationTo.label AS locationTo')
+            /*->addSelect('COUNT(join_dispatchPacks.id) AS nbPacks')*/
+            ->addSelect('join_status.nom AS status')
+            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('dispatch.freeFields')
+
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPacks')
+            ->leftJoin('dispatch.type', 'join_type')
+            ->leftJoin('dispatch.requester', 'join_requester')
+            ->leftJoin('dispatch.receiver', 'join_receiver')
+            ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
+            ->leftJoin('dispatch.locationTo', 'join_locationTo')
+            ->leftJoin('dispatch.statut', 'join_status')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
 
         return $queryBuilder
             ->getQuery()
