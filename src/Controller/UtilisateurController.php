@@ -152,6 +152,7 @@ class UtilisateurController extends AbstractController
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
                 ->setSecondaryEmails(json_decode($data['secondaryEmails']))
+                ->setPhone($data['phoneNumber'])
                 ->setRole($role)
 				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
@@ -302,7 +303,9 @@ class UtilisateurController extends AbstractController
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
-                ->setEmail($data['email']);
+                ->setEmail($data['email'])
+                ->setPhone($data['phoneNumber'] ?? '');
+
             if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);

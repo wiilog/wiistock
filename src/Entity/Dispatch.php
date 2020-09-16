@@ -21,7 +21,7 @@ class Dispatch extends FreeFieldEntity
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */
     const DELIVERY_NOTE_DATA = [
-        'sender' => true,
+        'consigner' => true,
         'deliveryAddress' => false,
         'deliveryNumber' => false,
         'deliveryDate' => false,
@@ -29,7 +29,7 @@ class Dispatch extends FreeFieldEntity
         'wayBill' => false,
         'customerPONumber' => false,
         'customerPODate' => false,
-        'repOrderNo' => false,
+        'respOrderNb' => false,
         'projectNumber' => false,
         'username' => false,
         'userPhone' => false,
@@ -45,7 +45,7 @@ class Dispatch extends FreeFieldEntity
         'deliverNo' => false,
         'endUser' => false,
         'deliverTo' => false,
-        'consigner' => true,
+        'consigner2' => true,
         'date' => false,
         'notes' => true
     ];

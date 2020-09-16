@@ -1,22 +1,22 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Expéditeur</label>
+            <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
-                <textarea title="Expéditeur"
-                          name="sender"
+                <textarea title="Expéditeur / Consigner"
+                          name="consigner"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
                           rows="7"
-                          class="form-control data needed">{{ sender }}</textarea>
+                          class="form-control data needed">{{ consigner }}</textarea>
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Adresse de livraison</label>
+            <label class="col-12">Adresse de livraison / Delivery address</label>
             <div class="col-12">
-                <textarea title="Adresse de livraison"
+                <textarea title="Adresse de livraison / Delivery address"
                           name="deliveryAddress"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -29,7 +29,7 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Numéro de livraison / Delivery No</label>
+            <label class="col-12">Numéro de livraison / Delivery Nb</label>
             <div class="col-12">
                 <input title="Numéro de livraison / Delivery No"
                        name="deliveryNumber"
@@ -54,7 +54,7 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Numéro de comande de vente / Sales order No</label>
+            <label class="col-12">Numéro de commande de vente / Sales order Nb</label>
             <div class="col-12">
                 <input title="Numéro de comande de vente / Sales order No"
                        name="salesOrderNumber"
@@ -102,10 +102,10 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Rep order No</label>
+            <label class="col-12">Réponse numéro commande / Resp. order Nb</label>
             <div class="col-12">
-                <input title="Rep order No"
-                       name="repOrderNo"
+                <input title="Réponse numéro commande / Resp. order Nb"
+                       name="respOrderNb"
                        maxlength="50"
                        class="form-control data"/>
             </div>
@@ -113,9 +113,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Projet No</label>
+            <label class="col-12">Numéro de projet / Project Nb</label>
             <div class="col-12">
-                <input title="Projet No"
+                <input title="Numéro de projet / Project Nb"
                        name="projectNumber"
                        maxlength="50"
                        value="{{ projectNumber }}"
@@ -127,10 +127,10 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Urgence</label>
+            <label class="col-12">Urgence / Urgent</label>
             <div class="col-12">
 {#                TODO  #}
-                <select title="Urgence"
+                <select title="Urgence / Urgent"
                         name="emergency"
                         class="form-control data needed">
                     {% for emergencyValue in dispatchEmergencyValues %}
@@ -161,13 +161,12 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-{#            TODO PHONE IN user form #}
-            <label class="col-12">Tél. / Contact phone</label>
+            <label class="col-12">Tél. / Phone number</label>
             <div class="col-12">
                 <input class="form-control data needed"
                        name="userPhone"
                        value="{{ userPhone }}"
-                       title="Tél. / Contact phone"/>
+                       title="Tél. / Phone number"/>
             </div>
         </div>
     </div>
@@ -175,7 +174,7 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Fax.</label>
+            <label class="col-12">Fax</label>
             <div class="col-12">
                 <input class="form-control data"
                        name="userFax"
@@ -200,12 +199,12 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Tél. / Phone</label>
+            <label class="col-12">Tél. / Phone number</label>
             <div class="col-12">
                 <input class="form-control data"
                        name="buyerPhone"
                        maxlength="50"
-                       title="Tél. / Phone"/>
+                       title="Tél. / Phone number"/>
             </div>
         </div>
     </div>
@@ -227,12 +226,12 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Invoice No</label>
+            <label class="col-12">Numéro facture / Invoice Nb</label>
             <div class="col-12">
                 <input class="form-control data"
                        name="invoiceNumber"
                        maxlength="50"
-                       title="Invoice No"/>
+                       title="Numéro facture / Invoice Nb"/>
             </div>
             <div class="col-12">
                 <button class="btn btn-primary btn-sm mt-2"
@@ -245,12 +244,12 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Sold No</label>
+            <label class="col-12">Numéro vente / Sold Nb</label>
             <div class="col-12">
                 <input class="form-control data"
                        name="soldNumber"
                        maxlength="50"
-                       title="Invoice No"/>
+                       title="Numéro vente / Sold Nb"/>
             </div>
         </div>
     </div>
@@ -258,9 +257,9 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Invoice To</label>
+            <label class="col-12">Facturé à / Invoice To</label>
             <div class="col-12">
-                <textarea title="Invoice To"
+                <textarea title="Facturé à / Invoice To"
                           name="invoiceTo"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -271,9 +270,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Sold To</label>
+            <label class="col-12">Vendu à / Sold To</label>
             <div class="col-12">
-                <textarea title="Sold To"
+                <textarea title="Vendu à / Sold To"
                           name="soldTo"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -287,9 +286,9 @@
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">End User No</label>
+            <label class="col-12">Numéro dernier utilisateur / End User Nb</label>
             <div class="col-12">
-                <input title="End User No"
+                <input title="Numéro dernier utilisateur / End User Nb"
                        name="endUserNo"
                        class="form-control data needed"/>
             </div>
@@ -315,9 +314,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Deliver No</label>
+            <label class="col-12">Numéro de livraison / Deliver No</label>
             <div class="col-12">
-                <input title="Deliver No"
+                <input title="Numéro de livraison / Deliver No"
                        name="deliverNo"
                        maxlength="50"
                        class="form-control data needed"/>
@@ -341,9 +340,9 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Deliver To</label>
+            <label class="col-12">Livrer à / Deliver To</label>
             <div class="col-12">
-                <textarea title="Deliver To"
+                <textarea title="Livrer à / Deliver To"
                           name="deliverTo"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 7, 50)"
@@ -374,20 +373,20 @@
                            disabled/>
                 </div>
                 <div class="col-3">
-                    <label class="sr-only">Quantité dans le colis</label>
+                    <label class="sr-only">Quantité dans le colis / Quantity in package</label>
                     <input class="form-control data needed"
                            name="quantity"
-                           title="Quantité dans le colis"
+                           title="Quantité dans le colis / Quantity in package"
                            type="number"
                            step="1"
                            min="1"
                            value="{{ dispatchPack.quantity }}"/>
                 </div>
                 <div class="col-6">
-                    <label class="sr-only">Commentaire</label>
+                    <label class="sr-only">Commentaire / Comment</label>
                     <textarea class="form-control data needed"
                               name="comment"
-                              title="Commentaire"
+                              title="Commentaire / Comment"
                               rows="1"
                               oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment is not null ? dispatchPack.pack.comment|striptags }}</textarea>
                 </div>
@@ -402,7 +401,7 @@
             <label class="col-12">Expéditeur / Consigner</label>
             <div class="col-12">
                 <input class="form-control data needed"
-                       name="consigner"
+                       name="consigner2"
                        value="{{ consigner }}"
                        title="Expéditeur / Consigner"/>
             </div>
@@ -410,7 +409,7 @@
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
-            <label class="col-12">Sold No</label>
+            <label class="col-12">Date</label>
             <div class="col-12">
                 <input class="form-control data needed"
                        name="date"
@@ -423,11 +422,11 @@
 <div class="row">
     <div class="col-12">
         <div class="form-group row">
-            <label class="col-12">Note(s)</label>
+            <label class="col-12">Note(s) / Notes</label>
             <div class="col-12">
                 <textarea class="form-control data"
                           name="notes"
-                          title="Note(s)"
+                          title="Note(s) / Notes"
                           style="resize: none"
                           oninput="limitTextareaLength($(this), 3, 100)"
                           rows="3">{{ notes }}</textarea>

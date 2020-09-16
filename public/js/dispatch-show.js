@@ -185,7 +185,7 @@ function runDispatchPrint() {
 function openDeliveryNoteModal($button) {
     const dispatchId = $button.data('dispatch-id');
     $
-        .get(Routing.generate('api_print_delivery_note_dispatch', {dispatch: dispatchId}))
+        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
         .then((html) => {
             const $modal = $('#modalPrintDeliveryNote');
             const $modalBody = $modal.find('.modal-body');
