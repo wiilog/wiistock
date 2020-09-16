@@ -154,7 +154,7 @@ class TypeController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le type ' .$type->getLabel(). ' a bien été supprimé.'
+                'msg' => 'Le type <strong>' . $type->getLabel() . ' </strong> a bien été supprimé.'
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -205,7 +205,7 @@ class TypeController extends AbstractController
             $em->flush();
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le type ' . $type->getLabel() . ' a bien été modifié.'
+                'msg' => 'Le type <strong>' . $type->getLabel() . '</strong> a bien été modifié.'
             ]);
         }
         throw new NotFoundHttpException("404");

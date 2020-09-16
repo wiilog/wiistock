@@ -61,6 +61,20 @@ class FieldsParam
 	const FIELD_LABEL_DUTY_ARRIVAGE = 'douane';
 	const FIELD_LABEL_FROZEN_ARRIVAGE = 'congelé';
 
+    const ENTITY_CODE_DISPATCH = 'acheminements';
+
+    const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
+    const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
+    const FIELD_CODE_EMERGENCY_DISPATCH = 'emergency';
+    const FIELD_CODE_COMMENT_DISPATCH = 'comment';
+    const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
+
+    const FIELD_LABEL_RECEIVER_DISPATCH = 'destinataire';
+    const FIELD_LABEL_DEADLINE_DISPATCH = 'dates d\'échéances';
+    const FIELD_LABEL_EMERGENCY_DISPATCH = 'urgence';
+    const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
+    const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
+
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()

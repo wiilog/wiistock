@@ -6,7 +6,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
-use App\Entity\Emplacement;
 use App\Entity\FiabilityByReference;
 use App\Entity\Handling;
 use App\Entity\MouvementStock;

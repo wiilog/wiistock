@@ -7,7 +7,8 @@
     {% include 'filters/filtersDemands.html.twig' with {
         page: 'PAGE_HAND',
         tableSelector: '#tableHandling_id',
-        callback: 'callbackSaveFilter'
+        callback: 'callbackSaveFilter',
+        displayHandlingFilter: true
     } %}
 {% endblock %}
 {% block page_content %}
@@ -58,9 +59,7 @@
     </div>
     {% include "handling/modalDeleteHandling.html.twig" %}
     {% include "handling/modalEditHandling.html.twig" %}
-
     {% include "handling/modalNewHandling.html.twig" with modalNewConfig %}
-    {% include "handling/modalShowHandling.html.twig" %}
 {% endblock %}
 
     {% block javascripts %}

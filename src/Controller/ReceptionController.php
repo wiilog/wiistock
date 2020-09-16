@@ -28,7 +28,6 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
 use App\Repository\ParametrageGlobalRepository;
-use App\Repository\PieceJointeRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\TransporteurRepository;
 
@@ -108,11 +107,6 @@ class ReceptionController extends AbstractController
     private $receptionService;
 
     /**
-     * @var PieceJointeRepository
-     */
-    private $pieceJointeRepository;
-
-    /**
      * @var ParametrageGlobalRepository
      */
     private $paramGlobalRepository;
@@ -128,7 +122,6 @@ class ReceptionController extends AbstractController
         GlobalParamService $globalParamService,
         ReceptionRepository $receptionRepository,
         UserService $userService,
-        PieceJointeRepository $pieceJointeRepository,
         ReceptionService $receptionService,
         MailerService $mailerService,
         AttachmentService $attachmentService,
@@ -138,7 +131,6 @@ class ReceptionController extends AbstractController
     )
     {
         $this->paramGlobalRepository = $parametrageGlobalRepository;
-        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerService = $mailerService;
         $this->attachmentService = $attachmentService;
         $this->receptionService = $receptionService;
