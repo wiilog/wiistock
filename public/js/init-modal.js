@@ -281,7 +281,7 @@ function processInputsForm($modal) {
     if (($limitSecurity.length > 0 && $limitWarning.length > 0)
         && limitSecurity
         && limitWarning
-        && limitWarning < limitSecurity) {
+        && Number(limitWarning) < Number(limitSecurity)) {
         errorMessages.push('Le seuil d\'alerte doit être supérieur au seuil de sécurité.');
         $isInvalidElements.push($limitSecurity, $limitWarning);
     }
