@@ -2,9 +2,9 @@
     {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
         <a class="action-on-click"
            data-toggle='modal'
-           data-target='#modalEditPack'
+           data-target='#modalPack'
            data-id="{{ pack.id }}"
-           onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'))">
+           onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalPack'), $('#submitEditPack'))">
             <i class='fas fa-pen mr-2'></i>Modifier
         </a>
     {% endif %}
