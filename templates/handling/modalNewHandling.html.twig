@@ -80,7 +80,7 @@
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
                     {% for type in freeFieldsTypes %}
                         <div class="d-none row" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                 freeFields: type.freeFields,
                                 freeFieldValues: [],
                                 colType: 'col-12',

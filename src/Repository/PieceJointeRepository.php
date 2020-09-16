@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PieceJointe;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method PieceJointe|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,14 +11,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method PieceJointe[]    findAll()
  * @method PieceJointe[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PieceJointeRepository extends ServiceEntityRepository
+class PieceJointeRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, PieceJointe::class);
-    }
-
-
     public function findOneByFileName($filename)
 	{
 		$entityManager = $this->getEntityManager();
@@ -67,6 +60,26 @@ class PieceJointeRepository extends ServiceEntityRepository
             $acc[$mouvementTracaId] .= $attachment['originalName'];
             return $acc;
         }, []);
+    }
+
+    public function getMobileAttachmentForHandling(array $handlingIds): array {
+        if (!empty($handlingIds)) {
+            $queryBuilder = $this->createQueryBuilder('attachment')
+                ->select('attachment.fileName AS fileName')
+                ->addSelect('attachment.originalName AS originalName')
+                ->addSelect('handling.id AS handlingId')
+                ->join('attachment.handling', 'handling')
+                ->where('handling.id IN (:handlingIds)')
+                ->setParameter('handlingIds', $handlingIds);
+            $res = $queryBuilder
+                ->getQuery()
+                ->getResult();
+        }
+        else {
+            $res = [];
+        }
+        return $res;
+
     }
 
 }

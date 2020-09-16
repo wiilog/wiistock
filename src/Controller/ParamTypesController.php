@@ -127,12 +127,12 @@ class ParamTypesController extends AbstractController
 
 				return new JsonResponse([
 					'success' => true,
-					'msg' => 'Le type ' . $data['label'] . ' a bien été créé.'
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> a bien été créé.'
 				]);
             } else {
 				return new JsonResponse([
 					'success' => false,
-					'msg' => 'Le type ' . $data['label'] . ' existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> existe déjà pour cette catégorie. Veuillez en choisir un autre.'
 				]);
             }
         }
@@ -204,12 +204,12 @@ class ParamTypesController extends AbstractController
 
                 return new JsonResponse([
                 	'success' => true,
-					'msg' => 'Le type ' . $typeLabel . ' a bien été modifié.'
+					'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été modifié.'
 				]);
             } else {
                 return new JsonResponse([
                 	'success' => false,
-					'msg' => 'Le type ' . $data['label'] . ' existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> existe déjà pour cette catégorie. Veuillez en choisir un autre.'
 				]);
             }
         }
@@ -263,7 +263,7 @@ class ParamTypesController extends AbstractController
             $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'Le type ' . $type->getLabel() . ' a bien été supprimé.'
+                'msg' => 'Le type <strong>' . $type->getLabel() . '</strong> a bien été supprimé.'
             ]);
         }
         throw new NotFoundHttpException('404');

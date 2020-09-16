@@ -16,7 +16,6 @@ $(function () {
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
     initTableRefArticle();
-    console.log(pageTables);
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
 
@@ -63,7 +62,6 @@ function initPageModals() {
 
 function afterLoadingEditModal($button) {
     initRequiredChampsFixes($button);
-    $('#typeContentEdit .list-multiple').select2();
 }
 
 function clearModalRefArticle(modal, data) {

@@ -41,6 +41,14 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface
                 ['code' => FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE, 'displayed' => true],
                 ['code' => FieldsParam::FIELD_CODE_DUTY_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DUTY_ARRIVAGE, 'displayed' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_FROZEN_ARRIVAGE, 'displayed' => true, 'hidden' => true],
+            ],
+
+            FieldsParam::ENTITY_CODE_DISPATCH => [
+                ['code' => FieldsParam::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayed' => true],
+                ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayed' => true],
             ]
         ];
 

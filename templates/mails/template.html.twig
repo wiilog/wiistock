@@ -117,8 +117,8 @@
         <table>
             <tr>
                 <td class="gt-button">
-                    {% if urlSuffix is not defined %} {% set urlSuffix = '' %} {% endif %}
-                    <a href="{{ app.request.getSchemeAndHttpHost() }}/{{ urlSuffix }}">
+                    {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url  %}
+                    <a href="{{ linkBaseHref }}/{{ urlSuffix is defined ? urlSuffix }}">
                         {% if buttonText is defined %}
                             {{ buttonText }}
                         {% else %}

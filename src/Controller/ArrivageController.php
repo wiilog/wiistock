@@ -23,7 +23,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
@@ -89,11 +88,6 @@ class ArrivageController extends AbstractController
     private $mailerService;
 
     /**
-     * @var PieceJointeRepository
-     */
-    private $pieceJointeRepository;
-
-    /**
      * @var SpecificService
      */
     private $specificService;
@@ -116,7 +110,6 @@ class ArrivageController extends AbstractController
     public function __construct(ArrivageDataService $arrivageDataService,
                                 DashboardService $dashboardService,
                                 AttachmentService $attachmentService,
-                                PieceJointeRepository $pieceJointeRepository,
                                 SpecificService $specificService,
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
@@ -129,7 +122,6 @@ class ArrivageController extends AbstractController
         $this->userService = $userService;
         $this->transporteurRepository = $transporteurRepository;
         $this->mailerService = $mailerService;
-        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
         $this->arrivageDataService = $arrivageDataService;
     }
@@ -416,11 +408,12 @@ class ArrivageController extends AbstractController
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
                 $typeRepository = $entityManager->getRepository(Type::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+                $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
-                    'attachments' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
+                    'attachments' => $pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
