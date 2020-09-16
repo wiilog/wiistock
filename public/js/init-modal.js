@@ -290,11 +290,17 @@ function processInputsForm($modal) {
     $inputs.each(function () {
         const $input = $(this);
         const name = $input.attr('name');
-        let val = $input.val();
-        val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
         const $formGroupLabel = $input.closest('.form-group').find('label');
         const $editorContainer = $input.siblings('.ql-container');
+        const $qlEditor = $editorContainer.length > 0
+            ? $editorContainer.find('.ql-editor')
+            : undefined;
+
+        let val = $qlEditor && $qlEditor.length > 0
+            ? $qlEditor.prop('innerHTML')
+            : $input.val();
+        val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
         // Fix bug when we write <label>Label<select>...</select></label
         // the label variable had text options
@@ -313,18 +319,17 @@ function processInputsForm($modal) {
 
         // validation données obligatoires
         if ($input.hasClass('needed')
+            && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''
                 || val === null
                 || (Array.isArray(val) && val.length === 0)
-                || ($editorContainer.length > 0 && val === '<p><br></p>')
+                || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text())
             )) {
-            if ($input.is(':disabled') === false) {
-                missingInputNames.push(label);
-                $isInvalidElements.push($input, $input.next().find('.select2-selection'));
-                if ($editorContainer.length > 0) {
-                    $isInvalidElements.push($editorContainer);
-                }
+            missingInputNames.push(label);
+            $isInvalidElements.push($input, $input.next().find('.select2-selection'));
+            if ($editorContainer.length > 0) {
+                $isInvalidElements.push($editorContainer);
             }
         }
         else if ($input.hasClass('is-barcode')
@@ -386,11 +391,10 @@ function processInputsForm($modal) {
             }
         }
         else {
-            const $editorContainer = $input.siblings('.editor-container');
             if ($editorContainer.length > 0) {
                 const maxLength = parseInt($input.attr('max'));
                 if (maxLength) {
-                    const $commentStrWithoutTag = $($input.val()).text();
+                    const $commentStrWithoutTag = $qlEditor.text();
                     if ($commentStrWithoutTag.length > maxLength) {
                         errorMessages.push(`Le commentaire excède les ${maxLength} caractères maximum.`);
                         $isInvalidElements.push($editorContainer);

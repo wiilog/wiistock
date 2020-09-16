@@ -68,12 +68,19 @@ class Pack
     /**
      * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
      */
-    private $poids;
+    private $weight;
 
     /**
      * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
      */
     private $volume;
+
+
+    /**
+     * @var null|string
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $comment;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
@@ -246,12 +253,12 @@ class Pack
         return $this;
     }
 
-    public function getPoids(): ?string {
-        return $this->poids;
+    public function getWeight(): ?string {
+        return $this->weight;
     }
 
-    public function setPoids(?string $poids): self {
-        $this->poids = $poids;
+    public function setWeight(?string $weight): self {
+        $this->weight = $weight;
         return $this;
     }
 
@@ -261,6 +268,22 @@ class Pack
 
     public function setVolume(?string $volume): self {
         $this->volume = $volume;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getComment(): ?string {
+        return $this->comment;
+    }
+
+    /**
+     * @param string|null $comment
+     * @return self
+     */
+    public function setComment(?string $comment): self {
+        $this->comment = $comment;
         return $this;
     }
 

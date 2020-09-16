@@ -49,4 +49,3 @@ $(function() {
     let urlDeletePack = Routing.generate('pack_delete', true);
     InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
 });
-

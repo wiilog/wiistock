@@ -33,8 +33,8 @@
         <div class="form-group col-6">
             <label>Poids (kg)</label>
             <input class="form-control data"
-                   value="{{ pack.poids }}"
-                   name="poids"
+                   value="{{ pack.weight }}"
+                   name="weight"
                    title="Poids"/>
         </div>
         <div class="form-group col-6">
@@ -43,6 +43,15 @@
                    value="{{ pack.volume }}"
                    name="volume"
                    title="Volume"/>
+        </div>
+        <div class="col-12">
+            <label for="commentaire">Commentaire</label>
+            <input id="commentaire"
+                   class="form-control data"
+                   name="comment"
+                   type="hidden"
+                   value="{{ pack.comment }}">
+            <div class="editor-container-edit">{{ pack.comment|raw }}</div>
         </div>
     </div>
 </form>

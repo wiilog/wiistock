@@ -215,10 +215,11 @@ class PackController extends AbstractController {
         $pack = $packRepository->find($data['id']);
 
         if (!empty($pack)) {
-            $natureId = $data['nature'];
-            $quantity = $data['quantity'];
-            $poids = str_replace(",", ".", $data['poids']);
-            $volume = str_replace(",", ".", $data['volume']);
+            $natureId = $data['nature'] ?? null;
+            $quantity = $data['quantity'] ?? null;
+            $comment = $data['comment'] ?? null;
+            $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
+            $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
 
             if ($quantity <= 0) {
                 return new JsonResponse([
@@ -227,14 +228,14 @@ class PackController extends AbstractController {
                 ]);
             }
 
-            if (!empty($poids) && ($poids <= 0 || !is_float($poids))) {
+            if (!empty($weight) && (!is_float($weight) || $weight <= 0)) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Le poids doit être un nombre supérieur à 0.'
                 ]);
             }
 
-            if (!empty($volume) && ($volume <= 0 || !is_float($volume))) {
+            if (!empty($volume) && (!is_float($volume) || $volume <= 0)) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Le volume doit être un nombre supérieur à 0.' . $volume
@@ -246,9 +247,11 @@ class PackController extends AbstractController {
                 $pack->setNature($nature);
             }
 
-            $pack->setQuantity($quantity);
-            $pack->setPoids($poids);
-            $pack->setVolume($volume);
+            $pack
+                ->setQuantity($quantity)
+                ->setWeight($weight)
+                ->setVolume($volume)
+                ->setComment($comment);
 
             $entityManager->flush();
         }
