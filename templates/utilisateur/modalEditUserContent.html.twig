@@ -8,21 +8,12 @@
     </div>
     <div class="col-12 form-group">
         <label for="email">Email</label>
-        <input type="email" class="form-control data needed" name="email" value="{{ user.email }}" disabled>
+        <input type="email" class="form-control data needed" name="email" value="{{ user.email }}">
     </div>
     {% for email in user.secondaryEmails %}
         <div class="col-12 form-group">
             <label for="email">Email {{ loop.index + 1 }}</label>
-            <input type="email" class="form-control data-array" name="secondaryEmails" value="{{ email }}">
-        </div>
-    {% else %}
-        <div class="col-12 form-group">
-            <label for="email">Email 2</label>
-            <input type="email" class="form-control data-array" name="secondaryEmails">
-        </div>
-        <div class="col-12 form-group">
-            <label for="email">Email 3</label>
-            <input type="email" class="form-control data-array" name="secondaryEmails">
+            <input type="email" class="form-control data-array" name="secondaryEmails" value="{{isEmail(email)? email : "..." }}">
         </div>
     {% endfor %}
     <div class="col-12 form-group">

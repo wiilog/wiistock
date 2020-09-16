@@ -31,6 +31,7 @@ class AppExtension extends AbstractExtension
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
             new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
+            new TwigFunction('isEmail', [$this, 'isEmailFunction']),
         ];
     }
 
@@ -60,5 +61,10 @@ class AppExtension extends AbstractExtension
 
 	public function isFieldRequiredFunction(array $config, string $fieldName, string $action): bool {
         return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
+    }
+
+    public function isEmailFunction(string $str)
+    {
+        return preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str) ;
     }
 }
