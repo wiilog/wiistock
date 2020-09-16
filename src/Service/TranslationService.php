@@ -74,7 +74,7 @@ class TranslationService {
                 $key = $translation->getMenu() . "." . $translation->getLabel();
                 $carry[$key] = [
                     'original' => $translation->getLabel(),
-                    'translated' => $translation->getTranslation()
+                    'translated' => $translation->getTranslation() ?: $translation->getLabel()
                 ];
                 return $carry;
             },
