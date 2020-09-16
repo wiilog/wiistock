@@ -54,7 +54,7 @@ let tableColisConfig = {
     },
     columns: [
         {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
-        {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val()},
+        {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
         {"data": 'code', 'name': 'code', 'title': 'Code'},
         {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
         {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},

@@ -29,8 +29,8 @@ $(function() {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'packNum', 'name': 'packNum', 'title': $('#packCodeTranslation').val()},
-            {"data": 'packNature', 'name': 'packNature', 'title': $('#packNatureTranslation').val()},
+            {"data": 'packNum', 'name': 'packNum', 'title': 'natures.Nature de colis', translated: true},
+            {"data": 'packNature', 'name': 'packNature', 'title': 'colis.Numéro colis', translated: true},
             {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
             {"data": 'packLastDate', 'name': 'packLastDate', 'title': 'Date du dernier mouvement'},
             {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis'},

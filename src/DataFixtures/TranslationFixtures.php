@@ -64,6 +64,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
+                'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'Traiter un acheminement' => 'Traiter un acheminement',
@@ -102,6 +103,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'date de début' => 'date de début',
                 'date de fin' => 'date de fin',
                 'numéro de commande' => 'numéro de commande',
+                'Date arrivage' => 'Date arrivage'
             ],
             'mouvement de traçabilité' => [
                 'Colis' => 'Colis'
