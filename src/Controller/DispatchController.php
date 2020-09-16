@@ -767,6 +767,8 @@ Class DispatchController extends AbstractController
             ');
         }
 
+        // TODO mettre un champ json avec toutes les data dans le dispatch
+        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
         $savedData = $loggedUser->getLastDispatchDeliveryNoteData();
 
         $deliveryNoteData = array_reduce(
@@ -832,6 +834,8 @@ Class DispatchController extends AbstractController
         );
         $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
 
+        // TODO mettre un champ json avec toutes les data dans le dispatch
+        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
         $loggedUser->setLastDispatchDeliveryNoteData($deliveryNoteData);
 
         $entityManager->flush();
@@ -858,7 +862,7 @@ Class DispatchController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        // TODO faire en sorte que deliveryNoteData soit un tableau associatif dispatchId => data
+        // TODO mettre le champ json dans le dispatch
 
         $entityManager->flush();
 
