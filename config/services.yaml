@@ -9,6 +9,7 @@ parameters:
     nomade_apk: 'http://wiilog.fr/dl/wiistock/app-current.apk'
     client: '%env(APP_CLIENT)%'
     dashboardToken: '%env(APP_DASHBOARD_TOKEN)%'
+    appLocale: '%env(APP_LOCALE)%'
     #menu_config added via menu.yaml
 
 services:
@@ -37,6 +38,10 @@ services:
     App\Service\FileUploader:
         arguments:
             $targetDirectory: '%cards_directory%'
+
+    App\Service\TranslationService:
+        arguments:
+            $appLocale: '%appLocale%'
     App\Twig\BarcodeExtension:
         arguments:
             $barcodeGenerator: '@sgk_barcode.generator'

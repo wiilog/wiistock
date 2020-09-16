@@ -1,15 +1,15 @@
 class Trans {
     static original(key) {
-        if(translations[key]) {
-            return translations[key].original;
+        if(TRANSLATIONS[key]) {
+            return TRANSLATIONS[key].original;
         } else {
             return key;
         }
     }
 
     static translated(key) {
-        if(translations[key]) {
-            return translations[key].translated;
+        if(TRANSLATIONS[key]) {
+            return TRANSLATIONS[key].translated;
         } else {
             return key;
         }

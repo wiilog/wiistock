@@ -5,8 +5,6 @@ namespace App\Service;
 
 use App\Entity\Translation;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -20,27 +18,29 @@ class TranslationService {
 
     private $kernel;
     private $entityManager;
+    private $appLocale;
 
     public function __construct(KernelInterface $kernel,
-                                EntityManagerInterface $entityManager) {
+                                EntityManagerInterface $entityManager,
+                                string $appLocale) {
         $this->kernel = $kernel;
         $this->entityManager = $entityManager;
+        $this->appLocale = $appLocale;
     }
 
     /**
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function generateTranslationsFile() {
         $projectDir = $this->kernel->getProjectDir();
-        $translationYAML = $projectDir . '/translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml';
-        $translationJS = $projectDir . '/public/js/translations/translations.' . $_SERVER['APP_LOCALE'] . '.js';
+        $translationYAML = $projectDir . '/translations/messages.' . $this->appLocale . '.yaml';
+        $translationJS = $projectDir . '/public/js/translations/translations.' . $this->appLocale . '.js';
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 
-        if ($translationRepository->countUpdatedRows() > 0 ||
-            !file_exists($translationYAML) || !file_exists($translationJS)) {
+        if ($translationRepository->countUpdatedRows() > 0
+            || !file_exists($translationYAML)
+            || !file_exists($translationJS)) {
             $translations = $translationRepository->findAll();
 
             $this->generateYamlTranslations($translationYAML, $translations);
@@ -68,15 +68,20 @@ class TranslationService {
     }
 
     private function generateJavascriptTranslations(string $directory, array $translations) {
-        $output = "const translations = {";
-        foreach($translations as $translation) {
-            $key = $translation->getMenu() . "." . addslashes($translation->getLabel());
-            $value = "{original: '" . addslashes($translation->getLabel()) . "', translated: '" . addslashes($translation->getTranslation()) . "'}";
-
-            $output .= "'$key': $value,";
-        }
-        $output .= "}";
-
+        $translationsArray = array_reduce(
+            $translations,
+            function (array $carry, Translation $translation) {
+                $key = $translation->getMenu() . "." . $translation->getLabel();
+                $carry[$key] = [
+                    'original' => $translation->getLabel(),
+                    'translated' => $translation->getTranslation()
+                ];
+                return $carry;
+            },
+            []
+        );
+        $translationsStr = json_encode($translationsArray);
+        $output = "const TRANSLATIONS = $translationsStr;";
         file_put_contents($directory, $output);
     }
 

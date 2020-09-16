@@ -241,10 +241,10 @@ function initDataTable(dtId, {domConfig, rowConfig, drawConfig, initCompleteCall
 
     let existingHeaderCallback = config.headerCallback;
     config.headerCallback = (thead) => {
-        let ths = $(thead).find('th');
+        let $ths = $(thead).find('th');
 
         for (let data of tooltips) {
-            ths.eq(data.id).attr('title', data.text)
+            $ths.eq(data.id).attr('title', data.text)
         }
 
         if (existingHeaderCallback) {
