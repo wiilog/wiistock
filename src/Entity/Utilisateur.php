@@ -232,7 +232,13 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @var array|null
      * @ORM\Column(type="json")
      */
-    private $lastDispatchDeliveryNoteData;
+    private $savedDispatchDeliveryNoteData;
+
+    /**
+     * @var array|null
+     * @ORM\Column(type="json")
+     */
+    private $savedDispatchWaybillData;
 
     /**
      * @var string|null
@@ -298,7 +304,8 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->litigesDeclarant = new ArrayCollection();
         $this->secondaryEmails = [];
-        $this->lastDispatchDeliveryNoteData = [];
+        $this->savedDispatchDeliveryNoteData = [];
+        $this->savedDispatchWaybillData = [];
     }
 
     public function getId()
@@ -1400,16 +1407,32 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return array|null
      */
-    public function getLastDispatchDeliveryNoteData(): array {
-        return $this->lastDispatchDeliveryNoteData ?? [];
+    public function getSavedDispatchDeliveryNoteData(): array {
+        return $this->savedDispatchDeliveryNoteData ?? [];
     }
 
     /**
-     * @param array|null $lastDispatchDeliveryNoteData
+     * @param array|null $savedDispatchDeliveryNoteData
      * @return self
      */
-    public function setLastDispatchDeliveryNoteData(array $lastDispatchDeliveryNoteData): self {
-        $this->lastDispatchDeliveryNoteData = $lastDispatchDeliveryNoteData;
+    public function setSavedDispatchDeliveryNoteData(array $savedDispatchDeliveryNoteData): self {
+        $this->savedDispatchDeliveryNoteData = $savedDispatchDeliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getSavedDispatchWaybillData(): array {
+        return $this->savedDispatchWaybillData ?? [];
+    }
+
+    /**
+     * @param array $savedDispatchWaybillData
+     * @return self
+     */
+    public function setSavedDispatchWaybillData(array $savedDispatchWaybillData): self {
+        $this->savedDispatchWaybillData = $savedDispatchWaybillData;
         return $this;
     }
 

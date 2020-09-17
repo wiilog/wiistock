@@ -15,6 +15,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\DispatchPack;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -25,10 +26,12 @@ use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\DispatchService;
 
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -868,35 +871,39 @@ Class DispatchController extends AbstractController
             ');
         }
 
-        // TODO mettre un champ json avec toutes les data dans le dispatch
-        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
-        $savedData = $loggedUser->getLastDispatchDeliveryNoteData();
+        $userSavedData = $loggedUser->getSavedDispatchDeliveryNoteData();
+        $dispatchSavedData = $dispatch->getDeliveryNoteData();
+        $defaultData = [
+            'deliveryNumber' => $dispatch->getNumber(),
+            'projectNumber' => $dispatch->getProjectNumber(),
+            'username' => $loggedUser->getUsername(),
+            'userPhone' => $loggedUser->getPhone(),
+            'packs' => array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks),
+
+            // TODO get real values
+            'dispatchEmergency' => '24h'
+        ];
 
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
-            function(array $carry, string $name) use ($request, $savedData) {
-                if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])
-                    && Dispatch::DELIVERY_NOTE_DATA[$name]) {
-                    $carry[$name] = $savedData[$name] ?? null;
-                }
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $dispatchSavedData[$dataKey]
+                    ?? ($userSavedData[$dataKey]
+                        ?? ($defaultData[$dataKey]
+                            ?? null))
+                );
 
                 return $carry;
             },
             []
         );
 
-        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
-        $deliveryNoteData['projectNumber'] = $dispatch->getProjectNumber();
-        $deliveryNoteData['username'] = $loggedUser->getUsername();
-        $deliveryNoteData['userPhone'] = $loggedUser->getPhone();
-        $deliveryNoteData['packs'] = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
 
-        // TODO get real values
-        $deliveryNoteData['dispatchEmergency'] = '24h';
-        // TODO get database values
-        $deliveryNoteData['dispatchEmergencyValues'] = ['24h', '48h', '72h'];
-
-        $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', $deliveryNoteData);
+        $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
+            // TODO get database values
+            'dispatchEmergencyValues' => ['24h', '48h', '72h']
+        ]));
 
         return new JsonResponse($json);
 
@@ -907,7 +914,8 @@ Class DispatchController extends AbstractController
      *     "/{dispatch}/delivery-note",
      *     name="delivery_note_dispatch",
      *     options={"expose"=true},
-     *     methods="POST"
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()"
      * )
      * @param EntityManagerInterface $entityManager
      * @param Dispatch $dispatch
@@ -922,27 +930,34 @@ Class DispatchController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        $deliveryNoteData = array_reduce(
-            array_keys(Dispatch::DELIVERY_NOTE_DATA),
-            function(array $carry, string $name) use ($data) {
-                if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])) {
-                    $carry[$name] = $data[$name] ?? null;
+        $userDataToSave = [];
+        $dispatchDataToSave = [];
+
+        // force dispatch number
+        $data['deliveryNumber'] = $dispatch->getNumber();
+
+        foreach (array_keys(Dispatch::DELIVERY_NOTE_DATA) as $deliveryNoteKey) {
+            if (isset(Dispatch::DELIVERY_NOTE_DATA[$deliveryNoteKey])) {
+                $value = $data[$deliveryNoteKey] ?? null;
+                $dispatchDataToSave[$deliveryNoteKey] = $value;
+                if (Dispatch::DELIVERY_NOTE_DATA[$deliveryNoteKey]) {
+                    $userDataToSave[$deliveryNoteKey] = $value;
                 }
+            }
+        }
 
-                return $carry;
-            },
-            []
-        );
-        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
-
-        // TODO mettre un champ json avec toutes les data dans le dispatch
-        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
-        $loggedUser->setLastDispatchDeliveryNoteData($deliveryNoteData);
+        $loggedUser->setSavedDispatchDeliveryNoteData($userDataToSave);
+        $dispatch->setDeliveryNoteData($dispatchDataToSave);
 
         $entityManager->flush();
 
-        return new JsonResponse(['success' => true]);
+        $message = 'Le téléchargement de votre bon de livraison va commencer...';
+        $success = true;
 
+        return new JsonResponse([
+            'success' => $success,
+            'msg' => $message
+        ]);
     }
 
     /**
@@ -969,5 +984,127 @@ Class DispatchController extends AbstractController
 
         return new JsonResponse(['success' => true]);
 
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/api-waybill",
+     *     name="api_dispatch_waybill",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param SpecificService $specificService
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     * @throws NonUniqueResultException
+     */
+    public function apiWaybill(Request $request,
+                               EntityManagerInterface $entityManager,
+                               SpecificService $specificService,
+                               Dispatch $dispatch): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $userSavedData = $loggedUser->getSavedDispatchWaybillData();
+        $dispatchSavedData = $dispatch->getWaybillData();
+
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
+
+        $defaultData = [
+            'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
+            'dispatchDate' => $now->format('Y-m-d'),
+            'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
+
+            'consignerUsername' => $isEmerson ? $loggedUser->getUsername() : null,
+            'consignerEmail' => $isEmerson ? $loggedUser->getEmail() : null,
+            'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
+            'receiverEmail' => $isEmerson ? $loggedUser->getEmail() : null
+        ];
+
+        $wayBillData = array_reduce(
+            array_keys(Dispatch::WAYBILL_DATA),
+            function(array $carry, string $dataKey) use ($request, $userSavedData, $dispatchSavedData, $defaultData) {
+                $carry[$dataKey] = (
+                    $dispatchSavedData[$dataKey]
+                        ?? ($userSavedData[$dataKey]
+                            ?? ($defaultData[$dataKey]
+                                ?? null))
+                );
+
+                return $carry;
+            },
+            []
+        );
+
+        $json = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', array_merge($wayBillData, [
+            'packsCounter' => $dispatch->getDispatchPacks()->count()
+        ]));
+
+        return new JsonResponse($json);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/waybill",
+     *     name="post_dispatch_waybill",
+     *     options={"expose"=true},
+     *     condition="request.isXmlHttpRequest()",
+     *     methods="POST"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param TranslatorInterface $translator
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDispatchWaybill(EntityManagerInterface $entityManager,
+                                        Dispatch $dispatch,
+                                        TranslatorInterface $translator,
+                                        Request $request): JsonResponse {
+
+        if ($dispatch->getDispatchPacks()->count() > 10) {
+            $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus 10 colis") . ', cette lettre de voiture ne peut contenir plus de 10 lignes.';
+            $success = false;
+        }
+        else {
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
+
+            $data = json_decode($request->getContent(), true);
+
+            $userDataToSave = [];
+            $dispatchDataToSave = [];
+            foreach (array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
+                if (isset(Dispatch::WAYBILL_DATA[$wayBillKey])) {
+                    $value = $data[$wayBillKey] ?? null;
+                    $dispatchDataToSave[$wayBillKey] = $value;
+                    if (Dispatch::WAYBILL_DATA[$wayBillKey]) {
+                        $userDataToSave[$wayBillKey] = $value;
+                    }
+                }
+            }
+            $loggedUser->setSavedDispatchWaybillData($userDataToSave);
+            $dispatch->setWaybillData($dispatchDataToSave);
+
+            $entityManager->flush();
+
+            $message = 'Le téléchargement de votre lettre de voiture va commencer...';
+            $success = true;
+        }
+
+        return new JsonResponse([
+            'success' => $success,
+            'msg' => $message
+        ]);
     }
 }

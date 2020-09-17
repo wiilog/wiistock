@@ -33,6 +33,13 @@
                 <i class="fa fa-print mr-2"></i>
                 Générer un bon de livraison
             </a>
+            <a type="button"
+               data-dispatch-id='{{ dispatch.id }}'
+               onclick="openWaybillModal($(this))"
+               class="dropdown-item">
+                <i class="fa fa-print mr-2"></i>
+                Générer une lettre de voiture
+            </a>
             {% if hasRightEdit %}
                 <a href="#"
                    data-id='{{ dispatch.id }}'

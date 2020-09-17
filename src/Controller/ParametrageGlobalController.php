@@ -115,6 +115,13 @@ class ParametrageGlobalController extends AbstractController
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                     'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
                 ],
+                'paramDispatches' => [
+                    'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
+                    'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+                    'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
+                    'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
+                    'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO)
+                ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
                 'wantsQTT' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL),
@@ -484,17 +491,16 @@ class ParametrageGlobalController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
-            $em = $this->getDoctrine()->getManager();
             if ($ifExist) {
                 $ifExist->setValue($data['val']);
-                $em->flush();
+                $entityManager->flush();
             } else {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel($data['param'])
                     ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
+                $entityManager->persist($parametrage);
+                $entityManager->flush();
             }
             return new JsonResponse(true);
         }

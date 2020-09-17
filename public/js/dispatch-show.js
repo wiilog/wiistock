@@ -56,6 +56,11 @@ $(function () {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote);
+
+    let $modalPrintWaybill = $('#modalPrintWaybill');
+    let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
+    let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
+    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill);
 });
 
 function togglePackDetails(emptyDetails = false) {
@@ -194,31 +199,16 @@ function openDeliveryNoteModal($button) {
         })
 }
 
-function limitTextareaLength($textarea, lineNumber, lineLength) {
-    const textareaVal = ($textarea.val() || '');
-    const linesSplit = textareaVal
-        .replace(/\r\n/g,'\n')
-        .split('\n');
-
-    let newValueSplit = linesSplit;
-
-    // set max line number
-    if (linesSplit.length > lineNumber) {
-        newValueSplit = newValueSplit.slice(0, lineNumber);
-    }
-
-    // set max line length
-    newValueSplit = newValueSplit.map((line) => line.substr(0, lineLength));
-
-    const newVal = newValueSplit.join('\n');
-    const oldVal = $textarea.val();
-
-    if (newVal !== oldVal) {
-        const cursorPosition = $textarea[0].selectionStart
-        $textarea.val(newVal).trigger('change');
-        $textarea[0].selectionStart = cursorPosition;
-        $textarea[0].selectionEnd = cursorPosition;
-    }
+function openWaybillModal($button) {
+    const dispatchId = $button.data('dispatch-id');
+    $
+        .get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
+        .then((html) => {
+            const $modal = $('#modalPrintWaybill');
+            const $modalBody = $modal.find('.modal-body');
+            $modalBody.html(html);
+            $modal.modal('show');
+        })
 }
 
 function copyTo($button, inputSourceName, inputTargetName) {
@@ -232,4 +222,14 @@ function copyTo($button, inputSourceName, inputTargetName) {
     else {
         $target.val(valToCopy);
     }
+}
+
+function reverseFields($button, inputName1, inputName2) {
+    const $modal = $button.closest('.modal');
+    const $field1 = $modal.find(`[name="${inputName1}"]`);
+    const $field2 = $modal.find(`[name="${inputName2}"]`);
+    const val1 = $field1.val();
+    const val2 = $field2.val();
+    $field1.val(val2);
+    $field2.val(val1);
 }
