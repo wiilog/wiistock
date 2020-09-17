@@ -1,6 +1,6 @@
 let arrivageUrgentLoading = false;
 
-function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsDatatable = null) {
+function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
         const alertConfig = alertConfigs[0];
         const {autoHide, message, modalType, arrivalId, iconType, autoPrint} = alertConfig;
@@ -33,7 +33,7 @@ function arrivalCallback(isCreation, {alertConfigs = [], ...response}, arrivalsD
                         // si c'est la dernière modale on ferme la modale d'alerte et on traite la création d'arrivage sinon
                         if (nextAlertConfigs.length === 0) {
                             if (isCreation) {
-                                treatArrivalCreation(response, arrivalsDatatable);
+                                treatArrivalCreation(response, arrivalsDatatable, success);
                             }
                             $modal.modal('hide');
                         }
@@ -125,20 +125,15 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, champsLibresBlock, statutConformeId}, arrivalsDatatable) {
+function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId, statutConformeId}, arrivalsDatatable, success = null) {
     if (!redirectAfterAlert) {
         if (arrivalsDatatable) {
             arrivalsDatatable.ajax.reload();
         }
 
-        $modalNewArrivage.find('.champsLibresBlock').html(champsLibresBlock);
-        $('.list-multiple').select2();
-        $modalNewArrivage.find('#statut').val(statutConformeId);
-
-        let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
-        $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
-
-        clearModal($modalNewArrivage);
+        if (success) {
+            success({statutConformeId});
+        }
     }
     else {
         window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage)
