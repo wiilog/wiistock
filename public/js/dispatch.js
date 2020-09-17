@@ -49,6 +49,7 @@ function addInputColisClone(button)
 
 function onDispatchTypeChange($select) {
     toggleRequiredChampsLibres($select, 'create');
+    typeChoice($select, '-new', $('#typeContentNew'))
 
     const type = parseInt($select.val());
     let $modalNewDispatch = $("#modalNewDispatch");
@@ -70,8 +71,6 @@ function onDispatchTypeChange($select) {
         if (dispatchDefaultStatus[type]) {
             $selectStatus.val(dispatchDefaultStatus[type]);
         }
-
-        $selectStatus.find('option');
     }
 }
 
