@@ -228,14 +228,14 @@ class PackController extends AbstractController {
                 ]);
             }
 
-            if (!empty($weight) && (!is_float($weight) || $weight <= 0)) {
+            if (!empty($weight) && (!is_numeric($weight) || ((float) $weight) <= 0)) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Le poids doit être un nombre supérieur à 0.'
                 ]);
             }
 
-            if (!empty($volume) && (!is_float($volume) || $volume <= 0)) {
+            if (!empty($volume) && (!is_numeric($volume) || ((float) $volume) <= 0)) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => 'Le volume doit être un nombre supérieur à 0.' . $volume
