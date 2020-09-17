@@ -112,7 +112,7 @@ class Dispatch extends FreeFieldEntity
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $treatedDate;
+    private $treatmentDate;
 
     public function __construct()
     {
@@ -346,12 +346,12 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getTreatedDate(): ?\DateTimeInterface {
-        return $this->treatedDate;
+    public function getTreatmentDate(): ?\DateTimeInterface {
+        return $this->treatmentDate;
     }
 
-    public function setTreatedDate(?\DateTimeInterface $treatedDate): self {
-        $this->treatedDate = $treatedDate;
+    public function setTreatmentDate(?\DateTimeInterface $treatmentDate): self {
+        $this->treatmentDate = $treatmentDate;
         return $this;
     }
 
