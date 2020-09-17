@@ -1,0 +1,436 @@
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Expéditeur / Consigner</label>
+            <div class="col-12">
+                <textarea title="Expéditeur / Consigner"
+                          name="consigner"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed">{{ consigner }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Adresse de livraison / Delivery address</label>
+            <div class="col-12">
+                <textarea title="Adresse de livraison / Delivery address"
+                          name="deliveryAddress"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro de livraison / Delivery Nb</label>
+            <div class="col-12">
+                <input title="Numéro de livraison / Delivery No"
+                       name="deliveryNumber"
+                       value="{{ deliveryNumber }}"
+                       class="form-control data needed"
+                       disabled/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Date de livraison / Delivery date</label>
+            <div class="col-12">
+                <input title="Date de livraison / Delivery date"
+                       name="deliveryDate"
+                       class="form-control data"
+                       type="date"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro de commande de vente / Sales order Nb</label>
+            <div class="col-12">
+                <input title="Numéro de comande de vente / Sales order No"
+                       name="salesOrderNumber"
+                       maxlength="50"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Lettre de voiture / Way bill</label>
+            <div class="col-12">
+                <input title="Lettre de voiture / Way bill"
+                       name="wayBill"
+                       maxlength="50"
+                       class="form-control data"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Bon de commande client / Customer PO Number</label>
+            <div class="col-12">
+                <input title="Bon de commande client / Customer PO Number"
+                       name="customerPONumber"
+                       maxlength="50"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Date commande client / Customer PO Date</label>
+            <div class="col-12">
+                <input title="Date commande client / Customer PO Date"
+                       name="customerPODate"
+                       class="form-control data"
+                       type="date"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Réponse numéro commande / Resp. order Nb</label>
+            <div class="col-12">
+                <input title="Réponse numéro commande / Resp. order Nb"
+                       name="respOrderNb"
+                       maxlength="50"
+                       class="form-control data"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro de projet / Project Nb</label>
+            <div class="col-12">
+                <input title="Numéro de projet / Project Nb"
+                       name="projectNumber"
+                       maxlength="50"
+                       value="{{ projectNumber }}"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Urgence / Urgent</label>
+            <div class="col-12">
+{#                TODO  #}
+                <select title="Urgence / Urgent"
+                        name="emergency"
+                        class="form-control data needed">
+                    {% for emergencyValue in dispatchEmergencyValues %}
+                        <option value="{{ emergencyValue }}"
+                                {{ dispatchEmergency == emergencyValue ? 'selected' }}>
+                            {{ emergencyValue }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Contact / Handled by</label>
+            <div class="col-12">
+                <select class="form-control data needed"
+                        name="username"
+                        title="Contact / Handled by"
+                        disabled>
+                    <option value="{{ username }}" selected>{{ username }}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Tél. / Phone number</label>
+            <div class="col-12">
+                <input class="form-control data needed"
+                       name="userPhone"
+                       value="{{ userPhone }}"
+                       title="Tél. / Phone number"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Fax</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="userFax"
+                       maxlength="50"
+                       title="Fax."/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Client acheteur / Customer buyer</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="buyer"
+                       maxlength="50"
+                       title="Client acheteur / Customer buyer"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Tél. / Phone number</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="buyerPhone"
+                       maxlength="50"
+                       title="Tél. / Phone number"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Fax</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="buyerFax"
+                       maxlength="50"
+                       title="Fax"/>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro facture / Invoice Nb</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="invoiceNumber"
+                       maxlength="50"
+                       title="Numéro facture / Invoice Nb"/>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary btn-sm mt-2"
+                        type="button"
+                        onclick="copyTo($(this), 'invoiceNumber', 'soldNumber')">
+                    Copy invoice to Sold
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro vente / Sold Nb</label>
+            <div class="col-12">
+                <input class="form-control data"
+                       name="soldNumber"
+                       maxlength="50"
+                       title="Numéro vente / Sold Nb"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Facturé à / Invoice To</label>
+            <div class="col-12">
+                <textarea title="Facturé à / Invoice To"
+                          name="invoiceTo"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Vendu à / Sold To</label>
+            <div class="col-12">
+                <textarea title="Vendu à / Sold To"
+                          name="soldTo"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data needed"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro dernier utilisateur / End User Nb</label>
+            <div class="col-12">
+                <input title="Numéro dernier utilisateur / End User Nb"
+                       name="endUserNo"
+                       class="form-control data needed"/>
+            </div>
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-auto">
+                        <button class="btn btn-primary btn-sm mt-2"
+                                type="button"
+                                onclick="copyTo($(this), 'invoiceTo', 'endUser')">
+                            Copy invoice to End User
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-primary btn-sm mt-2"
+                                type="button"
+                                onclick="copyTo($(this), 'invoiceTo', 'deliverTo')">
+                            Copy invoice to Deliver To
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Numéro de livraison / Deliver No</label>
+            <div class="col-12">
+                <input title="Numéro de livraison / Deliver No"
+                       name="deliverNo"
+                       maxlength="50"
+                       class="form-control data needed"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">End User</label>
+            <div class="col-12">
+                <textarea title="End User"
+                          name="endUser"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Livrer à / Deliver To</label>
+            <div class="col-12">
+                <textarea title="Livrer à / Deliver To"
+                          name="deliverTo"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 7, 50)"
+                          rows="7"
+                          class="form-control data"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <label class="col-12">Ligne du BL / Order line</label>
+    <div class="col-12">
+        <div class="row">
+            <label class="col-3">Numéro</label>
+            <label class="col-3">Quantité dans le colis</label>
+            <label class="col-6">Commentaire</label>
+        </div>
+        {% for dispatchPack in packs %}
+            <div class="form-group row"
+                 data-multiple-key="packs"
+                 data-multiple-object-index="{{ loop.index0 }}">
+                <div class="col-3">
+                    <input class="form-control data needed"
+                           name="code"
+                           title="Numéro"
+                           value="{{ (dispatchPack.pack is defined and dispatchPack.pack is not null) ? dispatchPack.pack.code }}"
+                           disabled/>
+                </div>
+                <div class="col-3">
+                    <label class="sr-only">Quantité dans le colis / Quantity in package</label>
+                    <input class="form-control data needed"
+                           name="quantity"
+                           title="Quantité dans le colis / Quantity in package"
+                           type="number"
+                           step="1"
+                           min="1"
+                           value="{{ dispatchPack.quantity }}"/>
+                </div>
+                <div class="col-6">
+                    <label class="sr-only">Commentaire / Comment</label>
+                    <textarea class="form-control data needed"
+                              name="comment"
+                              title="Commentaire / Comment"
+                              rows="1"
+                              oninput="limitTextareaLength($(this), 7, 100)">{{ dispatchPack.pack.comment is not null ? dispatchPack.pack.comment|striptags }}</textarea>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Expéditeur / Consigner</label>
+            <div class="col-12">
+                <input class="form-control data needed"
+                       name="consigner2"
+                       value="{{ consigner }}"
+                       title="Expéditeur / Consigner"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <label class="col-12">Date</label>
+            <div class="col-12">
+                <input class="form-control data needed"
+                       name="date"
+                       title="Date"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="pb-5"></div>
+<div class="row">
+    <div class="col-12">
+        <div class="form-group row">
+            <label class="col-12">Note(s) / Notes</label>
+            <div class="col-12">
+                <textarea class="form-control data"
+                          name="notes"
+                          title="Note(s) / Notes"
+                          style="resize: none"
+                          oninput="limitTextareaLength($(this), 3, 100)"
+                          rows="3">{{ notes }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>

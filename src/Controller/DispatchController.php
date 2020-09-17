@@ -827,4 +827,134 @@ Class DispatchController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/api-delivery-note",
+     *     name="api_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     */
+    public function apiDeliveryNote(Request $request,
+                                    TranslatorInterface $translator,
+                                    Dispatch $dispatch): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+        $maxNumberOfPacks = 7;
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
+            return new JsonResponse('
+                <div class="text-danger">' . $errorMessage . '</div>
+            ');
+        }
+
+        // TODO mettre un champ json avec toutes les data dans le dispatch
+        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
+        $savedData = $loggedUser->getLastDispatchDeliveryNoteData();
+
+        $deliveryNoteData = array_reduce(
+            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            function(array $carry, string $name) use ($request, $savedData) {
+                if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])
+                    && Dispatch::DELIVERY_NOTE_DATA[$name]) {
+                    $carry[$name] = $savedData[$name] ?? null;
+                }
+
+                return $carry;
+            },
+            []
+        );
+
+        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
+        $deliveryNoteData['projectNumber'] = $dispatch->getProjectNumber();
+        $deliveryNoteData['username'] = $loggedUser->getUsername();
+        $deliveryNoteData['userPhone'] = $loggedUser->getPhone();
+        $deliveryNoteData['packs'] = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
+
+        // TODO get real values
+        $deliveryNoteData['dispatchEmergency'] = '24h';
+        // TODO get database values
+        $deliveryNoteData['dispatchEmergencyValues'] = ['24h', '48h', '72h'];
+
+        $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', $deliveryNoteData);
+
+        return new JsonResponse($json);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="POST"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDeliveryNote(EntityManagerInterface $entityManager,
+                                     Dispatch $dispatch,
+                                     Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+
+        $deliveryNoteData = array_reduce(
+            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            function(array $carry, string $name) use ($data) {
+                if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])) {
+                    $carry[$name] = $data[$name] ?? null;
+                }
+
+                return $carry;
+            },
+            []
+        );
+        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
+
+        // TODO mettre un champ json avec toutes les data dans le dispatch
+        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
+        $loggedUser->setLastDispatchDeliveryNoteData($deliveryNoteData);
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="print_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Dispatch $dispatch,
+                                      Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        // TODO mettre le champ json dans le dispatch
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+
+    }
 }

@@ -60,7 +60,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
-				Action::EXPORT
+				Action::EXPORT,
+                Action::CREATE_ACHE,
+                Action::DELETE_ACHE,
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,

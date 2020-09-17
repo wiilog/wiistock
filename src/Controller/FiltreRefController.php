@@ -162,7 +162,7 @@ class FiltreRefController extends AbstractController
 			$value = $data['value'];
 			$multiple = false;
 			if ($value === 'Emplacement') {
-				$emplacements = $emplacementRepository->findAllSorted();
+				$emplacements = $emplacementRepository->findBy(['isActive' => true],['label'=> 'ASC']);
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();

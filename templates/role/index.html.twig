@@ -26,7 +26,7 @@
 
 {% endblock %}
 
-        {% block javascripts %}
-            {{ parent() }}
-            <script src="{{ asset('js/role.js') }}?{{ date().timestamp }}"></script>
-        {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/role.js') }}?{{ date().timestamp }}"></script>
+{% endblock %}

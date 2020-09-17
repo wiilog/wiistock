@@ -75,7 +75,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été créé" => "L'acheminement a bien été créé",
                 "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
-                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement"
+                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement",
+                "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

@@ -85,7 +85,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
-        console.log('hello')
     let json = {id: id, isADemand: 0};
     if (ref !== false) {
         json.ref = ref;
@@ -110,9 +109,13 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         }
         registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
-        if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
+        if (setMaxQuantity) {
+            setMaxQuantityEdit($('#referenceEdit'));
+        }
 
-        if (editorToInit) initEditor(editor);
+        if (editorToInit) {
+            initEditor(editor);
+        }
 
         afterLoadingEditModal(modal);
     }, 'json');
@@ -202,19 +205,6 @@ function initEditor(div) {
         });
     }
     return null;
-}
-
-//passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div, quill = null) {
-    // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length && quill === null) {
-        let container = div;
-        let quill = new Quill(container);
-        let com = quill.container.firstChild.innerHTML;
-        $(div).closest('.modal').find('#commentaire').val(com);
-    } else if (quill) {
-        $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
-    }
 }
 
 //FONCTION REFARTICLE
@@ -1302,6 +1292,7 @@ function fillDemandeurField($modal) {
 function registerNumberInputProtection($inputs) {
     const forbiddenChars = [
         "e",
+        "E",
         "+",
         "-"
     ];

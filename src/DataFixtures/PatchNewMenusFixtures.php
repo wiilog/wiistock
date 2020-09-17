@@ -41,6 +41,8 @@ class PatchNewMenusFixtures extends Fixture implements DependentFixtureInterface
 			'Demande de collecte/lister' => [Menu::DEM => [Action::DISPLAY_DEM_COLL]],
 			'Demande de collecte/créer+modifier' => [Menu::DEM => [Action::CREATE, Action::EDIT]],
 			'Demande de collecte/supprimer' => [Menu::DEM => [Action::DELETE]],
+            'Demande d\'acheminement/supprimer' =>[Menu::DEM => [Action::DELETE_ACHE]],
+            'Demande d\'acheminement/ créer' =>[Menu::DEM => [Action::CREATE_ACHE]],
 			'Collecte/lister' => [Menu::ORDRE => [Action::DISPLAY_ORDRE_COLL]],
 			'Collecte/créer+modifier' => [Menu::ORDRE => [Action::CREATE, Action::EDIT]],
 			'Collecte/exporter' => [Menu::ORDRE => [Action::EXPORT]],
