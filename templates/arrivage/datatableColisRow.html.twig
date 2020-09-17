@@ -3,9 +3,23 @@
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <a class="dropdown-item"
-                href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
+               href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: arrivageId, colis: colisId}) }}">
                 <i class='fas fa-print mr-2'></i>Imprimer
             </a>
+            <div class="dropdown-item"
+               data-toggle='modal'
+               data-target='#modalEditPack'
+               data-id="{{ colisId }}"
+               onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true)">
+                <i class='fas fa-edit mr-2'></i>Modifier
+            </div>
+            <div class="dropdown-item"
+                 data-target="#modalDeletePack"
+                 data-toggle="modal"
+                 data-id="{{ colisId }}"
+                 onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
+                <i class="fas fa-trash mr-2"></i>Supprimer
+            </div>
         </div>
     </div>
 </div>

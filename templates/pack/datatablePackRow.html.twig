@@ -1,11 +1,41 @@
-<div class="d-none">
-    {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+{% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+    <div class="d-none">
         <a class="action-on-click"
            data-toggle='modal'
            data-target='#modalEditPack'
            data-id="{{ pack.id }}"
-           onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'))">
+           onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true)">
             <i class='fas fa-pen mr-2'></i>Modifier
         </a>
-    {% endif %}
+    </div>
+{% endif %}
+
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if pack.arrivage %}
+            <a class="dropdown-item"
+               href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: pack.arrivage.id, colis: pack.id}) }}">
+                <i class='fas fa-print mr-2'></i>Imprimer
+            </a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="dropdown-item"
+                     data-toggle='modal'
+                     data-target='#modalEditPack'
+                     data-id="{{ pack.id }}"
+                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'))">
+                    <i class='fas fa-edit mr-2'></i>Modifier
+                </div>
+                <div class="dropdown-item"
+                     data-target="#modalDeletePack"
+                     data-toggle="modal"
+                     data-id="{{ pack.id }}"
+                     onclick="deleteRow($(this), $('#modalDeletePack'), $('#submitDeletePack'))">
+                    <i class="fas fa-trash mr-2"></i>Supprimer
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>

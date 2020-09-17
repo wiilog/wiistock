@@ -1,11 +1,10 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | {{ 'acheminement.acheminements'|trans }} | Détails{% endblock %}
+{% block title %}Demande | {{ 'acheminement.Acheminement'|trans }} | Détails{% endblock %}
+{% block title_tooltip %}Demande | Acheminement | Détails{% endblock %}
 {% block titleLink path('dispatch_index') %}
 
 {% block page_content %}
-    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
-    <input type="hidden" id="dispatchQuantityTranslation" value="{{'acheminement.Quantité à acheminer'|trans}}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
 
     <div class="m-4">
@@ -52,6 +51,7 @@
     {% include "dispatch/modalPack.html.twig" with newPackConfig %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
     {% include "dispatch/modalDeletePack.html.twig" %}
+    {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

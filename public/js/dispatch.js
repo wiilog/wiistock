@@ -100,9 +100,9 @@ function initPage() {
             { "data": 'type', 'name': 'type', 'title': 'Type' },
             { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
             { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },
-            { "data": 'locationFrom', 'name': 'locationFrom', 'title': $('#dispatchLocationFrom').val() },
-            { "data": 'locationTo', 'name': 'locationTo', 'title': $('#dispatchLocationTo').val() },
-            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'Nb ' + $('#dispatchPack').val() , orderable: false },
+            { "data": 'locationFrom', 'name': 'locationFrom', 'title': 'acheminement.emplacement prise', translated: true },
+            { "data": 'locationTo', 'name': 'locationTo', 'title': 'acheminement.emplacement dépose', translated: true },
+            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'acheminement.Nb colis', orderable: false, translated: true },
             { "data": 'status', 'name': 'status', 'title': 'Statut' },
             { "data": 'urgent', 'name': 'urgent', 'title': 'Urgence' }
         ],

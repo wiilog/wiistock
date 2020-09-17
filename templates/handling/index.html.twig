@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Demande | {{ 'services.Service'|trans }}{% endblock %}
+{% block title_tooltip %}Demande | Service{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersDemands.html.twig' with {
