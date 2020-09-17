@@ -10,18 +10,61 @@
     } %}
 {% endblock %}
 
+{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto">
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
+            <div class="col-auto ml-auto btn-group">
+                {% if hasRightToCreate %}
                     <button type="button"
                             data-toggle="modal"
                             data-target="#modalNewDispatch"
-                            class="btn btn-primary btn-ripple"
+                            class="btn btn-primary split-button btn-ripple"
                             onclick='initNewDispatchEditor("#modalNewDispatch")'>
                         <span class="fa fa-plus mr-2"></span><span title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</span>
                     </button>
+                {% elseif hasRightToExport %}
+                    <button type="button"
+                            class="btn btn-primary split-button btn-ripple"
+                            onclick="saveExportFile('get_arrivages_csv')">
+                        <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
+                        Exporter au format CSV
+                    </button>
+                {% else %}
+                    <button class="dropdown-item pointer"
+                            data-toggle="modal"
+                            data-target="#modalColumnVisibleDispatch">
+                        <i class="fa fa-cog mr-2"></i>
+                        Gestion des colonnes
+                    </button>
+                {% endif %}
+
+                <button type="button"
+                        class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+
+                {% if hasRightToCreate or hasRightToExport %}
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                        {% if hasRightToCreate and hasRightToExport %}
+                            <button class="dropdown-item pointer"
+                                    onclick="saveExportFile('get_arrivages_csv')">
+                                <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
+                                Exporter au format CSV
+                            </button>
+                        {% endif %}
+                        <button class="dropdown-item pointer"
+                                data-toggle="modal"
+                                data-target="#modalColumnVisibleDispatch">
+                            <i class="fa fa-cog mr-2"></i>
+                            Gestion des colonnes
+                        </button>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -37,6 +80,7 @@
     <input type="hidden" id="dispatchPack" value="{{ 'colis.colis'|trans }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
+    {% include "dispatch/modalVisibleColumns.html.twig" with modalNewConfig %}
 {% endblock %}
 
 {% block javascripts %}

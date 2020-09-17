@@ -261,6 +261,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $columnsVisibleForArrivage;
 
     /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $columnsVisibleForDispatch;
+
+    /**
      * @ORM\Column(type="json", nullable=true)
      */
     private $secondaryEmails = [];
@@ -1336,6 +1341,17 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function getColumnsVisibleForArrivage()
     {
         return $this->columnsVisibleForArrivage;
+    }
+
+    public function getColumnsVisibleForDispatch()
+    {
+        return $this->columnsVisibleForDispatch;
+    }
+
+    public function setColumnsVisibleForDispatch($columnsVisibleForDispatch): Utilisateur
+    {
+        $this->columnsVisibleForDispatch = $columnsVisibleForDispatch;
+        return $this;
     }
 
     public function getSecondaryEmails(): ?array

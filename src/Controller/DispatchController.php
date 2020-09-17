@@ -49,8 +49,7 @@ use Twig\Error\SyntaxError;
 /**
  * @Route("/acheminements")
  */
-Class DispatchController extends AbstractController
-{
+class DispatchController extends AbstractController {
     /**
      * @var UserService
      */
@@ -68,10 +67,10 @@ Class DispatchController extends AbstractController
     /**
      * @Route("/", name="dispatch_index")
      * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager)
-    {
+    public function index(EntityManagerInterface $entityManager, TranslatorInterface $translator) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -81,13 +80,30 @@ Class DispatchController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
+        $fields = [
+            ["key" => 'number', 'label' => 'Numéro demande'],
+            ["key" => 'creationDate', 'label' => 'Date de création'],
+            ["key" => 'validationDate', 'label' => 'Date de validation'],
+            ["key" => 'treatmentDate', 'label' => 'Date de traitement'],
+            ["key" => 'type', 'label' => 'Type'],
+            ["key" => 'requester', 'label' => 'Requester'],
+            ["key" => 'receiver', 'label' => 'Destinataire'],
+            ["key" => 'locationFrom', 'label' => $translator->trans('acheminement.emplacement prise')],
+            ["key" => 'locationTo', 'label' => $translator->trans('acheminement.emplacement dépose')],
+            ["key" => 'nbPacks', 'label' => $translator->trans('acheminement.Nb colis')],
+            ["key" => 'status', 'label' => 'Statut'],
+            ["key" => 'urgent', 'label' => 'Urgence'],
+        ];
+
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         return $this->render('dispatch/index.html.twig', [
-			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
+            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
-			'modalNewConfig' => [
+            'fields' => $fields,
+            'visibleColumns' => $this->getUser()->getColumnsVisibleForDispatch(),
+            'modalNewConfig' => [
                 'fieldsParam' => $fieldsParam,
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
@@ -98,8 +114,32 @@ Class DispatchController extends AbstractController
                         'champsLibres' => $champsLibres,
                     ];
                 }, $types),
-			    'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
+                'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
             ]
+        ]);
+    }
+
+    /**
+     * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
+        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        $fields[] = "actions";
+
+        $this->getUser()->setColumnsVisibleForDispatch($fields);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Vos préférences de colonnes ont bien été sauvegardées"
         ]);
     }
 
@@ -113,8 +153,7 @@ Class DispatchController extends AbstractController
      * @throws SyntaxError
      */
     public function api(Request $request,
-                        DispatchService $dispatchService): Response
-    {
+                        DispatchService $dispatchService): Response {
         if ($request->isXmlHttpRequest()) {
 
             if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
@@ -144,8 +183,7 @@ Class DispatchController extends AbstractController
                         DispatchService $dispatchService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
-                        TranslatorInterface $translator): Response
-    {
+                        TranslatorInterface $translator): Response {
         if ($request->isXmlHttpRequest()) {
             $post = $request->request;
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -248,8 +286,7 @@ Class DispatchController extends AbstractController
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
-                         DispatchService $dispatchService)
-    {
+                         DispatchService $dispatchService) {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -286,14 +323,13 @@ Class DispatchController extends AbstractController
      */
     public function printDispatchStateSheet(Dispatch $dispatch,
                                             PDFGeneratorService $PDFGenerator,
-                                            TranslatorInterface $translator): ?Response
-    {
+                                            TranslatorInterface $translator): ?Response {
         if ($dispatch->getDispatchPacks()->isEmpty()) {
             throw new NotFoundHttpException($translator->trans("acheminement.La fiche d\'état n\'existe pas pour cet acheminement"));
         }
 
         $packsConfig = $dispatch->getDispatchPacks()
-            ->map(function(DispatchPack $dispatchPack) use ($dispatch, $translator){
+            ->map(function (DispatchPack $dispatchPack) use ($dispatch, $translator) {
                 return [
                     'title' => 'Acheminement n°' . $dispatch->getId(),
                     'code' => $dispatchPack->getPack()->getCode(),
@@ -307,7 +343,7 @@ Class DispatchController extends AbstractController
                     ]
                 ];
             })
-        ->toArray();
+            ->toArray();
 
         $fileName = 'Etat_acheminement_' . $dispatch->getId() . '.pdf';
         return new PdfResponse(
@@ -351,8 +387,7 @@ Class DispatchController extends AbstractController
         if (!$oldStatus || !$oldStatus->getTreated()) {
             $newStatus = $statutRepository->find($post->get('statut'));
             $dispatch->setStatut($newStatus);
-        }
-        else {
+        } else {
             $newStatus = null;
         }
 
@@ -423,8 +458,7 @@ Class DispatchController extends AbstractController
      * @return Response
      */
     public function editApi(Request $request,
-                            EntityManagerInterface $entityManager): Response
-    {
+                            EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -457,15 +491,14 @@ Class DispatchController extends AbstractController
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           TranslatorInterface $translator): Response
-    {
+                           TranslatorInterface $translator): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $attachmentRepository = $entityManager->getRepository(PieceJointe::class);
 
             $dispatch = $dispatchRepository->find($data['dispatch']);
 
-            if($dispatch) {
+            if ($dispatch) {
                 $attachments = $attachmentRepository->findBy(['dispatch' => $dispatch]);
                 foreach ($attachments as $attachment) {
                     $entityManager->remove($attachment);
@@ -495,8 +528,7 @@ Class DispatchController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      */
-    private function persistAttachments(Dispatch $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
-    {
+    private function persistAttachments(Dispatch $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager) {
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
@@ -511,8 +543,7 @@ Class DispatchController extends AbstractController
      * @param Dispatch $dispatch
      * @return Response
      */
-    public function apiPack(Dispatch $dispatch): Response
-    {
+    public function apiPack(Dispatch $dispatch): Response {
         return new JsonResponse([
             'data' => $dispatch->getDispatchPacks()
                 ->map(function (DispatchPack $dispatchPack) {
@@ -567,8 +598,7 @@ Class DispatchController extends AbstractController
         if ($alreadyCreated) {
             $success = false;
             $message = $translator->trans('acheminement.Le colis existe déjà dans cet acheminement');
-        }
-        else {
+        } else {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
 
@@ -659,8 +689,7 @@ Class DispatchController extends AbstractController
      */
     public function deletePack(Request $request,
                                TranslatorInterface $translator,
-                               EntityManagerInterface $entityManager): Response
-    {
+                               EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
@@ -693,11 +722,10 @@ Class DispatchController extends AbstractController
                                             EntityManagerInterface $entityManager,
                                             DispatchService $dispatchService,
                                             TranslatorInterface $translator,
-                                            Dispatch $dispatch): Response
-    {
+                                            Dispatch $dispatch): Response {
         $status = $dispatch->getStatut();
 
-        if(!$status || !$status->getTreated()) {
+        if (!$status || !$status->getTreated()) {
             $data = json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -712,8 +740,7 @@ Class DispatchController extends AbstractController
                 $loggedUser = $this->getUser();
 
                 $dispatchService->validateDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
-            }
-            else {
+            } else {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "Le statut sélectionné doit être de type traité et correspondre au type de la demande."
@@ -773,7 +800,7 @@ Class DispatchController extends AbstractController
 
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
-            function(array $carry, string $name) use ($request, $savedData) {
+            function (array $carry, string $name) use ($request, $savedData) {
                 if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])
                     && Dispatch::DELIVERY_NOTE_DATA[$name]) {
                     $carry[$name] = $savedData[$name] ?? null;
@@ -823,7 +850,7 @@ Class DispatchController extends AbstractController
 
         $deliveryNoteData = array_reduce(
             array_keys(Dispatch::DELIVERY_NOTE_DATA),
-            function(array $carry, string $name) use ($data) {
+            function (array $carry, string $name) use ($data) {
                 if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])) {
                     $carry[$name] = $data[$name] ?? null;
                 }
