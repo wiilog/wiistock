@@ -1,5 +1,6 @@
+{% set transPack = transPack is defined ? transPack : 'mouvement de traçabilité.Colis'|trans %}
 <div class="col-auto mb-2 pr-0">
     <div class="input-group minw-100px">
-        <input type="text" class="form-control data cursor-default filter-input" name="colis" id="colis" placeholder="{{"mouvement de traçabilité.Colis"|trans}}" title="Colis">
+        <input type="text" class="form-control data cursor-default filter-input" name="colis" id="colis" placeholder="{{ transPack }}" title="Colis">
     </div>
 </div>
