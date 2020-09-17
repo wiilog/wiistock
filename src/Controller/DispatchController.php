@@ -767,7 +767,7 @@ Class DispatchController extends AbstractController
             $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
             $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_DISPATCH]);
 
-            $freeFieldsIds = array_map(
+            $freeFieldIds = array_map(
                 function (ChampLibre $cl) {
                     return $cl->getId();
                 },
@@ -787,7 +787,7 @@ Class DispatchController extends AbstractController
                 [
                     'Numéro demande',
                     'Date de création',
-                    'Date de validation',
+                    'Date de traitement',
                     'Type',
                     'Demandeur',
                     'Destinataire',
@@ -810,7 +810,7 @@ Class DispatchController extends AbstractController
                 'export_acheminements.csv',
                 $dispatches,
                 $csvHeader,
-                function ($dispatch) use ($freeFieldsIds) {
+                function ($dispatch) use ($freeFieldIds) {
                     $row = [];
                     $row[] = $dispatch['number'] ?? '';
                     $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
@@ -830,8 +830,8 @@ Class DispatchController extends AbstractController
                     $row[] = $dispatch['lastLocation'] ?? '';
                     $row[] = $dispatch['operator'] ?? '';
 
-                    foreach ($freeFieldsIds as $freeField) {
-                        $row[] = $dispatch['freeFields'][$freeField] ?? "";
+                    foreach ($freeFieldIds as $freeFieldId) {
+                        $row[] = $dispatch['freeFields'][$freeFieldId] ?? "";
                     }
                     return [$row];
                 }

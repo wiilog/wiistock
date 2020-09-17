@@ -259,8 +259,6 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.urgent AS urgent')
             ->addSelect('dispatch.freeFields')
 
-            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
-
             ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
             ->leftJoin('join_dispatchPack.pack', 'join_dispatchPack_pack')
             ->leftJoin('join_dispatchPack_pack.nature', 'join_dispatchPack_nature')
@@ -275,6 +273,8 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch.locationTo', 'join_locationTo')
             ->leftJoin('dispatch.statut', 'join_status')
 
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
@@ -283,27 +283,5 @@ class DispatchRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
-    }
-
-    public function getLastDeliveryNumber(DateTime $from)
-    {
-        $year = $from->format('y');
-        $month = $from->format('m');
-        $day = $from->format('d');
-
-        $queryBuilder = $this->createQueryBuilder('dispatch');
-        $queryBuilder
-            ->select('dispatch.deliveryNoteNumber AS deliveryNoteNumber')
-            ->where('dispatch.deliveryNoteNumber = :dispatchDeliveryNoteNumberBegin')
-            ->orderBy('dispatch.deliveryNoteNumber', 'DESC')
-            ->setParameter('dispatchDeliveryNoteNumberBegin', "${year}${month}${day}");
-
-        $res = $queryBuilder
-            ->getQuery()
-            ->getResult();
-
-        return !empty($res)
-            ? $res[0]['deliveryNoteNumber']
-            : null;
     }
 }
