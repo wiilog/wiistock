@@ -1,6 +1,7 @@
 {% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
 {% set titleExists = title is defined and title is not empty %}
+{% set tooltipExists = title_tooltip is defined and title_tooltip is not empty %}
 {% set subtitleExists = subtitle is defined and subtitle is not empty %}
 {% set titleLink = titleLink is defined ? titleLink : '' %}
 
@@ -22,7 +23,7 @@
                         <div class="row align-items-center">
                             {% if isDashboardExt or titleExists %}
                                 <div class="col-auto">
-                                    <h5 class="header-title text-white h5 my-0 page-title">
+                                    <h5 class="header-title text-white h5 my-0 page-title" {% if tooltipExists %}title="{{ title_tooltip }}"{% endif %}>
                                         {% if titleExists %}
                                             {% set titleSplit = title|split('|') %}
                                             {% if titleSplit is not empty %}

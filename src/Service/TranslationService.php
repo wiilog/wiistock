@@ -5,8 +5,6 @@ namespace App\Service;
 
 use App\Entity\Translation;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -20,44 +18,71 @@ class TranslationService {
 
     private $kernel;
     private $entityManager;
+    private $appLocale;
 
     public function __construct(KernelInterface $kernel,
-                                EntityManagerInterface $entityManager) {
+                                EntityManagerInterface $entityManager,
+                                string $appLocale) {
         $this->kernel = $kernel;
         $this->entityManager = $entityManager;
+        $this->appLocale = $appLocale;
     }
 
     /**
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function generateTranslationsFile() {
         $projectDir = $this->kernel->getProjectDir();
-        $translationFile = $projectDir . '/translations/messages.' . $_SERVER['APP_LOCALE'] . '.yaml';
+        $translationYAML = $projectDir . '/translations/messages.' . $this->appLocale . '.yaml';
+        $translationJS = $projectDir . '/public/js/translations/translations.' . $this->appLocale . '.js';
 
         $translationRepository = $this->entityManager->getRepository(Translation::class);
 
-        if ($translationRepository->countUpdatedRows() > 0 ||
-            !file_exists($translationFile)) {
+        if ($translationRepository->countUpdatedRows() > 0
+            || !file_exists($translationYAML)
+            || !file_exists($translationJS)) {
             $translations = $translationRepository->findAll();
 
-            $menus = [];
-            foreach ($translations as $translation) {
-                $menus[$translation->getMenu()][$translation->getLabel()] = (
-                    $translation->getTranslation() ?: $translation->getLabel()
-                );
-            }
-
-            $yaml = Yaml::dump($menus);
-
-            file_put_contents($translationFile, $yaml);
+            $this->generateYamlTranslations($translationYAML, $translations);
+            $this->generateJavascriptTranslations($translationJS, $translations);
 
             $translationRepository->clearUpdate();
 
             $this->cacheClearWarmUp();
-            $this->chmod($translationFile, 'w');
+            $this->chmod($translationYAML, 'w');
+            $this->chmod($translationJS, 'w');
         }
+    }
+
+    private function generateYamlTranslations(string $directory, array $translations) {
+        $menus = [];
+        foreach ($translations as $translation) {
+            $menus[$translation->getMenu()][$translation->getLabel()] = (
+            $translation->getTranslation() ?: $translation->getLabel()
+            );
+        }
+
+        $yaml = Yaml::dump($menus);
+
+        file_put_contents($directory, $yaml);
+    }
+
+    private function generateJavascriptTranslations(string $directory, array $translations) {
+        $translationsArray = array_reduce(
+            $translations,
+            function (array $carry, Translation $translation) {
+                $key = $translation->getMenu() . "." . $translation->getLabel();
+                $carry[$key] = [
+                    'original' => $translation->getLabel(),
+                    'translated' => $translation->getTranslation() ?: $translation->getLabel()
+                ];
+                return $carry;
+            },
+            []
+        );
+        $translationsStr = json_encode($translationsArray);
+        $output = "const TRANSLATIONS = $translationsStr;";
+        file_put_contents($directory, $output);
     }
 
     /**

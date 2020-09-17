@@ -64,6 +64,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
+                'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'Traiter un acheminement' => 'Traiter un acheminement',
@@ -74,7 +75,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "L'acheminement a bien été créé" => "L'acheminement a bien été créé",
                 "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
                 "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
-                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement"
+                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement",
+                "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -102,6 +104,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'date de début' => 'date de début',
                 'date de fin' => 'date de fin',
                 'numéro de commande' => 'numéro de commande',
+                'Date arrivage' => 'Date arrivage'
             ],
             'mouvement de traçabilité' => [
                 'Colis' => 'Colis'

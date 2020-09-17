@@ -8,9 +8,12 @@
                 </button>
             </div>
             <div class="modal-body modal-input row">
+                <input type="text" class="form-control d-none" title="Nom d'utilisateur" name="username">
+                <input type="password" class="form-control d-none" title="Mot de passe" name="password">
+
                 <div class="col-12 form-group">
                     <label for="username">Nom d'utilisateur*</label>
-                    <input type="text" class="form-control data needed" name="username" required="">
+                    <input type="text" class="form-control data needed" name="username">
                 </div>
 
                 <div class="col-12 form-group">
@@ -24,6 +27,10 @@
                 <div class="col-12 form-group">
                     <label for="email">Email 3</label>
                     <input type="email" class="form-control data-array" name="secondaryEmails">
+                </div>
+                <div class="col-12 form-group">
+                    <label for="phoneNumber">Numéro de téléphone</label>
+                    <input type="tel" class="form-control data" name="phoneNumber" maxlength="10">
                 </div>
                 <div class="col-12 form-group">
                     <label for="password">Mot de passe*</label>
@@ -84,7 +91,7 @@
                 </div>
             </div>
 
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Annuler</div>
                 <div id="submitNewUser" class="btn btn-primary btn-success data" name='id' value=''>Enregistrer</div>

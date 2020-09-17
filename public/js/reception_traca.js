@@ -50,8 +50,8 @@ let tableRecepConfig = {
     columns: [
         {"data": 'Actions', 'name': 'Actions', 'title': '', className: ['noVis']},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "Arrivage", 'name': 'Arrivage', 'title': $('#arrTranslation').val()},
-        {"data": 'Réception', 'name': 'Réception', 'title': $('#recTranslation').val()},
+        {"data": "Arrivage", 'name': 'Arrivage', 'title': 'arrivage.arrivage', translated: true},
+        {"data": 'Réception', 'name': 'Réception', 'title': 'réception.réception', translated: true},
         {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
 };

@@ -451,6 +451,7 @@ class ArrivageController extends AbstractController
                     'msg' => "Veuillez renseigner au moins un colis.<br>"
                 ]);
             }
+
             $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
 
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
@@ -1172,6 +1173,7 @@ class ArrivageController extends AbstractController
             }
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
+            $entityManager->flush();
 
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE);
             $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
@@ -1719,7 +1721,6 @@ class ArrivageController extends AbstractController
             $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
-        $entityManager->flush();
     }
 
     /**
