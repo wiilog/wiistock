@@ -55,20 +55,15 @@ class InventoryEntryController extends AbstractController
 
     /**
      * @Route("/", name="inventory_entry_index", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
      * @return RedirectResponse|Response
      */
-    public function index(EntityManagerInterface $entityManager)
+    public function index()
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
-        return $this->render('saisie_inventaire/index.html.twig', [
-			'emplacements' => $emplacementRepository->findAll(),
-		]);
+        return $this->render('saisie_inventaire/index.html.twig');
     }
 
     /**

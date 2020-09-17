@@ -475,13 +475,33 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-let toggleRequiredChampsLibres = function (select, require) {
-    let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
+let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer = null) {
+    let bloc = ( //TODO pas top
+        $freeFieldContainer ? $freeFieldContainer :
+        require == 'create' ? $('#typeContentNew') :
+            $('#typeContentEdit')
+    );
+    const typeId = select.val();
     let params = {};
-    if (select.val()) {
-        bloc.find('.data').removeClass('needed');
+    if (typeId) {
+        bloc
+            .find('.data')
+            .removeClass('needed');
+
+        if (require === 'create') { // we don't save free field which are hidden
+            bloc
+                .find('.data')
+                .addClass('free-field-data')
+                .removeClass('data')
+
+            bloc
+                .find(`#${typeId}-new .free-field-data`)
+                .removeClass('free-field-data')
+                .addClass('data');
+        }
+
         bloc.find('span.is-required-label').remove();
-        params[require] = select.val();
+        params[require] = typeId;
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
@@ -616,7 +636,6 @@ function alertSuccessMsg(data, remove = true) {
         $alertSuccess.delay(2000).fadeOut(2000);
     }
     $alertSuccess.find('.confirm-msg').html(data);
-    $('html,body').animate({scrollTop: 0});
 }
 
 function saveFilters(page, tableSelector, callback) {

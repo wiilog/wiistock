@@ -95,6 +95,8 @@ class ParametrageGlobal
         'label'=> '1252 Europe de l\'ouest Windows'
     ];
 
+    const BUSINESS_UNIT_VALUES = 'BUSINESS UNIT';
+
 
 	/**
      * @ORM\Id()
