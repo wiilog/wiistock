@@ -47,8 +47,8 @@ class FieldsParam
     const FIELD_CODE_PJ_ARRIVAGE = 'pj';
     const FIELD_CODE_DUTY_ARRIVAGE = 'duty';
     const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
-    const FIELD_CODE_PROJECT_NUMBER_ARRIVAGE = 'numéro projet';
-    const FIELD_CODE_BUSINESS_UNIT_ARRIVAGE = 'business unit';
+    const FIELD_CODE_PROJECT_NUMBER_ARRIVAGE = 'projectNumber';
+    const FIELD_CODE_BUSINESS_UNIT_ARRIVAGE = 'businessUnit';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';

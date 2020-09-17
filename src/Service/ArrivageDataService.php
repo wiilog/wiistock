@@ -14,6 +14,7 @@ use App\Entity\Utilisateur;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -70,20 +71,31 @@ class ArrivageDataService
      * @param int|null $userId
      * @return array
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws Exception
      */
     public function getDataForDatatable($params, $userId)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
+        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $champLibreRepository = $this->entityManager->getRepository(ChampLibre::class);
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $this->security->getUser());
 
-        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userId);
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
+
+
+        $queryResult = $arrivalRepository->findByParamsAndFilters(
+            $params,
+            $filters,
+            $userId,
+            array_reduce($freeFields, function (array $accumulator, array $freeField) {
+                $accumulator[trim(mb_strtolower($freeField['label']))] = $freeField['id'];
+                return $accumulator;
+            }, [])
+        );
 
         $arrivals = $queryResult['data'];
 
@@ -154,7 +166,7 @@ class ArrivageDataService
             'projectNumber' => $arrival->getProjectNumber() ?? '',
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'url' => $url,
-            'Actions' => $this->templating->render(
+            'actions' => $this->templating->render(
                 'arrivage/datatableArrivageRow.html.twig',
                 ['url' => $url, 'arrivage' => $arrival]
             )
@@ -373,52 +385,51 @@ class ArrivageDataService
             [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
             [
                 'label' => 'Fournisseur',
-                'value' => $provider ? $provider->getNom() : '',
-                'show' => [ 'fieldName' => 'fournisseur', 'action' => 'displayed' ]
+                'value' => $provider ? $provider->getNom() : ''
             ],
             [
                 'label' => 'Transporteur',
-                'value' => $carrier ? $carrier->getLabel() : '',
-                'show' => [ 'fieldName' => 'transporteur', 'action' => 'displayed' ]
+                'value' => $carrier ? $carrier->getLabel() : ''
             ],
             [
                 'label' => 'Chauffeur',
-                'value' => $driver ? $driver->getNom() : '',
-                'show' => [ 'fieldName' => 'chauffeur', 'action' => 'displayed' ]
+                'value' => $driver ? $driver->getNom() : ''
             ],
             [
                 'label' => 'N° tracking transporteur',
-                'value' => $arrivage->getNoTracking(),
-                'show' => [ 'fieldName' => 'noTracking', 'action' => 'displayed' ]
+                'value' => $arrivage->getNoTracking()
             ],
             [
                 'label' => 'N° commandes / BL',
-                'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : '',
-                'show' => [ 'fieldName' => 'numeroCommandeList', 'action' => 'displayed' ]
+                'value' => !empty($numeroCommandeList) ? implode(', ', $numeroCommandeList) : ''
             ],
             [
                 'label' => $this->translator->trans('arrivage.destinataire'),
                 'labelTitle' => 'destinataire',
-                'value' => $destinataire ? $destinataire->getUsername() : '',
-                'show' => [ 'fieldName' => 'destinataire', 'action' => 'displayed' ]
+                'value' => $destinataire ? $destinataire->getUsername() : ''
             ],
             [
                 'label' => $this->translator->trans('arrivage.acheteurs'),
                 'labelTitle' => 'acheteurs',
-                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : '',
-                'show' => [ 'fieldName' => 'acheteurs', 'action' => 'displayed' ]
+                'value' => $buyers->count() > 0 ? implode(', ', $buyers->map(function (Utilisateur $buyer) {return $buyer->getUsername();})->toArray()) : ''
+            ],
+            [
+                'label' => 'Numéro de projet',
+                'value' => $arrivage->getProjectNumber()
+            ],
+            [
+                'label' => 'Business unit',
+                'value' => $arrivage->getBusinessUnit()
             ],
             [
                 'label' => $this->translator->trans('arrivage.douane'),
                 'labelTitle' => 'douane',
-                'value' => $arrivage->getDuty() ? 'oui' : 'non',
-                'show' => [ 'fieldName' => 'duty', 'action' => 'displayed' ]
+                'value' => $arrivage->getDuty() ? 'oui' : 'non'
             ],
             [
                 'label' => $this->translator->trans('arrivage.congelé'),
                 'labelTitle' => 'congelé',
-                'value' => $arrivage->getFrozen() ? 'oui' : 'non',
-                'show' => [ 'fieldName' => 'frozen', 'action' => 'displayed' ]
+                'value' => $arrivage->getFrozen() ? 'oui' : 'non'
             ]
         ];
 
@@ -450,6 +461,61 @@ class ArrivageDataService
                     'isNeededNotEmpty' => true
                 ]]
                 : []
+        );
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+
+        $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
+        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
+        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
+
+        $columns = [
+            ['title' => 'Actions', 'name' => 'actions', 'class' => 'display', 'alwaysVisible' => true],
+            ['title' => 'Date', 'name' => 'date'],
+            ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
+            ['title' => 'Transporteur', 'name' => 'carrier'],
+            ['title' => 'Chauffeur', 'name' => 'driver'],
+            ['title' => 'N° tracking transporteur', 'name' => 'trackingCarrierNumber'],
+            ['title' => 'N° commande / bl', 'name' => 'orderNumber'],
+            ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Fournisseur', 'name' => 'provider'],
+            ['title' => 'arrivage.destinataire', 'name' => 'receiver', 'translated' => true],
+            ['title' => 'arrivage.acheteurs', 'name' => 'buyers', 'translated' => true],
+            ['title' => 'Nb um', 'name' => 'nbUm'],
+            ['title' => 'Douane', 'name' => 'custom'],
+            ['title' => 'Congelé', 'name' => 'frozen'],
+            ['title' => 'Statut', 'name' => 'status'],
+            ['title' => 'Utilisateur', 'name' => 'user'],
+            ['title' => 'Urgent', 'name' => 'emergency'],
+            ['title' => 'Numéro de projet', 'name' => 'projectNumber'],
+            ['title' => 'Business Unit', 'name' => 'businessUnit'],
+        ];
+
+        return array_merge(
+            array_map(function (array $column) use ($columnsVisible) {
+                return [
+                    'title' => $column['title'],
+                    'alwaysVisible' => $column['alwaysVisible'] ?? false,
+                    'data' => $column['name'],
+                    'name' => $column['name'],
+                    'translated' => $column['translated'] ?? false,
+                    'class' => $column['class'] ?? (in_array($column['name'], $columnsVisible) ? 'display' : 'hide')
+                ];
+            }, $columns),
+            array_map(function (array $freeField) use ($columnsVisible) {
+                return [
+                    'title' => ucfirst(mb_strtolower($freeField['label'])),
+                    'data' => $freeField['label'],
+                    'name' => $freeField['label'],
+                    'class' => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
+                ];
+            }, $freeFields)
         );
     }
 }

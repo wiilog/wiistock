@@ -130,13 +130,13 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
+     * @param ArrivageDataService $arrivageDataService
      * @param StatusService $statusService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
-                          TranslatorInterface $translator,
+                          ArrivageDataService $arrivageDataService,
                           StatusService $statusService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -152,122 +152,11 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
-        $category = CategoryType::ARRIVAGE;
-        $champL = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
-        $champF[] = [
-            'label' => 'Actions',
-            'id' => 0,
-            'typage' => ''
-        ];
-        $champF[] = [
-            'label' => $translator->trans('arrivage.n° d\'arrivage'),
-            'name' => 'arrivalNumber',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Transporteur',
-            'name' => 'carrier',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Chauffeur',
-            'name' => 'driver',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'N° tracking transporteur',
-            'name' => 'trackingCarrierNumber',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'N° commande / BL',
-            'name' => 'orderNumber',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Type',
-            'name' => 'type',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Fournisseur',
-            'name' => 'provider',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => $translator->trans('arrivage.destinataire'),
-            'name' => 'receiver',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => $translator->trans('arrivage.acheteurs'),
-            'name' => 'buyers',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Nb UM',
-            'name' => 'nbUm',
-            'id' => 0,
-            'typage' => 'number'
-        ];
-        $champF[] = [
-            'label' => 'Douane',
-            'name' => 'custom',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Congelé',
-            'name' => 'frozen',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Statut',
-            'name' => 'status',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Utilisateur',
-            'name' => 'users',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Urgent',
-            'name' => 'emergency',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Numéro de projet',
-            'name' => 'projectNumber',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champF[] = [
-            'label' => 'Business Unit',
-            'name' => 'businessUnit',
-            'id' => 0,
-            'typage' => 'text'
-        ];
-        $champs = array_merge($champF, $champL);
+        $champs = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -301,8 +190,6 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -500,32 +387,25 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-
-            $arrivage = $arrivageRepository->find($data['id']);
-
-            // construction de la chaîne de caractères pour alimenter le select2
-            $acheteursUsernames = [];
-            foreach ($arrivage->getAcheteurs() as $acheteur) {
-                $acheteursUsernames[] = $acheteur->getUsername();
-            }
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            $champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
-
-            $status = $statusService->findAllStatusArrivage();
-
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-
+                $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
-                $typeRepository = $entityManager->getRepository(Type::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
                 $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                 $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+                $arrivage = $arrivageRepository->find($data['id']);
+
+                // construction de la chaîne de caractères pour alimenter le select2
+                $acheteursUsernames = [];
+                foreach ($arrivage->getAcheteurs() as $acheteur) {
+                    $acheteursUsernames[] = $acheteur->getUsername();
+                }
+                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+                $status = $statusService->findAllStatusArrivage();
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
@@ -534,12 +414,9 @@ class ArrivageController extends AbstractController
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
-                    'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
-                    'freeFieldsGroupedByTypes' => $champsLibres,
-                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES)),
-                    'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE])
+                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
                 ]);
             } else {
                 $html = '';
@@ -1772,10 +1649,12 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST")
      * @param Request $request
+     * @param ArrivageDataService $arrivageDataService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function apiColumns(Request $request,
+                               ArrivageDataService $arrivageDataService,
                                EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -1783,147 +1662,9 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-            $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
-            $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
-            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
-
-            $category = CategoryType::ARRIVAGE;
-            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-            dump(in_array('arrivalNumber', $columnsVisible) ? 'display' : 'hide');
-
-            $columns = [
-                [
-                    "title" => 'Actions',
-                    "data" => 'Actions',
-                    'name' => 'Actions',
-                    "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-
-                ],
-                [
-                    "title" => 'Date',
-                    "data" => 'date',
-                    'name' => 'date',
-                    "class" => (in_array('date', $columnsVisible) ? 'display' : 'hide'),
-
-                ],
-                [
-                    "title" => 'N° d\'arrivage',
-                    "data" => 'arrivalNumber',
-                    'name' => 'arrivalNumber',
-                    "class" => (in_array('arrivalNumber', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Transporteur',
-                    "data" => 'carrier',
-                    'name' => 'carrier',
-                    "class" => (in_array('carrier', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Chauffeur',
-                    "data" => 'driver',
-                    'name' => 'driver',
-                    "class" => (in_array('driver', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'N° tracking transporteur',
-                    "data" => 'trackingCarrierNumber',
-                    'name' => 'trackingCarrierNumber',
-                    "class" => (in_array('trackingCarrierNumber', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'N° commande / bl',
-                    "data" => 'orderNumber',
-                    'name' => 'orderNumber',
-                    "class" => (in_array('orderNumber', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Type',
-                    "data" => 'type',
-                    'name' => 'type',
-                    "class" => (in_array('type', $columnsVisible) ? 'display' : 'hide'),
-
-                ],
-                [
-                    "title" => 'Fournisseur',
-                    "data" => 'provider',
-                    'name' => 'provider',
-                    "class" => (in_array('provider', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Destinataire',
-                    "data" => 'receiver',
-                    'name' => 'receiver',
-                    "class" => (in_array('receiver', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Acheteurs',
-                    "data" => 'buyers',
-                    'name' => 'buyers',
-                    "class" => (in_array('buyers', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Nb um',
-                    "data" => 'nbUm',
-                    'name' => 'nbUm',
-                    "class" => (in_array('nbUm', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Douane',
-                    "data" => 'custom',
-                    'name' => 'custom',
-                    "class" => (in_array('custom', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Congelé',
-                    "data" => 'frozen',
-                    'name' => 'frozen',
-                    "class" => (in_array('frozen', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Statut',
-                    "data" => 'status',
-                    'name' => 'status',
-                    "class" => (in_array('status', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Utilisateur',
-                    "data" => 'user',
-                    'name' => 'user',
-                    "class" => (in_array('user', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Urgent',
-                    "data" => 'emergency',
-                    'name' => 'emergency',
-                    "class" => (in_array('emergency', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Numéro de projet',
-                    "data" => 'projectNumber',
-                    'name' => 'projectNumber',
-                    "class" => (in_array('projectNumber', $columnsVisible) ? 'display' : 'hide'),
-                ],
-                [
-                    "title" => 'Business Unit',
-                    "data" => 'businessUnit',
-                    'name' => 'businessUnit',
-                    "class" => (in_array('businessUnit', $columnsVisible) ? 'display' : 'hide'),
-                ],
-            ];
-
-            foreach ($freeFields as $freeField) {
-                $columns[] = [
-                    "title" => ucfirst(mb_strtolower($freeField['label'])),
-                    "data" => $freeField['label'],
-                    'name' => $freeField['label'],
-                    "class" => (in_array($freeField['label'], $columnsVisible) ? 'display' : 'hide'),
-                ];
-            }
-
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");

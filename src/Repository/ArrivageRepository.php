@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -244,7 +245,7 @@ class ArrivageRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters($params, $filters, $userId)
+    public function findByParamsAndFilters($params, $filters, $userId, $freeFieldLabelsToIds)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -353,16 +354,21 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('a.destinataire', 'd3')
                         ->leftJoin('a.acheteurs', 'ach3')
                         ->leftJoin('a.utilisateur', 'u3')
+                        ->leftJoin('a.type', 'search_type')
                         ->andWhere('(
-						a.numeroArrivage LIKE :value
-						OR t3.label LIKE :value
-						OR ch3.nom LIKE :value
-						OR a.noTracking LIKE :value
-						OR a.numeroCommandeList LIKE :value
-						OR f3.nom LIKE :value
-						OR d3.username LIKE :value
-						OR ach3.username LIKE :value
-						OR u3.username LIKE :value)')
+                            a.numeroArrivage LIKE :value
+                            OR t3.label LIKE :value
+                            OR ch3.nom LIKE :value
+                            OR a.noTracking LIKE :value
+                            OR a.numeroCommandeList LIKE :value
+                            OR f3.nom LIKE :value
+                            OR d3.username LIKE :value
+                            OR ach3.username LIKE :value
+                            OR u3.username LIKE :value
+                            OR search_type.label LIKE :value
+                            OR a.businessUnit LIKE :value
+                            OR a.projectNumber LIKE :value
+                        )')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -370,7 +376,8 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$orderData] ?? $orderData;
 
                     if ($column === 'carrier') {
                         $qb
@@ -391,11 +398,11 @@ class ArrivageRepository extends EntityRepository
                             ->orderBy('a.numeroCommandeList', $order);
                     } else if ($column === 'type') {
                         $qb
-                            ->join('a.type', 'order_type')
+                            ->leftJoin('a.type', 'order_type')
                             ->orderBy('order_type.label', $order);
                     } else if ($column === 'provider') {
                         $qb
-                            ->join('a.fournisseur', 'order_fournisseur')
+                            ->leftJoin('a.fournisseur', 'order_fournisseur')
                             ->orderBy('order_fournisseur.nom', $order);
                     } else if ($column === 'receiver') {
                         $qb
@@ -430,8 +437,17 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'statut') {
                         $orderStatut = $order;
                     } else {
-                        $qb
-                            ->orderBy('a.' . $column, $order);
+                        if (property_exists(Arrivage::class, $column)) {
+                            $qb
+                                ->orderBy('a.' . $column, $order);
+                        } else {
+                            $clId = $freeFieldLabelsToIds[trim(mb_strtolower($column))] ?? null;
+                            if ($clId) {
+                                $jsonOrderQuery = "CAST(JSON_EXTRACT(a.freeFields, '$.\"${clId}\"') AS CHAR)";
+                                $qb
+                                    ->orderBy($jsonOrderQuery, $order);
+                            }
+                        }
                     }
                 }
             }
@@ -454,10 +470,8 @@ class ArrivageRepository extends EntityRepository
         if ($orderStatut) {
             usort($arrivages, function (Arrivage $arrivage1, Arrivage $arrivage2) use ($orderStatut) {
                 return $orderStatut === 'asc'
-                    ?
-                    strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
-                    :
-                    strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
+                    ? strcmp($arrivage1->getStatus(), $arrivage2->getStatus())
+                    : strcmp($arrivage2->getStatus(), $arrivage1->getStatus());
             });
         }
 
@@ -467,7 +481,6 @@ class ArrivageRepository extends EntityRepository
                 $arrivages = array_slice($arrivages, intval($params->get('start')), intval($params->get('length')));
             }
         }
-
 
         return [
             'data' => $arrivages ?? null,

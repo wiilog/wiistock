@@ -18,30 +18,32 @@
                     </thead>
                     <tbody>
 
-                    {% set i = 0 %}
                     {% for champ in champs %}
-
-                        <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
-                            <td>
-                                {{ champ.label | capitalize }}
-                            </td>
-                            <td>
-                                <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
-                                    {% set name = (champ.name is defined and champ.name is not null ? champ.name : champ.label) %}
-                                    {% set checked = (name in columnsVisibles ? 'checked' : '') %}
-                                    <input class="visible-column-arrivage-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
-                                           name="{{ name }}"
-                                           onclick="showOrHideColumn($(this), pageTables[0], $('#tableArrivages_id_wrapper'))"
-                                           type="checkbox"
-                                           id="column_visible_arrivage_input_{{ loop.index }}"
-                                            {{ checked }}
-                                           data-column="{{ i }}" data-name="{{ name }}">
-                                    <label for="column_visible_arrivage_input_{{ loop.index }}" class="pointer"></label>
-                                </div>
-                            </td>
-                        </tr>
-
-                        {% set i = i + 1 %}
+                        {% if (champ.alwaysVisible is not defined or not champ.alwaysVisible) %}
+                            <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
+                                {% set label = ((champ.translated is defined and champ.translated)
+                                    ? champ.title|trans
+                                    : champ.title) %}
+                                {% set tooltip = (champ.translated is defined and champ.translated) ? ('title="' ~ champ.title ~ '"') %}
+                                <td>
+                                    <span {{ tooltip }}>{{ label | capitalize }}</span>
+                                </td>
+                                <td>
+                                    <div class="checkbox d-inline-block pointer no-data" onclick="toggleInputRadioOnRow(this)">
+                                        {% set name = champ.name %}
+                                        {% set checked = (name in columnsVisibles ? 'checked' : '') %}
+                                        <input class="visible-column-arrivage-input form-check-input {{ checked == 'checked' ? 'data' : '' }}"
+                                               name="{{ name }}"
+                                               onclick="showOrHideColumn($(this), arrivalsTable, $('#tableArrivages_id_wrapper'))"
+                                               type="checkbox"
+                                               id="column_visible_arrivage_input_{{ loop.index }}"
+                                                {{ checked }}
+                                               data-column="{{ loop.index0 }}" data-name="{{ champ.name }}">
+                                        <label for="column_visible_arrivage_input_{{ loop.index }}" class="pointer"></label>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
 
                     {% endfor %}
                     </tbody>

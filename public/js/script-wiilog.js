@@ -475,8 +475,12 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-let toggleRequiredChampsLibres = function (select, require) {
-    let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
+let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer = null) {
+    let bloc = ( //TODO pas top
+        $freeFieldContainer ? $freeFieldContainer :
+        require == 'create' ? $('#typeContentNew') :
+            $('#typeContentEdit')
+    );
     let params = {};
     if (select.val()) {
         bloc.find('.data').removeClass('needed');
@@ -616,7 +620,6 @@ function alertSuccessMsg(data, remove = true) {
         $alertSuccess.delay(2000).fadeOut(2000);
     }
     $alertSuccess.find('.confirm-msg').html(data);
-    $('html,body').animate({scrollTop: 0});
 }
 
 function saveFilters(page, tableSelector, callback) {
