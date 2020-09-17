@@ -21,6 +21,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\AttachmentService;
+use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
 use App\Service\PDFGeneratorService;
@@ -738,6 +739,106 @@ Class DispatchController extends AbstractController
             'success' => true,
             'packsCounter' => $dispatch->getDispatchPacks()->count()
         ]);
+    }
+
+    /**
+     * @Route("/csv", name="get_dispatches_csv", options={"expose"=true}, methods={"GET"})
+     * @param Request $request
+     * @param CSVExportService $CSVExportService
+     * @param EntityManagerInterface $entityManager
+     * @param TranslatorInterface $translator
+     * @return Response
+     */
+    public function getDispatchesCSV(Request $request,
+                                     CSVExportService $CSVExportService,
+                                     EntityManagerInterface $entityManager,
+                                     TranslatorInterface $translator): Response
+    {
+        $dateMin = $request->query->get('dateMin');
+        $dateMax = $request->query->get('dateMax');
+
+        try {
+            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+        } catch (\Throwable $throwable) {
+        }
+
+        if (isset($dateTimeMin) && isset($dateTimeMax)) {
+            $freeFieldsRepository = $entityManager->getRepository(ChampLibre::class);
+            $freeFields = $freeFieldsRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_DISPATCH]);
+
+            $freeFieldIds = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getId();
+                },
+                $freeFields
+            );
+            $freeFieldsHeader = array_map(
+                function (ChampLibre $cl) {
+                    return $cl->getLabel();
+                },
+                $freeFields
+            );
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax);
+
+            $csvHeader = array_merge(
+                [
+                    'Numéro demande',
+                    'Date de création',
+                    'Date de traitement',
+                    'Type',
+                    'Demandeur',
+                    'Destinataire',
+                    $translator->trans('acheminement.emplacement prise'),
+                    $translator->trans('acheminement.emplacement dépose'),
+                    'Nb ' . $translator->trans('colis.colis'),
+                    'Statut',
+                    'Urgence',
+                    $translator->trans('natures.nature'),
+                    'Code',
+                    $translator->trans('acheminement.Quantité à acheminer'),
+                    'Date dernier mouvement',
+                    'Dernier emplacement',
+                    'Opérateur'
+                ],
+                $freeFieldsHeader
+            );
+
+            return $CSVExportService->createBinaryResponseFromData(
+                'export_acheminements.csv',
+                $dispatches,
+                $csvHeader,
+                function ($dispatch) use ($freeFieldIds) {
+                    $row = [];
+                    $row[] = $dispatch['number'] ?? '';
+                    $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $dispatch['validationDate'] ? $dispatch['validationDate']->format('d/m/Y H:i:s') : '';
+                    $row[] = $dispatch['type'] ?? '';
+                    $row[] = $dispatch['requester'] ?? '';
+                    $row[] = $dispatch['receiver'] ?? '';
+                    $row[] = $dispatch['locationFrom'] ?? '';
+                    $row[] = $dispatch['locationTo'] ?? '';
+                    $row[] = $dispatch['nbPacks'] ?? '';
+                    $row[] = $dispatch['status'] ?? '';
+                    $row[] = $dispatch['urgent'] ? 'oui' : 'non';
+                    $row[] = $dispatch['packNatureLabel'] ?? '';
+                    $row[] = $dispatch['packCode'] ?? '';
+                    $row[] = $dispatch['packQuantity'] ?? '';
+                    $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
+                    $row[] = $dispatch['lastLocation'] ?? '';
+                    $row[] = $dispatch['operator'] ?? '';
+
+                    foreach ($freeFieldIds as $freeFieldId) {
+                        $row[] = $dispatch['freeFields'][$freeFieldId] ?? "";
+                    }
+                    return [$row];
+                }
+            );
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 
     /**
