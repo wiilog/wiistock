@@ -109,6 +109,11 @@ class Dispatch extends FreeFieldEntity
      */
     private $validationDate;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $treatedDate;
+
     public function __construct()
     {
         $this->dispatchPacks = new ArrayCollection();
@@ -332,15 +337,21 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface
-    {
+    public function getValidationDate(): ?\DateTimeInterface {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self
-    {
+    public function setValidationDate(?\DateTimeInterface $validationDate): self {
         $this->validationDate = $validationDate;
+        return $this;
+    }
 
+    public function getTreatedDate(): ?\DateTimeInterface {
+        return $this->treatedDate;
+    }
+
+    public function setTreatedDate(?\DateTimeInterface $treatedDate): self {
+        $this->treatedDate = $treatedDate;
         return $this;
     }
 

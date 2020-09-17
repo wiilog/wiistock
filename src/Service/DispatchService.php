@@ -312,7 +312,6 @@ class DispatchService
             $entityManager->persist($trackingTaking);
             $entityManager->persist($trackingDrop);
         }
-        $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
     }

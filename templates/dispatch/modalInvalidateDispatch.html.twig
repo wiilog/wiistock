@@ -1,22 +1,22 @@
-<form class="modal fade" id="modalValidateDispatch">
+<form class="modal fade" id="modalInvalidateDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" title="Valider un acheminement">{{ 'acheminement.Valider un acheminement'|trans }}</h5>
+                <h5 class="modal-title" title="Invalider un acheminement">{{ 'acheminement.Invalider un acheminement'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                {% if untreatedStatus is not empty %}
+                {% if draftStatus is not empty %}
                     <div class="form-group">
                         <label>Statut*</label>
                         <select class="form-control data needed needs-default"
                                 name="status"
                                 title="Statut"
                                 data-init="0">
-                            {% for status in untreatedStatus %}
+                            {% for status in draftStatus %}
                                 <option value="{{ status.id }}">{{ status.nom }}</option>
                             {% endfor %}
                         </select>
@@ -24,7 +24,7 @@
                 {% else %}
                     {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                         array: [],
-                        warningLabel: 'Vous n\'avez pas configuré de statut à traiter pour ce ' ~ ('acheminement.type d\'acheminement'|trans),
+                        warningLabel: 'Vous n\'avez pas configuré de statut brouillon pour ce ' ~ ('acheminement.type d\'acheminement'|trans),
                         redirectPath: path('status_param_index'),
                         redirectLabel: 'Aller vers la création des statuts.'
                     } %}

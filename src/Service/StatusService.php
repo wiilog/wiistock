@@ -15,8 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 
-class StatusService
-{
+class StatusService {
 
     private $specificService;
     private $entityManager;
@@ -46,7 +45,7 @@ class StatusService
     public function findAllStatusArrivage() {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
-            $status =  $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
+            $status = $statutRepository->findByCategoryNameAndStatusCodes(CategorieStatut::ARRIVAGE, [Arrivage::STATUS_CONFORME, Arrivage::STATUS_RESERVE]);
         } else {
             $status = $statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         }
@@ -57,8 +56,7 @@ class StatusService
      * @param null $params
      * @return array
      */
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $statusRepository = $this->entityManager->getRepository(Statut::class);
 
@@ -84,8 +82,7 @@ class StatusService
      * @return array
      * @throws SyntaxError
      */
-    public function dataRowStatus($status)
-    {
+    public function dataRowStatus($status) {
 
         $url['edit'] = $this->router->generate('status_api_edit', ['id' => $status->getId()]);
         return [
@@ -104,31 +101,4 @@ class StatusService
         ];
     }
 
-    public function canStatusBeDefault(EntityManagerInterface $entityManager,
-                                       string $categoryStatusLabel,
-                                       ?Type $type = null,
-                                       Statut $status = null): bool {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        $typeId = $type ? $type->getId() : null;
-        $definedDefaultStatus = array_values(array_filter(
-            $statutRepository->findByCategorieNames([$categoryStatusLabel]),
-            function (Statut $savedStatus) use ($typeId) {
-                $savedTypeId = $savedStatus->getType() ? $savedStatus->getType()->getId() : null;
-                return (
-                    $savedTypeId === $typeId
-                    && $savedStatus->isDefaultForCategory()
-                );
-            }
-        ));
-        $definedDefaultStatusCounter = count($definedDefaultStatus);
-
-        return (
-            $definedDefaultStatusCounter === 0
-            || (
-                !empty($status)
-                && $definedDefaultStatusCounter === 1
-                && $status->getId() === $definedDefaultStatus[0]->getId()
-            )
-        );
-    }
 }

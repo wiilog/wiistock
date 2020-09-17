@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Statut
 {
+
+    const DRAFT = 0;
+    const NOT_TREATED = 1;
+    const TREATED = 2;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -42,6 +47,11 @@ class Statut
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $treated;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $draft;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
@@ -174,6 +184,15 @@ class Statut
 
     public function setTreated(bool $treated): self {
         $this->treated = $treated;
+        return $this;
+    }
+
+    public function isDraft(): ?bool {
+        return $this->draft;
+    }
+
+    public function setDraft(bool $draft): self {
+        $this->draft = $draft;
         return $this;
     }
 

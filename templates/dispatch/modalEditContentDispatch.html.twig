@@ -10,26 +10,17 @@
 <div class="form-group">
     <label>Statut*</label>
     <select name="statut"
-            {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
+        {{ dispatch.statut is not null and dispatch.statut.treated ? 'disabled' }}
             class="form-control data d-block needed"
             title="Statut">
-        {% if dispatch.statut is not null %}
-            <option selected
-                    value="{{ dispatch.statut.id }}"
-                    data-type-id="{{ dispatch.statut.type.id }}">
-                {{ dispatch.statut.nom }}
+
+        {% for status in statuses %}
+            <option data-type-id="{{ status.type.id }}"
+                    value="{{ status.id }}"
+                {% if dispatch.statut == status %}selected{% endif %}>
+                {{ status.nom }}
             </option>
-        {% endif %}
-        {% if dispatch.statut is null or not dispatch.statut.treated %}
-            {% for status in notTreatedStatus %}
-                {% if status.id != dispatch.statut.id %}
-                    <option data-type-id="{{ status.type.id }}"
-                            value="{{ status.id }}">
-                        {{ status.nom }}
-                    </option>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+        {% endfor %}
     </select>
 </div>
 <div class="form-group">
@@ -95,7 +86,7 @@
             <label class="switch mt-2">
                 <input class="checkbox {{ required ? 'needed' }}"
                        name="urgent"
-                       {{ dispatch.urgent ? 'checked' }}
+                    {{ dispatch.urgent ? 'checked' }}
                        type="checkbox"/>
                 <span class="slider round"></span>
             </label>
