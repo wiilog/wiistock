@@ -102,6 +102,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
                 'default' => null,
                 SpecificService::CLIENT_SAFRAN_ED => $statutConformeArrivalId
             ],
+            ParametrageGlobal::BUSINESS_UNIT_VALUES => [
+                'default' => null,
+            ],
             ParametrageGlobal::AUTO_PRINT_COLIS => [
                 'default' => true,
             ],

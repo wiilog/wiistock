@@ -12,8 +12,8 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed"
-                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                    <select name="type"
+                            class="form-control data d-block type needed"
                             onchange="onDispatchTypeChange($(this))">
                         <option value="">Type à choisir...</option>
                         {% for type in typeChampsLibres %}

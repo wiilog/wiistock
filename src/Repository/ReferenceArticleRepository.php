@@ -415,10 +415,8 @@ class ReferenceArticleRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column =
-                        isset(self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']])
-                            ? self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']]
-                            : $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $orderData = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    $column = self::DtToDbLabels[$orderData] ?? $orderData;
 
                     switch ($column) {
                         case 'Actions':
@@ -449,7 +447,12 @@ class ReferenceArticleRepository extends EntityRepository
                                 $qb
                                     ->orderBy('ra.' . $column, $order);
                             } else {
-                                $needCLOrder = [$order, $column];
+                                $clId = $freeFields[trim(mb_strtolower($column))] ?? null;
+                                if ($clId) {
+                                    $jsonOrderQuery = "CAST(JSON_EXTRACT(ra.freeFields, '$.\"${clId}\"') AS CHAR)";
+                                    $qb
+                                        ->orderBy($jsonOrderQuery, $order);
+                                }
                             }
                             break;
                     }
@@ -471,15 +474,6 @@ class ReferenceArticleRepository extends EntityRepository
         }
         $qb
             ->select('ra');
-        if ($needCLOrder) {
-            $orderField = $needCLOrder[1];
-            $clId = $freeFields[trim(mb_strtolower($orderField))] ?? null;
-            if ($clId) {
-                $jsonOrderQuery = "CAST(JSON_EXTRACT(ra.freeFields, '$.\"${clId}\"') AS CHAR)";
-                $qb
-                    ->orderBy($jsonOrderQuery, $needCLOrder[0]);
-            }
-        }
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $countQuery

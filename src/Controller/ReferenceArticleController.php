@@ -365,6 +365,7 @@ class ReferenceArticleController extends AbstractController
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                     break;
             }
+
             $refArticle = new ReferenceArticle();
             $refArticle
                 ->setNeedsMobileSync($data['mobileSync'] ?? false)
