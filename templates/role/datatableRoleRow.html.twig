@@ -9,11 +9,9 @@
                         <i class='fas fa-pencil-alt'></i>
                     </div>
                 </div>
-                <div>
-                    <div class="dropdown-item" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalDeleteRole'
-                         onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'role_check_delete', '#submitDeleteRole')">
-                        <i class='fas fa-trash mr-2'></i>Supprimer
-                    </div>
+                <div class="dropdown-item" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalDeleteRole'
+                     onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'role_check_delete', '#submitDeleteRole')">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
                 </div>
             {% endif %}
         </div>

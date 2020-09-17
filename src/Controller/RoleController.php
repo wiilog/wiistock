@@ -154,9 +154,15 @@ class RoleController extends AbstractController
                 $roleService->parseParameters($role, $data);
                 $entityManager->flush();
 
-                return new JsonResponse();
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été créé.'
+                ]);
             } else {
-                return new JsonResponse(false);
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le rôle <strong>' . $data['label'] . '</strong> existe déjà, veuillez choisir un autre nom.'
+                ]);
             }
         }
         throw new NotFoundHttpException("404");
@@ -249,7 +255,10 @@ class RoleController extends AbstractController
             }
             $roleService->parseParameters($role, $data);
             $entityManager->flush();
-            return new JsonResponse($role->getLabel());
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été modifié.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -316,7 +325,10 @@ class RoleController extends AbstractController
                     if ($nbUsers == 0) {
                         $entityManager->remove($role);
                         $entityManager->flush();
-                        $resp = true;
+                        $resp = [
+                            'success' => true,
+                            'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été supprimé.'
+                        ];
                     }
                 }
             }
