@@ -47,6 +47,8 @@ class FieldsParam
     const FIELD_CODE_PJ_ARRIVAGE = 'pj';
     const FIELD_CODE_DUTY_ARRIVAGE = 'duty';
     const FIELD_CODE_FROZEN_ARRIVAGE = 'frozen';
+    const FIELD_CODE_PROJECT_NUMBER_ARRIVAGE = 'projectNumber';
+    const FIELD_CODE_BUSINESS_UNIT_ARRIVAGE = 'businessUnit';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
@@ -60,6 +62,22 @@ class FieldsParam
     const FIELD_LABEL_PJ_ARRIVAGE = 'Pièces jointes';
 	const FIELD_LABEL_DUTY_ARRIVAGE = 'douane';
 	const FIELD_LABEL_FROZEN_ARRIVAGE = 'congelé';
+    const FIELD_LABEL_PROJECT_NUMBER_ARRIVAGE = 'numéro projet';
+    const FIELD_LABEL_BUSINESS_UNIT_ARRIVAGE = 'business unit';
+
+    const ENTITY_CODE_DISPATCH = 'acheminements';
+
+    const FIELD_CODE_RECEIVER_DISPATCH = 'receiver';
+    const FIELD_CODE_DEADLINE_DISPATCH = 'deadline';
+    const FIELD_CODE_EMERGENCY_DISPATCH = 'emergency';
+    const FIELD_CODE_COMMENT_DISPATCH = 'comment';
+    const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
+
+    const FIELD_LABEL_RECEIVER_DISPATCH = 'destinataire';
+    const FIELD_LABEL_DEADLINE_DISPATCH = 'dates d\'échéances';
+    const FIELD_LABEL_EMERGENCY_DISPATCH = 'urgence';
+    const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
+    const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
 
 	/**
      * @ORM\Id()

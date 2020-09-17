@@ -1,5 +1,11 @@
-<label for="dropfile">Pièces jointes</label>
-<div id="dropfile" class="dropFrame justify-content-md-center" data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}" data-litige-id="{{ litige is defined ? litige.id : '' }}"
+{% set required = required is defined and required %}
+<input type="hidden" name="isAttachmentForm" value="1"/>
+<input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
+
+<label for="dropfile">Pièces jointes{{ required ? '*' }}</label>
+<div class="dropFrame justify-content-md-center"
+     data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
+     data-litige-id="{{ litige is defined ? litige.id : '' }}"
      ondragenter="dragEnterDiv(event, $(this))"
      ondragover="dragOverDiv(event, $(this))"
      ondragleave="dragLeaveDiv(event, $(this))"
@@ -12,7 +18,7 @@
 <div class="file-bag"></div>
 
 {% if isNew != true %}
-    {% for pj in attachements %}
+    {% for pj in attachments %}
         {% set pjName = pj.fileName %}
         {% set originalName = pj.originalName %}
         {% include 'attachment/attachmentLine.html.twig' %}

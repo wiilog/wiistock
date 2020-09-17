@@ -72,19 +72,18 @@ class ParamTypesController extends AbstractController
             foreach ($types as $type) {
                 $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
 
-                $rows[] =
-                    [
-                        'Label' => $type->getLabel(),
-                        'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
-                        'Description' => $type->getDescription(),
-                        'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
-                            ? ($type->getSendMail() ? 'Oui' : 'Non')
-                            : '',
-                        'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
-                            'url' => $url,
-                            'typeId' => $type->getId(),
-                        ]),
-                    ];
+                $rows[] = [
+                    'Label' => $type->getLabel(),
+                    'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
+                    'Description' => $type->getDescription(),
+                    'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
+                        ? ($type->getSendMail() ? 'Oui' : 'Non')
+                        : '',
+                    'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
+                        'url' => $url,
+                        'typeId' => $type->getId(),
+                    ]),
+                ];
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -128,12 +127,12 @@ class ParamTypesController extends AbstractController
 
 				return new JsonResponse([
 					'success' => true,
-					'msg' => 'Le type ' . $data['label'] . ' a bien été créé.'
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> a bien été créé.'
 				]);
             } else {
 				return new JsonResponse([
 					'success' => false,
-					'msg' => 'Le type ' . $data['label'] . ' existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> existe déjà pour cette catégorie. Veuillez en choisir un autre.'
 				]);
             }
         }
@@ -205,12 +204,12 @@ class ParamTypesController extends AbstractController
 
                 return new JsonResponse([
                 	'success' => true,
-					'msg' => 'Le type ' . $typeLabel . ' a bien été modifié.'
+					'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été modifié.'
 				]);
             } else {
                 return new JsonResponse([
                 	'success' => false,
-					'msg' => 'Le type ' . $data['label'] . ' existe déjà pour cette catégorie. Veuillez en choisir un autre.'
+					'msg' => 'Le type <strong>' . $data['label'] . '</strong> existe déjà pour cette catégorie. Veuillez en choisir un autre.'
 				]);
             }
         }
@@ -262,7 +261,10 @@ class ParamTypesController extends AbstractController
 
             $entityManager->remove($type);
             $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'Le type <strong>' . $type->getLabel() . '</strong> a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }

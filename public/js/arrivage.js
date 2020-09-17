@@ -1,22 +1,56 @@
 $('.select2').select2();
 
-let modalColumnVisible = $('#modalColumnVisibleArrivage');
-let submitColumnVisible = $('#submitColumnVisibleArrivage');
-let modalEditArrivage = $('#modalEditArrivage');
-let submitEditArrivage = $('#submitEditArrivage');
-let urlEditArrivage = Routing.generate('arrivage_edit', true);
-let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
 let onFlyFormOpened = {};
 let clicked = false;
 let pageLength;
+let arrivalsTable;
 
 $(function () {
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
     initSelect2($('#statut'), 'Statuts');
     initSelect2($('#carriers'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));
-    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
-    initModalWithAttachments(modalEditArrivage, submitEditArrivage, urlEditArrivage, tableArrivage);
+    initTableArrival().then((returnedArrivalsTable) => {
+        arrivalsTable = returnedArrivalsTable;
+        let $modalColumnVisible = $('#modalColumnVisibleArrivage');
+        let $submitColumnVisible = $('#submitColumnVisibleArrivage');
+        let urlColumnVisible = Routing.generate('save_column_visible_for_arrivage', true);
+        InitModal($modalColumnVisible, $submitColumnVisible, urlColumnVisible, {tables: [arrivalsTable]});
+
+        let $modalNewArrivage = $("#modalNewArrivage");
+        let submitNewArrivage = $("#submitNewArrivage");
+        let urlNewArrivage = Routing.generate('arrivage_new', true);
+        InitModal(
+            $modalNewArrivage,
+            submitNewArrivage,
+            urlNewArrivage,
+            {
+                keepForm: true,
+                keepModal: true,
+                success: (res) => {
+                    res = res || {};
+                    arrivalCallback(
+                        true,
+                        {
+                            ...(res || {}),
+                            success: ({statutConformeId}) => {
+                                $modalNewArrivage.find('.list-multiple').select2();
+                                $modalNewArrivage.find('#statut').val(statutConformeId);
+
+                                let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
+                                $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
+
+                                clearModal($modalNewArrivage);
+                            }
+                        },
+                        arrivalsTable
+                    )
+                }
+            });
+
+        onArrivalTypeChange($modalNewArrivage.find('[name="type"]'));
+
+    });
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_ARRIVAGE);
     $.post(path, params, function (data) {
@@ -35,72 +69,74 @@ $(function () {
     });
 });
 
-let pathArrivage = Routing.generate('arrivage_api', true);
-let tableArrivage;
-let tableArrivageConfig = {
-    serverSide: true,
-    processing: true,
-    pageLength: Number($('#pageLengthForArrivage').val()),
-    order: [[1, "desc"]],
-    ajax: {
-        "url": pathArrivage,
-        "type": "POST",
-        'data': {
-            'clicked': () => clicked,
-        },
-    },
-    columns: [
-        {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Date', 'name': 'date', 'title': 'Date'},
-        {"data": "NumeroArrivage", 'name': 'numeroArrivage', 'title': $('#noArrTranslation').val()},
-        {"data": 'Transporteur', 'name': 'transporteur', 'title': 'Transporteur'},
-        {"data": 'Chauffeur', 'name': 'chauffeur', 'title': 'Chauffeur'},
-        {"data": 'NoTracking', 'name': 'noTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroCommandeList', 'name': 'NumeroCommandeList', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'destinataire', 'title': $('#destinataireTranslation').val()},
-        {"data": 'Acheteurs', 'name': 'acheteurs', 'title': $('#acheteursTranslation').val()},
-        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
-        {"data": 'Duty', 'name': 'duty', 'title': 'Douane'},
-        {"data": 'Frozen', 'name': 'frozen', 'title': 'Congelé'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-        {"data": 'Urgent', 'name': 'urgent', 'title': 'Urgent'},
-        {"data": 'url', 'name': 'url', 'title': 'url', visible: false, className: 'noVis'},
-    ],
-    headerCallback: function (thead) {
-        $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-        $(thead).find('th').eq(8).attr('title', "destinataire");
-        $(thead).find('th').eq(9).attr('title', "acheteurs");
-    },
-    domConfig: {
-        needsFullDomOverride: true
-    },
-    rowConfig: {
-        needsColor: true,
-        color: 'danger',
-        needsRowClickAction: true,
-        dataToCheck: 'Urgent'
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-        needsColumnShow: true
-    },
-    buttons: [
-        {
-            extend: 'colvis',
-            columns: ':not(.noVis)',
-            className: 'd-none'
-        },
+function initTableArrival() {
+    let pathArrivage = Routing.generate('arrivage_api', true);
+    return $
+        .post(Routing.generate('arrival_api_columns'))
+        .then((columns) => {
+            let tableArrivageConfig = {
+                serverSide: true,
+                processing: true,
+                pageLength: Number($('#pageLengthForArrivage').val()),
+                order: [[1, "desc"]],
+                ajax: {
+                    "url": pathArrivage,
+                    "type": "POST",
+                    'data': {
+                        'clicked': () => clicked,
+                    }
+                },
+                columns: columns.map(function (column) {
+                    return {
+                        ...column,
+                        class: column.title === 'Actions' ? 'noVis' : undefined,
+                        title: column.title === 'Actions' ? '' : column.title
+                    }
+                }),
+                columnDefs: [
+                    {
+                        orderable: false,
+                        targets: 0
+                    }
+                ],
+                drawConfig: {
+                    needsResize: true
+                },
+                rowConfig: {
+                    needsColor: true,
+                    color: 'danger',
+                    needsRowClickAction: true,
+                    dataToCheck: 'emergency'
+                },
+                buttons: [
+                    {
+                        extend: 'colvis',
+                        columns: ':not(.noVis)',
+                        className: 'd-none'
+                    },
 
-    ],
-    "lengthMenu": [10, 25, 50, 100],
-};
+                ],
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableArrival'
+                },
+                'lengthMenu': [10, 25, 50, 100],
+            };
 
-tableArrivage = initDataTable('tableArrivages', tableArrivageConfig);
-tableArrivage.on('responsive-resize', function (e, datatable) {
-    datatable.columns.adjust().responsive.recalc();
-});
+            const arrivalsTable = initDataTable('tableArrivages', tableArrivageConfig);
+            arrivalsTable.on('responsive-resize', function () {
+                resizeTable(arrivalsTable);
+            });
+            return arrivalsTable;
+        });
+}
+
+function resizeTable(arrivalsTable) {
+    arrivalsTable
+        .columns.adjust()
+        .responsive.recalc();
+}
+
 function listColis(elem) {
     let arrivageId = elem.data('id');
     let path = Routing.generate('arrivage_list_colis_api', true);
@@ -111,16 +147,6 @@ function listColis(elem) {
         modal.find('.modal-body').html(data);
     }, 'json');
 }
-
-tableArrivage.on('responsive-resize', function (e, datatable) {
-    datatable.columns.adjust().responsive.recalc();
-});
-
-let $modalNewArrivage = $("#modalNewArrivage");
-let submitNewArrivage = $("#submitNewArrivage");
-let urlNewArrivage = Routing.generate('arrivage_new', true);
-let redirectAfterArrival = $('#redirect').val();
-initModalWithAttachments($modalNewArrivage, submitNewArrivage, urlNewArrivage, null, (params) => arrivalCallback(true, params, tableArrivage), redirectAfterArrival === 1, false);
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
@@ -142,4 +168,35 @@ function initNewArrivageEditor(modal) {
     initSelect2($modal.find('.ajax-autocomplete-user'), '', 1);
     $modal.find('.list-multiple').select2();
     initFreeSelect2($('.select2-free'));
+}
+
+
+function onArrivalTypeChange($select) {
+    const $modal = $select.closest('.modal');
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
+    toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
+    typeChoice($select, '-new', $freeFieldsContainer)
+
+    // TODO
+    // const type = parseInt($select.val());
+    // let $modalNewDispatch = $("#modalNewArrivage");
+    // const $selectStatus = $modalNewDispatch.find('select[name="statut"]');
+    //
+    // $selectStatus.removeAttr('disabled');
+    // $selectStatus.find('option[data-type-id="' + type + '"]').removeClass('d-none');
+    // $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
+    // $selectStatus.val(null).trigger('change');
+    //
+    // if($selectStatus.find('option:not(.d-none)').length === 0) {
+    //     $selectStatus.siblings('.error-empty-status').removeClass('d-none');
+    //     $selectStatus.addClass('d-none');
+    // } else {
+    //     $selectStatus.siblings('.error-empty-status').addClass('d-none');
+    //     $selectStatus.removeClass('d-none');
+    //
+    //     const dispatchDefaultStatus = JSON.parse($selectStatus.siblings('input[name="dispatchDefaultStatus"]').val() || '{}');
+    //     if (dispatchDefaultStatus[type]) {
+    //         $selectStatus.val(dispatchDefaultStatus[type]);
+    //     }
+    // }
 }

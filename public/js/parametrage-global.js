@@ -27,10 +27,11 @@ let workFreeDaysTable;
 let modalEditDays = $('#modalEditDays');
 let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
-InitialiserModal(modalEditDays, submitEditDays, urlEditDays, tableDays, errorEditDays, false, false);
+InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
 $(function () {
-    initSelect2($('.select2'));
+    initSelect2($('#locationArrivageDest'));
+    initFreeSelect2($('select[name="businessUnit"]'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete-location'));
     ajaxAutoCompleteTransporteurInit($('.ajax-autocomplete-transporteur'));
     initDisplaySelect2('#receptionLocation', '#receptionLocationValue');
@@ -41,6 +42,7 @@ $(function () {
     // config tableau de bord : emplacements
     initSelect2ValuesForDashboard();
     $('#locationArrivageDest').on('change', editArrivageDestination);
+    $('select[name="businessUnit"]').on('change', editBusinessUnit);
     $('#locationDemandeLivraison').on('change', function() {
         editDemandeLivraisonDestination($(this));
     });
@@ -101,16 +103,6 @@ function initSelect2ValuesForDashboard() {
     initDisplaySelect2Multiple('#packagingDestinationGT','#packagingLocationDestinationGT');
     initDisplaySelect2Multiple('#packagingOrigineGT','#packagingLocationOrigineGT');
     initDisplaySelect2Multiple('#carrierDock', '#carrierDockValue');
-}
-
-function errorEditDays(data) {
-    let modal = $("#modalEditDays");
-    if (data.success === false) {
-        displayError(modal, data.msg, data.success);
-    } else {
-        modal.find('.close').click();
-        alertSuccessMsg(data.msg);
-    }
 }
 
 function updateToggledParam(switchButton) {
@@ -309,6 +301,17 @@ function editArrivageDestination() {
             alertSuccessMsg("la destination des arrivages a bien été mise à jour.");
         } else {
             alertErrorMsg("Une erreur est survenue lors de la mise à jour de la destination des arrivages.");
+        }
+    });
+}
+
+function editBusinessUnit() {
+    console.log($(this).val());
+    $.post(Routing.generate('set_business_unit'), {value: $(this).val()}, (resp) => {
+        if (resp) {
+            alertSuccessMsg("La liste business unit a bien été mise à jour.");
+        } else {
+            alertErrorMsg("Une erreur est survenue lors de la mise à jour de la liste business unit.");
         }
     });
 }

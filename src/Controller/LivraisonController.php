@@ -9,7 +9,6 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -67,7 +66,7 @@ class LivraisonController extends AbstractController
             'filtersDisabled' => isset($filterDemand),
             'displayDemandFilter' => true,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON),
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
         ]);
     }
 
@@ -215,19 +214,15 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
      * @param Livraison $livraison
-     * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      * @return Response
      */
     public function show(Livraison $livraison,
-                         EntityManagerInterface $entityManager,
                          UserService $userService): Response
     {
         if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
-
-        $preparationRepository = $entityManager->getRepository(Preparation::class);
 
         $demande = $livraison->getDemande();
 

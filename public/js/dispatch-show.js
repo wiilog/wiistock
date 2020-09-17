@@ -14,9 +14,9 @@ $(function () {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val()},
+            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
             {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'quantity', 'name': 'code', 'title': $('#dispatchQuantityTranslation').val()},
+            {"data": 'quantity', 'name': 'code', 'title': 'acheminement.Quantité à acheminer', translated: true},
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
@@ -27,30 +27,35 @@ $(function () {
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
     const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    initModalWithAttachments($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
+    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit);
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitTreatedDispatch = $modalValidateDispatch.find('.submit-button');
-    const $urlDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
-    InitialiserModal($modalValidateDispatch, $submitTreatedDispatch, $urlDispatch, packTable, null, true, true, true);
+    const urlValidateDispatch = Routing.generate('dispatch_validate_request', {id: dispatchId}, true);
+    InitModal($modalValidateDispatch, $submitTreatedDispatch, urlValidateDispatch, {tables: [packTable]});
 
     const $modalDeleteDispatch = $('#modalDeleteDispatch');
     const $submitDeleteDispatch = $('#submitDeleteDispatch');
     const urlDispatchDelete = Routing.generate('dispatch_delete', true);
-    InitialiserModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
+    InitModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
 
     const $modalPack = $('#modalPack');
     const $submitNewPack = $modalPack.find('button.submit-new-pack');
     const $submitEditPack = $modalPack.find('button.submit-edit-pack');
     const urlNewPack = Routing.generate('dispatch_new_pack', {dispatch: dispatchId}, true);
     const urlEditPack = Routing.generate('dispatch_edit_pack', true);
-    InitialiserModal($modalPack, $submitNewPack, urlNewPack, packTable, null, true, true, true);
-    InitialiserModal($modalPack, $submitEditPack, urlEditPack, packTable, null, true, true, true);
+    InitModal($modalPack, $submitNewPack, urlNewPack, {tables: [packTable]});
+    InitModal($modalPack, $submitEditPack, urlEditPack, {tables: [packTable]});
 
     let modalDeletePack = $('#modalDeletePack');
     let submitDeletePack = $('#submitDeletePack');
     let urlDeletePack = Routing.generate('dispatch_delete_pack', true);
-    InitialiserModal(modalDeletePack, submitDeletePack, urlDeletePack, packTable);
+    InitModal(modalDeletePack, submitDeletePack, urlDeletePack, {tables: [packTable]});
+
+    let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
+    let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
+    let urlPrintDeliveryNote = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
+    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote);
 });
 
 function togglePackDetails(emptyDetails = false) {
@@ -175,4 +180,56 @@ function runDispatchPrint() {
                 window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
             }
         })
+}
+
+function openDeliveryNoteModal($button) {
+    const dispatchId = $button.data('dispatch-id');
+    $
+        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
+        .then((html) => {
+            const $modal = $('#modalPrintDeliveryNote');
+            const $modalBody = $modal.find('.modal-body');
+            $modalBody.html(html);
+            $modal.modal('show');
+        })
+}
+
+function limitTextareaLength($textarea, lineNumber, lineLength) {
+    const textareaVal = ($textarea.val() || '');
+    const linesSplit = textareaVal
+        .replace(/\r\n/g,'\n')
+        .split('\n');
+
+    let newValueSplit = linesSplit;
+
+    // set max line number
+    if (linesSplit.length > lineNumber) {
+        newValueSplit = newValueSplit.slice(0, lineNumber);
+    }
+
+    // set max line length
+    newValueSplit = newValueSplit.map((line) => line.substr(0, lineLength));
+
+    const newVal = newValueSplit.join('\n');
+    const oldVal = $textarea.val();
+
+    if (newVal !== oldVal) {
+        const cursorPosition = $textarea[0].selectionStart
+        $textarea.val(newVal).trigger('change');
+        $textarea[0].selectionStart = cursorPosition;
+        $textarea[0].selectionEnd = cursorPosition;
+    }
+}
+
+function copyTo($button, inputSourceName, inputTargetName) {
+    const $modal = $button.closest('.modal');
+    const $source = $modal.find(`[name="${inputSourceName}"]`);
+    const $target = $modal.find(`[name="${inputTargetName}"]`);
+    const valToCopy = $source.val();
+    if ($target.is('textarea')) {
+        $target.text(valToCopy);
+    }
+    else {
+        $target.val(valToCopy);
+    }
 }

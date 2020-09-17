@@ -44,51 +44,36 @@ $(function () {
     let modalNewStatus = $("#modalNewStatus");
     let submitNewStatus = $("#submitNewStatus");
     let urlNewStatus = Routing.generate('status_new', true);
-    InitialiserModal(modalNewStatus, submitNewStatus, urlNewStatus, tableStatus, displayErrorStatus, false);
+    InitModal(modalNewStatus, submitNewStatus, urlNewStatus, {tables: [tableStatus]});
 
     let modalEditStatus = $('#modalEditStatus');
     let submitEditStatus = $('#submitEditStatus');
     let urlEditStatus = Routing.generate('status_edit', true);
-    InitialiserModal(modalEditStatus, submitEditStatus, urlEditStatus, tableStatus, displayErrorStatusEdit, false, false);
+    InitModal(modalEditStatus, submitEditStatus, urlEditStatus, {tables: [tableStatus]});
 
     let modalDeleteStatus = $("#modalDeleteStatus");
     let submitDeleteStatus = $("#submitDeleteStatus");
     let urlDeleteStatus = Routing.generate('status_delete', true)
-    InitialiserModal(modalDeleteStatus, submitDeleteStatus, urlDeleteStatus, tableStatus);
+    InitModal(modalDeleteStatus, submitDeleteStatus, urlDeleteStatus, {tables: [tableStatus]});
 });
-
-function displayErrorStatus(data) {
-    let modal = $("#modalNewStatus");
-    if (data.success === false) {
-        displayError(modal, data.msg, data.success);
-    } else {
-        modal.find('.close').click();
-        alertSuccessMsg(data.msg);
-    }
-}
-
-function displayErrorStatusEdit(data) {
-    let modal = $("#modalEditStatus");
-    if (data.success === false) {
-        displayError(modal, data.msg, data.success);
-    } else {
-        modal.find('.close').click();
-        alertSuccessMsg(data.msg);
-    }
-}
 
 function hideOptionOnChange($modal, forceClear = true) {
     const $select = $modal.find('[name="category"]');
     const $dispatchFields = $modal.find('.dispatch-fields');
+    const $handlingFields = $modal.find('.handling-fields');
     const $disputeFields = $modal.find('.dispute-fields');
 
     $dispatchFields.addClass('d-none');
+    $handlingFields.addClass('d-none');
     $disputeFields.addClass('d-none');
     $modal.find('.field-needed').removeClass('needed');
 
     if (forceClear) {
         $dispatchFields.find('select').find('option:selected').prop("selected", false);
         $dispatchFields.find('select').val('');
+
+        $handlingFields.find('select').find('option:selected').prop("selected", false);
+        $handlingFields.find('select').val('');
 
         $disputeFields.find('select').find('option:selected').prop("selected", false);
         $disputeFields.find('select').val('');
@@ -97,7 +82,12 @@ function hideOptionOnChange($modal, forceClear = true) {
     const category = Number($select.val());
     if (category) {
         const categoryStatusDispatchId = Number($('#categoryStatusDispatchId').val());
-        const $fields = (category === categoryStatusDispatchId) ? $dispatchFields : $disputeFields;
+        const categoryStatusHandlingId = Number($('#categoryStatusHandlingId').val());
+        const $fields = (
+            (category === categoryStatusDispatchId) ? $dispatchFields :
+            (category === categoryStatusHandlingId) ? $handlingFields :
+            $disputeFields
+        );
         $fields.removeClass('d-none');
         $fields.find('.field-needed').addClass('needed');
     }

@@ -22,9 +22,9 @@ use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use App\Service\FreeFieldService;
-use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -92,9 +92,8 @@ class CollecteController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
 		$typeChampLibre = [];
 		foreach ($types as $type) {
@@ -110,7 +109,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
-			'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+			'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
 			'filterStatus' => $filter
         ]);
     }
@@ -288,13 +287,10 @@ class CollecteController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param DemandeCollecteService $demandeCollecteService
      * @return Response
-     * @throws DBALException
      * @throws LoaderError
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \App\Exceptions\ArticleNotAvailableException
-     * @throws \App\Exceptions\RequestNeedToBeProcessedException
+     * @throws Exception
      */
     public function addArticle(Request $request,
                                FreeFieldService $champLibreService,
@@ -306,7 +302,6 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
@@ -337,7 +332,10 @@ class CollecteController extends AbstractController
             }
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La référence <strong>' . $refArticle->getLibelle() . '</strong> a bien été ajoutée à la collecte.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -420,7 +418,10 @@ class CollecteController extends AbstractController
             }
             $entityManager->flush();
 
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La référence a bien été supprimée de la collecte.'
+            ]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -431,7 +432,6 @@ class CollecteController extends AbstractController
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
@@ -445,7 +445,7 @@ class CollecteController extends AbstractController
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $collecte = $collecteRepository->find($data['id']);
-			$listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE);
+			$listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
 			$typeChampLibre = [];
             $freeFieldsGroupedByTypes = [];
@@ -472,7 +472,7 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+                'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
 				'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);
@@ -490,7 +490,7 @@ class CollecteController extends AbstractController
      * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function edit(Request $request,
                          DemandeCollecteService $collecteService,

@@ -8,7 +8,7 @@
 
 <div class="row">
     <div class="form-group col-6">
-        <label for="label">Libellé</label>
+        <label for="label">Libellé*</label>
         <input {{ disabled }} type="text" class="form-control data needed" name="label" id='label' value="{{article.label}}"
             placeholder="">
     </div>
@@ -22,11 +22,13 @@
 <div class="row">
     <div class="form-group col-3">
         <label for="quantité">Quantité*</label>
-            {# si on est sur une demande, la quantité ne doit pas être modifiée #}
-            {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
-            {% set neededOnDemand = isADemand ? '' : needed %}
-        <input {{ disabledOnDemand }} class="form-control data {{ neededOnDemand }}" type="number" min="0" id="quantite"
-            value="{{article.quantite}}" disabled>
+        {# si on est sur une demande, la quantité ne doit pas être modifiée #}
+        <input class="form-control data"
+               type="number"
+               min="0"
+               id="quantite"
+               value="{{article.quantite}}"
+               disabled>
     </div>
     <div class="form-group col-3">
         <div class="reference">
@@ -75,6 +77,7 @@
     <div class="form-group col-12">
         <div>
             <label for="commentaire">Commentaire</label>
+            {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
             <input {{ disabledOnDemand }} id="commentaire" class="form-control data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}" >
             {% set backgroundGrey = (isADemand or disabledOnDemand == 'disabled') ? 'backGreyFormLight' : '' %}
@@ -94,7 +97,7 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeEdit'>
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: typeChampsLibres.champsLibres,
                 freeFieldValues: article.freeFields,
                 colType: 'col-4',

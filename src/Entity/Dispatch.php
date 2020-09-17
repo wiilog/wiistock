@@ -16,6 +16,40 @@ class Dispatch extends FreeFieldEntity
 
     const PREFIX_NUMBER = 'A-';
 
+
+    /**
+     * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
+     */
+    const DELIVERY_NOTE_DATA = [
+        'consigner' => true,
+        'deliveryAddress' => false,
+        'deliveryNumber' => false,
+        'deliveryDate' => false,
+        'salesOrderNumber' => false,
+        'wayBill' => false,
+        'customerPONumber' => false,
+        'customerPODate' => false,
+        'respOrderNb' => false,
+        'projectNumber' => false,
+        'username' => false,
+        'userPhone' => false,
+        'userFax' => false,
+        'buyer' => false,
+        'buyerPhone' => false,
+        'buyerFax' => false,
+        'invoiceNumber' => false,
+        'soldNumber' => false,
+        'invoiceTo' => false,
+        'soldTo' => false,
+        'endUserNo' => false,
+        'deliverNo' => false,
+        'endUser' => false,
+        'deliverTo' => false,
+        'consigner2' => true,
+        'date' => false,
+        'notes' => true
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -62,6 +96,12 @@ class Dispatch extends FreeFieldEntity
      * @ORM\Column(type="date", nullable=true)
      */
     private $endDate;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $projectNumber;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
@@ -184,28 +224,28 @@ class Dispatch extends FreeFieldEntity
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachement(PieceJointe $attachement): self
+    public function addAttachment(PieceJointe $attachment): self
     {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setDispatch($this);
+        if (!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setDispatch($this);
         }
 
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachement): self
+    public function removeAttachment(PieceJointe $attachment): self
     {
-        if ($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
+        if ($this->attachements->contains($attachment)) {
+            $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachement->getDispatch() === $this) {
-                $attachement->setDispatch(null);
+            if ($attachment->getDispatch() === $this) {
+                $attachment->setDispatch(null);
             }
         }
 
@@ -345,7 +385,7 @@ class Dispatch extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|MouvementTraca[]
+     * @return Collection
      */
     public function getTrackingMovements(): Collection
     {
@@ -372,6 +412,22 @@ class Dispatch extends FreeFieldEntity
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getProjectNumber(): ?string {
+        return $this->projectNumber;
+    }
+
+    /**
+     * @param string|null $projectNumber
+     * @return self
+     */
+    public function setProjectNumber(?string $projectNumber): self {
+        $this->projectNumber = $projectNumber;
         return $this;
     }
 

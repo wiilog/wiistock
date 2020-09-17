@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Ordre | {{ 'réception.réceptions'|trans }}{% endblock %}
+{% block title_tooltip %}Ordre | Réceptions{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersReception.html.twig' with {
@@ -67,14 +68,11 @@
             </div>
         </div>
     </div>
+
     {% include "reception/modalNewReception.html.twig" %}
-
-    <input hidden id="noReception" value="{{ "réception.n° de réception"|trans }}">
-
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/reception.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

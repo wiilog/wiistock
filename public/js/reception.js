@@ -8,7 +8,6 @@ $(function () {
     initDateTimePicker();
     initSelect2($('#statut'), 'Statuts');
     initOnTheFlyCopies($('.copyOnTheFly'));
-    $('.body-add-ref').css('display', 'none');
 
     // RECEPTION
     let pathTableReception = Routing.generate('reception_api', true);
@@ -33,7 +32,7 @@ $(function () {
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Référence', 'name': 'reference', 'title': $('#noReception').val()},
+            {"data": 'Référence', 'name': 'reference', 'title': 'réception.n° de réception', translated: true},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
@@ -47,10 +46,10 @@ $(function () {
     };
     tableReception = initDataTable('tableReception_id', tableReceptionConfig);
 
-    let modalReceptionNew = $("#modalNewReception");
-    let SubmitNewReception = $("#submitReceptionButton");
+    let $modalReceptionNew = $("#modalNewReception");
+    let $submitNewReception = $("#submitReceptionButton");
     let urlReceptionIndex = Routing.generate('reception_new', true);
-    InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex);
+    InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

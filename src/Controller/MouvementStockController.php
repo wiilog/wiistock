@@ -19,6 +19,7 @@ use App\Service\MouvementTracaService;
 use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -124,11 +125,11 @@ class MouvementStockController extends AbstractController
     /**
      * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"})
      * @param Request $request
-     * @param UserService $userService
      * @param MouvementStockService $mouvementStockService
      * @param MouvementTracaService $mouvementTracaService
      * @param EntityManagerInterface $entityManager
      * @return Response
+     * @throws NonUniqueResultException
      * @throws Exception
      */
     public function new(Request $request,
@@ -141,6 +142,9 @@ class MouvementStockController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
+
+            /** @var Utilisateur $loggedUser */
+            $loggedUser = $this->getUser();
 
             $response = [
                 'success' => false,
@@ -213,14 +217,10 @@ class MouvementStockController extends AbstractController
                         $emplacementTo = $chosenLocation;
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
                         $chosenArticleToMove->setEmplacement($emplacementTo);
-
-                        /** @var Utilisateur $user */
-                        $user = $this->getUser();
-
                         $associatedPickTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $chosenArticleToMove->getBarCode(),
                             $emplacementFrom,
-                            $user,
+                            $loggedUser,
                             $now,
                             false,
                             true,
@@ -233,7 +233,7 @@ class MouvementStockController extends AbstractController
                         $associatedDropTracaMvt = $mouvementTracaService->createTrackingMovement(
                             $createdPack,
                             $emplacementTo,
-                            $user,
+                            $loggedUser,
                             $now,
                             false,
                             true,
@@ -246,7 +246,7 @@ class MouvementStockController extends AbstractController
                     }
                 }
                 if ($response['success']) {
-                    $newMvtStock = $mouvementStockService->createMouvementStock($this->getUser(), $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
+                    $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
                     $mouvementStockService->finishMouvementStock($newMvtStock, $now, $emplacementTo);
                     if ($associatedDropTracaMvt && $associatedPickTracaMvt) {
                         $associatedPickTracaMvt->setMouvementStock($newMvtStock);

@@ -55,12 +55,14 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 			Menu::DEM => [
 				Action::DISPLAY_DEM_COLL,
 				Action::DISPLAY_DEM_LIVR,
-				Action::DISPLAY_MANU,
+				Action::DISPLAY_HAND,
                 Action::DISPLAY_ACHE,
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
-				Action::EXPORT
+				Action::EXPORT,
+                Action::CREATE_ACHE,
+                Action::DELETE_ACHE,
 			],
 			Menu::ORDRE => [
 				Action::DISPLAY_ORDRE_COLL,
@@ -113,7 +115,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             Menu::NOMADE => [
                 Action::MODULE_ACCESS_STOCK,
                 Action::MODULE_ACCESS_TRACA,
-                Action::MODULE_ACCESS_MANUT,
+                Action::MODULE_ACCESS_HAND,
                 Action::DEMO_MODE
             ]
 		];
@@ -122,7 +124,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     		Menu::QUALI . Action::TREAT_LITIGE,
     		Menu::NOMADE . Action::MODULE_ACCESS_STOCK,
     		Menu::NOMADE . Action::MODULE_ACCESS_TRACA,
-    		Menu::NOMADE . Action::MODULE_ACCESS_MANUT
+    		Menu::NOMADE . Action::MODULE_ACCESS_HAND
 		];
         $actionRepository = $manager->getRepository(Action::class);
         $roleRepository = $manager->getRepository(Role::class);

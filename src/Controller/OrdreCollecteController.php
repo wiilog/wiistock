@@ -68,7 +68,7 @@ class OrdreCollecteController extends AbstractController
             'filterDemandValue' => $demandeCollecte ? $demandeCollecte->getNumero() : null,
             'filtersDisabled' => isset($demandeCollecte),
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
         ]);
     }
 

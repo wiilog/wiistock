@@ -1,11 +1,10 @@
 {% extends "layout.html.twig" %}
 
 {% block title %}Traçabilité | {{ 'arrivage.arrivage'|trans }} | Détails{% endblock %}
+{% block title_tooltip %}Traçabilité | Arrivage | Détails{% endblock %}
 {% block titleLink path('arrivage_index') %}
 
 {% block page_content %}
-    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
-
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
     <div class="m-4">
         <div class="row">
@@ -114,12 +113,13 @@
     {% include 'arrivage/modalEditLitige.html.twig' %}
     {% include 'arrivage/modalDeleteLitige.html.twig' %}
     {% include "reception_traca/association.html.twig" %}
+    {% include 'pack/modalEditPack.html.twig' %}
+    {% include 'pack/modalDeletePack.html.twig' %}
 
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/arrivage-common.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/show-arrivage.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>

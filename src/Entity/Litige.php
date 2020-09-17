@@ -113,7 +113,7 @@ class Litige
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getAttachments(): Collection
     {
         return $this->attachements;
     }
@@ -208,23 +208,23 @@ class Litige
         return $this;
     }
 
-    public function addAttachement(PieceJointe $attachement): self
+    public function addAttachment(PieceJointe $attachment): self
     {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setLitige($this);
+        if (!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setLitige($this);
         }
 
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachement): self
+    public function removeAttachment(PieceJointe $attachment): self
     {
-        if ($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
+        if ($this->attachements->contains($attachment)) {
+            $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachement->getLitige() === $this) {
-                $attachement->setLitige(null);
+            if ($attachment->getLitige() === $this) {
+                $attachment->setLitige(null);
             }
         }
 

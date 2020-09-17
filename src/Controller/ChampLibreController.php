@@ -11,13 +11,13 @@ use App\Entity\ChampLibre;
 
 use App\Entity\Collecte;
 use App\Entity\Demande;
+use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\UserService;
-use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,6 +40,7 @@ class ChampLibreController extends AbstractController
         CategorieCL::ARRIVAGE => Arrivage::class,
         CategorieCL::DEMANDE_COLLECTE => Collecte::class,
         CategorieCL::DEMANDE_LIVRAISON => Demande::class,
+        CategorieCL::DEMANDE_HANDLING => Handling::class,
         CategorieCL::AUCUNE => null
     ];
 
@@ -147,12 +148,10 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function new(Request $request,
-                        FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -184,13 +183,17 @@ class ChampLibreController extends AbstractController
 					->setElements(null)
 					->setDefaultValue($data['valeur']);
 			}
-			$em = $this->getDoctrine()->getManager();
-			$em->persist($champLibre);
-            $em->flush();
+			$entityManager->persist($champLibre);
+            $entityManager->flush();
 
-			return new JsonResponse($data);
+			return new JsonResponse([
+			    'success' => true
+            ]);
 		} else {
-			return new JsonResponse(false);
+			return new JsonResponse([
+			    'success' => false,
+                'msg' => 'Ce nom de champ libre existe déjà. Veuillez en choisir un autre.'
+            ]);
 		}
     }
 
@@ -224,12 +227,10 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function edit(Request $request,
-                         FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -263,12 +264,10 @@ class ChampLibreController extends AbstractController
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @param Request $request
-     * @param FreeFieldService $champLibreService
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
     public function delete(Request $request,
-                           FreeFieldService $champLibreService,
                            EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);

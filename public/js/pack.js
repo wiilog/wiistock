@@ -29,8 +29,8 @@ $(function() {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'packNum', 'name': 'packNum', 'title': $('#packCodeTranslation').val()},
-            {"data": 'packNature', 'name': 'packNature', 'title': $('#packNatureTranslation').val()},
+            {"data": 'packNum', 'name': 'packNum', 'title': 'natures.Nature de colis', translated: true},
+            {"data": 'packNature', 'name': 'packNature', 'title': 'colis.Numéro colis', translated: true},
             {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
             {"data": 'packLastDate', 'name': 'packLastDate', 'title': 'Date du dernier mouvement'},
             {"data": "packOrigin", 'name': 'packOrigin', 'title': 'Issu de', className: 'noVis'},
@@ -41,5 +41,11 @@ $(function() {
     const $modalEditPack = $('#modalEditPack');
     const $submitEditPack = $('#submitEditPack');
     const urlEditPack = Routing.generate('pack_edit', true);
-    InitialiserModal($modalEditPack, $submitEditPack, urlEditPack, packsTable)
+    InitModal($modalEditPack, $submitEditPack, urlEditPack, {tables: [packsTable]});
+
+
+    let modalDeletePack = $("#modalDeletePack");
+    let SubmitDeletePack = $("#submitDeletePack");
+    let urlDeletePack = Routing.generate('pack_delete', true);
+    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [packsTable], clearOnClose: true});
 });

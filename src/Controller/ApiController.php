@@ -16,12 +16,13 @@ use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
-use App\Entity\Manutention;
+use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
+use App\Entity\PieceJointe;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -35,7 +36,6 @@ use App\Repository\ArticleRepository;
 use App\Repository\InventoryEntryRepository;
 use App\Repository\InventoryMissionRepository;
 use App\Repository\MailerServerRepository;
-use App\Repository\ManutentionRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Service\DispatchService;
@@ -44,7 +44,7 @@ use App\Service\DemandeLivraisonService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
-use App\Service\ManutentionService;
+use App\Service\HandlingService;
 use App\Service\MouvementStockService;
 use App\Service\MouvementTracaService;
 use App\Service\NatureService;
@@ -122,11 +122,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     private $inventoryService;
 
     /**
-     * @var ManutentionRepository
-     */
-    private $manutentionRepository;
-
-    /**
      * @var OrdreCollecteService
      */
     private $ordreCollecteService;
@@ -139,7 +134,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     /**
      * ApiController constructor.
      * @param InventoryEntryRepository $inventoryEntryRepository
-     * @param ManutentionRepository $manutentionRepository
      * @param OrdreCollecteService $ordreCollecteService
      * @param InventoryService $inventoryService
      * @param UserService $userService
@@ -150,7 +144,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @param UserPasswordEncoderInterface $passwordEncoder
      */
     public function __construct(InventoryEntryRepository $inventoryEntryRepository,
-                                ManutentionRepository $manutentionRepository,
                                 OrdreCollecteService $ordreCollecteService,
                                 InventoryService $inventoryService,
                                 UserService $userService,
@@ -160,7 +153,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                 MailerService $mailerService,
                                 UserPasswordEncoderInterface $passwordEncoder)
     {
-        $this->manutentionRepository = $manutentionRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
         $this->passwordEncoder = $passwordEncoder;
@@ -471,7 +463,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                                                     'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
                                                     'date' => $date,
                                                     'operateur' => $nomadUser->getUsername(),
-                                                    'pjs' => $arrivage->getAttachements()
+                                                    'pjs' => $arrivage->getAttachments()
                                                 ]
                                             ),
                                             $destinataire->getMainAndSecondaryEmails()
@@ -805,11 +797,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
     }
 
     /**
-     * @Rest\Post("/api/validateManut", name="api-validate-manut", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/handlings", name="api-validate-handling", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @param Request $request
+     * @param AttachmentService $attachmentService
      * @param EntityManagerInterface $entityManager
-     * @param ManutentionService $manutentionService
+     * @param HandlingService $handlingService
      * @return JsonResponse
      * @throws LoaderError
      * @throws NonUniqueResultException
@@ -817,43 +810,79 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
      * @throws SyntaxError
      * @throws Exception
      */
-    public function validateManut(Request $request,
+    public function postHandlings(Request $request,
+                                  AttachmentService $attachmentService,
                                   EntityManagerInterface $entityManager,
-                                  ManutentionService $manutentionService)
+                                  HandlingService $handlingService)
     {
         $apiKey = $request->request->get('apiKey');
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $data = [];
+
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
-
             $id = $request->request->get('id');
-            $manut = $this->manutentionRepository->find($id);
+            $handling = $handlingRepository->find($id);
+            $oldStatus = $handling->getStatus();
 
-            if ($manut->getStatut()->getNom() == Livraison::STATUT_A_TRAITER) {
-                $commentaire = $request->request->get('commentaire');
-                if (!empty($commentaire)) {
-                    $manut->setCommentaire($manut->getCommentaire() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+            if (!$oldStatus || !$oldStatus->getTreated()) {
+                $statusId = $request->request->get('statusId');
+                $newStatus = $statusRepository->find($statusId);
+                if (!empty($newStatus)) {
+                    $handling->setStatus($newStatus);
                 }
 
-                $statutRepository = $entityManager->getRepository(Statut::class);
-                $statusTreated = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_TRAITE);
-                $manut
-                    ->setStatut($statusTreated)
-                    ->setDateEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                $commentaire = $request->request->get('comment');
+                if (!empty($commentaire)) {
+                    $handling->setComment($handling->getComment() . "\n" . date('d/m/y H:i:s') . " - " . $nomadUser->getUsername() . " :\n" . $commentaire);
+                }
+
+                $maxNbFilesSubmitted = 10;
+                $fileCounter = 1;
+                // upload of photo_1 to photo_10
+                do {
+                    $photoFile = $request->files->get("photo_$fileCounter");
+                    if (!empty($photoFile)) {
+                        $attachments = $attachmentService->createAttachements([$photoFile]);
+                        if (!empty($attachments)) {
+                            $handling->addAttachment($attachments[0]);
+                            $entityManager->persist($attachments[0]);
+                        }
+                    }
+                    $fileCounter++;
+                }
+                while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+
+                if (!$handling->getValidationDate()
+                    && $newStatus
+                    && $newStatus->getTreated()) {
+                    $handling
+                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                }
 
                 $entityManager->flush();
-                if ($manut->getStatut()->getNom() == Manutention::STATUT_TRAITE) {
-                    $manutentionService->sendTreatedEmail($manut);
+
+                if ((!$oldStatus && $newStatus)
+                    || (
+                        $oldStatus
+                        && $newStatus
+                        && ($oldStatus->getId() !== $newStatus->getId())
+                    )) {
+                    $handlingService->sendEmailsAccordingToStatus($handling);
                 }
-                $this->successDataMsg['success'] = true;
+
+                $data['success'] = true;
             } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Cette manutention a déjà été prise en charge par un opérateur.";
+                $data['success'] = false;
+                $data['message'] = "Cette demande de service a déjà été prise en charge par un opérateur.";
             }
         } else {
-            $this->successDataMsg['success'] = false;
-            $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+            $data['success'] = false;
+            $data['message'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
         }
-        return new JsonResponse($this->successDataMsg);
+        return new JsonResponse($data);
     }
 
     /**
@@ -1268,7 +1297,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             'id' => $type->getId(),
                             'label' => $type->getLabel(),
                         ];
-                    }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON))
+                    }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
                 ];
             } else {
                 $dataResponse['data'] = [
@@ -1287,18 +1316,20 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
 
 
     /**
-     * @param $user
+     * @param Utilisateur $user
      * @param UserService $userService
      * @param NatureService $natureService
      * @param FreeFieldService $freeFieldService
+     * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return array
-     * @throws NonUniqueResultException
+     * @throws Exception
      */
-    private function getDataArray($user,
+    private function getDataArray(Utilisateur $user,
                                   UserService $userService,
                                   NatureService $natureService,
                                   FreeFieldService $freeFieldService,
+                                  Request $request,
                                   EntityManagerInterface $entityManager)
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1316,8 +1347,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $handlingRepository = $entityManager->getRepository(Handling::class);
+        $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
         $rights = $this->getMenuRights($user, $userService);
+
+        $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -1393,22 +1428,31 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         }
 
         if ($rights['demande']) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $manutentionRepository = $entityManager->getRepository(Manutention::class);
-            $manutentions = $manutentionRepository->findByStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER));
-            $manutentions = array_map(function (array $manutention) {
-                $manutention['date_attendue'] = $manutention['dateAttendueDT']->format('d/m/Y H:i:s');
-                return $manutention;
-            }, $manutentions);
+            $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
+            $handlingIds = array_map(function (array $handling) {
+                return $handling['id'];
+            }, $handlings);
+            $handlingAttachments = array_map(
+                function (array $attachment) use ($request) {
+                    return [
+                        'handlingId' => $attachment['handlingId'],
+                        'fileName' => $attachment['originalName'],
+                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName']
+                    ];
+                },
+                $pieceJointeRepository->getMobileAttachmentForHandling($handlingIds)
+            );
+
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $demandeLivraisonTypes = array_map(function (Type $type) {
                 return [
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
                 ];
-            }, $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON));
+            }, $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]));
         } else {
-            $manutentions = [];
+            $handlings = [];
+            $handlingAttachments = [];
             $demandeLivraisonArticles = [];
             $demandeLivraisonTypes = [];
         }
@@ -1438,7 +1482,6 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                 return $dispatch['id'];
             }, $dispatches));
 
-            $status = $statutRepository->getMobileStatus();
         } else {
             $trackingTaking = [];
             $natures = [];
@@ -1460,7 +1503,8 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'articlesLivraison' => array_merge($articlesLivraison, $refArticlesLivraison),
             'collectes' => $collectes,
             'articlesCollecte' => array_merge($articlesCollecte, $refArticlesCollecte),
-            'manutentions' => $manutentions,
+            'handlings' => $handlings,
+            'handlingAttachments' => $handlingAttachments,
             'inventoryMission' => array_merge($articlesInventory, $refArticlesInventory),
             'anomalies' => array_merge($refAnomalies, $artAnomalies),
             'trackingTaking' => $trackingTaking,
@@ -1498,7 +1542,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
         if ($nomadUser = $utilisateurRepository->findOneByApiKey($apiKey)) {
             $httpCode = Response::HTTP_OK;
             $dataResponse['success'] = true;
-            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $entityManager);
+            $dataResponse['data'] = $this->getDataArray($nomadUser, $userService, $natureService, $freeFieldService, $request, $entityManager);
         } else {
             $httpCode = Response::HTTP_UNAUTHORIZED;
             $dataResponse['success'] = false;
@@ -1808,10 +1852,12 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
                             foreach ($dispatchPacksByDispatch[$dispatch->getId()] as $packArray) {
                                 $packDispatch = $dispatchPackRepository->find($packArray['id']);
                                 if (!empty($packDispatch)) {
-                                    $nature = $natureRepository->find($packArray['natureId']);
-                                    if ($nature) {
-                                        $pack = $packDispatch->getPack();
-                                        $pack->setNature($nature);
+                                    if (!empty($packArray['natureId'])) {
+                                        $nature = $natureRepository->find($packArray['natureId']);
+                                        if ($nature) {
+                                            $pack = $packDispatch->getPack();
+                                            $pack->setNature($nature);
+                                        }
                                     }
 
                                     $quantity = (int) $packArray['quantity'];
@@ -1864,7 +1910,7 @@ class ApiController extends AbstractFOSRestController implements ClassResourceIn
             'demoMode' => $userService->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
-            'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUT, $user),
+            'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
         ];
     }

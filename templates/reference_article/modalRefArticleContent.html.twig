@@ -229,7 +229,7 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: freeFieldsGroupedByTypes[articleRef.type.id] is defined ? freeFieldsGroupedByTypes[articleRef.type.id] : [],
                 freeFieldValues: articleRef.freeFields,
                 colType: 'col-4',
@@ -251,7 +251,7 @@
     <div class="form-group blocVisible col-12 d-none">
         {% if editable %}
             <div class="form-group col-1">
-                <span class="btn btn-primary" onclick="addFournisseurEdit($(this))"><i class="fa fa-plus"></i></span>
+                <span class="btn btn-primary" onclick="addArticleFournisseurReferenceArticle($(this))"><i class="fa fa-plus"></i></span>
             </div>
         {% endif %}
         <div class="form-group col-12 d-block" id='articleFournisseursEdit'>

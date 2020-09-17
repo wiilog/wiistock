@@ -1,6 +1,6 @@
 <form method="" class="modal fade" id="modalEditRefArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
-    <div class="modal-dialog  modal-xl" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Modifier un article de référence</h5>
@@ -8,15 +8,18 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <input type="hidden" class="data" id="inputId" name="idRefArticle" value=''>
             <div class="modal-body modal-input clear container-fluid">
 
             </div>
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal" onclick="clearErrorMsg($(this))">Annuler</button>
-                <div id="submitEditRefArticle" onclick="setCommentaire('.editor-container-edit')"
-                    class="btn btn-success">Enregistrer</div>
+                <button id="submitEditRefArticle"
+                        type="button"
+                        name="idRefArticle"
+                        class="btn btn-success data">
+                    Enregistrer
+                </button>
             </div>
         </div>
     </div>

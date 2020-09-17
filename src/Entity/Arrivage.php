@@ -124,6 +124,21 @@ class Arrivage extends FreeFieldEntity
 	 */
     private $frozen;
 
+    /**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $projectNumber;
+
+    /**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $businessUnit;
+
+    /**
+	 * @ORM\ManyToOne (targetEntity="App\Entity\Type", inversedBy="arrivals")
+	 */
+    private $type;
+
     public function __construct() {
         $this->acheteurs = new ArrayCollection();
         $this->packs = new ArrayCollection();
@@ -453,22 +468,22 @@ class Arrivage extends FreeFieldEntity
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getAttachments(): Collection
     {
         return $this->attachements;
     }
 
-    public function addAttachement(PieceJointe $attachement): self
+    public function addAttachment(PieceJointe $attachment): self
     {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setArrivage($this);
+        if (!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setArrivage($this);
         }
 
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachement): self
+    public function removeAttachment(PieceJointe $attachement): self
     {
         if ($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
@@ -556,6 +571,42 @@ class Arrivage extends FreeFieldEntity
     public function setFrozen(?bool $frozen): self
     {
         $this->frozen = $frozen;
+
+        return $this;
+    }
+
+    public function getProjectNumber(): ?string
+    {
+        return $this->projectNumber;
+    }
+
+    public function setProjectNumber(?string $projectNumber): self
+    {
+        $this->projectNumber = $projectNumber;
+
+        return $this;
+    }
+
+    public function getBusinessUnit(): ?string
+    {
+        return $this->businessUnit;
+    }
+
+    public function setBusinessUnit(?string $businessUnit): self
+    {
+        $this->businessUnit = $businessUnit;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

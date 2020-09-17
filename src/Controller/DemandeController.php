@@ -145,7 +145,7 @@ class DemandeController extends AbstractController
 
             $demande = $demandeRepository->find($data['id']);
 
-            $listTypes = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
             $typeChampLibre = [];
 
@@ -172,7 +172,7 @@ class DemandeController extends AbstractController
 
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
-                'types' => $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+                'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
             ]);
@@ -291,9 +291,8 @@ class DemandeController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $types = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -341,6 +340,14 @@ class DemandeController extends AbstractController
                 $entityManager->flush();
                 $data = [
                     'redirect' => $this->generateUrl('demande_index'),
+                    'success' => true
+                ];
+            }
+            else {
+
+                $data = [
+                    'message' => 'Vous ne pouvez pas supprimer cette demande, vous devez d\'abord supprimer ses ordres.',
+                    'success' => false
                 ];
             }
             return new JsonResponse($data);
@@ -688,7 +695,7 @@ class DemandeController extends AbstractController
             $data = [];
             $data[] = $headers;
 
-            $listTypesDL = $typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
             $firstDates = $preparationRepository->getFirstDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);

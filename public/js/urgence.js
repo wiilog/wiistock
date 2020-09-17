@@ -27,27 +27,20 @@ function initPage() {
         order: [[1, "desc"]],
         columns:[
             { "data": 'actions', 'title': '', 'orderable': false, className: 'noVis'},
-            { "data": 'start', 'name' : 'start', 'title' : $('#dateBeginTranslation').val() },
-            { "data": 'end', 'name' : 'end', 'title' : $('#dateEndTranslation').val() },
-            { "data": 'commande', 'name' : 'commande', 'title' : $('#numComTranslation').val() },
+            { "data": 'start', 'name' : 'start', 'title' : 'urgences.date de début', translated: true },
+            { "data": 'end', 'name' : 'end', 'title' : 'urgences.date de fin', translated: true },
+            { "data": 'commande', 'name' : 'commande', 'title' : 'urgences.numéro de commande', translated: true },
             { "data": 'postNb', 'name' : 'postNb', 'title' : 'N° poste' },
-            { "data": 'buyer', 'name' : 'buyer', 'title' : $('#buyerTranslation').val() },
+            { "data": 'buyer', 'name' : 'buyer', 'title' : 'urgences.acheteur', translated: true },
             { "data": 'provider', 'name' : 'provider', 'title' : 'Fournisseur' },
             { "data": 'carrier', 'name' : 'carrier', 'title' : 'Transporteur' },
             { "data": 'trackingNb', 'name' : 'trackingNb', 'title' : 'N° tracking transporteur' },
-            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'Date ' + $('#arrivalTranslation').val() },
+            { "data": 'arrivalDate', 'name' : 'arrivalDate', 'title' : 'urgences.Date arrivage', translated: true },
             {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : "Numero d'arrivage"},
             {"data": 'createdAt', 'name': 'createdAt', 'title': 'Date de création'},
         ],
         drawConfig: {
             needsSearchOverride: true,
-        },
-        headerCallback: function(thead) {
-            $(thead).find('th').eq(1).attr('title', "date de début");
-            $(thead).find('th').eq(2).attr('title', "date de fin");
-            $(thead).find('th').eq(3).attr('title', "numéro de commande");
-            $(thead).find('th').eq(5).attr('title', "acheteur");
-            $(thead).find('th').eq(9).attr('title', "arrivage");
         },
         rowConfig: {
             needsRowClickAction: true,
@@ -64,17 +57,23 @@ function initPage() {
     let modalNewUrgence = $('#modalNewUrgence');
     let submitNewUrgence = $('#submitNewUrgence');
     let urlNewUrgence = Routing.generate('urgence_new');
-    InitialiserModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalNewUrgence, true), false, false);
+    InitModal(modalNewUrgence, submitNewUrgence, urlNewUrgence, {
+        tables: [tableUrgence],
+        success : (data) => callbackUrgenceAction(data, modalNewUrgence, true)
+    });
 
     let modalDeleteUrgence = $('#modalDeleteUrgence');
     let submitDeleteUrgence = $('#submitDeleteUrgence');
     let urlDeleteUrgence = Routing.generate('urgence_delete', true);
-    InitialiserModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, tableUrgence);
+    InitModal(modalDeleteUrgence, submitDeleteUrgence, urlDeleteUrgence, {tables: [tableUrgence]});
 
     let modalModifyUrgence = $('#modalEditUrgence');
     let submitModifyUrgence = $('#submitEditUrgence');
     let urlModifyUrgence = Routing.generate('urgence_edit', true);
-    InitialiserModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, tableUrgence, (data) => callbackUrgenceAction(data, modalModifyUrgence), false, false);
+    InitModal(modalModifyUrgence, submitModifyUrgence, urlModifyUrgence, {
+        tables: [tableUrgence],
+        success : (data) => callbackUrgenceAction(data, modalModifyUrgence, true)
+    });
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {

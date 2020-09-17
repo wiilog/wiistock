@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Dispatch;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -16,7 +15,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
-use App\Entity\Manutention;
 use App\Entity\Statut;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -88,10 +86,6 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 				Reception::STATUT_RECEPTION_PARTIELLE,
 				Reception::STATUT_RECEPTION_TOTALE,
 				Reception::STATUT_ANOMALIE
-			],
-			CategorieStatut::MANUTENTION => [
-				Manutention::STATUT_A_TRAITER,
-				Manutention::STATUT_TRAITE,
 			],
 			CategorieStatut::MVT_TRACA => [
 				MouvementTraca::TYPE_PRISE,

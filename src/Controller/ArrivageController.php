@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
@@ -23,7 +24,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
@@ -41,6 +41,7 @@ use App\Service\MailerService;
 use App\Service\FreeFieldService;
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -88,11 +89,6 @@ class ArrivageController extends AbstractController
     private $mailerService;
 
     /**
-     * @var PieceJointeRepository
-     */
-    private $pieceJointeRepository;
-
-    /**
      * @var SpecificService
      */
     private $specificService;
@@ -115,7 +111,6 @@ class ArrivageController extends AbstractController
     public function __construct(ArrivageDataService $arrivageDataService,
                                 DashboardService $dashboardService,
                                 AttachmentService $attachmentService,
-                                PieceJointeRepository $pieceJointeRepository,
                                 SpecificService $specificService,
                                 MailerService $mailerService,
                                 GlobalParamService $globalParamService,
@@ -128,7 +123,6 @@ class ArrivageController extends AbstractController
         $this->userService = $userService;
         $this->transporteurRepository = $transporteurRepository;
         $this->mailerService = $mailerService;
-        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
         $this->arrivageDataService = $arrivageDataService;
     }
@@ -136,13 +130,13 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/", name="arrivage_index")
      * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
+     * @param ArrivageDataService $arrivageDataService
      * @param StatusService $statusService
      * @return RedirectResponse|Response
      * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager,
-                          TranslatorInterface $translator,
+                          ArrivageDataService $arrivageDataService,
                           StatusService $statusService)
     {
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
@@ -162,23 +156,7 @@ class ArrivageController extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $champs = [
-            ["key" => 'date', 'label' => 'Date'],
-            ["key" => 'numeroArrivage', 'label' => $translator->trans('arrivage.n° d\'arrivage')],
-            ["key" => 'transporteur', 'label' => 'Transporteur'],
-            ["key" => 'chauffeur', 'label' => 'Chauffeur'],
-            ["key" => 'noTracking', 'label' => 'N° tracking transporteur'],
-            ["key" => 'NumeroCommandeList', 'label' => 'N° commande / BL'],
-            ["key" => 'fournisseur', 'label' => 'Fournisseur'],
-            ["key" => 'destinataire', 'label' => $translator->trans('arrivage.destinataire')],
-            ["key" => 'acheteurs', 'label' => $translator->trans('arrivage.acheteurs')],
-            ["key" => 'NbUM', 'label' => 'Nb UM'],
-            ["key" => 'duty', 'label' => 'Douane'],
-            ["key" => 'frozen', 'label' => 'Congelé'],
-            ["key" => 'Statut', 'label' => 'Statut'],
-            ["key" => 'Utilisateur', 'label' => 'Utilisateur'],
-            ["key" => 'urgent', 'label' => 'Urgent'],
-        ];
+        $champs = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
         $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
@@ -191,9 +169,10 @@ class ArrivageController extends AbstractController
             'chauffeurs' => $chauffeurRepository->findAllSorted(),
             'users' => $utilisateurRepository->findBy(['status' => true],['username'=> 'ASC']),
             'fournisseurs' => $fournisseurRepository->findAllSorted(),
-            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'natures' => $natureRepository->findAll(),
             'statuts' => $status,
+            'typesArrival' => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'fieldsParam' => $fieldsParam,
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
@@ -201,7 +180,8 @@ class ArrivageController extends AbstractController
             'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
             'defaultStatutArrivageId' => $paramGlobalDefaultStatusArrivageId,
             'champs' => $champs,
-            'columnsVisibles' => $user->getColumnsVisibleForArrivage()
+            'columnsVisibles' => $user->getColumnsVisibleForArrivage(),
+            'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
         ]);
     }
 
@@ -210,8 +190,6 @@ class ArrivageController extends AbstractController
      * @param Request $request
      * @return Response
      * @throws LoaderError
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      * @throws RuntimeError
      * @throws SyntaxError
      */
@@ -225,8 +203,6 @@ class ArrivageController extends AbstractController
             $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
             $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
             $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
-            $user = $this->getUser();
-            $data['visible'] = $user->getColumnsVisibleForArrivage();
 
             return new JsonResponse($data);
         }
@@ -272,6 +248,7 @@ class ArrivageController extends AbstractController
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
             $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
             $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -288,37 +265,54 @@ class ArrivageController extends AbstractController
                 ->setNumeroArrivage($numeroArrivage)
                 ->setDuty(isset($data['duty']) ? $data['duty'] == 'true' : false)
                 ->setFrozen(isset($data['frozen']) ? $data['frozen'] == 'true' : false)
-                ->setCommentaire($data['commentaire'] ?? null);
+                ->setCommentaire($data['commentaire'] ?? null)
+                ->setType($typeRepository->find($data['type']));
 
             if (!empty($data['fournisseur'])) {
                 $arrivage->setFournisseur($fournisseurRepository->find($data['fournisseur']));
             }
+
             if (!empty($data['transporteur'])) {
                 $arrivage->setTransporteur($transporteurRepository->find($data['transporteur']));
             }
+
             if (!empty($data['chauffeur'])) {
                 $arrivage->setChauffeur($chauffeurRepository->find($data['chauffeur']));
             }
+
             if (!empty($data['noTracking'])) {
                 $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
             }
+
             $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
             if (!empty($numeroCommandeList)) {
                 $arrivage->setNumeroCommandeList($numeroCommandeList);
             }
+
             if (!empty($data['destinataire'])) {
                 $arrivage->setDestinataire($userRepository->find($data['destinataire']));
             }
+
+            if (!empty($data['businessUnit'])) {
+                $arrivage->setBusinessUnit($data['businessUnit']);
+            }
+
+            if (!empty($data['noProject'])) {
+                $arrivage->setProjectNumber($data['noProject']);
+            }
+
             if (!empty($data['acheteurs'])) {
                 $acheteursId = explode(',', $data['acheteurs']);
                 foreach ($acheteursId as $acheteurId) {
                     $arrivage->addAcheteur($userRepository->find($acheteurId));
                 }
             }
+
             try {
                 // persist and flush in function below
                 $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
             }
+
             /** @noinspection PhpRedundantCatchClauseInspection */
             catch (UniqueConstraintViolationException $e) {
                 return new JsonResponse([
@@ -344,6 +338,7 @@ class ArrivageController extends AbstractController
                     'msg' => "Veuillez renseigner au moins un colis.<br>"
                 ]);
             }
+
             $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
 
             $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
@@ -360,7 +355,8 @@ class ArrivageController extends AbstractController
             $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
             $statutConformeId = $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::ARRIVAGE, Arrivage::STATUS_CONFORME);
 
-            $data = [
+            return new JsonResponse([
+                'success' => true,
                 "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
                     ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                     : null,
@@ -370,8 +366,7 @@ class ArrivageController extends AbstractController
                 'numeroArrivage' => $arrivage->getNumeroArrivage(),
                 'statutConformeId' => $statutConformeId,
                 'alertConfigs' => $alertConfigs
-            ];
-            return new JsonResponse($data);
+            ]);
         }
         throw new NotFoundHttpException('404 not found');
     }
@@ -382,6 +377,7 @@ class ArrivageController extends AbstractController
      * @param EntityManagerInterface $entityManager
      * @param StatusService $statusService
      * @return Response
+     * @throws NonUniqueResultException
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager,
@@ -391,42 +387,36 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
-            $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-
-            $arrivage = $arrivageRepository->find($data['id']);
-
-            // construction de la chaîne de caractères pour alimenter le select2
-            $acheteursUsernames = [];
-            foreach ($arrivage->getAcheteurs() as $acheteur) {
-                $acheteursUsernames[] = $acheteur->getUsername();
-            }
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            $champsLibres = $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
-
-            $status = $statusService->findAllStatusArrivage();
-
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-
+                $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
-                $typeRepository = $entityManager->getRepository(Type::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+                $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
                 $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+                $arrivage = $arrivageRepository->find($data['id']);
+
+                // construction de la chaîne de caractères pour alimenter le select2
+                $acheteursUsernames = [];
+                foreach ($arrivage->getAcheteurs() as $acheteur) {
+                    $acheteursUsernames[] = $acheteur->getUsername();
+                }
+                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+                $status = $statusService->findAllStatusArrivage();
 
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
-                    'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
+                    'attachments' => $pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                     'fournisseurs' => $fournisseurRepository->findAllSorted(),
                     'transporteurs' => $this->transporteurRepository->findAllSorted(),
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
-                    'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
                     'statuts' => $status,
                     'fieldsParam' => $fieldsParam,
-                    'freeFieldsGroupedByTypes' => $champsLibres
+                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
                 ]);
             } else {
                 $html = '';
@@ -524,6 +514,7 @@ class ArrivageController extends AbstractController
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $typeRepository = $entityManager->getRepository(Type::class);
 
             $post = $request->request;
             $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
@@ -535,6 +526,7 @@ class ArrivageController extends AbstractController
             $destinataireId = $post->get('destinataire');
             $statutId = $post->get('statut');
             $chauffeurId = $post->get('chauffeur');
+            $type = $post->get('type');
             $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
             $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
             $numeroCommadeListStr = $post->get('numeroCommandeList');
@@ -551,7 +543,10 @@ class ArrivageController extends AbstractController
                 ->setStatut($statutId ? $statutRepository->find($statutId) : null)
                 ->setDuty($post->get('duty') == 'true')
                 ->setFrozen($post->get('frozen') == 'true')
-                ->setDestinataire($newDestinataire);
+                ->setDestinataire($newDestinataire)
+                ->setBusinessUnit($post->get('businessUnit') ?? null)
+                ->setProjectNumber($post->get('businessUnit') ?? null)
+                ->setType($typeRepository->find($type));
 
             $acheteurs = $post->get('acheteurs');
 
@@ -573,7 +568,7 @@ class ArrivageController extends AbstractController
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-            $attachments = $arrivage->getAttachements()->toArray();
+            $attachments = $arrivage->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
@@ -586,6 +581,7 @@ class ArrivageController extends AbstractController
             $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager);
             $entityManager->flush();
             $response = [
+                'success' => true,
                 'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                     'arrivage' => $arrivage,
                     'canBeDeleted' => $arrivageRepository->countLitigesUnsolvedByArrivage($arrivage) == 0,
@@ -637,7 +633,7 @@ class ArrivageController extends AbstractController
                         $entityManager->remove($litige);
                     }
                 }
-                foreach ($arrivage->getAttachements() as $attachement) {
+                foreach ($arrivage->getAttachments() as $attachement) {
                     $this->attachmentService->removeAndDeleteAttachment($attachement, $arrivage);
                 }
                 foreach ($arrivage->getUrgences() as $urgence) {
@@ -827,6 +823,25 @@ class ArrivageController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $packRepository = $entityManager->getRepository(Pack::class);
+            $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
+            $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+
+            $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
+            $category = CategoryType::ARRIVAGE;
+            $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
+            $freeFieldsIds = array_map(
+                function (array $cl) {
+                    return $cl['id'];
+                },
+                $freeFields
+            );
+            $freeFieldsHeader = array_map(
+                function (array $cl) {
+                    return $cl['label'];
+                },
+                $freeFields
+            );
 
             $colisData = $packRepository->countColisByArrivageAndNature(
                 [
@@ -846,6 +861,7 @@ class ArrivageController extends AbstractController
                 'chauffeur',
                 'n° tracking transporteur',
                 'n° commande/BL',
+                'type',
                 'acheteurs',
                 'douane',
                 'congelé',
@@ -853,14 +869,16 @@ class ArrivageController extends AbstractController
                 'commentaire',
                 'date',
                 'utilisateur',
+                'numéro de projet',
+                'business unit'
             ];
-            $csvHeader = array_merge($csvHeader, $natureLabels);
+            $csvHeader = array_merge($csvHeader, $natureLabels, $freeFieldsHeader);
 
             return $CSVExportService->createBinaryResponseFromData(
                 'export.csv',
                 $arrivals,
                 $csvHeader,
-                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData) {
+                function ($arrival) use ($buyersByArrival, $natureLabels, $colisData, $freeFieldsIds) {
                     $arrivalId = (int) $arrival['id'];
                     $row = [];
                     $row[] = $arrival['numeroArrivage'] ?: '';
@@ -872,6 +890,7 @@ class ArrivageController extends AbstractController
                         : ($arrival['chauffeurFirstname'] ?: $arrival['chauffeurSurname'] ?: '');
                     $row[] = $arrival['noTracking'] ?: '';
                     $row[] = !empty($arrival['numeroCommandeList']) ? implode(' / ', $arrival['numeroCommandeList']) : '';
+                    $row[] = $arrival['type'] ?: '';
                     $row[] = $buyersByArrival[$arrivalId] ?? '';
                     $row[] = $arrival['duty'] ? 'oui' : 'non';
                     $row[] = $arrival['frozen'] ? 'oui' : 'non';
@@ -879,12 +898,17 @@ class ArrivageController extends AbstractController
                     $row[] = $arrival['commentaire'] ? strip_tags($arrival['commentaire']) : '';
                     $row[] = $arrival['date'] ? $arrival['date']->format('d/m/Y H:i:s') : '';
                     $row[] = $arrival['userUsername'] ?: '';
+                    $row[] = $arrival['projectNumber'] ?: '';
+                    $row[] = $arrival['businessUnit'] ?: '';
 
                     foreach ($natureLabels as $natureLabel) {
                         $count = (isset($colisData[$arrivalId]) && isset($colisData[$arrivalId][$natureLabel]))
                             ? $colisData[$arrivalId][$natureLabel]
                             : 0;
                         $row[] = $count;
+                    }
+                    foreach ($freeFieldsIds as $freeField) {
+                        $row[] = $mouvement['freeFields'][$freeField] ?? "";
                     }
                     return [$row];
                 }
@@ -937,7 +961,7 @@ class ArrivageController extends AbstractController
 
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
-            'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
             'acheteurs' => $acheteursNames,
             'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
             'allColis' => $arrivage->getPacks(),
@@ -1026,10 +1050,11 @@ class ArrivageController extends AbstractController
             }
 
             $this->persistAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
+            $entityManager->flush();
 
             $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE);
-            $arrivageResponse = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
-            $response = $arrivageResponse ? $arrivageResponse : [];
+            $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
+            $response['success'] = true;
 
             return new JsonResponse($response);
         }
@@ -1082,17 +1107,7 @@ class ArrivageController extends AbstractController
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
 
-            $natures = array_reduce(
-                array_keys($data),
-                function (array $carry, string $key) use ($data) {
-                    $keyIntval = intval($key);
-                    if (!empty($keyIntval)) {
-                        $carry[$key] = $data[$key];
-                    }
-                    return $carry;
-                },
-                []
-            );
+            $natures = json_decode($data['colis'], true);
 
             $persistedColis = $colisService->persistMultiPacks($arrivage, $natures, $this->getUser(), $entityManager);
             $entityManager->flush();
@@ -1182,9 +1197,9 @@ class ArrivageController extends AbstractController
                 'litige' => $litige,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
-                'typesLitige' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+                'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
                 'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_ARR, true),
-                'attachements' => $pieceJointeRepository->findBy(['litige' => $litige]),
+                'attachments' => $pieceJointeRepository->findBy(['litige' => $litige]),
                 'colis' => $arrivage->getPacks(),
             ]);
 
@@ -1297,11 +1312,11 @@ class ArrivageController extends AbstractController
 
             $listAttachmentIdToKeep = $post->get('files') ?? [];
 
-            $attachments = $litige->getAttachements()->toArray();
+            $attachments = $litige->getAttachments()->toArray();
             foreach ($attachments as $attachment) {
                 /** @var PieceJointe $attachment */
                 if (!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, null, $litige);
+                    $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
                 }
             }
 
@@ -1312,7 +1327,9 @@ class ArrivageController extends AbstractController
                 $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_ARRIVAGE, true);
             }
 
-            $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage'));
+            $response = $this->getResponseReloadArrivage($entityManager, $arrivageDataService, $request->query->get('reloadArrivage')) ?? [];
+
+            $response['success'] = true;
 
             return new JsonResponse($response);
         }
@@ -1578,10 +1595,9 @@ class ArrivageController extends AbstractController
         $attachments = $attachmentService->createAttachements($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
-            $entity->addAttachement($attachment);
+            $entity->addAttachment($attachment);
         }
         $entityManager->persist($entity);
-        $entityManager->flush();
     }
 
     /**
@@ -1628,5 +1644,29 @@ class ArrivageController extends AbstractController
         $user = $this->getUser();
 
         return new JsonResponse($user->getColumnsVisibleForArrivage());
+    }
+
+    /**
+     * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param ArrivageDataService $arrivageDataService
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function apiColumns(Request $request,
+                               ArrivageDataService $arrivageDataService,
+                               EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ARRI)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            /** @var Utilisateur $currentUser */
+            $currentUser = $this->getUser();
+            $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
+            return new JsonResponse($columns);
+        }
+        throw new NotFoundHttpException("404");
     }
 }

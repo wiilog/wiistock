@@ -1,19 +1,20 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Création de nouveau champ libre{% endblock %}
+{% block title %}Paramétrage | Champs libres | {{ type.category.label|upper }} / type {{ type.label|upper }}{% endblock %}
+{% block titleLink path('champ_libre_index') %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        <div class="row">
-            <h1 class="col align-self-start ml-2">Liste des champs libres pour la catégorie {{ type.category.label|upper }} /
-                type {{ type.label|upper }} </h1>
-            <div class="col-auto">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
                 <a href="" data-toggle="modal" data-target="#modalNewChampLibre" class="btn btn-primary btn-ripple"
                    onclick="clearModal('#modalNewChampLibre')">
                     <span class="fa fa-plus mr-2"></span>Nouveau Champ Libre
                 </a>
             </div>
+        </div>
 
+        <div class="row">
             <div class="col-12">
                 <table id="tableChamplibre_id" class="table w-100">
                 </table>

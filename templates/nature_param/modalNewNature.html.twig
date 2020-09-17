@@ -29,7 +29,7 @@
                 <div class="row">
                     <div class="form-group col-12">
                         <label>Quantité par défaut*</label>
-                        <input type="number" class="data form-control needed" name="quantity">
+                        <input type="number" class="data form-control needed" name="quantity" min="0">
                     </div>
                 </div>
                 <div class="row">
@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewNature" type="button" class="btn btn-success">Enregistrer</button>

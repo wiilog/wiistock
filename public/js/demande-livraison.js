@@ -1,153 +1,8 @@
-$('.select2').select2();
-//DEMANDE
-
-let pathDemande = Routing.generate('demande_api', true);
-let tableDemandeConfig = {
-    serverSide: true,
-    processing: true,
-    order: [[1, 'desc']],
-    ajax: {
-        "url": pathDemande,
-        "type": "POST",
-        'data' : {
-            'filterStatus': $('#filterStatus').val(),
-            'filterReception': $('#receptionFilter').val()
-        },
-    },
-    drawConfig: {
-        needsSearchOverride: true,
-    },
-    rowConfig: {
-        needsRowClickAction: true,
-    },
-    columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
-        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
-    ],
-    columnDefs: [
-        {
-            type: "customDate",
-            targets: 1
-        },
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
-};
-let tableDemande = initDataTable('table_demande', tableDemandeConfig);
-
-//ARTICLE DEMANDE
-let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
-let tableArticleConfig = {
-    processing: true,
-    order: [[1, "desc"]],
-    ajax: {
-        "url": pathArticle,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis'},
-        {"data": 'Référence', 'title': 'Référence'},
-        {"data": 'Libellé', 'title': 'Libellé'},
-        {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
-    ],
-    rowConfig: {
-        needsRowClickAction: true,
-    },
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ],
-};
-let tableArticle = initDataTable('table-lignes', tableArticleConfig);
-
-let modalNewArticle = $("#modalNewArticle");
-let submitNewArticle = $("#submitNewArticle");
-let pathNewArticle = Routing.generate('demande_add_article', true);
-InitialiserModal(modalNewArticle, submitNewArticle, pathNewArticle, tableArticle);
-
-let modalDeleteArticle = $("#modalDeleteArticle");
-let submitDeleteArticle = $("#submitDeleteArticle");
-let pathDeleteArticle = Routing.generate('demande_remove_article', true);
-InitialiserModal(modalDeleteArticle, submitDeleteArticle, pathDeleteArticle, tableArticle);
-
-let modalEditArticle = $("#modalEditArticle");
-let submitEditArticle = $("#submitEditArticle");
-let pathEditArticle = Routing.generate('demande_article_edit', true);
-InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data, dataIndex) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableDemande.column('Date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-        ) {
-            return true;
-        }
-        return false;
-    }
-);
-
-let urlNewDemande = Routing.generate('demande_new', true);
-let modalNewDemande = $("#modalNewDemande");
-let submitNewDemande = $("#submitNewDemande");
-InitialiserModal(modalNewDemande, submitNewDemande, urlNewDemande, tableDemande);
-
-let urlDeleteDemande = Routing.generate('demande_delete', true);
-let modalDeleteDemande = $("#modalDeleteDemande");
-let submitDeleteDemande = $("#submitDeleteDemande");
-InitialiserModal(modalDeleteDemande, submitDeleteDemande, urlDeleteDemande, tableDemande);
-
-let urlEditDemande = Routing.generate('demande_edit', true);
-let modalEditDemande = $("#modalEditDemande");
-let submitEditDemande = $("#submitEditDemande");
-InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
-
-function getCompareStock(submit) {
-    let path = Routing.generate('compare_stock', true);
-    let params = {
-        'demande': submit.data('id'),
-        'fromNomade': false
-    };
-
-    return $.post({
-        url: path,
-        dataType: 'json',
-        data: JSON.stringify(params)
-    })
-        .then(function (response) {
-            if (response.success) {
-                $('.zone-entete').html(response.message);
-                $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
-                tableArticle.ajax.reload();
-            } else {
-                alertErrorMsg(response.message);
-            }
-        });
-}
+let editorNewLivraisonAlreadyDone = false;
 
 $(function () {
+    $('.select2').select2();
+
     initDateTimePicker();
     initSelect2($('#statut'), 'Statuts');
     ajaxAutoRefArticleInit($('.ajax-autocomplete'));
@@ -170,9 +25,10 @@ $(function () {
             displayFiltersSup(data);
         }, 'json');
     }
-});
 
-let editorNewLivraisonAlreadyDone = false;
+    let table = initPageDatatable();
+    initPageModals(table);
+});
 
 function initNewLivraisonEditor(modal) {
     if (!editorNewLivraisonAlreadyDone) {
@@ -184,91 +40,6 @@ function initNewLivraisonEditor(modal) {
     initDisplaySelect2Multiple('#locationDemandeLivraison', '#locationDemandeLivraisonValue');
 }
 
-function ajaxGetAndFillArticle($select) {
-    if ($select.val() !== null) {
-        let path = Routing.generate('demande_article_by_refArticle', true);
-        let refArticle = $select.val();
-        let params = JSON.stringify(refArticle);
-        let $selection = $('#selection');
-        let $editNewArticle = $('#editNewArticle');
-        let $modalFooter = $('#modalNewArticle').find('.modal-footer');
-
-        $selection.html('');
-        $editNewArticle.html('');
-        $modalFooter.addClass('d-none');
-
-        $.post(path, params, function (data) {
-            $selection.html(data.selection);
-            $editNewArticle.html(data.modif);
-            $modalFooter.removeClass('d-none');
-            toggleRequiredChampsLibres($('#typeEdit'), 'edit');
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-
-            setMaxQuantity($select);
-            registerNumberInputProtection($selection.find('input[type="number"]'));
-        }, 'json');
-    }
-}
-
-function setMaxQuantity(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        if (data) {
-            let modalBody = select.closest(".modal-body");
-            modalBody.find('#quantity-to-deliver').attr('max', data);
-        }
-
-    }, 'json');
-}
-
-function deleteRowDemande(button, modal, submit) {
-    let id = button.data('id');
-    let name = button.data('name');
-    modal.find(submit).attr('value', id);
-    modal.find(submit).attr('name', name);
-}
-
-function validateLivraison(livraisonId, $button) {
-    let params = JSON.stringify({id: livraisonId});
-
-    wrapLoadingOnActionButton($button, () => (
-        $.post({
-            url: Routing.generate('demande_livraison_has_articles'),
-            data: params
-        })
-            .then(function (resp) {
-                if (resp === true) {
-                    return getCompareStock($button);
-                } else {
-                    $('#cannotValidate').click();
-                    return false;
-                }
-            })
-    ));
-}
-
-function ajaxEditArticle (select) {
-    let path = Routing.generate('article_show', true);
-    let params = {id: select.val(), isADemand: 1};
-
-    $.post(path, JSON.stringify(params), function (data) {
-        if (data) {
-            $('#editNewArticle').html(data);
-            let quantityToTake = $('#quantityToTake');
-            let valMax = $('#quantite').val();
-
-            if (valMax) {
-                quantityToTake.find('input').attr('max', valMax);
-            }
-            quantityToTake.removeClass('d-none');
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            $('.list-multiple').select2();
-        }
-    });
-}
-
 function callbackSaveFilter() {
     // supprime le filtre de l'url
     let str = window.location.href.split('/');
@@ -277,6 +48,73 @@ function callbackSaveFilter() {
     }
 }
 
-function redirectToArticlesList() {
-    window.location.href = Routing.generate('reference_article_index');
+function initPageModals(tableDemande) {
+    let urlNewDemande = Routing.generate('demande_new', true);
+    let $modalNewDemande = $("#modalNewDemande");
+    let $submitNewDemande = $("#submitNewDemande");
+    InitModal($modalNewDemande, $submitNewDemande, urlNewDemande, {tables: tableDemande});
+}
+
+function initPageDatatable() {
+    let pathDemande = Routing.generate('demande_api', true);
+    let tableDemandeConfig = {
+        serverSide: true,
+        processing: true,
+        order: [[1, 'desc']],
+        ajax: {
+            "url": pathDemande,
+            "type": "POST",
+            'data' : {
+                'filterStatus': $('#filterStatus').val(),
+                'filterReception': $('#receptionFilter').val()
+            },
+        },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        columns: [
+            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis'},
+            {"data": 'Date', 'name': 'Date', 'title': 'Date'},
+            {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
+            {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
+            {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
+            {"data": 'Type', 'name': 'Type', 'title': 'Type'},
+        ],
+        columnDefs: [
+            {
+                type: "customDate",
+                targets: 1
+            },
+            {
+                orderable: false,
+                targets: 0
+            }
+        ],
+    };
+
+    const tableDemande = initDataTable('table_demande', tableDemandeConfig);
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let indexDate = tableDemande.column('Date:name').index();
+
+            if (typeof indexDate === "undefined") return true;
+
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+            return (
+                (dateMin == "" && dateMax == "")
+                || (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                || (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+            );
+        }
+    );
+
+    return tableDemande;
 }

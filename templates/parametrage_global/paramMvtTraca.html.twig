@@ -9,8 +9,12 @@
     <div class="row p-3">
         {% set checked = (redirectMvtTraca ? 'checked' : '') %}
         <label class="switch">
-            <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                   onchange="updateToggledParam($(this), '{{ path('edit_tracking_movement_redirect') }}')">
+            <input type="checkbox"
+                   class="checkbox col-3"
+                   {{ checked }}
+                   name="param-create-demande-livraison"
+                   data-param="{{ constant('App\\Entity\\ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT') }}"
+                   onchange="updateToggledParam($(this))">
             <span class="slider round"></span>
         </label>
         <label class="pl-1" for="param-create-demande-livraison">Vider et rester sur la modale de création de mouvement</label>

@@ -12,9 +12,9 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="type">Type*</label>
-                    <select name="type" class="form-control data d-block type needed"
-                            onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                            onchange="toggleRequiredChampsLibres($(this), 'create', availableStatusOnChange($(this)))">
+                    <select name="type"
+                            class="form-control data d-block type needed"
+                            onchange="onDispatchTypeChange($(this))">
                         <option value="">Type à choisir...</option>
                         {% for type in typeChampsLibres %}
                             <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
@@ -42,49 +42,61 @@
                 </div>
                 <div class="form-group">
                     <label for="demandeur">Demandeur*</label>
-                    <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="demandeur"></select>
+                    <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="requester"></select>
                     <input hidden
                            name="logged-user"
                            data-username="{{ app.user.username }}"
                            data-id="{{ app.user.id }}"/>
                 </div>
-                <div class="form-group">
-                    <label for="destinataire">Destinataire</label>
-                    <select class="destinataire form-control data ajax-autocomplete-user w-100" name="destinataire">
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Echéance</label>
-                    <div class="input-group w-100">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text w-50px">Du</span>
-                        </div>
-                        <input type="date"
-                               class="form-control data"
-                               name="startDate"
-                               title="Date d'échéance min"
-                               placeholder="jj/mm/aaaa"/>
-                        <div class="input-group-prepend">
-                            <span class="input-group-text w-50px">Au</span>
-                        </div>
-                        <input type="date"
-                               class="form-control data"
-                               name="endDate"
-                               title="Date d'échéance max"
-                               placeholder="jj/mm/aaaa"/>
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="destinataire">Destinataire{{ required ? '*' }}</label>
+                        <select class="destinataire form-control data ajax-autocomplete-user w-100 Destinataire {{ required ? 'needed' }}" name="receiver">
+                        </select>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Urgence</label>
-                    <div class="w-100">
-                        <label class="switch mt-2">
-                            <input class="checkbox"
-                                   name="urgent"
-                                   type="checkbox"/>
-                            <span class="slider round"></span>
-                        </label>
+                {% endif %}
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label>Echéance{{ required ? '*' }}</label>
+                        <div class="input-group w-100">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px">Du</span>
+                            </div>
+                            <input type="date"
+                                   class="form-control data {{ required ? 'needed' }}"
+                                   name="startDate"
+                                   title="Date d'échéance min"
+                                   placeholder="jj/mm/aaaa"/>
+                            <div class="input-group-prepend">
+                                <span class="input-group-text w-50px">Au</span>
+                            </div>
+                            <input type="date"
+                                   class="form-control data {{ required ? 'needed' }}"
+                                   name="endDate"
+                                   title="Date d'échéance max"
+                                   placeholder="jj/mm/aaaa" />
+                        </div>
                     </div>
-                </div>
+                {% endif %}
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label>Urgence{{ required ? '*' }}</label>
+                        <div class="w-100">
+                            <label class="switch mt-2">
+                                <input class="checkbox {{ required ? 'needed' }}"
+                                       name="urgent"
+                                       type="checkbox"/>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                {% endif %}
                 <div class="form-group w-100">
                     <label for="prise" title="emplacement prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
                     <select name="prise" class="form-control data ajax-autocompleteEmplacement d-block needed location-prise" id="prise">
@@ -100,7 +112,7 @@
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
                     {% for type in typeChampsLibres %}
                         <div class="d-none row" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-12',
@@ -111,23 +123,37 @@
                     {% endfor %}
                 </div>
 
-                <div class="form-group">
-                    <label for="commentaire">Commentaire</label>
-                    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden">
-                    <div class="editor-container" id="editor-container-new">
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <label for="commentaire">Commentaire{{ required ? '*' }}</label>
+                        <input id='commentaire' class="commentaire form-control data {{ required ? 'needed' }}" name="commentaire" type="hidden">
+                        <div class="editor-container" id="editor-container-new">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <div>
-                        {% include 'attachment/attachment.html.twig' with {'isNew' : true} %}
+                {% endif %}
+
+                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
+                {% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+                    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    <div class="form-group">
+                        <div>
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew': true,
+                                'required': required
+                            } %}
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <input type="hidden" name="isAttachmentForm" value="1"/>
+                {% endif %}
             </div>
 
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewDispatch" type="button" class="btn btn-success" onclick="setCommentaire('#editor-container-new')">Enregistrer</button>
+                <button id="submitNewDispatch" type="button" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

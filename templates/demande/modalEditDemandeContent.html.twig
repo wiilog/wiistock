@@ -1,5 +1,5 @@
 <div class="form-group">
-    <label for="utilisateur">Utilisateur</label>
+    <label for="utilisateur">Demandeur</label>
     <select disabled class="form-control select2 data" name="demandeur">
         <option selected value="{{demande.utilisateur.id}}">{{ demande.utilisateur.username }}</option>
     </select>
@@ -8,7 +8,9 @@
 <div class="form-group w-100">
     <label for="destination">Destination</label>
     <select name="destination" class="form-control ajax-autocompleteEmplacement-edit data ">
-        <option value="{{demande.destination.id}}">{{demande.destination.label}}</option>
+        {% if demande.destination is defined and demande.destination != null %}
+            <option value="{{demande.destination.id}}" selected>{{demande.destination.label}}</option>
+        {% endif %}
     </select>
 </div>
 
@@ -31,7 +33,7 @@
 <div class="row mt-4">
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
                 freeFieldValues: demande.freeFields,
                 colType: 'col-12',

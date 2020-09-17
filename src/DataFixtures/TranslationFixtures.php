@@ -60,16 +60,24 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             'acheminement' => [
                 'nouvelle demande' => 'nouvelle demande',
                 'acheminements' => 'acheminements',
+                'Acheminement' => 'Acheminement',
                 'acheminement' => 'acheminement',
                 'emplacement prise' => 'emplacement prise',
                 'emplacement dépose' => 'emplacement dépose',
+                'Nb colis' => 'Nb colis',
                 'demande d\'acheminement' => 'demande d\'acheminement',
                 'Le colis existe déjà dans cet acheminement' => 'Le colis existe déjà dans cet acheminement',
                 'Traiter un acheminement' => 'Traiter un acheminement',
                 'type d\'acheminement' => 'type d\'acheminement',
                 "Quantité à acheminer" => "Quantité à acheminer",
                 "Quantité colis" => "Quantité colis",
-                "Cet acheminement est urgent" => "Cet acheminement est urgent"
+                "Cet acheminement est urgent" => "Cet acheminement est urgent",
+                "L'acheminement a bien été créé" => "L'acheminement a bien été créé",
+                "L'acheminement a bien été modifié" => "L'acheminement a bien été modifié",
+                "L'acheminement a bien été supprimé" => "L'acheminement a bien été supprimé",
+                "La fiche d'état n'existe pas pour cet acheminement" => "La fiche d'état n'existe pas pour cet acheminement",
+                "Des colis sont nécessaires pour générer un bon de livraison" => "Des colis sont nécessaires pour générer un bon de livraison",
+                "Acheminement {numéro} traité le {date}" => "Acheminement {numéro} traité le {date}"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',
@@ -97,6 +105,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'date de début' => 'date de début',
                 'date de fin' => 'date de fin',
                 'numéro de commande' => 'numéro de commande',
+                'Date arrivage' => 'Date arrivage'
             ],
             'mouvement de traçabilité' => [
                 'Colis' => 'Colis'
@@ -110,18 +119,39 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     : 'Référence'
             ],
             'colis' => [
+                'colis' => 'colis',
                 'Ajouter un colis' => 'Ajouter un colis',
                 'Modifier un colis' => 'Modifier un colis',
                 'Numéro colis' => 'Numéro colis',
                 "Quantité colis" => "Quantité colis",
+                "Liste des colis" => "Liste des colis",
                 'Votre colis a bien été modifié' => 'Votre colis a bien été modifié',
-                "Voulez-vous réellement supprimer ce colis" => "Voulez-vous réellement supprimer ce colis",
+                "Voulez-vous réellement supprimer ce colis ?" => "Voulez-vous réellement supprimer ce colis ?",
+                "Supprimer le colis" => "Supprimer le colis",
                 "Le colis a bien été supprimé" => "Le colis a bien été supprimé",
+                "Le colis a bien été modifié" => "Le colis a bien été modifié",
                 'Le colis n\'existe pas' => 'Le colis n\'existe pas',
                 'Le colis a bien été sauvegardé' => 'Le colis a bien été sauvegardé'
             ],
             'services' => [
-                'Types de service' => 'Types de service'
+                'Types de service' => 'Types de service',
+                'Service' => 'Service',
+                'service' => 'service',
+                'Demande de service' => 'Demande de service',
+                'Supprimer la demande de service' => 'Supprimer la demande de service',
+                'La demande de service a bien été supprimée' => 'La demande de service a bien été supprimée',
+                'Nouvelle demande de service' => 'Nouvelle demande de service',
+                'La demande de service a bien été créée' => 'La demande de service a bien été créée',
+                "Détails d'une demande de service" => "Détail d'une demande de service",
+                'Modifier une demande de service' => 'Modifier une demande de service',
+                'La demande de service a bien été modifiée' => 'La demande de service a bien été modifiée',
+                'Voulez-vous réellement supprimer cette demande de service' => 'Voulez-vous réellement supprimer cette demande de service',
+                'Vous ne pouvez pas supprimer cette demande de service' => 'Vous ne pouvez pas supprimer cette demande de service',
+                'Votre demande de service a bien été effectuée' => 'Votre demande de service a bien été effectuée',
+                'Demande de service effectuée' => 'Demande de service effectuée',
+                'Type de demande de service' => 'Type de demande de service',
+                "Changement de statut d'une demande de service" => "Changement de statut d'une demande de service",
+                "Une demande de service vous concernant a changé de statut" => "Une demande de service vous concernant a changé de statut"
             ]
         ];
 
@@ -140,11 +170,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
         foreach ($translations as $menu => $translation) {
             foreach ($translation as $label => $translatedLabel) {
-
-                $translationObject = $this->translationRepository->findOneBy([
-                    'menu' => $menu,
-                    'label' => $label
-                ]);
+                // array_reduce to force request with case sensitive
+                $translationObject = array_reduce(
+                    $this->translationRepository->findBy([ 'menu' => $menu, 'label' => $label]),
+                    function (?Translation $res, Translation $translation) use ($label, $menu) {
+                        return $res ?? (
+                            ($translation->getLabel() === $label && $translation->getMenu() === $menu)
+                                ? $translation
+                                : null
+                        );
+                    },
+                    null
+                );
 
                 if (empty($translationObject)) {
                     $translationObject = new Translation();

@@ -46,7 +46,10 @@ function addInputColisClone(button)
     $parent.children().last().find('.data-array').val('');
 }
 
-function availableStatusOnChange($select) {
+function onDispatchTypeChange($select) {
+    toggleRequiredChampsLibres($select, 'create');
+    typeChoice($select, '-new', $('#typeContentNew'))
+
     const type = parseInt($select.val());
     let $modalNewDispatch = $("#modalNewDispatch");
     const $selectStatus = $modalNewDispatch.find('select[name="statut"]');
@@ -67,8 +70,6 @@ function availableStatusOnChange($select) {
         if (dispatchDefaultStatus[type]) {
             $selectStatus.val(dispatchDefaultStatus[type]);
         }
-
-        $selectStatus.find('option');
     }
 }
 
@@ -98,9 +99,9 @@ function initPage() {
             { "data": 'type', 'name': 'type', 'title': 'Type' },
             { "data": 'requester', 'name': 'requester', 'title': 'Demandeur' },
             { "data": 'receiver', 'name': 'receiver', 'title': 'Destinataire' },
-            { "data": 'locationFrom', 'name': 'locationFrom', 'title': $('#dispatchLocationFrom').val() },
-            { "data": 'locationTo', 'name': 'locationTo', 'title': $('#dispatchLocationTo').val() },
-            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'Nb Colis', orderable: false },
+            { "data": 'locationFrom', 'name': 'locationFrom', 'title': 'acheminement.emplacement prise', translated: true },
+            { "data": 'locationTo', 'name': 'locationTo', 'title': 'acheminement.emplacement dépose', translated: true },
+            { "data": 'nbPacks', 'name': 'nbPacks', 'title': 'acheminement.Nb colis', orderable: false, translated: true },
             { "data": 'status', 'name': 'status', 'title': 'Statut' },
             { "data": 'urgent', 'name': 'urgent', 'title': 'Urgence' }
         ],
@@ -110,5 +111,5 @@ function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
     let $submitNewDispatch = $("#submitNewDispatch");
     let urlDispatchNew = Routing.generate('dispatch_new', true);
-    initModalWithAttachments($modalNewDispatch, $submitNewDispatch, urlDispatchNew, tableDispatches);
+    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
 }

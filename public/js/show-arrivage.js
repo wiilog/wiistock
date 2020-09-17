@@ -41,34 +41,49 @@ $(function () {
 
         window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
     }
-});
 
-let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
-let tableColisConfig = {
-    ajax: {
-        "url": pathColis,
-        "type": "POST"
-    },
-    domConfig: {
-        removeInfo: true
-    },
-    columns: [
-        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
-        {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val()},
-        {"data": 'code', 'name': 'code', 'title': 'Code'},
-        {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
-        {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
-        {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
-    ],
-    order: [[2, 'asc']],
-    columnDefs: [
-        {
-            orderable: false,
-            targets: 0
-        }
-    ]
-};
-let tableColis = initDataTable('tableColis', tableColisConfig);
+    let pathColis = Routing.generate('colis_api', {arrivage: $('#arrivageId').val()}, true);
+    let tableColisConfig = {
+        ajax: {
+            "url": pathColis,
+            "type": "POST"
+        },
+        domConfig: {
+            removeInfo: true
+        },
+        rowConfig: {
+            needsRowClickAction: true
+        },
+        columns: [
+            {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis'},
+            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
+            {"data": 'code', 'name': 'code', 'title': 'Code'},
+            {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
+            {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
+            {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
+        ],
+        order: [[2, 'asc']],
+        columnDefs: [
+            {
+                orderable: false,
+                targets: 0
+            }
+        ]
+    };
+    let tableColis = initDataTable('tableColis', tableColisConfig);
+
+    //édition de colis
+    const modalEditPack = $('#modalEditPack');
+    const submitEditPack = $('#submitEditPack');
+    const urlEditPack = Routing.generate('pack_edit', true);
+    InitModal(modalEditPack, submitEditPack, urlEditPack, {tables: [tableColis]});
+
+    //suppression de colis
+    let modalDeletePack = $("#modalDeletePack");
+    let SubmitDeletePack = $("#submitDeletePack");
+    let urlDeletePack = Routing.generate('pack_delete', true);
+    InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tableColis], clearOnClose: true});
+});
 
 let tableHistoLitige;
 function openTableHisto() {
@@ -95,19 +110,27 @@ extendsDateSort('customDate');
 let modalAddColis = $('#modalAddColis');
 let submitAddColis = $('#submitAddColis');
 let urlAddColis = Routing.generate('arrivage_add_colis', true);
-InitialiserModal(modalAddColis, submitAddColis, urlAddColis, tableColis, (data) => {
-    if (data.colisIds && data.colisIds.length > 0) {
-        window.location.href = Routing.generate(
-            'print_arrivage_bar_codes',
-            {
-                arrivage: data.arrivageId,
-                printColis: 1
-            },
-            true);
-    }
+InitModal(
+    modalAddColis,
+    submitAddColis,
+    urlAddColis,
+    {
+        tables: [tableColis],
+        success: (data) => {
+            if (data.colisIds && data.colisIds.length > 0) {
+                window.location.href = Routing.generate(
+                    'print_arrivage_bar_codes',
+                    {
+                        arrivage: data.arrivageId,
+                        printColis: 1
+                    },
+                    true);
+            }
 
-    window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
-});
+            window.location.href = Routing.generate('arrivage_show', {id: $('#arrivageId').val()})
+        }
+    }
+);
 
 let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
 let tableArrivageLitigesConfig = {
@@ -139,27 +162,27 @@ let tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLi
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
 let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
-initModalWithAttachments(modalNewLitige, submitNewLitige, urlNewLitige, tableArrivageLitiges);
+InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableArrivageLitiges]});
 
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit_arrivage', {reloadArrivage: $('#arrivageId').val()}, true);
-initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableArrivageLitiges);
+InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableArrivageLitiges]});
 
 let ModalDeleteLitige = $("#modalDeleteLitige");
 let SubmitDeleteLitige = $("#submitDeleteLitige");
 let urlDeleteLitige = Routing.generate('litige_delete_arrivage', true);
-InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableArrivageLitiges);
+InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableArrivageLitiges]});
 
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
-initModalWithAttachments(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, null, (params) => arrivalCallback(false, params));
+InitModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, {success: (params) => arrivalCallback(false, params)});
 
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
-InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
+InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
 
 let originalText = '';
 

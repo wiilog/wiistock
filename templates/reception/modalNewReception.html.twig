@@ -156,8 +156,8 @@
                     </div>
                     <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
                         {% for type in typeChampLibres %}
-                            <div class="row">
-                                {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                            <div class="row" id="{{ type.typeId }}-new">
+                                {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: [],
                                     colType: 'col-4',
@@ -182,12 +182,10 @@
                 </div>
             </div>
 
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitReceptionButton" type="button" class="btn btn-success"
-                        onclick="setCommentaire('.editor-container')">Enregistrer
-                </button>
+                <button id="submitReceptionButton" type="button" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

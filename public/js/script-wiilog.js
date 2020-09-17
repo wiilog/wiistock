@@ -1,6 +1,6 @@
 const PAGE_DEM_COLLECTE = 'dcollecte';
 const PAGE_DEM_LIVRAISON = 'dlivraison';
-const PAGE_MANUT = 'manutention';
+const PAGE_HAND = 'handling';
 const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
@@ -26,339 +26,17 @@ const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
 
-const COMMENT_MAX_LENGTH = 200;
-
 /** Constants which define a valid barcode */
 const BARCODE_VALID_REGEX = /^[A-Za-z0-9_ \/\-]{1,24}$/;
 
 // alert modals config
 const AUTO_HIDE_DEFAULT_DELAY = 2000;
 
-/**
- * Initialise une fenêtre modale
- *
- * pour utiliser la validation des données :
- *      ajouter une <div class="error-msg"> à la fin du modal-body
- *      ajouter la classe "needed" aux inputs qui sont obligatoires
- *      supprimerle data-dismiss=modal du bouton submit de la modale (la gestion de la fermeture doit se faire dans cette fonction)
- *      pour un affichage optimal de l'erreur, le label et l'input doivent être dans une div avec la classe "form-group"
- *
- * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
- * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
- * @param {string} path le chemin pris pour envoyer les données.
- * @param {document} table le DataTable gérant les données
- *
- */
-function InitialiserModal(modal, submit, path, table = null, callback = null, close = true, clear = true, disableButtonOnClick = false) {
-    submit.click(function () {
-        if (submit.find('.spinner-border').length > 0) {
-            alertSuccessMsg('L\'opération est en cours de traitement');
-        }
-        else {
-            submitAction(modal, path, table, close, clear, disableButtonOnClick, submit)
-                .then((data) => {
-                    if (callback) {
-                        callback(data);
-                    }
-                })
-                .catch(() => {
-                })
-        }
+$(function () {
+    $(document).on('hide.bs.modal', function () {
+        $('.select2-container.select2-container--open').remove();
     });
-}
-
-function submitAction(modal, path, table = null, close = true, clear = true, disableButtonOnClick = false, $submit = null) {
-    // On récupère toutes les données qui nous intéressent
-    // dans les inputs...
-    let inputs = modal.find(".data");
-
-    let inputsArray = modal.find(".data-array");
-    let Data = {};
-    let missingInputs = [];
-    let wrongNumberInputs = [];
-    let passwordIsValid = true;
-    let barcodeIsInvalid = false;
-    let name;
-    let datesToCheck = {};
-    let vals = [];
-    let commentErrors = [];
-
-    inputsArray.each(function () {
-        let $input = $(this);
-        let name = $(this).attr("name");
-        let val = $input.val();
-        if ($input.hasClass('needed')
-            && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
-            && $input.is(':disabled') === false) {
-            missingInputs.push(name);
-            $input.addClass('is-invalid');
-        } else {
-            vals.push($(this).val());
-            Data[name] = vals;
-        }
-
-    });
-
-    inputs.each(function () {
-        let $input = $(this);
-        let val = $input.val();
-        val = (val && typeof val.trim === 'function') ? val.trim() : val;
-        name = $input.attr("name");
-        const $parent = $input.closest('[data-multiple-key]');
-
-        if ($parent && $parent.length > 0) {
-            const multipleKey = $parent.data('multiple-key');
-            const objectIndex = $parent.data('multiple-object-index');
-            Data[multipleKey] = (Data[multipleKey] || {});
-            Data[multipleKey][objectIndex] = (Data[multipleKey][objectIndex] || {});
-            Data[multipleKey][objectIndex][name] = val;
-        } else {
-            Data[name] = val;
-        }
-
-        const $editorContainer = $input.siblings('.editor-container')
-        if ($editorContainer.length > 0) {
-            const maxLength = parseInt($input.attr('max'));
-            if (maxLength) {
-                const $commentStrWithoutTag = $($input.val()).text();
-                if ($commentStrWithoutTag.length <= maxLength) {
-                    $editorContainer.removeClass('is-invalid');
-                    $editorContainer.css('border-top', '0px');
-                } else {
-                    commentErrors.push('Le commentaire excède les ' + maxLength + ' caractères maximum.');
-                    $editorContainer.addClass('is-invalid');
-                    $editorContainer.css({
-                        'padding-right': '0',
-                        'border-top': '#dc3545 1px solid'
-                    });
-                }
-            }
-        }
-
-        const $formGroupLabel = $input.closest('.form-group').find('label');
-
-        // Fix bug when we write <label>Label<select>...</select></label
-        // the label variable had text options
-        let label = $formGroupLabel
-            .clone()    //clone the element
-            .children() //select all the children
-            .remove()   //remove all the children
-            .end()      //again go back to selected element
-            .text();
-
-
-        // validation données obligatoires
-        if ($input.hasClass('needed')
-            && (val === undefined || val === '' || val === null || (Array.isArray(val) && val.length === 0))
-            && $input.is(':disabled') === false) {
-            // on enlève l'éventuelle * du nom du label
-            label = label.replace(/\*/, '');
-            missingInputs.push(label);
-            $input.addClass('is-invalid');
-            $input.next().find('.select2-selection').addClass('is-invalid');
-
-        } else {
-            $input.removeClass('is-invalid');
-        }
-
-        if ($input.hasClass('is-barcode') && !isBarcodeValid($input)) {
-            $input.addClass('is-invalid');
-            $input.parent().addClass('is-invalid');
-            label = label.replace(/\*/, '');
-            barcodeIsInvalid = label;
-        }
-
-        // validation valeur des inputs de type number
-        if ($input.attr('type') === 'number') {
-            let val = parseInt($input.val());
-            let min = parseInt($input.attr('min'));
-            let max = parseInt($input.attr('max'));
-            if (val > max || val < min) {
-                wrongNumberInputs.push($input);
-                $input.addClass('is-invalid');
-            } else if (!isNaN(val)) {
-                $input.removeClass('is-invalid');
-            }
-            if ($input.is(':disabled') === true) {
-                $input.removeClass('is-invalid');
-            }
-        }
-        // validation valeur des inputs datetimepicker - part 1/2
-        if ($input.hasClass('date')) {
-            if ($input.hasClass('first-date')) {
-                datesToCheck.first = $input.val();
-            } else if ($input.hasClass('last-date')) {
-                datesToCheck.last = $input.val();
-            }
-        }
-        // validation valeur des inputs de type password
-        if ($input.attr('type') === 'password') {
-            let password = $input.val();
-            let isNotChanged = $input.hasClass('optional-password') && password === "";
-            if (!isNotChanged) {
-                if (password.length < 8) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
-                    passwordIsValid = false;
-                } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
-                    passwordIsValid = false;
-                } else {
-                    passwordIsValid = true;
-                }
-            }
-        }
-    });
-
-    // ... et dans les checkboxes
-    let checkboxes = modal.find('.checkbox');
-    checkboxes.each(function () {
-        if (!$(this).hasClass("no-data")) {
-            Data[$(this).attr("name")] = $(this).is(':checked');
-        }
-    });
-    $("div[name='id']").each(function () {
-        Data[$(this).attr("name")] = $(this).attr('value');
-    });
-    modal.find(".elem").remove();
-
-    // validation valeur des inputs datetimepicker - part 2/2
-    let datesAreValid = (
-        !datesToCheck.first ||
-        !datesToCheck.last ||
-        moment(datesToCheck.first, 'D/M/YYYY h:mm').isSameOrBefore(moment(datesToCheck.last, 'D/M/YYYY h:mm'))
-    );
-
-    // si tout va bien on envoie la requête ajax...
-    if (!barcodeIsInvalid
-        && missingInputs.length == 0
-        && commentErrors.length == 0
-        && wrongNumberInputs.length == 0
-        && passwordIsValid
-        && datesAreValid) {
-        if (disableButtonOnClick && $submit) {
-            const $spinner = $('<div/>', {
-                class: 'spinner-border spinner-border-sm mr-2',
-                role: 'status',
-                html: $('<span/>', {
-                    class: 'sr-only',
-                    text: 'Chargement...'
-                })
-            });
-            $submit.prepend($spinner);
-        }
-
-        return $
-            .post({
-                url: path,
-                dataType: 'json',
-                data: JSON.stringify(Data)
-            })
-            .then((data) => {
-                if (disableButtonOnClick && $submit) {
-                    $submit.find('.spinner-border').remove();
-                }
-
-                if (data.success === false) {
-                    if (data.msg) {
-                        alertErrorMsg(data.msg, false);
-                    }
-                }
-                else {
-                    if (close === true) {
-                        modal.find('.close').click();
-                    }
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                        return;
-                    }
-                    // pour mise à jour des données d'en-tête après modification
-                    if (data.entete) {
-                        $('.zone-entete').html(data.entete)
-                    }
-                    if (table) {
-                        table.ajax.reload(null, false);
-                    }
-
-                    if (clear) {
-                        clearModal(modal);
-                    }
-                }
-
-                return data;
-            });
-    } else {
-        // ... sinon on construit les messages d'erreur
-        let msg = '';
-
-        // cas où il manque des champs obligatoires
-        if (missingInputs.length > 0) {
-            msg += 'Veuillez renseigner le champ ' + missingInputs.map((label) => (label && label.trim())).join(', ') + ". <br/>";
-        }
-        // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-        if (wrongNumberInputs.length > 0) {
-            wrongNumberInputs.forEach(function (elem) {
-                // cas particulier alertes
-                if (elem.prop('name') == 'limitSecurity' || elem.prop('name') == 'limitWarning') {
-                    if (msg.indexOf('seuil de sécurité') == -1) {
-                        msg += "Le seuil d'alerte doit être supérieur au seuil de sécurité.";
-                    }
-                } else {
-                    let label = elem.closest('.form-group').find('label').text();
-                    if (elem.is(':disabled') === false) {
-                        msg += 'La valeur du champ ' + label.replace(/\*/, '');
-
-                        let min = elem.attr('min');
-                        let max = elem.attr('max');
-
-                        if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                            if (min > max) {
-                                msg += " doit être inférieure à " + max + ".<br>";
-                            } else {
-                                msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-                            }
-                        } else if (typeof (min) == 'undefined') {
-                            msg += ' doit être inférieure ou égal à ' + max + ".<br>";
-                        } else if (typeof (max) == 'undefined') {
-                            msg += ' doit être supérieure ou égal à ' + min + ".<br>";
-                        }
-                        else if (min < 1) {
-                            msg += ' ne peut pas être rempli'
-                        }
-                    }
-                }
-            });
-        }
-
-        // cas où le champ susceptible de devenir un code-barre ne respecte pas les normes
-        if (barcodeIsInvalid) {
-            msg += "Le champ " + barcodeIsInvalid + " doit contenir au maximum 24 caractères (lettres ou chiffres, sans caractères accentués).<br>";
-        }
-
-        // cas où les dates ne sont pas dans le bon ordre
-        if (!datesAreValid) {
-            msg += "La date de début doit être antérieure à la date de fin.<br>";
-        }
-        if (commentErrors.length > 0) {
-            msg += commentErrors[0];
-        }
-
-        modal.find('.error-msg').html(msg);
-
-        return new Promise((_, reject) => {
-            reject(false);
-        });
-    }
-}
-
-/**
- * Check if value in the given jQuery input is a valid barcode
- * @param $input
- * @return {boolean}
- */
-function isBarcodeValid($input) {
-    const value = $input.val();
-    return Boolean(!value || BARCODE_VALID_REGEX.test(value));
-}
+});
 
 //DELETE
 function deleteRow(button, modal, submit) {
@@ -404,35 +82,40 @@ function showRow(button, path, modal) {
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
+    clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
-
     let json = {id: id, isADemand: 0};
     if (ref !== false) {
         json.ref = ref;
     }
 
     modal.find(submit).attr('value', id);
-    modal.find('#inputId').attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
         modal.find('.select2').select2();
+        initFreeSelect2(modal.find('.select2-free'));
         ajaxAutoFournisseurInit(modal.find('.ajax-autocomplete-fournisseur-edit'));
+        ajaxAutoCompleteFrequencyInit(modal.find('.ajax-autocomplete-frequency'));
         ajaxAutoRefArticleInit(modal.find('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit(modal.find('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoCompleteTransporteurInit(modal.find('.ajax-autocomplete-transporteur-edit'));
         ajaxAutoUserInit(modal.find('.ajax-autocomplete-user-edit'));
-        modal.find('.list-multiple').each(function (){$(this).select2()});
+        modal.find('.list-multiple').select2();
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
         registerNumberInputProtection($modalBody.find('input[type="number"]'));
 
-        if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
+        if (setMaxQuantity) {
+            setMaxQuantityEdit($('#referenceEdit'));
+        }
 
-        if (editorToInit) initEditor(editor);
+        if (editorToInit) {
+            initEditor(editor);
+        }
 
         afterLoadingEditModal(modal);
     }, 'json');
@@ -442,6 +125,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 function newModal(path, modal) {
     $.post(path, function (resp) {
         modal.find('.modal-body').html(resp);
+        initFreeSelect2(modal.find($('.select2-free')));
     }, 'json');
 }
 
@@ -521,19 +205,6 @@ function initEditor(div) {
         });
     }
     return null;
-}
-
-//passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div, quill = null) {
-    // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length && quill === null) {
-        let container = div;
-        let quill = new Quill(container);
-        let com = quill.container.firstChild.innerHTML;
-        $(div).closest('.modal').find('#commentaire').val(com);
-    } else if (quill) {
-        $(div).closest('.modal').find('#commentaire').val(quill.container.firstChild.innerHTML);
-    }
 }
 
 //FONCTION REFARTICLE
@@ -780,6 +451,10 @@ function ajaxAutoFournisseurInit(select, placeholder = '', route = 'get_fourniss
     initSelect2(select, placeholder, 1, { route });
 }
 
+function ajaxAutoCompleteFrequencyInit(select) {
+    initSelect2(select, '', 1, {route: 'get_frequencies'});
+}
+
 function ajaxAutoChauffeurInit(select) {
     initSelect2(select, '', 1, {route: 'get_chauffeur'});
 }
@@ -800,13 +475,33 @@ function ajaxAutoDemandesInit(select) {
     initSelect2(select, 'Numéros de demande', 3, {route: 'get_demandes'});
 }
 
-let toggleRequiredChampsLibres = function (select, require) {
-    let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
+let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer = null) {
+    let bloc = ( //TODO pas top
+        $freeFieldContainer ? $freeFieldContainer :
+        require == 'create' ? $('#typeContentNew') :
+            $('#typeContentEdit')
+    );
+    const typeId = select.val();
     let params = {};
-    if (select.val()) {
-        bloc.find('.data').removeClass('needed');
+    if (typeId) {
+        bloc
+            .find('.data')
+            .removeClass('needed');
+
+        if (require === 'create') { // we don't save free field which are hidden
+            bloc
+                .find('.data')
+                .addClass('free-field-data')
+                .removeClass('data')
+
+            bloc
+                .find(`#${typeId}-new .free-field-data`)
+                .removeClass('free-field-data')
+                .addClass('data');
+        }
+
         bloc.find('span.is-required-label').remove();
-        params[require] = select.val();
+        params[require] = typeId;
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
@@ -894,6 +589,7 @@ function clearModal(modal) {
     $modal.find('.ql-editor').text('');
     // on vide les div identifiées comme à vider
     $modal.find('.clear').html('');
+    $modal.find('.remove-on-clear').remove();
     $modal.find('.attachement').remove();
     $modal.find('.isRight').removeClass('isRight');
 }
@@ -940,7 +636,6 @@ function alertSuccessMsg(data, remove = true) {
         $alertSuccess.delay(2000).fadeOut(2000);
     }
     $alertSuccess.find('.confirm-msg').html(data);
-    $('html,body').animate({scrollTop: 0});
 }
 
 function saveFilters(page, tableSelector, callback) {
@@ -1616,6 +1311,7 @@ function fillDemandeurField($modal) {
 function registerNumberInputProtection($inputs) {
     const forbiddenChars = [
         "e",
+        "E",
         "+",
         "-"
     ];

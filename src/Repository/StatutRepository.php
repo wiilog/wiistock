@@ -32,21 +32,31 @@ class StatutRepository extends EntityRepository
      * @param string $categorieName
      * @param bool $ordered
      * @param bool $onlyNotTreated
+     * @param null $type
      * @return Statut[]
      */
-    public function findByCategorieName($categorieName, $ordered = false, $onlyNotTreated = false)
+    public function findByCategorieName($categorieName,
+                                        $ordered = false,
+                                        $onlyNotTreated = false,
+                                        $type = null)
     {
         $queryBuilder = $this->createQueryBuilder('status')
             ->join('status.categorie', 'categorie')
             ->andWhere('categorie.nom = :categorieName');
 
-        if ($ordered) {
-            $queryBuilder->orderBy('status.displayOrder', 'ASC');
-        }
-
         if ($onlyNotTreated) {
             $queryBuilder
-                ->andWhere('status.treated = 0');
+                ->andWhere('status.treated = false');
+        }
+
+        if (!empty($type)) {
+            $queryBuilder
+                ->andWhere('status.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($ordered) {
+            $queryBuilder->orderBy('status.displayOrder', 'ASC');
         }
 
         $queryBuilder
@@ -260,7 +270,7 @@ class StatutRepository extends EntityRepository
             ->leftJoin('s.litiges', 'l')
             ->leftJoin('s.receptions', 'r')
             ->leftJoin('s.referenceArticles', 'ra')
-            ->leftJoin('s.manutentions', 'm')
+            ->leftJoin('s.handlings', 'handling')
             ->leftJoin('s.dispatches', 'dispatch')
             ->where('s.id = :statusId')
             ->andWhere($exprBuilder->orX(
@@ -271,7 +281,7 @@ class StatutRepository extends EntityRepository
                 'l IS NOT NULL',
                 'r IS NOT NULL',
                 'ra IS NOT NULL',
-                'm IS NOT NULL',
+                'handling IS NOT NULL',
                 'dispatch IS NOT NULL'
             ))
             ->setParameter('statusId', $id);
@@ -296,14 +306,16 @@ class StatutRepository extends EntityRepository
         $qb
             ->join('status.categorie', 'category')
             ->where('(' . $exprBuilder->orX(
-                    'category.nom = :litigeAr',
-                    'category.nom = :litigeRe',
-                    'category.nom = :ach'
+                    'category.nom = :categoryLabel_arrivalDispute',
+                    'category.nom = :categoryLabel_receptionDispute',
+                    'category.nom = :categoryLabel_dispatch',
+                    'category.nom = :categoryLabel_handling'
                 ) . ')')
             ->setParameters([
-                'litigeAr' => CategorieStatut::LITIGE_ARR,
-                'litigeRe' => CategorieStatut::LITIGE_RECEPT,
-                'ach' => CategorieStatut::DISPATCH
+                'categoryLabel_arrivalDispute' => CategorieStatut::LITIGE_ARR,
+                'categoryLabel_receptionDispute' => CategorieStatut::LITIGE_RECEPT,
+                'categoryLabel_dispatch' => CategorieStatut::DISPATCH,
+                'categoryLabel_handling' => CategorieStatut::HANDLING
             ]);
 
         $qb
@@ -326,11 +338,13 @@ class StatutRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('(
-                            status.nom LIKE :value
-                            OR status.comment LIKE :value
-                            OR status.code LIKE :value
-                        )')
+                        ->andWhere('(' .
+                            $exprBuilder->orX(
+                                'status.nom LIKE :value',
+                                'status.comment LIKE :value',
+                                'status.code LIKE :value'
+                            )
+                        . ')')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -371,39 +385,77 @@ class StatutRepository extends EntityRepository
         ];
     }
 
-    public function findDispatchStatusTreatedByType($type)
+    public function findTreatedStatusByType($categoryLabel, $type, $orderedBy = false)
     {
         $qb = $this->createQueryBuilder('status');
 
         $qb
             ->select('status')
             ->join('status.categorie', 'category')
-            ->where('category.nom = :ach')
+            ->where('category.nom = :categoryLabel')
             ->andWhere('status.treated = true')
             ->andWhere('status.type = :type')
             ->setParameters([
-                'ach' => CategorieStatut::DISPATCH,
+                'categoryLabel' => $categoryLabel,
                 'type' => $type
             ]);
+
+        if ($orderedBy) {
+            $qb->orderBy('status.displayOrder', 'ASC');
+        }
 
         return $qb
             ->getQuery()
             ->getResult();
     }
 
-    public function getMobileStatus(): array {
-        $queryBuilder = $this->createQueryBuilder('status')
-            ->select('status.id AS id')
-            ->addSelect('status.nom AS label')
-            ->addSelect('status_category.nom AS category')
-            ->addSelect('type.id AS typeId')
-            ->addSelect('status.treated AS treated')
-            ->join('status.categorie', 'status_category')
-            ->leftJoin('status.type', 'type')
-            ->where('status_category.nom = :dispatchCategory')
-            ->setParameter('dispatchCategory', CategorieStatut::DISPATCH);
-        return $queryBuilder
-            ->getQuery()
-            ->getResult();
+    public function getMobileStatus(bool $dispatchStatus, bool $handlingStatus): array {
+        if ($dispatchStatus || $handlingStatus) {
+            $queryBuilder = $this->createQueryBuilder('status')
+                ->select('status.id AS id')
+                ->addSelect('status.nom AS label')
+                ->addSelect('status_category.nom AS category')
+                ->addSelect('type.id AS typeId')
+                ->addSelect('status.treated AS treated')
+                ->addSelect('status.displayOrder AS displayOrder')
+                ->join('status.categorie', 'status_category')
+                ->leftJoin('status.type', 'type')
+                ->orderBy('status.displayOrder', 'ASC');
+
+            if ($dispatchStatus) {
+                $queryBuilder
+                    ->where('status_category.nom = :dispatchCategoryLabel')
+                    ->setParameter('dispatchCategoryLabel', CategorieStatut::DISPATCH);
+            }
+
+            if ($handlingStatus) {
+                $queryBuilder
+                    ->orWhere('status_category.nom = :handlingCategoryLabel')
+                    ->setParameter('handlingCategoryLabel', CategorieStatut::HANDLING);
+            }
+
+            return $queryBuilder
+                ->getQuery()
+                ->getResult();
+        }
+        else {
+            return [];
+        }
+    }
+
+    public function getIdNotTreatedByCategory(string $categoryLabel) {
+        return array_map(
+            function($handling) {
+                return $handling['id'];
+            },
+            $this->createQueryBuilder('status')
+                ->select('status.id')
+                ->leftJoin('status.categorie', 'category')
+                ->where('status.treated = false')
+                ->andWhere('category.nom LIKE :categoryLabel')
+                ->setParameter('categoryLabel', $categoryLabel)
+                ->getQuery()
+                ->getResult()
+        );
     }
 }

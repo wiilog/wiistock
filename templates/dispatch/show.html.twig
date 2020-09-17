@@ -1,11 +1,10 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | {{ 'acheminement.acheminements'|trans }} | Détails{% endblock %}
+{% block title %}Demande | {{ 'acheminement.Acheminement'|trans }} | Détails{% endblock %}
+{% block title_tooltip %}Demande | Acheminement | Détails{% endblock %}
 {% block titleLink path('dispatch_index') %}
 
 {% block page_content %}
-    <input type="hidden" id="natureTranslation" value="{{ 'natures.nature'|trans }}"/>
-    <input type="hidden" id="dispatchQuantityTranslation" value="{{'acheminement.Quantité à acheminer'|trans}}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
 
     <div class="m-4">
@@ -24,15 +23,16 @@
             <div class="col-12">
                 <div class="wii-page-card">
                     <div class="row mb-2">
-                        <h5 class="col-auto h5">Liste des colis</h5>
+                        <h5 class="col-auto h5" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</h5>
                     </div>
                     {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
                                 <button onclick="openNewPackModal()"
-                                        class="btn btn-primary">
+                                        class="btn btn-primary"
+                                        title="Ajouter un colis">
                                     <i class="fa fa-plus mr-2"></i>
-                                    <span title="Ajouter un colis">{{ 'colis.Ajouter un colis'|trans }}</span>
+                                    {{ 'colis.Ajouter un colis'|trans }}
                                 </button>
                             </div>
                         </div>
@@ -52,10 +52,10 @@
     {% include "dispatch/modalPack.html.twig" with newPackConfig %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
     {% include "dispatch/modalDeletePack.html.twig" %}
+    {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/dispatch-show.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

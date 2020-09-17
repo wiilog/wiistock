@@ -46,7 +46,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 			}
 			$this->addReference('type-' . $categoryName, $categorie);
 
-			$categoryHasType = count($typeRepository->findByCategoryLabel($categoryName)) > 0;
+			$categoryHasType = count($typeRepository->findByCategoryLabels([$categoryName])) > 0;
 
 			// création des types
     		foreach ($typesNames as $typeName) {

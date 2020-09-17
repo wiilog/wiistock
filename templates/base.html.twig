@@ -53,6 +53,8 @@
     {% block javascripts %}
         <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
         <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
+        <script src="{{ asset('js/translations/translations.' ~ app_locale ~ '.js') }}"></script>
+        <script src="{{ asset('js/translations.js') }}"></script>
 
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
                 integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
@@ -105,6 +107,7 @@
         {# scripts wiilog #}
         <script src="{{ asset('js/common.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-wiilog.js') }}?{{ date().timestamp }}"></script>
+        <script src="{{ asset('js/init-modal.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/script-menu.js') }}?{{ date().timestamp }}"></script>
         <script src="{{ asset('js/datatable.js') }}?{{ date().timestamp }}"></script>
     {% endblock %}

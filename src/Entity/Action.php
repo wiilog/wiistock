@@ -38,8 +38,10 @@ class Action
 	// menu demande
 	const DISPLAY_DEM_COLL = 'afficher collectes';
 	const DISPLAY_DEM_LIVR = 'afficher livraisons';
-	const DISPLAY_MANU = 'afficher manutentions';
+	const DISPLAY_HAND = 'afficher services';
     const DISPLAY_ACHE = 'afficher acheminements';
+    const CREATE_ACHE = 'créer acheminements';
+    const DELETE_ACHE = 'supprimer acheminements';
 
 	// menu ordre
 	const DISPLAY_ORDRE_COLL = 'afficher collectes';
@@ -78,7 +80,7 @@ class Action
 	// menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
-    const MODULE_ACCESS_MANUT = 'Accès Demande';
+    const MODULE_ACCESS_HAND = 'Accès Demande';
     const DEMO_MODE = 'Mode découverte';
 
     /**

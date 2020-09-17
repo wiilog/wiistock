@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Demande;
-use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
@@ -173,7 +172,7 @@ class RefArticleDataService
 
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $types = $typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
 
         $categories = $preloadCategories
             ? $inventoryCategoryRepository->findAll()
@@ -232,8 +231,8 @@ class RefArticleDataService
 
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
+
         //modification champsFixes
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);
@@ -241,16 +240,13 @@ class RefArticleDataService
         if (isset($data['reference'])) $refArticle->setReference($data['reference']);
         if (isset($data['frl'])) {
             foreach ($data['frl'] as $frl) {
-                $articleFournisseurData = explode(';', $frl);
-                $fournisseurArticleFournisseur = $articleFournisseurData[0];
-                $referenceArticleFournisseur = $articleFournisseurData[1];
-                $labelArticleFournisseur = $articleFournisseurData[2];
+                $referenceArticleFournisseur = $frl['referenceFournisseur'];
 
                 try {
                     $articleFournisseur = $this->articleFournisseurService->createArticleFournisseur([
-                        'fournisseur' => $fournisseurArticleFournisseur,
+                        'fournisseur' => $frl['fournisseur'],
                         'article-reference' => $refArticle,
-                        'label' => $labelArticleFournisseur,
+                        'label' => $frl['labelFournisseur'],
                         'reference' => $referenceArticleFournisseur
                     ]);
 

@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title" title="Ajouter un colis">{{ 'mouvement de traçabilité.Ajouter un colis'|trans }}</h5>
+                <h5 class="modal-title" title="Ajouter un colis">{{ 'colis.Ajouter un colis'|trans }}</h5>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -16,16 +16,21 @@
                         <div class='col-12 mb-2'>
                             <h3 class="label">Nb de colis à ajouter :</h3>
                         </div>
-                        <div class="form-group col-12 blocVisible d-block" id=''>
+                        <div class="form-group col-12 blocVisible d-block">
                             <div class="d-block">
                                 <div class="row mt-2">
                                     {% for nature in natures %}
                                         <div class="form-group col-6">
-                                            <label for="">
+                                            <label for="nbColisForNature_{{ nature.id }}">
                                                 {{nature.label | capitalize}}
                                             </label>
-                                            <input type="number" class="form-control data"
-                                                   value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}" name="{{ nature.id }}" id="{{ nature.id }}" min="0">
+                                            <input type="number"
+                                                   class="form-control data-array needed-positiv"
+                                                   value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
+                                                   name="colis"
+                                                   data-id="{{ nature.id }}"
+                                                   id="nbColisForNature_{{ nature.id }}"
+                                                   min="0">
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -46,7 +51,7 @@
 
             <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
 
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitAddColis" type="button" class="btn btn-success">Valider</button>

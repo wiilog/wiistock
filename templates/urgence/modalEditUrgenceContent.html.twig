@@ -29,9 +29,10 @@
     </div>
 
     <div class="col-6">
+        {% set postNbIsRequired = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
         <div class="form-group">
-            <label for="postNb">Numéro de poste*</label>
-            <input type="text" class="form-control data needed" name="postNb" value="{{ urgence.postNb }}">
+            <label for="postNb">Numéro de poste{{ postNbIsRequired ? '*' }}</label>
+            <input type="text" class="form-control data {{ postNbIsRequired ? 'needed' }}" name="postNb" value="{{ urgence.postNb }}">
         </div>
     </div>
 </div>

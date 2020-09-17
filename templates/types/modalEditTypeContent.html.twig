@@ -1,12 +1,19 @@
 <form method="">
     <div class="modal-body modal-input container-fluid row">
         <div class="col-12 form-group required d-none">
-            <input type="text" class="form-control data needed" name="type" required="" value="{{ type.id }}">
+            <input type="text"
+                   class="form-control data needed"
+                   name="type"
+                   required=""
+                   value="{{ type.id }}">
         </div>
 
         <div class="col-12 form-group">
-            <label for="label">Catégorie*</label>
-            <select name="category" id="categories" class="data form-control needed" onchange="typeSelectChange($(this))">
+            <label for="label">Catégorie</label>
+            <select name="category"
+                    id="categories"
+                    class="data form-control needed"
+                    onchange="typeSelectChange($(this))">
                 {% for category in categories %}
                     {% set selected = (category.id == type.category.id ? 'selected') %}
                         <option value="{{ category.id }}"
@@ -18,19 +25,32 @@
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">Label*</label>
-            <input type="text" class="form-control data needed" name="label" required="" value="{{ type.label }}">
+            <label for="username">
+                Label*
+            </label>
+            <input type="text"
+                   class="form-control data needed"
+                   name="label"
+                   required=""
+                   value="{{ type.label }}">
         </div>
 
         <div class="col-12 form-group">
-            <label for="username">Description</label>
-            <input type="text" class="form-control data" name="description" value="{{ type.description }}">
+            <label for="username">
+                Description
+            </label>
+            <input type="text"
+                   class="form-control data"
+                   name="description"
+                   value="{{ type.description }}">
         </div>
         {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') %}
         <div class="col-12 form-group {{ needsHide ? 'd-none' }} send-mail">
             <label>Envoi de mails au demandeur ?</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="sendMail" {{ type.sendMail ? 'checked' }}>
+                <input class="checkbox"
+                       type="checkbox"
+                       name="sendMail" {{ type.sendMail ? 'checked' }}>
                 <span class="slider round"></span>
             </label>
         </div>

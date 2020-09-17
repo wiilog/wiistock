@@ -11,11 +11,11 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\LitigeHistoric;
 
+use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\LitigeHistoricRepository;
-use App\Repository\PieceJointeRepository;
 use App\Repository\TransporteurRepository;
 
 use App\Service\CSVExportService;
@@ -55,11 +55,6 @@ class LitigeController extends AbstractController
     private $litigeHistoricRepository;
 
 	/**
-	 * @var PieceJointeRepository
-	 */
-	private $pieceJointeRepository;
-
-	/**
 	 * @var LitigeService
 	 */
 	private $litigeService;
@@ -71,14 +66,12 @@ class LitigeController extends AbstractController
 
     /**
      * @param LitigeService $litigeService
-     * @param PieceJointeRepository $pieceJointeRepository
      * @param UserService $userService
      * @param TransporteurRepository $transporteurRepository
      * @param TranslatorInterface $translator
      * @param LitigeHistoricRepository $litigeHistoricRepository
      */
 	public function __construct(LitigeService $litigeService,
-                                PieceJointeRepository $pieceJointeRepository,
                                 UserService $userService,
                                 TransporteurRepository $transporteurRepository,
                                 TranslatorInterface $translator,
@@ -87,7 +80,6 @@ class LitigeController extends AbstractController
 		$this->transporteurRepository = $transporteurRepository;
 		$this->userService = $userService;
 		$this->litigeHistoricRepository = $litigeHistoricRepository;
-		$this->pieceJointeRepository = $pieceJointeRepository;
 		$this->litigeService = $litigeService;
         $this->translator = $translator;
 	}
@@ -109,7 +101,6 @@ class LitigeController extends AbstractController
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $litigeRepository = $entityManager->getRepository(Litige::class);
 
         $user = $this->getUser();
         $fieldsInTab = [
@@ -135,7 +126,7 @@ class LitigeController extends AbstractController
         return $this->render('litige/index.html.twig',[
             'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $this->transporteurRepository->findAllSorted(),
-            'types' => $typeRepository->findByCategoryLabel(CategoryType::LITIGE),
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
 			'litigeOrigins' => $litigeService->getLitigeOrigin(),
 			'isCollins' => $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS),
             'champs' => $champs,
@@ -333,22 +324,25 @@ class LitigeController extends AbstractController
 		}
 	}
 
-	/**
-	 * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")
-	 */
-	public function deleteAttachementLitige(Request $request)
+    /**
+     * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     */
+	public function deleteAttachementLitige(Request $request,
+                                            EntityManagerInterface $entityManager)
 	{
 		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$em = $this->getDoctrine()->getManager();
-
 			$litigeId = (int)$data['litigeId'];
+			$pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
 
-			$attachements = $this->pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
+			$attachements = $pieceJointeRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
 			if (!empty($attachements)) {
 			    foreach ($attachements as $attachement) {
-                    $em->remove($attachement);
+                    $entityManager->remove($attachement);
                 }
-				$em->flush();
+				$entityManager->flush();
 				$response = true;
 			} else {
 				$response = false;
@@ -489,17 +483,16 @@ class LitigeController extends AbstractController
     /**
      * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     *
      * @return Response
      */
-    public function getColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function getColumnVisible(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
             return $this->redirectToRoute('access_denied');
         }
-        $user = $this->getUser();     ;
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
 
         return new JsonResponse($user->getColumnsVisibleForLitige());
     }

@@ -41,17 +41,17 @@ let table = initDataTable('tableCollecte_id', collecteTableConfig);
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
 let urlNewCollecte = Routing.generate('collecte_new', true)
-InitialiserModal(modalNewCollecte, SubmitNewCollecte, urlNewCollecte, table);
+InitModal(modalNewCollecte, SubmitNewCollecte, urlNewCollecte, {tables: [table]});
 
 let modalDeleteCollecte = $("#modalDeleteCollecte");
 let submitDeleteCollecte = $("#submitDeleteCollecte");
 let urlDeleteCollecte = Routing.generate('collecte_delete', true)
-InitialiserModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, table);
+InitModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, {tables: [table]});
 
 let modalModifyCollecte = $('#modalEditCollecte');
 let submitModifyCollecte = $('#submitEditCollecte');
 let urlModifyCollecte = Routing.generate('collecte_edit', true);
-InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
+InitModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, {tables: [table]});
 
 let pathAddArticle = Routing.generate('collecte_article_api', {'id': id}, true);
 let tableArticleConfig = {
@@ -84,11 +84,11 @@ $.fn.dataTable.ext.search.push(
         let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
         if (
-            (dateMin == "" && dateMax == "")
+            (dateMin === "" && dateMax === "")
             ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
             ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
             ||
             (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
         ) {
@@ -101,17 +101,17 @@ $.fn.dataTable.ext.search.push(
 let modal = $("#modalNewArticle");
 let submit = $("#submitNewArticle");
 let url = Routing.generate('collecte_add_article', true);
-InitialiserModal(modal, submit, url, tableArticle);
+InitModal(modal, submit, url, {tables: [tableArticle]});
 
 let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
 let urlEditArticle = Routing.generate('collecte_edit_article', true);
-InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+InitModal(modalEditArticle, submitEditArticle, urlEditArticle, {tables: [tableArticle]});
 
 let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
-InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+InitModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, {tables: [tableArticle]});
 
 $(function() {
     initDateTimePicker();
@@ -179,6 +179,7 @@ function deleteRowCollecte(button, modal, submit) {
 let editorNewCollecteAlreadyDone = false;
 
 function initNewCollecteEditor(modal) {
+    console.log(editorNewCollecteAlreadyDone)
     if (!editorNewCollecteAlreadyDone) {
         initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;

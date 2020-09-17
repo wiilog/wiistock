@@ -113,6 +113,7 @@ class ParametrageGlobalController extends AbstractController
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
+                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
@@ -784,35 +785,6 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/tracking-movement-redirect", name="edit_tracking_movement_redirect", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param ParametrageGlobalRepository $parametrageGlobalRepository
-     * @return Response
-     * @throws NonUniqueResultException
-     */
-    public function editTrackingMovementsRedirect(Request $request,
-                                                  ParametrageGlobalRepository $parametrageGlobalRepository): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ifExist = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
-            $em = $this->getDoctrine()->getManager();
-            if ($ifExist) {
-                $ifExist->setValue($data['val']);
-                $em->flush();
-            } else {
-                $parametrage = new ParametrageGlobal();
-                $parametrage
-                    ->setLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT)
-                    ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
-            }
-            return new JsonResponse(true);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/modifier-destination-arrivage",
      *     name="set_arrivage_default_dest",
      *     options={"expose"=true},
@@ -840,6 +812,36 @@ class ParametrageGlobalController extends AbstractController
         $em->flush();
         return new JsonResponse(true);
     }
+
+    /**
+     * @Route("/modifier-business-unit",
+     *     name="set_business_unit",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editBusinessUnit(Request $request,
+                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $value = $request->request->get('value');
+
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
+            $em->persist($parametrage);
+        }
+        $parametrage->setValue(json_encode($value));
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
+
 
     /**
      * @Route("/modifier-destination-demande-livraison",

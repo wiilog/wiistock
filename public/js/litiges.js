@@ -1,8 +1,5 @@
 $('.select2').select2();
 let tableLitiges;
-let modalNewLitiges = $('#modalNewLitiges');
-let submitNewLitiges = $('#submitNewLitiges');
-let urlNewLitiges = Routing.generate('litige_new', true);
 let modalEditLitige = $('#modalEditLitige');
 let submitEditLitige = $('#submitEditLitige');
 let urlEditLitige = Routing.generate('litige_edit', true);
@@ -33,10 +30,10 @@ $(function () {
     }, 'json');
 
     initDatatableLitiges();
-    InitialiserModal(modalNewLitiges, submitNewLitiges, urlNewLitiges, tableLitiges);
-    initModalWithAttachments(modalEditLitige, submitEditLitige, urlEditLitige, tableLitiges);
-    InitialiserModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, tableLitiges);
-    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+
+    InitModal(modalEditLitige, submitEditLitige, urlEditLitige, {tables: [tableLitiges]});
+    InitModal(ModalDeleteLitige, SubmitDeleteLitige, urlDeleteLitige, {tables: [tableLitiges]});
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 });
 
 function initDatatableLitiges() {
@@ -57,8 +54,8 @@ function initDatatableLitiges() {
             {"data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
             {"data": 'disputeNumber', 'name': 'disputeNumber', 'title': 'Numéro du litige'},
-            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': $('#transNoArrivage').val()},
-            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': $('#transNoReception').val()},
+            {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': 'arrivage.n° d\'arrivage', translated: true},
+            {"data": 'receptionNumber', 'name': "receptionNumber", 'title': 'réception.n° de réception', translated: true},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur'},
             {"data": 'declarant', 'name': 'declarant', 'title': 'Déclarant'},
             {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
@@ -71,10 +68,6 @@ function initDatatableLitiges() {
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', 'visible': false, 'class': 'noVis'},
         ],
-        headerCallback: function (thead) {
-            $(thead).find('th').eq(2).attr('title', "n° d'arrivage");
-            $(thead).find('th').eq(3).attr('title', "n° de réception");
-        },
         domConfig: {
             needsFullDomOverride: true
         },

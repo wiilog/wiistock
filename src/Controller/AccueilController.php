@@ -6,9 +6,8 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
-use App\Entity\Emplacement;
 use App\Entity\FiabilityByReference;
-use App\Entity\Manutention;
+use App\Entity\Handling;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -89,7 +88,7 @@ class AccueilController extends AbstractController
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
-        $manutentionRepository = $entityManager->getRepository(Manutention::class);
+        $handlingRepository = $entityManager->getRepository(Handling::class);
 
         $nbAlerts = $referenceArticleRepository->countAlert();
 
@@ -134,8 +133,7 @@ class AccueilController extends AbstractController
         $listStatutDemandeP = $statutRepository->getIdByCategorieNameAndStatusesNames(Demande::CATEGORIE, [Demande::STATUT_PREPARE, Demande::STATUT_INCOMPLETE]);
         $nbrDemandeLivraisonP = $demandeRepository->countByStatusesId($listStatutDemandeP);
 
-        $statutManutAT = $statutRepository->findOneByCategorieNameAndStatutCode(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
-        $nbrDemandeManutentionAT = $manutentionRepository->countByStatut($statutManutAT);
+        $handlingCounterToTreat = $handlingRepository->countHandlingToTreat();
         return [
             'nbAlerts' => $nbAlerts,
             'visibleDashboards' => $isDashboardExt
@@ -144,7 +142,7 @@ class AccueilController extends AbstractController
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
-            'nbDemandeManutentionAT' => $nbrDemandeManutentionAT,
+            'nbDemandeHandlingAT' => $handlingCounterToTreat,
             'nbrFiabiliteReference' => $nbrFiabiliteReference,
             'nbrFiabiliteMonetaire' => $nbrFiabiliteMonetaire,
             'nbrFiabiliteMonetaireOfThisMonth' => $nbrFiabiliteMonetaireOfThisMonth,
@@ -154,7 +152,7 @@ class AccueilController extends AbstractController
                 'DLincomplete' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_INCOMPLETE),
                 'DLprepared' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_PREPARE),
                 'DCToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::DEM_COLLECTE, Collecte::STATUT_A_TRAITER),
-                'MToTreat' => $statutRepository->getOneIdByCategorieNameAndStatusName(CategorieStatut::MANUTENTION, Manutention::STATUT_A_TRAITER)
+                'handlingToTreat' => implode(', ', $statutRepository->getIdNotTreatedByCategory(CategorieStatut::HANDLING))
             ],
             'firstDayOfWeek' => date("d/m/Y", strtotime('monday this week')),
             'lastDayOfWeek' => date("d/m/Y", strtotime('sunday this week'))

@@ -47,17 +47,14 @@
             </div>
         </div>
     </div>
+
     {% include 'litige/modalEditLitige.html.twig' %}
     {% include 'litige/modalDeleteLitige.html.twig'%}
     {% include 'litige/modalColumnVisible.html.twig' with { champs: champs } %}
-    <input hidden id="transNoArrivage" value="{{ "arrivage.n° d'arrivage"|trans }}">
-    <input hidden id="transNoReception" value="{{ "réception.n° de réception"|trans }}">
-    <input hidden id="isCollins" value="{{ isCollins }}">
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/form-litiges.js') }}?{{ date().timestamp }}"></script>
-    <script src="{{ asset('js/attachments.js') }}?{{ date().timestamp }}"></script>
     <script src="{{ asset('js/litiges.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

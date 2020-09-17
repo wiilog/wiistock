@@ -73,9 +73,12 @@ class InventoryAnomalyController extends AbstractController
 		return $this->render('inventaire/anomalies.html.twig');
 	}
 
-	/**
-	 * @Route("/api", name="inv_anomalies_api", options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/api", name="inv_anomalies_api", options={"expose"=true}, methods="GET|POST")
+     * @param Request $request
+     * @param InventoryEntryService $inventoryEntryService
+     * @return JsonResponse|RedirectResponse
+     */
 	public function apiAnomalies(Request $request,
                                  InventoryEntryService $inventoryEntryService)
 	{
@@ -138,15 +141,18 @@ class InventoryAnomalyController extends AbstractController
                     $data['comment'],
                     $this->getUser()
                 );
+
                 $responseData = [
                     'success' => true,
-                    'quantitiesAreEqual' => $quantitiesAreEqual
+                    'msg' => $quantitiesAreEqual
+                        ? 'L\'anomalie a bien été traitée.'
+                        : 'Un mouvement de stock correctif vient d\'être créé.'
                 ];
             }
             catch (ArticleNotAvailableException|RequestNeedToBeProcessedException $exception) {
                 $responseData = [
                     'success' => false,
-                    'message' => ($exception instanceof RequestNeedToBeProcessedException)
+                    'msg' => ($exception instanceof RequestNeedToBeProcessedException)
                         ? 'Impossible : un ordre de livraison est en cours sur cet article'
                         : 'Impossible : l\'article n\'est pas disponible'
                 ];

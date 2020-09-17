@@ -95,17 +95,17 @@ class ArticleFournisseurController extends AbstractController
 
             try {
                 $articleFournisseur = $articleFournisseurService->createArticleFournisseur($data);
-
                 $entityManager->persist($articleFournisseur);
                 $entityManager->flush();
 
                 $dataResponse['success'] = true;
+                $dataResponse['msg'] = 'L\'article fournisseur ' .$data['label']. ' a bien été créé.';
             }
             catch (\Exception $exception) {
                 if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                    $dataResponse['message'] = 'La référence existe déjà';
+                    $dataResponse['message'] = 'La référence existe déjà.';
                 } else {
-                    $dataResponse['message'] = 'Une erreur est survenue';
+                    $dataResponse['message'] = 'Une erreur est survenue.';
                 }
                 $dataResponse['success'] = false;
             }
@@ -167,7 +167,8 @@ class ArticleFournisseurController extends AbstractController
             $entityManager->flush();
 
             return new JsonResponse([
-                'success' => true
+                'success' => true,
+                'msg' => 'L\'article fournisseur '.$articleFournisseur->getLabel(). ' a bien été modifié.'
             ]);
         }
         throw new NotFoundHttpException("404");
@@ -189,10 +190,13 @@ class ArticleFournisseurController extends AbstractController
 
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['article-fournisseur']));
-
+            $articleFournisseur->getLabel();
             $entityManager->remove($articleFournisseur);
             $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'L\'article fournisseur ' .$articleFournisseur->getLabel(). ' a bien été supprimé.'
+            ]);
         }
         throw new NotFoundHttpException("404");
     }

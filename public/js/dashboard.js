@@ -493,18 +493,18 @@ function drawMultipleBarChart($canvas, path, params, chartNumber, chart, preferC
 
 function goToFilteredDemande(type, filter) {
     let path = '';
+    let params = {};
     if (type === 'livraison') {
         path = 'demande_index';
+        params.reception = 0;
     } else if (type === 'collecte') {
         path = 'collecte_index';
-    } else if (type === 'manutention') {
-        path = 'manutention_index';
+        params.reception = 0;
+    } else if (type === 'service') {
+        path = 'handling_index';
     }
 
-    let params = {
-        reception: 0,
-        filter: filter
-    };
+    params.filter = filter;
     let route = Routing.generate(path, params);
     window.location.href = route;
 }

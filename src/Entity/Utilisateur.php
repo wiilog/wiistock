@@ -116,9 +116,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $mobileLoginKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="requester")
      */
-    private $manutentions;
+    private $handlings;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="receiver")
@@ -229,6 +229,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $pageLengthForArrivage = 100;
 
     /**
+     * @var array|null
+     * @ORM\Column(type="json")
+     */
+    private $lastDispatchDeliveryNoteData;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $phone;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
      */
     private $dropzone;
@@ -266,7 +278,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->manutentions = new ArrayCollection();
+        $this->handlings = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
         $this->arrivagesDestinataire = new ArrayCollection();
@@ -286,6 +298,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->litigesDeclarant = new ArrayCollection();
         $this->secondaryEmails = [];
+        $this->lastDispatchDeliveryNoteData = [];
     }
 
     public function getId()
@@ -572,30 +585,30 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Manutention[]
+     * @return Collection|Handling[]
      */
-    public function getManutentions(): Collection
+    public function getHandlings(): Collection
     {
-        return $this->manutentions;
+        return $this->handlings;
     }
 
-    public function addManutention(Manutention $manutention): self
+    public function addHandling(Handling $handling): self
     {
-        if (!$this->manutentions->contains($manutention)) {
-            $this->manutentions[] = $manutention;
-            $manutention->setDemandeur($this);
+        if (!$this->handlings->contains($handling)) {
+            $this->handlings[] = $handling;
+            $handling->setRequester($this);
         }
 
         return $this;
     }
 
-    public function removeManutention(Manutention $manutention): self
+    public function removeHandling(Handling $handling): self
     {
-        if ($this->manutentions->contains($manutention)) {
-            $this->manutentions->removeElement($manutention);
+        if ($this->handlings->contains($handling)) {
+            $this->handlings->removeElement($handling);
             // set the owning side to null (unless already changed)
-            if ($manutention->getDemandeur() === $this) {
-                $manutention->setDemandeur(null);
+            if ($handling->getRequester() === $this) {
+                $handling->setRequester(null);
             }
         }
 
@@ -1381,6 +1394,38 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     public function setMobileLoginKey(string $mobileLoginKey): self {
         $this->mobileLoginKey = $mobileLoginKey;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getLastDispatchDeliveryNoteData(): array {
+        return $this->lastDispatchDeliveryNoteData ?? [];
+    }
+
+    /**
+     * @param array|null $lastDispatchDeliveryNoteData
+     * @return self
+     */
+    public function setLastDispatchDeliveryNoteData(array $lastDispatchDeliveryNoteData): self {
+        $this->lastDispatchDeliveryNoteData = $lastDispatchDeliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPhone(): ?string {
+        return $this->phone;
+    }
+
+    /**
+     * @param string|null $phone
+     * @return self
+     */
+    public function setPhone(?string $phone): self {
+        $this->phone = $phone;
         return $this;
     }
 

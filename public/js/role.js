@@ -19,26 +19,14 @@ let tableRoles = initDataTable('tableRoles', tableRolesConfig);
 let modalNewRole = $("#modalNewRole");
 let submitNewRole = $("#submitNewRole");
 let urlNewRole = Routing.generate('role_new', true);
-InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayErrorExistingRole, false);
+InitModal(modalNewRole, submitNewRole, urlNewRole, {tables: [tableRoles], keepModal: false});
 
 let modalEditRole = $('#modalEditRole');
 let submitEditRole = $('#submitEditRole');
 let urlEditRole = Routing.generate('role_edit', true);
-InitialiserModal(modalEditRole, submitEditRole, urlEditRole, tableRoles, displayAlertRole);
+InitModal(modalEditRole, submitEditRole, urlEditRole, {tables: [tableRoles]});
 
 let ModalDeleteRole = $("#modalDeleteRole");
 let SubmitDeleteRole = $("#submitDeleteRole");
 let urlDeleteRole = Routing.generate('role_delete', true)
-InitialiserModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, tableRoles);
-
-function displayErrorExistingRole(data) {
-    let modal = $("#modalNewRole");
-    let msg = 'Ce nom de rôle existe déjà. Veuillez en choisir un autre.';
-    displayError(modal, msg, data);
-}
-
-function displayAlertRole(data) {
-    if (data) {
-       alertSuccessMsg('Le rôle "' + data + '" a bien été mis à jour. Veuillez rafraîchir la page si nécessaire.', false);
-    }
-}
+InitModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, {tables: [tableRoles]});

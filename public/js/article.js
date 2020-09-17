@@ -64,31 +64,38 @@ function init() {
     let $modalEditArticle = $("#modalEditArticle");
     let $submitEditArticle = $("#submitEditArticle");
     let urlEditArticle = Routing.generate('article_edit', true);
-    InitialiserModal($modalEditArticle, $submitEditArticle, urlEditArticle, tableArticle, (data) => {
-        if (data && data.success) {
-            $modalEditArticle.modal('hide');
-        }
-    }, false);
+    InitModal(
+        $modalEditArticle,
+        $submitEditArticle,
+        urlEditArticle,
+        {
+            tables: [tableArticle],
+            keepModal: true,
+            success: (data) => {
+                if (data && data.success) {
+                    $modalEditArticle.modal('hide');
+                }
+            }
+        });
 
-    let modalNewArticle = $("#modalNewArticle");
-    let submitNewArticle = $("#submitNewArticle");
+    let $modalNewArticle = $("#modalNewArticle");
+    let $submitNewArticle = $("#submitNewArticle");
     let urlNewArticle = Routing.generate('article_new', true);
-    InitialiserModal(modalNewArticle, submitNewArticle, urlNewArticle, tableArticle);
+    InitModal($modalNewArticle, $submitNewArticle, urlNewArticle, { tables: [tableArticle] });
 
-    let modalDeleteArticle = $("#modalDeleteArticle");
-    let submitDeleteArticle = $("#submitDeleteArticle");
+    let $modalDeleteArticle = $("#modalDeleteArticle");
+    let $submitDeleteArticle = $("#submitDeleteArticle");
     let urlDeleteArticle = Routing.generate('article_delete', true);
-    InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+    InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, { tables: [tableArticle] });
 
     let modalColumnVisible = $('#modalColumnVisible');
     let submitColumnVisible = $('#submitColumnVisible');
     let urlColumnVisible = Routing.generate('save_column_visible_for_article', true);
-    InitialiserModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+    InitModal(modalColumnVisible, submitColumnVisible, urlColumnVisible);
 
     tableArticle.on('responsive-resize', function () {
         resizeTable();
     });
-
 }
 function resizeTable() {
     tableArticle
@@ -117,11 +124,11 @@ function loadAndDisplayInfos(select) {
 }
 
 let getArticleFournisseur = function () {
-    xhttp = new XMLHttpRequest();
+    let xhttp = new XMLHttpRequest();
     let $articleFourn = $('#newContent');
     let modalfooter = $('#modalNewArticle').find('.modal-footer');
     xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
+        if (this.readyState === 4 && this.status === 200) {
             data = JSON.parse(this.responseText);
 
             if (data.content) {
@@ -137,9 +144,9 @@ let getArticleFournisseur = function () {
             }
         }
     }
-    path = Routing.generate('ajax_article_new_content', true)
+    let path = Routing.generate('ajax_article_new_content', true)
     let data = {};
-    $('#newContent').html('');
+    $articleFourn.html('');
     data['referenceArticle'] = $('#referenceCEA').val();
     data['fournisseur'] = $('#fournisseurID').val();
     $articleFourn.html('')
@@ -165,10 +172,10 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     if (select.val()) {
         let fournisseur = $('#fournisseur');
         let modalfooter = $('#modalNewArticle').find('.modal-footer');
-        xhttp = new XMLHttpRequest();
+        let xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                data = JSON.parse(this.responseText);
+            if (this.readyState === 4 && this.status === 200) {
+                let data = JSON.parse(this.responseText);
                 if (data === false) {
                     $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
                 } else {
@@ -178,14 +185,14 @@ let ajaxGetFournisseurByRefArticle = function (select) {
                 }
             }
         };
-        path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        let path = Routing.generate('ajax_fournisseur_by_refarticle', true)
         $('#newContent').html('');
         fournisseur.addClass('d-none');
         modalfooter.addClass('d-none')
         let refArticleId = select.val();
         let json = {};
         json['refArticle'] = refArticleId;
-        Json = JSON.stringify(json);
+        let Json = JSON.stringify(json);
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     }
@@ -224,7 +231,7 @@ function saveRapidSearch() {
         recherches: searchesWanted
     };
     let json = JSON.stringify(params);
-    $.post(Routing.generate('update_user_searches_for_article', true), json, function (data) {
+    $.post(Routing.generate('update_user_searches_for_article', true), json, function () {
         $("#modalRapidSearch").find('.close').click();
         tableArticle.search(tableArticle.search()).draw();
     });

@@ -44,7 +44,7 @@
 </div>
 
 <div class="row champsLibresBlock">
-    {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+    {% include 'champ_libre/freeFieldsViewing.html.twig' with {
         freeFields: champsLibres,
         freeFieldValues: mvt.freeFields,
         colType: 'col-12',
@@ -64,7 +64,7 @@
         <div>
             {% include 'attachment/attachment.html.twig' with {
                 'isNew': false,
-                attachements: mvt.attachements
+                attachments: mvt.attachments
             } %}
         </div>
     </div>
