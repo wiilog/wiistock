@@ -229,6 +229,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $pageLengthForArrivage = 100;
 
     /**
+     * @var array|null
+     * @ORM\Column(type="json")
+     */
+    private $lastDispatchDeliveryNoteData;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $phone;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
      */
     private $dropzone;
@@ -286,6 +298,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->litigesDeclarant = new ArrayCollection();
         $this->secondaryEmails = [];
+        $this->lastDispatchDeliveryNoteData = [];
     }
 
     public function getId()
@@ -1381,6 +1394,38 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     public function setMobileLoginKey(string $mobileLoginKey): self {
         $this->mobileLoginKey = $mobileLoginKey;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getLastDispatchDeliveryNoteData(): array {
+        return $this->lastDispatchDeliveryNoteData ?? [];
+    }
+
+    /**
+     * @param array|null $lastDispatchDeliveryNoteData
+     * @return self
+     */
+    public function setLastDispatchDeliveryNoteData(array $lastDispatchDeliveryNoteData): self {
+        $this->lastDispatchDeliveryNoteData = $lastDispatchDeliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPhone(): ?string {
+        return $this->phone;
+    }
+
+    /**
+     * @param string|null $phone
+     * @return self
+     */
+    public function setPhone(?string $phone): self {
+        $this->phone = $phone;
         return $this;
     }
 

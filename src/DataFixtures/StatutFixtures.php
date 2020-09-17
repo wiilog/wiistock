@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Dispatch;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -16,7 +15,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
-use App\Entity\Handling;
 use App\Entity\Statut;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;

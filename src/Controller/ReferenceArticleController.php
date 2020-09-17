@@ -1073,7 +1073,6 @@ class ReferenceArticleController extends AbstractController
                     'editChampLibre' => $editChampLibre,
 					'byRef' => $byRef && ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
 				];
-                dump($json);
             } else {
                 $json = false;
             }

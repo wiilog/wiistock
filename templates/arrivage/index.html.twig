@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Traçabilité | {{ 'arrivage.flux - arrivages'|trans }}{% endblock %}
+{% block title_tooltip %}Traçabilité | Flux - arrivages{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
@@ -88,9 +89,6 @@
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
     {% include "arrivage/modalListColis.html.twig" %}
     {% include "arrivage/modalColumnVisible.html.twig" with { champs: champs }%}
-    <input hidden id="noArrTranslation" value="{{ "arrivage.n° d'arrivage"|trans }}">
-    <input hidden id="acheteursTranslation" value="{{ "arrivage.acheteurs"|trans }}">
-    <input hidden id="destinataireTranslation" value="{{ "arrivage.destinataire"|trans }}">
 {% endblock %}
 
 {% block javascripts %}

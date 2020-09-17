@@ -1,5 +1,3 @@
-{% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
-
 <div class="form-group">
     <label>Type*</label>
     <select name="type"
@@ -51,12 +49,13 @@
            min="{{ 'now' | date('Y-m-d') }}">
 </div>
 
+{% set validationDate = handling.validationDate ? handling.validationDate|date('Y-m-d\\TH:i') : '' %}
 <div class="form-group">
     <label for="desired-date">Date de réalisation</label>
     <input class="form-control needed"
            type="datetime-local"
            value="{{ validationDate }}"
-           name="validation-date" disabled>
+           disabled>
 </div>
 
 <div class="form-group needed">
@@ -72,7 +71,7 @@
 {% if handling.type is not null and handling.type.champsLibres.count > 0 %}
     <div class="form-group col-12 blocVisible d-block">
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: handling.type.champsLibres,
                 freeFieldValues: handling.freeFields,
                 colType: 'col-12',

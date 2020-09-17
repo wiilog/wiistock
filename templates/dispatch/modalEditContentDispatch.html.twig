@@ -34,7 +34,7 @@
 </div>
 <div class="form-group">
     <label for="demandeur">Demandeur*</label>
-    <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="demandeur">
+    <select class="demandeur form-control data needed ajax-autocomplete-user-edit w-100" name="requester">
         <option selected value="{{ dispatch.requester.id }}">{{ dispatch.requester.username }}</option>
         {% for utilisateur in utilisateurs %}
             <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
@@ -45,51 +45,63 @@
            data-username="{{ app.user.username }}"
            data-id="{{ app.user.id }}"/>
 </div>
-<div class="form-group">
-    <label for="destinataire">Destinataire</label>
-    <select class="destinataire form-control data ajax-autocomplete-user-edit w-100" name="destinataire">
-        {% if dispatch.receiver is not null %}
-            <option value="{{ dispatch.receiver.id }}">{{ dispatch.receiver.username }}</option>
-        {% else %}
-            <option value=""></option>
-        {% endif %}
-    </select>
-</div>
-<div class="form-group">
-    <label>Echéance</label>
-    <div class="input-group w-100">
-        <div class="input-group-prepend">
-            <span class="input-group-text w-50px">Du</span>
-        </div>
-        <input type="date"
-               class="form-control data"
-               name="startDate"
-               value="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
-               title="Date d'échéance min"
-               placeholder="jj/mm/aaaa"/>
-        <div class="input-group-prepend">
-            <span class="input-group-text w-50px">Au</span>
-        </div>
-        <input type="date"
-               class="form-control data"
-               name="endDate"
-               value="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
-               title="Date d'échéance max"
-               placeholder="jj/mm/aaaa"/>
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label for="destinataire">Destinataire{{ required ? '*' }}</label>
+        <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ required ? 'needed' }}" name="receiver">
+            {% if dispatch.receiver is not null %}
+                <option value="{{ dispatch.receiver.id }}" selected>{{ dispatch.receiver.username }}</option>
+            {% else %}
+                <option value=""></option>
+            {% endif %}
+        </select>
     </div>
-</div>
-<div class="form-group">
-    <label>Urgence</label>
-    <div class="w-100">
-        <label class="switch mt-2">
-            <input class="checkbox"
-                   name="urgent"
-                {{ dispatch.urgent ? 'checked' }}
-                   type="checkbox"/>
-            <span class="slider round"></span>
-        </label>
+{% endif %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label>Echéance{{ required ? '*' }}</label>
+        <div class="input-group w-100">
+            <div class="input-group-prepend">
+                <span class="input-group-text w-50px">Du</span>
+            </div>
+            <input type="date"
+                   class="form-control data {{ required ? 'needed' }}"
+                   name="startDate"
+                   value="{{ dispatch.startDate ? dispatch.startDate|date('Y-m-d') }}"
+                   title="Date d'échéance min"
+                   placeholder="jj/mm/aaaa"/>
+            <div class="input-group-prepend">
+                <span class="input-group-text w-50px">Au</span>
+            </div>
+            <input type="date"
+                   class="form-control data {{ required ? 'needed' }}"
+                   name="endDate"
+                   value="{{ dispatch.endDate ? dispatch.endDate|date('Y-m-d') }}"
+                   title="Date d'échéance max"
+                   placeholder="jj/mm/aaaa"/>
+        </div>
     </div>
-</div>
+{% endif %}
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label>Urgence{{ required ? '*' }}</label>
+        <div class="w-100">
+            <label class="switch mt-2">
+                <input class="checkbox {{ required ? 'needed' }}"
+                       name="urgent"
+                       {{ dispatch.urgent ? 'checked' }}
+                       type="checkbox"/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+{% endif %}
 <div class="form-group w-100">
     <label for="prise" title="Emplacement de prise">{{ 'acheminement.emplacement prise'|trans }}*</label>
     <select name="prise" class="form-control data ajax-autocompleteEmplacement-edit d-block needed location-prise" id="prise">
@@ -111,7 +123,7 @@
 {% if dispatch.type is not null and dispatch.type.champsLibres.count > 0 %}
     <div class="form-group col-12 blocVisible d-block">
         <div class="row">
-            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                 freeFields: dispatch.type.champsLibres,
                 freeFieldValues: dispatch.freeFields,
                 colType: 'col-12',
@@ -121,15 +133,37 @@
         </div>
     </div>
 {% endif %}
-<div class="form-group">
-    <label for="commentaire">Commentaire</label>
-    <input id='commentaire' class="commentaire form-control data" name="commentaire" type="hidden" value="{{ dispatch.commentaire }}">
-    <div class="editor-container-new" id="editor-container-new" value="{{ dispatch.commentaire }}">{{ dispatch.commentaire|raw }}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <label for="commentaire">Commentaire{{ required ? '*' }}</label>
+        <input id='commentaire'
+               class="commentaire form-control data {{ required ? 'needed' }}"
+               name="commentaire"
+               type="hidden"
+               value="{{ dispatch.commentaire }}">
+        <div class="editor-container-edit"
+             id="editor-container-edit"
+             value="{{ dispatch.commentaire }}">
+            {{ dispatch.commentaire|raw }}
+        </div>
     </div>
-</div>
-<div class="form-group">
-    <div>
-        {% include 'attachment/attachment.html.twig' with {'isNew': false} %}
+{% endif %}
+
+{% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
+{% if fieldsParam|isFieldRequired(fieldCode, 'displayed') %}
+    {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    <div class="form-group">
+        <div>
+            {% include 'attachment/attachment.html.twig' with {
+                'isNew': false,
+                'required': required
+            } %}
+        </div>
     </div>
-</div>
+{% else %}
+    <input type="hidden" name="isAttachmentForm" value="1"/>
+{% endif %}
 

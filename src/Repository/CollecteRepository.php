@@ -191,7 +191,8 @@ class CollecteRepository extends EntityRepository
 
 		$query = $qb->getQuery();
 
-		return ['data' => $query ? $query->getResult() : null ,
+		return [
+		    'data' => $query ? $query->getResult() : null ,
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];

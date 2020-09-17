@@ -61,4 +61,5 @@ class AppExtension extends AbstractExtension
 	public function isFieldRequiredFunction(array $config, string $fieldName, string $action): bool {
         return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
     }
+
 }

@@ -58,7 +58,7 @@
                 <div class="form-group col-12 blocVisible d-block" id='typeContentNew'>
                     {% for type in typeChampsLibres %}
                         <div class="d-none row" id="{{ type.typeId }}-new">
-                            {% include 'champ_libre/freeFieldsVizualisation.html.twig' with {
+                            {% include 'champ_libre/freeFieldsViewing.html.twig' with {
                                 freeFields: type.champsLibres,
                                 freeFieldValues: [],
                                 colType: 'col-12',
@@ -76,14 +76,11 @@
                     </div>
                 </div>
             </div>
-            <div class="error-msg p-4"></div>
+            <div class="error-msg"></div>
             <div class="modal-footer">
                 <div type="div" class="btn" data-dismiss="modal">Annuler</div>
-                <div id="submitNewCollecte" type="div"
-                     class="btn btn-success" onclick="setCommentaire('.editor-container')">Enregistrer
-                </div>
+                <div id="submitNewCollecte" type="div" class="btn btn-success">Enregistrer</div>
             </div>
-
         </div>
     </div>
 </form>

@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 
 use App\Entity\Nature;
@@ -19,7 +20,6 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Repository\PieceJointeRepository;
 use App\Service\AttachmentService;
 use App\Service\FreeFieldService;
 use App\Service\PackService;
@@ -56,15 +56,11 @@ Class DispatchController extends AbstractController
      */
     private $userService;
 
-    private $pieceJointeRepository;
-
     private $attachmentService;
 
     public function __construct(UserService $userService,
-                                PieceJointeRepository $pieceJointeRepository,
                                 AttachmentService $attachmentService) {
         $this->userService = $userService;
-        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->attachmentService = $attachmentService;
     }
 
@@ -83,13 +79,16 @@ Class DispatchController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(ChampLibre::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         return $this->render('dispatch/index.html.twig', [
 			'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true),
             'types' => $types,
 			'modalNewConfig' => [
+                'fieldsParam' => $fieldsParam,
                 'dispatchDefaultStatus' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPATCH),
                 'typeChampsLibres' => array_map(function (Type $type) use ($champLibreRepository) {
                     $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
@@ -153,14 +152,22 @@ Class DispatchController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
             $dispatch = new Dispatch();
             $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+
             $fileBag = $request->files->count() > 0 ? $request->files : null;
             $locationTake = $emplacementRepository->find($post->get('prise'));
             $locationDrop = $emplacementRepository->find($post->get('depose'));
 
-            $startDate = $dispatchService->createDateFromStr($post->get('startDate'));
-            $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
+            $comment = $post->get('commentaire');
+            $startDateRaw = $post->get('startDate');
+            $endDateRaw = $post->get('endDate');
+            $receiver = $post->get('receiver');
+            $emergency = $post->get('emergency');
+
+            $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
+            $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
             $number = $dispatchService->createDispatchNumber($entityManager, $date);
 
             if ($startDate && $endDate && $startDate > $endDate) {
@@ -172,17 +179,32 @@ Class DispatchController extends AbstractController
 
             $dispatch
                 ->setCreationDate($date)
-                ->setStartDate($startDate ?: null)
-                ->setEndDate($endDate ?: null)
-                ->setUrgent($post->getBoolean('urgent'))
                 ->setStatut($statutRepository->find($post->get('statut')))
                 ->setType($typeRepository->find($post->get('type')))
-                ->setRequester($utilisateurRepository->find($post->get('demandeur')) ?? null)
-                ->setReceiver($utilisateurRepository->find($post->get('destinataire')) ?? null)
+                ->setRequester($utilisateurRepository->find($post->get('requester')))
                 ->setLocationFrom($locationTake)
                 ->setLocationTo($locationDrop)
-                ->setCommentaire($post->get('commentaire') ?? null)
                 ->setNumber($number);
+
+            if (!empty($comment)) {
+                $dispatch->setCommentaire($comment);
+            }
+
+            if (!empty($startDate)) {
+                $dispatch->setStartDate($startDate);
+            }
+
+            if (!empty($endDate)) {
+                $dispatch->setEndDate($endDate);
+            }
+
+            if (!empty($receiver)) {
+                $dispatch->setReceiver($utilisateurRepository->find($receiver) ?? null);
+            }
+
+            if (!empty($emergency)) {
+                $dispatch->setUrgent($post->getBoolean('urgent'));
+            }
 
             $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
@@ -204,7 +226,9 @@ Class DispatchController extends AbstractController
             $entityManager->persist($dispatch);
             $entityManager->flush();
 
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            if (!empty($receiver)) {
+                $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            }
 
             return new JsonResponse([
                 'success' => true,
@@ -315,8 +339,10 @@ Class DispatchController extends AbstractController
         $post = $request->request;
         $dispatch = $dispatchRepository->find($post->get('id'));
 
-        $startDate = $dispatchService->createDateFromStr($post->get('startDate'));
-        $endDate = $dispatchService->createDateFromStr($post->get('endDate'));
+        $startDateRaw = $post->get('startDate');
+        $endDateRaw = $post->get('endDate');
+        $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
+        $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
         $locationTake = $emplacementRepository->find($post->get('prise'));
         $locationDrop = $emplacementRepository->find($post->get('depose'));
@@ -337,11 +363,16 @@ Class DispatchController extends AbstractController
             ]);
         }
 
+        $receiverData = $post->get('receiver');
+        $requesterData = $post->get('requester');
+        $receiver = $receiverData ? $utilisateurRepository->find($receiverData) : null;
+        $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
+
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
-            ->setRequester($utilisateurRepository->find($post->get('demandeur')))
-            ->setReceiver($utilisateurRepository->find($post->get('destinataire')))
+            ->setRequester($requester)
+            ->setReceiver($receiver)
             ->setUrgent($post->getBoolean('urgent'))
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
@@ -398,13 +429,18 @@ Class DispatchController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $pieceJointeRepository = $entityManager->getRepository(PieceJointe::class);
+
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
             $dispatch = $dispatchRepository->find($data['id']);
             $json = $this->renderView('dispatch/modalEditContentDispatch.html.twig', [
                 'dispatch' => $dispatch,
+                'fieldsParam' => $fieldsParam,
                 'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 'notTreatedStatus' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, true, true),
-                'attachments' => $this->pieceJointeRepository->findBy(['dispatch' => $dispatch])
+                'attachments' => $pieceJointeRepository->findBy(['dispatch' => $dispatch])
             ]);
 
             return new JsonResponse($json);
@@ -702,5 +738,135 @@ Class DispatchController extends AbstractController
             'success' => true,
             'packsCounter' => $dispatch->getDispatchPacks()->count()
         ]);
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/api-delivery-note",
+     *     name="api_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET",
+     *     condition="request.isXmlHttpRequest()"
+     * )
+     * @param Request $request
+     * @param TranslatorInterface $translator
+     * @param Dispatch $dispatch
+     * @return JsonResponse
+     */
+    public function apiDeliveryNote(Request $request,
+                                    TranslatorInterface $translator,
+                                    Dispatch $dispatch): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+        $maxNumberOfPacks = 7;
+
+        if ($dispatch->getDispatchPacks()->count() === 0) {
+            $errorMessage = $translator->trans('acheminement.Des colis sont nécessaires pour générer un bon de livraison') . '.';
+            return new JsonResponse('
+                <div class="text-danger">' . $errorMessage . '</div>
+            ');
+        }
+
+        // TODO mettre un champ json avec toutes les data dans le dispatch
+        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
+        $savedData = $loggedUser->getLastDispatchDeliveryNoteData();
+
+        $deliveryNoteData = array_reduce(
+            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            function(array $carry, string $name) use ($request, $savedData) {
+                if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])
+                    && Dispatch::DELIVERY_NOTE_DATA[$name]) {
+                    $carry[$name] = $savedData[$name] ?? null;
+                }
+
+                return $carry;
+            },
+            []
+        );
+
+        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
+        $deliveryNoteData['projectNumber'] = $dispatch->getProjectNumber();
+        $deliveryNoteData['username'] = $loggedUser->getUsername();
+        $deliveryNoteData['userPhone'] = $loggedUser->getPhone();
+        $deliveryNoteData['packs'] = array_slice($dispatch->getDispatchPacks()->toArray(), 0, $maxNumberOfPacks);
+
+        // TODO get real values
+        $deliveryNoteData['dispatchEmergency'] = '24h';
+        // TODO get database values
+        $deliveryNoteData['dispatchEmergencyValues'] = ['24h', '48h', '72h'];
+
+        $json = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', $deliveryNoteData);
+
+        return new JsonResponse($json);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="POST"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function postDeliveryNote(EntityManagerInterface $entityManager,
+                                     Dispatch $dispatch,
+                                     Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+
+        $deliveryNoteData = array_reduce(
+            array_keys(Dispatch::DELIVERY_NOTE_DATA),
+            function(array $carry, string $name) use ($data) {
+                if (isset(Dispatch::DELIVERY_NOTE_DATA[$name])) {
+                    $carry[$name] = $data[$name] ?? null;
+                }
+
+                return $carry;
+            },
+            []
+        );
+        $deliveryNoteData['deliveryNumber'] = $dispatch->getNumber();
+
+        // TODO mettre un champ json avec toutes les data dans le dispatch
+        // + ne sauvegarder uniquement les valeurs à true dans l'utilisateur
+        $loggedUser->setLastDispatchDeliveryNoteData($deliveryNoteData);
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+
+    }
+
+    /**
+     * @Route(
+     *     "/{dispatch}/delivery-note",
+     *     name="print_delivery_note_dispatch",
+     *     options={"expose"=true},
+     *     methods="GET"
+     * )
+     * @param EntityManagerInterface $entityManager
+     * @param Dispatch $dispatch
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function printDeliveryNote(EntityManagerInterface $entityManager,
+                                      Dispatch $dispatch,
+                                      Request $request): JsonResponse {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        // TODO mettre le champ json dans le dispatch
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+
     }
 }

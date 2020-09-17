@@ -34,7 +34,11 @@ class FieldsParamController extends AbstractController
         }
 
         return $this->render('fields_param/index.html.twig', [
-            'tables' => [FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::ENTITY_CODE_RECEPTION]
+            'tables' => [
+                FieldsParam::ENTITY_CODE_ARRIVAGE,
+                FieldsParam::ENTITY_CODE_RECEPTION,
+                FieldsParam::ENTITY_CODE_DISPATCH
+            ]
         ]);
     }
 

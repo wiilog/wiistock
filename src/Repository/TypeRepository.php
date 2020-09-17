@@ -131,9 +131,9 @@ class TypeRepository extends EntityRepository
             ['class' => Litige::class, 'where' => 'item.type = :id'],
             ['class' => Reception::class, 'where' => 'item.type = :id'],
             ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
-            ['class' => Utilisateur::class, 'where' => 'type = :id', 'join' => ['item.deliveryTypes', 'deliveryType']],
-            ['class' => Utilisateur::class, 'where' => 'type = :id', 'join' => ['item.dispatchTypes', 'dispatchType']],
-            ['class' => Utilisateur::class, 'where' => 'type = :id', 'join' => ['item.handlingTypes', 'handlingType']]
+            ['class' => Utilisateur::class, 'where' => 'deliveryType = :id', 'join' => ['item.deliveryTypes', 'deliveryType']],
+            ['class' => Utilisateur::class, 'where' => 'dispatchType = :id', 'join' => ['item.dispatchTypes', 'dispatchType']],
+            ['class' => Utilisateur::class, 'where' => 'handlingType = :id', 'join' => ['item.handlingTypes', 'handlingType']]
         ];
 
         $resultsCount = array_map(function (array $table) use ($entityManager, $typeId) {

@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Demande | {{ 'acheminement.Acheminement'|trans }}{% endblock %}
+{% block title_tooltip %}Demande | Acheminement{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersAcheminements.html.twig' with {
@@ -13,7 +14,7 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                     <button type="button"
                             data-toggle="modal"
                             data-target="#modalNewDispatch"

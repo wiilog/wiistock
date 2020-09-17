@@ -42,7 +42,7 @@ let tableMvtConfig = {
         {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'origin', 'name': 'origin', 'title': 'Issu de', className: 'noVis', orderable: false},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "colis", 'name': 'colis', 'title': $('#colis').attr('placeholder')},
+        {"data": "colis", 'name': 'colis', 'title': 'colis.colis', translated: true},
         {"data": "reference", 'name': 'reference', 'title': 'Référence'},
         {"data": "label", 'name': 'label', 'title': 'Libellé'},
         {"data": "quantity", 'name': 'quantity', 'title': 'Quantité'},
@@ -50,9 +50,6 @@ let tableMvtConfig = {
         {"data": 'type', 'name': 'type', 'title': 'Type'},
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
     ],
-    headerCallback: function(thead) {
-        $(thead).find('th').eq(3).attr('title', "Colis");
-    },
 };
 let tableMvt = initDataTable('tableMvts', tableMvtConfig);
 
