@@ -24,6 +24,8 @@
                                 onclick='initNewDispatchEditor("#modalNewDispatch")'>
                             <span class="fa fa-plus mr-2"></span><span title="nouvelle demande">{{ 'acheminement.nouvelle demande'|trans }}</span>
                         </button>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
                         <button type="button"
                                 class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"

@@ -249,14 +249,25 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_receiver.username AS receiver')
             ->addSelect('join_locationFrom.label AS locationFrom')
             ->addSelect('join_locationTo.label AS locationTo')
-            /*->addSelect('COUNT(join_dispatchPacks.id) AS nbPacks')*/
+            ->addSelect('join_dispatchPack_pack.code AS packCode')
+            ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
+            ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
+            ->addSelect('join_dispatchPack_lastTracking.datetime AS lastMovement')
+            ->addSelect('join_dispatchPack_lastTracking_location.label AS lastLocation')
+            ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
             ->addSelect('join_status.nom AS status')
             ->addSelect('dispatch.urgent AS urgent')
             ->addSelect('dispatch.freeFields')
 
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
 
-            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPacks')
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
+            ->leftJoin('join_dispatchPack.pack', 'join_dispatchPack_pack')
+            ->leftJoin('join_dispatchPack_pack.nature', 'join_dispatchPack_nature')
+            ->leftJoin('join_dispatchPack_pack.lastTracking', 'join_dispatchPack_lastTracking')
+            ->leftJoin('join_dispatchPack_lastTracking.emplacement', 'join_dispatchPack_lastTracking_location')
+            ->leftJoin('join_dispatchPack_lastTracking.operateur', 'join_dispatchPack_lastTracking_operator')
+
             ->leftJoin('dispatch.type', 'join_type')
             ->leftJoin('dispatch.requester', 'join_requester')
             ->leftJoin('dispatch.receiver', 'join_receiver')

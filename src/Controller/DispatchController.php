@@ -785,17 +785,23 @@ Class DispatchController extends AbstractController
 
             $csvHeader = array_merge(
                 [
-                'Numéro demande',
-                'Date de création',
-                'Date de validation',
-                'Type',
-                'Demandeur',
-                'Destinataire',
-                $translator->trans('acheminement.emplacement prise'),
-                $translator->trans('acheminement.emplacement dépose'),
-                'Nb '.$translator->trans('colis.colis'),
-                'Statut',
-                'Urgence',
+                    'Numéro demande',
+                    'Date de création',
+                    'Date de validation',
+                    'Type',
+                    'Demandeur',
+                    'Destinataire',
+                    $translator->trans('acheminement.emplacement prise'),
+                    $translator->trans('acheminement.emplacement dépose'),
+                    'Nb ' . $translator->trans('colis.colis'),
+                    'Statut',
+                    'Urgence',
+                    $translator->trans('natures.nature'),
+                    'Code',
+                    $translator->trans('acheminement.Quantité à acheminer'),
+                    'Date dernier mouvement',
+                    'Dernier emplacement',
+                    'Opérateur'
                 ],
                 $freeFieldsHeader
             );
@@ -817,6 +823,13 @@ Class DispatchController extends AbstractController
                     $row[] = $dispatch['nbPacks'] ?? '';
                     $row[] = $dispatch['status'] ?? '';
                     $row[] = $dispatch['urgent'] ? 'oui' : 'non';
+                    $row[] = $dispatch['packNatureLabel'] ?? '';
+                    $row[] = $dispatch['packCode'] ?? '';
+                    $row[] = $dispatch['packQuantity'] ?? '';
+                    $row[] = $dispatch['lastMovement'] ? $dispatch['lastMovement']->format('Y/m/d H:i') : '';
+                    $row[] = $dispatch['lastLocation'] ?? '';
+                    $row[] = $dispatch['operator'] ?? '';
+
                     foreach ($freeFieldsIds as $freeField) {
                         $row[] = $dispatch['freeFields'][$freeField] ?? "";
                     }
