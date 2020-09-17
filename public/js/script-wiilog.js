@@ -481,11 +481,27 @@ let toggleRequiredChampsLibres = function (select, require, $freeFieldContainer 
         require == 'create' ? $('#typeContentNew') :
             $('#typeContentEdit')
     );
+    const typeId = select.val();
     let params = {};
-    if (select.val()) {
-        bloc.find('.data').removeClass('needed');
+    if (typeId) {
+        bloc
+            .find('.data')
+            .removeClass('needed');
+
+        if (require === 'create') { // we don't save free field which are hidden
+            bloc
+                .find('.data')
+                .addClass('free-field-data')
+                .removeClass('data')
+
+            bloc
+                .find(`#${typeId}-new .free-field-data`)
+                .removeClass('free-field-data')
+                .addClass('data');
+        }
+
         bloc.find('span.is-required-label').remove();
-        params[require] = select.val();
+        params[require] = typeId;
         let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
