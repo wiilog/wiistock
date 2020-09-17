@@ -358,7 +358,7 @@
     <div class="col-12">
         <div class="row">
             <label class="col-3">Numéro</label>
-            <label class="col-3">Quantité dans le colis</label>
+            <label class="col-3" title="Quantité à acheminer">{{ 'acheminement.Quantité à acheminer' | trans }}</label>
             <label class="col-6">Commentaire</label>
         </div>
         {% for dispatchPack in packs %}
@@ -373,10 +373,10 @@
                            disabled/>
                 </div>
                 <div class="col-3">
-                    <label class="sr-only">Quantité dans le colis / Quantity in package</label>
+                    <label class="sr-only">{{ 'acheminement.Quantité à acheminer' | trans }} / Quantity in package</label>
                     <input class="form-control data needed"
                            name="quantity"
-                           title="Quantité dans le colis / Quantity in package"
+                           title="{{ 'acheminement.Quantité à acheminer' | trans }} / Quantity in package"
                            type="number"
                            step="1"
                            min="1"

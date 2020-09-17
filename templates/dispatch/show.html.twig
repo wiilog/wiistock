@@ -23,15 +23,16 @@
             <div class="col-12">
                 <div class="wii-page-card">
                     <div class="row mb-2">
-                        <h5 class="col-auto h5">{{ 'colis.Liste des colis'|trans }}</h5>
+                        <h5 class="col-auto h5" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</h5>
                     </div>
                     {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                         <div class="row wii-page-card-header">
                             <div class="col-auto ml-auto">
                                 <button onclick="openNewPackModal()"
-                                        class="btn btn-primary">
+                                        class="btn btn-primary"
+                                        title="Ajouter un colis">
                                     <i class="fa fa-plus mr-2"></i>
-                                    <span title="Ajouter un colis">{{ 'colis.Ajouter un colis'|trans }}</span>
+                                    {{ 'colis.Ajouter un colis'|trans }}
                                 </button>
                             </div>
                         </div>
