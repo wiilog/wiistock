@@ -16,6 +16,56 @@ class Dispatch extends FreeFieldEntity
 
     const PREFIX_NUMBER = 'A-';
 
+
+    /**
+     * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
+     */
+    const DELIVERY_NOTE_DATA = [
+        'consigner' => true,
+        'deliveryAddress' => false,
+        'deliveryNumber' => false,
+        'deliveryDate' => false,
+        'salesOrderNumber' => false,
+        'wayBill' => false,
+        'customerPONumber' => false,
+        'customerPODate' => false,
+        'respOrderNb' => false,
+        'projectNumber' => false,
+        'username' => false,
+        'userPhone' => false,
+        'userFax' => false,
+        'buyer' => false,
+        'buyerPhone' => false,
+        'buyerFax' => false,
+        'invoiceNumber' => false,
+        'soldNumber' => false,
+        'invoiceTo' => false,
+        'soldTo' => false,
+        'endUserNo' => false,
+        'deliverNo' => false,
+        'endUser' => false,
+        'deliverTo' => false,
+        'consigner2' => true,
+        'date' => false,
+        'notes' => true
+    ];
+    /**
+     * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
+     */
+    const WAYBILL_DATA = [
+        'carrier' => false,
+        'dispatchDate' => false,
+        'consigner' => false,
+        'receiver' => false,
+        'consignerUsername' => false,
+        'consignerEmail' => false,
+        'receiverUsername' => false,
+        'receiverEmail' => false,
+        'locationFrom' => true,
+        'locationTo' => true,
+        'notes' => true
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -85,6 +135,12 @@ class Dispatch extends FreeFieldEntity
     private $endDate;
 
     /**
+     * @var string|null
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $projectNumber;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
      * @ORM\JoinColumn(nullable=false)
      */
@@ -130,10 +186,24 @@ class Dispatch extends FreeFieldEntity
      */
     private $validationDate;
 
+    /**
+     * @var array|null
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $waybillData;
+
+    /**
+     * @var array|null
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $deliveryNoteData;
+
     public function __construct()
     {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
+        $this->waybillData = [];
+        $this->deliveryNoteData = [];
         $this->urgent = false;
     }
 
@@ -437,6 +507,54 @@ class Dispatch extends FreeFieldEntity
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getProjectNumber(): ?string {
+        return $this->projectNumber;
+    }
+
+    /**
+     * @param string|null $projectNumber
+     * @return self
+     */
+    public function setProjectNumber(?string $projectNumber): self {
+        $this->projectNumber = $projectNumber;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWaybillData(): array {
+        return $this->waybillData ?? [];
+    }
+
+    /**
+     * @param array $waybillData
+     * @return self
+     */
+    public function setWaybillData(array $waybillData): self {
+        $this->waybillData = $waybillData;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDeliveryNoteData(): array {
+        return $this->deliveryNoteData;
+    }
+
+    /**
+     * @param array $deliveryNoteData
+     * @return self
+     */
+    public function setDeliveryNoteData(array $deliveryNoteData): self {
+        $this->deliveryNoteData = $deliveryNoteData;
         return $this;
     }
 

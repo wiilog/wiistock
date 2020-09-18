@@ -14,9 +14,9 @@ $(function () {
         },
         columns: [
             {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'nature', 'name': 'nature', 'title': $('#natureTranslation').val()},
+            {"data": 'nature', 'name': 'nature', 'title': 'natures.nature', translated: true},
             {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'quantity', 'name': 'code', 'title': $('#dispatchQuantityTranslation').val()},
+            {"data": 'quantity', 'name': 'code', 'title': 'acheminement.Quantité à acheminer', translated: true},
             {"data": 'lastMvtDate', 'name': 'lastMvtDate', 'title': 'Date dernier mouvement'},
             {"data": 'lastLocation', 'name': 'lastLocation', 'title': 'Dernier emplacement'},
             {"data": 'operator', 'name': 'operator', 'title': 'Opérateur'},
@@ -51,6 +51,16 @@ $(function () {
     let submitDeletePack = $('#submitDeletePack');
     let urlDeletePack = Routing.generate('dispatch_delete_pack', true);
     InitModal(modalDeletePack, submitDeletePack, urlDeletePack, {tables: [packTable]});
+
+    let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
+    let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
+    let urlPrintDeliveryNote = Routing.generate('print_delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
+    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote);
+
+    let $modalPrintWaybill = $('#modalPrintWaybill');
+    let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
+    let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
+    InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill);
 });
 
 function togglePackDetails(emptyDetails = false) {
@@ -189,4 +199,51 @@ function runDispatchPrint() {
                 window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
             }
         })
+}
+
+function openDeliveryNoteModal($button) {
+    const dispatchId = $button.data('dispatch-id');
+    $
+        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
+        .then((html) => {
+            const $modal = $('#modalPrintDeliveryNote');
+            const $modalBody = $modal.find('.modal-body');
+            $modalBody.html(html);
+            $modal.modal('show');
+        })
+}
+
+function openWaybillModal($button) {
+    const dispatchId = $button.data('dispatch-id');
+    $
+        .get(Routing.generate('api_dispatch_waybill', {dispatch: dispatchId}))
+        .then((html) => {
+            const $modal = $('#modalPrintWaybill');
+            const $modalBody = $modal.find('.modal-body');
+            $modalBody.html(html);
+            $modal.modal('show');
+        })
+}
+
+function copyTo($button, inputSourceName, inputTargetName) {
+    const $modal = $button.closest('.modal');
+    const $source = $modal.find(`[name="${inputSourceName}"]`);
+    const $target = $modal.find(`[name="${inputTargetName}"]`);
+    const valToCopy = $source.val();
+    if ($target.is('textarea')) {
+        $target.text(valToCopy);
+    }
+    else {
+        $target.val(valToCopy);
+    }
+}
+
+function reverseFields($button, inputName1, inputName2) {
+    const $modal = $button.closest('.modal');
+    const $field1 = $modal.find(`[name="${inputName1}"]`);
+    const $field2 = $modal.find(`[name="${inputName2}"]`);
+    const val1 = $field1.val();
+    const val2 = $field2.val();
+    $field1.val(val2);
+    $field2.val(val1);
 }

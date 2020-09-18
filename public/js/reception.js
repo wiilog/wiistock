@@ -32,7 +32,7 @@ $(function () {
             {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
             {"data": 'Numéro de commande', 'name': 'numCommande', 'title': 'Numéro commande'},
             {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Référence', 'name': 'reference', 'title': $('#noReception').val()},
+            {"data": 'Référence', 'name': 'reference', 'title': 'réception.n° de réception', translated: true},
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},

@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -18,8 +19,7 @@ use Doctrine\ORM\NoResultException;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters($params, $filters)
-    {
+    public function findByParamAndFilters($params, $filters) {
         $qb = $this->createQueryBuilder('a');
         $exprBuilder = $qb->expr();
 
@@ -222,6 +222,63 @@ class DispatchRepository extends EntityRepository
             ->andWhere('status.treated = 0')
             ->andWhere('type.id IN (:dispatchTypeIds)')
             ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds());
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param DateTime $dateMin
+     * @param DateTime $dateMax
+     * @return Dispatch[]
+     */
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax)
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.id')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.creationDate AS creationDate')
+            ->addSelect('dispatch.validationDate AS validationDate')
+            ->addSelect('join_type.label AS type')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_receiver.username AS receiver')
+            ->addSelect('join_locationFrom.label AS locationFrom')
+            ->addSelect('join_locationTo.label AS locationTo')
+            ->addSelect('join_dispatchPack_pack.code AS packCode')
+            ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
+            ->addSelect('join_dispatchPack_pack.quantity AS packQuantity')
+            ->addSelect('join_dispatchPack_lastTracking.datetime AS lastMovement')
+            ->addSelect('join_dispatchPack_lastTracking_location.label AS lastLocation')
+            ->addSelect('join_dispatchPack_lastTracking_operator.username AS operator')
+            ->addSelect('join_status.nom AS status')
+            ->addSelect('dispatch.urgent AS urgent')
+            ->addSelect('dispatch.freeFields')
+
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
+            ->leftJoin('join_dispatchPack.pack', 'join_dispatchPack_pack')
+            ->leftJoin('join_dispatchPack_pack.nature', 'join_dispatchPack_nature')
+            ->leftJoin('join_dispatchPack_pack.lastTracking', 'join_dispatchPack_lastTracking')
+            ->leftJoin('join_dispatchPack_lastTracking.emplacement', 'join_dispatchPack_lastTracking_location')
+            ->leftJoin('join_dispatchPack_lastTracking.operateur', 'join_dispatchPack_lastTracking_operator')
+
+            ->leftJoin('dispatch.type', 'join_type')
+            ->leftJoin('dispatch.requester', 'join_requester')
+            ->leftJoin('dispatch.receiver', 'join_receiver')
+            ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
+            ->leftJoin('dispatch.locationTo', 'join_locationTo')
+            ->leftJoin('dispatch.statut', 'join_status')
+
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ]);
 
         return $queryBuilder
             ->getQuery()

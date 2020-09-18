@@ -113,6 +113,14 @@ class ParametrageGlobalController extends AbstractController
                     'location' => $globalParamService->getMvtDeposeArrival(),
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
+                    'businessUnits' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES))
+                ],
+                'paramDispatches' => [
+                    'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
+                    'consigner' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
+                    'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
+                    'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
+                    'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO)
                 ],
                 'mailerServer' => $mailerServerRepository->findOneMailerServer(),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
@@ -483,17 +491,16 @@ class ParametrageGlobalController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
-            $em = $this->getDoctrine()->getManager();
             if ($ifExist) {
                 $ifExist->setValue($data['val']);
-                $em->flush();
+                $entityManager->flush();
             } else {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel($data['param'])
                     ->setValue($data['val']);
-                $em->persist($parametrage);
-                $em->flush();
+                $entityManager->persist($parametrage);
+                $entityManager->flush();
             }
             return new JsonResponse(true);
         }
@@ -811,6 +818,36 @@ class ParametrageGlobalController extends AbstractController
         $em->flush();
         return new JsonResponse(true);
     }
+
+    /**
+     * @Route("/modifier-business-unit",
+     *     name="set_business_unit",
+     *     options={"expose"=true},
+     *     methods="POST",
+     *     condition="request.isXmlHttpRequest()")
+     * @param Request $request
+     * @param ParametrageGlobalRepository $parametrageGlobalRepository
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    public function editBusinessUnit(Request $request,
+                                     ParametrageGlobalRepository $parametrageGlobalRepository): Response
+    {
+        $value = $request->request->get('value');
+
+        $parametrage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
+        $em = $this->getDoctrine()->getManager();
+        if (!$parametrage) {
+            $parametrage = new ParametrageGlobal();
+            $parametrage->setLabel(ParametrageGlobal::BUSINESS_UNIT_VALUES);
+            $em->persist($parametrage);
+        }
+        $parametrage->setValue(json_encode($value));
+
+        $em->flush();
+        return new JsonResponse(true);
+    }
+
 
     /**
      * @Route("/modifier-destination-demande-livraison",

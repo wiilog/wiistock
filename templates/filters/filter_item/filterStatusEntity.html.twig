@@ -1,16 +1,18 @@
 <div class="col-auto mb-2 pr-0">
     {% if categories is defined %}
-        <div class="minw-100px">
-            <div class="input-group">
-                <select type="text" class="form-control data cursor-default filter-input" name="statusEntity" {{ disabled }} title="Entité">
-                    <option value>Entité</option>
-                    {% for category in categories %}
-                        <option value="{{ category.id }}">
-                            {{ category.nom }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+        {% for category in categories %}
+            <button class="btn btn-primary btn-ripple filter-tab minw-105px" data-id="{{ category.id }}">
+                {{ category.nom }}
+            </button>
+        {% endfor %}
+
+        <select hidden class="filter-input" name="statusEntity" {{ disabled }}>
+            <option value>Entité</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}">
+                    {{ category.nom }}
+                </option>
+            {% endfor %}
+        </select>
     {% endif %}
 </div>

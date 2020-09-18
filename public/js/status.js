@@ -1,10 +1,32 @@
 $(function () {
+    const $filtersContainer = $('.filters-container');
+
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_STATUS);
+
     $.post(path, params, function(data) {
         displayFiltersSup(data);
+
+        const {value: selectedCategoryId} = (data || []).find(({field}) => (field === 'statusEntity')) || {};
+        if (selectedCategoryId) {
+            $filtersContainer
+                .find(`.filter-tab[data-id="${selectedCategoryId}"]`)
+                .addClass('active');
+        }
     }, 'json');
+
+    $filtersContainer.find('.filter-tab').click(function() {
+        const $button = $(this);
+        const id = $button.data('id');
+
+        $filtersContainer.find('.filter-tab').removeClass('active');
+        $button.addClass('active');
+        $button.trigger('blur');
+
+        $filtersContainer.find('select[name="statusEntity"]').val(id);
+        $filtersContainer.find('.submit-button').click();
+    });
 
     let pathStatus = Routing.generate('status_param_api', true);
     let tableStatusConfig = {

@@ -14,6 +14,7 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -276,7 +277,7 @@ class DispatchService {
                     $this->templating->render('mails/contents/mailDispatch.html.twig', [
                         'dispatch' => $dispatch,
                         'title' => $title,
-                        'urlSuffix' => $translatedCategory,
+                        'urlSuffix' => $this->router->generate("dispatch_show", ["id" => $dispatch->getId()]),
                         'hideNumber' => $isTreatedStatus,
                         'hideValidationDate' => $isTreatedStatus
                     ]),

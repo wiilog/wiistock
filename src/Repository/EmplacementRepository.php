@@ -193,21 +193,6 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
-    /**
-     * @return Emplacement[]
-     */
-    public function findAllSorted()
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT e
-			FROM App\Entity\Emplacement e
-			ORDER BY e.label ASC"
-		);
-		return $query->execute();
-	}
-
     public function findByIds(array $ids): array {
 	    return $this->createQueryBuilder('location')
             ->where('location.id IN (:ids)')
