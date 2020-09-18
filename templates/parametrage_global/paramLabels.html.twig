@@ -46,7 +46,7 @@
     </div>
     <div class="row">
         <div class="form-group col-6">
-            <label for="param-bl-etiquette">Afficher la quantité sur étiquette d'article</label>
+            <label for="param-bl-etiquette">Afficher la quantité sur l'étiquette d'article</label>
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3 data"
                        name="param-qtt-etiquette" {{ wantsQTT ? 'checked' : '' }}>
@@ -58,6 +58,16 @@
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3 data"
                        name="param-dz-location-etiquette" {{ wantsDZLocation ? 'checked' : '' }}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-6">
+            <label for="param-bl-etiquette">Afficher le numéro du colis dans l'arrivage</label>
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3 data"
+                       name="param-pack-count" {{ wantsPackCount ? 'checked' : '' }}>
                 <span class="slider round"></span>
             </label>
         </div>

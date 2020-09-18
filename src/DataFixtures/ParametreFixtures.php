@@ -95,6 +95,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
             ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL => [
                 'default' => true,
             ],
+            ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL => [
+                'default' => true,
+            ],
             ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL => [
                 'default' => false,
             ],

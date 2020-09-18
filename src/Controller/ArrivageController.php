@@ -1448,6 +1448,7 @@ class ArrivageController extends AbstractController
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $usernameParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
         $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
+        $packCountParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
 
         if (!isset($colis)) {
             $printColis = $request->query->getBoolean('printColis');
@@ -1457,7 +1458,8 @@ class ArrivageController extends AbstractController
                 $barcodeConfigs = $this->getBarcodeConfigPrintAllColis(
                     $arrivage,
                     $usernameParamIsDefined,
-                    $dropzoneParamIsDefined);
+                    $dropzoneParamIsDefined,
+                    $packCountParamIsDefined);
             }
 
             if ($printArrivage) {
@@ -1514,25 +1516,35 @@ class ArrivageController extends AbstractController
         return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService);
     }
 
-    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, ?bool $usernameParamIsDefined, ?bool $dropzoneParamIsDefined)
-    {
-        return array_map(
-            function (Pack $colisInArrivage) use ($arrivage, $dropzoneParamIsDefined, $usernameParamIsDefined) {
-                return $this->getBarcodeColisConfig(
-                    $colisInArrivage,
-                    $arrivage->getDestinataire(),
-                    $usernameParamIsDefined,
-                    $dropzoneParamIsDefined
-                );
-            },
-            $arrivage->getPacks()->toArray()
-        );
+    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage, ?bool $usernameParamIsDefined,
+                                                   ?bool $dropzoneParamIsDefined, bool $packCountParamIsDefined) {
+        //1
+        $total = $arrivage->getPacks()->count();
+        $position = 1;
+        $packs = [];
+
+        foreach($arrivage->getPacks() as $pack) {
+            $packs[] = $this->getBarcodeColisConfig(
+                $pack,
+                $arrivage->getDestinataire(),
+                "$position/$total",
+                $usernameParamIsDefined,
+                $dropzoneParamIsDefined,
+                $packCountParamIsDefined
+            );
+
+            $position++;
+        }
+
+        return $packs;
     }
 
     private function getBarcodeColisConfig(Pack $colis,
                                            ?Utilisateur $destinataire,
+                                           string $pack,
                                            ?bool $usernameParamIsDefined,
-                                           ?bool $dropzoneParamIsDefined)
+                                           ?bool $dropzoneParamIsDefined,
+                                           ?bool $packCountParamIsDefined)
     {
 
         $recipientUsername = ($usernameParamIsDefined && $destinataire)
@@ -1545,11 +1557,15 @@ class ArrivageController extends AbstractController
                 : '')
             : '';
 
-        $usernameIsDefined = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
+        $packLabel = ($packCountParamIsDefined ? $pack : '');
+
+        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
+        $dropzoneSeparator = ($dropZoneLabel && $packLabel) ? ' / ' : '';
+
         return [
             'code' => $colis->getCode(),
             'labels' => [
-                $recipientUsername . $usernameIsDefined . $dropZoneLabel
+                $recipientUsername . $usernameSeparator . $dropZoneLabel . $dropzoneSeparator . $packLabel
             ]
         ];
     }
